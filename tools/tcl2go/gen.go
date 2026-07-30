@@ -68,6 +68,12 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	body.WriteString("\t_ = msg // suppress unused warning\n")
 	body.WriteString("\t_ = _res // suppress unused warning\n")
 	body.WriteString("\t_ = r    // suppress unused warning\n\n")
+	// Pre-declare secondary DB connection variables (TCL scope is function-wide)
+	for i := 1; i <= 9; i++ {
+		body.WriteString(fmt.Sprintf("\tvar db%d *frigolite.DB\n", i))
+		body.WriteString(fmt.Sprintf("\t_ = db%d\n", i))
+	}
+	body.WriteString("\n")
 
 	// Process top-level TCL commands
 	tp := &transpiler{
@@ -166,6 +172,14 @@ func (tp *transpiler) isVarDeclared(name string) bool {
 	return false
 }
 
+// isPreDeclaredDB checks if a variable name is a pre-declared DB connection (db1-db9).
+func isPreDeclaredDB(name string) bool {
+	if len(name) != 3 || name[:2] != "db" {
+		return false
+	}
+	return name[2] >= '1' && name[2] <= '9'
+}
+
 // tclVarToGo converts a TCL variable name to a valid Go identifier.
 func tclVarToGo(name string) string {
 	name = strings.ReplaceAll(name, "::", "_")
@@ -185,11 +199,14 @@ func tclVarToGo(name string) string {
 	if len(name) > 0 && name[0] >= '0' && name[0] <= '9' {
 		name = "v_" + name
 	}
-	// Avoid Go keywords
+	// Avoid Go keywords and names that shadow test framework variables
 	switch name {
 	case "type", "range", "string", "func", "go", "map", "chan",
 		"interface", "struct", "select", "import", "defer":
 		name = "_" + name
+	// Avoid shadowing the test framework variable t (*testing.T)
+	case "t":
+		name = "_t"
 	}
 	return name
 }
@@ -1327,6 +1344,19 @@ func replaceVarRefsRaw(s string) string {
 					pos++
 				}
 				varName := s[varStart:pos]
+				// Handle TCL array syntax: $var(key) → var_key
+				if pos < len(s) && s[pos] == '(' {
+					keyStart := pos + 1
+					keyEnd := keyStart
+					for keyEnd < len(s) && s[keyEnd] != ')' {
+						keyEnd++
+					}
+					if keyEnd < len(s) {
+						key := s[keyStart:keyEnd]
+						varName = varName + "(" + key + ")"
+						pos = keyEnd + 1 // skip past )
+					}
+				}
 				result.WriteString(tclVarToGo(varName))
 			} else {
 				result.WriteByte('$')
@@ -1962,7 +1992,8 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	}
 
 	goName := tclVarToGo(dbName)
-	if tp.isVarDeclared(goName) {
+	// db1-db9 are pre-declared at function level; always use = for them
+	if tp.isVarDeclared(goName) || isPreDeclaredDB(goName) {
 		// Variable already declared — reassign (e.g., db was auto-opened at function start)
 		tp.emitLine("%s, err = frigolite.Open(%s)", goName, filename)
 	} else {

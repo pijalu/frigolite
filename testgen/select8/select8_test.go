@@ -20,6 +20,25 @@ func Test_select8(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE songs(songid, artist, timesplayed);\n  INSERT INTO songs VALUES(1,'one',1);\n  INSERT INTO songs VALUES(2,'one',2);\n  INSERT INTO songs VALUES(3,'two',3);\n  INSERT INTO songs VALUES(4,'three',5);\n  INSERT INTO songs VALUES(5,'one',7);\n  INSERT INTO songs VALUES(6,'two',11);\n")
 	if _res.Error != nil {

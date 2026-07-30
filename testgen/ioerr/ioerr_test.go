@@ -20,6 +20,25 @@ func Test_ioerr(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-1 -erc 1 -ckrefcount 1 -sqlprep {\n  SELECT * FROM sqlite_master;\n} -sqlbody {\n  CREATE TABLE t1(a,b,c);\n  SELECT * FROM sqlite_...} -exclude [expr [string match [execsql {pragma auto_vacuum}]...")
 	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-3 -ckrefcount true -tclprep {\n  execsql {\n    PRAGMA cache_size = 10;\n    BEGIN...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM ab...}")

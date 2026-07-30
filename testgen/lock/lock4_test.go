@@ -21,6 +21,25 @@ func Test_lock4(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("atomic_batch_write test.db") {
 		return
@@ -32,8 +51,7 @@ func Test_lock4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA auto_vacuum=OFF;\n     CREATE TABLE t1(x);\n  ")
 		}
 		os.Remove("test2.db")
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("\n     PRAGMA auto_vacuum=OFF;\n     CREATE TABLE t2(x)\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -54,8 +72,7 @@ func Test_lock4(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] ./test2-script.tcl &")
 		for tclBool("!" + "file exists test2.db-journal") {
 		}
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(1)\n  ")
 		_ = _res // catchsql

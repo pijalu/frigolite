@@ -20,6 +20,25 @@ func Test_joinF(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE t1(x INT);\n  CREATE TABLE t2(y INT);\n  CREATE TABLE t3(z INT);\n  CREATE TABLE t4(w INT);\n  INSERT INTO t1 VALUES(10);\n  INSERT INTO t3 VALUES(20),(30);\n  INSERT INTO t4 VALUES(50);\n")
 	if _res.Error != nil {

@@ -21,6 +21,25 @@ func Test_ioerr2(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "ioerr2-1.1"
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA default_cache_size = 10;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
@@ -122,7 +141,7 @@ func Test_ioerr2(t *testing.T) {
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
-	if _tcl_platform(platform) == "unix" {
+	if _tcl_platform_platform == "unix" {
 		{ // do_test "ioerr2-6"
 			var _sqlite_io_error_hit = "0" // TCL namespace variable
 			_ = _sqlite_io_error_hit // suppress unused warning

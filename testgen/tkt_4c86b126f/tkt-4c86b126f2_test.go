@@ -20,6 +20,25 @@ func Test_tkt_4c86b126f2(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "tkt-4c86b126f2-1.1"
 		r = db.Query("\n  CREATE TABLE nodes(\n     local_relpath  TEXT PRIMARY KEY,\n     moved_to  TEXT\n  );\n  INSERT INTO nodes VALUES('A',NULL);\n  INSERT INTO nodes VALUES('A/B',NULL);\n  INSERT INTO nodes VALUES('',NULL);\n  INSERT INTO nodes VALUES('A/B/C-move',NULL);\n  INSERT INTO nodes VALUES('A/B/C','A/B/C-move');\n  INSERT INTO nodes VALUES('A/B-move',NULL);\n  INSERT INTO nodes VALUES('A/B-move/C-move',NULL);\n  INSERT INTO nodes VALUES('A/B-move/C','x');\n  SELECT local_relpath, moved_to\n   FROM nodes\n  WHERE (local_relpath = 'A/B' OR\n           ((local_relpath > 'A/B/') AND (local_relpath < 'A/B0')))\n    AND moved_to IS NOT NULL;\n")

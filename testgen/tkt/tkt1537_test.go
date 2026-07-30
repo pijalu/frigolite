@@ -20,6 +20,25 @@ func Test_tkt1537(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt1537-1.1"
 		r = db.Query("\n    CREATE TABLE t1(id, a1, a2);\n    INSERT INTO t1 VALUES(1, NULL, NULL);\n    INSERT INTO t1 VALUES(2, 1, 3);\n    CREATE TABLE t2(id, b);\n    INSERT INTO t2 VALUES(3, 1);\n    INSERT INTO t2 VALUES(4, NULL);\n    SELECT * FROM t1 LEFT JOIN t2 ON a1=b OR a2=+b;\n  ")

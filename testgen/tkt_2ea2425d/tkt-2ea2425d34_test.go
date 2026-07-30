@@ -20,6 +20,25 @@ func Test_tkt_2ea2425d34(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-2ea24-1.1"
 		_res = db.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t1 VALUES(3,'ghi');\n    SELECT a FROM t1 WHERE length(b)<10 AND b<>'def' ORDER BY a;\n  ")

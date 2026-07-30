@@ -20,6 +20,25 @@ func Test_coalesce(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "coalesce-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n    INSERT INTO t1 VALUES(1, null, null, null);\n    INSERT INTO t1 VALUES(2, 2, 99, 99);\n    INSERT INTO t1 VALUES(3, null, 3, 99);\n    INSERT INTO t1 VALUES(4, null, null, 4);\n    INSERT INTO t1 VALUES(5, null, null, null);\n    INSERT INTO t1 VALUES(6, 22, 99, 99);\n    INSERT INTO t1 VALUES(7, null, 33, 99);\n    INSERT INTO t1 VALUES(8, null, null, 44);\n\n    SELECT coalesce(b,c,d) FROM t1 ORDER BY a;\n  ")

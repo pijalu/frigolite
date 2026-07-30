@@ -21,6 +21,25 @@ func Test_date5(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var date5data = "\n   1 2024     2  29 2460369.5\n   2 2024     3   1 2460370.5\n   3 2023     2  28 2460003.5\n   4 2023     3   1 2460004.5\n   5 2000     2  29 2451603.5\n   6 2000     3   1 2451604.5\n   7 1900     2  28 2415078.5\n   8 1900     3   1 2415079.5\n   9 1712     2  29 2346413.5\n  10 1712     3   1 2346414.5\n  11 1977     4  26 2443259.5\n  12 2013     1   1 2456293.5\n"
 	_ = date5data // suppress unused warning

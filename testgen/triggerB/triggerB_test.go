@@ -21,6 +21,25 @@ func Test_triggerB(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "triggerB-1.1"
 		r = db.Query("\n    CREATE TABLE x(x INTEGER PRIMARY KEY, y INT NOT NULL);\n    INSERT INTO x(y) VALUES(1);\n    INSERT INTO x(y) VALUES(1);\n    CREATE TEMP VIEW vx AS SELECT x, y, 0 AS yy FROM x;\n    CREATE TEMP TRIGGER tx INSTEAD OF UPDATE OF y ON vx\n    BEGIN\n      UPDATE x SET y = new.y WHERE x = new.x;\n    END;\n    SELECT * FROM vx;\n  ")

@@ -21,6 +21,25 @@ func Test_backup2(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // do_test "backup2-1"
@@ -33,8 +52,7 @@ func Test_backup2(t *testing.T) {
 	_ = cksum // suppress unused warning
 	{ // do_test "backup2-2"
 		os.Remove("bu1.db")
-		db2, err := frigolite.Open("bu1.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("bu1.db")
 		if err != nil { t.Fatal(err) }
 		t.Errorf("TODO: %s not implemented in frigolite", "dbcksum db2 main")
 	}
@@ -75,8 +93,7 @@ func Test_backup2(t *testing.T) {
 	{ // do_test "backup2-5"
 		db2.Close()
 		os.Remove("bu1.db")
-		db2, err := frigolite.Open("bu2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("bu2.db")
 		if err != nil { t.Fatal(err) }
 		t.Errorf("TODO: %s not implemented in frigolite", "dbcksum db2 main")
 	}
@@ -170,7 +187,7 @@ func Test_backup2(t *testing.T) {
 		}
 		rc = tclListAppend(rc, res)
 	}
-	if _tcl_platform(os) == "Windows NT" {
+	if _tcl_platform_os == "Windows NT" {
 		var msg = "cannot open source database: unable to open database file"
 		_ = msg // suppress unused warning
 	} else if tclBool("*BSD $tcl_platform(os)") {

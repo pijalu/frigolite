@@ -22,6 +22,25 @@ func Test_misc5(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var i = "120"
 	_ = i // suppress unused warning
@@ -168,8 +187,7 @@ func Test_misc5(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "misc5-7.2"
-		db2, err := frigolite.Open(":memory:")
-		defer db2.Close()
+		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db2 DEFENSIVE 0")
 		_res = db.Exec("\n    CREATE TABLE t1(x UNIQUE);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE table t(o CHECK(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((;VALUES(o)';\n    BEGIN;\n    CREATE TABLE t2(y);\n    ROLLBACK;\n    DROP TABLE IF EXISTS D;\n  ")

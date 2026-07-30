@@ -20,6 +20,25 @@ func Test_shared8(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "shared8"
 	_ = testprefix // suppress unused warning
@@ -30,8 +49,7 @@ func Test_shared8(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
-		db1, err := frigolite.Open("test.db")
-		defer db1.Close()
+		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// db1.func (db command)
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n    INSERT INTO t1 VALUES(3, 3);\n    INSERT INTO t1 VALUES(4, 4);\n    CREATE VIEW v1 AS SELECT a, roman(b) FROM t1;\n    SELECT * FROM v1;\n  ")
@@ -53,8 +71,7 @@ func Test_shared8(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// db2.func (db command)
 		r = db.Query(" SELECT * FROM v1 ")
@@ -70,8 +87,7 @@ func Test_shared8(t *testing.T) {
 		}
 	}
 	{ // do_test "1.5"
-		db3, err := frigolite.Open("test.db")
-		defer db3.Close()
+		db3, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		// db3.func (db command)
 		r = db.Query(" SELECT * FROM v1 ")
@@ -94,8 +110,7 @@ func Test_shared8(t *testing.T) {
 	}
 	{ // do_test "1.8"
 		db3.Close()
-		db4, err := frigolite.Open("test.db")
-		defer db4.Close()
+		db4, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM v1 ")
 		_ = _res // catchsql

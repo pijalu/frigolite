@@ -20,6 +20,25 @@ func Test_func5(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "func5-1.1"
 		r = db.Query("\n  PRAGMA encoding=UTF16le;\n  CREATE TABLE t1(x,a,b,c);\n  INSERT INTO t1 VALUES(1,'ab','cd',1);\n  INSERT INTO t1 VALUES(2,'gh','ef',5);\n  INSERT INTO t1 VALUES(3,'pqr','fuzzy',99);\n  INSERT INTO t1 VALUES(4,'abcdefg','xy',22);\n  INSERT INTO t1 VALUES(5,'shoe','mayer',2953);\n  SELECT x FROM t1 WHERE c=instr('abcdefg',b) OR a='abcdefg' ORDER BY +x;\n")

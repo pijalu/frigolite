@@ -21,6 +21,25 @@ func Test_errofst1(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "errofst1-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1 as select 1 as aa;\n  CREATE VIEW t2 AS\n     WITH t3 AS (SELECT 1 FROM t1 AS bb, t1 AS cc WHERE cc.aa <= sts.aa)\n     SELECT 1 FROM t3 AS dd;\n")

@@ -20,6 +20,25 @@ func Test_index8(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c,d);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1(a,b,c,d)\n     SELECT x/10, x%10, x%19, x FROM c;\n  CREATE INDEX t1abc ON t1(a,b,c);\n  SELECT * FROM t1 WHERE c=4 ORDER BY a, b LIMIT 2;\n")

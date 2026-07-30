@@ -23,6 +23,25 @@ func Test_e_expr(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -369,8 +388,8 @@ func Test_e_expr(t *testing.T) {
 											lhs := _items7[_idx7+1]
 											_ = lhs // suppress unused warning
 											_ = _idx7
-												var t = "db one \" SELECT typeof($lhs $op $rhs) \""
-												_ = t // suppress unused warning
+												var _t = "db one \" SELECT typeof($lhs $op $rhs) \""
+												_ = _t // suppress unused warning
 												{ // do_test "e_expr-7." + opname + "(" + op + ")." + n1 + "." + n2
 													// expr \n           ($op=="||" && ($t == "text" || $t == "null"))\n        || ($op!="||... → "($op==\"||\" && ($t == \"text\" || $t == \"null\"))\n        || ($op!=\"||\" && ($t == \"integer\" || $t == \"real\" || $t == \"null\"))"
 												}

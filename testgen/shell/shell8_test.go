@@ -22,6 +22,25 @@ func Test_shell8(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "shell8"
 	_ = testprefix // suppress unused warning
@@ -85,7 +104,7 @@ func Test_shell8(t *testing.T) {
 			ar2 := tclRegsub("-all", "ar4", "dir_content ar4")
 			_ = ar2 // suppress unused warning
 		}
-		if tcl_platform(platform) == "unix" {
+		if tcl_platform_platform == "unix" {
 			t.Errorf("TODO: %s not implemented in frigolite", "populate_dir ar2 {\n    file1 \"1234\" \n    file2 \"3456\"\n  }")
 			// file link ar2/link1 file1
 			os.Remove("shell8.db")

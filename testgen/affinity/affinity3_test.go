@@ -20,6 +20,25 @@ func Test_affinity3(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "affinity3-100"
 		_res = db.Exec("\n  CREATE TABLE customer (id INT PRIMARY KEY);\n  CREATE TABLE apr (id INT PRIMARY KEY, apr REAL);\n  \n  CREATE VIEW v1 AS\n  SELECT c.id, i.apr\n  FROM customer c\n  LEFT JOIN apr i ON i.id=c.id;\n  \n  CREATE VIEW v1rj AS\n  SELECT c.id, i.apr\n  FROM apr i\n  RIGHT JOIN customer c ON i.id=c.id;\n  \n  CREATE VIEW v2 AS\n  SELECT c.id, v1.apr\n  FROM customer c\n  LEFT JOIN v1 ON v1.id=c.id;\n  \n  CREATE VIEW v2rj AS\n  SELECT c.id, v1.apr\n  FROM v1 RIGHT JOIN customer c ON v1.id=c.id;\n  \n  CREATE VIEW v2rjrj AS\n  SELECT c.id, v1rj.apr\n  FROM v1rj RIGHT JOIN customer c ON v1rj.id=c.id;\n  \n  INSERT INTO customer (id) VALUES (1);\n  INSERT INTO apr (id, apr) VALUES (1, 12);\n  INSERT INTO customer (id) VALUES (2);\n  INSERT INTO apr (id, apr) VALUES (2, 12.01);\n")

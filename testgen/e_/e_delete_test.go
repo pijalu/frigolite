@@ -21,6 +21,25 @@ func Test_e_delete(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // "e_delete-0.0"
@@ -32,7 +51,7 @@ func Test_e_delete(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-0.1 {\n  1  \"DELETE FROM t1\"                            ...}")
 	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	{ // do_test "e_delete-1.0"
-		for _, t := range tclSplitList("t1 t2 t3 t4 t5 t6") {
+		for _, _t := range tclSplitList("t1 t2 t3 t4 t5 t6") {
 			_res = db.Exec("[list %T% $t] {\n        CREATE TABLE %T%(x, y);\n        INSERT INTO %T% VALUES(1, 'one');\n        INSERT INTO %T% VALUES(2, 'two');\n        INSERT INTO %T% VALUES(3, 'three');\n        INSERT INTO %T% VALUES(4, 'four');\n        INSERT INTO %T% VALUES(5, 'five');\n      }")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "[list %T% $t] {\n        CREATE TABLE %T%(x, y);\n        INSERT INTO %T% VALUES(1, 'one');\n        INSERT INTO %T% VALUES(2, 'two');\n        INSERT INTO %T% VALUES(3, 'three');\n        INSERT INTO %T% VALUES(4, 'four');\n        INSERT INTO %T% VALUES(5, 'five');\n      }")

@@ -22,6 +22,25 @@ func Test_walcrash3(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "walcrash3"
 	_ = testprefix // suppress unused warning
@@ -50,8 +69,7 @@ func Test_walcrash3(t *testing.T) {
 			}
 		}
 		if func() bool { _state_n, __state_e := strconv.Atoi(_state); if __state_e != nil { return false }; return _state_n == 2 }() {
-			db2, err := frigolite.Open("xx_test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("xx_test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "1." + i + ".2"
 				r = db.Query(" PRAGMA integrity_check  ")

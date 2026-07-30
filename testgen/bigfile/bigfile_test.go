@@ -21,16 +21,35 @@ func Test_bigfile(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	if tclBool("file exists skip-big-file") {
 	}
-	if tcl_platform(os) == "Darwin" {
+	if tcl_platform_os == "Darwin" {
 	}
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	t.Errorf("TODO: %s not implemented in frigolite", "scan $::tcl_version %f vx")
 	if func() bool { vx_n, _vx_e := strconv.Atoi(vx); if _vx_e != nil { return false }; return vx_n < 8.4 }() {
 	}
-	if tcl_platform(os) == "Darwin" {
+	if tcl_platform_os == "Darwin" {
 	}
 	var MAGIC_SUM = "593f1efcfdbe698c28b4b1b693f7e4cf"
 	_ = MAGIC_SUM // suppress unused warning

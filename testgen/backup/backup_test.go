@@ -22,6 +22,25 @@ func Test_backup(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	// proc definition (not transpiled)
@@ -35,8 +54,7 @@ func Test_backup(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-1.2 db main db main")
 	{ // do_test "backup-1.3.1"
 		t.Errorf("TODO: %s not implemented in frigolite", "delete_file test2.db")
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 	}
@@ -169,8 +187,7 @@ func Test_backup(t *testing.T) {
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("test2.db")
-				defer db2.Close()
+				db2, err = frigolite.Open("test2.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" PRAGMA page_size = 1024 ")
 				if r.Error != nil {
@@ -264,8 +281,7 @@ func Test_backup(t *testing.T) {
 				}
 			}
 		}
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec(" PRAGMA page_size = 4096 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -288,8 +304,7 @@ func Test_backup(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2, err := frigolite.Open("test2.db")
-	defer db2.Close()
+	db2, err = frigolite.Open("test2.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "backup-4.1.1"
 		{
@@ -385,8 +400,7 @@ func Test_backup(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open(":memory:")
-		defer db2.Close()
+		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
@@ -428,8 +442,7 @@ func Test_backup(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				t.Errorf("TODO: %s not implemented in frigolite", "delete_file bak.db")
 			}
-			db2, err := frigolite.Open("bak.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("bak.db")
 			if err != nil { t.Fatal(err) }
 			{
 				var _catchErr error
@@ -439,8 +452,7 @@ func Test_backup(t *testing.T) {
 			db, err := frigolite.Open(file)
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			db3, err := frigolite.Open(file)
-			defer db3.Close()
+			db3, err = frigolite.Open(file)
 			if err != nil { t.Fatal(err) }
 			{ // do_test "backup-5." + iTest + ".1.1"
 				_res = db.Exec("\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
@@ -617,8 +629,7 @@ func Test_backup(t *testing.T) {
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			db2, err := frigolite.Open("test2.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));\n    INSERT INTO t1 VALUES(3, randstr(1000,1000));\n    INSERT INTO t1 VALUES(4, randstr(1000,1000));\n    INSERT INTO t1 VALUES(5, randstr(1000,1000));\n    COMMIT;\n  ")
 			if _res.Error != nil {
@@ -674,8 +685,7 @@ func Test_backup(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				os.Remove("test2.db")
 			}
-			db2, err := frigolite.Open("test2.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
@@ -690,8 +700,7 @@ func Test_backup(t *testing.T) {
 			t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
 		}
 		{ // do_test "backup-7.1.2"
-			db3, err := frigolite.Open("test.db")
-			defer db3.Close()
+			db3, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" BEGIN EXCLUSIVE ")
 			if _res.Error != nil {
@@ -732,11 +741,9 @@ func Test_backup(t *testing.T) {
 			db2.Close()
 			db3.Close()
 			os.Remove("test2.db")
-			db2, err := frigolite.Open("test2.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
-			db3, err := frigolite.Open("test2.db")
-			defer db3.Close()
+			db3, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 			_res = db.Exec(" BEGIN ; CREATE TABLE t2(a, b); ")
@@ -779,11 +786,9 @@ func Test_backup(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				os.Remove("test3.db")
 			}
-			db2, err := frigolite.Open("test2.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
-			db3, err := frigolite.Open("test3.db")
-			defer db3.Close()
+			db3, err = frigolite.Open("test3.db")
 			if err != nil { t.Fatal(err) }
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B2 db2 main db main")
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B3 db3 main db main")
@@ -841,8 +846,7 @@ func Test_backup(t *testing.T) {
 			db3.Close()
 		}
 		{ // do_test "backup-9.1.1"
-			db2, err := frigolite.Open("test2.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 			t.Errorf("TODO: %s not implemented in frigolite", "B step 1")
@@ -899,8 +903,7 @@ func Test_backup(t *testing.T) {
 				}
 				{ // do_test "backup-10." + tn + ".3"
 					os.Remove("bak.db")
-					db2, err := frigolite.Open("bak.db")
-					defer db2.Close()
+					db2, err = frigolite.Open("bak.db")
 					if err != nil { t.Fatal(err) }
 					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 					t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
@@ -920,11 +923,9 @@ func Test_backup(t *testing.T) {
 				db2.Close()
 			}
 			{ // do_test "backup-11.1"
-				db1, err := frigolite.Open(":memory:")
-				defer db1.Close()
+				db1, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open(":memory:")
-				defer db2.Close()
+				db2, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db1 main db2 temp")
 				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
@@ -932,11 +933,9 @@ func Test_backup(t *testing.T) {
 			db1.Close()
 			db2.Close()
 			{ // do_test "backup-12.1"
-				db1, err := frigolite.Open(":memory:")
-				defer db1.Close()
+				db1, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open(":memory:")
-				defer db2.Close()
+				db2, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
 				db1.Exec("\n    PRAGMA page_size = 8192;\n    CREATE TABLE t1(x);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

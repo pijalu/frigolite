@@ -20,10 +20,29 @@ func Test_chunksize(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "chunksize"
 	_ = testprefix // suppress unused warning
-	if _tcl_platform(platform) != "unix" {
+	if _tcl_platform_platform != "unix" {
 		return
 	}
 	// foreach {tn jrnlmode} "\n  1 delete\n  2 wal\n"

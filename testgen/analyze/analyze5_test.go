@@ -22,6 +22,25 @@ func Test_analyze5(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "analyze5"
 	_ = testprefix // suppress unused warning
@@ -43,8 +62,8 @@ func Test_analyze5(t *testing.T) {
 			_ = x // suppress unused warning
 			var w = z
 			_ = w // suppress unused warning
-			t := "$z+0.5"
-			_ = t // suppress unused warning
+			_t := "$z+0.5"
+			_ = _t // suppress unused warning
 			t.Errorf("TODO: %s not implemented in frigolite", "switch $z {\n      0 {set u \"alpha\"; unset x}\n      1 {set u \"...}")
 			if tclBool(i + "%2") {
 				var v = u

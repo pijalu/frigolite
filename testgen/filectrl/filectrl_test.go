@@ -21,6 +21,25 @@ func Test_filectrl(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "filectrl-1.1"
 		t.Errorf("TODO: %s not implemented in frigolite", "file_control_test db")
@@ -59,7 +78,7 @@ func Test_filectrl(t *testing.T) {
 	}
 	os.Remove(".test_control_lockproxy.db-conch")
 	os.Remove("test.db")
-	if tcl_platform(platform) == "windows" {
+	if tcl_platform_platform == "windows" {
 		{ // do_test "filectrl-2.1"
 			db, err := frigolite.Open("test2.db")
 			defer db.Close()

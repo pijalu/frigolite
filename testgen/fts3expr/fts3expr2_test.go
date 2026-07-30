@@ -21,6 +21,25 @@ func Test_fts3expr2(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
@@ -34,8 +53,8 @@ func Test_fts3expr2(t *testing.T) {
 	var iTest = "1"
 	_ = iTest // suppress unused warning
 	for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return iTest_n < 500 }() {
-		var t = "random_expr_tree 4"
-		_ = t // suppress unused warning
+		var _t = "random_expr_tree 4"
+		_ = _t // suppress unused warning
 		var e1 = "tree_to_expr $t 0 0"
 		_ = e1 // suppress unused warning
 		var e2 = "tree_to_expr $t 0 1"

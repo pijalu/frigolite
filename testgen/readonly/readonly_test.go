@@ -22,8 +22,27 @@ func Test_readonly(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
-	if tcl_platform(platform) == "windows" {
+	if tcl_platform_platform == "windows" {
 		return
 	}
 	var _testprefix = "readonly" // TCL namespace variable
@@ -59,8 +78,7 @@ func Test_readonly(t *testing.T) {
 		var ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			db2.Close()
 			// incr ii 1

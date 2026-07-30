@@ -21,6 +21,25 @@ func Test_e_walckpt(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "e_walckpt"
 	_ = testprefix // suppress unused warning
@@ -55,8 +74,7 @@ func Test_e_walckpt(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
 			}
-			db2, err := frigolite.Open("test.db2")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db2")
 			if err != nil { t.Fatal(err) }
 			t.Errorf("TODO: %s not implemented in frigolite", "switch -- $tn {\n    1 {\n      # EVIDENCE-OF: R-41299-52117 If no ...}")
 			db2.Close()
@@ -64,8 +82,7 @@ func Test_e_walckpt(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "6.1"
 			_res = db.Exec("\n    PRAGMA auto_vacuum = 0; \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")

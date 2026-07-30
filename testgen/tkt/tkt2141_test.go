@@ -20,6 +20,25 @@ func Test_tkt2141(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2141-1.1"
 		r = db.Query("\n      CREATE TABLE tab1 (t1_id integer PRIMARY KEY, t1_desc);\n      INSERT INTO tab1 VALUES(1,'rec 1 tab 1');\n      CREATE TABLE tab2 (t2_id integer PRIMARY KEY, t2_id_t1, t2_desc);\n      INSERT INTO tab2 VALUES(1,1,'rec 1 tab 2');\n      CREATE TABLE tab3 (t3_id integer PRIMARY KEY, t3_id_t2, t3_desc);\n      INSERT INTO tab3 VALUES(1,1,'aa');\n      SELECT *\n      FROM tab1 t1 LEFT JOIN tab2 t2 ON t1.t1_id = t2.t2_id_t1\n      WHERE t2.t2_id IN\n           (SELECT t2_id FROM tab2, tab3 ON t2_id = t3_id_t2\n             WHERE t3_id IN (1,2) GROUP BY t2_id);\n  ")

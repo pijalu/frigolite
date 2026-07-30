@@ -20,6 +20,25 @@ func Test_fts3ad(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "fts3ad-1.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")

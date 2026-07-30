@@ -22,6 +22,25 @@ func Test_aggorderby(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "aggorderby-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT,b INT,c INT,d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<9)\n  INSERT INTO t1(a,b,c,d) SELECT printf('%d',(x*7)%10),1,x,10-x FROM c;\n  INSERT INTO t1(a,b,c,d) SELECT a, 2, c, 10-d FROM t1;\n  CREATE INDEX t1b ON t1(b);\n")

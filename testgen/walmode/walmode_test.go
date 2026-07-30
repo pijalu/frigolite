@@ -22,6 +22,25 @@ func Test_walmode(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "walmode-1.1"
 		var sqlite_sync_count = "0"
@@ -41,7 +60,7 @@ func Test_walmode(t *testing.T) {
 	if tclBool("atomic_batch_write test.db" + "==0") {
 		var expected_sync_count = "3"
 		_ = expected_sync_count // suppress unused warning
-		if _tcl_platform(os) != "Windows NT" {
+		if _tcl_platform_os != "Windows NT" {
 		}
 		{ // do_test "walmode-1.3"
 		}
@@ -131,8 +150,7 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	{ // do_test "walmode-4.6"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA main.journal_mode ")
 		if r.Error != nil {
@@ -179,8 +197,7 @@ func Test_walmode(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "walmode-4.14"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -561,8 +578,7 @@ func Test_walmode(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			db2, err := frigolite.Open("test.db2")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db2")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "walmode-8.19"
 				r = db.Query(" PRAGMA main.journal_mode ")

@@ -20,6 +20,25 @@ func Test_tkt_6bfb98dfc0(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-6bfb98dfc0.100"
 		_res = db.Exec("\n    PRAGMA page_size=512;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(1,randomblob(400));\n    INSERT INTO t1 VALUES(2,randomblob(400));\n    INSERT INTO t1 SELECT x+2, randomblob(400) FROM t1;\n    INSERT INTO t1 SELECT x+4, randomblob(400) FROM t1;\n    INSERT INTO t1 SELECT x+8, randomblob(400) FROM t1;\n    INSERT INTO t1 SELECT x+16, randomblob(400) FROM t1;\n    INSERT INTO t1 SELECT x+32, randomblob(400) FROM t1;\n    INSERT INTO t1 SELECT x+64, randomblob(400) FROM t1 WHERE x<10;\n    CREATE TRIGGER r1 AFTER INSERT ON t1 WHEN new.x=74 BEGIN\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(75, randomblob(400));\n      INSERT INTO t1 VALUES(76, randomblob(400));\n    END;\n    INSERT INTO t1 VALUES(74, randomblob(400));\n    SELECT x, length(y) FROM t1 ORDER BY x;\n  ")

@@ -20,6 +20,25 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-1 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 'incremental';\n  CREATE TA...} -sqlbody {\n  BEGIN;\n  CREATE TABLE abc2(a);\n  DELETE FROM ab...}")
 	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-2 -start 1 -cksum 1 -tclprep {\n  db eval {\n    PRAGMA auto_vacuum = 'full';\n    ...} -sqlbody {\n  BEGIN;\n  PRAGMA incremental_vacuum;\n  DELETE FR...}")

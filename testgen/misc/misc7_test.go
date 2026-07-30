@@ -22,6 +22,25 @@ func Test_misc7(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "misc7"
 	_ = testprefix // suppress unused warning
@@ -43,8 +62,7 @@ func Test_misc7(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db2, err := frigolite.Open("./mydir")
-			defer db2.Close()
+			db2, err = frigolite.Open("./mydir")
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				rc = "1"
@@ -61,8 +79,7 @@ func Test_misc7(t *testing.T) {
 		{ // do_test "misc7-5"
 			t.Errorf("TODO: %s not implemented in frigolite", "delete_file mydir")
 			// file mkdir mydir-journal
-			db2, err := frigolite.Open("./mydir")
-			defer db2.Close()
+			db2, err = frigolite.Open("./mydir")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE abc(a, b, c);\n    ")
 			_ = _res // catchsql
@@ -75,7 +92,7 @@ func Test_misc7(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE abc(a PRIMARY KEY, b, c); ")
 	}
-	if tcl_platform(platform) != "windows" {
+	if tcl_platform_platform != "windows" {
 		t.Errorf("TODO: %s not implemented in frigolite", "do_fileopen_test misc7-6.1 {\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n ...}")
 		t.Errorf("TODO: %s not implemented in frigolite", "do_fileopen_test misc7-6.2 {\n    PRAGMA temp.cache_size = 1000;\n  }")
 	}
@@ -86,8 +103,7 @@ func Test_misc7(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM abc;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INSERT INTO abc VALUES(2, 3, 4);\n  INSERT INTO abc SELECT a+2, b, c FROM abc;\n")
 	}
 	{ // do_test "misc7-7.0"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_busy_timeout [sqlite3_connection_pointer db] 2000")
 		_res = db.Exec("\n    BEGIN EXCLUSIVE;\n  ")
@@ -171,7 +187,7 @@ func Test_misc7(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t3;\n  ")
 		}
 	}
-	if tcl_platform(platform) != "windows" {
+	if tcl_platform_platform != "windows" {
 		// file attributes test.db -permissions rw-r--r--
 		if tclBool("file attributes test.db -permissions" + "==0644") {
 			{ // do_test "misc7-17.1"
@@ -265,8 +281,7 @@ func Test_misc7(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db2, err := frigolite.Open(zFile)
-			defer db2.Close()
+			db2, err = frigolite.Open(zFile)
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				rc = "1"

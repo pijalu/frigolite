@@ -21,6 +21,25 @@ func Test_skipscan1(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "skipscan1-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b INT, c INT, d INT);\n  CREATE INDEX t1abc ON t1(a,b,c);\n  INSERT INTO t1 VALUES('abc',123,4,5);\n  INSERT INTO t1 VALUES('abc',234,5,6);\n  INSERT INTO t1 VALUES('abc',234,6,7);\n  INSERT INTO t1 VALUES('abc',345,7,8);\n  INSERT INTO t1 VALUES('def',567,8,9);\n  INSERT INTO t1 VALUES('def',345,9,10);\n  INSERT INTO t1 VALUES('bcd',100,6,11);\n\n  /* Fake the sqlite_stat1 table so that the query planner believes\n  ** the table contains thousands of rows and that the first few\n  ** columns are not selective. */\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1abc','10000 5000 2000 10');\n  ANALYZE sqlite_master;\n")

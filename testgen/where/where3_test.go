@@ -21,6 +21,25 @@ func Test_where3(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "where3-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(p, q);\n    CREATE TABLE t3(x, y);\n    \n    INSERT INTO t1 VALUES(111,'one');\n    INSERT INTO t1 VALUES(222,'two');\n    INSERT INTO t1 VALUES(333,'three');\n    \n    INSERT INTO t2 VALUES(1,111);\n    INSERT INTO t2 VALUES(2,222);\n    INSERT INTO t2 VALUES(4,444);\n    CREATE INDEX t2i1 ON t2(p);\n    \n    INSERT INTO t3 VALUES(999,'nine');\n    CREATE INDEX t3i1 ON t3(x);\n    \n    SELECT * FROM t1, t2 LEFT JOIN t3 ON q=x WHERE p=2 AND a=q;\n  ")

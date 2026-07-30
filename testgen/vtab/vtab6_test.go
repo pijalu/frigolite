@@ -20,16 +20,35 @@ func Test_vtab6(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 	_res = db.Exec("\n  CREATE TABLE real_t1(a,b,c);\n  CREATE TABLE real_t2(b,c,d);\n  CREATE TABLE real_t3(c,d,e);\n  CREATE TABLE real_t4(d,e,f);\n  CREATE TABLE real_t5(a INTEGER PRIMARY KEY);\n  CREATE TABLE real_t6(a INTEGER);\n  CREATE TABLE real_t7 (x, y);\n  CREATE TABLE real_t8 (a integer primary key, b);\n  CREATE TABLE real_t9(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE real_t10(x INTEGER PRIMARY KEY, y);\n  CREATE TABLE real_t11(p INTEGER PRIMARY KEY, q);\n  CREATE TABLE real_t12(a,b);\n  CREATE TABLE real_t13(b,c);\n  CREATE TABLE real_t21(a,b,c);\n  CREATE TABLE real_t22(p,q);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE real_t1(a,b,c);\n  CREATE TABLE real_t2(b,c,d);\n  CREATE TABLE real_t3(c,d,e);\n  CREATE TABLE real_t4(d,e,f);\n  CREATE TABLE real_t5(a INTEGER PRIMARY KEY);\n  CREATE TABLE real_t6(a INTEGER);\n  CREATE TABLE real_t7 (x, y);\n  CREATE TABLE real_t8 (a integer primary key, b);\n  CREATE TABLE real_t9(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE real_t10(x INTEGER PRIMARY KEY, y);\n  CREATE TABLE real_t11(p INTEGER PRIMARY KEY, q);\n  CREATE TABLE real_t12(a,b);\n  CREATE TABLE real_t13(b,c);\n  CREATE TABLE real_t21(a,b,c);\n  CREATE TABLE real_t22(p,q);\n")
 	}
-	for _, t := range tclSplitList("list t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t21 t22") {
-		_res = db.Exec("CREATE VIRTUAL TABLE " + t + " USING echo(real_" + t + ")")
+	for _, _t := range tclSplitList("list t1 t2 t3 t4 t5 t6 t7 t8 t9 t10 t11 t12 t13 t21 t22") {
+		_res = db.Exec("CREATE VIRTUAL TABLE " + _t + " USING echo(real_" + _t + ")")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE " + t + " USING echo(real_" + t + ")")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE " + _t + " USING echo(real_" + _t + ")")
 		}
 	}
 	{ // do_test "vtab6-1.1"

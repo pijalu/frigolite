@@ -21,6 +21,25 @@ func Test_walcrash2(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "walcrash2-1.1"
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = off;\n    PRAGMA journal_mode = WAL;\n    PRAGMA synchronous = NORMAL;\n    BEGIN;\n      CREATE TABLE t1(x);\n      CREATE TABLE t2(x);\n      CREATE TABLE t3(x);\n      CREATE TABLE t4(x);\n      CREATE TABLE t5(x);\n      CREATE TABLE t6(x);\n      CREATE TABLE t7(x);\n    COMMIT;\n  ")
@@ -48,8 +67,7 @@ func Test_walcrash2(t *testing.T) {
 		}
 	}
 	{ // do_test "walcrash2-1.3"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT count(*) FROM t1 ")
 		if r.Error != nil {

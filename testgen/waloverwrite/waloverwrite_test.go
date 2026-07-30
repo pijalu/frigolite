@@ -22,6 +22,25 @@ func Test_waloverwrite(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "waloverwrite"
 	_ = testprefix // suppress unused warning
@@ -94,8 +113,7 @@ func Test_waloverwrite(t *testing.T) {
 			{ // do_test "1." + tn + ".4"
 				os.Remove("test.db2")
 				tclFileCopy("test.db", "test.db2")
-				db2, err := frigolite.Open("test.db2")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {
@@ -106,8 +124,7 @@ func Test_waloverwrite(t *testing.T) {
 				db2.Close()
 				tclFileCopy("test.db", "test.db2")
 				tclFileCopy("test.db-wal", "test.db2-wal")
-				db2, err := frigolite.Open("test.db2")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {
@@ -169,8 +186,7 @@ func Test_waloverwrite(t *testing.T) {
 			{ // do_test "1." + tn + ".8"
 				os.Remove("test.db2")
 				tclFileCopy("test.db", "test.db2")
-				db2, err := frigolite.Open("test.db2")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {
@@ -180,8 +196,7 @@ func Test_waloverwrite(t *testing.T) {
 			{ // do_test "1." + tn + ".9"
 				db2.Close()
 				tclFileCopy("test.db-wal", "test.db2-wal")
-				db2, err := frigolite.Open("test.db2")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" SELECT sum(length(y)) FROM t1 ")
 				if r.Error != nil {

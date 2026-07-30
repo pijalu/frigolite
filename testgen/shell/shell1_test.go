@@ -22,6 +22,25 @@ func Test_shell1(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
@@ -646,7 +665,7 @@ func Test_shell1(t *testing.T) {
 				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0x80 }() {
 					if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return i_n <= 0x9F || tcl_version_n>=9.0 }() {
 					}
-					if tcl_platform(platform) == "windows" {
+					if tcl_platform_platform == "windows" {
 					}
 				}
 				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; tcl_platform_n, _tcl_platform_e := strconv.Atoi(tcl_platform); if _tcl_platform_e != nil { return false }; return i_n >= 0xE0 && tcl_platform_n(os) == "OpenBSD" }() {
@@ -661,7 +680,7 @@ func Test_shell1(t *testing.T) {
 				_ = oldChar // suppress unused warning
 				var escapes = "list"
 				_ = escapes // suppress unused warning
-				if tcl_platform(platform) == "windows" {
+				if tcl_platform_platform == "windows" {
 					var escapes = "list \\\n          \\a \\\\a \\b \\\\b \\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f \\r \\\\r \\\n          \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
 					_ = escapes // suppress unused warning
 				} else {

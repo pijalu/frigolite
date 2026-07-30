@@ -20,6 +20,25 @@ func Test_analyze(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "analyze-1.1"
 		_res = db.Exec("\n    ANALYZE no_such_table\n  ")
@@ -190,8 +209,7 @@ func Test_analyze(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze-4.0"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("\n    CREATE TABLE t4(x,y,z);\n    CREATE INDEX t4i1 ON t4(x);\n    CREATE INDEX t4i2 ON t4(y);\n    INSERT INTO t4 SELECT a,b,c FROM t3;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

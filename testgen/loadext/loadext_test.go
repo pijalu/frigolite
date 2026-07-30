@@ -21,8 +21,27 @@ func Test_loadext(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
-	if _tcl_platform(platform) == "windows" {
+	if _tcl_platform_platform == "windows" {
 		var testextension = "./testloadext.dll"
 		_ = testextension // suppress unused warning
 	} else {
@@ -31,7 +50,7 @@ func Test_loadext(t *testing.T) {
 	}
 	var gcc_shared = "-shared -fPIC"
 	_ = gcc_shared // suppress unused warning
-	if _tcl_platform(os) == "Darwin" {
+	if _tcl_platform_os == "Darwin" {
 		var gcc_shared = "-dynamiclib"
 		_ = gcc_shared // suppress unused warning
 	}
@@ -41,7 +60,7 @@ func Test_loadext(t *testing.T) {
 	_ = dlerror_notadll // suppress unused warning
 	var dlerror_nosymbol = "%s: undefined symbol: %s"
 	_ = dlerror_nosymbol // suppress unused warning
-	if _tcl_platform(os) == "Darwin" {
+	if _tcl_platform_os == "Darwin" {
 		var dlerror_nosuchfile = "dlopen.%s, 10.: .*image.*found.*"
 		_ = dlerror_nosuchfile // suppress unused warning
 		var dlerror_notadll = "dlopen.%1$s, 10.: .*image.*found.*"
@@ -49,10 +68,10 @@ func Test_loadext(t *testing.T) {
 		var dlerror_nosymbol = "dlsym.XXX, %2$s.: symbol not found"
 		_ = dlerror_nosymbol // suppress unused warning
 	}
-	if _tcl_platform(os) == "Windows NT" {
+	if _tcl_platform_os == "Windows NT" {
 		var dlerror_nosuchfile = "The specified module could not be found.*"
 		_ = dlerror_nosuchfile // suppress unused warning
-		if _tcl_platform(platform) == "unix" {
+		if _tcl_platform_platform == "unix" {
 			var dlerror_notadll = dlerror_nosuchfile
 			_ = dlerror_notadll // suppress unused warning
 		} else {
@@ -86,8 +105,7 @@ func Test_loadext(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-1.3"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db2 SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION 1")
 		_res = db.Exec("\n    SELECT half(1.0);\n  ")
@@ -163,7 +181,7 @@ func Test_loadext(t *testing.T) {
 				msg = ""
 			}
 		}
-		if _tcl_platform(os) == "Darwin" {
+		if _tcl_platform_os == "Darwin" {
 			msg := tclRegsub("0x[1234567890abcdefABCDEF]*", msg, "XXX")
 			_ = msg // suppress unused warning
 		}
@@ -197,7 +215,7 @@ func Test_loadext(t *testing.T) {
 	{ // do_test "loadext-3.2"
 		var res = "catchsql {\n    SELECT load_extension($::testextension)\n  }"
 		_ = res // suppress unused warning
-		if _tcl_platform(os) == "Darwin" {
+		if _tcl_platform_os == "Darwin" {
 			res := tclRegsub("0x[1234567890abcdefABCDEF]*", res, "XXX")
 			_ = res // suppress unused warning
 		}
@@ -252,7 +270,7 @@ func Test_loadext(t *testing.T) {
 		_ = _res // catchsql
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test loadext-5 -tclprep {\n  sqlite3_reset_auto_extension\n} -tclbody {\n  if {[autoinstall_test_functions]==7} {error \"ou...}")
-	if _tcl_platform(platform) != "windows" {
+	if _tcl_platform_platform != "windows" {
 		t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test loadext-6 -tclbody {\n    db enable_load_extension 1\n    sqlite3_load_e...}")
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")

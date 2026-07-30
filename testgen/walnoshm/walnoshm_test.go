@@ -20,6 +20,25 @@ func Test_walnoshm(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "walnoshm"
 	_ = testprefix // suppress unused warning
@@ -135,8 +154,7 @@ func Test_walnoshm(t *testing.T) {
 	{ // do_test "2.1.3"
 		tclFileCopy("test.db", "test2.db")
 		tclFileCopy("test.db-wal", "test2.db-wal")
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t2 ")
 		_ = _res // catchsql
@@ -155,11 +173,9 @@ func Test_walnoshm(t *testing.T) {
 		db2.Close()
 		tclFileCopy("test.db", "test2.db")
 		tclFileCopy("test.db-wal", "test2.db-wal")
-		db3, err := frigolite.Open("test2.db")
-		defer db3.Close()
+		db3, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM t2 ")
 		if r.Error != nil {
@@ -175,8 +191,7 @@ func Test_walnoshm(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "2.2.3"
-		db4, err := frigolite.Open("test2.db")
-		defer db4.Close()
+		db4, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM t2 ")
 		if r.Error != nil {
@@ -189,8 +204,7 @@ func Test_walnoshm(t *testing.T) {
 	}
 	{ // do_test "2.2.5"
 		db4.Close()
-		db4, err := frigolite.Open("test2.db")
-		defer db4.Close()
+		db4, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM t2 ")
 		if r.Error != nil {
@@ -214,8 +228,7 @@ func Test_walnoshm(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    SELECT * FROM t1;\n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(5, 6);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 		}
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
@@ -231,8 +244,7 @@ func Test_walnoshm(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(9, 10);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(11, 12);\n  ")
 		}
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql

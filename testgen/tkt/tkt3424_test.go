@@ -20,6 +20,25 @@ func Test_tkt3424(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3424-1.1"
 		_res = db.Exec("\n    CREATE TABLE names(id INTEGER, data TEXT, code TEXT);\n    INSERT INTO names VALUES(1,'E1','AAA');\n    INSERT INTO names VALUES(2,NULL,'BBB');\n\n    CREATE TABLE orig(code TEXT, data TEXT);\n    INSERT INTO orig VALUES('AAA','E1');\n    INSERT INTO orig VALUES('AAA','E2');\n    INSERT INTO orig VALUES('AAA','E3');\n    INSERT INTO orig VALUES('AAA','E4');\n    INSERT INTO orig VALUES('AAA','E5');\n  ")

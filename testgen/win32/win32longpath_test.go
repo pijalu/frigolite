@@ -21,7 +21,26 @@ func Test_win32longpath(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
-	if tcl_platform(platform) != "windows" {
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
+	if tcl_platform_platform != "windows" {
 	}
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "win32longpath"
@@ -83,8 +102,7 @@ func Test_win32longpath(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	db3, err := frigolite.Open(fileName)
-	defer db3.Close()
+	db3, err = frigolite.Open(fileName)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.4"
 		db3.Exec("\n    BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(5);\n    INSERT INTO t1 VALUES(6);\n    INSERT INTO t1 VALUES(7);\n    INSERT INTO t1 VALUES(8);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;\n  ")
@@ -105,8 +123,7 @@ func Test_win32longpath(t *testing.T) {
 	var lUri = "list 1a 1b 1c 1d 1e 1f"
 	_ = lUri // suppress unused warning
 	for _, tn := range tclSplitList(lUri) {
-		db3, err := frigolite.Open(uri + "(" + tn + ")")
-		defer db3.Close()
+		db3, err = frigolite.Open(uri + "(" + tn + ")")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "1.7." + tn
 			db3.Exec("\n      SELECT x FROM t1 ORDER BY x;\n    ")

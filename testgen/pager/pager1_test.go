@@ -23,6 +23,25 @@ func Test_pager1(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "pager1"
 	_ = testprefix // suppress unused warning
@@ -201,7 +220,7 @@ func Test_pager1(t *testing.T) {
 			}
 			t.Errorf("TODO: %s not implemented in frigolite", "tstvfs delete")
 		}
-		if _tcl_platform(os) != "Windows NT" {
+		if _tcl_platform_os != "Windows NT" {
 			{ // do_test "pager1.4.2.2"
 				t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 				r = db.Query("\n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check;\n  ")
@@ -732,8 +751,7 @@ func Test_pager1(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO t1 VALUES(64, 'Brezhnev');\n      INSERT INTO t2 SELECT * FROM t1;\n  ")
 						}
-						db2, err := frigolite.Open("test.db2")
-						defer db2.Close()
+						db2, err = frigolite.Open("test.db2")
 						if err != nil { t.Fatal(err) }
 						r = db.Query("\n    BEGIN;\n      SELECT * FROM t2;\n  ")
 						if r.Error != nil {
@@ -980,8 +998,7 @@ func Test_pager1(t *testing.T) {
 								}
 							}
 							{ // do_test "pager1-8." + tn + ".2"
-								db2, err := frigolite.Open(filename)
-								defer db2.Close()
+								db2, err = frigolite.Open(filename)
 								if err != nil { t.Fatal(err) }
 								_res = db.Exec(" SELECT * FROM x1 ")
 								_ = _res // catchsql
@@ -1001,8 +1018,7 @@ func Test_pager1(t *testing.T) {
 							}
 						}
 						{ // do_test "pager1-9.0.2"
-							db2, err := frigolite.Open("test.db2")
-							defer db2.Close()
+							db2, err = frigolite.Open("test.db2")
 							if err != nil { t.Fatal(err) }
 							db2.Exec(" PRAGMA cache_size = 10 ")
 							if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -1087,8 +1103,7 @@ func Test_pager1(t *testing.T) {
 						}
 						if tclBool("nonzero_reserved_bytes") {
 							{ // do_test "pager1-9.3.2codec"
-								db2, err := frigolite.Open("test.db2")
-								defer db2.Close()
+								db2, err = frigolite.Open("test.db2")
 								if err != nil { t.Fatal(err) }
 								_res = db.Exec("\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
 								if _res.Error != nil {
@@ -1106,8 +1121,7 @@ func Test_pager1(t *testing.T) {
 							}
 						} else {
 							{ // do_test "pager1-9.3.2"
-								db2, err := frigolite.Open("test.db2")
-								defer db2.Close()
+								db2, err = frigolite.Open("test.db2")
 								if err != nil { t.Fatal(err) }
 								_res = db.Exec("\n      PRAGMA page_size = 4096;\n      PRAGMA synchronous = OFF;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n    ")
 								if _res.Error != nil {
@@ -1126,8 +1140,7 @@ func Test_pager1(t *testing.T) {
 						}
 						{ // do_test "pager1-9.4.1"
 							t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-							db2, err := frigolite.Open("test.db2")
-							defer db2.Close()
+							db2, err = frigolite.Open("test.db2")
 							if err != nil { t.Fatal(err) }
 							_res = db.Exec("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a, b);\n  ")
 							if _res.Error != nil {
@@ -1262,8 +1275,7 @@ func Test_pager1(t *testing.T) {
 						}
 						t.Errorf("TODO: %s not implemented in frigolite", "tv script {}")
 						{ // do_test "pager1-11.3"
-							db2, err := frigolite.Open("test.db")
-							defer db2.Close()
+							db2, err = frigolite.Open("test.db")
 							if err != nil { t.Fatal(err) }
 							r = db.Query("\n    PRAGMA journal_mode = TRUNCATE;\n    PRAGMA integrity_check;\n  ")
 							if r.Error != nil {
@@ -1298,8 +1310,7 @@ func Test_pager1(t *testing.T) {
 								_ = eff // suppress unused warning
 							}
 							{ // do_test "pager1-12." + pagesize + ".1"
-								db2, err := frigolite.Open("test.db")
-								defer db2.Close()
+								db2, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								_res = db.Exec("\n      PRAGMA page_size = " + pagesize + ";\n      CREATE VIEW v AS SELECT * FROM sqlite_master;\n    ")
 								if _res.Error != nil {
@@ -1308,8 +1319,7 @@ func Test_pager1(t *testing.T) {
 								// file size test.db
 							}
 							{ // do_test "pager1-12." + pagesize + ".2"
-								db2, err := frigolite.Open("test.db")
-								defer db2.Close()
+								db2, err = frigolite.Open("test.db")
 								if err != nil { t.Fatal(err) }
 								r = db.Query(" \n      SELECT count(*) FROM v;\n      PRAGMA main.page_size;\n    ")
 								if r.Error != nil {
@@ -1336,7 +1346,7 @@ func Test_pager1(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = PERSIST;\n  PRAGMA cache_size = 10;\n  BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n    INSERT INTO t1 VALUES(NULL, a_string(400));\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   2 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   4 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*   8 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  16 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  32 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /*  64 */\n    INSERT INTO t1 SELECT NULL, a_string(400) FROM t1;          /* 128 */\n  COMMIT;\n  UPDATE t1 SET b = a_string(400);\n")
 							}
 						}
-						if _tcl_platform(os) != "Windows NT" {
+						if _tcl_platform_os != "Windows NT" {
 							var nUp = "1"
 							_ = nUp // suppress unused warning
 							for func() bool { nUp_n, _nUp_e := strconv.Atoi(nUp); if _nUp_e != nil { return false }; return nUp_n < 64 }() {
@@ -1358,8 +1368,7 @@ func Test_pager1(t *testing.T) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
-								db2, err := frigolite.Open("sv_test.db")
-								defer db2.Close()
+								db2, err = frigolite.Open("sv_test.db")
 								if err != nil { t.Fatal(err) }
 								{ // do_test "pager1-13.1.2." + nUp + ".3"
 									r = db.Query(" SELECT sum(length(b)) FROM t1 ")
@@ -1383,7 +1392,7 @@ func Test_pager1(t *testing.T) {
 								}
 							}
 						}
-						if _tcl_platform(os) != "Windows NT" {
+						if _tcl_platform_os != "Windows NT" {
 							{ // "pager1-13.2.1"
 								_res = db.Exec("\n  CREATE INDEX i1 ON t1(b);\n  UPDATE t1 SET b = a_string(400);\n")
 								if _res.Error != nil {
@@ -1411,8 +1420,7 @@ func Test_pager1(t *testing.T) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
-								db2, err := frigolite.Open("sv_test.db")
-								defer db2.Close()
+								db2, err = frigolite.Open("sv_test.db")
 								if err != nil { t.Fatal(err) }
 								{ // do_test "pager1-13.2.2." + nUp + ".3"
 									r = db.Query(" SELECT sum(length(b)) FROM t1 ")
@@ -1872,7 +1880,7 @@ func Test_pager1(t *testing.T) {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA locking_mode=EXCLUSIVE;\n    SELECT count(*) FROM sqlite_master;\n    PRAGMA lock_status;\n  ")
 								}
 							}
-							if _tcl_platform(os) != "Windows NT" {
+							if _tcl_platform_os != "Windows NT" {
 								{ // do_test "pager1-31.1"
 									t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 									_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    INSERT INTO t1 VALUES(randomblob(1500), randomblob(1500));\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1500), randomblob(1500) FROM t1;\n    BEGIN;\n      UPDATE t1 SET y = randomblob(1499);\n  ")
@@ -1882,8 +1890,7 @@ func Test_pager1(t *testing.T) {
 									t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test.db2")
 									t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-journal test.db2-journal")
 									t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db2-journal 24 00000000")
-									db2, err := frigolite.Open("test.db2")
-									defer db2.Close()
+									db2, err = frigolite.Open("test.db2")
 									if err != nil { t.Fatal(err) }
 									r = db.Query(" PRAGMA integrity_check ")
 									if r.Error != nil {
@@ -1919,7 +1926,7 @@ func Test_pager1(t *testing.T) {
 								// file size test.db
 							}
 							os.Remove("test.db")
-							if _tcl_platform(os) != "Windows NT" {
+							if _tcl_platform_os != "Windows NT" {
 								{ // do_test "pager1-33.1"
 									db, err := frigolite.Open("test.db")
 									defer db.Close()

@@ -20,6 +20,25 @@ func Test_tkt_3998683a16(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-3998683a16.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y REAL);\n    INSERT INTO t1 VALUES(1, '1.0');\n    INSERT INTO t1 VALUES(2, '.125');\n    INSERT INTO t1 VALUES(3, '123.');\n    INSERT INTO t1 VALUES(4, '123.e+2');\n    INSERT INTO t1 VALUES(5, '.125e+3');\n    INSERT INTO t1 VALUES(6, '123e4');\n    INSERT INTO t1 VALUES(11, '  1.0');\n    INSERT INTO t1 VALUES(12, '  .125');\n    INSERT INTO t1 VALUES(13, '  123.');\n    INSERT INTO t1 VALUES(14, '  123.e+2');\n    INSERT INTO t1 VALUES(15, '  .125e+3');\n    INSERT INTO t1 VALUES(16, '  123e4');\n    INSERT INTO t1 VALUES(21, '1.0  ');\n    INSERT INTO t1 VALUES(22, '.125  ');\n    INSERT INTO t1 VALUES(23, '123.  ');\n    INSERT INTO t1 VALUES(24, '123.e+2  ');\n    INSERT INTO t1 VALUES(25, '.125e+3  ');\n    INSERT INTO t1 VALUES(26, '123e4  ');\n    SELECT x FROM t1 WHERE typeof(y)=='real' ORDER BY x;\n  ")

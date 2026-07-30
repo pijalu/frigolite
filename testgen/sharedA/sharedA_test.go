@@ -21,6 +21,25 @@ func Test_sharedA(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
 		return
@@ -33,11 +52,9 @@ func Test_sharedA(t *testing.T) {
 	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = _enable_shared_cache // suppress unused warning
 	{ // do_test "0.1"
-		db1, err := frigolite.Open("test.db")
-		defer db1.Close()
+		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db1.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(100));\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(100) FROM t1;\n    CREATE INDEX i1 ON t1(x);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -50,11 +67,9 @@ func Test_sharedA(t *testing.T) {
 	db1.Close()
 	os.Remove("test.db")
 	{ // do_test "1.1"
-		db1, err := frigolite.Open("test.db")
-		defer db1.Close()
+		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(123);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -76,15 +91,13 @@ func Test_sharedA(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
 	{ // do_test "2.1"
 		os.Remove("test.db")
-		db1, err := frigolite.Open("test.db")
-		defer db1.Close()
+		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db1.Exec(" ATTACH 'test.db2' AS two ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db1.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    CREATE TABLE two.t2(x);\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

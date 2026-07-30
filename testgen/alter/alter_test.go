@@ -21,6 +21,25 @@ func Test_alter(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "alter-1.1"
 		_res = db.Exec("-nocommands {\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + _temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);\n  }")
@@ -147,8 +166,7 @@ func Test_alter(t *testing.T) {
 		}
 	}
 	{ // do_test "alter-5.2"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    ALTER TABLE tbl1 RENAME TO tbl2;\n    SELECT * FROM tbl2;\n  ")
 		if r.Error != nil {

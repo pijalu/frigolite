@@ -20,6 +20,25 @@ func Test_fts3sort(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	var testprefix = "fts3sort"
@@ -27,12 +46,12 @@ func Test_fts3sort(t *testing.T) {
 	// foreach {t param} "\n  1     \"\"\n  2     \"order=asc\"\n  3     \"order=desc\"\n"
 	_items0 := tclSplitList("\n  1     \"\"\n  2     \"order=asc\"\n  3     \"order=desc\"\n")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		t := _items0[_idx0+0]
-		_ = t // suppress unused warning
+		_t := _items0[_idx0+0]
+		_ = _t // suppress unused warning
 		param := _items0[_idx0+1]
 		_ = param // suppress unused warning
 		_ = _idx0
-			var testprefix = "fts3sort-1." + t
+			var testprefix = "fts3sort-1." + _t
 			_ = testprefix // suppress unused warning
 			var nRow = "1000"
 			_ = nRow // suppress unused warning

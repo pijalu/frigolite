@@ -22,6 +22,25 @@ func Test_crash4(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var sql_cmd_list = "\n  {CREATE TABLE a(id INTEGER, name CHAR(50))}\n  {INSERT INTO a(id,name) VALUES(1,'one')}\n  {INSERT INTO a(id,name) VALUES(2,'two')}\n  {INSERT INTO a(id,name) VALUES(3,'three')}\n  {INSERT INTO a(id,name) VALUES(4,'four')}\n  {INSERT INTO a(id,name) VALUES(5,'five')}\n  {INSERT INTO a(id,name) VALUES(6,'six')}\n  {INSERT INTO a(id,name) VALUES(7,'seven')}\n  {INSERT INTO a(id,name) VALUES(8,'eight')}\n  {INSERT INTO a(id,name) VALUES(9,'nine')}\n  {INSERT INTO a(id,name) VALUES(10,'ten')}\n  {UPDATE A SET name='new text for row 3' WHERE id=3}\n"
 	_ = sql_cmd_list // suppress unused warning

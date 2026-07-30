@@ -22,6 +22,25 @@ func Test_shared(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = _enable_shared_cache // suppress unused warning
@@ -61,8 +80,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".1.1"
-				db2, err := frigolite.Open("test.db")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_ = _sqlite_open_file_count // TCL namespace variable (query)
 				// expr $sqlite_open_file_count-$extrafds_postlock → "$sqlite_open_file_count-$extrafds_postlock"
@@ -116,13 +134,11 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".2.1"
-				if _tcl_platform(platform) == "unix" {
-					db3, err := frigolite.Open("file:test.db?cache=private")
-					defer db3.Close()
+				if _tcl_platform_platform == "unix" {
+					db3, err = frigolite.Open("file:test.db?cache=private")
 					if err != nil { t.Fatal(err) }
 				} else {
-					db3, err := frigolite.Open("TEST.DB")
-					defer db3.Close()
+					db3, err = frigolite.Open("TEST.DB")
 					if err != nil { t.Fatal(err) }
 				}
 				_ = _sqlite_open_file_count // TCL namespace variable (query)
@@ -211,8 +227,7 @@ func Test_shared(t *testing.T) {
 			os.Remove("test2.db-journal")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			db2, err := frigolite.Open("test2.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "shared-" + av + ".4.1.1"
 				// expr $sqlite_open_file_count-($extrafds_prelock*2) → "$sqlite_open_file_count-($extrafds_prelock*2)"
@@ -332,11 +347,9 @@ func Test_shared(t *testing.T) {
 				os.Remove(db)
 			}
 			{ // do_test "shared-" + av + ".5.1.1"
-				db1, err := frigolite.Open("test.db")
-				defer db1.Close()
+				db1, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("test.db")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    ATTACH 'test1.db' AS test1;\n    ATTACH 'test2.db' AS test2;\n    ATTACH 'test3.db' AS test3;\n  ")
 				if _res.Error != nil {
@@ -416,8 +429,7 @@ func Test_shared(t *testing.T) {
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("test.db")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);\n  ")
 				if _res.Error != nil {
@@ -489,8 +501,7 @@ func Test_shared(t *testing.T) {
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("test.db")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    CREATE TABLE ab(a PRIMARY KEY, b);\n    CREATE TABLE de(d PRIMARY KEY, e);\n    INSERT INTO ab VALUES('Chiang Mai', 100000);\n    INSERT INTO ab VALUES('Bangkok', 8000000);\n    INSERT INTO de VALUES('Ubon', 120000);\n    INSERT INTO de VALUES('Khon Kaen', 200000);\n  ")
 				if _res.Error != nil {
@@ -508,13 +519,11 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".10.3"
-				if _tcl_platform(platform) == "unix" {
-					db3, err := frigolite.Open("file:test.db?cache=private")
-					defer db3.Close()
+				if _tcl_platform_platform == "unix" {
+					db3, err = frigolite.Open("file:test.db?cache=private")
 					if err != nil { t.Fatal(err) }
 				} else {
-					db3, err := frigolite.Open("TEST.DB")
-					defer db3.Close()
+					db3, err = frigolite.Open("TEST.DB")
 					if err != nil { t.Fatal(err) }
 				}
 				r = db.Query("\n    SELECT * FROM ab;\n  ")
@@ -565,8 +574,7 @@ func Test_shared(t *testing.T) {
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("test.db")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a, b, c);\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
 				if _res.Error != nil {
@@ -682,8 +690,7 @@ func Test_shared(t *testing.T) {
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("test.db")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("SELECT name FROM sqlite_master")
 				if r.Error != nil {
@@ -705,8 +712,7 @@ func Test_shared(t *testing.T) {
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("test.db")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE VIEW v1 AS SELECT * FROM t1; \n    CREATE VIEW v2 AS SELECT * FROM t1, v1 \n                      WHERE t1.c=v1.c GROUP BY t1.a ORDER BY v1.b; \n    CREATE TRIGGER tr1 AFTER INSERT ON t1 \n      WHEN new.a!=1\n    BEGIN\n      DELETE FROM t1 WHERE a=5;\n      INSERT INTO t1 VALUES(1, 2, 3);\n      UPDATE t1 SET c=c+1;\n    END;\n\n    INSERT INTO t1 VALUES(5, 6, 7);\n    INSERT INTO t1 VALUES(8, 9, 10);\n    INSERT INTO t1 VALUES(11, 12, 13);\n    ANALYZE;\n    SELECT * FROM t1;\n  ")
 				if r.Error != nil {
@@ -721,11 +727,9 @@ func Test_shared(t *testing.T) {
 			}
 			db2.Close()
 			{ // do_test "shared-" + av + "-16.1"
-				db1, err := frigolite.Open("file::memory:")
-				defer db1.Close()
+				db1, err = frigolite.Open("file::memory:")
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("file::memory:")
-				defer db2.Close()
+				db2, err = frigolite.Open("file::memory:")
 				if err != nil { t.Fatal(err) }
 				db1.Exec("\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(1),(2),(3);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -741,11 +745,9 @@ func Test_shared(t *testing.T) {
 			{ // do_test "shared-" + av + "-16.3"
 				db1.Close()
 				db2.Close()
-				db1, err := frigolite.Open(":memory:")
-				defer db1.Close()
+				db1, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open(":memory:")
-				defer db2.Close()
+				db2, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
 				db1.Exec("\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(4),(5),(6);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -756,11 +758,9 @@ func Test_shared(t *testing.T) {
 				db1.Close()
 				db2.Close()
 				os.Remove("test.db")
-				db1, err := frigolite.Open("file:test.db?mode=memory")
-				defer db1.Close()
+				db1, err = frigolite.Open("file:test.db?mode=memory")
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("file:test.db?mode=memory")
-				defer db2.Close()
+				db2, err = frigolite.Open("file:test.db?mode=memory")
 				if err != nil { t.Fatal(err) }
 				db1.Exec("\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(1),(2),(3);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -780,11 +780,9 @@ func Test_shared(t *testing.T) {
 				db1.Close()
 				db2.Close()
 				os.Remove("test1.db")
-				db1, err := frigolite.Open("file:test1.db?mode=memory")
-				defer db1.Close()
+				db1, err = frigolite.Open("file:test1.db?mode=memory")
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("file:test2.db?mode=memory")
-				defer db2.Close()
+				db2, err = frigolite.Open("file:test2.db?mode=memory")
 				if err != nil { t.Fatal(err) }
 				db1.Exec("\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(1),(2),(3);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -805,11 +803,9 @@ func Test_shared(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      CREATE TABLE yy(a, b);\n      INSERT INTO yy VALUES(77, 88);\n    ")
 					}
-					db1, err := frigolite.Open("test1.db")
-					defer db1.Close()
+					db1, err = frigolite.Open("test1.db")
 					if err != nil { t.Fatal(err) }
-					db2, err := frigolite.Open("test2.db")
-					defer db2.Close()
+					db2, err = frigolite.Open("test2.db")
 					if err != nil { t.Fatal(err) }
 					db1.Exec(" \n      ATTACH 'file:mem?mode=memory&cache=shared' AS shared; \n      CREATE TABLE shared.xx(a, b);\n      INSERT INTO xx VALUES(55, 66);\n    ")
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

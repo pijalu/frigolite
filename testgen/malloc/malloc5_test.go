@@ -22,6 +22,25 @@ func Test_malloc5(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
 		t.Log("Skipping malloc5 tests: not compiled with -DSQLITE_MEMDEBUG...")
@@ -42,8 +61,7 @@ func Test_malloc5(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
 	}
 	{ // do_test "malloc5-1.2"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("PRAGMA cache_size=2; SELECT * FROM sqlite_master ")
 		if r.Error != nil {
@@ -78,8 +96,7 @@ func Test_malloc5(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "value_in_range $::pgalloc $::mrange [sqlite3_release_memory 500]")
 	}
 	{ // do_test "malloc5-1.7"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM abc ")
 		_ = _res // catchsql
@@ -89,8 +106,7 @@ func Test_malloc5(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 500")
 	}
 	{ // do_test "malloc5-1.8"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM abc ")
 		_ = _res // catchsql
@@ -249,8 +265,7 @@ func Test_malloc5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA temp_store = memory;\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    INSERT INTO abc VALUES(randstr(50,50), randstr(75,75), randstr(100,100));\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    INSERT INTO abc \n        SELECT randstr(50,50), randstr(75,75), randstr(100,100) FROM abc;\n    COMMIT;\n  ")
 		}
 		tclFileCopy("test.db", "test2.db")
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("PRAGMA cache_size=2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

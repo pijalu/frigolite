@@ -23,6 +23,25 @@ func Test_swarmvtab(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "swarmvtab"
 	_ = testprefix // suppress unused warning
@@ -118,8 +137,7 @@ func Test_swarmvtab(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
-			db2, err := frigolite.Open("test.db" + i)
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db" + i)
 			if err != nil { t.Fatal(err) }
 			db2.Exec(" DELETE FROM t" + i + " ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -199,8 +217,7 @@ func Test_swarmvtab(t *testing.T) {
 	}
 	{ // do_test "2.0.2"
 		os.Remove("test.db5")
-		db2, err := frigolite.Open("test.db15")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db15")
 		if err != nil { t.Fatal(err) }
 		db2.Exec(" DROP TABLE t15 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

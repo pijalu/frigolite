@@ -20,6 +20,25 @@ func Test_tkt3522(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3522-1.1"
 		_res = db.Exec("\n    CREATE TABLE tab4(\n       col0 INTEGER,\n       col1 INTEGER,\n       col2 INTEGER,\n       col3 INTEGER,\n       col4 INTEGER\n    );\n    SELECT cor1.*\n      FROM tab4 AS cor0\n      JOIN tab4 AS cor1 USING ( col4, col3, col2, col1, col0 );\n  ")

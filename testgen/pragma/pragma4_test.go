@@ -22,6 +22,25 @@ func Test_pragma4(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "pragma4"
 	_ = testprefix // suppress unused warning
@@ -99,11 +118,9 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			{ // do_test "4.1.4"
-				db3, err := frigolite.Open("test.db")
-				defer db3.Close()
+				db3, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("test.db2")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" DROP TABLE t1 ")
 				if _res.Error != nil {
@@ -147,11 +164,9 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			{ // do_test "4.2.4"
-				db3, err := frigolite.Open("test.db")
-				defer db3.Close()
+				db3, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("test.db2")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" DROP TABLE t1 ")
 				if _res.Error != nil {
@@ -175,11 +190,9 @@ func Test_pragma4(t *testing.T) {
 				}
 			}
 			{ // do_test "4.3.4"
-				db3, err := frigolite.Open("test.db")
-				defer db3.Close()
+				db3, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				db2, err := frigolite.Open("test.db2")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" DROP INDEX i1 ")
 				if _res.Error != nil {

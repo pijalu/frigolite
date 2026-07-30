@@ -20,6 +20,25 @@ func Test_tkt3298(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3298-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n    INSERT INTO t1 VALUES(0, 1);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 1);\n    CREATE VIEW v1 AS SELECT a AS x, b+1 AS y FROM t1;\n    CREATE TRIGGER r1 INSTEAD OF UPDATE ON v1\n      BEGIN\n        UPDATE t1 SET b=new.y-1 WHERE a=new.x;\n      END;\n    CREATE TRIGGER r2 INSTEAD OF DELETE ON v1\n      BEGIN\n        DELETE FROM t1 WHERE a=old.x;\n      END;\n    SELECT * FROM v1 ORDER BY x;\n  ")

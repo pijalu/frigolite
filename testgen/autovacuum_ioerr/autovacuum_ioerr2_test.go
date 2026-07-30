@@ -21,6 +21,25 @@ func Test_autovacuum_ioerr2(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a);\n...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM ab...}")
 	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-2 -tclprep {\n  execsql {\n    PRAGMA auto_vacuum = 1;\n    PRAGM...} -sqlbody {\n  BEGIN;\n  DELETE FROM abc WHERE length(a)>100;\n ...}")

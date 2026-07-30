@@ -22,6 +22,25 @@ func Test_vacuum_into(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("out.db")
 	{ // "vacuum-into-100"
@@ -42,8 +61,7 @@ func Test_vacuum_into(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  VACUUM main INTO 'out.db';\n")
 		}
 	}
-	db2, err := frigolite.Open("out.db")
-	defer db2.Close()
+	db2, err = frigolite.Open("out.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "vacuum-into-120"
 		db2.Exec("SELECT count(*), sum(a), sum(length(b)) FROM t1")
@@ -119,7 +137,7 @@ func Test_vacuum_into(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such function: target2", _res.Error, "\n  VACUUM INTO target2()\n")
 		}
 	}
-	if tcl_platform(platform) == "windows" {
+	if tcl_platform_platform == "windows" {
 		// file attributes test.db -readonly 1
 	} else {
 		// file attributes test.db -permissions 292
@@ -133,7 +151,7 @@ func Test_vacuum_into(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  VACUUM INTO 'test.db2';\n")
 		}
 	}
-	if tcl_platform(platform) == "windows" {
+	if tcl_platform_platform == "windows" {
 		// file attributes test.db -readonly 0
 	} else {
 		// file attributes test.db -permissions 420

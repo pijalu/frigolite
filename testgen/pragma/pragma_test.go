@@ -22,6 +22,25 @@ func Test_pragma(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "pragma"
 	_ = testprefix // suppress unused warning
@@ -170,7 +189,7 @@ func Test_pragma(t *testing.T) {
 			{ // do_test "pragma-19.5"
 				// file tail [lindex [execsql {PRAGMA filename}] 0]
 			}
-			if tcl_platform(platform) == "windows" {
+			if tcl_platform_platform == "windows" {
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
@@ -196,8 +215,7 @@ func Test_pragma(t *testing.T) {
 					_ = _res // catchsql
 				}
 				{ // do_test "pragma-20.5"
-					db2, err := frigolite.Open("test2.db")
-					defer db2.Close()
+					db2, err = frigolite.Open("test2.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("PRAGMA database_list;")
 					_ = _res // catchsql
@@ -208,8 +226,7 @@ func Test_pragma(t *testing.T) {
 					db2.Close()
 				}
 				{ // do_test "pragma-20.6"
-					db2, err := frigolite.Open("file join [get_pwd] test2.db")
-					defer db2.Close()
+					db2, err = frigolite.Open("file join [get_pwd] test2.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("PRAGMA database_list;")
 					_ = _res // catchsql
@@ -333,8 +350,7 @@ func Test_pragma(t *testing.T) {
 			os.Remove("test.db")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "23.1"
 				_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE INDEX i2 ON t1(c,d);\n    CREATE INDEX i2x ON t1(d COLLATE nocase, c DESC);\n    CREATE INDEX i3 ON t1(d,b+c,c);\n    CREATE TABLE t2(x INTEGER REFERENCES t1);\n  ")

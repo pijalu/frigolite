@@ -20,6 +20,25 @@ func Test_shared6(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "shared6-1.1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d);\n    CREATE TABLE t3(e, f);\n  ")
@@ -33,11 +52,9 @@ func Test_shared6(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache")
 	}
 	{ // do_test "shared6-1.1.3"
-		db1, err := frigolite.Open("test.db")
-		defer db1.Close()
+		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "shared6-1.2.1"
@@ -152,19 +169,15 @@ func Test_shared6(t *testing.T) {
 		db1.Close()
 		db2.Close()
 	}
-	if _tcl_platform(os) != "Windows NT" {
+	if _tcl_platform_os != "Windows NT" {
 		{ // do_test "shared6-2.1"
-			db1, err := frigolite.Open("test.db")
-			defer db1.Close()
+			db1, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			db3, err := frigolite.Open("test.db")
-			defer db3.Close()
+			db3, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			db4, err := frigolite.Open("test.db")
-			defer db4.Close()
+			db4, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 		}
 		{ // do_test "shared6-2.2"
@@ -213,14 +226,11 @@ func Test_shared6(t *testing.T) {
 		}
 	}
 	{ // do_test "shared6-3.1"
-		db1, err := frigolite.Open("test.db")
-		defer db1.Close()
+		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db3, err := frigolite.Open("test.db")
-		defer db3.Close()
+		db3, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	db1.Exec("SELECT * FROM t1")
@@ -265,11 +275,9 @@ func Test_shared6(t *testing.T) {
 		db3.Close()
 	}
 	{ // do_test "shared6-4.1"
-		db1, err := frigolite.Open("test.db")
-		defer db1.Close()
+		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		var _STMT = "" // TCL namespace variable
 		_ = _STMT // suppress unused warning

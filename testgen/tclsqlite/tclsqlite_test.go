@@ -23,6 +23,25 @@ func Test_tclsqlite(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -438,8 +457,7 @@ func Test_tclsqlite(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				v = "1"
@@ -896,8 +914,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-10.18"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -956,8 +973,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-10.22"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	db2.Close()

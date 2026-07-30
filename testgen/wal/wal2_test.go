@@ -22,6 +22,25 @@ func Test_wal2(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "wal2"
 	_ = testprefix // suppress unused warning
@@ -36,8 +55,7 @@ func Test_wal2(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
 		if _res.Error != nil {
@@ -110,8 +128,7 @@ func Test_wal2(t *testing.T) {
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n  ")
 			if _res.Error != nil {
@@ -589,8 +606,7 @@ func Test_wal2(t *testing.T) {
 					}
 				}
 				{ // do_test "wal2-6.6.3"
-					db2, err := frigolite.Open("test.db")
-					defer db2.Close()
+					db2, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" SELECT * FROM t2 ")
 					_ = _res // catchsql
@@ -604,8 +620,7 @@ func Test_wal2(t *testing.T) {
 					}
 				}
 				{ // do_test "wal2-6.6.4"
-					db2, err := frigolite.Open("test.db")
-					defer db2.Close()
+					db2, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" SELECT * FROM t2 ")
 					_ = _res // catchsql
@@ -635,8 +650,7 @@ func Test_wal2(t *testing.T) {
 					t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test2.db-wal 48 $newval")
 				}
 				{ // do_test "wal2-7.1.3"
-					db2, err := frigolite.Open("test2.db")
-					defer db2.Close()
+					db2, err = frigolite.Open("test2.db")
 					if err != nil { t.Fatal(err) }
 					r = db.Query(" PRAGMA wal_checkpoint ")
 					if r.Error != nil {
@@ -673,8 +687,7 @@ func Test_wal2(t *testing.T) {
 					}
 				}
 				{ // do_test "wal2-8.1.4"
-					db2, err := frigolite.Open("test.db")
-					defer db2.Close()
+					db2, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					r = db.Query(" SELECT * FROM t2 ")
 					if r.Error != nil {
@@ -703,8 +716,7 @@ func Test_wal2(t *testing.T) {
 					}
 					var wih_2 = "set_tvfs_hdr $::filename"
 					_ = wih_2 // suppress unused warning
-					db2, err := frigolite.Open("test.db")
-					defer db2.Close()
+					db2, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					r = db.Query(" SELECT * FROM x ")
 					if r.Error != nil {
@@ -789,8 +801,7 @@ func Test_wal2(t *testing.T) {
 						}
 					}
 					{ // do_test "wal2-11.1.1"
-						db2, err := frigolite.Open("test.db")
-						defer db2.Close()
+						db2, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						r = db.Query(" SELECT name FROM sqlite_master ")
 						if r.Error != nil {
@@ -825,7 +836,7 @@ func Test_wal2(t *testing.T) {
 					}
 					db2.Close()
 					t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
-					if _tcl_platform(os) != "Windows NT" {
+					if _tcl_platform_os != "Windows NT" {
 						t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 						var umask = "0"
 						_ = umask // suppress unused warning
@@ -885,7 +896,7 @@ func Test_wal2(t *testing.T) {
 								}
 							}
 						}
-						if _tcl_platform(os) != "Windows NT" {
+						if _tcl_platform_os != "Windows NT" {
 							// proc definition (not transpiled)
 							t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 							_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES('3.14', '2.72');\n  ")

@@ -21,6 +21,25 @@ func Test_e_insert(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "e_insert-0.0"
 		_res = db.Exec("\n  CREATE TABLE a1(a, b);\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n  CREATE TABLE a3(x DEFAULT 1.0, y DEFAULT 'string', z);\n  CREATE TABLE a4(c UNIQUE, d);\n")

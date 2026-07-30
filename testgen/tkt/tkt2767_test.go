@@ -20,6 +20,25 @@ func Test_tkt2767(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2767-1.1"
 		_res = db.Exec("\n    -- Construct a table with many rows of data\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n    INSERT INTO t1 SELECT x+16 FROM t1;\n\n    -- BEFORE triggers that invoke raise(ignore).  The effect of\n    -- these triggers should be to make INSERTs, UPDATEs, and DELETEs\n    -- into no-ops.\n    CREATE TRIGGER r1 BEFORE UPDATE ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n    CREATE TRIGGER r2 BEFORE DELETE ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n    CREATE TRIGGER r3 BEFORE INSERT ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n\n    -- Verify the table content\n    SELECT count(*), sum(x) FROM t1;\n  ")

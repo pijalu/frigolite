@@ -23,6 +23,25 @@ func Test_zipfile(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	if func() bool { tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return tcl_version_n < 8.6 }() {
 		t.Log("Requires TCL 8.6 or later")
 		return
@@ -204,7 +223,7 @@ func Test_zipfile(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	if _tcl_platform(platform) == "unix" {
+	if _tcl_platform_platform == "unix" {
 		var modes = "-rw-r--r-x"
 		_ = modes // suppress unused warning
 		var perms = "33189"
@@ -378,7 +397,7 @@ func Test_zipfile(t *testing.T) {
 		{ // do_test "2.5.1"
 			os.Remove("dirname")
 			os.Remove("dirname2")
-			if _tcl_platform(platform) == "unix" {
+			if _tcl_platform_platform == "unix" {
 				var null = "/dev/null"
 				_ = null // suppress unused warning
 			} else {
@@ -816,7 +835,7 @@ func Test_zipfile(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			if tcl_platform(platform) != "windows" {
+			if tcl_platform_platform != "windows" {
 				{ // do_test "12.0"
 					{
 						var _catchErr error

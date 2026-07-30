@@ -23,6 +23,25 @@ func Test_uri(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "uri"
 	_ = testprefix // suppress unused warning
@@ -38,7 +57,7 @@ func Test_uri(t *testing.T) {
 		file := _items0[_idx0+2]
 		_ = file // suppress unused warning
 		_ = _idx0
-			if tcl_platform(platform) == "windows" {
+			if tcl_platform_platform == "windows" {
 				if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n > 14 }() {
 				}
 				if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; _tcl_version_n, __tcl_version_e := strconv.Atoi(_tcl_version); if __tcl_version_e != nil { return false }; return tn_n==12 && _tcl_version_n >= 8.6 }() {
@@ -201,7 +220,7 @@ func Test_uri(t *testing.T) {
 					res := _items3[_idx3+2]
 					_ = res // suppress unused warning
 					_ = _idx3
-						if tcl_platform(platform) == "windows" {
+						if tcl_platform_platform == "windows" {
 							var uri = "[list PWD [string range [get_pwd] 3 end]] $uri"
 							_ = uri // suppress unused warning
 						} else {

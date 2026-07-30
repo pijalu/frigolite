@@ -20,6 +20,25 @@ func Test_tkt3357(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3357-1.1"
 		_res = db.Exec("\n    create table a(id integer primary key, b_id integer, myvalue varchar);\n    create table b(id integer primary key, bvalue varchar);\n    insert into a(b_id, myvalue) values(1,'Test');\n    insert into a(b_id, myvalue) values(1,'Test2');\n    insert into a(b_id, myvalue) values(1,'Test3');\n    insert into b(bvalue) values('btest');\n  ")

@@ -20,6 +20,25 @@ func Test_tkt2942(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2942.1"
 		r = db.Query("\n    create table t1(num int);\n    insert into t1 values (2);\n    insert into t1 values (1);\n    insert into t1 values (3);\n    insert into t1 values (4);\n    SELECT group_concat(num) FROM (SELECT num FROM t1 ORDER BY num DESC);\n  ")

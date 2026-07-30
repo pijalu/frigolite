@@ -21,10 +21,29 @@ func Test_symlink(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "symlink"
 	_ = testprefix // suppress unused warning
-	if _tcl_platform(os) == "Windows NT" {
+	if _tcl_platform_os == "Windows NT" {
 		return
 	}
 	{ // "1.0"
@@ -36,8 +55,7 @@ func Test_symlink(t *testing.T) {
 	os.Remove("test.db2")
 	{ // do_test "1.1"
 		// file link test.db2 test.db
-		db2, err := frigolite.Open("test.db2")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_filename db2 main")
 	}
@@ -47,8 +65,7 @@ func Test_symlink(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db2, err := frigolite.Open("test.db2")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db2")
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				rc = "1"
@@ -66,8 +83,7 @@ func Test_symlink(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			db2.Close()
 		}
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "1.1.4"
@@ -84,8 +100,7 @@ func Test_symlink(t *testing.T) {
 		// file exists "test.db"
 	}
 	{ // do_test "1.2.2"
-		db2, err := frigolite.Open("test.db2")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
 		// file exists "test.db"
 	}
@@ -145,8 +160,7 @@ func Test_symlink(t *testing.T) {
 		_ = f // suppress unused warning
 		_ = _idx0
 			{ // do_test "2." + tn + ".1"
-				db2, err := frigolite.Open(f)
-				defer db2.Close()
+				db2, err = frigolite.Open(f)
 				if err != nil { t.Fatal(err) }
 				// file exists "test.db-journal"
 			}
@@ -291,8 +305,7 @@ func Test_symlink(t *testing.T) {
 		_ = nLink // suppress unused warning
 		var path = "../ [expr $nLink*2]" + ".." + path + "/test.db"
 		_ = path // suppress unused warning
-		db2, err := frigolite.Open(path)
-		defer db2.Close()
+		db2, err = frigolite.Open(path)
 		if err != nil { t.Fatal(err) }
 		{ // "-db"
 			_res = db.Exec("db2")

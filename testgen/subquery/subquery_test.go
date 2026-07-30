@@ -20,6 +20,25 @@ func Test_subquery(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "subquery-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);\n    INSERT INTO t1 VALUES(7,8);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,1);\n    INSERT INTO t2 VALUES(3,9);\n    INSERT INTO t2 VALUES(5,25);\n    INSERT INTO t2 VALUES(7,49);\n    COMMIT;\n  ")

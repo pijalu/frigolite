@@ -21,6 +21,25 @@ func Test_trans(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
 	{ // do_test "trans-1.0"
@@ -1037,7 +1056,7 @@ func Test_trans(t *testing.T) {
 				}
 			}
 			// catch (non-braced)
-			if tcl_platform(platform) == "unix" {
+			if tcl_platform_platform == "unix" {
 				{ // do_test "trans-9." + i + ".4-" + cnt
 					// expr $sqlite_sync_count>0 → "$sqlite_sync_count>0"
 				}

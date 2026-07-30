@@ -21,6 +21,25 @@ func Test_vacuum3(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "vacuum3-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
@@ -204,8 +223,7 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.2"
-					db2, err := frigolite.Open("test.db")
-					defer db2.Close()
+					db2, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					r = db.Query(" SELECT * FROM abc ")
 					if r.Error != nil {
@@ -249,8 +267,7 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				db2.Close()
-				db2, err := frigolite.Open(":memory:")
-				defer db2.Close()
+				db2, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "vacuum3-5.1"
 					db2.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1234);\n    PRAGMA page_size=4096;\n    VACUUM;\n    SELECT * FROM t1;\n  ")

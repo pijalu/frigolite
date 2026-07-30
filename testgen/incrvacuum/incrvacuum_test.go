@@ -22,6 +22,25 @@ func Test_incrvacuum(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "incrvacuum-1.1"
 		r = db.Query("\n    pragma auto_vacuum;\n  ")
@@ -215,11 +234,9 @@ func Test_incrvacuum(t *testing.T) {
 	var _str2 = "1234567890 105" // TCL namespace variable
 	_ = _str2 // suppress unused warning
 	os.Remove("test1.db")
-	db1, err := frigolite.Open("test1.db")
-	defer db1.Close()
+	db1, err = frigolite.Open("test1.db")
 	if err != nil { t.Fatal(err) }
-	db2, err := frigolite.Open("test2.db")
-	defer db2.Close()
+	db2, err = frigolite.Open("test2.db")
 	if err != nil { t.Fatal(err) }
 	r = db.Query(" PRAGMA auto_vacuum = 'none' ")
 	if r.Error != nil {
@@ -440,8 +457,7 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db]>0 → "[file size test.db]>0"
 	}
 	{ // do_test "incrvacuum-12.2"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" BEGIN EXCLUSIVE; ")
 		if _res.Error != nil {
@@ -519,8 +535,7 @@ func Test_incrvacuum(t *testing.T) {
 			_ = out // suppress unused warning
 			t.Log(out)
 			// close $out
-			db3, err := frigolite.Open("invalid.db")
-			defer db3.Close()
+			db3, err = frigolite.Open("invalid.db")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      PRAGMA incremental_vacuum(10);\n    ")
 			_ = _res // catchsql

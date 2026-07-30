@@ -21,6 +21,25 @@ func Test_fts3an(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var text = "\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n"
 	_ = text // suppress unused warning
@@ -147,7 +166,7 @@ func Test_fts3an(t *testing.T) {
 	for _, c := range tclSplitList("a b c d e") {
 		&$c := tclRegsub("-all", "[A-Za-z]+", bigtext)
 		_ = &$c // suppress unused warning
-		bigtext += t
+		bigtext += _t
 	}
 	var ret = "6 1"
 	_ = ret // suppress unused warning
@@ -176,8 +195,8 @@ func Test_fts3an(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT;")
 	}
 	{ // do_test "fts3an-3.1"
-		var t = ""
-		_ = t // suppress unused warning
+		var _t = ""
+		_ = _t // suppress unused warning
 		_res = db.Exec("SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'")

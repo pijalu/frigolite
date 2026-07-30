@@ -22,6 +22,25 @@ func Test_io(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "io" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
@@ -102,7 +121,7 @@ func Test_io(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char safe_append")
 	var expected_sync_count = "2"
 	_ = expected_sync_count // suppress unused warning
-	if _tcl_platform(os) != "Windows NT" {
+	if _tcl_platform_os != "Windows NT" {
 	}
 	{ // do_test "io-4.1"
 		_res = db.Exec(" DELETE FROM abc ")
@@ -127,7 +146,7 @@ func Test_io(t *testing.T) {
 		}
 		// file exists "test.db-journal"
 	}
-	if _tcl_platform(platform) == "unix" {
+	if _tcl_platform_platform == "unix" {
 		{ // do_test "io-4.2.2"
 			t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db-journal 8 4")
 		}
@@ -154,7 +173,7 @@ func Test_io(t *testing.T) {
 		}
 		// file exists "test.db-journal"
 	}
-	if tcl_platform(platform) != "symbian" {
+	if tcl_platform_platform != "symbian" {
 		{ // do_test "io-4.3.4"
 			// file size test.db-journal
 		}

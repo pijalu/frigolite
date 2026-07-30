@@ -21,6 +21,25 @@ func Test_speed4(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_init speed1")
 	// expr srand(0) → "srand(0)"
@@ -46,8 +65,8 @@ func Test_speed4(t *testing.T) {
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 50000 }() {
 			i := "0"
 			_ = i // suppress unused warning
-			var t = "number_name $i"
-			_ = t // suppress unused warning
+			var _t = "number_name $i"
+			_ = _t // suppress unused warning
 			_res = db.Exec(stmt)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, stmt)

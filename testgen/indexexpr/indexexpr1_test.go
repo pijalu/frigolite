@@ -21,6 +21,25 @@ func Test_indexexpr1(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "indexexpr1-100"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(a,b,c)\n      /*  123456789 123456789 123456789 123456789 123456789 123456789 */ \n  VALUES('In_the_beginning_was_the_Word',1,1),\n        ('and_the_Word_was_with_God',1,2),\n        ('and_the_Word_was_God',1,3),\n        ('The_same_was_in_the_beginning_with_God',2,1),\n        ('All_things_were_made_by_him',3,1),\n        ('and_without_him_was_not_any_thing_made_that_was_made',3,2);\n  CREATE INDEX t1a1 ON t1(substr(a,1,12));\n")

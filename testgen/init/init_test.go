@@ -20,6 +20,25 @@ func Test_init(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("db eval {SELECT sqlite_compileoption_used('THREADSAFE=0')}") {
 		return
@@ -27,8 +46,8 @@ func Test_init(t *testing.T) {
 	// foreach {t failed rc started} "\n  1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}\n"
 	_items0 := tclSplitList("\n  1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}\n")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-		t := _items0[_idx0+0]
-		_ = t // suppress unused warning
+		_t := _items0[_idx0+0]
+		_ = _t // suppress unused warning
 		failed := _items0[_idx0+1]
 		_ = failed // suppress unused warning
 		rc := _items0[_idx0+2]
@@ -36,31 +55,31 @@ func Test_init(t *testing.T) {
 		started := _items0[_idx0+3]
 		_ = started // suppress unused warning
 		_ = _idx0
-			{ // do_test "init-" + t + ".1"
+			{ // do_test "init-" + _t + ".1"
 				// eval init_wrapper_install $failed
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 			}
-			{ // do_test "init-" + t + ".2"
+			{ // do_test "init-" + _t + ".2"
 				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
 			}
-			{ // do_test "init-" + t + ".3"
+			{ // do_test "init-" + _t + ".3"
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
 			}
-			{ // do_test "init-" + t + ".4"
+			{ // do_test "init-" + _t + ".4"
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 			}
-			{ // do_test "init-" + t + ".5"
+			{ // do_test "init-" + _t + ".5"
 				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
 			}
-			{ // do_test "init-" + t + ".6"
+			{ // do_test "init-" + _t + ".6"
 				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_clear")
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 			}
-			{ // do_test "init-" + t + ".7"
+			{ // do_test "init-" + _t + ".7"
 				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
 			}
-			{ // do_test "init-" + t + ".8"
+			{ // do_test "init-" + _t + ".8"
 				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_uninstall")
 			}
 		}

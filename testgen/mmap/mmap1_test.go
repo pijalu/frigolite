@@ -21,6 +21,25 @@ func Test_mmap1(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "mmap1"
 	_ = testprefix // suppress unused warning
@@ -29,8 +48,8 @@ func Test_mmap1(t *testing.T) {
 	// foreach {t mmap_size nRead c2init} "\n  1.1 { PRAGMA mmap_size = 67108864 } /8|12/   {PRAGMA mmap_size = 0}\n  1.2 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 0}\n  1.3 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 0}\n  1.4 { PRAGMA mmap_size = 67108864 } /12|8/   {PRAGMA mmap_size = 67108864 }\n  1.5 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 67108864 }\n  1.6 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 67108864 }\n"
 	_items0 := tclSplitList("\n  1.1 { PRAGMA mmap_size = 67108864 } /8|12/   {PRAGMA mmap_size = 0}\n  1.2 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 0}\n  1.3 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 0}\n  1.4 { PRAGMA mmap_size = 67108864 } /12|8/   {PRAGMA mmap_size = 67108864 }\n  1.5 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 67108864 }\n  1.6 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 67108864 }\n")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-		t := _items0[_idx0+0]
-		_ = t // suppress unused warning
+		_t := _items0[_idx0+0]
+		_ = _t // suppress unused warning
 		mmap_size := _items0[_idx0+1]
 		_ = mmap_size // suppress unused warning
 		nRead := _items0[_idx0+2]
@@ -157,8 +176,7 @@ func Test_mmap1(t *testing.T) {
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
 		}
 		os.Remove("test2.db")
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "6.0"
 			db2.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 4096;\n  ")

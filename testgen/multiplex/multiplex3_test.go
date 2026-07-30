@@ -21,6 +21,25 @@ func Test_multiplex3(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "multiplex3" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
@@ -63,8 +82,7 @@ func Test_multiplex3(t *testing.T) {
 			for _, f := range tclSplitList("glob -nocomplain test.*") {
 				tclFileCopy(f, "xx_" + f)
 			}
-			db2, err := frigolite.Open("file:xx_test.db?8_3_names=1")
-			defer db2.Close()
+			db2, err = frigolite.Open("file:xx_test.db?8_3_names=1")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("SELECT md5sum(a, b) FROM t1 ORDER BY a")
 			if r.Error != nil {

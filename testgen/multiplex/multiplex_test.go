@@ -22,6 +22,25 @@ func Test_multiplex(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	g_chunk_size := "expr ($::SQLITE_MAX_PAGE_SIZE*16384)"
 	_ = g_chunk_size // suppress unused warning
@@ -228,8 +247,7 @@ func Test_multiplex(t *testing.T) {
 		// file size [multiplex_name test.x 0]
 	}
 	{ // do_test "multiplex-2.3.1"
-		db2, err := frigolite.Open("test2.x")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.x")
 		if err != nil { t.Fatal(err) }
 		db2.Close()
 	}
@@ -454,8 +472,7 @@ func Test_multiplex(t *testing.T) {
 		// file size [multiplex_name test.db 0]
 	}
 	{ // do_test "multiplex-3.1.3"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t2(a, b) ")
 		if _res.Error != nil {
@@ -594,8 +611,7 @@ func Test_multiplex(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "multiplex-4.1.6a"
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("SELECT * FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -607,8 +623,7 @@ func Test_multiplex(t *testing.T) {
 		}
 	}
 	{ // do_test "multiplex-4.1.8"
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("SELECT count(*) FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -618,8 +633,7 @@ func Test_multiplex(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "multiplex-4.1.8b"
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("SELECT count(*) FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

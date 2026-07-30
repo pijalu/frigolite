@@ -21,6 +21,25 @@ func Test_triggerD(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "triggerD-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(rowid, oid, _rowid_, x);\n    CREATE TABLE log(a,b,c,d,e);\n    CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('r1', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('r2', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r3 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('r3.old', old.rowid, old.oid, old._rowid_, old.x);\n      INSERT INTO log VALUES('r3.new', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r4 AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('r4.old', old.rowid, old.oid, old._rowid_, old.x);\n      INSERT INTO log VALUES('r4.new', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r5 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('r5', old.rowid, old.oid, old._rowid_, old.x);\n    END;\n    CREATE TRIGGER r6 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('r6', old.rowid, old.oid, old._rowid_, old.x);\n    END;\n  ")
@@ -93,8 +112,7 @@ func Test_triggerD(t *testing.T) {
 		}
 	}
 	{ // do_test "triggerD-4.2"
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("\n    INSERT INTO t2 VALUES(234);\n    SELECT * FROM log;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

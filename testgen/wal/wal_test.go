@@ -22,6 +22,25 @@ func Test_wal(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "wal"
 	_ = testprefix // suppress unused warning
@@ -233,8 +252,7 @@ func Test_wal(t *testing.T) {
 	{ // do_test "wal-4.4.6"
 		tclFileCopy("test.db", "test2.db")
 		tclFileCopy("test.db-wal", "test2.db-wal")
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT count(*) FROM t2 ; SELECT count(*) FROM t1 ")
 		if r.Error != nil {
@@ -294,8 +312,7 @@ func Test_wal(t *testing.T) {
 	{ // do_test "wal-4.5.6"
 		tclFileCopy("test.db", "test2.db")
 		tclFileCopy("test.db-wal", "test2.db-wal")
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT count(*) FROM t2 ; SELECT count(*) FROM t1 ")
 		if r.Error != nil {
@@ -639,8 +656,7 @@ func Test_wal(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2, err := frigolite.Open("test.db")
-	defer db2.Close()
+	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "wal-14"
 		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(10), randomblob(100));\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n    INSERT INTO t1 SELECT randomblob(10), randomblob(100) FROM t1;\n  ")
@@ -922,8 +938,7 @@ func Test_wal(t *testing.T) {
 					db, err := frigolite.Open("test.db")
 					defer db.Close()
 					if err != nil { t.Fatal(err) }
-					db2, err := frigolite.Open("test.db")
-					defer db2.Close()
+					db2, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 					if _res.Error != nil {

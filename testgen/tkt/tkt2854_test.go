@@ -21,6 +21,25 @@ func Test_tkt2854(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = _enable_shared_cache // suppress unused warning
@@ -28,11 +47,9 @@ func Test_tkt2854(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		db3, err := frigolite.Open("file:test.db?cache=private")
-		defer db3.Close()
+		db3, err = frigolite.Open("file:test.db?cache=private")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n  ")
 		if _res.Error != nil {
@@ -133,8 +150,7 @@ func Test_tkt2854(t *testing.T) {
 	}
 	{ // do_test "tkt2854-1.19"
 		os.Remove("test2.db")
-		db4, err := frigolite.Open("test2.db")
-		defer db4.Close()
+		db4, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE def(d, e, f) ")
 		if _res.Error != nil {

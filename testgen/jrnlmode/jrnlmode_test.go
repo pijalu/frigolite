@@ -21,6 +21,25 @@ func Test_jrnlmode(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("info exists TEMP_STORE" + " && " + TEMP_STORE + ">=2") {
 		var temp_persist = "memory"
@@ -412,8 +431,7 @@ func Test_jrnlmode(t *testing.T) {
 	}
 	{ // do_test "jrnlmode-9.1"
 		os.Remove("test2.db")
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("CREATE TEMP TABLE t(l); PRAGMA journal_mode=off;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

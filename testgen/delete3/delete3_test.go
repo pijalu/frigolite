@@ -20,6 +20,25 @@ func Test_delete3(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "delete3-1.1"
 		r = db.Query("\n    CREATE TABLE t1(x integer primary key);\n    BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n    INSERT INTO t1 SELECT x+16 FROM t1;\n    INSERT INTO t1 SELECT x+32 FROM t1;\n    INSERT INTO t1 SELECT x+64 FROM t1;\n    INSERT INTO t1 SELECT x+128 FROM t1;\n    INSERT INTO t1 SELECT x+256 FROM t1;\n    INSERT INTO t1 SELECT x+512 FROM t1;\n    INSERT INTO t1 SELECT x+1024 FROM t1;\n    INSERT INTO t1 SELECT x+2048 FROM t1;\n    INSERT INTO t1 SELECT x+4096 FROM t1;\n    INSERT INTO t1 SELECT x+8192 FROM t1;\n    INSERT INTO t1 SELECT x+16384 FROM t1;\n    INSERT INTO t1 SELECT x+32768 FROM t1;\n    INSERT INTO t1 SELECT x+65536 FROM t1;\n    INSERT INTO t1 SELECT x+131072 FROM t1;\n    INSERT INTO t1 SELECT x+262144 FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\t\n  ")

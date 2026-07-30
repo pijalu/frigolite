@@ -20,6 +20,25 @@ func Test_bestindexE(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "bestindexE"
 	_ = testprefix // suppress unused warning
@@ -90,8 +109,7 @@ func Test_bestindexE(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db eponymous_cmd")
-	db2, err := frigolite.Open("test.db")
-	defer db2.Close()
+	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.2.1"
 		r = db.Query(" SELECT * FROM x1 ")

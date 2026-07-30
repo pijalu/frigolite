@@ -20,6 +20,25 @@ func Test_trigger6(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "trigger6-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    CREATE TABLE log(a, b, c);\n    CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES(1, new.x, new.y);\n    END;\n    CREATE TRIGGER r2 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES(2, new.x, new.y);\n    END;\n  ")

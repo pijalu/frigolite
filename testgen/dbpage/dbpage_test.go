@@ -23,6 +23,25 @@ func Test_dbpage(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "dbpage"
 	_ = testprefix // suppress unused warning
@@ -196,8 +215,7 @@ func Test_dbpage(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
-	db2, err := frigolite.Open("test.db2")
-	defer db2.Close()
+	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	db2.Exec("\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(x, y);\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

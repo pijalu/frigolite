@@ -21,6 +21,25 @@ func Test_selectE(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "selectE-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('abc'),('def'),('ghi');\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('DEF'),('abc');\n    CREATE TABLE t3(a);\n    INSERT INTO t3 VALUES('def'),('jkl');\n\n    SELECT a FROM t1 EXCEPT SELECT a FROM t2\n     ORDER BY a COLLATE nocase;\n  ")

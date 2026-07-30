@@ -22,6 +22,25 @@ func Test_avfs(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "avfs" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
@@ -158,8 +177,8 @@ func Test_avfs(t *testing.T) {
 			_ = r // suppress unused warning
 			var s = _randints + "(" + "incr i" + ")"
 			_ = s // suppress unused warning
-			var t = _randints + "(" + "incr i" + ")"
-			_ = t // suppress unused warning
+			var _t = _randints + "(" + "incr i" + ")"
+			_ = _t // suppress unused warning
 			var u = _randints + "(" + "incr i" + ")"
 			_ = u // suppress unused warning
 			var v = _randints + "(" + "incr i" + ")"

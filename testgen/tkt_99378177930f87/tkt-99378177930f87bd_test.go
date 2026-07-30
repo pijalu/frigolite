@@ -20,6 +20,25 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "tkt-99378-100"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b TEXT, c INT, d INT);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (1, '{\"x\":1}', 12,  3),\n    (1, '{\"x\":2}',  4,  5),\n    (1, '{\"x\":1}',  6, 11),\n    (2, '{\"x\":1}', 22,  3),\n    (2, '{\"x\":2}',  4,  5),\n    (3, '{\"x\":1}',  6,  7);\n  CREATE INDEX t1x ON t1(d, a, b->>'x', c);\n  CREATE TABLE t2(y);\n  INSERT INTO t2(y) VALUES(9);\n")

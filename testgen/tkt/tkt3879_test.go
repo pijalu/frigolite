@@ -20,6 +20,25 @@ func Test_tkt3879(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3879.1.1"
 		_res = db.Exec("\n    CREATE TABLE t1 (a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES ('w',  1);\n    INSERT INTO t1 VALUES ('z', -1);\n  \n    CREATE TABLE t2 (m INTEGER PRIMARY KEY, n, a, p);\n    INSERT INTO t2 VALUES (25, 13, 'w', 1);\n    INSERT INTO t2 VALUES (26, 25, 'z', 153);\n    INSERT INTO t2 VALUES (27, 25, 'z', 68);\n\n    CREATE TABLE t3 (m);\n    INSERT INTO t3 VALUES (25);\n  ")

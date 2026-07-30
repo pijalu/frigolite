@@ -22,6 +22,25 @@ func Test_e_select(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "e_select-1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES('a', 'one');\n  INSERT INTO t1 VALUES('b', 'two');\n  INSERT INTO t1 VALUES('c', 'three');\n\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 VALUES('a', 'I');\n  INSERT INTO t2 VALUES('b', 'II');\n  INSERT INTO t2 VALUES('c', 'III');\n\n  CREATE TABLE t3(a, c);\n  INSERT INTO t3 VALUES('a', 1);\n  INSERT INTO t3 VALUES('b', 2);\n\n  CREATE TABLE t4(a, c);\n  INSERT INTO t4 VALUES('a', NULL);\n  INSERT INTO t4 VALUES('b', 2);\n")

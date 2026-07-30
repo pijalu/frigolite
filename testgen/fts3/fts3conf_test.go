@@ -21,6 +21,25 @@ func Test_fts3conf(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3conf"
 	_ = testprefix // suppress unused warning
@@ -117,7 +136,7 @@ func Test_fts3conf(t *testing.T) {
 			}
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity 2.2.4 db t1")
-		if tcl_platform(byteOrder) == "littleEndian" {
+		if tcl_platform_byteOrder == "littleEndian" {
 			{ // "3.1"
 				r = db.Query("\n    CREATE VIRTUAL TABLE t3 USING fts4;\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")
 				if r.Error != nil {

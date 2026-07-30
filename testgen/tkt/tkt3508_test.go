@@ -20,6 +20,25 @@ func Test_tkt3508(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3508-1.1"
 		_res = db.Exec("\n    CREATE TABLE modificationsTmp (\n      SUBSTRATE_HPRD_ID VARCHAR(80),\n      SUBSTRATE_GENE_SYMBOL VARCHAR(80),\n      SUBSTRATE_ISOFORM_ID VARCHAR(80),\n      SUBSTRATE_REFSEQ_ID VARCHAR(80),\n      SITE INTEGER,\n      RESIDUE VARCHAR(80),\n      ENZYME_NAME VARCHAR(80),\n      ENZYME_HPRD_ID VARCHAR(80),\n      MODIFICATION_TYPE VARCHAR(80),\n      EXPERIMENT_TYPE VARCHAR(80),\n      REFERENCE_ID VARCHAR(80)\n    );\n    select SUBSTRATE_HPRD_ID, count(substrate_refseq_id) as c\n      from modificationsTmp where c > 1 group by SUBSTRATE_HPRD_ID;\n  ")

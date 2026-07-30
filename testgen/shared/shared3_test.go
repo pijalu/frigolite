@@ -21,6 +21,25 @@ func Test_shared3(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "shared3"
 	_ = testprefix // suppress unused warning
@@ -28,8 +47,7 @@ func Test_shared3(t *testing.T) {
 	_ = _enable_shared_cache // suppress unused warning
 	{ // do_test "shared3-1.1"
 		os.Remove("test.db")
-		db1, err := frigolite.Open("test.db")
-		defer db1.Close()
+		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db1.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES('abc','This is a test string');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -40,8 +58,7 @@ func Test_shared3(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "shared3-1.2"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("SELECT y FROM t1 WHERE x='abc'")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -49,8 +66,7 @@ func Test_shared3(t *testing.T) {
 	db1.Close()
 	db2.Close()
 	{ // do_test "shared3-2.1"
-		db1, err := frigolite.Open("test.db")
-		defer db1.Close()
+		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA main.cache_size = 10;\n  ")
 		if r.Error != nil {
@@ -64,8 +80,7 @@ func Test_shared3(t *testing.T) {
 		}
 	}
 	{ // do_test "shared3-2.3"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA main.cache_size ")
 		if r.Error != nil {
@@ -85,8 +100,7 @@ func Test_shared3(t *testing.T) {
 		}
 	}
 	{ // do_test "shared3-2.6"
-		db3, err := frigolite.Open("file:./test.db?cache=private")
-		defer db3.Close()
+		db3, err = frigolite.Open("file:./test.db?cache=private")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("select count(*) from sqlite_master")
 		_ = _res // catchsql
@@ -108,8 +122,7 @@ func Test_shared3(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			db3, err := frigolite.Open("file:./test.db?cache=private")
-			defer db3.Close()
+			db3, err = frigolite.Open("file:./test.db?cache=private")
 			if err != nil { t.Fatal(err) }
 		}
 		_res = db.Exec("select count(*) from sqlite_master")
@@ -121,8 +134,7 @@ func Test_shared3(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2, err := frigolite.Open("test.db")
-	defer db2.Close()
+	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		_res = db.Exec("\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(randomblob(500), randomblob(500));\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n  INSERT INTO t1 SELECT randomblob(500), randomblob(500) FROM t1;\n")

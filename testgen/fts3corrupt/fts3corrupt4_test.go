@@ -22,6 +22,25 @@ func Test_fts3corrupt4(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3corrupt4"
 	_ = testprefix // suppress unused warning
@@ -973,7 +992,7 @@ func Test_fts3corrupt4(t *testing.T) {
 			t.Errorf("expected error, got none\n  sql: %s", "\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x%1 FROM c WHERE x<599237)\n    INSERT INTO t1( a ) SELECT randomblob(3000) FROM t2 ;\n")
 		}
 	}
-	if tcl_platform(byteOrder) == "littleEndian" {
+	if tcl_platform_byteOrder == "littleEndian" {
 		{ // "25.6a"
 			_res = db.Exec("\n    INSERT INTO t1(t1) SELECT x FROM t2;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {

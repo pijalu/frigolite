@@ -20,6 +20,25 @@ func Test_tkt3762(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3762-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=INCREMENTAL;\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(900));\n    INSERT INTO t1 VALUES(zeroblob(900));\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    DELETE FROM t1 WHERE rowid>202;\n    VACUUM;\n    \n    BEGIN;\n    DELETE FROM t1 WHERE rowid IN (10,11,12) ;\n    PRAGMA incremental_vacuum(10);\n    UPDATE t1 SET x=zeroblob(900) WHERE rowid BETWEEN 100 AND 110;\n    INSERT INTO t1 VALUES(zeroblob(39000));\n    SELECT count(*) FROM t1;\n    ROLLBACK;\n  ")

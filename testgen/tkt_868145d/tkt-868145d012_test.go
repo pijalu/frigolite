@@ -20,6 +20,25 @@ func Test_tkt_868145d012(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "tkt-868145d012.100"
 		_res = db.Exec("\n  CREATE TABLE p (\n    id INTEGER PRIMARY KEY,\n    uid VARCHAR(36),\n    t INTEGER\n  );\n  \n  CREATE TABLE pa (\n    id INTEGER PRIMARY KEY,\n    a_uid VARCHAR(36)\n  );\n  \n  CREATE TABLE a (\n    id INTEGER PRIMARY KEY,\n    uid VARCHAR(36),\n    t INTEGER\n  );\n  \n  INSERT INTO pa VALUES(1,'1234');\n  INSERT INTO pa VALUES(2,'2345');\n  INSERT INTO p VALUES(3,'1234',97);\n  INSERT INTO p VALUES(4,'1234',98);\n  INSERT INTO a VALUES(5,'1234',98);\n  INSERT INTO a VALUES(6,'1234',99);\n")

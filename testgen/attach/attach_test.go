@@ -23,6 +23,25 @@ func Test_attach(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var i = "2"
 	_ = i // suppress unused warning
@@ -44,8 +63,7 @@ func Test_attach(t *testing.T) {
 		}
 	}
 	{ // do_test "attach-1.2"
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,'x');\n    INSERT INTO t2 VALUES(2,'y');\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
@@ -195,8 +213,7 @@ func Test_attach(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
@@ -309,8 +326,7 @@ func Test_attach(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DETACH db2")
 		}
 		db2.Close()
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t3(x,y);\n    CREATE UNIQUE INDEX t3i1 ON t3(x);\n    INSERT INTO t3 VALUES(1,2);\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
@@ -349,7 +365,7 @@ func Test_attach(t *testing.T) {
 		_res = db.Exec("\n    ATTACH DATABASE 'no-such-file' AS nosuch;\n  ")
 		_ = _res // catchsql
 	}
-	if tcl_platform(platform) == "unix" {
+	if tcl_platform_platform == "unix" {
 		{ // do_test "attach-6.2"
 			dbx, err := frigolite.Open("cannot-read")
 			defer dbx.Close()
@@ -402,8 +418,7 @@ func Test_attach(t *testing.T) {
 	}
 	os.Remove("test2.db")
 	{ // do_test "attach-8.3"
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("CREATE TABLE t1(x); BEGIN EXCLUSIVE")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

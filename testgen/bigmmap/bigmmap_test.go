@@ -21,9 +21,28 @@ func Test_bigmmap(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	if tclBool("file exists skip-big-file") {
 	}
-	if tcl_platform(os) == "Darwin" {
+	if tcl_platform_os == "Darwin" {
 	}
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "bigmmap"
@@ -87,13 +106,13 @@ func Test_bigmmap(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		var t = "0"
-		_ = t // suppress unused warning
-		for func() bool { t_n, _t_e := strconv.Atoi(t); if _t_e != nil { return false }; return t_n < 8 }() {
-			{ // "2." + i + "." + t + ".1"
-				r = db.Query("\n      SELECT count(*) FROM t" + t + ";\n      SELECT count(b || c) FROM t" + t + " GROUP BY b;\n    ")
+		var _t = "0"
+		_ = _t // suppress unused warning
+		for func() bool { _t_n, __t_e := strconv.Atoi(_t); if __t_e != nil { return false }; return _t_n < 8 }() {
+			{ // "2." + i + "." + _t + ".1"
+				r = db.Query("\n      SELECT count(*) FROM t" + _t + ";\n      SELECT count(b || c) FROM t" + _t + " GROUP BY b;\n    ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM t" + t + ";\n      SELECT count(b || c) FROM t" + t + " GROUP BY b;\n    ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT count(*) FROM t" + _t + ";\n      SELECT count(b || c) FROM t" + _t + " GROUP BY b;\n    ")
 					return
 				}
 				got := flatten(r)
@@ -102,23 +121,23 @@ func Test_bigmmap(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			{ // "2." + i + "." + t + ".2"
-				r = db.Query("\n      SELECT * FROM t" + t + " AS o WHERE \n        NOT EXISTS( SELECT * FROM t" + t + " AS i WHERE a=o.a AND +b=o.b AND +c=o.c )\n      ORDER BY b, c;\n    ")
+			{ // "2." + i + "." + _t + ".2"
+				r = db.Query("\n      SELECT * FROM t" + _t + " AS o WHERE \n        NOT EXISTS( SELECT * FROM t" + _t + " AS i WHERE a=o.a AND +b=o.b AND +c=o.c )\n      ORDER BY b, c;\n    ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t" + t + " AS o WHERE \n        NOT EXISTS( SELECT * FROM t" + t + " AS i WHERE a=o.a AND +b=o.b AND +c=o.c )\n      ORDER BY b, c;\n    ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t" + _t + " AS o WHERE \n        NOT EXISTS( SELECT * FROM t" + _t + " AS i WHERE a=o.a AND +b=o.b AND +c=o.c )\n      ORDER BY b, c;\n    ")
 				}
 			}
-			{ // "2." + i + "." + t + ".3"
-				r = db.Query("EXPLAIN QUERY PLAN " + "\n      SELECT * FROM t" + t + " AS o WHERE \n        NOT EXISTS( SELECT * FROM t" + t + " AS i WHERE a=o.a AND +b=o.b AND +c=o.c )\n      ORDER BY b, c;\n    ")
+			{ // "2." + i + "." + _t + ".3"
+				r = db.Query("EXPLAIN QUERY PLAN " + "\n      SELECT * FROM t" + _t + " AS o WHERE \n        NOT EXISTS( SELECT * FROM t" + _t + " AS i WHERE a=o.a AND +b=o.b AND +c=o.c )\n      ORDER BY b, c;\n    ")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n      SELECT * FROM t" + t + " AS o WHERE \n        NOT EXISTS( SELECT * FROM t" + t + " AS i WHERE a=o.a AND +b=o.b AND +c=o.c )\n      ORDER BY b, c;\n    ")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n      SELECT * FROM t" + _t + " AS o WHERE \n        NOT EXISTS( SELECT * FROM t" + _t + " AS i WHERE a=o.a AND +b=o.b AND +c=o.c )\n      ORDER BY b, c;\n    ")
 				}
 			}
-			// incr t 1
+			// incr _t 1
 			{
-				_n, _err := strconv.Atoi(t)
+				_n, _err := strconv.Atoi(_t)
 				if _err == nil {
-					t = strconv.Itoa(_n + 1)
+					_t = strconv.Itoa(_n + 1)
 				}
 			}
 		}

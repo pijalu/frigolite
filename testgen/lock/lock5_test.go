@@ -21,6 +21,25 @@ func Test_lock5(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "lock5"
 	_ = testprefix // suppress unused warning
@@ -48,8 +67,7 @@ func Test_lock5(t *testing.T) {
 		// file exists "test.db.lock"
 	}
 	{ // do_test "lock5-dotfile.4"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    INSERT INTO t1 VALUES('a', 'b');\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -108,8 +126,7 @@ func Test_lock5(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				db2, err := frigolite.Open("test.db")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 			}
 			_res = db.Exec(" SELECT * FROM t1 ")
@@ -156,8 +173,7 @@ func Test_lock5(t *testing.T) {
 			}
 		}
 		{ // do_test "lock5-flock.10"
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n    SELECT * FROM t1\n  ")
 			if r.Error != nil {
@@ -177,8 +193,7 @@ func Test_lock5(t *testing.T) {
 				tclFileCopy("test.db", "test.db2")
 				tclFileCopy("test.db-journal", "test.db2-journal")
 				db2.Close()
-				db2, err := frigolite.Open("test.db2")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n      SELECT * FROM t1\n    ")
 				_ = _res // catchsql
@@ -196,8 +211,7 @@ func Test_lock5(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA mmap_size = 0 ")
 		if r.Error != nil {
@@ -266,8 +280,7 @@ func Test_lock5(t *testing.T) {
 			tclFileCopy("test.db", "test.db2")
 			tclFileCopy("test.db-journal", "test.db2-journal")
 			// file mkdir test.db2.lock
-			db2, err := frigolite.Open("test.db2")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db2")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      SELECT count(*) FROM t1;\n    ")
 			_ = _res // catchsql
@@ -283,8 +296,7 @@ func Test_lock5(t *testing.T) {
 		{ // do_test "2.dotfile.6"
 			tclFileCopy("test.db", "test.db2")
 			tclFileCopy("test.db-journal", "test.db2-journal")
-			db2, err := frigolite.Open("file:test.db2?nolock=1")
-			defer db2.Close()
+			db2, err = frigolite.Open("file:test.db2?nolock=1")
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      SELECT count(*) FROM t1;\n    ")
 			_ = _res // catchsql

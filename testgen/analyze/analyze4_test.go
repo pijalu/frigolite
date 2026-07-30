@@ -20,6 +20,25 @@ func Test_analyze4(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "analyze4-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 SELECT a+1, b FROM t1;\n    INSERT INTO t1 SELECT a+2, b FROM t1;\n    INSERT INTO t1 SELECT a+4, b FROM t1;\n    INSERT INTO t1 SELECT a+8, b FROM t1;\n    INSERT INTO t1 SELECT a+16, b FROM t1;\n    INSERT INTO t1 SELECT a+32, b FROM t1;\n    INSERT INTO t1 SELECT a+64, b FROM t1;\n    ANALYZE;\n  ")

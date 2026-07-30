@@ -23,6 +23,25 @@ func Test_temptrigger(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "temptrigger"
 	_ = testprefix // suppress unused warning
@@ -31,8 +50,7 @@ func Test_temptrigger(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2, err := frigolite.Open("test.db")
-	defer db2.Close()
+	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "temptrigger-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;\n  ")
@@ -119,8 +137,7 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "temptrigger-2.3"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2.Close()
 	}
@@ -160,8 +177,7 @@ func Test_temptrigger(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t2(a, b) ")
 		if _res.Error != nil {
@@ -240,8 +256,7 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "5.1"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DROP TABLE t1 ")
 		if _res.Error != nil {
@@ -272,8 +287,7 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "6.1"
-		db2, err := frigolite.Open("test.db2")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(a, b, c); ")
 		if _res.Error != nil {

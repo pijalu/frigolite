@@ -21,6 +21,25 @@ func Test_t_8_3_names(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
@@ -68,8 +87,7 @@ func Test_t_8_3_names(t *testing.T) {
 		}
 	}
 	{ // do_test "8_3_names-2.3"
-		db2, err := frigolite.Open("file:./test2.db?8_3_names=1")
-		defer db2.Close()
+		db2, err = frigolite.Open("file:./test2.db?8_3_names=1")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("\n    PRAGMA integrity_check;\n    SELECT length(x) FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -98,8 +116,7 @@ func Test_t_8_3_names(t *testing.T) {
 		}
 	}
 	{ // do_test "8_3_names-3.3"
-		db2, err := frigolite.Open("file:./test2.db?8_3_names=0")
-		defer db2.Close()
+		db2, err = frigolite.Open("file:./test2.db?8_3_names=0")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("\n    PRAGMA integrity_check;\n    SELECT length(x) FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -124,8 +141,7 @@ func Test_t_8_3_names(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value FROM nums WHERE value BETWEEN 1 AND 1000;\n    BEGIN;\n    UPDATE t1 SET x=x*2;\n  ")
 		}
-		db2, err := frigolite.Open("file:./test.db?8_3_names=1")
-		defer db2.Close()
+		db2, err = frigolite.Open("file:./test.db?8_3_names=1")
 		if err != nil { t.Fatal(err) }
 		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db2 wholenumber")
 		db2.Exec("\n    BEGIN;\n    SELECT sum(x) FROM t1;\n  ")

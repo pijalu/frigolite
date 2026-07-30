@@ -21,6 +21,25 @@ func Test_conflict2(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "conflict2-1.0"
 		r = db.Query("\n    CREATE TABLE t1(a, b, c, PRIMARY KEY(a,b)) WITHOUT rowid;\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")

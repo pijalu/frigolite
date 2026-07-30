@@ -22,6 +22,25 @@ func Test_walslow(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "walslow"
 	_ = testprefix // suppress unused warning
@@ -78,8 +97,7 @@ func Test_walslow(t *testing.T) {
 				os.Remove("testX.db")
 				t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db testX.db")
 				t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-wal testX.db-wal")
-				db2, err := frigolite.Open("testX.db")
-				defer db2.Close()
+				db2, err = frigolite.Open("testX.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" PRAGMA journal_mode = WAL ")
 				if r.Error != nil {
@@ -126,8 +144,7 @@ func Test_walslow(t *testing.T) {
 	{ // do_test "3.2"
 		tclFileCopy("test.db-wal", "test2.db-wal")
 		tclFileCopy("test.db", "test2.db")
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT a FROM t1 ")
 		if r.Error != nil {
@@ -152,8 +169,7 @@ func Test_walslow(t *testing.T) {
 				t.Errorf("TODO: %s not implemented in frigolite", "seek $fd $iOff")
 				t.Log("-nonewline")
 				// close $fd
-				db2, err := frigolite.Open("test2.db")
-				defer db2.Close()
+				db2, err = frigolite.Open("test2.db")
 				if err != nil { t.Fatal(err) }
 				if tclBool("execsql { SELECT a FROM t1 } db2" + " != \"1 2\"") {
 					var FAIL = "1"

@@ -20,11 +20,29 @@ func Test_lock(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "lock-1.0"
 		// file mkdir tempdir/t1/t2
-		db2, err := frigolite.Open("./tempdir/../tempdir/t1/.//t2/../../..//test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("./tempdir/../tempdir/t1/.//t2/../../..//test.db")
 		if err != nil { t.Fatal(err) }
 		var dummy = ""
 		_ = dummy // suppress unused warning
@@ -167,7 +185,7 @@ func Test_lock(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
 		}
 	}
-	if _tcl_platform(platform) == "unix" {
+	if _tcl_platform_platform == "unix" {
 		{ // do_test "lock-1.22"
 			_res = db.Exec("SELECT * FROM t1")
 			if _res.Error != nil {
@@ -447,8 +465,7 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET a=0 WHERE 0")
 		}
-		db2, err := frigolite.Open("./test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("./test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("UPDATE t1 SET a=0")
 		_ = _res // catchsql

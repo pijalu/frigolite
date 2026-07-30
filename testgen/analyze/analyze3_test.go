@@ -21,6 +21,25 @@ func Test_analyze3(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "analyze3"
 	_ = testprefix // suppress unused warning
@@ -294,11 +313,11 @@ func Test_analyze3(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			var t = ""
-			_ = t // suppress unused warning
-			t += "lindex {a b c d e f g h i j} [expr $i/100]"
-			t += "lindex {a b c d e f g h i j} [expr ($i/10)%10]"
-			t += "lindex {a b c d e f g h i j} [expr ($i%10)]"
+			var _t = ""
+			_ = _t // suppress unused warning
+			_t += "lindex {a b c d e f g h i j} [expr $i/100]"
+			_t += "lindex {a b c d e f g h i j} [expr ($i/10)%10]"
+			_t += "lindex {a b c d e f g h i j} [expr ($i%10)]"
 			_res = db.Exec(" INSERT INTO t1 VALUES($i, $t) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i, $t) ")

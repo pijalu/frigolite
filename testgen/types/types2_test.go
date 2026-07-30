@@ -20,6 +20,25 @@ func Test_types2(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE t1(\n    i1 INTEGER,\n    i2 INTEGER,\n    n1 NUMERIC,\n    n2 NUMERIC,\n    t1 TEXT,\n    t2 TEXT,\n    o1 BLOB,\n    o2 BLOB\n  );\n  INSERT INTO t1 VALUES(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);\n")
 	if _res.Error != nil {

@@ -23,6 +23,25 @@ func Test_fts4aa(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var fts4aa_queries = "\n  {abraham}\n  {the king}\n  {\"the king\"}\n  {abraham OR joseph}\n  {ab* OR jos*}\n  {lived t*}\n  {spake hebrew}\n  {melchizedek}\n  {t* melchizedek}\n  {melchizedek t*}\n"
 	_ = fts4aa_queries // suppress unused warning
@@ -232,7 +251,7 @@ func Test_fts4aa(t *testing.T) {
 				}
 				db, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
-				if tcl_platform(byteOrder) == "littleEndian" {
+				if tcl_platform_byteOrder == "littleEndian" {
 					var res = "X'0200000000000000000000000E0000000E00000001000000010000000100000001000000'"
 					_ = res // suppress unused warning
 				} else {

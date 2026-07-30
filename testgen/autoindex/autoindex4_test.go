@@ -20,6 +20,25 @@ func Test_autoindex4(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "autoindex4-1.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(123,'abc'),(234,'def'),(234,'ghi'),(345,'jkl');\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2 VALUES(987,'zyx'),(654,'wvu'),(987,'rqp');\n\n  SELECT *, '|' FROM t1, t2 WHERE a=234 AND x=987 ORDER BY +b;\n")

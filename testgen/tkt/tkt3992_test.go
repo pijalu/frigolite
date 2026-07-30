@@ -20,6 +20,25 @@ func Test_tkt3992(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3992-1.1"
 		_res = db.Exec("\n    CREATE TABLE parameters1(\n       mountcnt    INT NOT NULL CHECK (typeof(mountcnt) == 'integer'),\n       version     REAL NOT NULL\n    );\n    INSERT INTO parameters1(mountcnt, version) VALUES(1, 1.0);\n\n    CREATE TABLE parameters2(\n       mountcnt    INT NOT NULL CHECK (typeof(mountcnt) == 'integer'),\n       version     REAL CHECK (typeof(version) == 'real')\n    );\n    INSERT INTO parameters2(mountcnt, version) VALUES(1, 1.0);\n  ")

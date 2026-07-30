@@ -21,6 +21,25 @@ func Test_quota(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("bak.db")
 	var defaultVfs = "file_control_vfsname db"
@@ -100,8 +119,7 @@ func Test_quota(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "quota-2.3.1"
-		db2, err := frigolite.Open("bak.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("bak.db")
 		if err != nil { t.Fatal(err) }
 		db2.Close()
 	}
@@ -140,8 +158,7 @@ func Test_quota(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "quota-3.1.3"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		var _quota = "list" // TCL namespace variable
 		_ = _quota // suppress unused warning
@@ -306,8 +323,7 @@ func Test_quota(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "quota-4.1.8"
-		db2, err := frigolite.Open("test2.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("SELECT * FROM t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -370,7 +386,7 @@ func Test_quota(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_set A 0 quota_callback")
 		t.Errorf("TODO: %s not implemented in frigolite", "quota_list")
 	}
-	if tcl_platform(platform) == "windows" {
+	if tcl_platform_platform == "windows" {
 		var quotagroup = "*\\\\quota-test-A?.db"
 		_ = quotagroup // suppress unused warning
 	} else {
@@ -429,7 +445,7 @@ func Test_quota(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file quota-test-A2.db")
 		t.Errorf("TODO: %s not implemented in frigolite", "quota_size $::quotagroup")
 	}
-	if tcl_platform(platform) == "windows" {
+	if tcl_platform_platform == "windows" {
 		var quotagroup = "*\\\\quota-test-B*"
 		_ = quotagroup // suppress unused warning
 	} else {

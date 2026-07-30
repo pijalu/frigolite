@@ -22,6 +22,25 @@ func Test_wal6(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "wal6"
 	_ = testprefix // suppress unused warning
@@ -44,20 +63,19 @@ func Test_wal6(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t1;\n    ")
 			}
 		}
-		if _tcl_platform(os) == "Windows NT" {
+		if _tcl_platform_os == "Windows NT" {
 			if jmode == "persist" || jmode=="truncate" {
 			}
 		}
 		{ // do_test "wal6-1.2." + jmode
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n    PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;\n    ")
 			}
 		}
-		if _tcl_platform(os) == "Windows NT" {
+		if _tcl_platform_os == "Windows NT" {
 			if jmode == "persist" || jmode=="truncate" {
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
@@ -76,8 +94,7 @@ func Test_wal6(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	db2, err := frigolite.Open("test.db")
-	defer db2.Close()
+	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(a PRIMARY KEY, b TEXT);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  BEGIN;\n    SELECT * FROM t1;\n")
@@ -189,8 +206,7 @@ func Test_wal6(t *testing.T) {
 		// file size test.db-wal
 	}
 	{ // do_test "4.3"
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 		if _res.Error != nil {
@@ -208,8 +224,7 @@ func Test_wal6(t *testing.T) {
 		}
 		db2.Close()
 		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-wal 0 [string repeat 00 2000]")
-		db2, err := frigolite.Open("test.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "4.4.1"

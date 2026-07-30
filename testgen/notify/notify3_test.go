@@ -21,14 +21,32 @@ func Test_notify3(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var esc = "sqlite3_enable_shared_cache 1"
 	_ = esc // suppress unused warning
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
-	db2, err := frigolite.Open("test.db2")
-	defer db2.Close()
+	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "notify3-1.1"
 		_res = db.Exec(" \n    CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('t1 A', 't1 B');\n  ")
@@ -126,11 +144,9 @@ func Test_notify3(t *testing.T) {
 						_ = _catchErr // suppress unused warning
 						db2.Close()
 					}
-					db1, err := frigolite.Open("test.db")
-					defer db1.Close()
+					db1, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
-					db2, err := frigolite.Open("test.db2")
-					defer db2.Close()
+					db2, err = frigolite.Open("test.db2")
 					if err != nil { t.Fatal(err) }
 					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db1 $enable_extended_errors")
 					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db2 $enable_extended_errors")

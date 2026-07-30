@@ -20,14 +20,32 @@ func Test_vtab_shared(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtab_shared"
 	_ = testprefix // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2, err := frigolite.Open("test.db")
-	defer db2.Close()
+	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "vtab_shared-1.1"
 		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
@@ -133,8 +151,7 @@ func Test_vtab_shared(t *testing.T) {
 		}
 		{ // do_test "vtab_shared_1.14.1"
 			db2.Close()
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
 			r = db.Query(" SELECT * FROM t3 ")
@@ -150,8 +167,7 @@ func Test_vtab_shared(t *testing.T) {
 		}
 		{ // do_test "vtab_shared_1.14.3"
 			db2.Close()
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
 			r = db.Query(" SELECT * FROM t3 ")
@@ -167,8 +183,7 @@ func Test_vtab_shared(t *testing.T) {
 		}
 		{ // do_test "vtab_shared_1.14.5"
 			db2.Close()
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
 			r = db.Query(" SELECT * FROM t3 ")
@@ -184,8 +199,7 @@ func Test_vtab_shared(t *testing.T) {
 		}
 		{ // do_test "vtab_shared_1.15.1"
 			db2.Close()
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
 			r = db.Query(" \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
@@ -195,8 +209,7 @@ func Test_vtab_shared(t *testing.T) {
 		}
 		{ // do_test "vtab_shared_1.15.2"
 			db2.Close()
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
 			r = db.Query(" \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
@@ -206,8 +219,7 @@ func Test_vtab_shared(t *testing.T) {
 		}
 		{ // do_test "vtab_shared_1.15.3"
 			db2.Close()
-			db2, err := frigolite.Open("test.db")
-			defer db2.Close()
+			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
 			r = db.Query(" \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")

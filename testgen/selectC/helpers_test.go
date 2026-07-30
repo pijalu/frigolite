@@ -15,6 +15,67 @@ import (
 
 // --- TCL runtime helpers ---
 
+// TCL platform globals (frigolite runs on all platforms SQLite supports)
+var tcl_platform_platform = "unix"
+var tcl_platform_byteOrder = "littleEndian"
+var tcl_platform_os = "Darwin"
+var tcl_platform_pointerSize = 8
+var tcl_platform_wordSize = 8
+var _tcl_platform_platform = "unix"
+var _tcl_platform_byteOrder = "littleEndian"
+var _tcl_platform_os = "unix"
+var _tcl_platform = "unix"
+var tcl_platform = "unix"
+var MEMDEBUG = false
+var sqlite_options = map[string]string{}
+var _sqlite_options = map[string]string{}
+var SQLITE_MAX_LENGTH = 1000000000
+var SQLITE_MAX_SQL_LENGTH = 1000000000
+var SQLITE_MAX_COLUMN = 2000
+var SQLITE_MAX_EXPR_DEPTH = 1000
+var SQLITE_MAX_COMPOUND_SELECT = 500
+var SQLITE_MAX_VDBE_OP = 250000000
+var SQLITE_MAX_FUNCTION_ARG = 127
+var SQLITE_MAX_ATTACHED = 10
+var SQLITE_MAX_LIKE_PATTERN_LENGTH = 50000
+var SQLITE_MAX_VARIABLE_NUMBER = 32766
+var SQLITE_MAX_PAGE_SIZE = 65536
+var AUTOVACUUM = false
+var TEMP_STORE = 1
+var _TEMP_STORE = 1
+var tcl_version = "8.6"
+var _tcl_version = "8.6"
+// suppress unused warnings
+var _ = tcl_platform_platform
+var _ = tcl_platform_byteOrder
+var _ = tcl_platform_os
+var _ = tcl_platform_pointerSize
+var _ = tcl_platform_wordSize
+var _ = _tcl_platform_platform
+var _ = _tcl_platform_byteOrder
+var _ = _tcl_platform_os
+var _ = _tcl_platform
+var _ = tcl_platform
+var _ = MEMDEBUG
+var _ = sqlite_options
+var _ = _sqlite_options
+var _ = SQLITE_MAX_LENGTH
+var _ = SQLITE_MAX_SQL_LENGTH
+var _ = SQLITE_MAX_COLUMN
+var _ = SQLITE_MAX_EXPR_DEPTH
+var _ = SQLITE_MAX_COMPOUND_SELECT
+var _ = SQLITE_MAX_VDBE_OP
+var _ = SQLITE_MAX_FUNCTION_ARG
+var _ = SQLITE_MAX_ATTACHED
+var _ = SQLITE_MAX_LIKE_PATTERN_LENGTH
+var _ = SQLITE_MAX_VARIABLE_NUMBER
+var _ = SQLITE_MAX_PAGE_SIZE
+var _ = AUTOVACUUM
+var _ = TEMP_STORE
+var _ = _TEMP_STORE
+var _ = tcl_version
+var _ = _tcl_version
+
 // flatten converts a query result to a space-separated string.
 func flatten(res *frigolite.Result) string {
 	var parts []string
@@ -105,20 +166,31 @@ func tclNeedsBracing(s string) bool {
 	return false
 }
 
-func tclLIndex(list string, idx int) string {
+func tclLIndex(list string, idx interface{}) string {
 	items := tclSplitList(list)
-	if idx < 0 || idx >= len(items) { return "" }
-	return items[idx]
+	var i int
+	switch v := idx.(type) {
+	case int:
+		i = v
+	case string:
+		i, _ = strconv.Atoi(v)
+	default:
+		return ""
+	}
+	if i < 0 || i >= len(items) { return "" }
+	return items[i]
 }
 
 func tclLLength(list string) int { return len(tclSplitList(list)) }
 
-func tclLRange(list string, start, end int) string {
+func tclLRange(list string, start, end interface{}) string {
 	items := tclSplitList(list)
-	if start < 0 { start = 0 }
-	if end < 0 || end >= len(items) { end = len(items) - 1 }
-	if start > end || start >= len(items) { return "" }
-	return tclList(items[start : end+1])
+	s, _ := strconv.Atoi(fmt.Sprintf("%v", start))
+	e, _ := strconv.Atoi(fmt.Sprintf("%v", end))
+	if s < 0 { s = 0 }
+	if e < 0 || e >= len(items) { e = len(items) - 1 }
+	if s > e || s >= len(items) { return "" }
+	return tclList(items[s : e+1])
 }
 
 func tclLReplace(list string, first, count int, args ...string) string {

@@ -22,6 +22,25 @@ func Test_walbak(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // do_test "walbak-1.0"
@@ -35,8 +54,7 @@ func Test_walbak(t *testing.T) {
 		// file size bak.db
 	}
 	{ // do_test "walbak-1.2"
-		db2, err := frigolite.Open("bak.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("bak.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" \n    SELECT * FROM t1;\n    PRAGMA main.journal_mode;\n  ")
 		if r.Error != nil {
@@ -111,8 +129,7 @@ func Test_walbak(t *testing.T) {
 	}
 	{ // do_test "walbak-2.2"
 		os.Remove("abc.db")
-		db2, err := frigolite.Open("abc.db")
-		defer db2.Close()
+		db2, err = frigolite.Open("abc.db")
 		if err != nil { t.Fatal(err) }
 		strings.Compare("sig db", "sig db2")
 	}
@@ -300,8 +317,7 @@ func Test_walbak(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES('I', 'II');\n      INSERT INTO t1 VALUES('III', 'IV');\n    ")
 					}
-					db2, err := frigolite.Open("test.db2")
-					defer db2.Close()
+					db2, err = frigolite.Open("test.db2")
 					if err != nil { t.Fatal(err) }
 					db2.Exec("PRAGMA journal_mode = " + dest)
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -338,8 +354,7 @@ func Test_walbak(t *testing.T) {
 				{ // do_test "walbak-4." + tn + ".6"
 					// file exists "test.db2-wal"
 				}
-				db2, err := frigolite.Open("test.db2")
-				defer db2.Close()
+				db2, err = frigolite.Open("test.db2")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "walbak-4." + tn + ".7"
 					r = db.Query(" PRAGMA journal_mode ")

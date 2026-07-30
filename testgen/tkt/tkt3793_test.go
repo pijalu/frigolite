@@ -20,6 +20,25 @@ func Test_tkt3793(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = _enable_shared_cache // suppress unused warning
@@ -27,11 +46,9 @@ func Test_tkt3793(t *testing.T) {
 		db, err := frigolite.Open("file:test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		db1, err := frigolite.Open("file:test.db?cache=private")
-		defer db1.Close()
+		db1, err = frigolite.Open("file:test.db?cache=private")
 		if err != nil { t.Fatal(err) }
-		db2, err := frigolite.Open("file:test.db?cache=shared")
-		defer db2.Close()
+		db2, err = frigolite.Open("file:test.db?cache=shared")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randstr(50,50), randstr(50,50));\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t1 SELECT randstr(50,50), randstr(50,50) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
 		if _res.Error != nil {

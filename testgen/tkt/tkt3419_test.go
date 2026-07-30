@@ -20,6 +20,25 @@ func Test_tkt3419(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3419-1.1"
 		r = db.Query("\n    create table a(id integer primary key);\n    create table b(id integer primary key, a_id integer);\n    create table c(id integer primary key, b_id integer);\n  \n    insert into a values (1);\n    insert into a values (2);\n  \n    insert into b values (3, 1);\n    insert into b values (4, 1);\n    insert into b values (5, 1);\n    insert into b values (6, 1);\n    insert into b values (9, 2);\n  \n    insert into c values (4, 3);\n    insert into c values (5, 5);\n    insert into c values (6, 4);\n    insert into c values (7, 6);\n    insert into c values (8, 9);\n  \n    select * FROM a, b, c WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")

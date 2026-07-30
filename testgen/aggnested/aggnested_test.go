@@ -21,6 +21,25 @@ func Test_aggnested(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "aggnested"
 	_ = testprefix // suppress unused warning
@@ -49,8 +68,7 @@ func Test_aggnested(t *testing.T) {
 		}
 	}
 	{ // do_test "aggnested-2.0"
-		db2, err := frigolite.Open(":memory:")
-		defer db2.Close()
+		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("\n    CREATE TABLE t1 (A1 INTEGER NOT NULL,A2 INTEGER NOT NULL,A3 INTEGER NOT \n    NULL,A4 INTEGER NOT NULL,PRIMARY KEY(A1));\n    REPLACE INTO t1 VALUES(1,11,111,1111);\n    REPLACE INTO t1 VALUES(2,22,222,2222);\n    REPLACE INTO t1 VALUES(3,33,333,3333);\n    CREATE TABLE t2 (B1 INTEGER NOT NULL,B2 INTEGER NOT NULL,B3 INTEGER NOT \n    NULL,B4 INTEGER NOT NULL,PRIMARY KEY(B1));\n    REPLACE INTO t2 VALUES(1,88,888,8888);\n    REPLACE INTO t2 VALUES(2,99,999,9999);\n    SELECT (SELECT GROUP_CONCAT(CASE WHEN a1=1 THEN'A' ELSE 'B' END) FROM t2),\n            t1.* \n    FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }

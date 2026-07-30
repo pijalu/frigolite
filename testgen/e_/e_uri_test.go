@@ -21,6 +21,25 @@ func Test_e_uri(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "e_uri"
 	_ = testprefix // suppress unused warning
@@ -28,7 +47,7 @@ func Test_e_uri(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	if tcl_platform(platform) == "unix" {
+	if tcl_platform_platform == "unix" {
 		var flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE"
 		_ = flags // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
@@ -106,7 +125,7 @@ func Test_e_uri(t *testing.T) {
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
-	if tcl_platform(platform) == "unix" {
+	if tcl_platform_platform == "unix" {
 		var flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
 		_ = flags // suppress unused warning
 		// foreach {tn uri error} "\n    1  {file://localhost" + "test_pwd /" + "test.db}   {not an error}\n    2  {file://" + "test_pwd /" + "test.db}            {not an error}\n    3  {file://x" + "test_pwd /" + "test.db}           {invalid uri authority: x}\n    4  {file://invalid" + "test_pwd /" + "test.db}     {invalid uri authority: invalid}\n  "

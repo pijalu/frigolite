@@ -20,6 +20,25 @@ func Test_contrib01(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "contrib01-1.0"
 		_res = db.Exec("\n    CREATE TABLE T1 (B INTEGER NOT NULL,\n                     C INTEGER NOT NULL,\n                     D INTEGER NOT NULL,\n                     E INTEGER NOT NULL,\n                     F INTEGER NOT NULL,\n                     G INTEGER NOT NULL,\n                     H INTEGER NOT NULL,\n                     PRIMARY KEY (B, C, D));\n    \n    CREATE TABLE T2 (A INTEGER NOT NULL,\n                     B INTEGER NOT NULL,\n                     C INTEGER NOT NULL,\n                     PRIMARY KEY (A, B, C));\n    \n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15527);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15560);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15561);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15563);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15564);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15566);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15567);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15569);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15612);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15613);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15638);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15681);\n    INSERT INTO T2(A, B, C) VALUES(702118,16183,15682);\n    \n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15527,6,0,5,5,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15560,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15561,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15563,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15564,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15566,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15567,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15569,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15612,6,0,5,5,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15613,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15638,6,0,5,2,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15681,6,0,5,5,0);\n    INSERT INTO T1(B, C, D, E, F, G, H) VALUES(16183,15682,6,0,5,2,0);\n  ")

@@ -21,6 +21,25 @@ func Test_fts3shared(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts3shared" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
@@ -28,8 +47,7 @@ func Test_fts3shared(t *testing.T) {
 	_ = _enable_shared_cache // suppress unused warning
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	db2, err := frigolite.Open("test.db")
-	defer db2.Close()
+	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "fts3shared-1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  BEGIN;\n  INSERT INTO t1 VALUES('We listened and looked sideways up!');\n  INSERT INTO t1 VALUES('Fear at my heart, as at a cup,');\n  INSERT INTO t1 VALUES('My life-blood seemed to sip!');\n  INSERT INTO t1 VALUES('The stars were dim, and thick the night');\n  COMMIT;\n")

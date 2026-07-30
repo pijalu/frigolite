@@ -20,6 +20,25 @@ func Test_tkt_7a31705a7e6(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "tkt-7a31705a7e6-1.1"
 		r = db.Query("\n  CREATE TABLE t1 (a INTEGER PRIMARY KEY);\n  CREATE TABLE t2 (a INTEGER PRIMARY KEY, b INTEGER);\n  CREATE TABLE t2x (b INTEGER PRIMARY KEY);\n  SELECT t1.a FROM ((t1 JOIN t2 ON t1.a=t2.a) AS x JOIN t2x ON x.b=t2x.b) as y;\n")

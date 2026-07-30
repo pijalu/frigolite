@@ -22,6 +22,25 @@ func Test_shell5(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	var CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
@@ -243,7 +262,7 @@ func Test_shell5(t *testing.T) {
 		var res = "catchcmd \"test.db\" {.mode csv\n.import shell5.csv t3\n.mode quote\nSELECT COUNT(*) FROM t3;}"
 		_ = res // suppress unused warning
 	}
-	if tcl_platform(platform) == "unix" {
+	if tcl_platform_platform == "unix" {
 		{ // do_test "shell5-1.8"
 			os.Remove("test.db")
 			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db {.mode csv\n.import \"|awk 'END{print \\\"x,y\\\";for(i=1...}")

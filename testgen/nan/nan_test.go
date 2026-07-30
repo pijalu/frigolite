@@ -20,6 +20,25 @@ func Test_nan(t *testing.T) {
 	_ = _res // suppress unused warning
 	_ = r    // suppress unused warning
 
+	var db1 *frigolite.DB
+	_ = db1
+	var db2 *frigolite.DB
+	_ = db2
+	var db3 *frigolite.DB
+	_ = db3
+	var db4 *frigolite.DB
+	_ = db4
+	var db5 *frigolite.DB
+	_ = db5
+	var db6 *frigolite.DB
+	_ = db6
+	var db7 *frigolite.DB
+	_ = db7
+	var db8 *frigolite.DB
+	_ = db8
+	var db9 *frigolite.DB
+	_ = db9
+
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // do_test "nan-1.1.1"
@@ -37,7 +56,7 @@ func Test_nan(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
 		}
 	}
-	if tcl_platform(platform) != "symbian" {
+	if tcl_platform_platform != "symbian" {
 		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.2 {\n    sqlite3_bind_double $::STMT 1 +Inf\n    sqlite...} {{} null inf real}")
 		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.3 {\n    sqlite3_bind_double $::STMT 1 -Inf\n    sqlite...} {{} null inf real -inf real}")
 		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.4 {\n    sqlite3_bind_double $::STMT 1 -NaN\n    sqlite...} {{} null inf real -inf real {} null}")
@@ -271,7 +290,7 @@ func Test_nan(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
 		}
 	}
-	if tcl_platform(platform) != "symbian" {
+	if tcl_platform_platform != "symbian" {
 		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.7 {\n    db eval {DELETE FROM t1}\n    db eval \"INSERT ...} {inf real}")
 		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.8 {\n    db eval {DELETE FROM t1}\n    db eval \"INSERT ...} {-inf real}")
 	}
@@ -364,7 +383,7 @@ func Test_nan(t *testing.T) {
 		}
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db decimal")
-	if tcl_platform(platform) != "symbian" {
+	if tcl_platform_platform != "symbian" {
 		{ // do_test "nan-4.15"
 			_res = db.Exec("DELETE FROM t1")
 			if _res.Error != nil {
