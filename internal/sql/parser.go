@@ -227,10 +227,10 @@ func (p *Parser) parseKeywordStmt() Stmt {
 	case "SELECT":
 		return p.parseSelect()
 	case "INSERT":
-		return p.parseInsert()
+		return p.parseInsert(false)
 	case "REPLACE":
 		// REPLACE INTO is equivalent to INSERT OR REPLACE INTO
-		return p.parseInsert()
+		return p.parseInsert(true)
 	case "UPDATE":
 		return p.parseUpdate()
 	case "DELETE":
@@ -335,8 +335,6 @@ func (p *Parser) parseSelect() *SelectStmt {
 	p.parseSelectJoins(s)
 	p.parseSelectWhere(s)
 	p.parseSelectGroupBy(s)
-	p.parseSelectOrderBy(s)
-	p.parseSelectLimit(s)
 
 	// WINDOW clause: WINDOW name AS (window_spec), ...
 	p.parseSelectWindow(s)
@@ -356,7 +354,52 @@ func (p *Parser) parseSelect() *SelectStmt {
 			s.SetOp = SetExcept
 		}
 		p.next() // skip UNION/INTERSECT/EXCEPT
-		s.Union = p.parseSelect()
+		s.Union = p.parseSelectBody()
+	}
+
+	// ORDER BY and LIMIT apply to the outermost SELECT (or the compound result)
+	p.parseSelectOrderBy(s)
+	p.parseSelectLimit(s)
+
+	return s
+}
+
+// parseSelectBody parses a SELECT statement body without consuming ORDER BY, LIMIT,
+// or compound UNION/INTERSECT/EXCEPT operators. Used for compound SELECT sub-queries.
+// It recursively handles compound operators to build the correct tree structure.
+func (p *Parser) parseSelectBody() *SelectStmt {
+	s := &SelectStmt{}
+	p.next() // skip SELECT
+
+	// Handle DISTINCT
+	if p.cur.Type == TokenKeyword && p.cur.Value == "DISTINCT" {
+		s.Distinct = true
+		p.next()
+	}
+
+	s.Columns = p.parseSelectColumns()
+	p.parseSelectFrom(s)
+	p.parseSelectJoins(s)
+	p.parseSelectWhere(s)
+	p.parseSelectGroupBy(s)
+	p.parseSelectWindow(s)
+
+	// Handle compound operators recursively (still without ORDER BY/LIMIT)
+	if p.cur.Type == TokenKeyword && (p.cur.Value == "UNION" || p.cur.Value == "INTERSECT" || p.cur.Value == "EXCEPT") {
+		switch p.cur.Value {
+		case "UNION":
+			s.SetOp = SetUnion
+			s.UnionAll = p.peekType(TokenKeyword, "ALL")
+			if s.UnionAll {
+				p.next() // skip ALL
+			}
+		case "INTERSECT":
+			s.SetOp = SetIntersect
+		case "EXCEPT":
+			s.SetOp = SetExcept
+		}
+		p.next() // skip UNION/INTERSECT/EXCEPT
+		s.Union = p.parseSelectBody()
 	}
 
 	return s
@@ -876,8 +919,8 @@ func (p *Parser) parseOrderBy() []OrderByTerm {
 }
 
 // INSERT
-func (p *Parser) parseInsert() *InsertStmt {
-	s := &InsertStmt{}
+func (p *Parser) parseInsert(isReplace bool) *InsertStmt {
+	s := &InsertStmt{IsReplace: isReplace}
 	p.next()
 
 	// INSERT OR REPLACE/ROLLBACK/ABORT/FAIL/IGNORE
@@ -891,6 +934,9 @@ func (p *Parser) parseInsert() *InsertStmt {
 		if orConflict == "REPLACE" || orConflict == "ROLLBACK" || orConflict == "ABORT" ||
 			orConflict == "FAIL" || orConflict == "IGNORE" {
 			// Valid conflict resolution clause
+			if orConflict == "REPLACE" {
+				s.IsReplace = true
+			}
 		} else {
 			p.setErr("expected OR conflict resolution keyword after OR")
 			return nil

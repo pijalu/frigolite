@@ -52,7 +52,7 @@ func Test_wal9(t *testing.T) {
 		// expr [file size test.db-shm]>32768 → "[file size test.db-shm]>32768"
 	}
 	{ // do_test "1.6"
-		// foreach a,b,c "db eval {PRAGMA wal_checkpoint}" (no body)
+		// skip: foreach over unresolved TCL command
 		_list := tclList([]string{"$a==0", "$b>14500", "$c>14500", "$b==$c"})
 		_ = _list
 	}

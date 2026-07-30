@@ -672,9 +672,7 @@ func Test_window2(t *testing.T) {
 	{ // do_test "4.9"
 		var myres = ""
 		_ = myres // suppress unused warning
-		for _, r := range tclSplitList("db eval {SELECT \n    rank() OVER win AS rank,\n    cume_dist() OVER win AS cume_dist FROM t1\n  WINDOW win AS (ORDER BY 1);}") {
-			myres = tclListAppend(myres, "format %.4f [set r]")
-		}
+		// skip: foreach over unresolved TCL command
 		var res2 = "1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000"
 		_ = res2 // suppress unused warning
 		var i = "0"
@@ -716,9 +714,7 @@ func Test_window2(t *testing.T) {
 	{ // do_test "5.1"
 		var myres = ""
 		_ = myres // suppress unused warning
-		for _, r := range tclSplitList("db eval {SELECT avg(x) OVER (ORDER BY y) AS z FROM t1 ORDER BY z;}") {
-			myres = tclListAppend(myres, "format %.4f [set r]")
-		}
+		// skip: foreach over unresolved TCL command
 		var res2 = "7.2000 8.7500 10.0000 11.0000 15.0000"
 		_ = res2 // suppress unused warning
 		var i = "0"

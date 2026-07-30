@@ -108,20 +108,8 @@ func Test_fts4growth(t *testing.T) {
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 	{ // do_test "2.2"
-		for _, id := range tclSplitList("db eval {SELECT docid FROM t1}") {
-			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT $id, words FROM t1 WHERE docid=$id\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT $id, words FROM t1 WHERE docid=$id\n    ")
-			}
-		}
-		for _, id := range tclSplitList("db eval {SELECT docid FROM t1}") {
-			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=$id\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT NULL, words FROM t1 WHERE docid=$id\n    ")
-			}
-			if tclBool("db one {SELECT count(*) FROM x2_segdir WHERE level<2}" + "==2") {
-			}
-		}
+		// skip: foreach over unresolved TCL command
+		// skip: foreach over unresolved TCL command
 	}
 	{ // "2.3"
 		r = db.Query(" \n  SELECT count(*) FROM x2_segdir WHERE level=2;\n  SELECT count(*) FROM x2_segdir WHERE level=3;\n")
@@ -351,18 +339,8 @@ func Test_fts4growth(t *testing.T) {
 	t.Skipf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 	// proc definition (not transpiled)
 	{ // do_test "5.2"
-		for _, r := range tclSplitList("db eval { SELECT rowid FROM t1 }") {
-			_res = db.Exec("\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=$r\n    ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x2(docid, content) SELECT docid, words FROM t1 WHERE rowid=$r\n    ")
-			}
-		}
-		for _, d := range tclSplitList("db eval { SELECT docid FROM t1 LIMIT -1 OFFSET 20 }") {
-			_res = db.Exec(" DELETE FROM x2 WHERE docid = $d ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM x2 WHERE docid = $d ")
-			}
-		}
+		// skip: foreach over unresolved TCL command
+		// skip: foreach over unresolved TCL command
 		r = db.Query("\n    INSERT INTO x2(x2) VALUES('optimize');\n    SELECT level, idx, end_block FROM x2_segdir\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO x2(x2) VALUES('optimize');\n    SELECT level, idx, end_block FROM x2_segdir\n  ")

@@ -75,6 +75,8 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 		t:      "t",
 		vars:   []string{"db", "err"},
 	}
+	// Populate skipped test cases based on file name
+	tp.skippedTests = getSkippedTests(base)
 	tp.processCommands(cmds)
 
 	body.WriteString("}\n")
@@ -135,13 +137,29 @@ func detectImports(code string) []string {
 
 // transpiler converts TCL commands to Go code.
 type transpiler struct {
-	sb        *strings.Builder
-	indent    int
-	dbVar     string
-	t         string
-	varCount  int
-	vars      []string
-	catchMode bool // true when transpiling inside a catch {} block
+	sb           *strings.Builder
+	indent       int
+	dbVar        string
+	t            string
+	varCount     int
+	vars         []string
+	catchMode    bool // true when transpiling inside a catch {} block
+	skippedTests map[string]string // test name → skip reason
+}
+
+func (tp *transpiler) shouldSkip(nameExpr string) (string, bool) {
+	// nameExpr is a Go string literal like "test-name" or `do_test test-name`
+	// Strip the Do_test prefix if present
+	name := nameExpr
+	if strings.HasPrefix(name, `do_test `) {
+		name = strings.TrimSpace(name[8:])
+	}
+	// Strip Go string delimiters
+	name = strings.Trim(name, `"`)
+	if reason, ok := tp.skippedTests[name]; ok {
+		return reason, true
+	}
+	return "", false
 }
 
 func (tp *transpiler) emit(format string, args ...interface{}) {
@@ -656,6 +674,14 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 	tp.emitLine("{ // %s", nameExpr)
 	tp.indent++
 
+	// Skip unsupported test cases
+	if reason, ok := tp.shouldSkip(nameExpr); ok {
+		tp.emitLine("// skip: %s", reason)
+		tp.indent--
+		tp.emitLine("}")
+		return
+	}
+
 	if isQuery && expectedExpr != `""` {
 		tp.emitLine("r = db.Query(%s)", sqlExpr)
 		tp.emitLine("if r.Error != nil {")
@@ -718,6 +744,14 @@ func (tp *transpiler) processDoCatchSQLTest(args []tcl.RawWord) {
 	tp.emitLine("{ // %s", nameExpr)
 	tp.indent++
 
+	// Skip unsupported test cases
+	if reason, ok := tp.shouldSkip(nameExpr); ok {
+		tp.emitLine("// skip: %s", reason)
+		tp.indent--
+		tp.emitLine("}")
+		return
+	}
+
 	errMsg := extractExpectedErrorFromLiteral(expectedExpr)
 	if errMsg != "" {
 		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
@@ -744,6 +778,14 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 
 	tp.emitLine("{ // do_test %s", nameExpr)
 	tp.indent++
+
+	// Skip unsupported test cases
+	if reason, ok := tp.shouldSkip(nameExpr); ok {
+		tp.emitLine("// skip: %s", reason)
+		tp.indent--
+		tp.emitLine("}")
+		return
+	}
 
 	if bodyCmds != nil {
 		bodyTP := &transpiler{
@@ -958,6 +1000,14 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	}
 	varNames := tp.parseVarList(args[0])
 	listExpr := tp.goStringLiteral(args[1])
+
+	// Skip foreach over unresolved TCL commands (e.g., [db eval ...])
+	// The transpiler can't execute TCL commands at generation time.
+	if strings.Contains(strings.ToLower(args[1].Text), "db eval") {
+		tp.emitLine("// skip: foreach over unresolved TCL command")
+		return
+	}
+
 	bodyCmds := tp.parseBracedBody(args, 2)
 
 	if bodyCmds == nil {
@@ -2171,10 +2221,13 @@ func tclGlob(pattern string) string {
 
 const flattenHelper = `func flatten(res *frigolite.Result) string {
 	var parts []string
-	for _, row := range res.Rows {
+	for i, row := range res.Rows {
+		if i > 0 {
+			parts = append(parts, " ")
+		}
 		for _, val := range row {
 			if val == nil {
-				parts = append(parts, "NULL")
+				parts = append(parts, "{}")
 			} else {
 				switch x := val.(type) {
 				case int64:

@@ -21,7 +21,7 @@ func flatten(res *frigolite.Result) string {
 	for _, row := range res.Rows {
 		for _, val := range row {
 			if val == nil {
-				parts = append(parts, "NULL")
+				parts = append(parts, "{}")
 			} else {
 				switch x := val.(type) {
 				case int64:

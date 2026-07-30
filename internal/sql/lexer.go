@@ -258,7 +258,7 @@ func (t *Tokenizer) readEqualsOp(pos int) *Token {
 
 func (t *Tokenizer) tryComment() *Token {
 	ch := t.input[t.pos]
-	if ch == '#' || (ch == '-' && t.pos+1 < len(t.input) && t.input[t.pos+1] == '-') {
+	if ch == '-' && t.pos+1 < len(t.input) && t.input[t.pos+1] == '-' {
 		t.skipLineComment()
 		tok := t.Next()
 		return &tok

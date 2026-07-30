@@ -141,6 +141,7 @@ type InsertStmt struct {
 	Select       *SelectStmt // for INSERT ... SELECT
 	CTEs         []CTEDef    // WITH clause CTE definitions
 	OnConflict   *OnConflictClause
+	IsReplace    bool        // true for REPLACE INTO or INSERT OR REPLACE
 	Returning    SelectColumn
 	HasReturning bool
 }

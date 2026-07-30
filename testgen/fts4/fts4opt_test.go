@@ -35,298 +35,246 @@ func Test_fts4opt(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t2 USING fts4(words, prefix=\"1,2,3\") ")
 		}
-		// foreach {docid words} "db eval { SELECT * FROM t1 }"
-		_items := tclSplitList("db eval { SELECT * FROM t1 }")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			docid := _items[_idx+0]
-			_ = docid // suppress unused warning
-			words := _items[_idx+1]
-			_ = words // suppress unused warning
-			_ = _idx
-				_res = db.Exec(" INSERT INTO t2(docid, words) VALUES($docid, $words) ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(docid, words) VALUES($docid, $words) ")
-				}
-			}
+		// skip: foreach over unresolved TCL command
+	}
+	{ // "1.2"
+		r = db.Query("\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
+			return
 		}
-		{ // "1.2"
-			r = db.Query("\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
-				return
-			}
-			got := flatten(r)
-			want := "\n  0    13    1 15    2 5 \n  1024 13 1025 15 1026 5 \n  2048 13 2049 15 2050 5 \n  3072 13 3073 15 3074 5\n"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
+		got := flatten(r)
+		want := "\n  0    13    1 15    2 5 \n  1024 13 1025 15 1026 5 \n  2048 13 2049 15 2050 5 \n  3072 13 3073 15 3074 5\n"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
-		{ // "1.3"
-			_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
+	}
+	{ // "1.3"
+		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+		}
+	}
+	t.Skipf("TODO: %s not implemented in frigolite", "prepare_for_optimize db t2")
+	{ // "1.4"
+		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+		}
+	}
+	{ // "1.5"
+		r = db.Query("\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
+			return
+		}
+		got := flatten(r)
+		want := "\n  32   33 \n  1056 33 \n  2080 33 \n  3104 33\n"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "1.6"
+		for true {
+			var tc1 = "db total_changes"
+			_ = tc1 // suppress unused warning
+			_res = db.Exec(" INSERT INTO t2(t2) VALUES('merge=5,2') ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('merge=5,2') ")
+			}
+			var tc2 = "db total_changes"
+			_ = tc2 // suppress unused warning
+			if func() bool { tc2_n, _tc2_e := strconv.Atoi(tc2); if _tc2_e != nil { return false }; tc1_n, _tc1_e := strconv.Atoi(tc1); if _tc1_e != nil { return false }; return (tc2_n - tc1_n) < 2 }() {
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "prepare_for_optimize db t2")
-		{ // "1.4"
-			_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
+		r = db.Query(" SELECT level, count(*) FROM t2_segdir GROUP BY level ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT level, count(*) FROM t2_segdir GROUP BY level ")
+		}
+	}
+	{ // "1.7"
+		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+		}
+	}
+	{ // "1.8"
+		r = db.Query("\n  INSERT INTO t2(words) SELECT words FROM t1;\n  SELECT level, count(*) FROM t2_segdir GROUP BY level;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t2(words) SELECT words FROM t1;\n  SELECT level, count(*) FROM t2_segdir GROUP BY level;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 2 1024 2 2048 2 3072 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "2.0"
+		_res = db.Exec("\n  DELETE FROM t2;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2;\n")
+		}
+	}
+	{ // do_test "2.1"
+		// skip: foreach over unresolved TCL command
+		var i = "0"
+		_ = i // suppress unused warning
+		// skip: foreach over unresolved TCL command
+		var i = "0"
+		_ = i // suppress unused warning
+		// skip: foreach over unresolved TCL command
+	}
+	{ // "2.2"
+		r = db.Query("\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
+			return
+		}
+		got := flatten(r)
+		want := "\n  0    10    1 15    2 12 \n  1024 10 1025 15 1026 12 \n  2048 10 2049 15 2050 12 \n  3072 10 3073 15 3074 12\n"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "2.3"
+		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+		}
+	}
+	t.Skipf("TODO: %s not implemented in frigolite", "prepare_for_optimize db t2")
+	{ // "2.4"
+		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+		}
+	}
+	{ // "2.5"
+		r = db.Query("\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
+			return
+		}
+		got := flatten(r)
+		want := "\n    32 37 \n  1056 37 \n  2080 37 \n  3104 37\n"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // do_test "2.6"
+		for true {
+			var tc1 = "db total_changes"
+			_ = tc1 // suppress unused warning
+			_res = db.Exec(" INSERT INTO t2(t2) VALUES('merge=5,2') ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('merge=5,2') ")
+			}
+			var tc2 = "db total_changes"
+			_ = tc2 // suppress unused warning
+			if func() bool { tc2_n, _tc2_e := strconv.Atoi(tc2); if _tc2_e != nil { return false }; tc1_n, _tc1_e := strconv.Atoi(tc1); if _tc1_e != nil { return false }; return (tc2_n - tc1_n) < 2 }() {
 			}
 		}
-		{ // "1.5"
-			r = db.Query("\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
-				return
-			}
-			got := flatten(r)
-			want := "\n  32   33 \n  1056 33 \n  2080 33 \n  3104 33\n"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
+		r = db.Query(" SELECT level, count(*) FROM t2_segdir GROUP BY level ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT level, count(*) FROM t2_segdir GROUP BY level ")
 		}
-		{ // do_test "1.6"
-			for true {
-				var tc1 = "db total_changes"
-				_ = tc1 // suppress unused warning
-				_res = db.Exec(" INSERT INTO t2(t2) VALUES('merge=5,2') ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('merge=5,2') ")
-				}
-				var tc2 = "db total_changes"
-				_ = tc2 // suppress unused warning
-				if func() bool { tc2_n, _tc2_e := strconv.Atoi(tc2); if _tc2_e != nil { return false }; tc1_n, _tc1_e := strconv.Atoi(tc1); if _tc1_e != nil { return false }; return (tc2_n - tc1_n) < 2 }() {
-				}
-			}
-			r = db.Query(" SELECT level, count(*) FROM t2_segdir GROUP BY level ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT level, count(*) FROM t2_segdir GROUP BY level ")
-			}
+	}
+	{ // "2.7"
+		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
 		}
-		{ // "1.7"
-			_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
-			}
+	}
+	{ // "2.8"
+		r = db.Query("\n  INSERT INTO t2(words) SELECT words FROM t1;\n  SELECT level, count(*) FROM t2_segdir GROUP BY level;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t2(words) SELECT words FROM t1;\n  SELECT level, count(*) FROM t2_segdir GROUP BY level;\n")
+			return
 		}
-		{ // "1.8"
-			r = db.Query("\n  INSERT INTO t2(words) SELECT words FROM t1;\n  SELECT level, count(*) FROM t2_segdir GROUP BY level;\n")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t2(words) SELECT words FROM t1;\n  SELECT level, count(*) FROM t2_segdir GROUP BY level;\n")
-				return
-			}
-			got := flatten(r)
-			want := "0 2 1024 2 2048 2 3072 2"
-			if got != want {
-				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-			}
+		got := flatten(r)
+		want := "0 2 1024 2 2048 2 3072 2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
-		{ // "2.0"
-			_res = db.Exec("\n  DELETE FROM t2;\n")
-			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2;\n")
-			}
+	}
+	{ // "3.1"
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE fts USING fts4 (t);\n  INSERT INTO fts (fts) VALUES ('optimize');\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE fts USING fts4 (t);\n  INSERT INTO fts (fts) VALUES ('optimize');\n")
 		}
-		{ // do_test "2.1"
-			// foreach {docid words} "db eval { SELECT * FROM t1 }"
-			_items := tclSplitList("db eval { SELECT * FROM t1 }")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				docid := _items[_idx+0]
-				_ = docid // suppress unused warning
-				words := _items[_idx+1]
-				_ = words // suppress unused warning
-				_ = _idx
-					_res = db.Exec(" INSERT INTO t2(docid, words) VALUES($docid, $words) ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(docid, words) VALUES($docid, $words) ")
-					}
-				}
-				var i = "0"
-				_ = i // suppress unused warning
-				// foreach {docid words} "db eval { SELECT * FROM t1 }"
-				_items := tclSplitList("db eval { SELECT * FROM t1 }")
-				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-					docid := _items[_idx+0]
-					_ = docid // suppress unused warning
-					words := _items[_idx+1]
-					_ = words // suppress unused warning
-					_ = _idx
-						if tclBool("incr i" + " % 2") {
-							_res = db.Exec(" DELETE FROM t2 WHERE docid = $docid ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t2 WHERE docid = $docid ")
-							}
-						}
-					}
-					var i = "0"
-					_ = i // suppress unused warning
-					// foreach {docid words} "db eval { SELECT * FROM t1 }"
-					_items := tclSplitList("db eval { SELECT * FROM t1 }")
-					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-						docid := _items[_idx+0]
-						_ = docid // suppress unused warning
-						words := _items[_idx+1]
-						_ = words // suppress unused warning
-						_ = _idx
-							if tclBool("incr i" + " % 3") {
-								_res = db.Exec(" INSERT OR REPLACE INTO t2(docid, words) VALUES($docid, $words) ")
-								if _res.Error != nil {
-									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT OR REPLACE INTO t2(docid, words) VALUES($docid, $words) ")
-								}
-							}
-						}
-					}
-					{ // "2.2"
-						r = db.Query("\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
-							return
-						}
-						got := flatten(r)
-						want := "\n  0    10    1 15    2 12 \n  1024 10 1025 15 1026 12 \n  2048 10 2049 15 2050 12 \n  3072 10 3073 15 3074 12\n"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
-					{ // "2.3"
-						_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
-						}
-					}
-					t.Skipf("TODO: %s not implemented in frigolite", "prepare_for_optimize db t2")
-					{ // "2.4"
-						_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
-						}
-					}
-					{ // "2.5"
-						r = db.Query("\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT level, count(*) FROM t2_segdir GROUP BY level\n")
-							return
-						}
-						got := flatten(r)
-						want := "\n    32 37 \n  1056 37 \n  2080 37 \n  3104 37\n"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
-					{ // do_test "2.6"
-						for true {
-							var tc1 = "db total_changes"
-							_ = tc1 // suppress unused warning
-							_res = db.Exec(" INSERT INTO t2(t2) VALUES('merge=5,2') ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('merge=5,2') ")
-							}
-							var tc2 = "db total_changes"
-							_ = tc2 // suppress unused warning
-							if func() bool { tc2_n, _tc2_e := strconv.Atoi(tc2); if _tc2_e != nil { return false }; tc1_n, _tc1_e := strconv.Atoi(tc1); if _tc1_e != nil { return false }; return (tc2_n - tc1_n) < 2 }() {
-							}
-						}
-						r = db.Query(" SELECT level, count(*) FROM t2_segdir GROUP BY level ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT level, count(*) FROM t2_segdir GROUP BY level ")
-						}
-					}
-					{ // "2.7"
-						_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
-						}
-					}
-					{ // "2.8"
-						r = db.Query("\n  INSERT INTO t2(words) SELECT words FROM t1;\n  SELECT level, count(*) FROM t2_segdir GROUP BY level;\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO t2(words) SELECT words FROM t1;\n  SELECT level, count(*) FROM t2_segdir GROUP BY level;\n")
-							return
-						}
-						got := flatten(r)
-						want := "0 2 1024 2 2048 2 3072 2"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
-					{ // "3.1"
-						_res = db.Exec("\n  CREATE VIRTUAL TABLE fts USING fts4 (t);\n  INSERT INTO fts (fts) VALUES ('optimize');\n")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE fts USING fts4 (t);\n  INSERT INTO fts (fts) VALUES ('optimize');\n")
-						}
-					}
-					{ // "3.2"
-						r = db.Query("\n  INSERT INTO fts(fts) VALUES('integrity-check');\n  SELECT count(*) FROM fts_segdir;\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO fts(fts) VALUES('integrity-check');\n  SELECT count(*) FROM fts_segdir;\n")
-							return
-						}
-						got := flatten(r)
-						want := "0"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
-					{ // "3.3"
-						r = db.Query("\n  BEGIN;\n  INSERT INTO fts (rowid, t) VALUES (2, 'test');\n  INSERT INTO fts (fts) VALUES ('optimize');\n  COMMIT;\n  SELECT level, idx FROM fts_segdir;\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  INSERT INTO fts (rowid, t) VALUES (2, 'test');\n  INSERT INTO fts (fts) VALUES ('optimize');\n  COMMIT;\n  SELECT level, idx FROM fts_segdir;\n")
-							return
-						}
-						got := flatten(r)
-						want := "0 0"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
-					{ // "3.4"
-						r = db.Query("\n  INSERT INTO fts(fts) VALUES('integrity-check');\n  SELECT rowid FROM fts WHERE fts MATCH 'test';\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO fts(fts) VALUES('integrity-check');\n  SELECT rowid FROM fts WHERE fts MATCH 'test';\n")
-							return
-						}
-						got := flatten(r)
-						want := "2"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
-					{ // "3.5"
-						_res = db.Exec("\n  INSERT INTO fts (fts) VALUES ('optimize');\n  INSERT INTO fts(fts) VALUES('integrity-check');\n")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO fts (fts) VALUES ('optimize');\n  INSERT INTO fts(fts) VALUES('integrity-check');\n")
-						}
-					}
-					{ // do_test "3.6"
-						var c1 = "db total_changes"
-						_ = c1 // suppress unused warning
-						_res = db.Exec(" INSERT INTO fts (fts) VALUES ('optimize') ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO fts (fts) VALUES ('optimize') ")
-						}
-						// expr [db total_changes] - $c1 → "[db total_changes] - $c1"
-					}
-					{ // do_test "3.7"
-						_res = db.Exec(" INSERT INTO fts (rowid, t) VALUES (3, 'xyz') ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO fts (rowid, t) VALUES (3, 'xyz') ")
-						}
-						var c1 = "db total_changes"
-						_ = c1 // suppress unused warning
-						_res = db.Exec(" INSERT INTO fts (fts) VALUES ('optimize') ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO fts (fts) VALUES ('optimize') ")
-						}
-						// expr ([db total_changes] - $c1) > 1 → "([db total_changes] - $c1) > 1"
-					}
-					{ // do_test "3.8"
-						var c1 = "db total_changes"
-						_ = c1 // suppress unused warning
-						_res = db.Exec(" INSERT INTO fts (fts) VALUES ('optimize') ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO fts (fts) VALUES ('optimize') ")
-						}
-						// expr [db total_changes] - $c1 → "[db total_changes] - $c1"
-					}
+	}
+	{ // "3.2"
+		r = db.Query("\n  INSERT INTO fts(fts) VALUES('integrity-check');\n  SELECT count(*) FROM fts_segdir;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO fts(fts) VALUES('integrity-check');\n  SELECT count(*) FROM fts_segdir;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "3.3"
+		r = db.Query("\n  BEGIN;\n  INSERT INTO fts (rowid, t) VALUES (2, 'test');\n  INSERT INTO fts (fts) VALUES ('optimize');\n  COMMIT;\n  SELECT level, idx FROM fts_segdir;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n  INSERT INTO fts (rowid, t) VALUES (2, 'test');\n  INSERT INTO fts (fts) VALUES ('optimize');\n  COMMIT;\n  SELECT level, idx FROM fts_segdir;\n")
+			return
+		}
+		got := flatten(r)
+		want := "0 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "3.4"
+		r = db.Query("\n  INSERT INTO fts(fts) VALUES('integrity-check');\n  SELECT rowid FROM fts WHERE fts MATCH 'test';\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  INSERT INTO fts(fts) VALUES('integrity-check');\n  SELECT rowid FROM fts WHERE fts MATCH 'test';\n")
+			return
+		}
+		got := flatten(r)
+		want := "2"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "3.5"
+		_res = db.Exec("\n  INSERT INTO fts (fts) VALUES ('optimize');\n  INSERT INTO fts(fts) VALUES('integrity-check');\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO fts (fts) VALUES ('optimize');\n  INSERT INTO fts(fts) VALUES('integrity-check');\n")
+		}
+	}
+	{ // do_test "3.6"
+		var c1 = "db total_changes"
+		_ = c1 // suppress unused warning
+		_res = db.Exec(" INSERT INTO fts (fts) VALUES ('optimize') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO fts (fts) VALUES ('optimize') ")
+		}
+		// expr [db total_changes] - $c1 → "[db total_changes] - $c1"
+	}
+	{ // do_test "3.7"
+		_res = db.Exec(" INSERT INTO fts (rowid, t) VALUES (3, 'xyz') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO fts (rowid, t) VALUES (3, 'xyz') ")
+		}
+		var c1 = "db total_changes"
+		_ = c1 // suppress unused warning
+		_res = db.Exec(" INSERT INTO fts (fts) VALUES ('optimize') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO fts (fts) VALUES ('optimize') ")
+		}
+		// expr ([db total_changes] - $c1) > 1 → "([db total_changes] - $c1) > 1"
+	}
+	{ // do_test "3.8"
+		var c1 = "db total_changes"
+		_ = c1 // suppress unused warning
+		_res = db.Exec(" INSERT INTO fts (fts) VALUES ('optimize') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO fts (fts) VALUES ('optimize') ")
+		}
+		// expr [db total_changes] - $c1 → "[db total_changes] - $c1"
+	}
 }

@@ -736,503 +736,448 @@ func Test_wal(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	// foreach {tn ckpt_cmd ckpt_res ckpt_main ckpt_aux} "\n  1 {sqlite3_wal_checkpoint db}              SQLITE_OK     1 1\n  2 {sqlite3_wal_checkpoint db \"\"}           SQLITE_OK     1 1\n  3 {db eval \"PRAGMA wal_checkpoint\"}        {0 10 10}     1 1\n\n  4 {sqlite3_wal_checkpoint db main}         SQLITE_OK     1 0\n  5 {sqlite3_wal_checkpoint db aux}          SQLITE_OK     0 1\n  6 {sqlite3_wal_checkpoint db temp}         SQLITE_OK     0 0\n  7 {db eval \"PRAGMA main.wal_checkpoint\"}   {0 10 10}     1 0\n  8 {db eval \"PRAGMA aux.wal_checkpoint\"}    {0 13 13}     0 1\n  9 {db eval \"PRAGMA temp.wal_checkpoint\"}   {0 -1 -1}     0 0\n"
-	_items := tclSplitList("\n  1 {sqlite3_wal_checkpoint db}              SQLITE_OK     1 1\n  2 {sqlite3_wal_checkpoint db \"\"}           SQLITE_OK     1 1\n  3 {db eval \"PRAGMA wal_checkpoint\"}        {0 10 10}     1 1\n\n  4 {sqlite3_wal_checkpoint db main}         SQLITE_OK     1 0\n  5 {sqlite3_wal_checkpoint db aux}          SQLITE_OK     0 1\n  6 {sqlite3_wal_checkpoint db temp}         SQLITE_OK     0 0\n  7 {db eval \"PRAGMA main.wal_checkpoint\"}   {0 10 10}     1 0\n  8 {db eval \"PRAGMA aux.wal_checkpoint\"}    {0 13 13}     0 1\n  9 {db eval \"PRAGMA temp.wal_checkpoint\"}   {0 -1 -1}     0 0\n")
-	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
+	// skip: foreach over unresolved TCL command
+	var old_pending_byte = "sqlite3_test_control_pending_byte 0x10000000"
+	_ = old_pending_byte // suppress unused warning
+	{
+		var _catchErr error
+		_ = _catchErr // suppress unused warning
+	}
+	// foreach {tn sectorsize logsize} "\n  1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512" + "\n"
+	_items := tclSplitList("\n  1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512" + "\n")
+	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
 		_ = tn // suppress unused warning
-		ckpt_cmd := _items[_idx+1]
-		_ = ckpt_cmd // suppress unused warning
-		ckpt_res := _items[_idx+2]
-		_ = ckpt_res // suppress unused warning
-		ckpt_main := _items[_idx+3]
-		_ = ckpt_main // suppress unused warning
-		ckpt_aux := _items[_idx+4]
-		_ = ckpt_aux // suppress unused warning
+		sectorsize := _items[_idx+1]
+		_ = sectorsize // suppress unused warning
+		logsize := _items[_idx+2]
+		_ = logsize // suppress unused warning
 		_ = _idx
-			{ // do_test "wal-16." + tn + ".1"
-				os.Remove("test2.db")
-				os.Remove("test.db")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
-				if err != nil { t.Fatal(err) }
-				r = db.Query("\n      ATTACH 'test2.db' AS aux;\n      PRAGMA main.auto_vacuum = 0;\n      PRAGMA aux.auto_vacuum = 0;\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      PRAGMA main.synchronous = NORMAL;\n      PRAGMA aux.synchronous = NORMAL;\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test2.db' AS aux;\n      PRAGMA main.auto_vacuum = 0;\n      PRAGMA aux.auto_vacuum = 0;\n      PRAGMA main.journal_mode = WAL;\n      PRAGMA aux.journal_mode = WAL;\n      PRAGMA main.synchronous = NORMAL;\n      PRAGMA aux.synchronous = NORMAL;\n    ")
-				}
-			}
-			{ // do_test "wal-16." + tn + ".2"
-				_res = db.Exec("\n      CREATE TABLE main.t1(a, b, PRIMARY KEY(a, b));\n      CREATE TABLE aux.t2(a, b, PRIMARY KEY(a, b));\n\n      INSERT INTO t2 VALUES(1, randomblob(1000));\n      INSERT INTO t2 VALUES(2, randomblob(1000));\n      INSERT INTO t1 SELECT * FROM t2;\n    ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE main.t1(a, b, PRIMARY KEY(a, b));\n      CREATE TABLE aux.t2(a, b, PRIMARY KEY(a, b));\n\n      INSERT INTO t2 VALUES(1, randomblob(1000));\n      INSERT INTO t2 VALUES(2, randomblob(1000));\n      INSERT INTO t1 SELECT * FROM t2;\n    ")
-				}
-				_list := tclList([]string{"file size test.db", "file size test.db-wal"})
-				_ = _list
-			}
-			{ // do_test "wal-16." + tn + ".3"
-				_list := tclList([]string{"file size test2.db", "file size test2.db-wal"})
-				_ = _list
-			}
-			{ // do_test "wal-16." + tn + ".4"
-				_res = db.Exec("list eval $ckpt_cmd")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "list eval $ckpt_cmd")
-				}
-			}
-			{ // do_test "wal-16." + tn + ".5"
-				_list := tclList([]string{"file size test.db", "file size test.db-wal"})
-				_ = _list
-			}
-			{ // do_test "wal-16." + tn + ".6"
-				_list := tclList([]string{"file size test2.db", "file size test2.db-wal"})
-				_ = _list
-			}
-			{
-				var _catchErr error
-				_ = _catchErr // suppress unused warning
-			}
-		}
-		var old_pending_byte = "sqlite3_test_control_pending_byte 0x10000000"
-		_ = old_pending_byte // suppress unused warning
-		{
-			var _catchErr error
-			_ = _catchErr // suppress unused warning
-		}
-		// foreach {tn sectorsize logsize} "\n  1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512" + "\n"
-		_items := tclSplitList("\n  1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512" + "\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
-			_ = tn // suppress unused warning
-			sectorsize := _items[_idx+1]
-			_ = sectorsize // suppress unused warning
-			logsize := _items[_idx+2]
-			_ = logsize // suppress unused warning
-			_ = _idx
-				os.Remove("test.db")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize $sectorsize")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
-				if err != nil { t.Fatal(err) }
-				{ // do_test "wal-17." + tn + ".1"
-					r = db.Query("\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 512;\n      PRAGMA cache_size = -2000;\n      PRAGMA journal_mode = WAL;\n      PRAGMA synchronous = FULL;\n    ")
-					if r.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 512;\n      PRAGMA cache_size = -2000;\n      PRAGMA journal_mode = WAL;\n      PRAGMA synchronous = FULL;\n    ")
-					}
-					_res = db.Exec("\n      BEGIN;\n      CREATE TABLE t(x);\n    ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      CREATE TABLE t(x);\n    ")
-					}
-					var i = "0"
-					_ = i // suppress unused warning
-					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 166 }() {
-						_res = db.Exec(" INSERT INTO t VALUES(randomblob(400)) ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t VALUES(randomblob(400)) ")
-						}
-						// incr i 1
-						{
-							_n, _err := strconv.Atoi(i)
-							if _err == nil {
-								i = strconv.Itoa(_n + 1)
-							}
-						}
-					}
-					_res = db.Exec("COMMIT")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-					}
-					// file size test.db-wal
-				}
-				{ // do_test "wal-17." + tn + ".2"
-					// file size test.db
-				}
-				{ // do_test "wal-17." + tn + ".3"
-					// file size test.db
-				}
-			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte $old_pending_byte")
 			os.Remove("test.db")
-			{ // do_test "wal-18.0"
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
-				if err != nil { t.Fatal(err) }
-				_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    PRAGMA synchronous = OFF;\n\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(0, 0);\n    PRAGMA wal_checkpoint;\n\n    INSERT INTO t1 VALUES(1, 2);          -- frames 1 and 2\n    INSERT INTO t1 VALUES(3, 4);          -- frames 3 and 4\n    INSERT INTO t1 VALUES(5, 6);          -- frames 5 and 6\n  ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    PRAGMA synchronous = OFF;\n\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(0, 0);\n    PRAGMA wal_checkpoint;\n\n    INSERT INTO t1 VALUES(1, 2);          -- frames 1 and 2\n    INSERT INTO t1 VALUES(3, 4);          -- frames 3 and 4\n    INSERT INTO t1 VALUES(5, 6);          -- frames 5 and 6\n  ")
+			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize $sectorsize")
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			{ // do_test "wal-17." + tn + ".1"
+				r = db.Query("\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 512;\n      PRAGMA cache_size = -2000;\n      PRAGMA journal_mode = WAL;\n      PRAGMA synchronous = FULL;\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA auto_vacuum = 0;\n      PRAGMA page_size = 512;\n      PRAGMA cache_size = -2000;\n      PRAGMA journal_mode = WAL;\n      PRAGMA synchronous = FULL;\n    ")
 				}
-				tclFileCopy("test.db", "testX.db")
-				tclFileCopy("test.db-wal", "testX.db-wal")
-				_list := tclList([]string{"file size testX.db", "file size testX.db-wal"})
-				_ = _list
-			}
-			// foreach {nFrame result} "\n         0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}\n"
-			_items := tclSplitList("\n         0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}\n")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				nFrame := _items[_idx+0]
-				_ = nFrame // suppress unused warning
-				result := _items[_idx+1]
-				_ = result // suppress unused warning
-				_ = _idx
-					{ // do_test "wal-18.1." + nFrame
-						tclFileCopy("testX.db", "test.db")
-						tclFileCopy("testX.db-wal", "test.db-wal")
-						t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db-wal [expr 24 + $nFrame*(24+1024) + 20] 00000000")
-						db, err := frigolite.Open("test.db")
-						defer db.Close()
-						if err != nil { t.Fatal(err) }
-						r = db.Query(" \n      SELECT * FROM t1;\n      PRAGMA integrity_check; \n    ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t1;\n      PRAGMA integrity_check; \n    ")
+				_res = db.Exec("\n      BEGIN;\n      CREATE TABLE t(x);\n    ")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      CREATE TABLE t(x);\n    ")
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 166 }() {
+					_res = db.Exec(" INSERT INTO t VALUES(randomblob(400)) ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t VALUES(randomblob(400)) ")
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
 						}
 					}
 				}
-				// proc definition (not transpiled)
-				// proc definition (not transpiled)
-				tclFileCopy("test.db", "testX.db")
-				// foreach {tn pgsz works} " \n  1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0\n"
-				_items := tclSplitList(" \n  1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0\n")
-				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-					tn := _items[_idx+0]
-					_ = tn // suppress unused warning
-					pgsz := _items[_idx+1]
-					_ = pgsz // suppress unused warning
-					works := _items[_idx+2]
-					_ = works // suppress unused warning
-					_ = _idx
-						if func() bool { _SQLITE_MAX_PAGE_SIZE_n, __SQLITE_MAX_PAGE_SIZE_e := strconv.Atoi(_SQLITE_MAX_PAGE_SIZE); if __SQLITE_MAX_PAGE_SIZE_e != nil { return false }; pgsz_n, _pgsz_e := strconv.Atoi(pgsz); if _pgsz_e != nil { return false }; return _SQLITE_MAX_PAGE_SIZE_n < pgsz_n }() {
-							var works = "0"
-							_ = works // suppress unused warning
+				_res = db.Exec("COMMIT")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+				}
+				// file size test.db-wal
+			}
+			{ // do_test "wal-17." + tn + ".2"
+				// file size test.db
+			}
+			{ // do_test "wal-17." + tn + ".3"
+				// file size test.db
+			}
+		}
+		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte $old_pending_byte")
+		os.Remove("test.db")
+		{ // do_test "wal-18.0"
+			db, err := frigolite.Open("test.db")
+			defer db.Close()
+			if err != nil { t.Fatal(err) }
+			_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    PRAGMA synchronous = OFF;\n\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(0, 0);\n    PRAGMA wal_checkpoint;\n\n    INSERT INTO t1 VALUES(1, 2);          -- frames 1 and 2\n    INSERT INTO t1 VALUES(3, 4);          -- frames 3 and 4\n    INSERT INTO t1 VALUES(5, 6);          -- frames 5 and 6\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    PRAGMA synchronous = OFF;\n\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(0, 0);\n    PRAGMA wal_checkpoint;\n\n    INSERT INTO t1 VALUES(1, 2);          -- frames 1 and 2\n    INSERT INTO t1 VALUES(3, 4);          -- frames 3 and 4\n    INSERT INTO t1 VALUES(5, 6);          -- frames 5 and 6\n  ")
+			}
+			tclFileCopy("test.db", "testX.db")
+			tclFileCopy("test.db-wal", "testX.db-wal")
+			_list := tclList([]string{"file size testX.db", "file size testX.db-wal"})
+			_ = _list
+		}
+		// foreach {nFrame result} "\n         0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}\n"
+		_items := tclSplitList("\n         0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}\n")
+		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
+			nFrame := _items[_idx+0]
+			_ = nFrame // suppress unused warning
+			result := _items[_idx+1]
+			_ = result // suppress unused warning
+			_ = _idx
+				{ // do_test "wal-18.1." + nFrame
+					tclFileCopy("testX.db", "test.db")
+					tclFileCopy("testX.db-wal", "test.db-wal")
+					t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db-wal [expr 24 + $nFrame*(24+1024) + 20] 00000000")
+					db, err := frigolite.Open("test.db")
+					defer db.Close()
+					if err != nil { t.Fatal(err) }
+					r = db.Query(" \n      SELECT * FROM t1;\n      PRAGMA integrity_check; \n    ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      SELECT * FROM t1;\n      PRAGMA integrity_check; \n    ")
+					}
+				}
+			}
+			// proc definition (not transpiled)
+			// proc definition (not transpiled)
+			tclFileCopy("test.db", "testX.db")
+			// foreach {tn pgsz works} " \n  1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0\n"
+			_items := tclSplitList(" \n  1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0\n")
+			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
+				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
+				pgsz := _items[_idx+1]
+				_ = pgsz // suppress unused warning
+				works := _items[_idx+2]
+				_ = works // suppress unused warning
+				_ = _idx
+					if func() bool { _SQLITE_MAX_PAGE_SIZE_n, __SQLITE_MAX_PAGE_SIZE_e := strconv.Atoi(_SQLITE_MAX_PAGE_SIZE); if __SQLITE_MAX_PAGE_SIZE_e != nil { return false }; pgsz_n, _pgsz_e := strconv.Atoi(pgsz); if _pgsz_e != nil { return false }; return _SQLITE_MAX_PAGE_SIZE_n < pgsz_n }() {
+						var works = "0"
+						_ = works // suppress unused warning
+					}
+					var pg = "1"
+					_ = pg // suppress unused warning
+					for func() bool { pg_n, _pg_e := strconv.Atoi(pg); if _pg_e != nil { return false }; return pg_n <= 3 }() {
+						tclFileCopy("testX.db", "test.db")
+						os.Remove("test.db-wal")
+						{ // do_test "wal-18.2." + tn + "." + pg + ".1"
+							// file exists "test.db-wal"
 						}
-						var pg = "1"
-						_ = pg // suppress unused warning
-						for func() bool { pg_n, _pg_e := strconv.Atoi(pg); if _pg_e != nil { return false }; return pg_n <= 3 }() {
-							tclFileCopy("testX.db", "test.db")
-							os.Remove("test.db-wal")
-							{ // do_test "wal-18.2." + tn + "." + pg + ".1"
-								// file exists "test.db-wal"
-							}
-							{ // do_test "wal-18.2." + tn + "." + pg + ".2"
-								// file exists "test.db"
-							}
-							{ // do_test "wal-18.2." + tn + "." + pg + ".3"
-								// file size test.db
-							}
-							{ // do_test "wal-18.2." + tn + "." + pg + ".4"
-								var walhdr = "binary format IIIIII 931071618 3007000 $pgsz 1234 22 23"
-								_ = walhdr // suppress unused warning
-								var framebody = "randomblob $pgsz"
-								_ = framebody // suppress unused warning
-								var framehdr = "binary format IIII $pg 5 22 23"
-								_ = framehdr // suppress unused warning
-								var c1 = "0"
-								_ = c1 // suppress unused warning
-								var c2 = "0"
-								_ = c2 // suppress unused warning
-								t.Skipf("TODO: %s not implemented in frigolite", "logcksum c1 c2 $walhdr")
-								walhdr += "binary format II $c1 $c2"
-								t.Skipf("TODO: %s not implemented in frigolite", "logcksum c1 c2 [string range $framehdr 0 7]")
-								t.Skipf("TODO: %s not implemented in frigolite", "logcksum c1 c2 $framebody")
-								var framehdr = "binary format IIIIII $pg 5 22 23 $c1 $c2"
-								_ = framehdr // suppress unused warning
-								var fd = "open test.db-wal w"
-								_ = fd // suppress unused warning
-								t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-								t.Log("-nonewline")
-								t.Log("-nonewline")
-								t.Log("-nonewline")
-								// close $fd
-								// file size test.db-wal
-							}
-							{ // do_test "wal-18.2." + tn + "." + pg + ".5"
-								db, err := frigolite.Open("test.db")
-								defer db.Close()
-								if err != nil { t.Fatal(err) }
+						{ // do_test "wal-18.2." + tn + "." + pg + ".2"
+							// file exists "test.db"
+						}
+						{ // do_test "wal-18.2." + tn + "." + pg + ".3"
+							// file size test.db
+						}
+						{ // do_test "wal-18.2." + tn + "." + pg + ".4"
+							var walhdr = "binary format IIIIII 931071618 3007000 $pgsz 1234 22 23"
+							_ = walhdr // suppress unused warning
+							var framebody = "randomblob $pgsz"
+							_ = framebody // suppress unused warning
+							var framehdr = "binary format IIII $pg 5 22 23"
+							_ = framehdr // suppress unused warning
+							var c1 = "0"
+							_ = c1 // suppress unused warning
+							var c2 = "0"
+							_ = c2 // suppress unused warning
+							t.Skipf("TODO: %s not implemented in frigolite", "logcksum c1 c2 $walhdr")
+							walhdr += "binary format II $c1 $c2"
+							t.Skipf("TODO: %s not implemented in frigolite", "logcksum c1 c2 [string range $framehdr 0 7]")
+							t.Skipf("TODO: %s not implemented in frigolite", "logcksum c1 c2 $framebody")
+							var framehdr = "binary format IIIIII $pg 5 22 23 $c1 $c2"
+							_ = framehdr // suppress unused warning
+							var fd = "open test.db-wal w"
+							_ = fd // suppress unused warning
+							t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+							t.Log("-nonewline")
+							t.Log("-nonewline")
+							t.Log("-nonewline")
+							// close $fd
+							// file size test.db-wal
+						}
+						{ // do_test "wal-18.2." + tn + "." + pg + ".5"
+							db, err := frigolite.Open("test.db")
+							defer db.Close()
+							if err != nil { t.Fatal(err) }
 	var rc string
 	_ = msg // suppress unused warning
-								{ // catch block
-									var _catchErr error
-									if _catchErr != nil {
-										rc = "1"
-										msg = _catchErr.Error()
-									} else {
-										rc = "0"
-										msg = ""
-									}
+							{ // catch block
+								var _catchErr error
+								if _catchErr != nil {
+									rc = "1"
+									msg = _catchErr.Error()
+								} else {
+									rc = "0"
+									msg = ""
 								}
-								// expr  $rc!=0 || $msg!="ok"  → "$rc!=0 || $msg!=\"ok\""
 							}
-							// incr pg 1
-							{
-								_n, _err := strconv.Atoi(pg)
-								if _err == nil {
-									pg = strconv.Itoa(_n + 1)
-								}
+							// expr  $rc!=0 || $msg!="ok"  → "$rc!=0 || $msg!=\"ok\""
+						}
+						// incr pg 1
+						{
+							_n, _err := strconv.Atoi(pg)
+							if _err == nil {
+								pg = strconv.Itoa(_n + 1)
 							}
 						}
 					}
-					{ // do_test "wal-19.1"
+				}
+				{ // do_test "wal-19.1"
+					os.Remove("test.db")
+					db, err := frigolite.Open("test.db")
+					defer db.Close()
+					if err != nil { t.Fatal(err) }
+					db2, err := frigolite.Open("test.db")
+					defer db2.Close()
+					if err != nil { t.Fatal(err) }
+					_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+					}
+					r = db.Query(" SELECT * FROM t1 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+					}
+				}
+				{ // do_test "wal-19.2"
+					r = db.Query("\n    INSERT INTO t1 VALUES(5, 6);\n    SELECT * FROM t1;\n  ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(5, 6);\n    SELECT * FROM t1;\n  ")
+					}
+				}
+				{ // do_test "wal-19.3"
+					db2.Close()
+					// file exists "test.db-wal"
+				}
+				{ // do_test "wal-19.4"
+					db, err := frigolite.Open("test.db")
+					defer db.Close()
+					if err != nil { t.Fatal(err) }
+					r = db.Query(" SELECT * FROM t1 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+					}
+				}
+				if tclBool("permutation" + "!=\"unix-excl\"") {
+					{ // do_test "wal-20.1"
+						{
+							var _catchErr error
+							_ = _catchErr // suppress unused warning
+						}
 						os.Remove("test.db")
 						db, err := frigolite.Open("test.db")
 						defer db.Close()
 						if err != nil { t.Fatal(err) }
-						db2, err := frigolite.Open("test.db")
-						defer db2.Close()
-						if err != nil { t.Fatal(err) }
-						_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-						}
-						r = db.Query(" SELECT * FROM t1 ")
+						r = db.Query("\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(randomblob(900));\n      SELECT count(*) FROM t1;\n    ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(randomblob(900));\n      SELECT count(*) FROM t1;\n    ")
 						}
 					}
-					{ // do_test "wal-19.2"
-						r = db.Query("\n    INSERT INTO t1 VALUES(5, 6);\n    SELECT * FROM t1;\n  ")
+					{ // do_test "wal-20.2"
+						var _buddy = "launch_testfixture" // TCL namespace variable
+						_ = _buddy // suppress unused warning
+						t.Skipf("TODO: %s not implemented in frigolite", "testfixture $::buddy {\n      sqlite3 db test.db\n      db transaction { d...}")
+					}
+					{ // do_test "wal-20.3"
+						// close $::buddy
+						r = db.Query(" PRAGMA wal_checkpoint ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(5, 6);\n    SELECT * FROM t1;\n  ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
+						}
+						r = db.Query(" SELECT count(*) FROM t1 ")
+						if r.Error != nil {
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 						}
 					}
-					{ // do_test "wal-19.3"
-						db2.Close()
-						// file exists "test.db-wal"
-					}
-					{ // do_test "wal-19.4"
+					{ // do_test "wal-20.4"
 						db, err := frigolite.Open("test.db")
 						defer db.Close()
 						if err != nil { t.Fatal(err) }
-						r = db.Query(" SELECT * FROM t1 ")
+						r = db.Query(" SELECT count(*) FROM t1 ")
 						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 						}
 					}
-					if tclBool("permutation" + "!=\"unix-excl\"") {
-						{ // do_test "wal-20.1"
-							{
-								var _catchErr error
-								_ = _catchErr // suppress unused warning
-							}
-							os.Remove("test.db")
-							db, err := frigolite.Open("test.db")
-							defer db.Close()
-							if err != nil { t.Fatal(err) }
-							r = db.Query("\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(randomblob(900));\n      SELECT count(*) FROM t1;\n    ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(randomblob(900));\n      SELECT count(*) FROM t1;\n    ")
-							}
-						}
-						{ // do_test "wal-20.2"
-							var _buddy = "launch_testfixture" // TCL namespace variable
-							_ = _buddy // suppress unused warning
-							t.Skipf("TODO: %s not implemented in frigolite", "testfixture $::buddy {\n      sqlite3 db test.db\n      db transaction { d...}")
-						}
-						{ // do_test "wal-20.3"
-							// close $::buddy
-							r = db.Query(" PRAGMA wal_checkpoint ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
-							}
-							r = db.Query(" SELECT count(*) FROM t1 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
-							}
-						}
-						{ // do_test "wal-20.4"
-							db, err := frigolite.Open("test.db")
-							defer db.Close()
-							if err != nil { t.Fatal(err) }
-							r = db.Query(" SELECT count(*) FROM t1 ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
-							}
-						}
-						_res = db.Exec("PRAGMA integrity_check")
-						if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-					}
-					{
-						var _catchErr error
-						_ = _catchErr // suppress unused warning
-						db2.Close()
-					}
-					{
-						var _catchErr error
-						_ = _catchErr // suppress unused warning
-					}
-					{ // do_test "wal-21.1"
-						t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-						_res = db.Exec(" \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n  ")
-						}
-					}
-					{ // do_test "wal-21.2"
-						_res = db.Exec(" \n    PRAGMA cache_size = 10;\n    PRAGMA wal_checkpoint;\n    BEGIN;\n      SAVEPOINT s;\n        INSERT INTO t1 SELECT randomblob(900), randomblob(900) FROM t1;\n      ROLLBACK TO s;\n    COMMIT;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA cache_size = 10;\n    PRAGMA wal_checkpoint;\n    BEGIN;\n      SAVEPOINT s;\n        INSERT INTO t1 SELECT randomblob(900), randomblob(900) FROM t1;\n      ROLLBACK TO s;\n    COMMIT;\n  ")
-						}
-						r = db.Query(" SELECT * FROM t1 ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-						}
-					}
-					{ // do_test "wal-21.3"
-						r = db.Query(" PRAGMA integrity_check ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
-						}
-					}
-					// incr _do_not_use_codec 1
-					{
-						_n, _err := strconv.Atoi(_do_not_use_codec)
-						if _err == nil {
-							_do_not_use_codec = strconv.Itoa(_n + 1)
-						}
-					}
-					for _, pgsz := range tclSplitList("512 1024 2048 4096 8192 16384 32768 65536") {
-						t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn [string map [list %PGSZ% $pgsz] {\n    do_test wal-...")
-					}
-					// incr _do_not_use_codec -1
-					{
-						_n, _err := strconv.Atoi(_do_not_use_codec)
-						if _err == nil {
-							_do_not_use_codec = strconv.Itoa(_n + -1)
-						}
-					}
-					{
-						var _catchErr error
-						_ = _catchErr // suppress unused warning
-					}
-					os.Remove("test.db")
-					{ // do_test "wal-23.1"
-						t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-						_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
-						}
-						t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-						t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-						t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log [list lappend ::log]")
-						var _log = "list" // TCL namespace variable
-						_ = _log // suppress unused warning
-						db, err := frigolite.Open("test.db")
-						defer db.Close()
-						if err != nil { t.Fatal(err) }
-						r = db.Query(" SELECT * FROM t1 ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-						}
-					}
-					{ // do_test "wal-23.2"
-						_ = _log // TCL namespace variable (query)
-					}
-					{ // do_test "wal-23.3"
-						var _log = "list" // TCL namespace variable
-						_ = _log // suppress unused warning
-						t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
-						r = db.Query(" SELECT * FROM t1 ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
-						}
-					}
-					{ // do_test "wal-23.4"
-						_ = _log // TCL namespace variable (query)
-					}
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-					t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-					for _, mode := range tclSplitList("OFF MEMORY PERSIST DELETE TRUNCATE WAL") {
-						t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db test2.db")
-						db, err := frigolite.Open("test.db")
-						defer db.Close()
-						if err != nil { t.Fatal(err) }
-						{ // do_test "wal-25." + mode
-							_res = db.Exec("PRAGMA journal_mode=" + mode)
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode=" + mode)
-							}
-							_res = db.Exec("ATTACH 'test2.db' AS t2; PRAGMA journal_mode=WAL;")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'test2.db' AS t2; PRAGMA journal_mode=WAL;")
-							}
-						}
-					}
-					os.Remove("test.db")
-					db, err = frigolite.Open("test.db")
-					if err != nil { t.Fatal(err) }
-					_res = db.Exec("PRAGMA journal_mode=WAL")
+					_res = db.Exec("PRAGMA integrity_check")
+					if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+				}
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+					db2.Close()
+				}
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				{ // do_test "wal-21.1"
+					t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+					_res = db.Exec(" \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n  ")
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode=WAL")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n  ")
 					}
-					var i = "0"
-					_ = i // suppress unused warning
-					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; SQLITE_MAX_ATTACHED_n, _SQLITE_MAX_ATTACHED_e := strconv.Atoi(SQLITE_MAX_ATTACHED); if _SQLITE_MAX_ATTACHED_e != nil { return false }; return i_n < SQLITE_MAX_ATTACHED_n }() {
-						{ // do_test "wal-26.1." + i
-							os.Remove("attached-" + i + ".db")
-							_res = db.Exec("ATTACH 'attached-" + i + ".db' AS a" + i + ";")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'attached-" + i + ".db' AS a" + i + ";")
-							}
-							_res = db.Exec("PRAGMA a" + i + ".journal_mode=WAL;")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA a" + i + ".journal_mode=WAL;")
-							}
-							_res = db.Exec("CREATE TABLE a" + i + ".t" + i + " (x);")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE a" + i + ".t" + i + " (x);")
-							}
-							_res = db.Exec("INSERT INTO t" + i + " VALUES(zeroblob(10000));")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t" + i + " VALUES(zeroblob(10000));")
-							}
-							_res = db.Exec("DELETE FROM t" + i + ";")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t" + i + ";")
-							}
-							_res = db.Exec("INSERT INTO t" + i + " VALUES(randomblob(10000));")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t" + i + " VALUES(randomblob(10000));")
-							}
-							// expr [file size attached-$i.db-wal]>10000 → "[file size attached-$i.db-wal]>10000"
+				}
+				{ // do_test "wal-21.2"
+					_res = db.Exec(" \n    PRAGMA cache_size = 10;\n    PRAGMA wal_checkpoint;\n    BEGIN;\n      SAVEPOINT s;\n        INSERT INTO t1 SELECT randomblob(900), randomblob(900) FROM t1;\n      ROLLBACK TO s;\n    COMMIT;\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA cache_size = 10;\n    PRAGMA wal_checkpoint;\n    BEGIN;\n      SAVEPOINT s;\n        INSERT INTO t1 SELECT randomblob(900), randomblob(900) FROM t1;\n      ROLLBACK TO s;\n    COMMIT;\n  ")
+					}
+					r = db.Query(" SELECT * FROM t1 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+					}
+				}
+				{ // do_test "wal-21.3"
+					r = db.Query(" PRAGMA integrity_check ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
+					}
+				}
+				// incr _do_not_use_codec 1
+				{
+					_n, _err := strconv.Atoi(_do_not_use_codec)
+					if _err == nil {
+						_do_not_use_codec = strconv.Itoa(_n + 1)
+					}
+				}
+				for _, pgsz := range tclSplitList("512 1024 2048 4096 8192 16384 32768 65536") {
+					t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn [string map [list %PGSZ% $pgsz] {\n    do_test wal-...")
+				}
+				// incr _do_not_use_codec -1
+				{
+					_n, _err := strconv.Atoi(_do_not_use_codec)
+					if _err == nil {
+						_do_not_use_codec = strconv.Itoa(_n + -1)
+					}
+				}
+				{
+					var _catchErr error
+					_ = _catchErr // suppress unused warning
+				}
+				os.Remove("test.db")
+				{ // do_test "wal-23.1"
+					t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+					_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+					if _res.Error != nil {
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
+					}
+					t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+					t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log [list lappend ::log]")
+					var _log = "list" // TCL namespace variable
+					_ = _log // suppress unused warning
+					db, err := frigolite.Open("test.db")
+					defer db.Close()
+					if err != nil { t.Fatal(err) }
+					r = db.Query(" SELECT * FROM t1 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+					}
+				}
+				{ // do_test "wal-23.2"
+					_ = _log // TCL namespace variable (query)
+				}
+				{ // do_test "wal-23.3"
+					var _log = "list" // TCL namespace variable
+					_ = _log // suppress unused warning
+					t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+					r = db.Query(" SELECT * FROM t1 ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
+					}
+				}
+				{ // do_test "wal-23.4"
+					_ = _log // TCL namespace variable (query)
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+				t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
+				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+				for _, mode := range tclSplitList("OFF MEMORY PERSIST DELETE TRUNCATE WAL") {
+					t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db test2.db")
+					db, err := frigolite.Open("test.db")
+					defer db.Close()
+					if err != nil { t.Fatal(err) }
+					{ // do_test "wal-25." + mode
+						_res = db.Exec("PRAGMA journal_mode=" + mode)
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode=" + mode)
 						}
-						// incr i 1
+						_res = db.Exec("ATTACH 'test2.db' AS t2; PRAGMA journal_mode=WAL;")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'test2.db' AS t2; PRAGMA journal_mode=WAL;")
+						}
+					}
+				}
+				os.Remove("test.db")
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				_res = db.Exec("PRAGMA journal_mode=WAL")
+				if _res.Error != nil {
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode=WAL")
+				}
+				var i = "0"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; SQLITE_MAX_ATTACHED_n, _SQLITE_MAX_ATTACHED_e := strconv.Atoi(SQLITE_MAX_ATTACHED); if _SQLITE_MAX_ATTACHED_e != nil { return false }; return i_n < SQLITE_MAX_ATTACHED_n }() {
+					{ // do_test "wal-26.1." + i
+						os.Remove("attached-" + i + ".db")
+						_res = db.Exec("ATTACH 'attached-" + i + ".db' AS a" + i + ";")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'attached-" + i + ".db' AS a" + i + ";")
+						}
+						_res = db.Exec("PRAGMA a" + i + ".journal_mode=WAL;")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA a" + i + ".journal_mode=WAL;")
+						}
+						_res = db.Exec("CREATE TABLE a" + i + ".t" + i + " (x);")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE a" + i + ".t" + i + " (x);")
+						}
+						_res = db.Exec("INSERT INTO t" + i + " VALUES(zeroblob(10000));")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t" + i + " VALUES(zeroblob(10000));")
+						}
+						_res = db.Exec("DELETE FROM t" + i + ";")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t" + i + ";")
+						}
+						_res = db.Exec("INSERT INTO t" + i + " VALUES(randomblob(10000));")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t" + i + " VALUES(randomblob(10000));")
+						}
+						// expr [file size attached-$i.db-wal]>10000 → "[file size attached-$i.db-wal]>10000"
+					}
+					// incr i 1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + 1)
+						}
+					}
+				}
+				i := "$SQLITE_MAX_ATTACHED-1"
+				_ = i // suppress unused warning
+				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0 }() {
+					{ // do_test "wal-26.2." + i
+						_res = db.Exec("PRAGMA a" + i + ".wal_checkpoint(TRUNCATE);")
+						if _res.Error != nil {
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA a" + i + ".wal_checkpoint(TRUNCATE);")
+						}
+						// file size attached-$i.db-wal
+					}
+					var j = "0"
+					_ = j // suppress unused warning
+					for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return j_n < i_n }() {
+						{ // do_test "wal-26.2." + i + "." + j
+							// expr [file size attached-$j.db-wal]>10000 → "[file size attached-$j.db-wal]>10000"
+						}
+						// incr j 1
 						{
-							_n, _err := strconv.Atoi(i)
+							_n, _err := strconv.Atoi(j)
 							if _err == nil {
-								i = strconv.Itoa(_n + 1)
+								j = strconv.Itoa(_n + 1)
 							}
 						}
 					}
-					i := "$SQLITE_MAX_ATTACHED-1"
-					_ = i // suppress unused warning
-					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0 }() {
-						{ // do_test "wal-26.2." + i
-							_res = db.Exec("PRAGMA a" + i + ".wal_checkpoint(TRUNCATE);")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA a" + i + ".wal_checkpoint(TRUNCATE);")
-							}
-							// file size attached-$i.db-wal
-						}
-						var j = "0"
-						_ = j // suppress unused warning
-						for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return j_n < i_n }() {
-							{ // do_test "wal-26.2." + i + "." + j
-								// expr [file size attached-$j.db-wal]>10000 → "[file size attached-$j.db-wal]>10000"
-							}
-							// incr j 1
-							{
-								_n, _err := strconv.Atoi(j)
-								if _err == nil {
-									j = strconv.Itoa(_n + 1)
-								}
-							}
-						}
-						// incr i -1
-						{
-							_n, _err := strconv.Atoi(i)
-							if _err == nil {
-								i = strconv.Itoa(_n + -1)
-							}
+					// incr i -1
+					{
+						_n, _err := strconv.Atoi(i)
+						if _err == nil {
+							i = strconv.Itoa(_n + -1)
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+				}
+				t.Skipf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
 }

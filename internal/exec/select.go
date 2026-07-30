@@ -273,6 +273,10 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 	if s.Distinct {
 		result.Rows, rowMaps = e.distinctRows(result.Rows, rowMaps)
 	}
+	// Handle UNION before ORDER BY (ORDER BY on compound SELECT applies to the merged result)
+	if s.Union != nil {
+		result.Rows = e.mergeUnionRows(result.Rows, s.Union, s.SetOp, s.UnionAll)
+	}
 	if len(s.OrderBy) > 0 {
 		if err := validateOrderBy(s.OrderBy, len(result.Columns)); err != nil {
 			return &Result{Error: err}
@@ -280,9 +284,6 @@ func (e *Engine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps
 		e.sortRowsWithMaps(result, s.OrderBy, rowMaps)
 	}
 	result.Rows = applyLimitOffset(result.Rows, s.Limit, s.Offset)
-	if s.Union != nil {
-		result.Rows = e.mergeUnionRows(result.Rows, s.Union, s.SetOp, s.UnionAll)
-	}
 	return result
 }
 
@@ -518,20 +519,37 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 		case sql.SetUnion:
 			if s.UnionAll {
 				// UNION ALL: concatenate without dedup
-				return &Result{Columns: columns, Rows: allRows}
+				result := &Result{Columns: columns, Rows: allRows}
+				e.finalizeNoFromSelect(result, s)
+				return result
 			}
 			// UNION: deduplicate
-			return &Result{Columns: columns, Rows: dedupeRows(allRows)}
+			result := &Result{Columns: columns, Rows: dedupeRows(allRows)}
+			e.finalizeNoFromSelect(result, s)
+			return result
 		case sql.SetIntersect:
-			return &Result{Columns: columns, Rows: intersectRows([][]interface{}{outRow}, unionResult.Rows)}
+			result := &Result{Columns: columns, Rows: intersectRows([][]interface{}{outRow}, unionResult.Rows)}
+			e.finalizeNoFromSelect(result, s)
+			return result
 		case sql.SetExcept:
-			return &Result{Columns: columns, Rows: exceptRows([][]interface{}{outRow}, unionResult.Rows)}
+			result := &Result{Columns: columns, Rows: exceptRows([][]interface{}{outRow}, unionResult.Rows)}
+			e.finalizeNoFromSelect(result, s)
+			return result
 		default:
-			return &Result{Columns: columns, Rows: allRows}
+			result := &Result{Columns: columns, Rows: allRows}
+			e.finalizeNoFromSelect(result, s)
+			return result
 		}
 	}
 
-	// Apply LIMIT/OFFSET for FROM-less SELECT
+	// No UNION: apply ORDER BY and LIMIT/OFFSET
+	result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
+	// Apply ORDER BY
+	if len(s.OrderBy) > 0 {
+		rowMaps := e.buildNoFromRowMaps(result.Rows, columns)
+		e.sortRowsWithMaps(result, s.OrderBy, rowMaps)
+	}
+	// Evaluate LIMIT/OFFSET expressions
 	limitExpr, offsetExpr := s.Limit, s.Offset
 	if s.Limit != nil {
 		if v, err := e.evalExpr(s.Limit, nil); err == nil {
@@ -553,12 +571,59 @@ func (e *Engine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 			}
 		}
 	}
-	result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
+	// Apply LIMIT/OFFSET
 	if s.Limit != nil || s.Offset != nil {
 		result.Rows = applyLimitOffset(result.Rows, limitExpr, offsetExpr)
 	}
 	return result
+}
 
+// finalizeNoFromSelect applies ORDER BY and LIMIT/OFFSET to a no-FROM SELECT result.
+func (e *Engine) finalizeNoFromSelect(result *Result, s *sql.SelectStmt) {
+	if len(s.OrderBy) > 0 {
+		rowMaps := e.buildNoFromRowMaps(result.Rows, result.Columns)
+		e.sortRowsWithMaps(result, s.OrderBy, rowMaps)
+	}
+	// Apply LIMIT/OFFSET
+	limitExpr, offsetExpr := s.Limit, s.Offset
+	if s.Limit != nil {
+		if v, err := e.evalExpr(s.Limit, nil); err == nil {
+			switch n := v.(type) {
+			case int64:
+				limitExpr = &sql.NumericLit{Value: strconv.FormatInt(n, 10)}
+			case float64:
+				limitExpr = &sql.NumericLit{Value: strconv.FormatInt(int64(n), 10)}
+			}
+		}
+	}
+	if s.Offset != nil {
+		if v, err := e.evalExpr(s.Offset, nil); err == nil {
+			switch n := v.(type) {
+			case int64:
+				offsetExpr = &sql.NumericLit{Value: strconv.FormatInt(n, 10)}
+			case float64:
+				offsetExpr = &sql.NumericLit{Value: strconv.FormatInt(int64(n), 10)}
+			}
+		}
+	}
+	if s.Limit != nil || s.Offset != nil {
+		result.Rows = applyLimitOffset(result.Rows, limitExpr, offsetExpr)
+	}
+}
+
+// buildNoFromRowMaps creates RowMaps for no-FROM SELECT results (used for ORDER BY).
+func (e *Engine) buildNoFromRowMaps(rows [][]interface{}, columns []string) []RowMap {
+	rowMaps := make([]RowMap, len(rows))
+	for i, row := range rows {
+		rm := make(RowMap)
+		for j, val := range row {
+			if j < len(columns) {
+				rm[columns[j]] = val
+			}
+		}
+		rowMaps[i] = rm
+	}
+	return rowMaps
 }
 
 // execSelectFromSubquery executes an outer SELECT whose FROM is a subquery.
@@ -3167,7 +3232,7 @@ func (e *Engine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTerm, row
 		indices[i] = i
 	}
 	sort.SliceStable(indices, func(i, j int) bool {
-		return e.lessRows(orderBy, rowMaps, indices[i], indices[j])
+		return e.lessRows(orderBy, rowMaps, result.Rows, indices[i], indices[j])
 	})
 	newRows := make([][]interface{}, n)
 	newMaps := make([]RowMap, n)
@@ -3180,8 +3245,25 @@ func (e *Engine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTerm, row
 }
 
 // lessRows returns true if row i should come before row j according to ORDER BY.
-func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, i, j int) bool {
+func (e *Engine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]interface{}, i, j int) bool {
 	for _, ob := range orderBy {
+		// Handle positional ORDER BY (e.g., ORDER BY 1 means order by first column)
+		if nl, ok := ob.Expr.(*sql.NumericLit); ok {
+			if pos, err := strconv.ParseInt(nl.Value, 10, 64); err == nil && pos >= 1 && pos <= int64(len(rows[i])) {
+				left := rows[i][pos-1]
+				right := rows[j][pos-1]
+				cmp := util.CompareValues(left, right)
+				if ob.Desc {
+					cmp = -cmp
+				}
+				if cmp < 0 {
+					return true
+				} else if cmp > 0 {
+					return false
+				}
+				continue
+			}
+		}
 		left, _ := e.evalExpr(ob.Expr, rowMaps[i])
 		right, _ := e.evalExpr(ob.Expr, rowMaps[j])
 		cmp := util.CompareValues(left, right)

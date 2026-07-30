@@ -35,7 +35,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
 	if s.Select != nil {
-		return e.execInsertSelect(tableEntry, colDefs, s.Select, s.Columns)
+		return e.execInsertSelect(tableEntry, colDefs, s.Select, s.Columns, s.IsReplace)
 	}
 	if len(s.Values) == 0 {
 		return e.execInsertDefault(tableEntry)
@@ -48,6 +48,21 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 		values := e.evalTuple(tuple, s.Columns, colDefs)
 		if values == nil {
 			return &Result{Error: fmt.Errorf("exec: failed to evaluate INSERT values")}
+		}
+
+		// Handle REPLACE (INSERT OR REPLACE): delete conflicting rows before inserting
+		if s.IsReplace {
+			colIndex := buildColumnIndex(colDefs)
+			conflictRowID, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
+			if found {
+				tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+				_, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+					return cell.RowID == conflictRowID
+				})
+				if err != nil {
+					return &Result{Error: err}
+				}
+			}
 		}
 
 		// Check for ON CONFLICT (UPSERT)
@@ -106,6 +121,16 @@ func (e *Engine) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []
 	// auto-assign the next available rowid.
 	nextRowID := e.pkRowID(colDefs, values, tableEntry.RootPage)
 	e.lastRowID = nextRowID
+
+	// If INTEGER PRIMARY KEY column value is nil, set it to the auto-assigned rowid.
+	// SQLite behavior: inserting NULL into an INTEGER PRIMARY KEY column causes
+	// the column to contain the auto-generated rowid.
+	for i, cd := range colDefs {
+		if cd.PrimaryKey && i < len(values) && values[i] == nil {
+			values[i] = nextRowID
+			break
+		}
+	}
 
 	// Apply type affinity to each value based on column type.
 	// Apply in-place to avoid allocating a separate affValues slice.
@@ -446,7 +471,7 @@ func gatherUniqueColIndices(colDefs []sql.ColumnDef, colIndex map[string]int, va
 	return uniqueCols
 }
 
-func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.ColumnDef, selectStmt *sql.SelectStmt, columns []string) *Result {
+func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.ColumnDef, selectStmt *sql.SelectStmt, columns []string, isReplace bool) *Result {
 	selectResult := e.execSelect(selectStmt)
 	if selectResult.Error != nil {
 		return selectResult
@@ -466,25 +491,114 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			tableEntry.Name, expectedCount, numSelectCols)}
 	}
 
-	var changes int64
-	for _, row := range selectResult.Rows {
-		// If specific columns were requested, map the SELECT values
-		// to the full colDefs positions (matching evalTuple semantics).
-		values := row
-		if len(columns) > 0 {
-			mapped := make([]interface{}, len(colDefs))
-			for i, col := range columns {
-				for j, cd := range colDefs {
-					if cd.Name == col && i < len(values) {
-						mapped[j] = values[i]
-						break
+	// Build a column mapping for the INSERT column list.
+	// Handle _rowid_ specially (maps to the implicit rowid, not a table column).
+	// Handle duplicate column names by only using the first occurrence.
+	var colMapping []int // maps SELECT column index → colDefs index (-1 for _rowid_)
+	if len(columns) > 0 {
+		colMapping = make([]int, len(columns))
+		seen := make(map[string]bool)
+		for i, col := range columns {
+			if strings.EqualFold(col, "_rowid_") || strings.EqualFold(col, "rowid") {
+				colMapping[i] = -1 // _rowid_ marker
+			} else {
+				if seen[col] {
+					colMapping[i] = -2 // duplicate, skip
+				} else {
+					seen[col] = true
+					found := false
+					for j, cd := range colDefs {
+						if cd.Name == col {
+							colMapping[i] = j
+							found = true
+							break
+						}
+					}
+					if !found {
+						colMapping[i] = -3 // column not found in table
 					}
 				}
 			}
-			values = mapped
+		}
+	}
+
+	var changes int64
+	for _, row := range selectResult.Rows {
+		var values []interface{}
+		var explicitRowID int64
+		hasExplicitRowID := false
+
+		if len(columns) > 0 {
+			values = make([]interface{}, len(colDefs))
+			// First, apply default values for all columns
+			for j, cd := range colDefs {
+				if cd.Default != nil {
+					// Evaluate the default expression to get the default value
+					if dv, err := e.evalExpr(cd.Default, nil); err == nil {
+						values[j] = dv
+					}
+				}
+			}
+			// Then map SELECT values to column positions
+			for i, colIdx := range colMapping {
+				if colIdx >= 0 && i < len(row) {
+					values[colIdx] = row[i]
+				} else if colIdx == -1 && i < len(row) {
+					// _rowid_ column
+					if v, ok := row[i].(int64); ok {
+						explicitRowID = v
+						hasExplicitRowID = true
+					}
+				}
+				// colIdx == -2: duplicate column, skip
+				// colIdx == -3: column not found, skip (will be caught by validation)
+			}
+		} else {
+			values = row
 		}
 
-		rowID := e.pkRowID(colDefs, values, tableEntry.RootPage)
+		// Apply type affinity to each value based on column type
+		for i, v := range values {
+			if i < len(colDefs) {
+				values[i] = util.ApplyColumnAffinity(v, colDefs[i].Type)
+			}
+		}
+
+		// Handle REPLACE: delete conflicting rows before inserting
+		if isReplace {
+			colIndex := buildColumnIndex(colDefs)
+			conflictRowID, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values)
+			if found {
+				tree := e.tableBTree(tableEntry.Name, tableEntry.RootPage, true)
+				_, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+					return cell.RowID == conflictRowID
+				})
+				if err != nil {
+					return &Result{Error: err}
+				}
+			}
+		}
+
+		// Validate constraints before inserting
+		if err := e.checkConstraints(tableEntry, colDefs, values); err != nil {
+			return &Result{Error: err}
+		}
+
+		// Determine rowID
+		var rowID int64
+		if hasExplicitRowID {
+			rowID = explicitRowID
+		} else {
+			rowID = e.pkRowID(colDefs, values, tableEntry.RootPage)
+			// If INTEGER PRIMARY KEY column is nil, set it to the auto-assigned rowid
+			for i, cd := range colDefs {
+				if cd.PrimaryKey && i < len(values) && values[i] == nil {
+					values[i] = rowID
+					break
+				}
+			}
+		}
+
 		record, err := storage.EncodeRecord(values)
 		if err != nil {
 			return &Result{Error: err}
