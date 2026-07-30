@@ -55,8 +55,8 @@ func Test_round1(t *testing.T) {
 		_ = n // suppress unused warning
 		var x3 = "[format %09d $x2] [expr {9-$n}] end"
 		_ = x3 // suppress unused warning
-		var r = x1 + "." + x3
-		_ = r // suppress unused warning
+		var _r = x1 + "." + x3
+		_ = _r // suppress unused warning
 		var ans = "$r 0"
 		_ = ans // suppress unused warning
 		if tclBool("*. $ans") {

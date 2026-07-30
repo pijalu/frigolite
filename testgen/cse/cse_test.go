@@ -161,14 +161,14 @@ func Test_cse(t *testing.T) {
 		var j = "0"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return j_n < n_n }() {
-			var r = "$j+int(rand()*5)"
-			_ = r // suppress unused warning
-			if func() bool { r_n, _r_e := strconv.Atoi(r); if _r_e != nil { return false }; return r_n > 49 }() {
-				var r = "99-$r"
-				_ = r // suppress unused warning
+			var _r = "$j+int(rand()*5)"
+			_ = _r // suppress unused warning
+			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n > 49 }() {
+				var _r = "99-$r"
+				_ = _r // suppress unused warning
 			}
-			colset = tclListAppend(colset, "a" + j, "a" + r)
-			answer = tclListAppend(answer, j, r)
+			colset = tclListAppend(colset, "a" + j, "a" + _r)
+			answer = tclListAppend(answer, j, _r)
 			// incr j 1
 			{
 				_n, _err := strconv.Atoi(j)

@@ -498,8 +498,8 @@ func Test_wal2(t *testing.T) {
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				var  = ""
-				_ =  // suppress unused warning
+				var _unnamed_var = ""
+				_ = _unnamed_var // suppress unused warning
 			}
 			var RECOVERY = "\n  {0 1 lock exclusive}   {1 2 lock exclusive}\n  {4 1 lock exclusive}   {4 1 unlock exclusive}\n  {5 1 lock exclusive}   {5 1 unlock exclusive}\n  {6 1 lock exclusive}   {6 1 unlock exclusive}\n  {7 1 lock exclusive}   {7 1 unlock exclusive}\n  {1 2 unlock exclusive} {0 1 unlock exclusive}\n"
 			_ = RECOVERY // suppress unused warning

@@ -71,8 +71,8 @@ func Test_literal2(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // "3.0.0"
 		r = db.Query("\n  SELECT 0xFF_FF\n")

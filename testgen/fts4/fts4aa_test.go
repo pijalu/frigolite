@@ -52,9 +52,9 @@ func Test_fts4aa(t *testing.T) {
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 		for _, q := range tclSplitList(_fts4aa_queries) {
-			var r = "db eval {SELECT docid FROM t1 WHERE words MATCH $q ORDER BY docid}"
-			_ = r // suppress unused warning
-			var _fts4aa_res_$q = r // TCL namespace variable
+			var _r = "db eval {SELECT docid FROM t1 WHERE words MATCH $q ORDER BY docid}"
+			_ = _r // suppress unused warning
+			var _fts4aa_res_$q = _r // TCL namespace variable
 			_ = _fts4aa_res_$q // suppress unused warning
 		}
 	}
@@ -121,8 +121,8 @@ func Test_fts4aa(t *testing.T) {
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 		q := _items0[_idx0+0]
 		_ = q // suppress unused warning
-		r := _items0[_idx0+1]
-		_ = r // suppress unused warning
+		_r := _items0[_idx0+1]
+		_ = _r // suppress unused warning
 		_ = _idx0
 			var ii = "0"
 			// incr ii 1
@@ -157,8 +157,8 @@ func Test_fts4aa(t *testing.T) {
 		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 			q := _items1[_idx1+0]
 			_ = q // suppress unused warning
-			r := _items1[_idx1+1]
-			_ = r // suppress unused warning
+			_r := _items1[_idx1+1]
+			_ = _r // suppress unused warning
 			_ = _idx1
 				var ii = "0"
 				// incr ii 1
@@ -190,8 +190,8 @@ func Test_fts4aa(t *testing.T) {
 			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 				q := _items2[_idx2+0]
 				_ = q // suppress unused warning
-				r := _items2[_idx2+1]
-				_ = r // suppress unused warning
+				_r := _items2[_idx2+1]
+				_ = _r // suppress unused warning
 				_ = _idx2
 					var ii = "0"
 					// incr ii 1

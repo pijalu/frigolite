@@ -76,9 +76,9 @@ func Test_speed1(t *testing.T) {
 	var i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		var r = "0"
-		_ = r // suppress unused warning
-		sql += "INSERT INTO t1 VALUES(" + i + "," + r + ",'" + "number_name $r" + "');\\n"
+		var _r = "0"
+		_ = _r // suppress unused warning
+		sql += "INSERT INTO t1 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\\n"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -101,9 +101,9 @@ func Test_speed1(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		var r = "0"
-		_ = r // suppress unused warning
-		sql += "INSERT INTO t2 VALUES(" + i + "," + r + ",'" + "number_name $r" + "');\\n"
+		var _r = "0"
+		_ = _r // suppress unused warning
+		sql += "INSERT INTO t2 VALUES(" + i + "," + _r + ",'" + "number_name $r" + "');\\n"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -305,9 +305,9 @@ func Test_speed1(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50000 }() {
-		var r = "0"
-		_ = r // suppress unused warning
-		sql += "UPDATE t1 SET b=" + r + " WHERE a=" + i + ";"
+		var _r = "0"
+		_ = _r // suppress unused warning
+		sql += "UPDATE t1 SET b=" + _r + " WHERE a=" + i + ";"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -331,8 +331,8 @@ func Test_speed1(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		var r = "0"
-		_ = r // suppress unused warning
+		var _r = "0"
+		_ = _r // suppress unused warning
 		sql += "UPDATE t1 SET c='" + "number_name $r" + "' WHERE a=" + i + ";"
 		// incr i 1
 		{

@@ -75,8 +75,8 @@ func Test_carray02(t *testing.T) {
 				var STMT = ""
 				_ = STMT // suppress unused warning
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int32 $STMT 1 1 2 3 4 5")
-				var r = "run_stmt $STMT"
-				_ = r // suppress unused warning
+				var _r = "run_stmt $STMT"
+				_ = _r // suppress unused warning
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 			}
 		}
@@ -94,8 +94,8 @@ func Test_carray02(t *testing.T) {
 					var STMT = ""
 					_ = STMT // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "bind_carray_intptr $STMT 1 1 2 3 4 5")
-					var r = "run_stmt $STMT"
-					_ = r // suppress unused warning
+					var _r = "run_stmt $STMT"
+					_ = _r // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 				}
 			}
@@ -114,8 +114,8 @@ func Test_carray02(t *testing.T) {
 						_ = STMT // suppress unused warning
 						t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind $STMT 1 1 2 3 4 5")
 						t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind $STMT 2 1 2 3 4 5")
-						var r = "run_stmt $STMT"
-						_ = r // suppress unused warning
+						var _r = "run_stmt $STMT"
+						_ = _r // suppress unused warning
 						t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 					}
 				}

@@ -359,7 +359,7 @@ func Test_trace3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
 		}
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 }

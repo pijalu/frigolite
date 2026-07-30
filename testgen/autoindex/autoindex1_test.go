@@ -113,8 +113,8 @@ func Test_autoindex1(t *testing.T) {
 		}
 	}
 	{ // do_test "autoindex1-300"
-		var r = ""
-		_ = r // suppress unused warning
+		var _r = ""
+		_ = _r // suppress unused warning
 		_res = db.Exec("SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a)")

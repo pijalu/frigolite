@@ -89,7 +89,7 @@ func Test_readonly(t *testing.T) {
 				}
 			}
 		}
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 }

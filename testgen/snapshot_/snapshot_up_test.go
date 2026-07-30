@@ -277,8 +277,8 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // "-db"
 		_res = db.Exec("db2")

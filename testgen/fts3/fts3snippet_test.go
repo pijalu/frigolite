@@ -236,8 +236,8 @@ func Test_fts3snippet(t *testing.T) {
 			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.7 {one OR fivehundred} { 2 2    1 3 3   1 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   2 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   3 6 3   0 0 0   0 0 0 }")
 			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.8 {two OR \"threehundred one\"} { 2 2    1 3 3   1 6 3   0 0 0   0 3 2 } { 2 2    1 3 3   2 6 3   0 0 0   1 3 2 } { 2 2    1 3 3   3 6 3   0 0 0   2 3 2 }")
 			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.9.9 {\n    SELECT mit(matchinfo(ft)), mit(matchinfo(ft))...} [normalize {\n    {2 2 1 3 3 1 6 3 0 0 0 0 3 2}\n   ...")
-			var r = "1000000"
-			_ = r // suppress unused warning
+			var _r = "1000000"
+			_ = _r // suppress unused warning
 			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.0 { SELECT rowid FROM ft WHERE rowid = $r } $r")
 			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.1 {\n    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text 0 text 0 text}")
 			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.2 {\n    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text}")

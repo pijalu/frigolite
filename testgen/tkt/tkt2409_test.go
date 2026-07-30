@@ -148,15 +148,15 @@ func Test_tkt2409(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-			var r = "0"
-			_ = r // suppress unused warning
+			var _r = "0"
+			_ = _r // suppress unused warning
 			for tclBool("info exists t1($r)") {
-				var r = "0"
-				_ = r // suppress unused warning
+				var _r = "0"
+				_ = _r // suppress unused warning
 			}
 			var t1_$r = "1"
 			_ = t1_$r // suppress unused warning
-			sql += "INSERT INTO t1 VALUES('some-text-" + r + "');"
+			sql += "INSERT INTO t1 VALUES('some-text-" + _r + "');"
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

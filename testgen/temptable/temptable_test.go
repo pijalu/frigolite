@@ -126,22 +126,22 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-1.12"
 		db2.Exec("DROP TABLE t2;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db2.Exec("SELECT * FROM t2")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "temptable-2.1"
 		r = db.Query("\n    BEGIN TRANSACTION;\n    CREATE TEMPORARY TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,2);\n    SELECT * FROM t2;\n  ")
@@ -172,22 +172,22 @@ func Test_temptable(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-2.5"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db2.Exec("SELECT * FROM t2")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "temptable-3.1"
 		r = db.Query("\n    CREATE INDEX i2 ON t2(x);\n    SELECT name FROM sqlite_master WHERE type='index';\n  ")

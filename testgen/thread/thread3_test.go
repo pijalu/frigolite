@@ -89,8 +89,8 @@ func Test_thread3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 		}
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // "1.Total BUSY errors: " + nTotalBusy + " .2"
 		r = db.Query("\n  SELECT count(*) FROM t1;\n")

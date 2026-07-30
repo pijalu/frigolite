@@ -71,8 +71,8 @@ func Test_select2(t *testing.T) {
 	{ // do_test "select2-1.1"
 		var sql = "SELECT DISTINCT f1 FROM tbl1 ORDER BY f1"
 		_ = sql // suppress unused warning
-		var r = ""
-		_ = r // suppress unused warning
+		var _r = ""
+		_ = _r // suppress unused warning
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
@@ -85,8 +85,8 @@ func Test_select2(t *testing.T) {
 	{ // do_test "select2-1.2"
 		var sql = "SELECT DISTINCT f1 FROM tbl1 WHERE f1>3 AND f1<5"
 		_ = sql // suppress unused warning
-		var r = ""
-		_ = r // suppress unused warning
+		var _r = ""
+		_ = _r // suppress unused warning
 		_res = db.Exec(sql)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)

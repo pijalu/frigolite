@@ -173,8 +173,8 @@ func Test_avfs(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _nrint_n, __nrint_e := strconv.Atoi(_nrint); if __nrint_e != nil { return false }; return i_n < _nrint_n }() {
-			var r = _randints + "(" + i + ")"
-			_ = r // suppress unused warning
+			var _r = _randints + "(" + i + ")"
+			_ = _r // suppress unused warning
 			var s = _randints + "(" + "incr i" + ")"
 			_ = s // suppress unused warning
 			var _t = _randints + "(" + "incr i" + ")"

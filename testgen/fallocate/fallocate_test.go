@@ -91,8 +91,8 @@ func Test_fallocate(t *testing.T) {
 		if tclBool("permutation" + " != \"inmemory_journal\"\n   && " + "permutation" + " != \"atomic-batch-write\"\n   && " + "atomic_batch_write test.db" + "==0") {
 			t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db-journal 16 4]")
 		} else {
-			var  = "1024"
-			_ =  // suppress unused warning
+			var _unnamed_var = "1024"
+			_ = _unnamed_var // suppress unused warning
 		}
 	}
 	{ // do_test "fallocate-1.8"

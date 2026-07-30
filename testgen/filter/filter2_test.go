@@ -213,8 +213,8 @@ func Test_filter2(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // "1.15"
 		r = db.Query("\n  SELECT \n    a/5,\n    sum(b) FILTER (WHERE a%5=0),\n    sum(b) FILTER (WHERE a%5=1),\n    sum(b) FILTER (WHERE a%5=2),\n    sum(b) FILTER (WHERE a%5=3),\n    sum(b) FILTER (WHERE a%5=4)\n  FROM t1 GROUP BY (a/5) ORDER BY 1;\n")

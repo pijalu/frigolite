@@ -51,8 +51,8 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-1.2"
-		var r = "execsql {SELECT rowid FROM t1 ORDER BY x}"
-		_ = r // suppress unused warning
+		var _r = "execsql {SELECT rowid FROM t1 ORDER BY x}"
+		_ = _r // suppress unused warning
 		var x2rowid_1 = "lindex $r 0"
 		_ = x2rowid_1 // suppress unused warning
 		var x2rowid_3 = "lindex $r 1"
@@ -61,7 +61,7 @@ func Test_rowid(t *testing.T) {
 		_ = rowid2x_$x2rowid(1) // suppress unused warning
 		var rowid2x_$x2rowid(3) = "3"
 		_ = rowid2x_$x2rowid(3) // suppress unused warning
-		tclLLength(r)
+		tclLLength(_r)
 	}
 	{ // do_test "rowid-1.3"
 		var sql = "SELECT x FROM t1 WHERE rowid==" + x2rowid + "(1)"

@@ -93,22 +93,22 @@ func Test_bigrow(t *testing.T) {
 		var sql = "INSERT INTO t1 VALUES('abc2',"
 		_ = sql // suppress unused warning
 		sql += "'" + _big2 + "', 'xyz2');"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec(sql)
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "bigrow-1.4.1"
 		r = db.Query("SELECT b FROM t1 ORDER BY c")

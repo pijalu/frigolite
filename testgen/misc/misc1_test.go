@@ -227,9 +227,9 @@ func Test_misc1(t *testing.T) {
 		}
 	}
 	{ // do_test "misc1-3.1"
-		var r = "execsql {\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('hi');\n    PRAGMA full_column_names=on;\n    SELECT rowid, * FROM t1;\n  }"
-		_ = r // suppress unused warning
-		tclLIndex(r, "1")
+		var _r = "execsql {\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('hi');\n    PRAGMA full_column_names=on;\n    SELECT rowid, * FROM t1;\n  }"
+		_ = _r // suppress unused warning
+		tclLIndex(_r, "1")
 	}
 	{ // do_test "misc1-4.1"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('This is a long string to use up a lot of disk -');\n    UPDATE t2 SET a=a||a||a||a;\n    INSERT INTO t2 SELECT '1 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '2 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '3 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '4 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '5 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '6 - ' || a FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;\n  ")

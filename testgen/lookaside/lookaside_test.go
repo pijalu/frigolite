@@ -85,8 +85,8 @@ func Test_lookaside(t *testing.T) {
 		_ = p // suppress unused warning
 		var q = "lindex [sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_SIZE 0] 2"
 		_ = q // suppress unused warning
-		var r = "lindex [sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_FULL 0] 2"
-		_ = r // suppress unused warning
+		var _r = "lindex [sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_FULL 0] 2"
+		_ = _r // suppress unused warning
 		// expr $x==0 && $y<$z && $z==18 && $p>0 && $q>0 && $r>0 → "$x==0 && $y<$z && $z==18 && $p>0 && $q>0 && $r>0"
 	}
 	{ // do_test "lookaside-1.5"

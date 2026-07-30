@@ -80,8 +80,8 @@ func Test_bestindex4(t *testing.T) {
 						{ // do_test "1." + param1 + "." + param2 + "." + tn + ".b"
 							_res = db.Exec(sql)
 							_ = _res // catchsql
-							var  = ""
-							_ =  // suppress unused warning
+							var _unnamed_var = ""
+							_ = _unnamed_var // suppress unused warning
 						}
 					}
 				}

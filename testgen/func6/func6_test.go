@@ -74,8 +74,8 @@ func Test_func6(t *testing.T) {
 		}
 	}
 	{ // do_test "func6-106"
-		var r = "hexrecord abc001 1 999 {}"
-		_ = r // suppress unused warning
+		var _r = "hexrecord abc001 1 999 {}"
+		_ = _r // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "offset_contains_record $offset $F $r")
 	}
 	var z100 = "[string repeat \"0 \" 100]"

@@ -80,76 +80,76 @@ func Test_quote(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "quote-1.3.4"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'")
 			if r.Error != nil { _catchErr = r.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "quote-1.4"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("UPDATE '@abc' SET '#xyz'=11")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "quote-1.5"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'")
 			if r.Error != nil { _catchErr = r.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "quote-1.6"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("DROP TABLE '@abc'")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	db.Close()
 	db, err = frigolite.Open("")

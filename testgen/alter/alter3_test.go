@@ -43,7 +43,7 @@ func Test_alter3(t *testing.T) {
 	_ = db9
 
 	// set testdir: test directory (not used in Go test context)
-	if tclBool("0" + " || " + r) {
+	if tclBool("0" + " || " + _r) {
 		var has_codec = "1"
 		_ = has_codec // suppress unused warning
 	} else {

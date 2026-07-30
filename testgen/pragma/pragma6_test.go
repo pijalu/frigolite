@@ -55,8 +55,8 @@ func Test_pragma6(t *testing.T) {
 		}
 		_res = db.Exec(" INSERT INTO t1(a) VALUES(zeroblob(40000)) ")
 		_ = _res // catchsql
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // do_test "1.2"
 		r = db.Query(" PRAGMA integrity_check; ")
@@ -67,7 +67,7 @@ func Test_pragma6(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA quick_check; ")
 		}
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 }

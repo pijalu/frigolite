@@ -147,8 +147,8 @@ func Test_interrupt2(t *testing.T) {
 		}
 		var _dbpointer = "" // TCL namespace variable
 		_ = _dbpointer // suppress unused warning
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // do_test "3.1.2"
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
@@ -160,8 +160,8 @@ func Test_interrupt2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM sqlite_master ")
 		}
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // do_test "3.2.2"
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})

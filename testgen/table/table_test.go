@@ -366,12 +366,12 @@ func Test_table(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta'")
 		}
 	}
-	var r = ""
-	_ = r // suppress unused warning
+	var _r = ""
+	_ = _r // suppress unused warning
 	var i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-		r = tclListAppend(r, "format test%03d $i")
+		_r = tclListAppend(_r, "format test%03d $i")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -425,12 +425,12 @@ func Test_table(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		}
 	}
-	r = ""
-	_ = r // suppress unused warning
+	_r = ""
+	_ = _r // suppress unused warning
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-		r = tclListAppend(r, "format test%03d $i")
+		_r = tclListAppend(_r, "format test%03d $i")
 		// incr i 2
 		{
 			_n, _err := strconv.Atoi(i)

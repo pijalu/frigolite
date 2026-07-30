@@ -174,8 +174,8 @@ func Test_snapshot3(t *testing.T) {
 		}
 		var snap = "sqlite3_snapshot_get db main"
 		_ = snap // suppress unused warning
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // "-db"
 		_res = db.Exec("db2")

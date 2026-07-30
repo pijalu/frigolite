@@ -186,7 +186,7 @@ func Test_misuse(t *testing.T) {
 				msg = ""
 			}
 		}
-		v = tclListAppend(v, msg, r)
+		v = tclListAppend(v, msg, _r)
 	}
 	if tclBool("clang_sanitize_address" + "==0 && 0") {
 		{ // do_test "misuse-4.4"
@@ -212,21 +212,21 @@ func Test_misuse(t *testing.T) {
 			t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 		}
 		{ // do_test "misuse-5.3"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $::DB {SELECT * FROM t1} -1 TAIL")
 				if _catchErr != nil {
-					r = "1"
+					_r = "1"
 					msg = _catchErr.Error()
 				} else {
-					r = "0"
+					_r = "0"
 					msg = ""
 				}
 			}
-			r = tclListAppend(r, msg)
+			_r = tclListAppend(_r, msg)
 		}
 	}
 	db.Close()

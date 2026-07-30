@@ -122,8 +122,8 @@ func Test_symlink(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.5"
-		var r = "510 - [string length test.db] - [string length [pwd]]"
-		_ = r // suppress unused warning
+		var _r = "510 - [string length test.db] - [string length [pwd]]"
+		_ = _r // suppress unused warning
 		var name = "test.db" + "x $r"
 		_ = name // suppress unused warning
 		_list := tclList([]string{"0", msg})
@@ -149,8 +149,8 @@ func Test_symlink(t *testing.T) {
 		}
 		// file link test.db2 test.db
 		// file link test.db3 test.db2
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	// foreach {tn f} "1 test.db2 2 test.db3"
 	_items0 := tclSplitList("1 test.db2 2 test.db3")
@@ -275,8 +275,8 @@ func Test_symlink(t *testing.T) {
 			os.Remove("w")
 			// file mkdir w
 			// file link w/test.db [file join [pwd] x/test.db]
-			var  = ""
-			_ =  // suppress unused warning
+			var _unnamed_var = ""
+			_ = _unnamed_var // suppress unused warning
 		}
 		{ // do_test "4.4.1"
 			db, err := frigolite.Open("w/test.db")

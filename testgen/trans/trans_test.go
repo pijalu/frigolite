@@ -622,22 +622,22 @@ func Test_trans(t *testing.T) {
 		}
 	}
 	{ // do_test "trans-5.21"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT * FROM t2\n  ")
 			if r.Error != nil { _catchErr = r.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "trans-5.22"
 		r = db.Query("\n    ROLLBACK;\n    SELECT name fROM sqlite_master \n    WHERE type='table' OR type='index'\n    ORDER BY name;\n  ")

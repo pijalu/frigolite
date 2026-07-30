@@ -233,11 +233,11 @@ func Test_fts4docid(t *testing.T) {
 						var q = "SELECT docid FROM t1 " + w + " " + order
 						_ = q // suppress unused warning
 						if func() bool { tn2_n, _tn2_e := strconv.Atoi(tn2); if _tn2_e != nil { return false }; return tn2_n < 5 }() {
-							var r = "lsort -integer -increasing $result"
-							_ = r // suppress unused warning
+							var _r = "lsort -integer -increasing $result"
+							_ = _r // suppress unused warning
 						} else {
-							var r = "lsort -integer -decreasing $result"
-							_ = r // suppress unused warning
+							var _r = "lsort -integer -decreasing $result"
+							_ = _r // suppress unused warning
 						}
 						{ // "3." + tn + "." + tn2
 							_res = db.Exec(q)

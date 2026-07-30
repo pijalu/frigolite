@@ -76,21 +76,21 @@ func Test_walcrash4(t *testing.T) {
 				_ = fd // suppress unused warning
 				t.Log(fd)
 				// close $fd
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
 					t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] crash.tcl >@stdout")
 					if _catchErr != nil {
-						r = "1"
+						_r = "1"
 						msg = _catchErr.Error()
 					} else {
-						r = "0"
+						_r = "0"
 						msg = ""
 					}
 				}
-				_list := tclList([]string{r, msg})
+				_list := tclList([]string{_r, msg})
 				_ = _list
 			}
 			{ // "1.nExtra=" + nExtra + ".i=" + i + ".2"

@@ -230,15 +230,15 @@ func Test_rowvalue(t *testing.T) {
 				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
 					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					r := _items3[_idx3+1]
-					_ = r // suppress unused warning
+					_r := _items3[_idx3+1]
+					_ = _r // suppress unused warning
 					order := _items3[_idx3+2]
 					_ = order // suppress unused warning
 					_ = _idx3
 						{ // "3." + tn + ".1"
-							r = db.Query("SELECT " + r + " == (SELECT x,y FROM t1 " + order + ")")
+							r = db.Query("SELECT " + _r + " == (SELECT x,y FROM t1 " + order + ")")
 							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + r + " == (SELECT x,y FROM t1 " + order + ")")
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + _r + " == (SELECT x,y FROM t1 " + order + ")")
 								return
 							}
 							got := flatten(r)
@@ -248,9 +248,9 @@ func Test_rowvalue(t *testing.T) {
 							}
 						}
 						{ // "3." + tn + ".2"
-							r = db.Query("SELECT " + r + " == (SELECT * FROM t1 " + order + ")")
+							r = db.Query("SELECT " + _r + " == (SELECT * FROM t1 " + order + ")")
 							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + r + " == (SELECT * FROM t1 " + order + ")")
+								t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT " + _r + " == (SELECT * FROM t1 " + order + ")")
 								return
 							}
 							got := flatten(r)

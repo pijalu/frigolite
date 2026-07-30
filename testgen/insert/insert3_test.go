@@ -61,14 +61,14 @@ func Test_insert3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(randstr(10,400),randstr(10,400),randstr(10,400));\n  ")
 		}
-		var r = "randstr(10,400)"
-		_ = r // suppress unused warning
+		var _r = "randstr(10,400)"
+		_ = _r // suppress unused warning
 		var ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
-			_res = db.Exec("INSERT INTO t1 SELECT " + r + ", " + r + ", " + r + " FROM t1")
+			_res = db.Exec("INSERT INTO t1 SELECT " + _r + ", " + _r + ", " + _r + " FROM t1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT " + r + ", " + r + ", " + r + " FROM t1")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT " + _r + ", " + _r + ", " + _r + " FROM t1")
 			}
 			// incr ii 1
 			{

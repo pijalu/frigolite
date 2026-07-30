@@ -49,10 +49,10 @@ func Test_tclsqlite(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tcl"
 	_ = testprefix // suppress unused warning
-	var r = "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?"
-	_ = r // suppress unused warning
+	var _r = "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?"
+	_ = _r // suppress unused warning
 	if tclBool("sqlite3 -has-codec") {
-		r += " ?-key CODECKEY?"
+		_r += " ?-key CODECKEY?"
 	}
 	{ // do_test "tcl-1.1"
 	var v string

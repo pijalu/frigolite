@@ -125,8 +125,8 @@ func Test_pagerfault(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 		var filesize = "file size test.db"
 		_ = filesize // suppress unused warning
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // do_test "pagerfault-8-pre2"
 		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")

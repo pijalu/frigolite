@@ -699,8 +699,8 @@ func Test_window2(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // "4.10"
 		r = db.Query("\n  SELECT count(*) OVER (ORDER BY b) FROM t1\n")
@@ -741,8 +741,8 @@ func Test_window2(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // "6.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);\n")

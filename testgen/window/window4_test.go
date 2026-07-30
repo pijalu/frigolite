@@ -2445,8 +2445,8 @@ func Test_window4(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // "9.4"
 		r = db.Query("\n  SELECT x, rank() OVER (ORDER BY x) FROM t2 ORDER BY 1,2\n")
@@ -2481,8 +2481,8 @@ func Test_window4(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // do_test "9.7"
 		var myres = ""
@@ -2493,8 +2493,8 @@ func Test_window4(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // "10.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t7;\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, a INTEGER, b INTEGER);\n  INSERT INTO t7(id, a, b) VALUES\n    (1, 1, 2), (2, 1, NULL), (3, 1, 4),\n    (4, 3, NULL), (5, 3, 8), (6, 3, 1);\n")
@@ -2661,8 +2661,8 @@ func Test_window4(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // do_test "12.3"
 		var myres = ""
@@ -2673,7 +2673,7 @@ func Test_window4(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 }

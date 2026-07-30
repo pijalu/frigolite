@@ -129,8 +129,8 @@ func Test_alter2(t *testing.T) {
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
 		}
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	{ // do_test "alter2-4.2"
 		_res = db.Exec(" SELECT * FROM sqlite_master; ")

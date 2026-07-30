@@ -89,14 +89,14 @@ func Test_capi2(t *testing.T) {
 		_ = VM // suppress unused warning
 	}
 	{ // do_test "capi2-2.2"
-		var r = "SQLITE_ROW"
-		_ = r // suppress unused warning
-		r = tclListAppend(r, "0", "get_row_values $VM", "get_column_names $VM")
+		var _r = "SQLITE_ROW"
+		_ = _r // suppress unused warning
+		_r = tclListAppend(_r, "0", "get_row_values $VM", "get_column_names $VM")
 	}
 	{ // do_test "capi2-2.3"
-		var r = "SQLITE_ROW"
-		_ = r // suppress unused warning
-		r = tclListAppend(r, "0", "get_row_values $VM", "get_column_names $VM")
+		var _r = "SQLITE_ROW"
+		_ = _r // suppress unused warning
+		_r = tclListAppend(_r, "0", "get_row_values $VM", "get_column_names $VM")
 	}
 	{ // do_test "capi2-2.4"
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
@@ -106,9 +106,9 @@ func Test_capi2(t *testing.T) {
 		_ = VM // suppress unused warning
 	}
 	{ // do_test "capi2-2.6"
-		var r = "SQLITE_ROW"
-		_ = r // suppress unused warning
-		r = tclListAppend(r, "0", "get_row_values $VM", "get_column_names $VM")
+		var _r = "SQLITE_ROW"
+		_ = _r // suppress unused warning
+		_r = tclListAppend(_r, "0", "get_row_values $VM", "get_column_names $VM")
 	}
 	{ // do_test "capi2-2.7"
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")

@@ -77,22 +77,22 @@ func Test_intpkey(t *testing.T) {
 		}
 	}
 	{ // do_test "intpkey-1.6"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n     INSERT INTO t1 VALUES(5,'second','entry');\n  ")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "intpkey-1.7"
 		r = db.Query("\n    SELECT rowid, * FROM t1;\n  ")
@@ -101,22 +101,22 @@ func Test_intpkey(t *testing.T) {
 		}
 	}
 	{ // do_test "intpkey-1.8"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n     INSERT INTO t1 VALUES(6,'second','entry');\n  ")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "intpkey-1.8.1"
 	}
@@ -151,76 +151,76 @@ func Test_intpkey(t *testing.T) {
 		}
 	}
 	{ // do_test "intpkey-1.13.1"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1 VALUES('x','y','z');\n  ")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "intpkey-1.13.2"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1 VALUES('','y','z');\n  ")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "intpkey-1.14"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1 VALUES(3.4,'y','z');\n  ")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "intpkey-1.15"
-	var r string
-	_ = r // suppress unused warning
+	var _r string
+	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1 VALUES(-3,'y','z');\n  ")
 			if _res.Error != nil { _catchErr = _res.Error }
 			if _catchErr != nil {
-				r = "1"
+				_r = "1"
 				msg = _catchErr.Error()
 			} else {
-				r = "0"
+				_r = "0"
 				msg = ""
 			}
 		}
-		r = tclListAppend(r, msg)
+		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "intpkey-1.16"
 		r = db.Query("SELECT * FROM t1")

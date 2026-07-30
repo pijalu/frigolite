@@ -116,7 +116,7 @@ func Test_mmap1(t *testing.T) {
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $::STMT 0")
 		}
 		{ // do_test "4.3"
-			for _, r := range tclSplitList("2 3 4") {
+			for _, _r := range tclSplitList("2 3 4") {
 				var fd = "db incrblob t1 x $r"
 				_ = fd // suppress unused warning
 				t.Log("-nonewline")

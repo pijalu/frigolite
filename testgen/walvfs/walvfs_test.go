@@ -311,8 +311,8 @@ func Test_walvfs(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 		}
-		var  = ""
-		_ =  // suppress unused warning
+		var _unnamed_var = ""
+		_ = _unnamed_var // suppress unused warning
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmLock")
 	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xShmLock")

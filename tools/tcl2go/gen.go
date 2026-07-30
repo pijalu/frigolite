@@ -204,9 +204,11 @@ func tclVarToGo(name string) string {
 	case "type", "range", "string", "func", "go", "map", "chan",
 		"interface", "struct", "select", "import", "defer":
 		name = "_" + name
-	// Avoid shadowing the test framework variable t (*testing.T)
+	// Avoid shadowing the test framework variable t (*testing.T) and result vars r/_res
 	case "t":
 		name = "_t"
+	case "r":
+		name = "_r"
 	}
 	return name
 }
@@ -1471,6 +1473,9 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 	}
 
 	goName := tclVarToGo(args[0].Text)
+	if goName == "" {
+		goName = "_unnamed_var"
+	}
 	rest := args[1:]
 
 	if len(rest) == 0 {

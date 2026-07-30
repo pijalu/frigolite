@@ -108,10 +108,10 @@ func Test_insert2(t *testing.T) {
 			_res = db.Exec("DROP TABLE t1")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
-		var r = "execsql {\n    CREATE TABLE t1(log int, cnt int);\n    CREATE INDEX i1 ON t1(log);\n    CREATE INDEX i2 ON t1(cnt);\n    INSERT INTO t1 SELECT log, count() FROM d1 GROUP BY log;\n    SELECT * FROM t1 ORDER BY log;\n  }"
-		_ = r // suppress unused warning
-		r = tclListAppend(r, "execsql {SELECT cnt FROM t1 WHERE log=3}")
-		r = tclListAppend(r, "execsql {SELECT log FROM t1 WHERE cnt=4 ORDER BY log}")
+		var _r = "execsql {\n    CREATE TABLE t1(log int, cnt int);\n    CREATE INDEX i1 ON t1(log);\n    CREATE INDEX i2 ON t1(cnt);\n    INSERT INTO t1 SELECT log, count() FROM d1 GROUP BY log;\n    SELECT * FROM t1 ORDER BY log;\n  }"
+		_ = _r // suppress unused warning
+		_r = tclListAppend(_r, "execsql {SELECT cnt FROM t1 WHERE log=3}")
+		_r = tclListAppend(_r, "execsql {SELECT log FROM t1 WHERE cnt=4 ORDER BY log}")
 	}
 	{ // do_test "insert2-2.0"
 		r = db.Query("\n    CREATE TABLE t3(a,b,c);\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES(1,2);\n    SELECT * FROM t4;\n  ")
