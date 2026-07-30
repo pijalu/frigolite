@@ -39,6 +39,11 @@ func Test_tkt_7a31705a7e6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "tkt-7a31705a7e6-1.1"
 		r = db.Query("\n  CREATE TABLE t1 (a INTEGER PRIMARY KEY);\n  CREATE TABLE t2 (a INTEGER PRIMARY KEY, b INTEGER);\n  CREATE TABLE t2x (b INTEGER PRIMARY KEY);\n  SELECT t1.a FROM ((t1 JOIN t2 ON t1.a=t2.a) AS x JOIN t2x ON x.b=t2x.b) as y;\n")

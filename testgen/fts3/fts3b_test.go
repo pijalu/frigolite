@@ -40,6 +40,19 @@ func Test_fts3b(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var text string
+	_ = text // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (c) VALUES('this is a test');\n  INSERT INTO t1 (c) VALUES('that was a test');\n  INSERT INTO t1 (c) VALUES('this is fun');\n  DELETE FROM t1 WHERE c = 'that was a test';\n")
 	if _res.Error != nil {
@@ -61,20 +74,20 @@ func Test_fts3b(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t1 WHERE c MATCH 'this';\n  ")
 		}
 	}
-	var text = "\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n"
+	text = "\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n"
 	_ = text // suppress unused warning
 	text += text
 	_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts3(c)")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t2 USING fts3(c)")
 	}
-	var res = ""
+	res = ""
 	_ = res // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
 		_res = db.Exec("INSERT INTO t2 (c) VALUES ($text)")

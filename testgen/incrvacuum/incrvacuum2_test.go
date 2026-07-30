@@ -41,8 +41,21 @@ func Test_incrvacuum2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var maxsz string
+	_ = maxsz // pre-declared from TCL source
+	var newsz string
+	_ = newsz // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "incrvacuum2"
+	testprefix = "incrvacuum2"
 	_ = testprefix // suppress unused warning
 	{ // do_test "incrvacuum2-1.1"
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=incremental;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(30000));\n    DELETE FROM t1;\n  ")
@@ -88,8 +101,8 @@ func Test_incrvacuum2(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	if tclBool("wal_is_capable") {
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "4.1"
 			_res = db.Exec("\n    PRAGMA page_size = 512;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(400));\n    INSERT INTO t1 SELECT * FROM t1;            --    2\n    INSERT INTO t1 SELECT * FROM t1;            --    4\n    INSERT INTO t1 SELECT * FROM t1;            --    8\n    INSERT INTO t1 SELECT * FROM t1;            --   16\n    INSERT INTO t1 SELECT * FROM t1;            --   32\n    INSERT INTO t1 SELECT * FROM t1;            --  128\n    INSERT INTO t1 SELECT * FROM t1;            --  256\n    INSERT INTO t1 SELECT * FROM t1;            --  512\n    INSERT INTO t1 SELECT * FROM t1;            -- 1024\n    INSERT INTO t1 SELECT * FROM t1;            -- 2048\n    INSERT INTO t1 SELECT * FROM t1;            -- 4096\n    INSERT INTO t1 SELECT * FROM t1;            -- 8192\n    DELETE FROM t1 WHERE oid>512;\n    DELETE FROM t1;\n  ")
@@ -111,10 +124,10 @@ func Test_incrvacuum2(t *testing.T) {
 			// file size test.db-wal
 		}
 		{ // do_test "4.3"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			var maxsz = "0"
+			maxsz = "0"
 			_ = maxsz // suppress unused warning
 			for tclBool("file size test.db" + " > " + "1536") {
 				r = db.Query(" PRAGMA journal_mode = WAL ")
@@ -129,10 +142,10 @@ func Test_incrvacuum2(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA incremental_vacuum(1) ")
 				}
-				var newsz = "file size test.db-wal"
+				newsz = "file size test.db-wal"
 				_ = newsz // suppress unused warning
 				if func() bool { newsz_n, _newsz_e := strconv.Atoi(newsz); if _newsz_e != nil { return false }; maxsz_n, _maxsz_e := strconv.Atoi(maxsz); if _maxsz_e != nil { return false }; return newsz_n > maxsz_n }() {
-					var maxsz = newsz
+					maxsz = newsz
 					_ = maxsz // suppress unused warning
 				}
 			}

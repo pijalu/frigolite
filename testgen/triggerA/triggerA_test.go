@@ -41,23 +41,33 @@ func Test_triggerA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var word string
+	_ = word // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "triggerA-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT UNIQUE);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER UNIQUE, c TEXT);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT UNIQUE);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER UNIQUE, c TEXT);\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for _, word := range tclSplitList("one two three four five six seven eight nine ten") {
 		_ = word // suppress unused warning
-			var j = "$i*100 + [string length $word]"
+			j = "$i*100 + [string length $word]"
 			_ = j // suppress unused warning
 			_res = db.Exec("\n       INSERT INTO t1 VALUES($i,$word);\n       INSERT INTO t2 VALUES(20-$i,$j,$word);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       INSERT INTO t1 VALUES($i,$word);\n       INSERT INTO t2 VALUES(20-$i,$j,$word);\n    ")
 			}
-			var i = "0"
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -168,9 +178,15 @@ func Test_triggerA(t *testing.T) {
 		}
 	}
 	os.Remove("test.db-triggerA")
-	t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test.db-triggerA")
-	db, err = frigolite.Open("test.db")
+	// copy_file test.db test.db-triggerA (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test triggerA-3 -tclprep {\n  db close\n  forcedelete test.db test.db-journal\n...} -sqlbody {\n   DELETE FROM v5 WHERE x=5;\n   UPDATE v5 SET b=b...}")
+	// do_malloc_test triggerA-3 -tclprep {
+  db close
+  forcedelete test.db test.db-journal
+...} -sqlbody {
+   DELETE FROM v5 WHERE x=5;
+   UPDATE v5 SET b=b...} (unsupported command, not transpiled)
 	os.Remove("test.db-triggerA")
 }

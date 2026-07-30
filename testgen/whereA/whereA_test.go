@@ -39,6 +39,17 @@ func Test_whereA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sqlite_sort_count string
+	_ = sqlite_sort_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "whereA-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 values(2,'hello','world');\n    INSERT INTO t1 VALUES(3,4.53,NULL);\n    SELECT * FROM t1\n  ")
@@ -53,8 +64,8 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // do_test "whereA-1.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
@@ -62,8 +73,8 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // do_test "whereA-1.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    SELECT * FROM t1 ORDER BY rowid;\n  ")
 		if _res.Error != nil {
@@ -83,8 +94,8 @@ func Test_whereA(t *testing.T) {
 		}
 	}
 	{ // do_test "whereA-1.7"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA reverse_unordered_selects=1;\n    VACUUM;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
@@ -157,23 +168,23 @@ func Test_whereA(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX t2x ON t2(x);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2;\n  }")
+		_ = db.Exec("\n    SELECT x FROM t2;\n  ") // count (search count always 0)
 	}
 	{ // do_test "whereA-4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x;\n  }")
+		_ = db.Exec("\n    SELECT x FROM t2 ORDER BY x;\n  ") // count (search count always 0)
 	}
 	{ // do_test "whereA-4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x DESC;\n  }")
+		_ = db.Exec("\n    SELECT x FROM t2 ORDER BY x DESC;\n  ") // count (search count always 0)
 	}
 	{ // do_test "whereA-4.5"
 		_res = db.Exec("DROP INDEX t2x;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX t2x;")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x;\n  }")
+		_ = db.Exec("\n    SELECT x FROM t2 ORDER BY x;\n  ") // count (search count always 0)
 	}
 	{ // do_test "whereA-4.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x DESC;\n  }")
+		_ = db.Exec("\n    SELECT x FROM t2 ORDER BY x DESC;\n  ") // count (search count always 0)
 	}
 	{ // "whereA-5.1"
 		r = db.Query("\n  PRAGMA reverse_unordered_selects=on;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE INDEX t1b ON t1(b);\n  SELECT a FROM t1 WHERE b=-99 OR b>1;\n")

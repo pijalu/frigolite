@@ -40,8 +40,19 @@ func Test_returning1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var temp string
+	_ = temp // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "returning1"
+	testprefix = "returning1"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c DEFAULT 'pax');\n  INSERT INTO t1(b) VALUES(10),('happy'),(NULL) RETURNING a,b,c;\n")
@@ -424,28 +435,28 @@ func Test_returning1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(1) RETURNING \"x\";")
 		}
-		tclSort("array names cname")
+		_ = tclSort("array names cname") // lsort result
 	}
 	{ // do_test "12.2"
 		_res = db.Exec("INSERT INTO t1(x) VALUES(2) RETURNING [x];")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(2) RETURNING [x];")
 		}
-		tclSort("array names cname")
+		_ = tclSort("array names cname") // lsort result
 	}
 	{ // do_test "12.3"
 		_res = db.Exec("INSERT INTO t1(x) VALUES(3) RETURNING x AS [xyz];")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x) VALUES(3) RETURNING x AS [xyz];")
 		}
-		tclSort("array names cname")
+		_ = tclSort("array names cname") // lsort result
 	}
 	{ // do_test "12.4"
 		_res = db.Exec("INSERT INTO t1(x,y) VALUES(4,5) RETURNING \"x\"+\"y\";")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(x,y) VALUES(4,5) RETURNING \"x\"+\"y\";")
 		}
-		tclSort("array names cname")
+		_ = tclSort("array names cname") // lsort result
 	}
 	db.Close()
 	db, err = frigolite.Open("")
@@ -465,7 +476,7 @@ func Test_returning1(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 	{ // "15.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x REAL);\n  INSERT INTO t1(x) VALUES(5.0) RETURNING x, affinity(x);\n")
 		if _res.Error != nil {

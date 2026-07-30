@@ -39,8 +39,19 @@ func Test_nulls2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "nulls2"
+	testprefix = "nulls2"
 	_ = testprefix // suppress unused warning
 	// foreach {tn idx} "\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n"
 	_items0 := tclSplitList("\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n")

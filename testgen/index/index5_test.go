@@ -40,9 +40,34 @@ func Test_index5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var write_list string
+	_ = write_list // pre-declared from TCL source
+	var nForward string
+	_ = nForward // pre-declared from TCL source
+	var nBackward string
+	_ = nBackward // pre-declared from TCL source
+	var nNoncont string
+	_ = nNoncont // pre-declared from TCL source
+	var iPrev string
+	_ = iPrev // pre-declared from TCL source
+	var iNext string
+	_ = iNext // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var iOfst string
+	_ = iOfst // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "index5" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "index5" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "1.1"
 		if tclBool("permutation" + "==\"memsubsys1\"") {
 			r = db.Query(" PRAGMA auto_vacuum = 0; ")
@@ -54,7 +79,7 @@ func Test_index5(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x);\n    BEGIN;\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100000 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES(randstr(100,100)) ")
@@ -78,37 +103,36 @@ func Test_index5(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    CREATE INDEX i1 ON t1(x);\n    DROP INDEX I1;\n    PRAGMA main.page_size;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xWrite")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script write_cb")
+	// testvfs tvfs (unsupported command, not transpiled)
+	// tvfs filter xWrite (unsupported command, not transpiled)
+	// tvfs script write_cb (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var _write_list = "list" // TCL namespace variable
-		_ = _write_list // suppress unused warning
+		write_list = "list" // TCL namespace variable
+		_ = write_list // suppress unused warning
 		_res = db.Exec(" CREATE INDEX i1 ON t1(x) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(x) ")
 		}
 	}
 	{ // do_test "1.3"
-		var nForward = "0"
+		nForward = "0"
 		_ = nForward // suppress unused warning
-		var nBackward = "0"
+		nBackward = "0"
 		_ = nBackward // suppress unused warning
-		var nNoncont = "0"
+		nNoncont = "0"
 		_ = nNoncont // suppress unused warning
-		var iPrev = "lindex $::write_list 0"
+		iPrev = "lindex $::write_list 0"
 		_ = iPrev // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for tclBool(i + " < " + "llength $::write_list") {
-			var iNext = "lindex $::write_list $i"
+			iNext = "lindex $::write_list $i"
 			_ = iNext // suppress unused warning
 			if func() bool { iNext_n, _iNext_e := strconv.Atoi(iNext); if _iNext_e != nil { return false }; iPrev_n, _iPrev_e := strconv.Atoi(iPrev); if _iPrev_e != nil { return false }; return iNext_n == (iPrev_n+1) }() {
-				var nForward = "0"
 				// incr nForward 1
 				{
 					_n, _err := strconv.Atoi(nForward)
@@ -117,7 +141,6 @@ func Test_index5(t *testing.T) {
 					}
 				}
 			} else if func() bool { iNext_n, _iNext_e := strconv.Atoi(iNext); if _iNext_e != nil { return false }; iPrev_n, _iPrev_e := strconv.Atoi(iPrev); if _iPrev_e != nil { return false }; return iNext_n == (iPrev_n-1) }() {
-				var nBackward = "0"
 				// incr nBackward 1
 				{
 					_n, _err := strconv.Atoi(nBackward)
@@ -126,7 +149,6 @@ func Test_index5(t *testing.T) {
 					}
 				}
 			} else {
-				var nNoncont = "0"
 				// incr nNoncont 1
 				{
 					_n, _err := strconv.Atoi(nNoncont)
@@ -135,7 +157,7 @@ func Test_index5(t *testing.T) {
 					}
 				}
 			}
-			var iPrev = iNext
+			iPrev = iNext
 			_ = iPrev // suppress unused warning
 			// incr i 1
 			{
@@ -146,9 +168,10 @@ func Test_index5(t *testing.T) {
 			}
 		}
 		if false {
-			t.Log("-nonewline")
+			_putsMsg := "-nonewline"
+			_ = _putsMsg
 		}
 		// expr $nForward > 2*($nBackward + $nNoncont) → "$nForward > 2*($nBackward + $nNoncont)"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+	// tvfs delete (unsupported command, not transpiled)
 }

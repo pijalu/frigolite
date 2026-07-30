@@ -39,8 +39,15 @@ func Test_affinity2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "affinity2"
+	testprefix = "affinity2"
 	_ = testprefix // suppress unused warning
 	{ // "affinity2-100"
 		_res = db.Exec("\n  CREATE TABLE t1(\n    xi INTEGER,\n    xr REAL,\n    xb BLOB,\n    xn NUMERIC,\n    xt TEXT\n  );\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(1,1,1,1,1,1);\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(2,'2','2','2','2','2');\n  INSERT INTO t1(rowid,xi,xr,xb,xn,xt) VALUES(3,'03','03','03','03','03');\n\n")

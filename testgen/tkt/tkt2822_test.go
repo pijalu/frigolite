@@ -39,6 +39,13 @@ func Test_tkt2822(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2822-0.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n\n    INSERT INTO t1 VALUES(1, 3, 9);\n    INSERT INTO t1 VALUES(3, 9, 27);\n    INSERT INTO t1 VALUES(5, 15, 45);\n\n    INSERT INTO t2 VALUES(2, 6, 18);\n    INSERT INTO t2 VALUES(4, 12, 36);\n    INSERT INTO t2 VALUES(6, 18, 54);\n  ")

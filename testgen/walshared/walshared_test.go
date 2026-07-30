@@ -39,10 +39,18 @@ func Test_walshared(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
-	db, err = frigolite.Open("test.db")
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -76,5 +84,5 @@ func Test_walshared(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

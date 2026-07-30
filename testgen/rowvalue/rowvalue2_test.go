@@ -39,9 +39,62 @@ func Test_rowvalue2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var words string
+	_ = words // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var aList string
+	_ = aList // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var oList string
+	_ = oList // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var o2 string
+	_ = o2 // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var vector string
+	_ = vector // pre-declared from TCL source
+	var e1 string
+	_ = e1 // pre-declared from TCL source
+	var e2 string
+	_ = e2 // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var cList string
+	_ = cList // pre-declared from TCL source
+	var vList string
+	_ = vList // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "rowvalue2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "rowvalue2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(0, 0, 0);\n  INSERT INTO t1 VALUES(0, 1, 1);\n  INSERT INTO t1 VALUES(1, 0, 2);\n  INSERT INTO t1 VALUES(1, 1, 3);\n\n  CREATE INDEX i1 ON t1(a, b);\n")
 		if _res.Error != nil {
@@ -141,7 +194,7 @@ func Test_rowvalue2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var words = "\nairfare airfield airfields airflow airfoil\nairfoils airframe airframes airily airing\nairings airless airlift airlifts airline\nairliner airlines airlock airlocks airmail\nairmails airman airmen airplane airplanes\n\narraignment arraignments arraigns arrange arranged\narrangement arrangements arranger arrangers arranges\narranging arrant array arrayed arrays\narrears arrest arrested arrester arresters\narresting arrestingly arrestor arrestors arrests\n\nedifices edit edited editing edition\neditions editor editorial editorially editorials\neditors edits educable educate educated\neducates educating education educational educationally\neducations educator educators eel eelgrass\n"
+	words = "\nairfare airfield airfields airflow airfoil\nairfoils airframe airframes airily airing\nairings airless airlift airlifts airline\nairliner airlines airlock airlocks airmail\nairmails airman airmen airplane airplanes\n\narraignment arraignments arraigns arrange arranged\narrangement arrangements arranger arrangers arranges\narranging arrant array arrayed arrays\narrears arrest arrested arrester arresters\narresting arrestingly arrestor arrestors arrests\n\nedifices edit edited editing edition\neditions editor editorial editorially editorials\neditors edits educable educate educated\neducates educating education educational educationally\neducations educator educators eel eelgrass\n"
 	_ = words // suppress unused warning
 	{ // do_test "3.0"
 		_res = db.Exec(" CREATE TABLE t3(a, b, c, w); ")
@@ -150,11 +203,11 @@ func Test_rowvalue2(t *testing.T) {
 		}
 		for _, w := range tclSplitList(words) {
 		_ = w // suppress unused warning
-			var a = "$w 0 2"
+			a = "$w 0 2"
 			_ = a // suppress unused warning
-			var b = "$w 3 5"
+			b = "$w 3 5"
 			_ = b // suppress unused warning
-			var c = "$w 6 end"
+			c = "$w 6 end"
 			_ = c // suppress unused warning
 			_res = db.Exec(" INSERT INTO t3 VALUES($a, $b, $c, $w) ")
 			if _res.Error != nil {
@@ -180,11 +233,11 @@ func Test_rowvalue2(t *testing.T) {
 			}
 			for _, w := range tclSplitList(words) {
 			_ = w // suppress unused warning
-				var a = "$w 0 2"
+				a = "$w 0 2"
 				_ = a // suppress unused warning
-				var b = "$w 3 5"
+				b = "$w 3 5"
 				_ = b // suppress unused warning
-				var c = "$w 6 end"
+				c = "$w 6 end"
 				_ = c // suppress unused warning
 				for _, op := range tclSplitList("list > >= < <= == IS") {
 				_ = op // suppress unused warning
@@ -238,9 +291,9 @@ func Test_rowvalue2(t *testing.T) {
 					_ = _idx2
 						for _, op := range tclSplitList(" IS == < <= > >= ") {
 						_ = op // suppress unused warning
-							var e1 = "make_expr1 {a b c} $vector $op"
+							e1 = "make_expr1 {a b c} $vector $op"
 							_ = e1 // suppress unused warning
-							var e2 = "make_expr2 {a b c} $vector $op"
+							e2 = "make_expr2 {a b c} $vector $op"
 							_ = e2 // suppress unused warning
 							{ // "4." + tn + "." + tn2 + "." + op
 								r = db.Query("SELECT rowid FROM t4 WHERE " + e2 + " ORDER BY +rowid")
@@ -275,9 +328,9 @@ func Test_rowvalue2(t *testing.T) {
 					_ = _idx3
 						for _, op := range tclSplitList(" IS == < <= > >= ") {
 						_ = op // suppress unused warning
-							var e1 = "make_expr1 $lhs $rhs $op"
+							e1 = "make_expr1 $lhs $rhs $op"
 							_ = e1 // suppress unused warning
-							var e2 = "make_expr2 $lhs $rhs $op"
+							e2 = "make_expr2 $lhs $rhs $op"
 							_ = e2 // suppress unused warning
 							{ // "5." + tn + "." + op
 								r = db.Query("SELECT * FROM r1, r2 WHERE " + e2 + " ORDER BY iB")

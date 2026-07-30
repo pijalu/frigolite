@@ -41,8 +41,15 @@ func Test_triggerupfrom(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "triggerupfrom"
+	testprefix = "triggerupfrom"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE map(k, v);\n  INSERT INTO map VALUES(1, 'one'), (2, 'two'), (3, 'three'), (4, 'four');\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n\n  CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET c = v FROM map WHERE k=new.a AND a=new.a;\n  END;\n")
@@ -117,7 +124,8 @@ func Test_triggerupfrom(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("")
+	_dbtmp0, err := frigolite.Open("")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.4"
 		_res = db.Exec("\n  ATTACH 'test.db' AS yyy;\n  SELECT * FROM t1;\n")

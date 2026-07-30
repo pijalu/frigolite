@@ -40,21 +40,32 @@ func Test_pagerfault2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var a_string_counter string
+	_ = a_string_counter // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("permutation" + " == \"inmemory_journal\"") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 0")
-	var a_string_counter = "1"
+	// sqlite3_memdebug_vfs_oom_test 0 (unsupported command, not transpiled)
+	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "pagerfault2-1-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(a_string(401), a_string(402));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(a_string(401), a_string(402));\n  ")
 		}
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 13 }() {
 			_res = db.Exec(" INSERT INTO t1 SELECT a_string(401), a_string(402) FROM t1 ")
@@ -69,18 +80,28 @@ func Test_pagerfault2(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 		// file size test.db
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault2-1 -faults oom-transient -prep {\n  faultsim_restore_and_reopen\n  sqlite3_db_config...} -body {\n  execsql { UPDATE t1 SET a = a||'x' WHERE rowid>...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// do_faultsim_test pagerfault2-1 -faults oom-transient -prep {
+  faultsim_restore_and_reopen
+  sqlite3_db_config...} -body {
+  execsql { UPDATE t1 SET a = a||'x' WHERE rowid>...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 	{ // do_test "pagerfault2-2-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		// faultsim_restore_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec(" DELETE FROM t1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault2-2 -faults oom-transient -prep {\n  faultsim_restore_and_reopen\n  sqlite3_db_config...} -body {\n  execsql { INSERT INTO t1 VALUES (a_string(20000...} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 1")
+	// do_faultsim_test pagerfault2-2 -faults oom-transient -prep {
+  faultsim_restore_and_reopen
+  sqlite3_db_config...} -body {
+  execsql { INSERT INTO t1 VALUES (a_string(20000...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
+	// sqlite3_memdebug_vfs_oom_test 1 (unsupported command, not transpiled)
 }

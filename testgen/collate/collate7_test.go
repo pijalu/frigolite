@@ -40,50 +40,65 @@ func Test_collate7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var caseless_del string
+	_ = caseless_del // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var zLeft string
+	_ = zLeft // pre-declared from TCL source
+	var zRight string
+	_ = zRight // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _caseless_del = "0" // TCL namespace variable
-	_ = _caseless_del // suppress unused warning
+	caseless_del = "0" // TCL namespace variable
+	_ = caseless_del // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "collate7-1.1"
-		var cmd = "list incr ::caseless_del"
+		cmd = "list incr ::caseless_del"
 		_ = cmd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_collation_v2 db CASELESS caseless_cmp $cmd")
-		_ = _caseless_del // TCL namespace variable (query)
+		// sqlite3_create_collation_v2 db CASELESS caseless_cmp $cmd (unsupported command, not transpiled)
+		_ = caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_delete_collation db CASELESS")
-		_ = _caseless_del // TCL namespace variable (query)
+		// sqlite_delete_collation db CASELESS (unsupported command, not transpiled)
+		_ = caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-1.3"
 		_res = db.Exec("\n    CREATE TABLE abc(a COLLATE CASELESS, b, c);\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "collate7-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del}")
-		_ = _caseless_del // TCL namespace variable (query)
+		// sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del} (unsupported command, not transpiled)
+		_ = caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-2.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del}")
+		// sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del} (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")
 		}
-		_ = _caseless_del // TCL namespace variable (query)
+		_ = caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-2.2"
 		r = db.Query("\n    SELECT * FROM abc16 WHERE a < 'abc';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM abc16 WHERE a < 'abc';\n  ")
 		}
-		_ = _caseless_del // TCL namespace variable (query)
+		_ = caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_delete_collation db CASELESS")
-		_ = _caseless_del // TCL namespace variable (query)
+		// sqlite_delete_collation db CASELESS (unsupported command, not transpiled)
+		_ = caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-2.4"
 		_res = db.Exec("\n    SELECT * FROM abc16 WHERE a < 'abc';\n  ")

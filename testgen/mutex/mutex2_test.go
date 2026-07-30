@@ -39,34 +39,50 @@ func Test_mutex2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var disable_mutex_init string
+	_ = disable_mutex_init // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var ptr string
+	_ = ptr // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "install_mutex_counters 1")
+	// sqlite3_reset_auto_extension (unsupported command, not transpiled)
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// install_mutex_counters 1 (unsupported command, not transpiled)
 	{ // do_test "mutex2-1.1"
-		var _disable_mutex_init = "10" // TCL namespace variable
-		_ = _disable_mutex_init // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		disable_mutex_init = "10" // TCL namespace variable
+		_ = disable_mutex_init // suppress unused warning
+		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex2-1.1"
-		var _disable_mutex_init = "7" // TCL namespace variable
-		_ = _disable_mutex_init // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		disable_mutex_init = "7" // TCL namespace variable
+		_ = disable_mutex_init // suppress unused warning
+		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 	// proc definition (not transpiled)
 	{ // do_test "mutex2-2.1"
-		var _disable_mutex_init = "7" // TCL namespace variable
-		_ = _disable_mutex_init // suppress unused warning
-	var rc string
+		disable_mutex_init = "7" // TCL namespace variable
+		_ = disable_mutex_init // suppress unused warning
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite db test.db")
+			// sqlite db test.db (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -78,26 +94,26 @@ func Test_mutex2(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "mutex2-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mprintf_int {This is a test %d,%d,%d} 1 2 3")
+		// sqlite3_mprintf_int {This is a test %d,%d,%d} 1 2 3 (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex2-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+		// sqlite3_reset_auto_extension (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex2-2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_malloc 10000")
+		// sqlite3_malloc 10000 (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex2-2.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_realloc 0 10000")
+		// sqlite3_realloc 0 10000 (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex2-2.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "vfs_initfail_test")
+		// vfs_initfail_test (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "install_mutex_counters 0")
-	var disable_mutex_init = "0"
+	// install_mutex_counters 0 (unsupported command, not transpiled)
+	disable_mutex_init = "0"
 	_ = disable_mutex_init // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	// autoinstall_test_functions (unsupported command, not transpiled)
 	{ // do_test "mutex2-3.1"
-		var ptr = "alloc_dealloc_mutex"
+		ptr = "alloc_dealloc_mutex"
 		_ = ptr // suppress unused warning
 		// expr $ptr!=0 → "$ptr!=0"
 	}

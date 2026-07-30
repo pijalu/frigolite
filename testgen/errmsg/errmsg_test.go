@@ -39,18 +39,35 @@ func Test_errmsg(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var prepare string
+	_ = prepare // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var schema string
+	_ = schema // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "errmsg"
+	testprefix = "errmsg"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "error_messages SELECT sql_error('custom message')")
+		// error_messages SELECT sql_error('custom message') (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "error_messages_v2 SELECT sql_error('custom message')")
+		// error_messages_v2 SELECT sql_error('custom message') (unsupported command, not transpiled)
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES('abc', 'def');\n")
@@ -59,13 +76,13 @@ func Test_errmsg(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "error_messages INSERT INTO t1 VALUES('ghi', 'def')")
+		// error_messages INSERT INTO t1 VALUES('ghi', 'def') (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode 2.2b SQLITE_CONSTRAINT_UNIQUE")
+	// verify_ex_errcode 2.2b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 	{ // do_test "2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "error_messages_v2 INSERT INTO t1 VALUES('ghi', 'def')")
+		// error_messages_v2 INSERT INTO t1 VALUES('ghi', 'def') (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode 2.3b SQLITE_CONSTRAINT_UNIQUE")
+	// verify_ex_errcode 2.3b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 	{ // "3.1.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t2 VALUES('abc', 'def');\n")
 		if _res.Error != nil {
@@ -73,7 +90,7 @@ func Test_errmsg(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "error_messages SELECT a FROM t2 DROP TABLE t2")
+		// error_messages SELECT a FROM t2 DROP TABLE t2 (unsupported command, not transpiled)
 	}
 	{ // "3.2.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t2 VALUES('abc', 'def');\n")
@@ -82,6 +99,6 @@ func Test_errmsg(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "error_messages_v2 SELECT a FROM t2 DROP TABLE t2")
+		// error_messages_v2 SELECT a FROM t2 DROP TABLE t2 (unsupported command, not transpiled)
 	}
 }

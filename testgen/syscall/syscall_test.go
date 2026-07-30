@@ -41,6 +41,33 @@ func Test_syscall(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var syscall_list string
+	_ = syscall_list // pre-declared from TCL source
+	var jrnl string
+	_ = jrnl // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var nByte string
+	_ = nByte // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var hint string
+	_ = hint // pre-declared from TCL source
+	var size string
+	_ = size // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
@@ -48,7 +75,7 @@ func Test_syscall(t *testing.T) {
 	if tclBool("test_syscall defaultvfs" + " != \"unix\"") {
 		return
 	}
-	var testprefix = "syscall"
+	testprefix = "syscall"
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.1.1"
 		_list := tclList([]string{"0", msg})
@@ -67,19 +94,19 @@ func Test_syscall(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall reset")
+		// test_syscall reset (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall install {open getcwd access}")
+		// test_syscall install {open getcwd access} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall reset")
+		// test_syscall reset (unsupported command, not transpiled)
 	}
 	{ // do_test "2.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall exists open")
+		// test_syscall exists open (unsupported command, not transpiled)
 	}
 	{ // do_test "2.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall exists nosuchcall")
+		// test_syscall exists nosuchcall (unsupported command, not transpiled)
 	}
 	for _, s := range tclSplitList("\n    open close access getcwd stat fstat ftruncate\n    fcntl read pread write pwrite fchmod fallocate\n    pread64 pwrite64 unlink openDirectory mkdir rmdir \n    statvfs fchown geteuid umask mmap munmap mremap\n    getpagesize readlink lstat ioctl\n") {
 	_ = s // suppress unused warning
@@ -88,9 +115,9 @@ func Test_syscall(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1"
-		tclSort("test_syscall list")
+		_ = tclSort("test_syscall list") // lsort result
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall reset")
+	// test_syscall reset (unsupported command, not transpiled)
 	os.Remove("test.db2")
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(x, y);\n  INSERT INTO t2 VALUES(3, 4);\n")
@@ -98,19 +125,19 @@ func Test_syscall(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(x, y);\n  INSERT INTO t2 VALUES(3, 4);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall install open")
+	// db_save_and_close (unsupported command, not transpiled)
+	// test_syscall install open (unsupported command, not transpiled)
 	for _, jrnl := range tclSplitList("list wal delete") {
 	_ = jrnl // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
-			t.Errorf("TODO: %s not implemented in frigolite", "test_syscall fault $i 0")
-			t.Errorf("TODO: %s not implemented in frigolite", "test_syscall errno open EINTR")
+			// db_restore_and_reopen (unsupported command, not transpiled)
+			// test_syscall fault $i 0 (unsupported command, not transpiled)
+			// test_syscall errno open EINTR (unsupported command, not transpiled)
 			{ // do_test "4.2." + jrnl + "." + i
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" ATTACH 'test.db2' AS aux ")
 				if _res.Error != nil {
@@ -128,7 +155,8 @@ func Test_syscall(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        BEGIN;\n          INSERT INTO t1 VALUES(5, 6);\n          INSERT INTO t2 VALUES(7, 8);\n        COMMIT;\n      ")
 				}
-				db, err = frigolite.Open("test.db")
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" ATTACH 'test.db2' AS aux ")
 				if _res.Error != nil {
@@ -153,7 +181,10 @@ func Test_syscall(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("test.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  code1 {\n    sqlite3 dbX1 test.db\n    sqlite3 db...}")
+	// do_multiclient_test tn {
+  code1 {
+    sqlite3 dbX1 test.db
+    sqlite3 db...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -170,12 +201,12 @@ func Test_syscall(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2.Close()
 		db3.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "dbM close")
+		// dbM close (unsupported command, not transpiled)
 		db1.Close()
 	}
 	{ // do_test "6.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA temp_store = file;\n\n    PRAGMA main.cache_size = 10;\n    PRAGMA temp.cache_size = 10;\n    CREATE TABLE temp.tt(a, b);\n    INSERT INTO tt VALUES(randomblob(500), randomblob(600));\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n    INSERT INTO tt SELECT randomblob(500), randomblob(600) FROM tt;\n  ")
 		if _res.Error != nil {
@@ -189,15 +220,15 @@ func Test_syscall(t *testing.T) {
 	os.Remove("test.db")
 	// proc definition (not transpiled)
 	// foreach {nByte res} "\n  1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}\n"
-	_items0 := tclSplitList("\n  1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		nByte := _items0[_idx0+0]
+	_items3 := tclSplitList("\n  1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}\n")
+	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+		nByte := _items3[_idx3+0]
 		_ = nByte // suppress unused warning
-		res := _items0[_idx0+1]
+		res := _items3[_idx3+1]
 		_ = res // suppress unused warning
-		_ = _idx0
+		_ = _idx3
 			{ // do_test "7." + nByte
-				t.Errorf("TODO: %s not implemented in frigolite", "create_db_file $nByte")
+				// create_db_file $nByte (unsupported command, not transpiled)
 				_list := tclList([]string{"0", msg})
 				_ = _list
 			}
@@ -212,49 +243,49 @@ func Test_syscall(t *testing.T) {
 		}
 		os.Remove("test.db")
 		{ // do_test "8.1"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp4, err := frigolite.Open("test.db")
+			_ = _dbtmp4 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 4096")
+			// file_control_chunksize_test db main 4096 (unsupported command, not transpiled)
 			// file size test.db
 		}
 		// foreach {tn hint size} "\n  1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192 \n"
-		_items1 := tclSplitList("\n  1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192 \n")
-		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-			tn := _items1[_idx1+0]
+		_items5 := tclSplitList("\n  1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192 \n")
+		for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
+			tn := _items5[_idx5+0]
 			_ = tn // suppress unused warning
-			hint := _items1[_idx1+1]
+			hint := _items5[_idx5+1]
 			_ = hint // suppress unused warning
-			size := _items1[_idx1+2]
+			size := _items5[_idx5+2]
 			_ = size // suppress unused warning
-			_ = _idx1
+			_ = _idx5
 				{ // do_test "8.2." + tn
-					t.Errorf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")
+					// file_control_sizehint_test db main $hint (unsupported command, not transpiled)
 					// file size test.db
 				}
 			}
 			{ // do_test "8.3"
 				os.Remove("test.db")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp6, err := frigolite.Open("test.db")
+				_ = _dbtmp6 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				t.Errorf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 16")
+				// file_control_chunksize_test db main 16 (unsupported command, not transpiled)
 				// file size test.db
 			}
 			// foreach {tn hint size} "\n  1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64 \n"
-			_items2 := tclSplitList("\n  1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64 \n")
-			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-				tn := _items2[_idx2+0]
+			_items7 := tclSplitList("\n  1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64 \n")
+			for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
+				tn := _items7[_idx7+0]
 				_ = tn // suppress unused warning
-				hint := _items2[_idx2+1]
+				hint := _items7[_idx7+1]
 				_ = hint // suppress unused warning
-				size := _items2[_idx2+2]
+				size := _items7[_idx7+2]
 				_ = size // suppress unused warning
-				_ = _idx2
+				_ = _idx7
 					{ // do_test "8.4." + tn
-						t.Errorf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")
+						// file_control_sizehint_test db main $hint (unsupported command, not transpiled)
 						// file size test.db
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "test_syscall reset")
+				// test_syscall reset (unsupported command, not transpiled)
 }

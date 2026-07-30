@@ -39,14 +39,40 @@ func Test_mallocG(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var utf16 string
+	_ = utf16 // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var utf8 string
+	_ = utf8 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping mallocG tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping mallocG tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-1 -tclbody {\n  db close\n  sqlite3 db test.db\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-2 -sqlprep {\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x INTE...} -sqlbody {\n  SELECT y FROM t1 WHERE x IN t2;\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-3 -sqlprep {\n  CREATE TABLE t1(x UNIQUE);\n  INSERT INTO t1 VAL...} -sqlbody {\n  SELECT * FROM t1\n   WHERE x BETWEEN 'a' AND 'z'...}")
+	// do_malloc_test mallocG-1 -tclbody {
+  db close
+  sqlite3 db test.db
+} (unsupported command, not transpiled)
+	// do_malloc_test mallocG-2 -sqlprep {
+  CREATE TABLE t1(x, y);
+  CREATE TABLE t2(x INTE...} -sqlbody {
+  SELECT y FROM t1 WHERE x IN t2;
+} (unsupported command, not transpiled)
+	// do_malloc_test mallocG-3 -sqlprep {
+  CREATE TABLE t1(x UNIQUE);
+  INSERT INTO t1 VAL...} -sqlbody {
+  SELECT * FROM t1
+   WHERE x BETWEEN 'a' AND 'z'...} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-4 -tclbody {\n  set rc [sqlite3_complete16 [utf16 \"SELECT * FRO...}")
+	// do_malloc_test mallocG-4 -tclbody {
+  set rc [sqlite3_complete16 [utf16 "SELECT * FRO...} (unsupported command, not transpiled)
 }

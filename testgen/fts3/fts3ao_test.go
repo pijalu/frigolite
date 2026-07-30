@@ -40,9 +40,24 @@ func Test_fts3ao(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3ao" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts3ao" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n  INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one four two');\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n  INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one four two');\n")
@@ -144,7 +159,8 @@ func Test_fts3ao(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "fts3ao-3.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE t1 USING fts3(a, b, c);\n    INSERT INTO t1(a, b, c) VALUES('one three four', 'one four', 'one two');\n    SELECT a, b, c FROM t1 WHERE c MATCH 'two';\n  ")
@@ -274,13 +290,13 @@ func Test_fts3ao(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n"
-	_items0 := tclSplitList("\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items1[_idx1+1]
 		_ = sql // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -290,8 +306,8 @@ func Test_fts3ao(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE ft USING fts3;\n    INSERT INTO ft VALUES('hello world');\n    " + sql + "\n  ")
 				}
 			}
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "6." + tn + ".2"
 				r = db.Query(" SELECT * FROM t1 ")
@@ -305,9 +321,9 @@ func Test_fts3ao(t *testing.T) {
 				db2.Exec(" DROP TABLE t1 ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				db2.Close()
-				var stmt = "sqlite3_prepare db { SELECT * FROM ft } -1 dummy"
+				stmt = "sqlite3_prepare db { SELECT * FROM ft } -1 dummy"
 				_ = stmt // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+				// sqlite3_finalize $stmt (unsupported command, not transpiled)
 			}
 		}
 }

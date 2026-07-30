@@ -39,8 +39,17 @@ func Test_qrf03(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "qrf03"
+	testprefix = "qrf03"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE mlink(\n    mid INTEGER,\n    fid INTEGER,\n    pmid INTEGER,\n    pid INTEGER,\n    fnid INTEGER REFERENCES filename,\n    pfnid INTEGER,\n    mperm INTEGER,\n    isaux BOOLEAN DEFAULT 0\n  );\n  INSERT INTO mlink VALUES(28775,28774,28773,28706,1,0,0,0);\n  INSERT INTO mlink VALUES(28773,28706,28770,28685,1,0,0,0);\n  INSERT INTO mlink VALUES(28770,28736,28769,28695,2,0,0,0);\n  INSERT INTO mlink VALUES(28770,28697,28769,28698,3,0,0,0);\n  INSERT INTO mlink VALUES(28767,28768,28759,28746,4,0,0,0);\n  CREATE TABLE event(\n    type TEXT,\n    mtime DATETIME,\n    objid INTEGER PRIMARY KEY,\n    tagid INTEGER,\n    uid INTEGER REFERENCES user,\n    bgcolor TEXT,\n    euser TEXT,\n    user TEXT,\n    ecomment TEXT,\n    comment TEXT,\n    brief TEXT,\n    omtime DATETIME\n  );\n  INSERT INTO event VALUES('ci',2460994.978048461023,126223,NULL,NULL,NULL,NULL,'drh',NULL,unistr('Data structure improvements on columnar layout.  Prep work for getting\\u000acolumnar layouts to respond to nScreenWidth.'),NULL,2460994.978048461023);\n  INSERT INTO event VALUES('ci',2460994.836955601816,126218,NULL,NULL,NULL,NULL,'stephan',NULL,'API doc typo fix.',NULL,2460994.836955601816);\n  INSERT INTO event VALUES('ci',2460994.88823369192,126212,NULL,NULL,NULL,NULL,'stephan',NULL,'Move sqlite3-api-cleanup.js into post-js-footer.js to remove the final direct Emscripten dependency from the intermediary build product sqlite3-api.js (the whole library, waiting to be bootstrapped). This is partly in response to [forum:4b7d45433731d2e0|forum post 4b7d45433731d2e0], which demonstrates a potential use case for a standalone sqlite3-api.js. This is a build/doc change, not a functional one.',NULL,2460994.88823369192);\n  INSERT INTO event VALUES('ci',2460994.516081551089,126211,NULL,NULL,NULL,NULL,'drh',NULL,unistr('Improve columnar layout in QRF so that it correctly deals with control\\u000acharacters, and especially tabs.'),NULL,2460994.516081551089);\n  INSERT INTO event VALUES('ci',2460994.409343171865,126208,NULL,NULL,NULL,NULL,'drh',NULL,'Make use of the new sqlite3_str_free() interface in the CLI.',NULL,2460994.409343171865);\n")
@@ -49,35 +58,35 @@ func Test_qrf03(t *testing.T) {
 		}
 	}
 	{ // do_test "1.10"
-		var x = "\\n" + "db format -style box -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\\n" + "db format -style box -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.11"
-		var x = "\\n" + "db format -style box -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\\n" + "db format -style box -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.20"
-		var x = "\\n" + "db format -style table -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\\n" + "db format -style table -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.21"
-		var x = "\\n" + "db format -style table -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\\n" + "db format -style table -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.30"
-		var x = "\\n" + "db format -style markdown -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\\n" + "db format -style markdown -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.31"
-		var x = "\\n" + "db format -style markdown -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\\n" + "db format -style markdown -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.40"
-		var x = "\\n" + "db format -style column -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\\n" + "db format -style column -screenwidth 68 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "1.41"
-		var x = "\\n" + "db format -style column -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
+		x = "\\n" + "db format -style column -screenwidth 52 \\\n              {SELECT * FROM mlink ORDER BY rowid}"
 		_ = x // suppress unused warning
 	}
 }

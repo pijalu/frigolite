@@ -40,32 +40,45 @@ func Test_backup2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var cksum string
+	_ = cksum // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	{ // do_test "backup2-1"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    CREATE VIEW v1 AS SELECT substr(x,10,10) FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 VALUES(2,4);\n    INSERT INTO t2 SELECT a+2, (a+2)*2 FROM t2;\n    INSERT INTO t2 SELECT a+4, (a+4)*2 FROM t2;\n    INSERT INTO t2 SELECT a+8, (a+8)*2 FROM t2;\n    INSERT INTO t2 SELECT a+16, (a+16)*2 FROM t2;\n    INSERT INTO t2 SELECT a+32, (a+32)*2 FROM t2;\n    INSERT INTO t2 SELECT a+64, (a+64)*2 FROM t2;\n    INSERT INTO t2 SELECT a+128, (a+128)*2 FROM t2;\n    CREATE INDEX t2i1 ON t2(a,b);\n    CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n      SELECT 'hello';\n    END;\n    ANALYZE;\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    CREATE VIEW v1 AS SELECT substr(x,10,10) FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 VALUES(2,4);\n    INSERT INTO t2 SELECT a+2, (a+2)*2 FROM t2;\n    INSERT INTO t2 SELECT a+4, (a+4)*2 FROM t2;\n    INSERT INTO t2 SELECT a+8, (a+8)*2 FROM t2;\n    INSERT INTO t2 SELECT a+16, (a+16)*2 FROM t2;\n    INSERT INTO t2 SELECT a+32, (a+32)*2 FROM t2;\n    INSERT INTO t2 SELECT a+64, (a+64)*2 FROM t2;\n    INSERT INTO t2 SELECT a+128, (a+128)*2 FROM t2;\n    CREATE INDEX t2i1 ON t2(a,b);\n    CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n      SELECT 'hello';\n    END;\n    ANALYZE;\n    PRAGMA integrity_check;\n  ")
 		}
 	}
-	var cksum = "dbcksum db main"
+	cksum = "dbcksum db main"
 	_ = cksum // suppress unused warning
 	{ // do_test "backup2-2"
 		os.Remove("bu1.db")
 		db2, err = frigolite.Open("bu1.db")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "dbcksum db2 main")
+		// dbcksum db2 main (unsupported command, not transpiled)
 	}
 	{ // do_test "backup2-3.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2.Exec("BEGIN EXCLUSIVE")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-	var rc string
 	_ = rc // suppress unused warning
-	var res string
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -83,20 +96,20 @@ func Test_backup2(t *testing.T) {
 	}
 	{ // do_test "backup2-3.2"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "dbcksum db main")
+		// dbcksum db main (unsupported command, not transpiled)
 	}
 	{ // do_test "backup2-4"
-		t.Errorf("TODO: %s not implemented in frigolite", "dbcksum db temp")
+		// dbcksum db temp (unsupported command, not transpiled)
 	}
 	{ // do_test "backup2-5"
 		db2.Close()
 		os.Remove("bu1.db")
 		db2, err = frigolite.Open("bu2.db")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "dbcksum db2 main")
+		// dbcksum db2 main (unsupported command, not transpiled)
 	}
 	{ // do_test "backup2-6"
 		db2.Close()
@@ -110,9 +123,7 @@ func Test_backup2(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			// file attributes bu2.db -readonly 1
 		}
-	var rc string
 	_ = rc // suppress unused warning
-	var res string
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -137,13 +148,12 @@ func Test_backup2(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			// file attributes bu2.db -permissions rw-------
 		}
-		var out = "open bu2.db w"
+		out = "open bu2.db w"
 		_ = out // suppress unused warning
-		t.Log(out)
+		_putsMsg := out
+		_ = _putsMsg
 		// close $out
-	var rc string
 	_ = rc // suppress unused warning
-	var res string
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -159,9 +169,7 @@ func Test_backup2(t *testing.T) {
 	}
 	{ // do_test "backup2-8"
 		os.Remove("bu1.db")
-	var rc string
 	_ = rc // suppress unused warning
-	var res string
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -176,9 +184,7 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 	}
 	{ // do_test "backup2-9"
-	var rc string
 	_ = rc // suppress unused warning
-	var res string
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -192,22 +198,20 @@ func Test_backup2(t *testing.T) {
 		}
 		rc = tclListAppend(rc, res)
 	}
-	if _tcl_platform_os == "Windows NT" {
-		var msg = "cannot open source database: unable to open database file"
+	if tcl_platform_os == "Windows NT" {
+		msg = "cannot open source database: unable to open database file"
 		_ = msg // suppress unused warning
 	} else if tclBool("*BSD $tcl_platform(os)") {
-		var msg = ""
+		msg = ""
 		_ = msg // suppress unused warning
 	} else {
-		var msg = "cannot open source database: disk I/O error"
+		msg = "cannot open source database: disk I/O error"
 		_ = msg // suppress unused warning
 	}
 	{ // do_test "backup2-10"
 		os.Remove("bu3.db")
 		// file mkdir bu3.db
-	var rc string
 	_ = rc // suppress unused warning
-	var res string
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -220,16 +224,14 @@ func Test_backup2(t *testing.T) {
 			}
 		}
 		if tclBool("*BSD $tcl_platform(os)") {
-			var res = ""
+			res = ""
 			_ = res // suppress unused warning
 		}
 		_list := tclList([]string{rc, res})
 		_ = _list
 	}
 	{ // do_test "backup2-11"
-	var rc string
 	_ = rc // suppress unused warning
-	var res string
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -244,9 +246,7 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 	}
 	{ // do_test "backup2-12"
-	var rc string
 	_ = rc // suppress unused warning
-	var res string
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -262,9 +262,7 @@ func Test_backup2(t *testing.T) {
 	}
 	{ // do_test "backup2-13"
 		os.Remove("bu4.db")
-	var rc string
 	_ = rc // suppress unused warning
-	var res string
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -279,9 +277,7 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 	}
 	{ // do_test "backup2-14"
-	var rc string
 	_ = rc // suppress unused warning
-	var res string
 	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error

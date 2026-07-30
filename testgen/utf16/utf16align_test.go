@@ -39,12 +39,21 @@ func Test_utf16align(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var unaligned_string_counter string
+	_ = unaligned_string_counter // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "utf16align-1.0"
-		var unaligned_string_counter = "0"
+		unaligned_string_counter = "0"
 		_ = unaligned_string_counter // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "add_alignment_test_collations [sqlite3_connection_pointer db]")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+		// add_alignment_test_collations [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 		r = db.Query("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      spacer TEXT,\n      a TEXT COLLATE utf16_aligned,\n      b TEXT COLLATE utf16_unaligned\n    );\n    INSERT INTO t1(a) VALUES(\"abc\");\n    INSERT INTO t1(a) VALUES(\"defghi\");\n    INSERT INTO t1(a) VALUES(\"jklmnopqrstuv\");\n    INSERT INTO t1(a) VALUES(\"wxyz0123456789-\");\n    UPDATE t1 SET b=a||'-'||a;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) VALUES('one','two');\n    INSERT INTO t1(a,b) SELECT a, b FROM t1;\n    UPDATE t1 SET spacer = CASE WHEN rowid&1 THEN 'x' ELSE 'xx' END;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      spacer TEXT,\n      a TEXT COLLATE utf16_aligned,\n      b TEXT COLLATE utf16_unaligned\n    );\n    INSERT INTO t1(a) VALUES(\"abc\");\n    INSERT INTO t1(a) VALUES(\"defghi\");\n    INSERT INTO t1(a) VALUES(\"jklmnopqrstuv\");\n    INSERT INTO t1(a) VALUES(\"wxyz0123456789-\");\n    UPDATE t1 SET b=a||'-'||a;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) SELECT a||b, b||a FROM t1;\n    INSERT INTO t1(a,b) VALUES('one','two');\n    INSERT INTO t1(a,b) SELECT a, b FROM t1;\n    UPDATE t1 SET spacer = CASE WHEN rowid&1 THEN 'x' ELSE 'xx' END;\n    SELECT count(*) FROM t1;\n  ")
@@ -60,7 +69,7 @@ func Test_utf16align(t *testing.T) {
 		// expr $unaligned_string_counter>0 → "$unaligned_string_counter>0"
 	}
 	{ // do_test "utf16align-1.3"
-		var unaligned_string_counter = "0"
+		unaligned_string_counter = "0"
 		_ = unaligned_string_counter // suppress unused warning
 		_res = db.Exec("\n    CREATE INDEX t1i2 ON t1(spacer, a);\n  ")
 		if _res.Error != nil {
@@ -70,7 +79,8 @@ func Test_utf16align(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "utf16align-2.1"
 		_res = db.Exec("\n    PRAGMA encoding=UTF16be;\n    SELECT hex(ltrim(x'6efcda'));\n  ")

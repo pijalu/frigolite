@@ -40,32 +40,84 @@ func Test_without_rowid4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var tbl_definitions string
+	_ = tbl_definitions // pre-declared from TCL source
+	var tbl_defn string
+	_ = tbl_defn // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var tr_program string
+	_ = tr_program // pre-declared from TCL source
+	var test_varset string
+	_ = test_varset // pre-declared from TCL source
+	var statement string
+	_ = statement // pre-declared from TCL source
+	var prep string
+	_ = prep // pre-declared from TCL source
+	var newA string
+	_ = newA // pre-declared from TCL source
+	var newB string
+	_ = newB // pre-declared from TCL source
+	var newC string
+	_ = newC // pre-declared from TCL source
+	var oldA string
+	_ = oldA // pre-declared from TCL source
+	var oldB string
+	_ = oldB // pre-declared from TCL source
+	var oldC string
+	_ = oldC // pre-declared from TCL source
+	var statement_type string
+	_ = statement_type // pre-declared from TCL source
+	var tr_program_fixed string
+	_ = tr_program_fixed // pre-declared from TCL source
+	var tr_program_cooked string
+	_ = tr_program_cooked // pre-declared from TCL source
+	var query string
+	_ = query // pre-declared from TCL source
+	var before_data string
+	_ = before_data // pre-declared from TCL source
+	var after_data string
+	_ = after_data // pre-declared from TCL source
+	var when_triggers string
+	_ = when_triggers // pre-declared from TCL source
+	var trig string
+	_ = trig // pre-declared from TCL source
+	var t232 string
+	_ = t232 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
 	for _, tr_program := range tclSplitList("\n  {UPDATE tbl SET b = old.b;}\n  {INSERT INTO log VALUES(new.c, 2, 3);}\n  {DELETE FROM log WHERE a = 1;}\n  {INSERT INTO tbl VALUES(500, new.b * 10, 700); \n    UPDATE tbl SET c = old.c; \n    DELETE FROM log;}\n  {INSERT INTO log select * from tbl;} \n") {
 	_ = tr_program // suppress unused warning
 		for _, test_varset := range tclSplitList("list \\\n    {\n      set statement {UPDATE tbl SET c = 10 WHERE a = 1;} \n      set prep      {INSERT INTO tbl VALUES(1, 2, 3);}\n      set newC 10\n      set newB 2\n      set newA 1\n      set oldA 1\n      set oldB 2\n      set oldC 3\n    } \\\n    {\n      set statement {DELETE FROM tbl WHERE a = 1;}\n      set prep      {INSERT INTO tbl VALUES(1, 2, 3);}\n      set oldA 1\n      set oldB 2\n      set oldC 3\n    } \\\n    {\n      set statement {INSERT INTO tbl VALUES(1, 2, 3);}\n      set newA 1\n      set newB 2\n      set newC 3\n    }") {
 		_ = test_varset // suppress unused warning
-			var statement = ""
+			statement = ""
 			_ = statement // suppress unused warning
-			var prep = ""
+			prep = ""
 			_ = prep // suppress unused warning
-			var newA = "''"
+			newA = "''"
 			_ = newA // suppress unused warning
-			var newB = "''"
+			newB = "''"
 			_ = newB // suppress unused warning
-			var newC = "''"
+			newC = "''"
 			_ = newC // suppress unused warning
-			var oldA = "''"
+			oldA = "''"
 			_ = oldA // suppress unused warning
-			var oldB = "''"
+			oldB = "''"
 			_ = oldB // suppress unused warning
-			var oldC = "''"
+			oldC = "''"
 			_ = oldC // suppress unused warning
-			var ii = "0"
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
@@ -73,52 +125,52 @@ func Test_without_rowid4(t *testing.T) {
 					ii = strconv.Itoa(_n + 1)
 				}
 			}
-			// eval $test_varset
-			var statement_type = "$statement 0 5"
+			// eval (dynamic, not transpiled)
+			statement_type = "$statement 0 5"
 			_ = statement_type // suppress unused warning
-			var tr_program_fixed = tr_program
+			tr_program_fixed = tr_program
 			_ = tr_program_fixed // suppress unused warning
 			if statement_type == "DELETE" {
-				'' := tclRegsub("-all", "new\\.a", tr_program_fixed)
-				_ = '' // suppress unused warning
-				'' := tclRegsub("-all", "new\\.b", tr_program_fixed)
-				_ = '' // suppress unused warning
-				'' := tclRegsub("-all", "new\\.c", tr_program_fixed)
-				_ = '' // suppress unused warning
+				tr_program_fixed = tclRegsubAll("new\\.a", tr_program_fixed, "''")
+				_ = tr_program_fixed // suppress unused warning
+				tr_program_fixed = tclRegsubAll("new\\.b", tr_program_fixed, "''")
+				_ = tr_program_fixed // suppress unused warning
+				tr_program_fixed = tclRegsubAll("new\\.c", tr_program_fixed, "''")
+				_ = tr_program_fixed // suppress unused warning
 			}
 			if statement_type == "INSERT" {
-				'' := tclRegsub("-all", "old\\.a", tr_program_fixed)
-				_ = '' // suppress unused warning
-				'' := tclRegsub("-all", "old\\.b", tr_program_fixed)
-				_ = '' // suppress unused warning
-				'' := tclRegsub("-all", "old\\.c", tr_program_fixed)
-				_ = '' // suppress unused warning
+				tr_program_fixed = tclRegsubAll("old\\.a", tr_program_fixed, "''")
+				_ = tr_program_fixed // suppress unused warning
+				tr_program_fixed = tclRegsubAll("old\\.b", tr_program_fixed, "''")
+				_ = tr_program_fixed // suppress unused warning
+				tr_program_fixed = tclRegsubAll("old\\.c", tr_program_fixed, "''")
+				_ = tr_program_fixed // suppress unused warning
 			}
-			var tr_program_cooked = tr_program
+			tr_program_cooked = tr_program
 			_ = tr_program_cooked // suppress unused warning
-			newA := tclRegsub("-all", "new\\.a", tr_program_cooked)
-			_ = newA // suppress unused warning
-			newB := tclRegsub("-all", "new\\.b", tr_program_cooked)
-			_ = newB // suppress unused warning
-			newC := tclRegsub("-all", "new\\.c", tr_program_cooked)
-			_ = newC // suppress unused warning
-			oldA := tclRegsub("-all", "old\\.a", tr_program_cooked)
-			_ = oldA // suppress unused warning
-			oldB := tclRegsub("-all", "old\\.b", tr_program_cooked)
-			_ = oldB // suppress unused warning
-			oldC := tclRegsub("-all", "old\\.c", tr_program_cooked)
-			_ = oldC // suppress unused warning
+			tr_program_cooked = tclRegsubAll("new\\.a", tr_program_cooked, newA)
+			_ = tr_program_cooked // suppress unused warning
+			tr_program_cooked = tclRegsubAll("new\\.b", tr_program_cooked, newB)
+			_ = tr_program_cooked // suppress unused warning
+			tr_program_cooked = tclRegsubAll("new\\.c", tr_program_cooked, newC)
+			_ = tr_program_cooked // suppress unused warning
+			tr_program_cooked = tclRegsubAll("old\\.a", tr_program_cooked, oldA)
+			_ = tr_program_cooked // suppress unused warning
+			tr_program_cooked = tclRegsubAll("old\\.b", tr_program_cooked, oldB)
+			_ = tr_program_cooked // suppress unused warning
+			tr_program_cooked = tclRegsubAll("old\\.c", tr_program_cooked, oldC)
+			_ = tr_program_cooked // suppress unused warning
 			_res = db.Exec("\n      DROP TABLE tbl;\n      DROP TABLE log;\n    ")
 			_ = _res // catchsql
 			_res = db.Exec("\n      CREATE TABLE tbl(a PRIMARY KEY, b, c) WITHOUT rowid;\n      CREATE TABLE log(a, b, c);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE tbl(a PRIMARY KEY, b, c) WITHOUT rowid;\n      CREATE TABLE log(a, b, c);\n    ")
 			}
-			var query = "SELECT * FROM tbl; SELECT * FROM log;"
+			query = "SELECT * FROM tbl; SELECT * FROM log;"
 			_ = query // suppress unused warning
 			prep = prep + "; INSERT INTO log VALUES(1, 2, 3);\\\n             INSERT INTO log VALUES(10, 20, 30);"
 			_ = prep // suppress unused warning
-			var before_data = "execsql \"$prep $tr_program_cooked $statement $query\""
+			before_data = "execsql \"$prep $tr_program_cooked $statement $query\""
 			_ = before_data // suppress unused warning
 			_res = db.Exec("DELETE FROM tbl; DELETE FROM log; " + prep)
 			if _res.Error != nil {
@@ -142,7 +194,7 @@ func Test_without_rowid4(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl; DELETE FROM log;")
 			}
-			var after_data = "execsql \"$prep $statement $tr_program_cooked $query\""
+			after_data = "execsql \"$prep $statement $tr_program_cooked $query\""
 			_ = after_data // suppress unused warning
 			_res = db.Exec("DELETE FROM tbl; DELETE FROM log; " + prep)
 			if _res.Error != nil {
@@ -182,7 +234,7 @@ func Test_without_rowid4(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE tbl;\n  DROP TABLE log;\n")
 	}
-	var when_triggers = "list {t1 BEFORE INSERT ON tbl WHEN new.a > 20}"
+	when_triggers = "list {t1 BEFORE INSERT ON tbl WHEN new.a > 20}"
 	_ = when_triggers // suppress unused warning
 	_res = db.Exec("\n  CREATE TABLE tbl (a, b, c, d);\n  CREATE TABLE log (a);\n  INSERT INTO log VALUES (0);\n")
 	if _res.Error != nil {

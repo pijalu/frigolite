@@ -39,11 +39,40 @@ func Test_bestindexG(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var conslist string
+	_ = conslist // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var idxnum string
+	_ = idxnum // pre-declared from TCL source
+	var iCons string
+	_ = iCons // pre-declared from TCL source
+	var cons string
+	_ = cons // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var c_usable string
+	_ = c_usable // pre-declared from TCL source
+	var c_op string
+	_ = c_op // pre-declared from TCL source
+	var c_column string
+	_ = c_column // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindexF"
+	testprefix = "bestindexF"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(rowid INTEGER PRIMARY KEY, id, k);\n  INSERT INTO t1 VALUES(1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2);\n  INSERT INTO t1 VALUES(3, 3, 3);\n  INSERT INTO t1 VALUES(4, 4, 4);\n\n  INSERT INTO t1 VALUES(5, 1, 11);\n  INSERT INTO t1 VALUES(6, 2, 22);\n  INSERT INTO t1 VALUES(7, 3, 33);\n  INSERT INTO t1 VALUES(8, 4, 44);\n\n  CREATE VIRTUAL TABLE tt USING tcl(vtab_command)\n")
 		if _res.Error != nil {

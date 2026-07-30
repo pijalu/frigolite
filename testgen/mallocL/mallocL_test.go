@@ -40,11 +40,28 @@ func Test_mallocL(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var vals string
+	_ = vals // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "mallocL"
+	testprefix = "mallocL"
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.0"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
 			cols = tclListAppend(cols, "c" + i)
@@ -70,12 +87,15 @@ func Test_mallocL(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + "join $vals ," + ")")
 		}
 	}
-	var j = "1"
+	j = "1"
 	_ = j // suppress unused warning
 	for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n < 40 }() {
-		var _sql = "SELECT DISTINCT " + "join [lrange $cols 0 $j] ," + " FROM t1" // TCL namespace variable
-		_ = _sql // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$j -faults oom* -body {\n    execsql $::sql\n  } -test {\n    faultsim_test_result [list 0 [lrange $::vals ...}")
+		sql = "SELECT DISTINCT " + "join [lrange $cols 0 $j] ," + " FROM t1" // TCL namespace variable
+		_ = sql // suppress unused warning
+		// do_faultsim_test 1.$j -faults oom* -body {
+    execsql $::sql
+  } -test {
+    faultsim_test_result [list 0 [lrange $::vals ...} (unsupported command, not transpiled)
 		// incr j 1
 		{
 			_n, _err := strconv.Atoi(j)

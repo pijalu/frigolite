@@ -3,7 +3,6 @@ package permutations
 
 import (
 "github.com/pijalu/frigolite"
-"sort"
 "testing"
 )
 
@@ -40,12 +39,157 @@ func Test_permutations(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var default__shutdown string
+	_ = default__shutdown // pre-declared from TCL source
+	var default__initialize string
+	_ = default__initialize // pre-declared from TCL source
+	var default__presql string
+	_ = default__presql // pre-declared from TCL source
+	var default__description string
+	_ = default__description // pre-declared from TCL source
+	var default__files string
+	_ = default__files // pre-declared from TCL source
+	var default__prefix string
+	_ = default__prefix // pre-declared from TCL source
+	var default__dbconfig string
+	_ = default__dbconfig // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var o string
+	_ = o // pre-declared from TCL source
+	var options__lindex_o_0_ string
+	_ = options__lindex_o_0_ // pre-declared from TCL source
+	var testspec_name string
+	_ = testspec_name // pre-declared from TCL source
+	var testsuitelist string
+	_ = testsuitelist // pre-declared from TCL source
+	var isExclude string
+	_ = isExclude // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var t_f string
+	_ = t_f // pre-declared from TCL source
+	var alltests string
+	_ = alltests // pre-declared from TCL source
+	var allquicktests string
+	_ = allquicktests // pre-declared from TCL source
+	var all string
+	_ = all // pre-declared from TCL source
+	var bIn string
+	_ = bIn // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var G_valgrind string
+	_ = G_valgrind // pre-declared from TCL source
+	var G_perm_sqlite3_args string
+	_ = G_perm_sqlite3_args // pre-declared from TCL source
+	var disable_mutex_try string
+	_ = disable_mutex_try // pre-declared from TCL source
+	var perm_alt_pcache_testset string
+	_ = perm_alt_pcache_testset // pre-declared from TCL source
+	var discard_rate string
+	_ = discard_rate // pre-declared from TCL source
+	var G_savepoint6_iterations string
+	_ = G_savepoint6_iterations // pre-declared from TCL source
+	var sqlite3session_streams string
+	_ = sqlite3session_streams // pre-declared from TCL source
+	var the string
+	_ = the // pre-declared from TCL source
+	var sqlite3_win_test_unc_locking string
+	_ = sqlite3_win_test_unc_locking // pre-declared from TCL source
+	var options__initialize string
+	_ = options__initialize // pre-declared from TCL source
+	var options__shutdown string
+	_ = options__shutdown // pre-declared from TCL source
+	var options__prefix string
+	_ = options__prefix // pre-declared from TCL source
+	var options__dbconfig string
+	_ = options__dbconfig // pre-declared from TCL source
+	var options__presql string
+	_ = options__presql // pre-declared from TCL source
+	var G_perm_name string
+	_ = G_perm_name // pre-declared from TCL source
+	var G_perm_prefix string
+	_ = G_perm_prefix // pre-declared from TCL source
+	var G_isquick string
+	_ = G_isquick // pre-declared from TCL source
+	var G_perm_dbconfig string
+	_ = G_perm_dbconfig // pre-declared from TCL source
+	var G_perm_presql string
+	_ = G_perm_presql // pre-declared from TCL source
+	var filelist string
+	_ = filelist // pre-declared from TCL source
+	var nFile string
+	_ = nFile // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var ok string
+	_ = ok // pre-declared from TCL source
+	var p string
+	_ = p // pre-declared from TCL source
+	var iPos string
+	_ = iPos // pre-declared from TCL source
+	var suite string
+	_ = suite // pre-declared from TCL source
+	var S string
+	_ = S // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var extra string
+	_ = extra // pre-declared from TCL source
+	var files string
+	_ = files // pre-declared from TCL source
+	var pattern string
+	_ = pattern // pre-declared from TCL source
+	var tail string
+	_ = tail // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var ALLTESTS string
+	_ = ALLTESTS // pre-declared from TCL source
+	var NAME string
+	_ = NAME // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var env_QUICKTEST_INCLUDE string
+	_ = env_QUICKTEST_INCLUDE // pre-declared from TCL source
+	var env_QUICKTEST_OMIT string
+	_ = env_QUICKTEST_OMIT // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var options string
+	_ = options // pre-declared from TCL source
+	var dbhandle string
+	_ = dbhandle // pre-declared from TCL source
+	var options__files string
+	_ = options__files // pre-declared from TCL source
+	var env_TCLTEST_PART string
+	_ = env_TCLTEST_PART // pre-declared from TCL source
+	var B string
+	_ = B // pre-declared from TCL source
+	var A string
+	_ = A // pre-declared from TCL source
+	var env_SQLITE_TEST_PATTERN_LIST string
+	_ = env_SQLITE_TEST_PATTERN_LIST // pre-declared from TCL source
+	var testspec_suite string
+	_ = testspec_suite // pre-declared from TCL source
+
 	if tclBool("info vars ::trd::tcltest" + "==\"\"") {
 		// set testdir: test directory (not used in Go test context)
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var alltests = "list"
+	alltests = "list"
 	_ = alltests // suppress unused warning
 	for _, f := range tclSplitList("glob $testdir/*.test") {
 	_ = f // suppress unused warning
@@ -59,29 +203,29 @@ func Test_permutations(t *testing.T) {
 	_ = f // suppress unused warning
 		alltests = tclListAppend(alltests, f)
 	}
-	if _tcl_platform_platform != "unix" {
-		var alltests = "test_set $alltests -exclude crash.test crash2.test"
+	if tcl_platform_platform != "unix" {
+		alltests = "test_set $alltests -exclude crash.test crash2.test"
 		_ = alltests // suppress unused warning
 	}
 	alltests = "test_set $alltests -exclude {\n  all.test        quick.test  veryquick.test\n  memleak.test    permutations.test  soak.test   fts3.test\n  mallocAll.test  rtree.test         full.test   extraquick.test\n  session.test    rbu.test\n}"
 	_ = alltests // suppress unused warning
-	var allquicktests = "test_set $alltests -exclude {\n  backup_ioerr.test corrupt.test\n  corruptC.test crash.test crash2.test crash3.test crash4.test crash5.test\n  crash6.test crash7.test delete3.test e_fts3.test fts3rnd.test\n  fkey_malloc.test fuzz.test fuzz3.test fuzz_malloc.test in2.test loadext.test\n  misc7.test mutex2.test onefile.test pagerfault2.test \n  savepoint4.test savepoint6.test select9.test \n  speed1.test speed1p.test speed2.test speed3.test speed4.test \n  speed4p.test sqllimits1.test tkt2686.test thread001.test thread002.test\n  thread003.test thread004.test thread005.test trans2.test vacuum3.test \n  incrvacuum_ioerr.test autovacuum_crash.test btree8.test shared_err.test\n  vtab_err.test walslow.test walcrash.test walcrash3.test\n  walthread.test rtree3.test indexfault.test securedel2.test\n  sort3.test sort4.test fts4growth.test fts4growth2.test\n  bigsort.test walprotocol.test mmap4.test fuzzer2.test\n  walcrash2.test e_fkey.test backup.test\n\n  fts4merge.test fts4merge2.test fts4merge4.test fts4check.test\n  fts4merge5.test\n  fts3cov.test fts3snippet.test fts3corrupt2.test fts3an.test\n  fts3defer.test fts4langid.test fts3sort.test fts5unicode.test\n  recovercorrupt.test\n\n  rtree4.test\n  sessionbig.test\n  sessionbig2.test\n\n  writecrash.test view3.test \n  fts5dlidx.test fts5ac.test fts4merge3.test fts5prefix.test\n  fts5bigtok2.test fts5secure7.test\n  sessionB.test\n}"
+	allquicktests = "test_set $alltests -exclude {\n  backup_ioerr.test corrupt.test\n  corruptC.test crash.test crash2.test crash3.test crash4.test crash5.test\n  crash6.test crash7.test delete3.test e_fts3.test fts3rnd.test\n  fkey_malloc.test fuzz.test fuzz3.test fuzz_malloc.test in2.test loadext.test\n  misc7.test mutex2.test onefile.test pagerfault2.test \n  savepoint4.test savepoint6.test select9.test \n  speed1.test speed1p.test speed2.test speed3.test speed4.test \n  speed4p.test sqllimits1.test tkt2686.test thread001.test thread002.test\n  thread003.test thread004.test thread005.test trans2.test vacuum3.test \n  incrvacuum_ioerr.test autovacuum_crash.test btree8.test shared_err.test\n  vtab_err.test walslow.test walcrash.test walcrash3.test\n  walthread.test rtree3.test indexfault.test securedel2.test\n  sort3.test sort4.test fts4growth.test fts4growth2.test\n  bigsort.test walprotocol.test mmap4.test fuzzer2.test\n  walcrash2.test e_fkey.test backup.test\n\n  fts4merge.test fts4merge2.test fts4merge4.test fts4check.test\n  fts4merge5.test\n  fts3cov.test fts3snippet.test fts3corrupt2.test fts3an.test\n  fts3defer.test fts4langid.test fts3sort.test fts5unicode.test\n  recovercorrupt.test\n\n  rtree4.test\n  sessionbig.test\n  sessionbig2.test\n\n  writecrash.test view3.test \n  fts5dlidx.test fts5ac.test fts4merge3.test fts5prefix.test\n  fts5bigtok2.test fts5secure7.test\n  sessionB.test\n}"
 	_ = allquicktests // suppress unused warning
 	if tclBool("info exists ::env(QUICKTEST_INCLUDE)") {
-		var allquicktests = "concat $allquicktests $::env(QUICKTEST_INCLUDE)"
+		allquicktests = "concat $allquicktests $::env(QUICKTEST_INCLUDE)"
 		_ = allquicktests // suppress unused warning
 	}
 	if tclBool("info exists ::env(QUICKTEST_OMIT)") {
-		var all = "list"
+		all = "list"
 		_ = all // suppress unused warning
 		for _, a := range tclSplitList(allquicktests) {
 		_ = a // suppress unused warning
-			var bIn = "1"
+			bIn = "1"
 			_ = bIn // suppress unused warning
 			for _, x := range tclSplitList("split $::env(QUICKTEST_OMIT) ,") {
 			_ = x // suppress unused warning
 				if tclBool("regexp $x [file tail $a]") {
-					var bIn = "0"
+					bIn = "0"
 					_ = bIn // suppress unused warning
 					break
 				}
@@ -90,89 +234,384 @@ func Test_permutations(t *testing.T) {
 				all = tclListAppend(all, a)
 			}
 		}
-		var allquicktests = all
+		allquicktests = all
 		_ = allquicktests // suppress unused warning
 	}
 	if tclBool("info exists ::env(TEST_FAILURE)") {
-		var allquicktests = "main.test"
+		allquicktests = "main.test"
 		_ = allquicktests // suppress unused warning
 	}
-	_testsuitelist = tclListAppend(_testsuitelist, "xxx")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite veryquick -prefix  -description {\n  \"Very\" quick test suite. Runs in minutes on a w...} -files [\n  test_set $allquicktests -exclude *malloc* *ioe...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite shell -prefix  -description {\n  Run tests of the command-line shell\n} -files [\n  test_set [glob $testdir/shell*.test]\n]")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite extraquick -prefix  -description {\n  \"Extra\" quick test suite. Runs in a few minutes...} -files [\n  test_set $allquicktests -exclude *malloc* *ioe...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite mmap -prefix mm- -description {\n  Similar to veryquick. Except with memory mappin...} -presql {\n  pragma mmap_size = 268435456;\n} -files [\n  test_set $allquicktests -exclude *malloc* *ioe...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite valgrind -prefix  -description {\n  Run the \"veryquick\" test suite with a couple of...} -files [\n  test_set $allquicktests -exclude *malloc* *ioe... -initialize {\n  set ::G(valgrind) 1\n} -shutdown {\n  unset -nocomplain ::G(valgrind)\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite valgrind-nolookaside -prefix  -description {\n  Run the \"veryquick\" test suite with a couple of...} -files [\n  test_set $allquicktests -exclude *malloc* *ioe... -initialize {\n  set ::G(valgrind) 1\n  catch {db close}\n  sqlite...} -shutdown {\n  catch {db close}\n  sqlite3_shutdown\n  sqlite3_c...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite quick -prefix  -description {\n  Quick test suite. Runs in around 10 minutes on ...} -files [\n  test_set $allquicktests\n]")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite full -prefix  -description {\n  Full test suite. Takes a long time.\n} -files [ \n  test_set $alltests \n] -initialize {\n  unset -nocomplain ::G(isquick)\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite threads -prefix  -description {\n  All multi-threaded tests.\n} -files {\n  notify2.test   thread001.test thread002.test th...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite fts3 -prefix  -description {\n  All FTS3 tests except fts3rnd.test.\n} -files {\n  fts3aa.test fts3ab.test fts3ac.test fts3ad.test...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite fts5 -prefix  -description {\n  All FTS5 tests.\n} -files [glob -nocomplain $::testdir/../ext/fts5/test/*.te...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite fts5-light -prefix  -description {\n  All FTS5 tests.\n} -files [\n  test_set \\\n      [glob -nocomplain $::testdir/...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite window -prefix  -description {\n  All window function related tests .\n} -files [\n  test_set [glob -nocomplain $::testdir/window*....")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite lsm1 -prefix  -description {\n  All LSM1 tests.\n} -files [glob -nocomplain $::testdir/../ext/lsm1/test/*.te...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite nofaultsim -prefix  -description {\n  \"Very\" quick test suite. Runs in less than 5 mi...} -files [\n  test_set $allquicktests -exclude *malloc* *ioe... -initialize {\n  catch {db close}\n  sqlite3_shutdown\n  install_m...} -shutdown {\n  unset -nocomplain ::G(valgrind)\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite queryplanner -prefix  -description {\n  Tests of the query planner and query optimizer\n} -files {\n  alter2.test alter3.test alter4.test alter.test ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite vfslog -prefix  -description {\n  \"Vfslog\" quick test suite. Like \"veryquick\" exc...} -files [\n  test_set $allquicktests -exclude *malloc* *ioe...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite atomic-batch-write -prefix  -description {\n  Like veryquick.test, but must be run on a file-...} -files [\n  test_set $allquicktests -exclude *malloc* *ioe... -initialize {\n  if {[atomic_batch_write test.db]==0} {\n    erro...}")
-	_testsuitelist = tclListAppend(_testsuitelist, "xxx")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite coverage-wal -description {\n  Coverage tests for file wal.c.\n} -files {\n  wal.test wal2.test wal3.test wal4.test wal5.tes...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite coverage-pager -description {\n  Coverage tests for file pager.c.\n} -files {\n  pager1.test    pager2.test  pagerfault.test  pa...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite coverage-analyze -description {\n  Coverage tests for file analyze.c.\n} -files {\n  analyze3.test analyze4.test analyze5.test analy...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite coverage-sorter -description {\n  Coverage tests for file vdbesort.c.\n} -files {\n  sort.test sortfault.test\n}")
-	_testsuitelist = tclListAppend(_testsuitelist, "xxx")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite memsubsys1 -description {\n  Tests using pre-allocated page blocks\n} -files [\n  test_set $::allquicktests -exclude ioerr5.test... -initialize {\n  test_set_config_pagecache 4096 24\n  catch {db c...} -shutdown {\n  test_restore_config_pagecache\n  catch {db close...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite memsubsys2 -description {\n  Tests using small pre-allocated page blocks\n} -files [\n  test_set $::allquicktests -exclude ioerr5.test... -initialize {\n  test_set_config_pagecache 512 5\n  catch {db clo...} -shutdown {\n  test_restore_config_pagecache\n  catch {db close...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite nolookaside -description {\n  OOM tests with lookaside disabled\n} -initialize {\n  catch {db close}\n  sqlite3_shutdown\n  sqlite3_c...} -shutdown {\n  catch {db close}\n  sqlite3_shutdown\n  sqlite3_c...} -files $::allquicktests")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite singlethread -description {\n  Tests run in SQLITE_CONFIG_SINGLETHREAD mode\n} -initialize {\n  catch {db close}\n  sqlite3_shutdown\n  catch {sq...} -files {\n  delete.test   delete2.test  insert.test  rollba...} -shutdown {\n  catch {db close}\n  sqlite3_shutdown\n  catch {sq...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite nomutex -description {\n  Tests run with the SQLITE_OPEN_MULTITHREADED fl...} -initialize {\n  set ::G(perm:sqlite3_args) [list -fullmutex 0 -...} -files {\n  delete.test   delete2.test  insert.test  rollba...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite multithread -description {\n  Tests run in SQLITE_CONFIG_MULTITHREAD mode\n} -initialize {\n  catch {db close}\n  sqlite3_shutdown\n  catch {sq...} -files {\n  delete.test   delete2.test  insert.test  rollba...} -shutdown {\n  catch {db close}\n  sqlite3_shutdown\n  catch {sq...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite fullmutex -description {\n  Tests run in SQLITE_OPEN_FULLMUTEX mode\n} -initialize {\n  set ::G(perm:sqlite3_args) [list -nomutex 0 -fu...} -files {\n  delete.test   delete2.test  insert.test  rollba...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite onefile -description {\n  Run some tests using the \"test_onefile.c\" demo\n} -initialize {\n  set ::G(perm:sqlite3_args) [list -vfs fs]\n} -files {\n  conflict.test  insert.test   insert2.test  inse...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite utf16 -description {\n  Run tests using UTF-16 databases\n} -presql {\n  pragma encoding = 'UTF-16'\n} -files {\n    alter.test alter3.test\n    analyze.test analy...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite exclusive -description {\n  Run tests in exclusive locking mode.\n} -presql {\n  pragma locking_mode = 'exclusive'\n} -files {\n  rollback.test select1.test select2.test \n  mall...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite exclusive-truncate -description {\n  Run tests in exclusive locking mode and truncat...} -presql {\n  pragma locking_mode = 'exclusive';\n  pragma jou...} -files {\n  delete.test delete2.test insert.test rollback.t...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite persistent_journal -description {\n  Run tests in persistent-journal mode.\n} -presql {\n  pragma journal_mode = persist\n} -files {\n  delete.test delete2.test insert.test rollback.t...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite truncate_journal -description {\n  Run tests in persistent-journal mode.\n} -presql {\n  pragma journal_mode = truncate\n} -files {\n  delete.test delete2.test insert.test rollback.t...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite persistent_journal_error -description {\n  Run malloc.test and ioerr.test in persistent-jo...} -presql {\n  pragma journal_mode = persist\n} -files {\n  malloc.test ioerr.test\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite no_journal -description {\n  Run tests in no-journal mode.\n} -presql {\n  pragma journal_mode = persist\n} -files {\n  delete.test delete2.test insert.test rollback.t...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite no_journal_error -description {\n  Run malloc.test and ioerr.test in no-journal mo...} -presql {\n  pragma journal_mode = persist\n} -files {\n  malloc.test ioerr.test\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite autovacuum_crash -description {\n  Run crash.test in autovacuum mode.\n} -presql {\n  pragma auto_vacuum = 1\n} -files crash.test")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite autovacuum_ioerr -description {\n  Run ioerr.test in autovacuum mode.\n} -presql {\n  pragma auto_vacuum = 1\n} -files ioerr.test")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite inmemory_journal -description {\n  Run tests with an in-memory journal file.\n} -presql {\n  pragma journal_mode = 'memory'\n} -files [test_set $::allquicktests -exclude {\n  # Exclude ...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite memsys3 -description {\n  Run tests using the allocator in mem3.c.\n} -files [test_set $::allquicktests -exclude {\n  autovacuum... -initialize {\n  catch {db close}\n  sqlite3_reset_auto_extension...} -shutdown {\n  catch {db close}\n  sqlite3_shutdown\n  sqlite3_c...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite memsys5 -description {\n  Run tests using the allocator in mem5.c.\n} -files [test_set $::allquicktests -exclude {\n  autovacuum... -initialize {\n  catch {db close}\n  sqlite3_shutdown\n  sqlite3_c...} -shutdown {\n  catch {db close}\n  sqlite3_shutdown\n  sqlite3_c...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite memsys5-2 -description {\n  Run tests using the allocator in mem5.c in a di...} -files {\n  select1.test \n} -initialize {\n  catch {db close}\n  sqlite3_shutdown\n  sqlite3_c...} -shutdown {\n  catch {db close}\n  sqlite3_shutdown\n  sqlite3_c...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite no_mutex_try -description {\n   The sqlite3_mutex_try() interface always fails...} -files [\n  test_set $::allquicktests -exclude mutex1.test... -initialize {\n  catch {db close}\n  sqlite3_shutdown\n  install_m...} -shutdown {\n  catch {db close}\n  catch {db2 close}\n  catch {d...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite safe_append -description {\n  Run some tests on a SAFE_APPEND file-system.\n} -initialize {\n  set ::G(perm:sqlite3_args) [list -vfs devsym]\n ...} -files [\n  test_set $::allquicktests shared_err.test\n]")
-	var perm_alt_pcache_testset = "\n  attach.test\n  delete.test delete2.test\n  index.test\n  insert.test insert2.test\n  join.test join2.test\n  rollback.test\n  select1.test select2.test\n  trans.test\n  update.test\n"
+	testsuitelist = tclListAppend(testsuitelist, "xxx")
+	// test_suite veryquick -prefix  -description {
+  "Very" quick test suite. Runs in minutes on a w...} -files [
+  test_set $allquicktests -exclude *malloc* *ioe... (unsupported command, not transpiled)
+	// test_suite shell -prefix  -description {
+  Run tests of the command-line shell
+} -files [
+  test_set [glob $testdir/shell*.test]
+] (unsupported command, not transpiled)
+	// test_suite extraquick -prefix  -description {
+  "Extra" quick test suite. Runs in a few minutes...} -files [
+  test_set $allquicktests -exclude *malloc* *ioe... (unsupported command, not transpiled)
+	// test_suite mmap -prefix mm- -description {
+  Similar to veryquick. Except with memory mappin...} -presql {
+  pragma mmap_size = 268435456;
+} -files [
+  test_set $allquicktests -exclude *malloc* *ioe... (unsupported command, not transpiled)
+	// test_suite valgrind -prefix  -description {
+  Run the "veryquick" test suite with a couple of...} -files [
+  test_set $allquicktests -exclude *malloc* *ioe... -initialize {
+  set ::G(valgrind) 1
+} -shutdown {
+  unset -nocomplain ::G(valgrind)
+} (unsupported command, not transpiled)
+	// test_suite valgrind-nolookaside -prefix  -description {
+  Run the "veryquick" test suite with a couple of...} -files [
+  test_set $allquicktests -exclude *malloc* *ioe... -initialize {
+  set ::G(valgrind) 1
+  catch {db close}
+  sqlite...} -shutdown {
+  catch {db close}
+  sqlite3_shutdown
+  sqlite3_c...} (unsupported command, not transpiled)
+	// test_suite quick -prefix  -description {
+  Quick test suite. Runs in around 10 minutes on ...} -files [
+  test_set $allquicktests
+] (unsupported command, not transpiled)
+	// test_suite full -prefix  -description {
+  Full test suite. Takes a long time.
+} -files [ 
+  test_set $alltests 
+] -initialize {
+  unset -nocomplain ::G(isquick)
+} (unsupported command, not transpiled)
+	// test_suite threads -prefix  -description {
+  All multi-threaded tests.
+} -files {
+  notify2.test   thread001.test thread002.test th...} (unsupported command, not transpiled)
+	// test_suite fts3 -prefix  -description {
+  All FTS3 tests except fts3rnd.test.
+} -files {
+  fts3aa.test fts3ab.test fts3ac.test fts3ad.test...} (unsupported command, not transpiled)
+	// test_suite fts5 -prefix  -description {
+  All FTS5 tests.
+} -files [glob -nocomplain $::testdir/../ext/fts5/test/*.te... (unsupported command, not transpiled)
+	// test_suite fts5-light -prefix  -description {
+  All FTS5 tests.
+} -files [
+  test_set \
+      [glob -nocomplain $::testdir/... (unsupported command, not transpiled)
+	// test_suite window -prefix  -description {
+  All window function related tests .
+} -files [
+  test_set [glob -nocomplain $::testdir/window*.... (unsupported command, not transpiled)
+	// test_suite lsm1 -prefix  -description {
+  All LSM1 tests.
+} -files [glob -nocomplain $::testdir/../ext/lsm1/test/*.te... (unsupported command, not transpiled)
+	// test_suite nofaultsim -prefix  -description {
+  "Very" quick test suite. Runs in less than 5 mi...} -files [
+  test_set $allquicktests -exclude *malloc* *ioe... -initialize {
+  catch {db close}
+  sqlite3_shutdown
+  install_m...} -shutdown {
+  unset -nocomplain ::G(valgrind)
+} (unsupported command, not transpiled)
+	// test_suite queryplanner -prefix  -description {
+  Tests of the query planner and query optimizer
+} -files {
+  alter2.test alter3.test alter4.test alter.test ...} (unsupported command, not transpiled)
+	// test_suite vfslog -prefix  -description {
+  "Vfslog" quick test suite. Like "veryquick" exc...} -files [
+  test_set $allquicktests -exclude *malloc* *ioe... (unsupported command, not transpiled)
+	// test_suite atomic-batch-write -prefix  -description {
+  Like veryquick.test, but must be run on a file-...} -files [
+  test_set $allquicktests -exclude *malloc* *ioe... -initialize {
+  if {[atomic_batch_write test.db]==0} {
+    erro...} (unsupported command, not transpiled)
+	testsuitelist = tclListAppend(testsuitelist, "xxx")
+	// test_suite coverage-wal -description {
+  Coverage tests for file wal.c.
+} -files {
+  wal.test wal2.test wal3.test wal4.test wal5.tes...} (unsupported command, not transpiled)
+	// test_suite coverage-pager -description {
+  Coverage tests for file pager.c.
+} -files {
+  pager1.test    pager2.test  pagerfault.test  pa...} (unsupported command, not transpiled)
+	// test_suite coverage-analyze -description {
+  Coverage tests for file analyze.c.
+} -files {
+  analyze3.test analyze4.test analyze5.test analy...} (unsupported command, not transpiled)
+	// test_suite coverage-sorter -description {
+  Coverage tests for file vdbesort.c.
+} -files {
+  sort.test sortfault.test
+} (unsupported command, not transpiled)
+	testsuitelist = tclListAppend(testsuitelist, "xxx")
+	// test_suite memsubsys1 -description {
+  Tests using pre-allocated page blocks
+} -files [
+  test_set $::allquicktests -exclude ioerr5.test... -initialize {
+  test_set_config_pagecache 4096 24
+  catch {db c...} -shutdown {
+  test_restore_config_pagecache
+  catch {db close...} (unsupported command, not transpiled)
+	// test_suite memsubsys2 -description {
+  Tests using small pre-allocated page blocks
+} -files [
+  test_set $::allquicktests -exclude ioerr5.test... -initialize {
+  test_set_config_pagecache 512 5
+  catch {db clo...} -shutdown {
+  test_restore_config_pagecache
+  catch {db close...} (unsupported command, not transpiled)
+	// test_suite nolookaside -description {
+  OOM tests with lookaside disabled
+} -initialize {
+  catch {db close}
+  sqlite3_shutdown
+  sqlite3_c...} -shutdown {
+  catch {db close}
+  sqlite3_shutdown
+  sqlite3_c...} -files $::allquicktests (unsupported command, not transpiled)
+	// test_suite singlethread -description {
+  Tests run in SQLITE_CONFIG_SINGLETHREAD mode
+} -initialize {
+  catch {db close}
+  sqlite3_shutdown
+  catch {sq...} -files {
+  delete.test   delete2.test  insert.test  rollba...} -shutdown {
+  catch {db close}
+  sqlite3_shutdown
+  catch {sq...} (unsupported command, not transpiled)
+	// test_suite nomutex -description {
+  Tests run with the SQLITE_OPEN_MULTITHREADED fl...} -initialize {
+  set ::G(perm:sqlite3_args) [list -fullmutex 0 -...} -files {
+  delete.test   delete2.test  insert.test  rollba...} (unsupported command, not transpiled)
+	// test_suite multithread -description {
+  Tests run in SQLITE_CONFIG_MULTITHREAD mode
+} -initialize {
+  catch {db close}
+  sqlite3_shutdown
+  catch {sq...} -files {
+  delete.test   delete2.test  insert.test  rollba...} -shutdown {
+  catch {db close}
+  sqlite3_shutdown
+  catch {sq...} (unsupported command, not transpiled)
+	// test_suite fullmutex -description {
+  Tests run in SQLITE_OPEN_FULLMUTEX mode
+} -initialize {
+  set ::G(perm:sqlite3_args) [list -nomutex 0 -fu...} -files {
+  delete.test   delete2.test  insert.test  rollba...} (unsupported command, not transpiled)
+	// test_suite onefile -description {
+  Run some tests using the "test_onefile.c" demo
+} -initialize {
+  set ::G(perm:sqlite3_args) [list -vfs fs]
+} -files {
+  conflict.test  insert.test   insert2.test  inse...} (unsupported command, not transpiled)
+	// test_suite utf16 -description {
+  Run tests using UTF-16 databases
+} -presql {
+  pragma encoding = 'UTF-16'
+} -files {
+    alter.test alter3.test
+    analyze.test analy...} (unsupported command, not transpiled)
+	// test_suite exclusive -description {
+  Run tests in exclusive locking mode.
+} -presql {
+  pragma locking_mode = 'exclusive'
+} -files {
+  rollback.test select1.test select2.test 
+  mall...} (unsupported command, not transpiled)
+	// test_suite exclusive-truncate -description {
+  Run tests in exclusive locking mode and truncat...} -presql {
+  pragma locking_mode = 'exclusive';
+  pragma jou...} -files {
+  delete.test delete2.test insert.test rollback.t...} (unsupported command, not transpiled)
+	// test_suite persistent_journal -description {
+  Run tests in persistent-journal mode.
+} -presql {
+  pragma journal_mode = persist
+} -files {
+  delete.test delete2.test insert.test rollback.t...} (unsupported command, not transpiled)
+	// test_suite truncate_journal -description {
+  Run tests in persistent-journal mode.
+} -presql {
+  pragma journal_mode = truncate
+} -files {
+  delete.test delete2.test insert.test rollback.t...} (unsupported command, not transpiled)
+	// test_suite persistent_journal_error -description {
+  Run malloc.test and ioerr.test in persistent-jo...} -presql {
+  pragma journal_mode = persist
+} -files {
+  malloc.test ioerr.test
+} (unsupported command, not transpiled)
+	// test_suite no_journal -description {
+  Run tests in no-journal mode.
+} -presql {
+  pragma journal_mode = persist
+} -files {
+  delete.test delete2.test insert.test rollback.t...} (unsupported command, not transpiled)
+	// test_suite no_journal_error -description {
+  Run malloc.test and ioerr.test in no-journal mo...} -presql {
+  pragma journal_mode = persist
+} -files {
+  malloc.test ioerr.test
+} (unsupported command, not transpiled)
+	// test_suite autovacuum_crash -description {
+  Run crash.test in autovacuum mode.
+} -presql {
+  pragma auto_vacuum = 1
+} -files crash.test (unsupported command, not transpiled)
+	// test_suite autovacuum_ioerr -description {
+  Run ioerr.test in autovacuum mode.
+} -presql {
+  pragma auto_vacuum = 1
+} -files ioerr.test (unsupported command, not transpiled)
+	// test_suite inmemory_journal -description {
+  Run tests with an in-memory journal file.
+} -presql {
+  pragma journal_mode = 'memory'
+} -files [test_set $::allquicktests -exclude {
+  # Exclude ... (unsupported command, not transpiled)
+	// test_suite memsys3 -description {
+  Run tests using the allocator in mem3.c.
+} -files [test_set $::allquicktests -exclude {
+  autovacuum... -initialize {
+  catch {db close}
+  sqlite3_reset_auto_extension...} -shutdown {
+  catch {db close}
+  sqlite3_shutdown
+  sqlite3_c...} (unsupported command, not transpiled)
+	// test_suite memsys5 -description {
+  Run tests using the allocator in mem5.c.
+} -files [test_set $::allquicktests -exclude {
+  autovacuum... -initialize {
+  catch {db close}
+  sqlite3_shutdown
+  sqlite3_c...} -shutdown {
+  catch {db close}
+  sqlite3_shutdown
+  sqlite3_c...} (unsupported command, not transpiled)
+	// test_suite memsys5-2 -description {
+  Run tests using the allocator in mem5.c in a di...} -files {
+  select1.test 
+} -initialize {
+  catch {db close}
+  sqlite3_shutdown
+  sqlite3_c...} -shutdown {
+  catch {db close}
+  sqlite3_shutdown
+  sqlite3_c...} (unsupported command, not transpiled)
+	// test_suite no_mutex_try -description {
+   The sqlite3_mutex_try() interface always fails...} -files [
+  test_set $::allquicktests -exclude mutex1.test... -initialize {
+  catch {db close}
+  sqlite3_shutdown
+  install_m...} -shutdown {
+  catch {db close}
+  catch {db2 close}
+  catch {d...} (unsupported command, not transpiled)
+	// test_suite safe_append -description {
+  Run some tests on a SAFE_APPEND file-system.
+} -initialize {
+  set ::G(perm:sqlite3_args) [list -vfs devsym]
+ ...} -files [
+  test_set $::allquicktests shared_err.test
+] (unsupported command, not transpiled)
+	perm_alt_pcache_testset = "\n  attach.test\n  delete.test delete2.test\n  index.test\n  insert.test insert2.test\n  join.test join2.test\n  rollback.test\n  select1.test select2.test\n  trans.test\n  update.test\n"
 	_ = perm_alt_pcache_testset // suppress unused warning
 	for _, discard_rate := range tclSplitList("0 10 50 90 100") {
 	_ = discard_rate // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "test_suite pcache${discard_rate} -description \n    Alternative pcache implementation with ${disc... -initialize \n    catch {db close}\n    sqlite3_shutdown\n    sql... -shutdown {\n    catch {db close}\n    sqlite3_shutdown\n    sql...} -files $ {perm-alt-pcache-testset}")
+		// test_suite pcache${discard_rate} -description 
+    Alternative pcache implementation with ${disc... -initialize 
+    catch {db close}
+    sqlite3_shutdown
+    sql... -shutdown {
+    catch {db close}
+    sqlite3_shutdown
+    sql...} -files $ {perm-alt-pcache-testset} (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite journaltest -description {\n  Check that pages are synced before being writte...} -initialize {\n  catch {db close}\n  register_jt_vfs -default \"\"\n} -shutdown {\n  unregister_jt_vfs\n} -files [test_set $::allquicktests -exclude {\n  wal* incrv...")
+	// test_suite journaltest -description {
+  Check that pages are synced before being writte...} -initialize {
+  catch {db close}
+  register_jt_vfs -default ""
+} -shutdown {
+  unregister_jt_vfs
+} -files [test_set $::allquicktests -exclude {
+  wal* incrv... (unsupported command, not transpiled)
 	if tclBool("info commands register_demovfs" + " != \"\"") {
-		t.Errorf("TODO: %s not implemented in frigolite", "test_suite demovfs -description {\n    Check that the demovfs (code in test_demovfs....} -initialize {\n    register_demovfs\n  } -shutdown {\n    unregister_demovfs\n  } -files {\n    insert.test   insert2.test  insert3.test roll...}")
+		// test_suite demovfs -description {
+    Check that the demovfs (code in test_demovfs....} -initialize {
+    register_demovfs
+  } -shutdown {
+    unregister_demovfs
+  } -files {
+    insert.test   insert2.test  insert3.test roll...} (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite wal -description {\n  Run tests with journal_mode=WAL\n} -initialize {\n  set ::G(savepoint6_iterations) 100\n} -shutdown {\n  unset -nocomplain ::G(savepoint6_iterations)\n} -files {\n  savepoint.test     savepoint2.test     savepoin...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite rtree -description {\n  All R-tree related tests. Provides coverage of ...} -files [glob -nocomplain $::testdir/../ext/rtree/*.test]")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite session -description {\n  All session module related tests. \n} -files [glob -nocomplain $::testdir/../ext/session/*.test...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite session_eec -description {\n  All session module related tests with sqlite3_e...} -files [\n  glob -nocomplain $::testdir/../ext/session/*.t... -dbconfig {\n  sqlite3_extended_result_codes $::dbhandle 1\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite session_strm -description {\n  All session module related tests using the stre...} -files [\n  glob -nocomplain $::testdir/../ext/session/*.t... -dbconfig {\n  set ::sqlite3session_streams 1\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite rbu -description {\n  RBU tests.\n} -files [\n  test_set [glob -nocomplain $::testdir/../ext/r...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite no_optimization -description {\n  Run test scripts with optimizations disabled us...} -files [\n  test_set \\\n    [glob -nocomplain $::testdir/wi... -dbconfig {\n  optimization_control $::dbhandle all 0\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite prepare -description {\n  Run tests with the db connection using sqlite3_...} -dbconfig {\n  $::dbhandle version -use-legacy-prepare 1\n  #$:...} -files [\n  test_set $allquicktests -exclude *malloc* *ioe...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite sorterref -prefix  -description {\n  Run the \"veryquick\" test suite with SQLITE_CONF...} -files [\n  test_set $allquicktests -exclude *malloc* *ioe... -initialize {\n  catch {db close}\n  sqlite3_shutdown\n  sqlite3_c...} -shutdown {\n  catch {db close}\n  sqlite3_shutdown\n  sqlite3_c...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite maindbname -prefix  -description {\n  Run the \"veryquick\" test suite with SQLITE_DBCO...} -files [\n  test_set $allquicktests -exclude *malloc* *ioe... -dbconfig {\n  dbconfig_maindbname_icecube $::dbhandle\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_suite win_unc_locking -prefix  -description {\n  Run the \"wal*\" tests with UNC style single fd l...} -files [\n  test_set                                      ... -initialize {\n  set sqlite3_win_test_unc_locking 1\n} -shutdown {\n  set sqlite3_win_test_unc_locking 0\n}")
+	// test_suite wal -description {
+  Run tests with journal_mode=WAL
+} -initialize {
+  set ::G(savepoint6_iterations) 100
+} -shutdown {
+  unset -nocomplain ::G(savepoint6_iterations)
+} -files {
+  savepoint.test     savepoint2.test     savepoin...} (unsupported command, not transpiled)
+	// test_suite rtree -description {
+  All R-tree related tests. Provides coverage of ...} -files [glob -nocomplain $::testdir/../ext/rtree/*.test] (unsupported command, not transpiled)
+	// test_suite session -description {
+  All session module related tests. 
+} -files [glob -nocomplain $::testdir/../ext/session/*.test... (unsupported command, not transpiled)
+	// test_suite session_eec -description {
+  All session module related tests with sqlite3_e...} -files [
+  glob -nocomplain $::testdir/../ext/session/*.t... -dbconfig {
+  sqlite3_extended_result_codes $::dbhandle 1
+} (unsupported command, not transpiled)
+	// test_suite session_strm -description {
+  All session module related tests using the stre...} -files [
+  glob -nocomplain $::testdir/../ext/session/*.t... -dbconfig {
+  set ::sqlite3session_streams 1
+} (unsupported command, not transpiled)
+	// test_suite rbu -description {
+  RBU tests.
+} -files [
+  test_set [glob -nocomplain $::testdir/../ext/r... (unsupported command, not transpiled)
+	// test_suite no_optimization -description {
+  Run test scripts with optimizations disabled us...} -files [
+  test_set \
+    [glob -nocomplain $::testdir/wi... -dbconfig {
+  optimization_control $::dbhandle all 0
+} (unsupported command, not transpiled)
+	// test_suite prepare -description {
+  Run tests with the db connection using sqlite3_...} -dbconfig {
+  $::dbhandle version -use-legacy-prepare 1
+  #$:...} -files [
+  test_set $allquicktests -exclude *malloc* *ioe... (unsupported command, not transpiled)
+	// test_suite sorterref -prefix  -description {
+  Run the "veryquick" test suite with SQLITE_CONF...} -files [
+  test_set $allquicktests -exclude *malloc* *ioe... -initialize {
+  catch {db close}
+  sqlite3_shutdown
+  sqlite3_c...} -shutdown {
+  catch {db close}
+  sqlite3_shutdown
+  sqlite3_c...} (unsupported command, not transpiled)
+	// test_suite maindbname -prefix  -description {
+  Run the "veryquick" test suite with SQLITE_DBCO...} -files [
+  test_set $allquicktests -exclude *malloc* *ioe... -dbconfig {
+  dbconfig_maindbname_icecube $::dbhandle
+} (unsupported command, not transpiled)
+	// test_suite win_unc_locking -prefix  -description {
+  Run the "wal*" tests with UNC style single fd l...} -files [
+  test_set                                      ... -initialize {
+  set sqlite3_win_test_unc_locking 1
+} -shutdown {
+  set sqlite3_win_test_unc_locking 0
+} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	if tclBool("file tail $argv0" + " == \"permutations.test\"") {
 		// proc definition (not transpiled)
-		t.Errorf("TODO: %s not implemented in frigolite", "main $argv")
+		// main $argv (unsupported command, not transpiled)
 		var argv = ""
 		_ = argv // suppress unused warning
 	}

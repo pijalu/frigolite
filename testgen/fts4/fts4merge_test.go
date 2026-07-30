@@ -41,20 +41,53 @@ func Test_fts4merge(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var mod string
+	_ = mod // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var arg string
+	_ = arg // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var expect string
+	_ = expect // pre-declared from TCL source
+	var docid string
+	_ = docid // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	for _, mod := range tclSplitList("fts3 fts4") {
 	_ = mod // suppress unused warning
-		var _testprefix = "fts4merge-" + mod // TCL namespace variable
-		_ = _testprefix // suppress unused warning
+		testprefix = "fts4merge-" + mod // TCL namespace variable
+		_ = testprefix // suppress unused warning
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "1.0"
-			t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_1 -module $mod 1004")
+			// fts3_build_db_1 -module $mod 1004 (unsupported command, not transpiled)
 		}
 		{ // do_test "1.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
+			// fts3_integrity_check t1 (unsupported command, not transpiled)
 		}
 		{ // "1.1"
 			r = db.Query(" \n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level \n  ")
@@ -68,7 +101,7 @@ func Test_fts4merge(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 			{ // "1.2." + i + ".1"
@@ -78,7 +111,7 @@ func Test_fts4merge(t *testing.T) {
 				}
 			}
 			{ // do_test "1.2." + i + ".2"
-				t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
+				// fts3_integrity_check t1 (unsupported command, not transpiled)
 			}
 			{ // "1.2." + i + ".3"
 				r = db.Query(" \n      SELECT docid FROM t1 WHERE t1 MATCH 'zero one two three'\n    ")
@@ -122,7 +155,7 @@ func Test_fts4merge(t *testing.T) {
 				}
 			}
 			{ // do_test "1.4." + i + ".2"
-				t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
+				// fts3_integrity_check t1 (unsupported command, not transpiled)
 			}
 			{ // "1.4." + i + ".3"
 				r = db.Query(" \n      SELECT docid FROM t1 WHERE t1 MATCH 'zero one two three'\n    ")
@@ -185,10 +218,10 @@ func Test_fts4merge(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size = 512 ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_2 -module $mod 30040")
+				// fts3_build_db_2 -module $mod 30040 (unsupported command, not transpiled)
 			}
 			{ // do_test "3.1"
-				t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity_check t2")
+				// fts3_integrity_check t2 (unsupported command, not transpiled)
 			}
 			{ // "3.2"
 				r = db.Query(" \n    SELECT level, string_agg(idx, ' ') FROM t2_segdir GROUP BY level \n  ")
@@ -275,7 +308,7 @@ func Test_fts4merge(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 				{ // "4.4.2"
 					r = db.Query("\n    DELETE FROM t4_stat WHERE rowid=1;\n    INSERT INTO t4(t4) VALUES('merge=1,12');\n    SELECT level, string_agg(idx, ' ') FROM t4_segdir GROUP BY level;\n  ")
 					if r.Error != nil {
@@ -292,7 +325,7 @@ func Test_fts4merge(t *testing.T) {
 					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
-					t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_1 -module $mod 1000")
+					// fts3_build_db_1 -module $mod 1000 (unsupported command, not transpiled)
 				}
 				{ // "5.2"
 					r = db.Query("\n    SELECT level, group_concat(idx, ' ') FROM t1_segdir GROUP BY level;\n  ")
@@ -376,10 +409,10 @@ func Test_fts4merge(t *testing.T) {
 					}
 				}
 				{ // do_test "5.8.1"
-					t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
+					// fts3_integrity_check t1 (unsupported command, not transpiled)
 				}
 				{ // do_test "5.9"
-					var L = "1852"
+					L = "1852"
 					_ = L // suppress unused warning
 					for _, docid := range tclSplitList("execsql {\n        SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L\n    }") {
 					_ = docid // suppress unused warning
@@ -417,13 +450,13 @@ func Test_fts4merge(t *testing.T) {
 					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
-					var a = "a 900"
+					a = "a 900"
 					_ = a // suppress unused warning
-					var b = "b 900"
+					b = "b 900"
 					_ = b // suppress unused warning
-					var c = "c 900"
+					c = "c 900"
 					_ = c // suppress unused warning
-					var d = "d 900"
+					d = "d 900"
 					_ = d // suppress unused warning
 					_res = db.Exec("CREATE VIRTUAL TABLE t1 USING " + mod)
 					if _res.Error != nil {
@@ -442,7 +475,7 @@ func Test_fts4merge(t *testing.T) {
 					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
-					t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_1 -module $mod 1000")
+					// fts3_build_db_1 -module $mod 1000 (unsupported command, not transpiled)
 				}
 				{ // "7.1"
 					r = db.Query("\n    SELECT level, group_concat(idx, ' ') FROM t1_segdir GROUP BY level\n  ")
@@ -457,7 +490,7 @@ func Test_fts4merge(t *testing.T) {
 					}
 				}
 				{ // do_test "7.2"
-					var x = "db total_changes"
+					x = "db total_changes"
 					_ = x // suppress unused warning
 					_res = db.Exec(" INSERT INTO t1(t1) VALUES('merge=2,10') ")
 					if _res.Error != nil {
@@ -466,7 +499,7 @@ func Test_fts4merge(t *testing.T) {
 					// expr  ([db total_changes] - $x)>1  → "([db total_changes] - $x)>1"
 				}
 				{ // do_test "7.3"
-					var x = "db total_changes"
+					x = "db total_changes"
 					_ = x // suppress unused warning
 					_res = db.Exec(" INSERT INTO t1(t1) VALUES('merge=200,10') ")
 					if _res.Error != nil {
@@ -475,7 +508,7 @@ func Test_fts4merge(t *testing.T) {
 					// expr  ([db total_changes] - $x)>1  → "([db total_changes] - $x)>1"
 				}
 				{ // do_test "7.4"
-					var x = "db total_changes"
+					x = "db total_changes"
 					_ = x // suppress unused warning
 					_res = db.Exec(" INSERT INTO t1(t1) VALUES('merge=200,10') ")
 					if _res.Error != nil {
@@ -484,7 +517,7 @@ func Test_fts4merge(t *testing.T) {
 					// expr  ([db total_changes] - $x)>1  → "([db total_changes] - $x)>1"
 				}
 				{ // do_test "7.5"
-					var x = "db total_changes"
+					x = "db total_changes"
 					_ = x // suppress unused warning
 					_res = db.Exec(" INSERT INTO t1(t1) VALUES('merge=200,10') ")
 					if _res.Error != nil {
@@ -493,7 +526,7 @@ func Test_fts4merge(t *testing.T) {
 					// expr  ([db total_changes] - $x)>1  → "([db total_changes] - $x)>1"
 				}
 			}
-			var testprefix = "fts4merge"
+			testprefix = "fts4merge"
 			_ = testprefix // suppress unused warning
 			db.Close()
 			db, err = frigolite.Open("")

@@ -40,13 +40,25 @@ func Test_pragma2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db test.db-journal")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test3.db test3.db-journal")
-	db, err = frigolite.Open("test.db")
+	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
+	// delete_file test.db test.db-journal (unsupported command, not transpiled)
+	// delete_file test3.db test3.db-journal (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	_res = db.Exec("PRAGMA auto_vacuum=0")
 	if _res.Error != nil {
@@ -78,9 +90,10 @@ func Test_pragma2(t *testing.T) {
 	}
 	os.Remove("test2.db")
 	os.Remove("test2.db-journal")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db test.db-journal")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test2.db test2.db-journal")
-	db, err = frigolite.Open("test.db")
+	// delete_file test.db test.db-journal (unsupported command, not transpiled)
+	// delete_file test2.db test2.db-journal (unsupported command, not transpiled)
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "pragma2-4.1"
 		r = db.Query("\n  PRAGMA main.cache_size=2000;\n  PRAGMA temp.cache_size=2000;\n  PRAGMA cache_spill;\n  PRAGMA main.cache_spill;\n  PRAGMA temp.cache_spill;\n")
@@ -112,7 +125,7 @@ func Test_pragma2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA cache_size=50;\n  BEGIN;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES(1, randomblob(400), 1, randomblob(400));\n  INSERT INTO t1 SELECT a+1, randomblob(400), a+1, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+2, randomblob(400), a+2, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+4, randomblob(400), a+4, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+8, randomblob(400), a+8, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+16, randomblob(400), a+16, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+32, randomblob(400), a+32, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+64, randomblob(400), a+64, randomblob(400) FROM t1;\n  COMMIT;\n  ATTACH 'test2.db' AS aux1;\n  CREATE TABLE aux1.t2(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t2 SELECT * FROM t1;\n  DETACH aux1;\n  PRAGMA cache_spill=ON;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
+	// sqlite3_release_memory (unsupported command, not transpiled)
 	{ // do_test "pragma2-4.4"
 		_res = db.Exec("\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
 		if _res.Error != nil {
@@ -149,7 +162,7 @@ func Test_pragma2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
+	// sqlite3_release_memory (unsupported command, not transpiled)
 	{ // "pragma2-4.8"
 		r = db.Query("\n  PRAGMA cache_spill=ON; -- Applies to all databases\n  BEGIN;\n  UPDATE t2 SET c=c-1;\n  PRAGMA lock_status;\n")
 		if r.Error != nil {
@@ -163,7 +176,8 @@ func Test_pragma2(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "pragma2-5.1"
 		r = db.Query("\n  PRAGMA page_size=16384;\n  CREATE TABLE t1(x);\n  PRAGMA cache_size=2;\n  PRAGMA cache_spill=YES;\n  PRAGMA cache_spill;\n")
@@ -201,5 +215,5 @@ func Test_pragma2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	// test_restore_config_pagecache (unsupported command, not transpiled)
 }

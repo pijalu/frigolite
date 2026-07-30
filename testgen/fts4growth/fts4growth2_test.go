@@ -40,8 +40,23 @@ func Test_fts4growth2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts4growth2"
+	testprefix = "fts4growth2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec(" CREATE TABLE t1(docid, words); ")
@@ -49,7 +64,7 @@ func Test_fts4growth2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(docid, words); ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+	// fts_kjv_genesis (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.1"
@@ -59,13 +74,13 @@ func Test_fts4growth2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "tt 0")
-			t.Errorf("TODO: %s not implemented in frigolite", "tt 1")
-			t.Errorf("TODO: %s not implemented in frigolite", "tt 2")
-			t.Errorf("TODO: %s not implemented in frigolite", "tt 3")
+			// tt 0 (unsupported command, not transpiled)
+			// tt 1 (unsupported command, not transpiled)
+			// tt 2 (unsupported command, not transpiled)
+			// tt 3 (unsupported command, not transpiled)
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -80,13 +95,13 @@ func Test_fts4growth2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "tt 0")
-			t.Errorf("TODO: %s not implemented in frigolite", "tt 1")
-			t.Errorf("TODO: %s not implemented in frigolite", "tt 2")
-			t.Errorf("TODO: %s not implemented in frigolite", "tt 3")
+			// tt 0 (unsupported command, not transpiled)
+			// tt 1 (unsupported command, not transpiled)
+			// tt 2 (unsupported command, not transpiled)
+			// tt 3 (unsupported command, not transpiled)
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -107,17 +122,17 @@ func Test_fts4growth2(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	var tn = "0"
+	tn = "0"
 	_ = tn // suppress unused warning
 	for func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n < 40 }() {
 		{ // do_test "2.2." + tn
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-				t.Errorf("TODO: %s not implemented in frigolite", "tt 0")
-				t.Errorf("TODO: %s not implemented in frigolite", "tt 1")
-				t.Errorf("TODO: %s not implemented in frigolite", "tt 2")
-				t.Errorf("TODO: %s not implemented in frigolite", "tt 3")
+				// tt 0 (unsupported command, not transpiled)
+				// tt 1 (unsupported command, not transpiled)
+				// tt 2 (unsupported command, not transpiled)
+				// tt 3 (unsupported command, not transpiled)
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)

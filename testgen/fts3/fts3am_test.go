@@ -39,6 +39,13 @@ func Test_fts3am(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(col_a, col_b);\n\n  INSERT INTO t1(rowid, col_a, col_b) VALUES(1, 'testing', 'testing');\n  INSERT INTO t1(rowid, col_a, col_b) VALUES(2, 'only a', null);\n  INSERT INTO t1(rowid, col_a, col_b) VALUES(3, null, 'only b');\n  INSERT INTO t1(rowid, col_a, col_b) VALUES(4, null, null);\n")
 	if _res.Error != nil {

@@ -40,8 +40,17 @@ func Test_trustschema1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "trustschema1"
+	testprefix = "trustschema1"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "1.100"

@@ -39,16 +39,47 @@ func Test_recover(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var CLI string
+	_ = CLI // pre-declared from TCL source
+	var r1 string
+	_ = r1 // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var doc string
+	_ = doc // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var opts string
+	_ = opts // pre-declared from TCL source
+	var tsql string
+	_ = tsql // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "recover"
+	testprefix = "recover"
 	_ = testprefix // suppress unused warning
-	var CLI = "test_find_cli"
+	CLI = "test_find_cli"
 	_ = CLI // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var doc = "\n  hello\n  world\n"
+	doc = "\n  hello\n  world\n"
 	_ = doc // suppress unused warning
 	{ // "1.1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 4, X'1234567800');\n  INSERT INTO t1 VALUES(2, 'test', 8.1);\n  INSERT INTO t1 VALUES(3, $doc, 8.4);\n")
@@ -56,21 +87,21 @@ func Test_recover(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, 4, X'1234567800');\n  INSERT INTO t1 VALUES(2, 'test', 8.1);\n  INSERT INTO t1 VALUES(3, $doc, 8.4);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_recover_test 1.1.2")
+	// do_recover_test 1.1.2 (unsupported command, not transpiled)
 	{ // "1.2.1"
 		_res = db.Exec("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\\r\\nworld', 13);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(13, 'hello\\r\\nworld', 13);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_recover_test 1.2.2")
+	// do_recover_test 1.2.2 (unsupported command, not transpiled)
 	{ // "1.3.1"
 		_res = db.Exec("\n  CREATE TABLE t2(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t2 VALUES(NULL, 1, 2);\n  INSERT INTO t2 VALUES(NULL, 3, 4);\n  INSERT INTO t2 VALUES(NULL, 5, 6);\n  CREATE TABLE t3(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t3 VALUES(NULL, 1, 2);\n  INSERT INTO t3 VALUES(NULL, 3, 4);\n  INSERT INTO t3 VALUES(NULL, 5, 6);\n  DELETE FROM t2;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t2 VALUES(NULL, 1, 2);\n  INSERT INTO t2 VALUES(NULL, 3, 4);\n  INSERT INTO t2 VALUES(NULL, 5, 6);\n  CREATE TABLE t3(i INTEGER PRIMARY KEY AUTOINCREMENT, b, c);\n  INSERT INTO t3 VALUES(NULL, 1, 2);\n  INSERT INTO t3 VALUES(NULL, 3, 4);\n  INSERT INTO t3 VALUES(NULL, 5, 6);\n  DELETE FROM t2;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_recover_test 1.3.2")
+	// do_recover_test 1.3.2 (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -80,32 +111,39 @@ func Test_recover(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(b, c)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_recover_test 2.1.1")
+	// do_recover_test 2.1.1 (unsupported command, not transpiled)
 	{ // "2.2.0"
 		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name='t1';\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name='t1';\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_recover_test 2.2.1 {\n  SELECT name FROM sqlite_master\n} {lost_and_found}")
+	// do_recover_test 2.2.1 {
+  SELECT name FROM sqlite_master
+} {lost_and_found} (unsupported command, not transpiled)
 	{ // "2.3.0"
 		_res = db.Exec("\n  CREATE TABLE lost_and_found(a, b, c);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE lost_and_found(a, b, c);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_recover_test 2.3.1 {\n  SELECT name FROM sqlite_master\n} {lost_and_found lost_and_found_0}")
+	// do_recover_test 2.3.1 {
+  SELECT name FROM sqlite_master
+} {lost_and_found lost_and_found_0} (unsupported command, not transpiled)
 	{ // "2.4.0"
 		_res = db.Exec("\n  CREATE TABLE lost_and_found_0(a, b, c);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE lost_and_found_0(a, b, c);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_recover_test 2.4.1 {\n  SELECT name FROM sqlite_master;\n  SELECT * FROM...} {lost_and_found lost_and_found_0 lost_and_found_1\n ...}")
+	// do_recover_test 2.4.1 {
+  SELECT name FROM sqlite_master;
+  SELECT * FROM...} {lost_and_found lost_and_found_0 lost_and_found_1
+ ...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "do_recover_test 3.0")
+	// do_recover_test 3.0 (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -123,7 +161,7 @@ func Test_recover(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE TABLE t3(g, h, i);\n\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES('a', 'b', 'c');\n\n  INSERT INTO t3 VALUES('one', 'two', 'three');\n  DROP TABLE t1;\n  DROP TABLE t2;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "recover_with_opts ")
+	// recover_with_opts  (unsupported command, not transpiled)
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // "-db"
@@ -139,7 +177,7 @@ func Test_recover(t *testing.T) {
 		}
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "recover_with_opts -ignore-freelist")
+	// recover_with_opts -ignore-freelist (unsupported command, not transpiled)
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // "-db"

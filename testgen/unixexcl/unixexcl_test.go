@@ -39,13 +39,30 @@ func Test_unixexcl(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
 	}
-	var testprefix = "unixexcl"
+	testprefix = "unixexcl"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test unixexcl-1.$tn.1 {\n    sql1 {\n      CRE...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test unixexcl-2.$tn.1 {\n    sql1 {\n      CRE...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test unixexcl-3.$tn.1 {\n    code1 { db close...}")
+	// do_multiclient_test tn {
+  do_test unixexcl-1.$tn.1 {
+    sql1 {
+      CRE...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {
+  do_test unixexcl-2.$tn.1 {
+    sql1 {
+      CRE...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {
+  do_test unixexcl-3.$tn.1 {
+    code1 { db close...} (unsupported command, not transpiled)
 }

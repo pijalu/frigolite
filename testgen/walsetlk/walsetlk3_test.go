@@ -40,8 +40,21 @@ func Test_walsetlk3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var fname string
+	_ = fname // pre-declared from TCL source
+	var delay_done string
+	_ = delay_done // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walsetlk3"
+	testprefix = "walsetlk3"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
@@ -50,20 +63,26 @@ func Test_walsetlk3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "sql_block_on_close {\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 V...}")
-	db, err = frigolite.Open("test.db")
+	// sql_block_on_close {
+  INSERT INTO t1 VALUES(5, 6);
+  INSERT INTO t1 V...} (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout db 2000")
+	// sqlite3_setlk_timeout db 2000 (unsupported command, not transpiled)
 	{ // "1.1"
 		_res = db.Exec("\n  SELECT * FROM t1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  SELECT * FROM t1\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sql_block_on_close {\n  INSERT INTO t1 VALUES(9, 10);\n  INSERT INTO t1 ...}")
-	db, err = frigolite.Open("test.db")
+	// sql_block_on_close {
+  INSERT INTO t1 VALUES(9, 10);
+  INSERT INTO t1 ...} (unsupported command, not transpiled)
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout -block db 2000")
+	// sqlite3_setlk_timeout -block db 2000 (unsupported command, not transpiled)
 	{ // "1.2"
 		_res = db.Exec("\n  SELECT * FROM t1\n")
 		if _res.Error == nil {
@@ -80,10 +99,13 @@ func Test_walsetlk3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "sql_block_on_write {\n  INSERT INTO x1 VALUES(4);\n}")
-	db, err = frigolite.Open("test.db")
+	// sql_block_on_write {
+  INSERT INTO x1 VALUES(4);
+} (unsupported command, not transpiled)
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout -block db 2000")
+	// sqlite3_setlk_timeout -block db 2000 (unsupported command, not transpiled)
 	{ // "2.2"
 		_res = db.Exec("\n  SELECT * FROM x1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {

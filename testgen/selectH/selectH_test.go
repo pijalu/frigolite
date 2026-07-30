@@ -39,8 +39,19 @@ func Test_selectH(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var selectH_cnt string
+	_ = selectH_cnt // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var amt string
+	_ = amt // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "selectH"
+	testprefix = "selectH"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(\n     c0,  c1,  c2,  c3,  c4,  c5,  c6,  c7,  c8,  c9,\n     c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n     c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n     c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n     c40, c41, c42, c43, c44, c45, c46, c47, c48, c49,\n     c50, c51, c52, c53, c54, c55, c56, c57, c58, c59,\n     c60, c61, c62, c63, c64, c65\n  );\n  INSERT INTO t1 VALUES(\n     0,  1,  2,  3,  4,  5,  6,  7,  8,  9,\n     10, 11, 12, 13, 14, 15, 16, 17, 18, 19,\n     20, 21, 22, 23, 24, 25, 26, 27, 28, 29,\n     30, 31, 32, 33, 34, 35, 36, 37, 38, 39,\n     40, 41, 42, 43, 44, 45, 46, 47, 48, 49,\n     50, 51, 52, 53, 54, 55, 56, 57, 58, 59,\n     60, 61, 62, 63, 64, 65\n  );\n  CREATE INDEX t1c60 ON t1(c60);\n")
@@ -48,7 +59,7 @@ func Test_selectH(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n     c0,  c1,  c2,  c3,  c4,  c5,  c6,  c7,  c8,  c9,\n     c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n     c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n     c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n     c40, c41, c42, c43, c44, c45, c46, c47, c48, c49,\n     c50, c51, c52, c53, c54, c55, c56, c57, c58, c59,\n     c60, c61, c62, c63, c64, c65\n  );\n  INSERT INTO t1 VALUES(\n     0,  1,  2,  3,  4,  5,  6,  7,  8,  9,\n     10, 11, 12, 13, 14, 15, 16, 17, 18, 19,\n     20, 21, 22, 23, 24, 25, 26, 27, 28, 29,\n     30, 31, 32, 33, 34, 35, 36, 37, 38, 39,\n     40, 41, 42, 43, 44, 45, 46, 47, 48, 49,\n     50, 51, 52, 53, 54, 55, 56, 57, 58, 59,\n     60, 61, 62, 63, 64, 65\n  );\n  CREATE INDEX t1c60 ON t1(c60);\n")
 		}
 	}
-	var selectH_cnt = "0"
+	selectH_cnt = "0"
 	_ = selectH_cnt // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.2"
@@ -64,7 +75,7 @@ func Test_selectH(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3"
-		_ = _selectH_cnt // TCL namespace variable (query)
+		_ = selectH_cnt // TCL namespace variable (query)
 	}
 	{ // "2.1"
 		r = db.Query("\n  SELECT a FROM (\n    SELECT counter(1) AS cnt, c15 AS a, *, c62 AS b FROM t1\n    UNION ALL\n    SELECT counter(1) AS cnt, c16 AS a, *, c61 AS b FROM t1\n    ORDER BY b\n  );\n")
@@ -79,7 +90,7 @@ func Test_selectH(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		_ = _selectH_cnt // TCL namespace variable (query)
+		_ = selectH_cnt // TCL namespace variable (query)
 	}
 	{ // "3.1"
 		r = db.Query("\n  CREATE VIEW v1 AS\n    SELECT c16 AS a, *, counter(1) AS x FROM t1\n    UNION ALL\n    SELECT c17 AS a, *, counter(1) AS x FROM t1\n    UNION ALL\n    SELECT c18 AS a, *, counter(1) AS x FROM t1\n    UNION ALL\n    SELECT c19 AS a, *, counter(1) AS x FROM t1;\n  SELECT count(*) FROM v1 WHERE c60=60;\n")
@@ -94,7 +105,7 @@ func Test_selectH(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2"
-		_ = _selectH_cnt // TCL namespace variable (query)
+		_ = selectH_cnt // TCL namespace variable (query)
 	}
 	{ // "3.3"
 		r = db.Query("\n  SELECT count(a) FROM v1 WHERE c60=60;\n")
@@ -121,7 +132,7 @@ func Test_selectH(t *testing.T) {
 		}
 	}
 	{ // do_test "3.5"
-		_ = _selectH_cnt // TCL namespace variable (query)
+		_ = selectH_cnt // TCL namespace variable (query)
 	}
 	{ // "3.6"
 		r = db.Query("\n  SELECT x FROM v1 WHERE c60=60;\n")
@@ -136,7 +147,7 @@ func Test_selectH(t *testing.T) {
 		}
 	}
 	{ // do_test "3.7"
-		_ = _selectH_cnt // TCL namespace variable (query)
+		_ = selectH_cnt // TCL namespace variable (query)
 	}
 	{ // "4.1"
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  SELECT 1 FROM (SELECT DISTINCT name COLLATE rtrim FROM sqlite_schema\n                 UNION ALL SELECT a FROM t1);\n")

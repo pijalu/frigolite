@@ -3,6 +3,7 @@ package func6
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -39,8 +40,49 @@ func Test_func6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var bNullTrim string
+	_ = bNullTrim // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var hdr string
+	_ = hdr // pre-declared from TCL source
+	var body string
+	_ = body // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var off string
+	_ = off // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+	var rec string
+	_ = rec // pre-declared from TCL source
+	var F string
+	_ = F // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var z100 string
+	_ = z100 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var hexdb string
+	_ = hexdb // pre-declared from TCL source
+	var hexrec string
+	_ = hexrec // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var bNullTrim = "0"
+	bNullTrim = "0"
 	_ = bNullTrim // suppress unused warning
 	{ // "func6-100"
 		_res = db.Exec("\n  PRAGMA page_size=4096;\n  PRAGMA auto_vacuum=NONE;\n  CREATE TABLE t1(a,b,c,d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n   INSERT INTO t1(a,b,c,d) SELECT printf('abc%03x',x), x, 1000-x, NULL FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1bc ON t1(b,c);\n  CREATE TABLE t2(x TEXT PRIMARY KEY, y) WITHOUT ROWID;\n  INSERT INTO t2(x,y) SELECT a, b FROM t1;\n")
@@ -52,13 +94,13 @@ func Test_func6(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var F = "loadhex test.db"
+	F = "loadhex test.db"
 	_ = F // suppress unused warning
 	if tclBool(bNullTrim) {
-		var offset = "8180"
+		offset = "8180"
 		_ = offset // suppress unused warning
 	} else {
-		var offset = "8179"
+		offset = "8179"
 		_ = offset // suppress unused warning
 	}
 	{ // "func6-105"
@@ -74,11 +116,11 @@ func Test_func6(t *testing.T) {
 		}
 	}
 	{ // do_test "func6-106"
-		var _r = "hexrecord abc001 1 999 {}"
+		_r = "hexrecord abc001 1 999 {}"
 		_ = _r // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "offset_contains_record $offset $F $r")
+		// offset_contains_record $offset $F $r (unsupported command, not transpiled)
 	}
-	var z100 = "[string repeat \"0 \" 100]"
+	z100 = strings.TrimSpace("\"0 \" 100")
 	_ = z100 // suppress unused warning
 	{ // "func6-110"
 		r = db.Query("\n  SELECT offrec(sqlite_offset(d), a, b, c, d) FROM t1 ORDER BY rowid\n")

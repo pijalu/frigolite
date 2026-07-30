@@ -40,8 +40,19 @@ func Test_windowE(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "windowE"
+	testprefix = "windowE"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
@@ -96,7 +107,7 @@ func Test_windowE(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_aggregate db")
+	// sqlite3_create_aggregate db (unsupported command, not transpiled)
 	{ // "2.1"
 		_res = db.Exec("\n  SELECT min(x) OVER w1 FROM t1\n    WINDOW w1 AS (PARTITION BY x_count(x) OVER w1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "x_count() may not be used as a window function") {

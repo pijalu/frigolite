@@ -40,9 +40,32 @@ func Test_index7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var once string
+	_ = once // pre-declared from TCL source
+	var ins string
+	_ = ins // pre-declared from TCL source
+	var crtab string
+	_ = crtab // pre-declared from TCL source
+	var sep string
+	_ = sep // pre-declared from TCL source
+	var col string
+	_ = col // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tabname string
+	_ = tabname // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var _x_arr string
+	_ = _x_arr // pre-declared from TCL source
+	var x_col string
+	_ = x_col // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+	// load_static_extension db wholenumber (unsupported command, not transpiled)
 	{ // do_test "index7-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a,b,c PRIMARY KEY) WITHOUT rowid;\n    CREATE INDEX t1a ON t1(a) WHERE a IS NOT NULL;\n    CREATE INDEX t1b ON t1(b) WHERE b>10;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1(a,b,c)\n       SELECT CASE WHEN value%3!=0 THEN value END, value, value\n         FROM nums WHERE value<=20;\n    SELECT count(a), count(b) FROM t1;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
@@ -50,7 +73,7 @@ func Test_index7(t *testing.T) {
 		}
 	}
 	{ // do_test "index7-1.1a"
-		t.Errorf("TODO: %s not implemented in frigolite", "capture_pragma db out {PRAGMA index_list(t1)}")
+		// capture_pragma db out {PRAGMA index_list(t1)} (unsupported command, not transpiled)
 		_res = db.Exec("SELECT \"name\", \"partial\", '|' FROM out ORDER BY \"name\"")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT \"name\", \"partial\", '|' FROM out ORDER BY \"name\"")

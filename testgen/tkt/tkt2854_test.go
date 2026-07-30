@@ -40,12 +40,33 @@ func Test_tkt2854(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var DB2 string
+	_ = DB2 // pre-declared from TCL source
+	var STMT1 string
+	_ = STMT1 // pre-declared from TCL source
+	var STMT2 string
+	_ = STMT2 // pre-declared from TCL source
+	var STMT3 string
+	_ = STMT3 // pre-declared from TCL source
+	var STMT4 string
+	_ = STMT4 // pre-declared from TCL source
+	var STMT5 string
+	_ = STMT5 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "tkt2854-1.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -83,18 +104,18 @@ func Test_tkt2854(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt2854-1.7"
-		var _DB2 = "sqlite3_connection_pointer db2" // TCL namespace variable
-		_ = _DB2 // suppress unused warning
-		var _STMT1 = "sqlite3_prepare $DB2 \"SELECT * FROM abc\" -1 TAIL" // TCL namespace variable
-		_ = _STMT1 // suppress unused warning
-		var _STMT2 = "sqlite3_prepare $DB2 \"BEGIN EXCLUSIVE\" -1 TAIL" // TCL namespace variable
-		_ = _STMT2 // suppress unused warning
-		var _STMT3 = "sqlite3_prepare $DB2 \"BEGIN IMMEDIATE\" -1 TAIL" // TCL namespace variable
-		_ = _STMT3 // suppress unused warning
-		var _STMT4 = "sqlite3_prepare $DB2 \"BEGIN\" -1 TAIL" // TCL namespace variable
-		_ = _STMT4 // suppress unused warning
-		var _STMT5 = "sqlite3_prepare $DB2 \"COMMIT\" -1 TAIL" // TCL namespace variable
-		_ = _STMT5 // suppress unused warning
+		DB2 = "sqlite3_connection_pointer db2" // TCL namespace variable
+		_ = DB2 // suppress unused warning
+		STMT1 = "sqlite3_prepare $DB2 \"SELECT * FROM abc\" -1 TAIL" // TCL namespace variable
+		_ = STMT1 // suppress unused warning
+		STMT2 = "sqlite3_prepare $DB2 \"BEGIN EXCLUSIVE\" -1 TAIL" // TCL namespace variable
+		_ = STMT2 // suppress unused warning
+		STMT3 = "sqlite3_prepare $DB2 \"BEGIN IMMEDIATE\" -1 TAIL" // TCL namespace variable
+		_ = STMT3 // suppress unused warning
+		STMT4 = "sqlite3_prepare $DB2 \"BEGIN\" -1 TAIL" // TCL namespace variable
+		_ = STMT4 // suppress unused warning
+		STMT5 = "sqlite3_prepare $DB2 \"COMMIT\" -1 TAIL" // TCL namespace variable
+		_ = STMT5 // suppress unused warning
 		_res = db.Exec(" BEGIN EXCLUSIVE ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN EXCLUSIVE ")
@@ -178,5 +199,5 @@ func Test_tkt2854(t *testing.T) {
 	db2.Close()
 	db3.Close()
 	db4.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

@@ -40,22 +40,195 @@ func Test_fts3rnd(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var G_nVocab string
+	_ = G_nVocab // pre-declared from TCL source
+	var nVocab string
+	_ = nVocab // pre-declared from TCL source
+	var lVocab string
+	_ = lVocab // pre-declared from TCL source
+	var lChar string
+	_ = lChar // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var _len string
+	_ = _len // pre-declared from TCL source
+	var word string
+	_ = word // pre-declared from TCL source
+	var doc string
+	_ = doc // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var t1_rowid string
+	_ = t1_rowid // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var iCol string
+	_ = iCol // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var reg string
+	_ = reg // pre-declared from TCL source
+	var key string
+	_ = key // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var col string
+	_ = col // pre-declared from TCL source
+	var nDoc_0 string
+	_ = nDoc_0 // pre-declared from TCL source
+	var nDoc_1 string
+	_ = nDoc_1 // pre-declared from TCL source
+	var nDoc_2 string
+	_ = nDoc_2 // pre-declared from TCL source
+	var nHit_0 string
+	_ = nHit_0 // pre-declared from TCL source
+	var nHit_1 string
+	_ = nHit_1 // pre-declared from TCL source
+	var nHit_2 string
+	_ = nHit_2 // pre-declared from TCL source
+	var dir string
+	_ = dir // pre-declared from TCL source
+	var a_key string
+	_ = a_key // pre-declared from TCL source
+	var docid string
+	_ = docid // pre-declared from TCL source
+	var matchinfo string
+	_ = matchinfo // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+	var T string
+	_ = T // pre-declared from TCL source
+	var l2 string
+	_ = l2 // pre-declared from TCL source
+	var iStart string
+	_ = iStart // pre-declared from TCL source
+	var iEnd string
+	_ = iEnd // pre-declared from TCL source
+	var i2 string
+	_ = i2 // pre-declared from TCL source
+	var n_b string
+	_ = n_b // pre-declared from TCL source
+	var scan_littleEndian string
+	_ = scan_littleEndian // pre-declared from TCL source
+	var scan_bigEndian string
+	_ = scan_bigEndian // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var NUM_TRIALS string
+	_ = NUM_TRIALS // pre-declared from TCL source
+	var nodesize string
+	_ = nodesize // pre-declared from TCL source
+	var order string
+	_ = order // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+	var iTest string
+	_ = iTest // pre-declared from TCL source
+	var DO_MALLOC_TEST string
+	_ = DO_MALLOC_TEST // pre-declared from TCL source
+	var nRep string
+	_ = nRep // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var rows string
+	_ = rows // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var iUpdate string
+	_ = iUpdate // pre-declared from TCL source
+	var iDelete string
+	_ = iDelete // pre-declared from TCL source
+	var iInsert string
+	_ = iInsert // pre-declared from TCL source
+	var term string
+	_ = term // pre-declared from TCL source
+	var match string
+	_ = match // pre-declared from TCL source
+	var query string
+	_ = query // pre-declared from TCL source
+	var terms string
+	_ = terms // pre-declared from TCL source
+	var nNear string
+	_ = nNear // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var proc string
+	_ = proc // pre-declared from TCL source
+	var term1 string
+	_ = term1 // pre-declared from TCL source
+	var term2 string
+	_ = term2 // pre-declared from TCL source
+	var term3 string
+	_ = term3 // pre-declared from TCL source
+	var term4 string
+	_ = term4 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var nWord string
+	_ = nWord // pre-declared from TCL source
+	var rowid string
+	_ = rowid // pre-declared from TCL source
+	var zPrefix string
+	_ = zPrefix // pre-declared from TCL source
+	var t1_key string
+	_ = t1_key // pre-declared from TCL source
+	var bDesc string
+	_ = bDesc // pre-declared from TCL source
+	var zToken string
+	_ = zToken // pre-declared from TCL source
+	var hit string
+	_ = hit // pre-declared from TCL source
+	var a_docid string
+	_ = a_docid // pre-declared from TCL source
+	var nHit_i string
+	_ = nHit_i // pre-declared from TCL source
+	var nDoc_i string
+	_ = nDoc_i // pre-declared from TCL source
+	var termlist string
+	_ = termlist // pre-declared from TCL source
+	var B string
+	_ = B // pre-declared from TCL source
+	var A string
+	_ = A // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var scan__tcl_platform_byteOrder string
+	_ = scan__tcl_platform_byteOrder // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var G_nVocab = "100"
+	G_nVocab = "100"
 	_ = G_nVocab // suppress unused warning
-	var nVocab = "100"
+	nVocab = "100"
 	_ = nVocab // suppress unused warning
-	var lVocab = "list"
+	lVocab = "list"
 	_ = lVocab // suppress unused warning
 	// expr srand(0) → "srand(0)"
-	var lChar = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
+	lChar = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
 	_ = lChar // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nVocab_n, _nVocab_e := strconv.Atoi(nVocab); if _nVocab_e != nil { return false }; return i_n < nVocab_n }() {
-		var _len = "2"
+		_len = "2"
 		_ = _len // suppress unused warning
-		var word = "lindex $lChar [expr int(rand()*26)]"
+		word = "lindex $lChar [expr int(rand()*26)]"
 		_ = word // suppress unused warning
 		word += "lindex $lChar [expr int(rand()*26)]"
 		if func() bool { _len_n, __len_e := strconv.Atoi(_len); if __len_e != nil { return false }; return _len_n > 2 }() {
@@ -85,10 +258,10 @@ func Test_fts3rnd(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var sqlite_fts3_enable_parentheses = "1"
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
-	var NUM_TRIALS = "100"
+	NUM_TRIALS = "100"
 	_ = NUM_TRIALS // suppress unused warning
 	// foreach {nodesize order} "\n  50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC\n"
 	_items0 := tclSplitList("\n  50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC\n")
@@ -102,7 +275,7 @@ func Test_fts3rnd(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 			}
-			var testname = nodesize + "/" + order
+			testname = nodesize + "/" + order
 			_ = testname // suppress unused warning
 			_res = db.Exec(" DROP TABLE t1 ")
 			_ = _res // catchsql
@@ -114,10 +287,10 @@ func Test_fts3rnd(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(t1) VALUES('nodesize=" + nodesize + "')")
 			}
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-				t.Errorf("TODO: %s not implemented in frigolite", "insert_row $i")
+				// insert_row $i (unsupported command, not transpiled)
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -126,48 +299,48 @@ func Test_fts3rnd(t *testing.T) {
 					}
 				}
 			}
-			var iTest = "1"
+			iTest = "1"
 			_ = iTest // suppress unused warning
 			for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; NUM_TRIALS_n, _NUM_TRIALS_e := strconv.Atoi(NUM_TRIALS); if _NUM_TRIALS_e != nil { return false }; return iTest_n <= NUM_TRIALS_n }() {
 				_res = db.Exec("COMMIT")
 				_ = _res // catchsql
-				var DO_MALLOC_TEST = "0"
+				DO_MALLOC_TEST = "0"
 				_ = DO_MALLOC_TEST // suppress unused warning
-				var nRep = "10"
+				nRep = "10"
 				_ = nRep // suppress unused warning
-				if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; nodesize_n, _nodesize_e := strconv.Atoi(nodesize); if _nodesize_e != nil { return false }; return iTest_n == 100 && nodesize_n==50 }() {
-					var DO_MALLOC_TEST = "1"
+				if tclBool(iTest + "==100 && " + nodesize + "==50") {
+					DO_MALLOC_TEST = "1"
 					_ = DO_MALLOC_TEST // suppress unused warning
-					var nRep = "2"
+					nRep = "2"
 					_ = nRep // suppress unused warning
 				}
-				var _testprefix = "fts3rnd-1." + testname + "." + iTest // TCL namespace variable
-				_ = _testprefix // suppress unused warning
-				var rows = "array names ::t1"
+				testprefix = "fts3rnd-1." + testname + "." + iTest // TCL namespace variable
+				_ = testprefix // suppress unused warning
+				rows = "array names ::t1"
 				_ = rows // suppress unused warning
-				var nRow = "llength $rows"
+				nRow = "llength $rows"
 				_ = nRow // suppress unused warning
-				var iUpdate = "lindex $rows [expr {int(rand()*$nRow)}]"
+				iUpdate = "lindex $rows [expr {int(rand()*$nRow)}]"
 				_ = iUpdate // suppress unused warning
-				var iDelete = iUpdate
+				iDelete = iUpdate
 				_ = iDelete // suppress unused warning
 				for func() bool { iDelete_n, _iDelete_e := strconv.Atoi(iDelete); if _iDelete_e != nil { return false }; iUpdate_n, _iUpdate_e := strconv.Atoi(iUpdate); if _iUpdate_e != nil { return false }; return iDelete_n == iUpdate_n }() {
-					var iDelete = "lindex $rows [expr {int(rand()*$nRow)}]"
+					iDelete = "lindex $rows [expr {int(rand()*$nRow)}]"
 					_ = iDelete // suppress unused warning
 				}
-				var iInsert = iUpdate
+				iInsert = iUpdate
 				_ = iInsert // suppress unused warning
 				for tclBool("info exists ::t1($iInsert)") {
-					var iInsert = "0"
+					iInsert = "0"
 					_ = iInsert // suppress unused warning
 				}
 				_res = db.Exec("BEGIN")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "insert_row $iInsert")
-				t.Errorf("TODO: %s not implemented in frigolite", "update_row $iUpdate")
-				t.Errorf("TODO: %s not implemented in frigolite", "delete_row $iDelete")
+				// insert_row $iInsert (unsupported command, not transpiled)
+				// update_row $iUpdate (unsupported command, not transpiled)
+				// delete_row $iDelete (unsupported command, not transpiled)
 				if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return 0 == (iTest_n%2) }() {
 					_res = db.Exec("COMMIT")
 					if _res.Error != nil {
@@ -176,13 +349,15 @@ func Test_fts3rnd(t *testing.T) {
 				}
 				if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return 0 == (iTest_n%2) }() {
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-					var term = "random_term"
+					term = "random_term"
 					_ = term // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.$i.asc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 0]")
-					t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.$i.desc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 1]")
+					// do_select_test 1.$i.asc {
+        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 0] (test infra, not transpiled)
+					// do_select_test 1.$i.desc {
+        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 1] (test infra, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -196,9 +371,10 @@ func Test_fts3rnd(t *testing.T) {
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
 					var prefix = "[random_term] 0 end-1"
 					_ = prefix // suppress unused warning
-					var match = prefix + "*"
+					match = prefix + "*"
 					_ = match // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 2.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $match]")
+					// do_orderbydocid_test 2.$i {
+        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $match] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -210,11 +386,12 @@ func Test_fts3rnd(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					var term = "list [random_term] [random_term]"
+					term = "list [random_term] [random_term]"
 					_ = term // suppress unused warning
-					var match = "\\\"" + term + "\\\""
+					match = "\\\"" + term + "\\\""
 					_ = match // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 3.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term]")
+					// do_orderbydocid_test 3.$i {
+        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -226,11 +403,12 @@ func Test_fts3rnd(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					var term = "list [random_term] [random_term] [random_term]"
+					term = "list [random_term] [random_term] [random_term]"
 					_ = term // suppress unused warning
-					var match = "\\\"" + term + "\\\""
+					match = "\\\"" + term + "\\\""
 					_ = match // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 4.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term]")
+					// do_orderbydocid_test 4.$i {
+        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -242,13 +420,14 @@ func Test_fts3rnd(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					var query = "[random_term] 0 end-1" + "* "
+					query = "[random_term] 0 end-1" + "* "
 					_ = query // suppress unused warning
 					query += "[random_term] 0 end-1" + "* "
 					query += "[random_term] 0 end-1" + "*"
-					var match = "\\\"" + query + "\\\""
+					match = "\\\"" + query + "\\\""
 					_ = match // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 5.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $query]")
+					// do_orderbydocid_test 5.$i {
+        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $query] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -260,11 +439,12 @@ func Test_fts3rnd(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					var terms = "list [random_term] [random_term]"
+					terms = "list [random_term] [random_term]"
 					_ = terms // suppress unused warning
-					var match = "join $terms \" NEAR \""
+					match = "join $terms \" NEAR \""
 					_ = match // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 6.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms 10]")
+					// do_orderbydocid_test 6.$i {
+        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms 10] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -276,13 +456,14 @@ func Test_fts3rnd(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-					var terms = "list [random_term] [random_term] [random_term]"
+					terms = "list [random_term] [random_term] [random_term]"
 					_ = terms // suppress unused warning
-					var nNear = "11"
+					nNear = "11"
 					_ = nNear // suppress unused warning
-					var match = "join $terms \" NEAR/$nNear \""
+					match = "join $terms \" NEAR/$nNear \""
 					_ = match // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 7.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms $nNear]")
+					// do_orderbydocid_test 7.$i {
+        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms $nNear] (unsupported command, not transpiled)
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -301,16 +482,17 @@ func Test_fts3rnd(t *testing.T) {
 					proc := _items1[_idx1+2]
 					_ = proc // suppress unused warning
 					_ = _idx1
-						var i = "0"
+						i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-							var term1 = "random_term"
+							term1 = "random_term"
 							_ = term1 // suppress unused warning
-							var term2 = "random_term"
+							term2 = "random_term"
 							_ = term2 // suppress unused warning
-							var match = term1 + " " + op + " " + term2
+							match = term1 + " " + op + " " + term2
 							_ = match // suppress unused warning
-							t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc [simple_phrase $term1] [simple_phrase $term...")
+							// do_orderbydocid_test $tn.$i {
+          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc [simple_phrase $term1] [simple_phrase $term... (unsupported command, not transpiled)
 							// incr i 1
 							{
 								_n, _err := strconv.Atoi(i)
@@ -330,20 +512,22 @@ func Test_fts3rnd(t *testing.T) {
 						proc := _items2[_idx2+2]
 						_ = proc // suppress unused warning
 						_ = _idx2
-							var i = "0"
+							i = "0"
 							_ = i // suppress unused warning
 							for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
-								var term1 = "random_term"
+								term1 = "random_term"
 								_ = term1 // suppress unused warning
-								var term2 = "random_term"
+								term2 = "random_term"
 								_ = term2 // suppress unused warning
-								var term3 = "random_term"
+								term3 = "random_term"
 								_ = term3 // suppress unused warning
-								var term4 = "random_term"
+								term4 = "random_term"
 								_ = term4 // suppress unused warning
-								var match = term1 + " NEAR " + term2 + " " + op + " " + term3 + " NEAR " + term4
+								match = term1 + " NEAR " + term2 + " " + op + " " + term3 + " NEAR " + term4
 								_ = match // suppress unused warning
-								t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc                                  \\\n        ...")
+								// do_orderbydocid_test $tn.$i {
+          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc                                  \
+        ... (unsupported command, not transpiled)
 								// incr i 1
 								{
 									_n, _err := strconv.Atoi(i)

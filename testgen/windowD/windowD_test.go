@@ -39,8 +39,15 @@ func Test_windowD(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "windowD"
+	testprefix = "windowD"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t0(c0 TEXT);\n  CREATE VIEW v0(c0, c1) \n    AS SELECT CUME_DIST() OVER (PARTITION BY t0.c0), TRUE FROM t0;\n  INSERT INTO t0 VALUES ('x');\n")

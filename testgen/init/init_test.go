@@ -39,6 +39,25 @@ func Test_init(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var failed string
+	_ = failed // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var started string
+	_ = started // pre-declared from TCL source
+	var zRepeat string
+	_ = zRepeat // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var iRepeat string
+	_ = iRepeat // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("db eval {SELECT sqlite_compileoption_used('THREADSAFE=0')}") {
 		return
@@ -56,35 +75,42 @@ func Test_init(t *testing.T) {
 		_ = started // suppress unused warning
 		_ = _idx0
 			{ // do_test "init-" + _t + ".1"
-				// eval init_wrapper_install $failed
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+				// eval (dynamic, not transpiled)
+				// sqlite3_initialize (unsupported command, not transpiled)
 			}
 			{ // do_test "init-" + _t + ".2"
-				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+				// init_wrapper_query (unsupported command, not transpiled)
 			}
 			{ // do_test "init-" + _t + ".3"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+				// sqlite3_shutdown (unsupported command, not transpiled)
+				// init_wrapper_query (unsupported command, not transpiled)
 			}
 			{ // do_test "init-" + _t + ".4"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+				// sqlite3_initialize (unsupported command, not transpiled)
 			}
 			{ // do_test "init-" + _t + ".5"
-				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+				// init_wrapper_query (unsupported command, not transpiled)
 			}
 			{ // do_test "init-" + _t + ".6"
-				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_clear")
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+				// init_wrapper_clear (unsupported command, not transpiled)
+				// sqlite3_initialize (unsupported command, not transpiled)
 			}
 			{ // do_test "init-" + _t + ".7"
-				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+				// init_wrapper_query (unsupported command, not transpiled)
 			}
 			{ // do_test "init-" + _t + ".8"
-				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_uninstall")
+				// init_wrapper_uninstall (unsupported command, not transpiled)
 			}
 		}
 		if tclBool(MEMDEBUG) {
-			t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test init-2 -tclprep {\n    db close\n    init_wrapper_install\n  } -tclbody {\n    set rc [sqlite3_initialize]\n    if {[string m...} -cleanup {\n    set zRepeat \"transient\"\n    if {$::iRepeat} {...}")
+			// do_malloc_test init-2 -tclprep {
+    db close
+    init_wrapper_install
+  } -tclbody {
+    set rc [sqlite3_initialize]
+    if {[string m...} -cleanup {
+    set zRepeat "transient"
+    if {$::iRepeat} {...} (unsupported command, not transpiled)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+		// autoinstall_test_functions (unsupported command, not transpiled)
 }

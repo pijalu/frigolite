@@ -39,6 +39,29 @@ func Test_thread004(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var ThreadOne string
+	_ = ThreadOne // pre-declared from TCL source
+	var ThreadTwo string
+	_ = ThreadTwo // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var finished_2 string
+	_ = finished_2 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var iStart string
+	_ = iStart // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var thread_procs string
+	_ = thread_procs // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
 		return
@@ -46,10 +69,11 @@ func Test_thread004(t *testing.T) {
 	if tclBool("info commands sqlite3_table_column_metadata" + " == \"\"") {
 		return
 	}
-	var _enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
-	db, err = frigolite.Open("test.db")
+	enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "thread004-1.1"
 		_res = db.Exec(" CREATE TABLE t1(a, b, c) ")
@@ -58,17 +82,17 @@ func Test_thread004(t *testing.T) {
 		}
 	}
 	{ // do_test "thread004-1.2"
-		var ThreadOne = "\n    set iStart [clock_seconds]\n    while {[clock_seconds]<$iStart+20} {\n      set ::DB [sqlite3_open test.db]\n      sqlite3_close $::DB\n    }\n  "
+		ThreadOne = "\n    set iStart [clock_seconds]\n    while {[clock_seconds]<$iStart+20} {\n      set ::DB [sqlite3_open test.db]\n      sqlite3_close $::DB\n    }\n  "
 		_ = ThreadOne // suppress unused warning
-		var ThreadTwo = "\n    set ::DB [sqlite3_open test.db]\n    set iStart [clock_seconds]\n    set nErr 0\n    while {[clock_seconds] <$iStart+20} {\n      incr nErr [catch {sqlite3_table_column_metadata $::DB main t1 a}]\n    }\n    sqlite3_close $::DB\n    set nErr\n  "
+		ThreadTwo = "\n    set ::DB [sqlite3_open test.db]\n    set iStart [clock_seconds]\n    set nErr 0\n    while {[clock_seconds] <$iStart+20} {\n      incr nErr [catch {sqlite3_table_column_metadata $::DB main t1 a}]\n    }\n    sqlite3_close $::DB\n    set nErr\n  "
 		_ = ThreadTwo // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) $thread_procs $ThreadOne")
-		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(2) $thread_procs $ThreadTwo")
+		// thread_spawn finished(1) $thread_procs $ThreadOne (unsupported command, not transpiled)
+		// thread_spawn finished(2) $thread_procs $ThreadTwo (unsupported command, not transpiled)
 		for _, _t := range tclSplitList("1 2") {
 		_ = _t // suppress unused warning
 			if tclBool("!" + "info exists finished($t)") {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

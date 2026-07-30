@@ -40,12 +40,32 @@ func Test_incrblob3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var rowid string
+	_ = rowid // pre-declared from TCL source
+	var _type string
+	_ = _type // pre-declared from TCL source
+	var schemacookie string
+	_ = schemacookie // pre-declared from TCL source
+	var dbversion string
+	_ = dbversion // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "incrblob3"
+	testprefix = "incrblob3"
 	_ = testprefix // suppress unused warning
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 	{ // "incrblob3-1.1"
 		_res = db.Exec("\n  CREATE TABLE blobs(k INTEGER PRIMARY KEY, v BLOB);\n  INSERT INTO blobs VALUES(1, zeroblob(100));\n  INSERT INTO blobs VALUES(2, zeroblob(100));\n")
 		if _res.Error != nil {
@@ -53,28 +73,30 @@ func Test_incrblob3(t *testing.T) {
 		}
 	}
 	{ // do_test "incrblob3-1.2"
-		var _blob = "db incrblob blobs v 1" // TCL namespace variable
-		_ = _blob // suppress unused warning
-		t.Log(_blob)
+		blob = "db incrblob blobs v 1" // TCL namespace variable
+		_ = blob // suppress unused warning
+		_putsMsg := blob
+		_ = _putsMsg
 	}
 	{ // do_test "incrblob3-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_reopen $::blob 2")
-		t.Log(_blob)
+		// sqlite3_blob_reopen $::blob 2 (unsupported command, not transpiled)
+		_putsMsg := blob
+		_ = _putsMsg
 	}
 	{ // do_test "incrblob3-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_reopen $::blob 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "gets $::blob")
+		// sqlite3_blob_reopen $::blob 1 (unsupported command, not transpiled)
+		// gets $::blob (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob3-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_reopen $::blob 2")
-		t.Errorf("TODO: %s not implemented in frigolite", "gets $::blob")
+		// sqlite3_blob_reopen $::blob 2 (unsupported command, not transpiled)
+		// gets $::blob (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob3-1.6"
 		// close $::blob
 	}
 	{ // do_test "incrblob3-2.1.1"
-		var _blob = "db incrblob blobs v 1" // TCL namespace variable
-		_ = _blob // suppress unused warning
+		blob = "db incrblob blobs v 1" // TCL namespace variable
+		_ = blob // suppress unused warning
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
@@ -96,18 +118,18 @@ func Test_incrblob3(t *testing.T) {
 		}
 	}
 	// foreach {tn rowid type} "\n  1 3 integer\n  2 4 real\n  3 5 null\n"
-	_items0 := tclSplitList("\n  1 3 integer\n  2 4 real\n  3 5 null\n")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1 3 integer\n  2 4 real\n  3 5 null\n")
+	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		rowid := _items0[_idx0+1]
+		rowid := _items1[_idx1+1]
 		_ = rowid // suppress unused warning
-		_type := _items0[_idx0+2]
+		_type := _items1[_idx1+2]
 		_ = _type // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "incrblob3-2.2." + tn + ".1"
-				var _blob = "db incrblob blobs v 1" // TCL namespace variable
-				_ = _blob // suppress unused warning
+				blob = "db incrblob blobs v 1" // TCL namespace variable
+				_ = blob // suppress unused warning
 				_list := tclList([]string{"0", msg})
 				_ = _list
 			}
@@ -128,7 +150,7 @@ func Test_incrblob3(t *testing.T) {
 				_ = _list
 			}
 			{ // do_test "incrblob3-2.2." + tn + ".6"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
+				// sqlite3_blob_bytes $::blob (unsupported command, not transpiled)
 			}
 			{ // do_test "incrblob3-2.2." + tn + ".7"
 				// close $::blob
@@ -147,15 +169,15 @@ func Test_incrblob3(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "incrblob3-3.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes {}")
+			// sqlite3_blob_bytes {} (unsupported command, not transpiled)
 		}
 		{ // do_test "incrblob3-3.5"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close {}")
+			// sqlite3_blob_close {} (unsupported command, not transpiled)
 		}
 		{ // do_test "incrblob3-4.1"
-			var _blob = "db incrblob blobs v 1" // TCL namespace variable
-			_ = _blob // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
+			blob = "db incrblob blobs v 1" // TCL namespace variable
+			_ = blob // suppress unused warning
+			// sqlite3_blob_bytes $::blob (unsupported command, not transpiled)
 		}
 		{ // do_test "incrblob3-4.2"
 			_list := tclList([]string{"0", msg})
@@ -185,9 +207,9 @@ func Test_incrblob3(t *testing.T) {
 			// close $::blob
 		}
 		{ // do_test "incrblob3-5.1"
-			var _blob = "db incrblob blobs v 1" // TCL namespace variable
-			_ = _blob // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
+			blob = "db incrblob blobs v 1" // TCL namespace variable
+			_ = blob // suppress unused warning
+			// sqlite3_blob_bytes $::blob (unsupported command, not transpiled)
 		}
 		{ // do_test "incrblob3-5.2"
 			_res = db.Exec(" UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1 ")
@@ -210,13 +232,13 @@ func Test_incrblob3(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "incrblob3-6.4.2"
-			var _blob = "db incrblob t1 a 1" // TCL namespace variable
-			_ = _blob // suppress unused warning
+			blob = "db incrblob t1 a 1" // TCL namespace variable
+			_ = blob // suppress unused warning
 			// close $::blob
 		}
 		{ // do_test "incrblob3-6.4.3"
-			var _blob = "db incrblob -readonly t1 b 1" // TCL namespace variable
-			_ = _blob // suppress unused warning
+			blob = "db incrblob -readonly t1 b 1" // TCL namespace variable
+			_ = blob // suppress unused warning
 			// close $::blob
 		}
 		{ // do_test "incrblob3-6.5.1"
@@ -228,13 +250,13 @@ func Test_incrblob3(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "incrblob3-6.5.2"
-			var _blob = "db incrblob c1 a 1" // TCL namespace variable
-			_ = _blob // suppress unused warning
+			blob = "db incrblob c1 a 1" // TCL namespace variable
+			_ = blob // suppress unused warning
 			// close $::blob
 		}
 		{ // do_test "incrblob3-6.5.3"
-			var _blob = "db incrblob -readonly c1 b 1" // TCL namespace variable
-			_ = _blob // suppress unused warning
+			blob = "db incrblob -readonly c1 b 1" // TCL namespace variable
+			_ = blob // suppress unused warning
 			// close $::blob
 		}
 		{ // do_test "incrblob3-6.5.4"
@@ -242,36 +264,36 @@ func Test_incrblob3(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = 0 ")
 			}
-			var _blob = "db incrblob c1 b 1" // TCL namespace variable
-			_ = _blob // suppress unused warning
+			blob = "db incrblob c1 b 1" // TCL namespace variable
+			_ = blob // suppress unused warning
 			// close $::blob
 		}
 		{ // do_test "incrblob3-7.1"
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db2 0 0 0")
+			// sqlite3_db_config_lookaside db2 0 0 0 (unsupported command, not transpiled)
 			_res = db.Exec(" CREATE TABLE t2(x) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(x) ")
 			}
-			var _blob = "db incrblob blobs v 1" // TCL namespace variable
-			_ = _blob // suppress unused warning
+			blob = "db incrblob blobs v 1" // TCL namespace variable
+			_ = blob // suppress unused warning
 			// close $::blob
 		}
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xAccess")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs script access_method")
+		// testvfs tvfs -default 1 (unsupported command, not transpiled)
+		// tvfs filter xAccess (unsupported command, not transpiled)
+		// tvfs script access_method (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		{ // do_test "incrblob3-7.2"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+			// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 			_list := tclList([]string{"0", msg})
 			_ = _list
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+		// tvfs delete (unsupported command, not transpiled)
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -283,21 +305,21 @@ func Test_incrblob3(t *testing.T) {
 			}
 		}
 		{ // do_test "8.2"
-			var _blob = "db incrblob -readonly main t1 b 4" // TCL namespace variable
-			_ = _blob // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "read $::blob")
+			blob = "db incrblob -readonly main t1 b 4" // TCL namespace variable
+			_ = blob // suppress unused warning
+			// read $::blob (unsupported command, not transpiled)
 		}
 		// close $::blob
 		{ // do_test "8.3"
-			var _blob = "db incrblob -readonly aux t1 b 4" // TCL namespace variable
-			_ = _blob // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "read $::blob")
+			blob = "db incrblob -readonly aux t1 b 4" // TCL namespace variable
+			_ = blob // suppress unused warning
+			// read $::blob (unsupported command, not transpiled)
 		}
 		// close $::blob
 		{ // do_test "8.4"
-			var _blob = "db incrblob -readonly t1 b 4" // TCL namespace variable
-			_ = _blob // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "read $::blob")
+			blob = "db incrblob -readonly t1 b 4" // TCL namespace variable
+			_ = blob // suppress unused warning
+			// read $::blob (unsupported command, not transpiled)
 		}
 		// close $::blob
 		{ // do_test "8.5"

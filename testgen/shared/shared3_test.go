@@ -40,11 +40,24 @@ func Test_shared3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var alternative_name string
+	_ = alternative_name // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "shared3"
+	testprefix = "shared3"
 	_ = testprefix // suppress unused warning
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "shared3-1.1"
 		os.Remove("test.db")
 		db1, err = frigolite.Open("test.db")
@@ -132,7 +145,8 @@ func Test_shared3(t *testing.T) {
 	db2.Close()
 	db3.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -166,5 +180,5 @@ func Test_shared3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

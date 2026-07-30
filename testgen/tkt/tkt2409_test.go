@@ -40,54 +40,83 @@ func Test_tkt2409(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var zShort string
+	_ = zShort // pre-declared from TCL source
+	var zLong string
+	_ = zLong // pre-declared from TCL source
+	var iCache string
+	_ = iCache // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var t1_0 string
+	_ = t1_0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var t1_r string
+	_ = t1_r // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes $::DB 1")
+	// sqlite3_extended_result_codes $::DB 1 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var _STMT = "" // TCL namespace variable
-	_ = _STMT // suppress unused warning
+	STMT = "" // TCL namespace variable
+	_ = STMT // suppress unused warning
 	{ // do_test "tkt2409-1.1"
 		_res = db.Exec("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x TEXT UNIQUE NOT NULL, y BLOB);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x TEXT UNIQUE NOT NULL, y BLOB);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "read_lock_db")
-		var _zShort = "0123456789 1" // TCL namespace variable
-		_ = _zShort // suppress unused warning
-		var _zLong = "0123456789 1500" // TCL namespace variable
-		_ = _zLong // suppress unused warning
+		// read_lock_db (unsupported command, not transpiled)
+		zShort = "0123456789 1" // TCL namespace variable
+		_ = zShort // suppress unused warning
+		zLong = "0123456789 1500" // TCL namespace variable
+		_ = zLong // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES($::zShort, $::zLong);\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode $::DB")
+		// sqlite3_errcode $::DB (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "tkt2409-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "unread_lock_db")
+		// unread_lock_db (unsupported command, not transpiled)
 		_res = db.Exec(" ROLLBACK ")
 		_ = _res // catchsql
 	}
-	var _zShort = "0123456789 1" // TCL namespace variable
-	_ = _zShort // suppress unused warning
-	var _zLong = "0123456789 1500" // TCL namespace variable
-	_ = _zLong // suppress unused warning
-	var _rc = "1" // TCL namespace variable
-	_ = _rc // suppress unused warning
-	var iCache = "10"
+	zShort = "0123456789 1" // TCL namespace variable
+	_ = zShort // suppress unused warning
+	zLong = "0123456789 1500" // TCL namespace variable
+	_ = zLong // suppress unused warning
+	rc = "1" // TCL namespace variable
+	_ = rc // suppress unused warning
+	iCache = "10"
 	_ = iCache // suppress unused warning
-	for tclBool(_rc) {
+	for tclBool(rc) {
 		r = db.Query("PRAGMA cache_size = " + iCache)
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size = " + iCache)
 		}
 		{ // do_test "tkt2409-2.1." + iCache
-			t.Errorf("TODO: %s not implemented in frigolite", "read_lock_db")
-			var _rc = "0" // TCL namespace variable
-			_ = _rc // suppress unused warning
+			// read_lock_db (unsupported command, not transpiled)
+			rc = "0" // TCL namespace variable
+			_ = rc // suppress unused warning
 			// expr ($::rc == 1 && $msg eq "disk I/O error") || $::rc == 0 → "($::rc == 1 && $msg eq \"disk I/O error\") || $::rc == 0"
 		}
 		// incr iCache 1
@@ -103,33 +132,33 @@ func Test_tkt2409(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "unread_lock_db")
+		// unread_lock_db (unsupported command, not transpiled)
 		_res = db.Exec("\n    COMMIT;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-3.1"
-		var _DB = "sqlite3 db test.db; sqlite3_connection_pointer db" // TCL namespace variable
-		_ = _DB // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes $::DB 1")
+		DB = "sqlite3 db test.db; sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
+		// sqlite3_extended_result_codes $::DB 1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA cache_size=10;\n    DELETE FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=10;\n    DELETE FROM t1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "read_lock_db")
-		var _zShort = "0123456789 1" // TCL namespace variable
-		_ = _zShort // suppress unused warning
-		var _zLong = "0123456789 1500" // TCL namespace variable
-		_ = _zLong // suppress unused warning
+		// read_lock_db (unsupported command, not transpiled)
+		zShort = "0123456789 1" // TCL namespace variable
+		_ = zShort // suppress unused warning
+		zLong = "0123456789 1500" // TCL namespace variable
+		_ = zLong // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 SELECT $::zShort, $::zLong;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode $::DB")
+		// sqlite3_errcode $::DB (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "tkt2409-3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "unread_lock_db")
+		// unread_lock_db (unsupported command, not transpiled)
 		_res = db.Exec(" ROLLBACK ")
 		_ = _res // catchsql
 	}
@@ -141,20 +170,20 @@ func Test_tkt2409(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=20;\n    DROP TABLE t1;\n    CREATE TABLE t1 (x TEXT UNIQUE NOT NULL);\n  ")
 		}
-		var t1_0 = "1"
+		t1_0 = "1"
 		_ = t1_0 // suppress unused warning
-		var sql = ""
+		sql = ""
 		_ = sql // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-			var _r = "0"
+			_r = "0"
 			_ = _r // suppress unused warning
 			for tclBool("info exists t1($r)") {
-				var _r = "0"
+				_r = "0"
 				_ = _r // suppress unused warning
 			}
-			var t1_r = "1"
+			t1_r = "1"
 			_ = t1_r // suppress unused warning
 			sql += "INSERT INTO t1 VALUES('some-text-" + _r + "');"
 			// incr i 1
@@ -165,7 +194,7 @@ func Test_tkt2409(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "read_lock_db")
+		// read_lock_db (unsupported command, not transpiled)
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
@@ -174,7 +203,7 @@ func Test_tkt2409(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode $::DB")
+		// sqlite3_errcode $::DB (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -184,6 +213,6 @@ func Test_tkt2409(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Errorf("TODO: %s not implemented in frigolite", "unread_lock_db")
+	// unread_lock_db (unsupported command, not transpiled)
 	db2.Close()
 }

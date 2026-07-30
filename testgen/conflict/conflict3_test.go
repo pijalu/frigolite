@@ -39,8 +39,15 @@ func Test_conflict3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "conflict3"
+	testprefix = "conflict3"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		r = db.Query("\n  CREATE TABLE t1(\n    a INTEGER PRIMARY KEY ON CONFLICT REPLACE, \n    b UNIQUE ON CONFLICT IGNORE,\n    c UNIQUE ON CONFLICT FAIL\n  );\n  INSERT INTO t1(a,b,c) VALUES(1,2,3), (2,3,4);\n  SELECT a,b,c FROM t1 ORDER BY a;\n")

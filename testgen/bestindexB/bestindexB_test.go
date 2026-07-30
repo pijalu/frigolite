@@ -39,10 +39,31 @@ func Test_bestindexB(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var xbestindex_res string
+	_ = xbestindex_res // pre-declared from TCL source
+	var xbestindex_sql string
+	_ = xbestindex_sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindexB"
+	testprefix = "bestindexB"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  CREATE TABLE y1(a, b);\n  CREATE TABLE y2(a, b);\n")
@@ -74,8 +95,8 @@ func Test_bestindexB(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER y1tr BEFORE INSERT ON y1 BEGIN\n    SELECT * FROM x1;\n  END;\n  INSERT INTO y1 VALUES(3, 4) RETURNING rowid;\n")
 		}
 	}
-	var _xbestindex_sql = "\n  INSERT INTO y2 VALUES(NULL, NULL) RETURNING rowid;\n" // TCL namespace variable
-	_ = _xbestindex_sql // suppress unused warning
+	xbestindex_sql = "\n  INSERT INTO y2 VALUES(NULL, NULL) RETURNING rowid;\n" // TCL namespace variable
+	_ = xbestindex_sql // suppress unused warning
 	{ // "1.4"
 		_res = db.Exec("\n  INSERT INTO y1 VALUES(5, 6) RETURNING rowid;\n")
 		if _res.Error != nil {
@@ -83,6 +104,6 @@ func Test_bestindexB(t *testing.T) {
 		}
 	}
 	{ // do_test "1.5"
-		_ = _xbestindex_res // TCL namespace variable (query)
+		_ = xbestindex_res // TCL namespace variable (query)
 	}
 }

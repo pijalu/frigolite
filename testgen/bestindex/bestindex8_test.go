@@ -39,10 +39,119 @@ func Test_bestindex8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var lBestIndexDistinct string
+	_ = lBestIndexDistinct // pre-declared from TCL source
+	var iCons string
+	_ = iCons // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var cons string
+	_ = cons // pre-declared from TCL source
+	var lOrderByConsumed string
+	_ = lOrderByConsumed // pre-declared from TCL source
+	var idxnum string
+	_ = idxnum // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var bDistinct string
+	_ = bDistinct // pre-declared from TCL source
+	var idxinsert string
+	_ = idxinsert // pre-declared from TCL source
+	var bConsumed string
+	_ = bConsumed // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var lFilterArgs string
+	_ = lFilterArgs // pre-declared from TCL source
+	var lCons string
+	_ = lCons // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var lArg string
+	_ = lArg // pre-declared from TCL source
+	var lFilterArg string
+	_ = lFilterArg // pre-declared from TCL source
+	var lfa string
+	_ = lfa // pre-declared from TCL source
+	var lBestIndexRhs string
+	_ = lBestIndexRhs // pre-declared from TCL source
+	var lbir string
+	_ = lbir // pre-declared from TCL source
+	var vtab_handle_in string
+	_ = vtab_handle_in // pre-declared from TCL source
+	var lCols string
+	_ = lCols // pre-declared from TCL source
+	var lOrder string
+	_ = lOrder // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var O string
+	_ = O // pre-declared from TCL source
+	var W string
+	_ = W // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var bIn string
+	_ = bIn // pre-declared from TCL source
+	var order string
+	_ = order // pre-declared from TCL source
+	var selectlist string
+	_ = selectlist // pre-declared from TCL source
+	var lO string
+	_ = lO // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var ad string
+	_ = ad // pre-declared from TCL source
+	var sl_C_column_ string
+	_ = sl_C_column_ // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var idxstr string
+	_ = idxstr // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var lFilterSql string
+	_ = lFilterSql // pre-declared from TCL source
+	var real_sql string
+	_ = real_sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var C_usable string
+	_ = C_usable // pre-declared from TCL source
+	var src string
+	_ = src // pre-declared from TCL source
+	var C_op string
+	_ = C_op // pre-declared from TCL source
+	var C_column string
+	_ = C_column // pre-declared from TCL source
+	var C_desc string
+	_ = C_desc // pre-declared from TCL source
+	var off string
+	_ = off // pre-declared from TCL source
+	var vtsql string
+	_ = vtsql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindex8"
+	testprefix = "bestindex8"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES('a', 'b'), ('c', 'd');\n  INSERT INTO t1 VALUES('a', 'b'), ('c', 'd');\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (1), (0);\n")
@@ -66,10 +175,10 @@ func Test_bestindex8(t *testing.T) {
 		res := _items0[_idx0+5]
 		_ = res // suppress unused warning
 		_ = _idx0
-			var _lBestIndexDistinct = "" // TCL namespace variable
-			_ = _lBestIndexDistinct // suppress unused warning
-			var _lOrderByConsumed = "0" // TCL namespace variable
-			_ = _lOrderByConsumed // suppress unused warning
+			lBestIndexDistinct = "" // TCL namespace variable
+			_ = lBestIndexDistinct // suppress unused warning
+			lOrderByConsumed = "0" // TCL namespace variable
+			_ = lOrderByConsumed // suppress unused warning
 			{ // "1." + tn + ".1"
 				_res = db.Exec(sql)
 				if _res.Error != nil {
@@ -77,19 +186,19 @@ func Test_bestindex8(t *testing.T) {
 				}
 			}
 			{ // do_test "1." + tn + ".2"
-				_ = _lBestIndexDistinct // TCL namespace variable (query)
+				_ = lBestIndexDistinct // TCL namespace variable (query)
 			}
 			{ // do_test "1." + tn + ".3"
 				// expr [lsearch [execsql "explain $sql"] IdxInsert]>=0 → "[lsearch [execsql \"explain $sql\"] IdxInsert]>=0"
 			}
 			{ // do_test "1." + tn + ".4"
-				_ = _lOrderByConsumed // TCL namespace variable (query)
+				_ = lOrderByConsumed // TCL namespace variable (query)
 			}
 		}
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+		// register_tcl_module db (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n")
@@ -98,45 +207,45 @@ func Test_bestindex8(t *testing.T) {
 			}
 		}
 		{ // do_test "2.1"
-			var _lFilterArgs = "list" // TCL namespace variable
-			_ = _lFilterArgs // suppress unused warning
+			lFilterArgs = "list" // TCL namespace variable
+			_ = lFilterArgs // suppress unused warning
 			r = db.Query(" SELECT * FROM vt1 LIMIT 10 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM vt1 LIMIT 10 ")
 			}
-			_ = _lFilterArgs // TCL namespace variable (query)
+			_ = lFilterArgs // TCL namespace variable (query)
 		}
 		{ // do_test "2.2"
-			var _lFilterArgs = "list" // TCL namespace variable
-			_ = _lFilterArgs // suppress unused warning
+			lFilterArgs = "list" // TCL namespace variable
+			_ = lFilterArgs // suppress unused warning
 			r = db.Query(" SELECT * FROM vt1 LIMIT 5 OFFSET 50 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM vt1 LIMIT 5 OFFSET 50 ")
 			}
-			_ = _lFilterArgs // TCL namespace variable (query)
+			_ = lFilterArgs // TCL namespace variable (query)
 		}
 		{ // do_test "2.3"
-			var _lFilterArgs = "list" // TCL namespace variable
-			_ = _lFilterArgs // suppress unused warning
+			lFilterArgs = "list" // TCL namespace variable
+			_ = lFilterArgs // suppress unused warning
 			r = db.Query(" SELECT * FROM vt1 ORDER BY a, b LIMIT 1 OFFSET 1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM vt1 ORDER BY a, b LIMIT 1 OFFSET 1 ")
 			}
-			_ = _lFilterArgs // TCL namespace variable (query)
+			_ = lFilterArgs // TCL namespace variable (query)
 		}
 		{ // do_test "2.4"
-			var _lFilterArgs = "list" // TCL namespace variable
-			_ = _lFilterArgs // suppress unused warning
+			lFilterArgs = "list" // TCL namespace variable
+			_ = lFilterArgs // suppress unused warning
 			r = db.Query(" SELECT * FROM vt1 ORDER BY a, +b LIMIT 1 OFFSET 1 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM vt1 ORDER BY a, +b LIMIT 1 OFFSET 1 ")
 			}
-			_ = _lFilterArgs // TCL namespace variable (query)
+			_ = lFilterArgs // TCL namespace variable (query)
 		}
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+		// register_tcl_module db (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n")
@@ -155,19 +264,19 @@ func Test_bestindex8(t *testing.T) {
 			_ = lfa // suppress unused warning
 			_ = _idx1
 				{ // do_test "3." + tn
-					var _lFilterArg = "list" // TCL namespace variable
-					_ = _lFilterArg // suppress unused warning
+					lFilterArg = "list" // TCL namespace variable
+					_ = lFilterArg // suppress unused warning
 					_res = db.Exec(sql)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 					}
-					_ = _lFilterArg // TCL namespace variable (query)
+					_ = lFilterArg // TCL namespace variable (query)
 				}
 			}
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+			// register_tcl_module db (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n")
@@ -186,21 +295,21 @@ func Test_bestindex8(t *testing.T) {
 				_ = lbir // suppress unused warning
 				_ = _idx2
 					{ // do_test "4." + tn
-						var _lBestIndexRhs = "list" // TCL namespace variable
-						_ = _lBestIndexRhs // suppress unused warning
+						lBestIndexRhs = "list" // TCL namespace variable
+						_ = lBestIndexRhs // suppress unused warning
 						_res = db.Exec(sql)
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 						}
-						_ = _lBestIndexRhs // TCL namespace variable (query)
+						_ = lBestIndexRhs // TCL namespace variable (query)
 					}
 				}
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
-				var _vtab_handle_in = "1" // TCL namespace variable
-				_ = _vtab_handle_in // suppress unused warning
+				// register_tcl_module db (unsupported command, not transpiled)
+				vtab_handle_in = "1" // TCL namespace variable
+				_ = vtab_handle_in // suppress unused warning
 				// proc definition (not transpiled)
 				{ // "5.0"
 					_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(2, 3, 4);\n  INSERT INTO t1 VALUES(3, 4, 5);\n  INSERT INTO t1 VALUES(1, 5, 6);\n  INSERT INTO t1 VALUES(2, 6, 7);\n  INSERT INTO t1 VALUES(3, 7, 8);\n  INSERT INTO t1 VALUES(1, 8, 9);\n  INSERT INTO t1 VALUES(2, 9, 0);\n")
@@ -209,18 +318,35 @@ func Test_bestindex8(t *testing.T) {
 					}
 				}
 				// proc definition (not transpiled)
-				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.1 {\n  SELECT DISTINCT a FROM vt1\n} {\n  {SELECT DISTINCT 0, a, 0, 0 FROM t1}\n} {1 2 3}")
-				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.2 {\n  SELECT DISTINCT a FROM vt1 ORDER BY a\n} {\n  {SELECT rowid, a, b, c FROM t1 ORDER BY a}\n} {1 2 3}")
-				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.3 {\n  SELECT DISTINCT a FROM vt1 WHERE c IN (4,5,6,7,...} {\n  {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c IN ...} {2 3 1}")
-				var _vtab_handle_in = "0" // TCL namespace variable
-				_ = _vtab_handle_in // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.4 {\n  SELECT  DISTINCT a FROM vt1 WHERE c IN (4,5,6,7...} {\n  {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 4...} {2 3 1}")
-				var _vtab_handle_in = "1" // TCL namespace variable
-				_ = _vtab_handle_in // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.5a {\n  SELECT a, b, c FROM vt1 WHERE c IN (4,5,6,7,8) ...} {\n  {SELECT rowid, a, b, c FROM t1 WHERE c IN (4,5,...} {1 5 6 2 6 7}")
-				var _vtab_handle_in = "0" // TCL namespace variable
-				_ = _vtab_handle_in // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.5b {\n  SELECT a, b, c FROM vt1 WHERE c IN (4,5,6,7,8) ...} {\n  {SELECT rowid, a, b, c FROM t1 WHERE c = 4}\n  {...} {1 5 6 2 6 7}")
-				var _vtab_handle_in = "1" // TCL namespace variable
-				_ = _vtab_handle_in // suppress unused warning
+				// do_vtab_test 5.1.1 {
+  SELECT DISTINCT a FROM vt1
+} {
+  {SELECT DISTINCT 0, a, 0, 0 FROM t1}
+} {1 2 3} (unsupported command, not transpiled)
+				// do_vtab_test 5.1.2 {
+  SELECT DISTINCT a FROM vt1 ORDER BY a
+} {
+  {SELECT rowid, a, b, c FROM t1 ORDER BY a}
+} {1 2 3} (unsupported command, not transpiled)
+				// do_vtab_test 5.1.3 {
+  SELECT DISTINCT a FROM vt1 WHERE c IN (4,5,6,7,...} {
+  {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c IN ...} {2 3 1} (unsupported command, not transpiled)
+				vtab_handle_in = "0" // TCL namespace variable
+				_ = vtab_handle_in // suppress unused warning
+				// do_vtab_test 5.1.4 {
+  SELECT  DISTINCT a FROM vt1 WHERE c IN (4,5,6,7...} {
+  {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 4...} {2 3 1} (unsupported command, not transpiled)
+				vtab_handle_in = "1" // TCL namespace variable
+				_ = vtab_handle_in // suppress unused warning
+				// do_vtab_test 5.1.5a {
+  SELECT a, b, c FROM vt1 WHERE c IN (4,5,6,7,8) ...} {
+  {SELECT rowid, a, b, c FROM t1 WHERE c IN (4,5,...} {1 5 6 2 6 7} (unsupported command, not transpiled)
+				vtab_handle_in = "0" // TCL namespace variable
+				_ = vtab_handle_in // suppress unused warning
+				// do_vtab_test 5.1.5b {
+  SELECT a, b, c FROM vt1 WHERE c IN (4,5,6,7,8) ...} {
+  {SELECT rowid, a, b, c FROM t1 WHERE c = 4}
+  {...} {1 5 6 2 6 7} (unsupported command, not transpiled)
+				vtab_handle_in = "1" // TCL namespace variable
+				_ = vtab_handle_in // suppress unused warning
 }

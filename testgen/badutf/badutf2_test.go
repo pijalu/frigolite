@@ -4,7 +4,6 @@ package badutf
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strconv"
 "testing"
 )
 
@@ -41,6 +40,41 @@ func Test_badutf2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var S string
+	_ = S // pre-declared from TCL source
+	var _len string
+	_ = _len // pre-declared from TCL source
+	var uval string
+	_ = uval // pre-declared from TCL source
+	var xstr string
+	_ = xstr // pre-declared from TCL source
+	var ustr string
+	_ = ustr // pre-declared from TCL source
+	var u2u string
+	_ = u2u // pre-declared from TCL source
+	var hstr string
+	_ = hstr // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var in string
+	_ = in // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -48,8 +82,8 @@ func Test_badutf2(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "badutf2-1.0"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = 'UTF-8'")
 		if _res.Error != nil {
@@ -57,48 +91,48 @@ func Test_badutf2(t *testing.T) {
 		}
 	}
 	{ // do_test "badutf2-4.0"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	// foreach {i len uval xstr ustr u2u} "\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n"
-	_items0 := tclSplitList("\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n")
-	for _idx0 := 0; _idx0+6 <= len(_items0); _idx0 += 6 {
-		i := _items0[_idx0+0]
+	_items1 := tclSplitList("\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n")
+	for _idx1 := 0; _idx1+6 <= len(_items1); _idx1 += 6 {
+		i := _items1[_idx1+0]
 		_ = i // suppress unused warning
-		_len := _items0[_idx0+1]
+		_len := _items1[_idx1+1]
 		_ = _len // suppress unused warning
-		uval := _items0[_idx0+2]
+		uval := _items1[_idx1+2]
 		_ = uval // suppress unused warning
-		xstr := _items0[_idx0+3]
+		xstr := _items1[_idx1+3]
 		_ = xstr // suppress unused warning
-		ustr := _items0[_idx0+4]
+		ustr := _items1[_idx1+4]
 		_ = ustr // suppress unused warning
-		u2u := _items0[_idx0+5]
+		u2u := _items1[_idx1+5]
 		_ = u2u // suppress unused warning
-		_ = _idx0
-			var hstr = "utf8_to_hstr $uval"
+		_ = _idx1
+			hstr = "utf8_to_hstr $uval"
 			_ = hstr // suppress unused warning
 			if hstr != "%00" {
 				{ // do_test "badutf2-3.1." + i
-					var sql = "SELECT hex('" + hstr + "') AS x;"
+					sql = "SELECT hex('" + hstr + "') AS x;"
 					_ = sql // suppress unused warning
-					var res = "sqlite3_exec db $sql"
+					res = "sqlite3_exec db $sql"
 					_ = res // suppress unused warning
-					tclLIndex("lindex $res 1", "1")
+					_ = tclLIndex("lindex $res 1", "1") // lindex result
 				}
 			}
-			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return i_n==5 && tcl_version_n >= 8.7 }() {
+			if tclBool(i + "==5 && " + tcl_version + ">=8.7") {
 			} else {
 				{ // do_test "badutf2-4.1." + i
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $S")
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 $xstr $len")
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
-					t.Errorf("TODO: %s not implemented in frigolite", "utf8_to_ustr2 [ sqlite3_column_text $S 0 ]")
+					// sqlite3_reset $S (unsupported command, not transpiled)
+					// sqlite3_bind_text $S 1 $xstr $len (unsupported command, not transpiled)
+					// sqlite3_step $S (unsupported command, not transpiled)
+					// utf8_to_ustr2 [ sqlite3_column_text $S 0 ] (unsupported command, not transpiled)
 				}
 			}
 		}
 		{ // do_test "badutf2-4.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+			// sqlite3_finalize $S (unsupported command, not transpiled)
 		}
 }

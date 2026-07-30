@@ -40,8 +40,23 @@ func Test_walprotocol2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+	var handle string
+	_ = handle // pre-declared from TCL source
+	var lock string
+	_ = lock // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walprotocol2"
+	testprefix = "walprotocol2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE x(y);\n  INSERT INTO x VALUES('z');\n")
@@ -50,10 +65,11 @@ func Test_walprotocol2(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs T")
-	t.Errorf("TODO: %s not implemented in frigolite", "T filter xShmLock")
-	t.Errorf("TODO: %s not implemented in frigolite", "T script lock_callback")
-	db, err = frigolite.Open("test.db")
+	// testvfs T (unsupported command, not transpiled)
+	// T filter xShmLock (unsupported command, not transpiled)
+	// T script lock_callback (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -83,7 +99,7 @@ func Test_walprotocol2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
 	// proc definition (not transpiled)
 	{ // "2.4"

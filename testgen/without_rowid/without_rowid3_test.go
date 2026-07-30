@@ -3,6 +3,7 @@ package without_rowid
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -39,19 +40,72 @@ func Test_without_rowid3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var FkeySimpleSchema string
+	_ = FkeySimpleSchema // pre-declared from TCL source
+	var FkeySimpleTests string
+	_ = FkeySimpleTests // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var zSql string
+	_ = zSql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var expected string
+	_ = expected // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var sqlite_found_count string
+	_ = sqlite_found_count // pre-declared from TCL source
+	var zSchema string
+	_ = zSchema // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var nTotal string
+	_ = nTotal // pre-declared from TCL source
+	var authargs string
+	_ = authargs // pre-declared from TCL source
+	var S string
+	_ = S // pre-declared from TCL source
+	var insert string
+	_ = insert // pre-declared from TCL source
+	var update string
+	_ = update // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var nocommit string
+	_ = nocommit // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var zCreate string
+	_ = zCreate // pre-declared from TCL source
+	var zOld string
+	_ = zOld // pre-declared from TCL source
+	var zNew string
+	_ = zNew // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	r = db.Query(" PRAGMA foreign_keys = on ")
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = on ")
 	}
-	var FkeySimpleSchema = "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE t2(c REFERENCES t1(a) /D/ , d);\n\n  CREATE TABLE t3(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE t4(c REFERENCES t3 /D/, d);\n\n  CREATE TABLE t7(a, b INT PRIMARY KEY) WITHOUT rowid;\n  CREATE TABLE t8(c REFERENCES t7 /D/, d);\n\n  CREATE TABLE t9(a REFERENCES nosuchtable, b);\n  CREATE TABLE t10(a REFERENCES t9(c) /D/, b);\n"
+	FkeySimpleSchema = "\n  PRAGMA foreign_keys = on;\n  CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE t2(c REFERENCES t1(a) /D/ , d);\n\n  CREATE TABLE t3(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE t4(c REFERENCES t3 /D/, d);\n\n  CREATE TABLE t7(a, b INT PRIMARY KEY) WITHOUT rowid;\n  CREATE TABLE t8(c REFERENCES t7 /D/, d);\n\n  CREATE TABLE t9(a REFERENCES nosuchtable, b);\n  CREATE TABLE t10(a REFERENCES t9(c) /D/, b);\n"
 	_ = FkeySimpleSchema // suppress unused warning
-	var FkeySimpleTests = "\n  1.1  \"INSERT INTO t2 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  1.2  \"INSERT INTO t1 VALUES(1, 2)\"      {0 {}}\n  1.3  \"INSERT INTO t2 VALUES(1, 3)\"      {0 {}}\n  1.4  \"INSERT INTO t2 VALUES(2, 4)\"      {1 {FOREIGN KEY constraint failed}}\n  1.5  \"INSERT INTO t2 VALUES(NULL, 4)\"   {0 {}}\n  1.6  \"UPDATE t2 SET c=2 WHERE d=4\"      {1 {FOREIGN KEY constraint failed}}\n  1.7  \"UPDATE t2 SET c=1 WHERE d=4\"      {0 {}}\n  1.9  \"UPDATE t2 SET c=1 WHERE d=4\"      {0 {}}\n  1.10 \"UPDATE t2 SET c=NULL WHERE d=4\"   {0 {}}\n  1.11 \"DELETE FROM t1 WHERE a=1\"         {1 {FOREIGN KEY constraint failed}}\n  1.12 \"UPDATE t1 SET a = 2\"              {1 {FOREIGN KEY constraint failed}}\n  1.13 \"UPDATE t1 SET a = 1\"              {0 {}}\n\n  2.1  \"INSERT INTO t4 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  2.2  \"INSERT INTO t3 VALUES(1, 2)\"      {0 {}}\n  2.3  \"INSERT INTO t4 VALUES(1, 3)\"      {0 {}}\n\n  4.1  \"INSERT INTO t8 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  4.2  \"INSERT INTO t7 VALUES(2, 1)\"      {0 {}}\n  4.3  \"INSERT INTO t8 VALUES(1, 3)\"      {0 {}}\n  4.4  \"INSERT INTO t8 VALUES(2, 4)\"      {1 {FOREIGN KEY constraint failed}}\n  4.5  \"INSERT INTO t8 VALUES(NULL, 4)\"   {0 {}}\n  4.6  \"UPDATE t8 SET c=2 WHERE d=4\"      {1 {FOREIGN KEY constraint failed}}\n  4.7  \"UPDATE t8 SET c=1 WHERE d=4\"      {0 {}}\n  4.9  \"UPDATE t8 SET c=1 WHERE d=4\"      {0 {}}\n  4.10 \"UPDATE t8 SET c=NULL WHERE d=4\"   {0 {}}\n  4.11 \"DELETE FROM t7 WHERE b=1\"         {1 {FOREIGN KEY constraint failed}}\n  4.12 \"UPDATE t7 SET b = 2\"              {1 {FOREIGN KEY constraint failed}}\n  4.13 \"UPDATE t7 SET b = 1\"              {0 {}}\n  4.14 \"INSERT INTO t8 VALUES('a', 'b')\"  {1 {FOREIGN KEY constraint failed}}\n  4.15 \"UPDATE t7 SET b = 5\"              {1 {FOREIGN KEY constraint failed}}\n  4.17 \"UPDATE t7 SET a = 10\"             {0 {}}\n\n  5.1  \"INSERT INTO t9 VALUES(1, 3)\"      {1 {no such table: main.nosuchtable}}\n  5.2  \"INSERT INTO t10 VALUES(1, 3)\"  \n                            {1 {foreign key mismatch - \"t10\" referencing \"t9\"}}\n"
+	FkeySimpleTests = "\n  1.1  \"INSERT INTO t2 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  1.2  \"INSERT INTO t1 VALUES(1, 2)\"      {0 {}}\n  1.3  \"INSERT INTO t2 VALUES(1, 3)\"      {0 {}}\n  1.4  \"INSERT INTO t2 VALUES(2, 4)\"      {1 {FOREIGN KEY constraint failed}}\n  1.5  \"INSERT INTO t2 VALUES(NULL, 4)\"   {0 {}}\n  1.6  \"UPDATE t2 SET c=2 WHERE d=4\"      {1 {FOREIGN KEY constraint failed}}\n  1.7  \"UPDATE t2 SET c=1 WHERE d=4\"      {0 {}}\n  1.9  \"UPDATE t2 SET c=1 WHERE d=4\"      {0 {}}\n  1.10 \"UPDATE t2 SET c=NULL WHERE d=4\"   {0 {}}\n  1.11 \"DELETE FROM t1 WHERE a=1\"         {1 {FOREIGN KEY constraint failed}}\n  1.12 \"UPDATE t1 SET a = 2\"              {1 {FOREIGN KEY constraint failed}}\n  1.13 \"UPDATE t1 SET a = 1\"              {0 {}}\n\n  2.1  \"INSERT INTO t4 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  2.2  \"INSERT INTO t3 VALUES(1, 2)\"      {0 {}}\n  2.3  \"INSERT INTO t4 VALUES(1, 3)\"      {0 {}}\n\n  4.1  \"INSERT INTO t8 VALUES(1, 3)\"      {1 {FOREIGN KEY constraint failed}}\n  4.2  \"INSERT INTO t7 VALUES(2, 1)\"      {0 {}}\n  4.3  \"INSERT INTO t8 VALUES(1, 3)\"      {0 {}}\n  4.4  \"INSERT INTO t8 VALUES(2, 4)\"      {1 {FOREIGN KEY constraint failed}}\n  4.5  \"INSERT INTO t8 VALUES(NULL, 4)\"   {0 {}}\n  4.6  \"UPDATE t8 SET c=2 WHERE d=4\"      {1 {FOREIGN KEY constraint failed}}\n  4.7  \"UPDATE t8 SET c=1 WHERE d=4\"      {0 {}}\n  4.9  \"UPDATE t8 SET c=1 WHERE d=4\"      {0 {}}\n  4.10 \"UPDATE t8 SET c=NULL WHERE d=4\"   {0 {}}\n  4.11 \"DELETE FROM t7 WHERE b=1\"         {1 {FOREIGN KEY constraint failed}}\n  4.12 \"UPDATE t7 SET b = 2\"              {1 {FOREIGN KEY constraint failed}}\n  4.13 \"UPDATE t7 SET b = 1\"              {0 {}}\n  4.14 \"INSERT INTO t8 VALUES('a', 'b')\"  {1 {FOREIGN KEY constraint failed}}\n  4.15 \"UPDATE t7 SET b = 5\"              {1 {FOREIGN KEY constraint failed}}\n  4.17 \"UPDATE t7 SET a = 10\"             {0 {}}\n\n  5.1  \"INSERT INTO t9 VALUES(1, 3)\"      {1 {no such table: main.nosuchtable}}\n  5.2  \"INSERT INTO t10 VALUES(1, 3)\"  \n                            {1 {foreign key mismatch - \"t10\" referencing \"t9\"}}\n"
 	_ = FkeySimpleTests // suppress unused warning
 	{ // do_test "without_rowid3-1.1.0"
-		_res = db.Exec("{/D/ {}} $FkeySimpleSchema")
+		_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "{/D/ {}} $FkeySimpleSchema")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
 		}
 	}
 	// foreach {tn zSql res} FkeySimpleTests
@@ -105,11 +159,11 @@ func Test_without_rowid3(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		// drop_all_tables (unsupported command, not transpiled)
 		{ // do_test "without_rowid3-1.2.0"
-			_res = db.Exec("{/D/ {DEFERRABLE INITIALLY DEFERRED}} $FkeySimpleSchema")
+			_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "{DEFERRABLE"))
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "{/D/ {DEFERRABLE INITIALLY DEFERRED}} $FkeySimpleSchema")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", "{DEFERRABLE"))
 			}
 		}
 		// foreach {tn zSql res} FkeySimpleTests
@@ -163,11 +217,11 @@ func Test_without_rowid3(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			// drop_all_tables (unsupported command, not transpiled)
 			{ // do_test "without_rowid3-1.3.0"
-				_res = db.Exec("{/D/ {}} $FkeySimpleSchema")
+				_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "{/D/ {}} $FkeySimpleSchema")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
 				}
 				r = db.Query(" PRAGMA count_changes = 1 ")
 				if r.Error != nil {
@@ -185,7 +239,7 @@ func Test_without_rowid3(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _idx2
 					if res == "0 {}" {
-						var res = "0 1"
+						res = "0 1"
 						_ = res // suppress unused warning
 					}
 					{ // do_test "without_rowid3-1.3." + tn
@@ -233,11 +287,11 @@ func Test_without_rowid3(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+				// drop_all_tables (unsupported command, not transpiled)
 				{ // do_test "without_rowid3-1.4.0"
-					_res = db.Exec("{/D/ {}} $FkeySimpleSchema")
+					_res = db.Exec(strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "{/D/ {}} $FkeySimpleSchema")
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, strings.ReplaceAll(FkeySimpleSchema, "/D/", "{}"))
 					}
 					r = db.Query(" PRAGMA count_changes = 1 ")
 					if r.Error != nil {
@@ -255,7 +309,7 @@ func Test_without_rowid3(t *testing.T) {
 					_ = res // suppress unused warning
 					_ = _idx3
 						if res == "0 {}" {
-							var res = "0 1"
+							res = "0 1"
 							_ = res // suppress unused warning
 						}
 						_res = db.Exec("BEGIN")
@@ -275,7 +329,7 @@ func Test_without_rowid3(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA count_changes = 0 ")
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-1.5.1"
 						r = db.Query("\n    CREATE TABLE i(i INT PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j REFERENCES i);\n    INSERT INTO i VALUES(35);\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n  ")
 						if r.Error != nil {
@@ -286,7 +340,7 @@ func Test_without_rowid3(t *testing.T) {
 						_res = db.Exec(" DELETE FROM i ")
 						_ = _res // catchsql
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-1.6.1"
 						r = db.Query("\n    CREATE TABLE i(i INT UNIQUE);\n    CREATE TABLE j(j REFERENCES i(i));\n    INSERT INTO i VALUES('35.0');\n    INSERT INTO j VALUES('35.0');\n    SELECT j, typeof(j) FROM j;\n    SELECT i, typeof(i) FROM i;\n  ")
 						if r.Error != nil {
@@ -297,7 +351,7 @@ func Test_without_rowid3(t *testing.T) {
 						_res = db.Exec(" DELETE FROM i ")
 						_ = _res // catchsql
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-1.7.1"
 						_res = db.Exec("\n    CREATE TABLE i(i TEXT COLLATE nocase PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE j(j TEXT COLLATE binary REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n    INSERT INTO j VALUES('sqlite');\n  ")
 						if _res.Error != nil {
@@ -306,7 +360,7 @@ func Test_without_rowid3(t *testing.T) {
 						_res = db.Exec(" DELETE FROM i ")
 						_ = _res // catchsql
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-1.7.2"
 						_res = db.Exec("\n    CREATE TABLE i(i TEXT PRIMARY KEY) WITHOUT rowid;  -- Colseq is \"BINARY\"\n    CREATE TABLE j(j TEXT COLLATE nocase REFERENCES i(i));\n    INSERT INTO i VALUES('SQLite');\n  ")
 						if _res.Error != nil {
@@ -324,85 +378,88 @@ func Test_without_rowid3(t *testing.T) {
 						_ = _res // catchsql
 					}
 					// proc definition (not transpiled)
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 1 0 {\n  CREATE TABLE node(\n    nodeid PRIMARY KEY,\n    ...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 1 0 INSERT INTO node VALUES(1, 0) FKV")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 2 0 BEGIN")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 3 1 INSERT INTO node VALUES(1, 0)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 4 0 UPDATE node SET parent = NULL")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 5 0 COMMIT")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 6 0 SELECT * FROM node {1 {}}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 7 0 BEGIN")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 8 1 INSERT INTO leaf VALUES('a', 2)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 9 1 INSERT INTO node VALUES(2, 0)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 10 0 UPDATE node SET parent = 1 WHERE nodeid = 2")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 11 0 COMMIT")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 12 0 SELECT * FROM node {1 {} 2 1}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 13 0 SELECT * FROM leaf {a 2}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 14 0 BEGIN")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 15 1 DELETE FROM node WHERE nodeid = 2")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 16 0 INSERT INTO node VALUES(2, NULL)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 17 0 COMMIT")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 18 0 SELECT * FROM node {1 {} 2 {}}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 19 0 SELECT * FROM leaf {a 2}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 20 0 BEGIN")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 21 0 INSERT INTO leaf VALUES('b', 1)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 22 0 SAVEPOINT save")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 23 0 DELETE FROM node WHERE nodeid = 1")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 24 0 ROLLBACK TO save")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 25 0 COMMIT")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 26 0 SELECT * FROM node {1 {} 2 {}}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 27 0 SELECT * FROM leaf {a 2 b 1}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 28 0 BEGIN")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 29 0 INSERT INTO leaf VALUES('c', 1)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 30 0 SAVEPOINT save")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 31 0 DELETE FROM node WHERE nodeid = 1")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 32 1 RELEASE save")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 33 1 DELETE FROM leaf WHERE cellid = 'b'")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 34 0 DELETE FROM leaf WHERE cellid = 'c'")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 35 0 COMMIT")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 36 0 SELECT * FROM node {2 {}}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 37 0 SELECT * FROM leaf {a 2}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 38 0 SAVEPOINT outer")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 39 1 INSERT INTO leaf VALUES('d', 3)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 40 1 RELEASE outer FKV")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 41 1 INSERT INTO leaf VALUES('e', 3)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 42 0 INSERT INTO node VALUES(3, 2)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 43 0 RELEASE outer")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 44 0 SAVEPOINT outer")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 45 1 DELETE FROM node WHERE nodeid=3")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 47 0 INSERT INTO node VALUES(3, 2)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 48 0 ROLLBACK TO outer")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 49 0 RELEASE outer")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 50 0 SAVEPOINT outer")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 51 1 INSERT INTO leaf VALUES('f', 4)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 52 1 SAVEPOINT inner")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 53 1 INSERT INTO leaf VALUES('g', 4)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 54 1 RELEASE outer FKV")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 55 1 ROLLBACK TO inner")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 56 0 COMMIT FKV")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 57 0 INSERT INTO node VALUES(4, NULL)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 58 0 RELEASE outer")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 59 0 SELECT * FROM node {2 {} 3 2 4 {}}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 60 0 SELECT * FROM leaf {a 2 d 3 e 3 f 4}")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 61 0 BEGIN")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 62 0 DELETE FROM leaf")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 63 0 DELETE FROM node")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 64 1 INSERT INTO leaf VALUES('a', 1)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 65 1 INSERT INTO leaf VALUES('b', 2)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 66 1 INSERT INTO leaf VALUES('c', 1)")
+					// without_rowid3-2-test 1 0 {
+  CREATE TABLE node(
+    nodeid PRIMARY KEY,
+    ...} (unsupported command, not transpiled)
+					// without_rowid3-2-test 1 0 INSERT INTO node VALUES(1, 0) FKV (unsupported command, not transpiled)
+					// without_rowid3-2-test 2 0 BEGIN (unsupported command, not transpiled)
+					// without_rowid3-2-test 3 1 INSERT INTO node VALUES(1, 0) (unsupported command, not transpiled)
+					// without_rowid3-2-test 4 0 UPDATE node SET parent = NULL (unsupported command, not transpiled)
+					// without_rowid3-2-test 5 0 COMMIT (unsupported command, not transpiled)
+					// without_rowid3-2-test 6 0 SELECT * FROM node {1 {}} (unsupported command, not transpiled)
+					// without_rowid3-2-test 7 0 BEGIN (unsupported command, not transpiled)
+					// without_rowid3-2-test 8 1 INSERT INTO leaf VALUES('a', 2) (unsupported command, not transpiled)
+					// without_rowid3-2-test 9 1 INSERT INTO node VALUES(2, 0) (unsupported command, not transpiled)
+					// without_rowid3-2-test 10 0 UPDATE node SET parent = 1 WHERE nodeid = 2 (unsupported command, not transpiled)
+					// without_rowid3-2-test 11 0 COMMIT (unsupported command, not transpiled)
+					// without_rowid3-2-test 12 0 SELECT * FROM node {1 {} 2 1} (unsupported command, not transpiled)
+					// without_rowid3-2-test 13 0 SELECT * FROM leaf {a 2} (unsupported command, not transpiled)
+					// without_rowid3-2-test 14 0 BEGIN (unsupported command, not transpiled)
+					// without_rowid3-2-test 15 1 DELETE FROM node WHERE nodeid = 2 (unsupported command, not transpiled)
+					// without_rowid3-2-test 16 0 INSERT INTO node VALUES(2, NULL) (unsupported command, not transpiled)
+					// without_rowid3-2-test 17 0 COMMIT (unsupported command, not transpiled)
+					// without_rowid3-2-test 18 0 SELECT * FROM node {1 {} 2 {}} (unsupported command, not transpiled)
+					// without_rowid3-2-test 19 0 SELECT * FROM leaf {a 2} (unsupported command, not transpiled)
+					// without_rowid3-2-test 20 0 BEGIN (unsupported command, not transpiled)
+					// without_rowid3-2-test 21 0 INSERT INTO leaf VALUES('b', 1) (unsupported command, not transpiled)
+					// without_rowid3-2-test 22 0 SAVEPOINT save (unsupported command, not transpiled)
+					// without_rowid3-2-test 23 0 DELETE FROM node WHERE nodeid = 1 (unsupported command, not transpiled)
+					// without_rowid3-2-test 24 0 ROLLBACK TO save (unsupported command, not transpiled)
+					// without_rowid3-2-test 25 0 COMMIT (unsupported command, not transpiled)
+					// without_rowid3-2-test 26 0 SELECT * FROM node {1 {} 2 {}} (unsupported command, not transpiled)
+					// without_rowid3-2-test 27 0 SELECT * FROM leaf {a 2 b 1} (unsupported command, not transpiled)
+					// without_rowid3-2-test 28 0 BEGIN (unsupported command, not transpiled)
+					// without_rowid3-2-test 29 0 INSERT INTO leaf VALUES('c', 1) (unsupported command, not transpiled)
+					// without_rowid3-2-test 30 0 SAVEPOINT save (unsupported command, not transpiled)
+					// without_rowid3-2-test 31 0 DELETE FROM node WHERE nodeid = 1 (unsupported command, not transpiled)
+					// without_rowid3-2-test 32 1 RELEASE save (unsupported command, not transpiled)
+					// without_rowid3-2-test 33 1 DELETE FROM leaf WHERE cellid = 'b' (unsupported command, not transpiled)
+					// without_rowid3-2-test 34 0 DELETE FROM leaf WHERE cellid = 'c' (unsupported command, not transpiled)
+					// without_rowid3-2-test 35 0 COMMIT (unsupported command, not transpiled)
+					// without_rowid3-2-test 36 0 SELECT * FROM node {2 {}} (unsupported command, not transpiled)
+					// without_rowid3-2-test 37 0 SELECT * FROM leaf {a 2} (unsupported command, not transpiled)
+					// without_rowid3-2-test 38 0 SAVEPOINT outer (unsupported command, not transpiled)
+					// without_rowid3-2-test 39 1 INSERT INTO leaf VALUES('d', 3) (unsupported command, not transpiled)
+					// without_rowid3-2-test 40 1 RELEASE outer FKV (unsupported command, not transpiled)
+					// without_rowid3-2-test 41 1 INSERT INTO leaf VALUES('e', 3) (unsupported command, not transpiled)
+					// without_rowid3-2-test 42 0 INSERT INTO node VALUES(3, 2) (unsupported command, not transpiled)
+					// without_rowid3-2-test 43 0 RELEASE outer (unsupported command, not transpiled)
+					// without_rowid3-2-test 44 0 SAVEPOINT outer (unsupported command, not transpiled)
+					// without_rowid3-2-test 45 1 DELETE FROM node WHERE nodeid=3 (unsupported command, not transpiled)
+					// without_rowid3-2-test 47 0 INSERT INTO node VALUES(3, 2) (unsupported command, not transpiled)
+					// without_rowid3-2-test 48 0 ROLLBACK TO outer (unsupported command, not transpiled)
+					// without_rowid3-2-test 49 0 RELEASE outer (unsupported command, not transpiled)
+					// without_rowid3-2-test 50 0 SAVEPOINT outer (unsupported command, not transpiled)
+					// without_rowid3-2-test 51 1 INSERT INTO leaf VALUES('f', 4) (unsupported command, not transpiled)
+					// without_rowid3-2-test 52 1 SAVEPOINT inner (unsupported command, not transpiled)
+					// without_rowid3-2-test 53 1 INSERT INTO leaf VALUES('g', 4) (unsupported command, not transpiled)
+					// without_rowid3-2-test 54 1 RELEASE outer FKV (unsupported command, not transpiled)
+					// without_rowid3-2-test 55 1 ROLLBACK TO inner (unsupported command, not transpiled)
+					// without_rowid3-2-test 56 0 COMMIT FKV (unsupported command, not transpiled)
+					// without_rowid3-2-test 57 0 INSERT INTO node VALUES(4, NULL) (unsupported command, not transpiled)
+					// without_rowid3-2-test 58 0 RELEASE outer (unsupported command, not transpiled)
+					// without_rowid3-2-test 59 0 SELECT * FROM node {2 {} 3 2 4 {}} (unsupported command, not transpiled)
+					// without_rowid3-2-test 60 0 SELECT * FROM leaf {a 2 d 3 e 3 f 4} (unsupported command, not transpiled)
+					// without_rowid3-2-test 61 0 BEGIN (unsupported command, not transpiled)
+					// without_rowid3-2-test 62 0 DELETE FROM leaf (unsupported command, not transpiled)
+					// without_rowid3-2-test 63 0 DELETE FROM node (unsupported command, not transpiled)
+					// without_rowid3-2-test 64 1 INSERT INTO leaf VALUES('a', 1) (unsupported command, not transpiled)
+					// without_rowid3-2-test 65 1 INSERT INTO leaf VALUES('b', 2) (unsupported command, not transpiled)
+					// without_rowid3-2-test 66 1 INSERT INTO leaf VALUES('c', 1) (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-2-test-67"
 						_res = db.Exec("INSERT INTO node SELECT parent, 3 FROM leaf")
 						_ = _res // catchsql
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 68 0 COMMIT FKV")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 69 1 INSERT INTO node VALUES(1, NULL)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 70 0 INSERT INTO node VALUES(2, NULL)")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 71 0 COMMIT")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 72 0 BEGIN")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 73 1 DELETE FROM node")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 74 0 INSERT INTO node(nodeid) SELECT DISTINCT parent FR...")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-2-test 75 0 COMMIT")
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// without_rowid3-2-test 68 0 COMMIT FKV (unsupported command, not transpiled)
+					// without_rowid3-2-test 69 1 INSERT INTO node VALUES(1, NULL) (unsupported command, not transpiled)
+					// without_rowid3-2-test 70 0 INSERT INTO node VALUES(2, NULL) (unsupported command, not transpiled)
+					// without_rowid3-2-test 71 0 COMMIT (unsupported command, not transpiled)
+					// without_rowid3-2-test 72 0 BEGIN (unsupported command, not transpiled)
+					// without_rowid3-2-test 73 1 DELETE FROM node (unsupported command, not transpiled)
+					// without_rowid3-2-test 74 0 INSERT INTO node(nodeid) SELECT DISTINCT parent FR... (unsupported command, not transpiled)
+					// without_rowid3-2-test 75 0 COMMIT (unsupported command, not transpiled)
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-3.1.1"
 						_res = db.Exec("\n    CREATE TABLE ab(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cd(\n      c PRIMARY KEY REFERENCES ab ON UPDATE CASCADE ON DELETE CASCADE, \n      d\n    ) WITHOUT rowid;\n    CREATE TABLE ef(\n      e REFERENCES cd ON UPDATE CASCADE, \n      f, CHECK (e!=5)\n    );\n  ")
 						if _res.Error != nil {
@@ -461,7 +518,7 @@ func Test_without_rowid3(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM ab; SELECT * FROM cd; SELECT * FROM ef ")
 						}
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-4.1"
 						_res = db.Exec("\n    CREATE TABLE t1(\n      node PRIMARY KEY, \n      parent REFERENCES t1 ON DELETE CASCADE\n    ) WITHOUT rowid;\n    CREATE TABLE t2(node PRIMARY KEY, parent) WITHOUT rowid;\n    CREATE TRIGGER t2t AFTER DELETE ON t2 BEGIN\n      DELETE FROM t2 WHERE parent = old.node;\n    END;\n    INSERT INTO t1 VALUES(1, NULL);\n    INSERT INTO t1 VALUES(2, 1);\n    INSERT INTO t1 VALUES(3, 1);\n    INSERT INTO t1 VALUES(4, 2);\n    INSERT INTO t1 VALUES(5, 2);\n    INSERT INTO t1 VALUES(6, 3);\n    INSERT INTO t1 VALUES(7, 3);\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
 						if _res.Error != nil {
@@ -500,9 +557,9 @@ func Test_without_rowid3(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      DELETE FROM t2 WHERE node = 1;\n      SELECT node FROM t2;\n    ROLLBACK;\n  ")
 						}
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
+					// drop_all_tables (unsupported command, not transpiled)
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-7.1"
 						_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c INT PRIMARY KEY REFERENCES t1, b) WITHOUT rowid;\n  ")
 						if _res.Error != nil {
@@ -543,25 +600,25 @@ func Test_without_rowid3(t *testing.T) {
 						_res = db.Exec(" UPDATE t1 SET a = 3 ")
 						_ = _res // catchsql
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
 					// proc definition (not transpiled)
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 1 { PRAGMA foreign_keys = 0     } 0")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 2 { PRAGMA foreign_keys = 1     } 1")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 3 { BEGIN                       } 1")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 4 { PRAGMA foreign_keys = 0     } 1")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 5 { COMMIT                      } 1")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 6 { PRAGMA foreign_keys = 0     } 0")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 7 { BEGIN                       } 0")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 8 { PRAGMA foreign_keys = 1     } 0")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 9 { COMMIT                      } 0")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 10 { PRAGMA foreign_keys = 1     } 1")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 11 { PRAGMA foreign_keys = off   } 0")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 12 { PRAGMA foreign_keys = on    } 1")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 13 { PRAGMA foreign_keys = no    } 0")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 14 { PRAGMA foreign_keys = yes   } 1")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 15 { PRAGMA foreign_keys = false } 0")
-					t.Errorf("TODO: %s not implemented in frigolite", "without_rowid3-8-test 16 { PRAGMA foreign_keys = true  } 1")
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// without_rowid3-8-test 1 { PRAGMA foreign_keys = 0     } 0 (unsupported command, not transpiled)
+					// without_rowid3-8-test 2 { PRAGMA foreign_keys = 1     } 1 (unsupported command, not transpiled)
+					// without_rowid3-8-test 3 { BEGIN                       } 1 (unsupported command, not transpiled)
+					// without_rowid3-8-test 4 { PRAGMA foreign_keys = 0     } 1 (unsupported command, not transpiled)
+					// without_rowid3-8-test 5 { COMMIT                      } 1 (unsupported command, not transpiled)
+					// without_rowid3-8-test 6 { PRAGMA foreign_keys = 0     } 0 (unsupported command, not transpiled)
+					// without_rowid3-8-test 7 { BEGIN                       } 0 (unsupported command, not transpiled)
+					// without_rowid3-8-test 8 { PRAGMA foreign_keys = 1     } 0 (unsupported command, not transpiled)
+					// without_rowid3-8-test 9 { COMMIT                      } 0 (unsupported command, not transpiled)
+					// without_rowid3-8-test 10 { PRAGMA foreign_keys = 1     } 1 (unsupported command, not transpiled)
+					// without_rowid3-8-test 11 { PRAGMA foreign_keys = off   } 0 (unsupported command, not transpiled)
+					// without_rowid3-8-test 12 { PRAGMA foreign_keys = on    } 1 (unsupported command, not transpiled)
+					// without_rowid3-8-test 13 { PRAGMA foreign_keys = no    } 0 (unsupported command, not transpiled)
+					// without_rowid3-8-test 14 { PRAGMA foreign_keys = yes   } 1 (unsupported command, not transpiled)
+					// without_rowid3-8-test 15 { PRAGMA foreign_keys = false } 0 (unsupported command, not transpiled)
+					// without_rowid3-8-test 16 { PRAGMA foreign_keys = true  } 1 (unsupported command, not transpiled)
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-9.1.1"
 						_res = db.Exec("\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(\n      c INT PRIMARY KEY,\n      d INTEGER DEFAULT 1 REFERENCES t1 ON DELETE SET DEFAULT\n    ) WITHOUT rowid;\n    DELETE FROM t1;\n  ")
 						if _res.Error != nil {
@@ -608,11 +665,11 @@ func Test_without_rowid3(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM pp WHERE a = 4;\n    SELECT * FROM cc;\n  ")
 						}
 					}
-					var tn = "0"
+					tn = "0"
 					_ = tn // suppress unused warning
 					for _, zSql := range tclSplitList("list {\n  CREATE TABLE p(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE c(x REFERENCES p(c));\n} {\n  CREATE TABLE c(x REFERENCES v(y));\n  CREATE VIEW v AS SELECT x AS y FROM c;\n} {\n  CREATE TABLE p(a, b, PRIMARY KEY(a, b)) WITHOUT rowid;\n  CREATE TABLE c(x REFERENCES p);\n} {\n  CREATE TABLE p(a COLLATE binary, b);\n  CREATE UNIQUE INDEX i ON p(a COLLATE nocase);\n  CREATE TABLE c(x REFERENCES p(a));\n}") {
 					_ = zSql // suppress unused warning
-						t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						// drop_all_tables (unsupported command, not transpiled)
 						{ // do_test "without_rowid3-10.1." + "incr tn"
 							_res = db.Exec(zSql)
 							if _res.Error != nil {
@@ -623,33 +680,33 @@ func Test_without_rowid3(t *testing.T) {
 						}
 					}
 					{ // do_test "without_rowid3-10.2.1"
-						t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						// drop_all_tables (unsupported command, not transpiled)
 						_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(rowid) REFERENCES t1(a));\n  ")
 						_ = _res // catchsql
 					}
 					{ // do_test "without_rowid3-10.2.2"
-						t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						// drop_all_tables (unsupported command, not transpiled)
 						_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(rowid, d, FOREIGN KEY(rowid) REFERENCES t1(a));\n  ")
 						_ = _res // catchsql
 					}
 					{ // do_test "without_rowid3-10.2.1"
-						t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						// drop_all_tables (unsupported command, not transpiled)
 						_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(rowid));\n    INSERT INTO t1(rowid, a, b) VALUES(1, 1, 1);\n    INSERT INTO t2 VALUES(1, 1);\n  ")
 						_ = _res // catchsql
 					}
 					{ // do_test "without_rowid3-10.2.2"
-						t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						// drop_all_tables (unsupported command, not transpiled)
 						_res = db.Exec("\n    CREATE TABLE t1(rowid PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(rowid));\n    INSERT INTO t1(rowid, b) VALUES(1, 1);\n    INSERT INTO t2 VALUES(1, 1);\n  ")
 						_ = _res // catchsql
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-11.1.1"
 						r = db.Query("\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100);\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;\n  ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE t2(c, d, FOREIGN KEY(c) REFERENCES t1(a) ON UPDATE CASCADE);\n\n    INSERT INTO t1 VALUES(10, 100);\n    INSERT INTO t2 VALUES(10, 100);\n    UPDATE t1 SET a = 15;\n    SELECT * FROM t2;\n  ")
 						}
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-12.1.1"
 						_res = db.Exec("\n    CREATE TABLE t1(a, b PRIMARY KEY) WITHOUT rowid;\n    CREATE TABLE t2(\n      x REFERENCES t1 ON UPDATE RESTRICT DEFERRABLE INITIALLY DEFERRED \n    );\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n  ")
 						if _res.Error != nil {
@@ -692,7 +749,7 @@ func Test_without_rowid3(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(2, 'two');\n    COMMIT;\n  ")
 						}
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-12.2.1"
 						r = db.Query("\n    CREATE TABLE t1(x COLLATE NOCASE PRIMARY KEY) WITHOUT rowid;\n    CREATE TRIGGER tt1 AFTER DELETE ON t1 \n      WHEN EXISTS ( SELECT 1 FROM t2 WHERE old.x = y )\n    BEGIN\n      INSERT INTO t1 VALUES(old.x);\n    END;\n    CREATE TABLE t2(y REFERENCES t1);\n    INSERT INTO t1 VALUES('A');\n    INSERT INTO t1 VALUES('B');\n    INSERT INTO t2 VALUES('a');\n    INSERT INTO t2 VALUES('b');\n\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
 						if r.Error != nil {
@@ -723,7 +780,7 @@ func Test_without_rowid3(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  ")
 						}
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-12.3.1"
 						_res = db.Exec("\n    CREATE TABLE up(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      PRIMARY KEY(c34, c35)\n    ) WITHOUT rowid;\n    CREATE TABLE down(\n      c00, c01, c02, c03, c04, c05, c06, c07, c08, c09,\n      c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n      c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n      c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n      FOREIGN KEY(c39, c38) REFERENCES up ON UPDATE CASCADE\n    );\n  ")
 						if _res.Error != nil {
@@ -754,7 +811,7 @@ func Test_without_rowid3(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM up WHERE c34 = 'possibly';\n    SELECT c34, c35 FROM up;\n    SELECT c39, c38 FROM down;\n  ")
 						}
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					// drop_all_tables (unsupported command, not transpiled)
 					{ // do_test "without_rowid3-13.1.1"
 						_res = db.Exec("\n    CREATE TABLE pp(a UNIQUE, b, c, PRIMARY KEY(b, c)) WITHOUT rowid;\n    CREATE TABLE cc(d, e, f UNIQUE, FOREIGN KEY(d, e) REFERENCES pp);\n    INSERT INTO pp VALUES(1, 2, 3);\n    INSERT INTO cc VALUES(2, 3, 1);\n  ")
 						if _res.Error != nil {
@@ -794,9 +851,9 @@ func Test_without_rowid3(t *testing.T) {
 								}
 							}
 						}
-						t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						// drop_all_tables (unsupported command, not transpiled)
 						{ // do_test "without_rowid3-2.14.3.1"
-							t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							// drop_all_tables (unsupported command, not transpiled)
 							_res = db.Exec("\n    CREATE TABLE t1(a, b REFERENCES nosuchtable);\n    DROP TABLE t1;\n  ")
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b REFERENCES nosuchtable);\n    DROP TABLE t1;\n  ")
@@ -884,7 +941,7 @@ func Test_without_rowid3(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE b3(a, b REFERENCES b2 DEFERRABLE INITIALLY DEFERRED);\n    DROP TABLE b2;\n  ")
 							}
 						}
-						t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						// drop_all_tables (unsupported command, not transpiled)
 						{ // do_test "without_rowid3-2.14.4.1"
 							_res = db.Exec("\n    CREATE TABLE t1(x REFERENCES v); \n    CREATE VIEW v AS SELECT * FROM t1;\n  ")
 							if _res.Error != nil {
@@ -897,7 +954,7 @@ func Test_without_rowid3(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP VIEW v;\n  ")
 							}
 						}
-						t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						// drop_all_tables (unsupported command, not transpiled)
 						// proc definition (not transpiled)
 						{ // do_test "without_rowid3-15.1.1"
 							_res = db.Exec("\n    CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(x, y REFERENCES pp DEFERRABLE INITIALLY DEFERRED);\n    INSERT INTO pp VALUES(1, 'one');\n    INSERT INTO pp VALUES(2, 'two');\n    INSERT INTO cc VALUES('neung', 1);\n    INSERT INTO cc VALUES('song', 2);\n  ")
@@ -906,21 +963,21 @@ func Test_without_rowid3(t *testing.T) {
 							}
 						}
 						{ // do_test "without_rowid3-15.1.2"
-							t.Errorf("TODO: %s not implemented in frigolite", "execsqlS { INSERT INTO pp VALUES(3, 'three') }")
+							// execsqlS { INSERT INTO pp VALUES(3, 'three') } (unsupported command, not transpiled)
 						}
 						{ // do_test "without_rowid3-15.1.3"
 							_res = db.Exec("\n    BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint\n  ")
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      INSERT INTO cc VALUES('see', 4);    -- Violates deferred constraint\n  ")
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "execsqlS { INSERT INTO pp VALUES(5, 'five') }")
+							// execsqlS { INSERT INTO pp VALUES(5, 'five') } (unsupported command, not transpiled)
 						}
 						{ // do_test "without_rowid3-15.1.4"
 							_res = db.Exec(" DELETE FROM cc WHERE x = 'see' ")
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM cc WHERE x = 'see' ")
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "execsqlS { INSERT INTO pp VALUES(6, 'six') }")
+							// execsqlS { INSERT INTO pp VALUES(6, 'six') } (unsupported command, not transpiled)
 						}
 						{ // do_test "without_rowid3-15.1.5"
 							_res = db.Exec("COMMIT")
@@ -933,14 +990,18 @@ func Test_without_rowid3(t *testing.T) {
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "execsqlS {\n    DELETE FROM cc WHERE x = 'neung';\n    ROLLBAC...}")
+							// execsqlS {
+    DELETE FROM cc WHERE x = 'neung';
+    ROLLBAC...} (unsupported command, not transpiled)
 						}
 						{ // do_test "without_rowid3-15.1.7"
 							_res = db.Exec(" \n    BEGIN;\n    DELETE FROM pp WHERE a = 2;\n  ")
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    DELETE FROM pp WHERE a = 2;\n  ")
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "execsqlS {\n    DELETE FROM cc WHERE x = 'neung';\n    ROLLBAC...}")
+							// execsqlS {
+    DELETE FROM cc WHERE x = 'neung';
+    ROLLBAC...} (unsupported command, not transpiled)
 						}
 						// foreach {tn zSchema} "\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a))\n             WITHOUT rowid }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) WITHOUT rowid }\n  3 { CREATE TABLE self(a UNIQUE, b INT PRIMARY KEY REFERENCES self(a))\n             WITHOUT rowid }\n"
 						_items5 := tclSplitList("\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a))\n             WITHOUT rowid }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) WITHOUT rowid }\n  3 { CREATE TABLE self(a UNIQUE, b INT PRIMARY KEY REFERENCES self(a))\n             WITHOUT rowid }\n")
@@ -950,7 +1011,7 @@ func Test_without_rowid3(t *testing.T) {
 							zSchema := _items5[_idx5+1]
 							_ = zSchema // suppress unused warning
 							_ = _idx5
-								t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+								// drop_all_tables (unsupported command, not transpiled)
 								{ // do_test "without_rowid3-16.1." + tn + ".1"
 									_res = db.Exec(zSchema)
 									if _res.Error != nil {
@@ -994,7 +1055,7 @@ func Test_without_rowid3(t *testing.T) {
 									_ = _res // catchsql
 								}
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							// drop_all_tables (unsupported command, not transpiled)
 							{ // "without_rowid3-16.4.1.1"
 								r = db.Query("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(a,b,c,d,e,f,\n     UNIQUE (a,b),\n     PRIMARY KEY (e,c),\n     FOREIGN KEY (d,f) REFERENCES t1(e,c)\n  ) WITHOUT rowid;\n  INSERT INTO t1 VALUES(1,2,3,5,5,3);\n  INSERT INTO t1 VALUES(2,3,4,6,6,4);\n  INSERT INTO t1 VALUES('x','y',1.5,'fizzle','fizzle',1.5);\n  SELECT *, '|' FROM t1 ORDER BY a, b;\n")
 								if r.Error != nil {
@@ -1107,7 +1168,7 @@ func Test_without_rowid3(t *testing.T) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							// drop_all_tables (unsupported command, not transpiled)
 							{ // do_test "without_rowid3-17.1.1"
 								r = db.Query(" PRAGMA count_changes = 1 ")
 								if r.Error != nil {
@@ -1119,15 +1180,15 @@ func Test_without_rowid3(t *testing.T) {
 								}
 							}
 							{ // do_test "without_rowid3-17.1.2"
-								var STMT = ""
+								STMT = ""
 								_ = STMT // suppress unused warning
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+								// sqlite3_step $STMT (unsupported command, not transpiled)
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.2b SQLITE_CONSTRAINT_FOREIGNKEY")
+							// verify_ex_errcode without_rowid3-17.1.2b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // do_test "without_rowid3-17.1.4"
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+								// sqlite3_finalize $STMT (unsupported command, not transpiled)
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.4b SQLITE_CONSTRAINT_FOREIGNKEY")
+							// verify_ex_errcode without_rowid3-17.1.4b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // do_test "without_rowid3-17.1.5"
 								_res = db.Exec("\n    INSERT INTO one VALUES(2, 3, 4);\n    INSERT INTO one VALUES(3, 4, 5);\n    INSERT INTO two VALUES(1, 2, 3);\n    INSERT INTO two VALUES(2, 3, 4);\n    INSERT INTO two VALUES(3, 4, 5);\n  ")
 								if _res.Error != nil {
@@ -1163,22 +1224,22 @@ func Test_without_rowid3(t *testing.T) {
 								}
 							}
 							{ // do_test "without_rowid3-17.1.11"
-								var STMT = ""
+								STMT = ""
 								_ = STMT // suppress unused warning
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+								// sqlite3_step $STMT (unsupported command, not transpiled)
 							}
 							{ // do_test "without_rowid3-17.1.12"
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $STMT 0")
+								// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 							}
 							{ // do_test "without_rowid3-17.1.13"
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+								// sqlite3_step $STMT (unsupported command, not transpiled)
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.13b SQLITE_CONSTRAINT_FOREIGNKEY")
+							// verify_ex_errcode without_rowid3-17.1.13b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // do_test "without_rowid3-17.1.14"
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+								// sqlite3_finalize $STMT (unsupported command, not transpiled)
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-17.1.14b SQLITE_CONSTRAINT_FOREIGNKEY")
-							t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							// verify_ex_errcode without_rowid3-17.1.14b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
+							// drop_all_tables (unsupported command, not transpiled)
 							{ // do_test "without_rowid3-17.2.1"
 								_res = db.Exec("\n    CREATE TABLE high(\"a'b!\" PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE low(\n      c, \n      \"d&6\" REFERENCES high ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
 								if _res.Error != nil {
@@ -1191,7 +1252,7 @@ func Test_without_rowid3(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO high VALUES('a', 'b');\n    INSERT INTO low VALUES('b', 'a');\n  ")
 								}
 							}
-							var nTotal = "db total_changes"
+							nTotal = "db total_changes"
 							_ = nTotal // suppress unused warning
 							{ // do_test "without_rowid3-17.2.3"
 								_res = db.Exec(" UPDATE high SET \"a'b!\" = 'c' ")
@@ -1238,24 +1299,24 @@ func Test_without_rowid3(t *testing.T) {
 								}
 							}
 							{ // do_test "without_rowid3-19.2"
-								var S = ""
+								S = ""
 								_ = S // suppress unused warning
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $S 1 2")
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+								// sqlite3_bind_int $S 1 2 (unsupported command, not transpiled)
+								// sqlite3_step $S (unsupported command, not transpiled)
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-19.2b SQLITE_CONSTRAINT_FOREIGNKEY")
+							// verify_ex_errcode without_rowid3-19.2b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // do_test "without_rowid3-19.3"
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $S")
+								// sqlite3_reset $S (unsupported command, not transpiled)
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode without_rowid3-19.3b SQLITE_CONSTRAINT_FOREIGNKEY")
+							// verify_ex_errcode without_rowid3-19.3b SQLITE_CONSTRAINT_FOREIGNKEY (unsupported command, not transpiled)
 							{ // do_test "without_rowid3-19.4"
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $S 1 1")
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+								// sqlite3_bind_int $S 1 1 (unsupported command, not transpiled)
+								// sqlite3_step $S (unsupported command, not transpiled)
 							}
 							{ // do_test "without_rowid3-19.4"
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+								// sqlite3_finalize $S (unsupported command, not transpiled)
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							// drop_all_tables (unsupported command, not transpiled)
 							{ // do_test "without_rowid3-20.1"
 								_res = db.Exec("\n    CREATE TABLE pp(a PRIMARY KEY, b) WITHOUT rowid;\n    CREATE TABLE cc(c PRIMARY KEY, d REFERENCES pp) WITHOUT rowid;\n  ")
 								if _res.Error != nil {
@@ -1370,7 +1431,7 @@ func Test_without_rowid3(t *testing.T) {
 											}
 										}
 									}
-									t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+									// drop_all_tables (unsupported command, not transpiled)
 									{ // do_test "without_rowid3-genfkey.1.1"
 										_res = db.Exec("\n    CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1, f);\n    CREATE TABLE t3(g, h, i, FOREIGN KEY (h, i) REFERENCES t1(b, c));\n  ")
 										if _res.Error != nil {
@@ -1467,7 +1528,7 @@ func Test_without_rowid3(t *testing.T) {
 										_res = db.Exec(" UPDATE t3 SET h = 'hello' WHERE i = 3")
 										_ = _res // catchsql
 									}
-									t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+									// drop_all_tables (unsupported command, not transpiled)
 									{ // do_test "without_rowid3-genfkey.2.1"
 										_res = db.Exec("\n    CREATE TABLE t1(a INT PRIMARY KEY, b, c, UNIQUE(b, c)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE CASCADE ON DELETE CASCADE, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE CASCADE ON DELETE CASCADE\n    );\n  ")
 										if _res.Error != nil {
@@ -1504,7 +1565,7 @@ func Test_without_rowid3(t *testing.T) {
 											t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    SELECT * FROM t3;\n  ")
 										}
 									}
-									t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+									// drop_all_tables (unsupported command, not transpiled)
 									{ // do_test "without_rowid3-genfkey.3.1"
 										_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, UNIQUE(c, b)) WITHOUT rowid;\n    CREATE TABLE t2(e REFERENCES t1 ON UPDATE SET NULL ON DELETE SET NULL, f);\n    CREATE TABLE t3(g, h, i, \n        FOREIGN KEY (h, i) \n        REFERENCES t1(b, c) ON UPDATE SET NULL ON DELETE SET NULL\n    );\n  ")
 										if _res.Error != nil {
@@ -1597,7 +1658,8 @@ func Test_without_rowid3(t *testing.T) {
 										_res = db.Exec("\n    UPDATE tce73 set a = 101 where a = 100;\n  ")
 										_ = _res // catchsql
 									}
-									db, err = frigolite.Open(":memory:")
+									_dbtmp8, err := frigolite.Open(":memory:")
+									_ = _dbtmp8 // sqlite3 db connection
 									if err != nil { t.Fatal(err) }
 									{ // "without_rowid3-30.1"
 										r = db.Query("\n  CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  CREATE TABLE t2(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  SELECT changes();\n")

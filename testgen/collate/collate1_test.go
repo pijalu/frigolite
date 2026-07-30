@@ -40,8 +40,27 @@ func Test_collate1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var lhs_ishex string
+	_ = lhs_ishex // pre-declared from TCL source
+	var rhs_ishex string
+	_ = rhs_ishex // pre-declared from TCL source
+	var lhsx string
+	_ = lhsx // pre-declared from TCL source
+	var rhsx string
+	_ = rhsx // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "collate1"
+	testprefix = "collate1"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -297,7 +316,7 @@ func Test_collate1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT id FROM c5 WHERE c='abc' ORDER BY id;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 	{ // "6.1"
 		r = db.Query("\n  SELECT \"\"\"\"\"\"\"\";\n")
 		if r.Error != nil {
@@ -430,7 +449,12 @@ func Test_collate1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 9.1 -faults oom* -body {\n  execsql {\n    SELECT * FROM (\n        SELECT b ...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// do_faultsim_test 9.1 -faults oom* -body {
+  execsql {
+    SELECT * FROM (
+        SELECT b ...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

@@ -39,12 +39,21 @@ func Test_select8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE songs(songid, artist, timesplayed);\n  INSERT INTO songs VALUES(1,'one',1);\n  INSERT INTO songs VALUES(2,'one',2);\n  INSERT INTO songs VALUES(3,'two',3);\n  INSERT INTO songs VALUES(4,'three',5);\n  INSERT INTO songs VALUES(5,'one',7);\n  INSERT INTO songs VALUES(6,'two',11);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE songs(songid, artist, timesplayed);\n  INSERT INTO songs VALUES(1,'one',1);\n  INSERT INTO songs VALUES(2,'one',2);\n  INSERT INTO songs VALUES(3,'two',3);\n  INSERT INTO songs VALUES(4,'three',5);\n  INSERT INTO songs VALUES(5,'one',7);\n  INSERT INTO songs VALUES(6,'two',11);\n")
 	}
-	var result = "execsql {\n  SELECT DISTINCT artist,sum(timesplayed) AS total      \n  FROM songs      \n  GROUP BY LOWER(artist)      \n}"
+	result = "execsql {\n  SELECT DISTINCT artist,sum(timesplayed) AS total      \n  FROM songs      \n  GROUP BY LOWER(artist)      \n}"
 	_ = result // suppress unused warning
 	{ // do_test "select8-1.1"
 		r = db.Query("\n    SELECT DISTINCT artist,sum(timesplayed) AS total      \n    FROM songs      \n    GROUP BY LOWER(artist)      \n    LIMIT 1 OFFSET 1\n  ")

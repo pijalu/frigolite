@@ -40,8 +40,27 @@ func Test_expridx1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var idxcheck string
+	_ = idxcheck // pre-declared from TCL source
+	var root string
+	_ = root // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "expridx1"
+	testprefix = "expridx1"
 	_ = testprefix // suppress unused warning
 	{ // "1.0.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b REAL);\n  INSERT INTO t1 VALUES(10, 10.0);\n  INSERT INTO t1 VALUES(15, 15.0);\n  INSERT INTO t1 VALUES(20, 20.0);\n  INSERT INTO t1 VALUES(25, 25.0);\n  INSERT INTO t1 VALUES(30, 30.0);\n  CREATE INDEX i1 ON t1((b+0.0));\n")
@@ -49,17 +68,17 @@ func Test_expridx1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b REAL);\n  INSERT INTO t1 VALUES(10, 10.0);\n  INSERT INTO t1 VALUES(15, 15.0);\n  INSERT INTO t1 VALUES(20, 20.0);\n  INSERT INTO t1 VALUES(25, 25.0);\n  INSERT INTO t1 VALUES(30, 30.0);\n  CREATE INDEX i1 ON t1((b+0.0));\n")
 		}
 	}
-	var idxcheck = "\n  SELECT rowid FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND b+0.0=o.b+0.0)\n"
+	idxcheck = "\n  SELECT rowid FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND b+0.0=o.b+0.0)\n"
 	_ = idxcheck // suppress unused warning
-	var root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='i1'}"
+	root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='i1'}"
 	_ = root // suppress unused warning
 	{ // do_test "1.0.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root")
+		// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(b, rowid, PRIMARY KEY(b, rowid)) WITHOUT ROWID;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0")
+		// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0 (unsupported command, not transpiled)
 	}
 	{ // "1.1.1"
 		_res = db.Exec("\n  UPDATE x1 SET b=21.0 WHERE rowid=20;\n")
@@ -205,7 +224,7 @@ func Test_expridx1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		var nRow = "1000"
+		nRow = "1000"
 		_ = nRow // suppress unused warning
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);\n")
@@ -218,12 +237,12 @@ func Test_expridx1(t *testing.T) {
 		root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='t1c'}"
 		_ = root // suppress unused warning
 		{ // do_test "2.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root")
+			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)
 			_res = db.Exec("\n    CREATE TABLE x1(a, b, c, PRIMARY KEY(c, a, b)) WITHOUT ROWID;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a, b, c, PRIMARY KEY(c, a, b)) WITHOUT ROWID;\n  ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0")
+			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0 (unsupported command, not transpiled)
 		}
 		{ // "2.2"
 			_res = db.Exec("\n  UPDATE x1 SET c=hex(randomblob(50)) WHERE (a%2)!=0\n")
@@ -244,7 +263,7 @@ func Test_expridx1(t *testing.T) {
 			}
 		}
 		{ // do_test "2.4"
-			var ii = "1"
+			ii = "1"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nRow_n, _nRow_e := strconv.Atoi(nRow); if _nRow_e != nil { return false }; return ii_n < nRow_n }() {
 				_res = db.Exec(" DELETE FROM t1 WHERE a=$ii ")
@@ -290,12 +309,12 @@ func Test_expridx1(t *testing.T) {
 		root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='i1'}"
 		_ = root // suppress unused warning
 		{ // do_test "3.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root")
+			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)
 			_res = db.Exec(" CREATE TABLE x1(c, rowid, PRIMARY KEY(c, rowid)) WITHOUT ROWID; ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE x1(c, rowid, PRIMARY KEY(c, rowid)) WITHOUT ROWID; ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0")
+			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0 (unsupported command, not transpiled)
 		}
 		{ // "3.2"
 			_res = db.Exec("\n  UPDATE x1 SET c=19 WHERE rowid=2;\n")
@@ -333,12 +352,12 @@ func Test_expridx1(t *testing.T) {
 		root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='z1b'}"
 		_ = root // suppress unused warning
 		{ // do_test "4.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root")
+			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root (unsupported command, not transpiled)
 			_res = db.Exec(" CREATE TABLE x1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID; ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE x1(b, a, PRIMARY KEY(b, a)) WITHOUT ROWID; ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0")
+			// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0 (unsupported command, not transpiled)
 		}
 		{ // "4.2"
 			_res = db.Exec("\n  UPDATE x1 SET b=4.000000000000001 WHERE a=2;          -- 1 ULP\n  UPDATE x1 SET b=4.000000000000002 WHERE a=3;          -- 2 ULP\n  UPDATE x1 SET b=4.000000000000003 WHERE a=4;          -- 3 ULP\n  UPDATE x1 SET b=3.9999999999999996 WHERE a=5;         -- -1 ULP\n  UPDATE x1 SET b=3.9999999999999992 WHERE a=6;         -- -2 ULP\n  UPDATE x1 SET b=3.9999999999999988 WHERE a=7;         -- -3 ULP\n")

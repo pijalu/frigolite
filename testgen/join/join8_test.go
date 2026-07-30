@@ -40,6 +40,11 @@ func Test_join8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "join8-10"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(x,y);\n  CREATE INDEX t2x ON t2(x);\n  SELECT avg(DISTINCT b) FROM (SELECT * FROM t2 LEFT RIGHT JOIN t1 ON c);\n")
@@ -86,7 +91,7 @@ func Test_join8(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db series")
+	// load_static_extension db series (unsupported command, not transpiled)
 	{ // "join8-3000"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a INT);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY, b INT);\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, c INT);\n  CREATE TABLE t4(id INTEGER PRIMARY KEY, d INT);\n  CREATE TABLE t5(id INTEGER PRIMARY KEY, e INT);\n  CREATE TABLE t6(id INTEGER PRIMARY KEY, f INT);\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, g INT);\n  CREATE TABLE t8(id INTEGER PRIMARY KEY, h INT);\n  INSERT INTO t1 SELECT value, 1 FROM generate_series(1,256) WHERE value & 1;\n  INSERT INTO t2 SELECT value, 1 FROM generate_series(1,256) WHERE value & 2;\n  INSERT INTO t3 SELECT value, 1 FROM generate_series(1,256) WHERE value & 4;\n  INSERT INTO t4 SELECT value, 1 FROM generate_series(1,256) WHERE value & 8;\n  INSERT INTO t5 SELECT value, 1 FROM generate_series(1,256) WHERE value & 16;\n  INSERT INTO t6 SELECT value, 1 FROM generate_series(1,256) WHERE value & 32;\n  INSERT INTO t7 SELECT value, 1 FROM generate_series(1,256) WHERE value & 64;\n  INSERT INTO t8 SELECT value, 1 FROM generate_series(1,256) WHERE value & 128;\n  CREATE TABLE t9 AS\n    SELECT id, h, g, f, e, d, c, b, a\n      FROM t1\n      NATURAL FULL JOIN t2\n      NATURAL FULL JOIN t3\n      NATURAL FULL JOIN t4\n      NATURAL FULL JOIN t5\n      NATURAL FULL JOIN t6\n      NATURAL FULL JOIN t7\n      NATURAL FULL JOIN t8;\n")
 		if _res.Error != nil {

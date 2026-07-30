@@ -40,6 +40,15 @@ func Test_triggerB(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "triggerB-1.1"
 		r = db.Query("\n    CREATE TABLE x(x INTEGER PRIMARY KEY, y INT NOT NULL);\n    INSERT INTO x(y) VALUES(1);\n    INSERT INTO x(y) VALUES(1);\n    CREATE TEMP VIEW vx AS SELECT x, y, 0 AS yy FROM x;\n    CREATE TEMP TRIGGER tx INSTEAD OF UPDATE OF y ON vx\n    BEGIN\n      UPDATE x SET y = new.y WHERE x = new.x;\n    END;\n    SELECT * FROM vx;\n  ")
@@ -84,10 +93,10 @@ func Test_triggerB(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(\n       c0,  c1,  c2,  c3,  c4,  c5,  c6,  c7,  c8,  c9,\n       c10, c11, c12, c13, c14, c15, c16, c17, c18, c19,\n       c20, c21, c22, c23, c24, c25, c26, c27, c28, c29,\n       c30, c31, c32, c33, c34, c35, c36, c37, c38, c39,\n       c40, c41, c42, c43, c44, c45, c46, c47, c48, c49,\n       c50, c51, c52, c53, c54, c55, c56, c57, c58, c59,\n       c60, c61, c62, c63, c64, c65\n    );\n    CREATE TABLE t3_changes(colnum, oldval, newval);\n    INSERT INTO t3 VALUES(\n       'a0', 'a1', 'a2', 'a3', 'a4', 'a5', 'a6', 'a7', 'a8', 'a9',\n       'a10','a11','a12','a13','a14','a15','a16','a17','a18','a19',\n       'a20','a21','a22','a23','a24','a25','a26','a27','a28','a29',\n       'a30','a31','a32','a33','a34','a35','a36','a37','a38','a39',\n       'a40','a41','a42','a43','a44','a45','a46','a47','a48','a49',\n       'a50','a51','a52','a53','a54','a55','a56','a57','a58','a59',\n       'a60','a61','a62','a63','a64','a65'\n    );\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 65 }() {
-			var sql = "CREATE TRIGGER t3c" + i + " AFTER UPDATE ON t3\n         WHEN old.c" + i + "!=new.c" + i + " BEGIN\n          INSERT INTO t3_changes VALUES(" + i + ", old.c" + i + ", new.c" + i + ");\n      END"
+			sql = "CREATE TRIGGER t3c" + i + " AFTER UPDATE ON t3\n         WHEN old.c" + i + "!=new.c" + i + " BEGIN\n          INSERT INTO t3_changes VALUES(" + i + ", old.c" + i + ", new.c" + i + ");\n      END"
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -106,7 +115,7 @@ func Test_triggerB(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t3_changes\n  ")
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 64 }() {
 		{ // do_test "triggerB-3.2." + i + ".1"

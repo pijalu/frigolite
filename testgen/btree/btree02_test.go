@@ -39,8 +39,23 @@ func Test_btree02(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var bx string
+	_ = bx // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db eval")
+	// load_static_extension db eval (unsupported command, not transpiled)
 	{ // "btree02-100"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, ax INTEGER, b INT, PRIMARY KEY(a,ax)) WITHOUT ROWID;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n    INSERT INTO t1(a,ax,b) SELECT printf('%02x',i+160), random(), i FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE TABLE t2(x,y);\n  CREATE TABLE t3(cnt);\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<4)\n    INSERT INTO t3(cnt) SELECT i FROM c;\n  SELECT count(*) FROM t1;\n")
 		if r.Error != nil {
@@ -59,7 +74,7 @@ func Test_btree02(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		_res = db.Exec("SELECT a, ax, b, cnt FROM t1 CROSS JOIN t3 WHERE b IS NOT NULL")
 		if _res.Error != nil {

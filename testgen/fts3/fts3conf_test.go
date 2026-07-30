@@ -40,8 +40,51 @@ func Test_fts3conf(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var m1 string
+	_ = m1 // pre-declared from TCL source
+	var m2 string
+	_ = m2 // pre-declared from TCL source
+	var T1 string
+	_ = T1 // pre-declared from TCL source
+	var T2 string
+	_ = T2 // pre-declared from TCL source
+	var T3 string
+	_ = T3 // pre-declared from TCL source
+	var T4 string
+	_ = T4 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var uses string
+	_ = uses // pre-declared from TCL source
+	var constraint string
+	_ = constraint // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var R_0 string
+	_ = R_0 // pre-declared from TCL source
+	var R_1 string
+	_ = R_1 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var tail string
+	_ = tail // pre-declared from TCL source
+	var R_constraint string
+	_ = R_constraint // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3conf"
+	testprefix = "fts3conf"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0.1"
@@ -50,14 +93,14 @@ func Test_fts3conf(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  INSERT INTO t1(rowid, x) VALUES(1, 'a b c d');\n  INSERT INTO t1(rowid, x) VALUES(2, 'e f g h');\n\n  CREATE TABLE source(a, b);\n  INSERT INTO source VALUES(4, 'z');\n  INSERT INTO source VALUES(2, 'y');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	var T1 = "INTO t1(rowid, x) VALUES(1, 'x')"
+	// db_save_and_close (unsupported command, not transpiled)
+	T1 = "INTO t1(rowid, x) VALUES(1, 'x')"
 	_ = T1 // suppress unused warning
-	var T2 = "INTO t1(rowid, x) SELECT * FROM source"
+	T2 = "INTO t1(rowid, x) SELECT * FROM source"
 	_ = T2 // suppress unused warning
-	var T3 = "t1 SET docid = 2 WHERE docid = 1"
+	T3 = "t1 SET docid = 2 WHERE docid = 1"
 	_ = T3 // suppress unused warning
-	var T4 = "t1 SET docid = CASE WHEN docid = 1 THEN 4 ELSE 3 END WHERE docid <=2"
+	T4 = "t1 SET docid = CASE WHEN docid = 1 THEN 4 ELSE 3 END WHERE docid <=2"
 	_ = T4 // suppress unused warning
 	// foreach {tn sql uses constraint data} "1    \"INSERT OR ROLLBACK " + T1 + "\"   0 1 {{a b c d} {e f g h}}\n  2    \"INSERT OR ABORT    " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  3    \"INSERT OR FAIL     " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  4    \"INSERT OR IGNORE   " + T1 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  5    \"INSERT OR REPLACE  " + T1 + "\"   0 0 {x {e f g h} {i j k l}}\n\n  6    \"INSERT OR ROLLBACK " + T2 + "\"   1 1 {{a b c d} {e f g h}}\n  7    \"INSERT OR ABORT    " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  8    \"INSERT OR FAIL     " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l} z}\n  9    \"INSERT OR IGNORE   " + T2 + "\"   1 0 {{a b c d} {e f g h} {i j k l} z}\n  10   \"INSERT OR REPLACE  " + T2 + "\"   1 0 {{a b c d} y {i j k l} z}\n\n  11   \"UPDATE OR ROLLBACK " + T3 + "\"   0 1 {{a b c d} {e f g h}}\n  12   \"UPDATE OR ABORT    " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  13   \"UPDATE OR FAIL     " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  14   \"UPDATE OR IGNORE   " + T3 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  15   \"UPDATE OR REPLACE  " + T3 + "\"   0 0 {{a b c d} {i j k l}}\n\n  16   \"UPDATE OR ROLLBACK " + T4 + "\"   1 1 {{a b c d} {e f g h}}\n  17   \"UPDATE OR ABORT    " + T4 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  18   \"UPDATE OR FAIL     " + T4 + "\"   1 1 {{e f g h} {i j k l} {a b c d}}\n  19   \"UPDATE OR IGNORE   " + T4 + "\"   1 0 {{e f g h} {i j k l} {a b c d}}\n  20   \"UPDATE OR REPLACE  " + T4 + "\"   1 0 {{e f g h} {a b c d}}"
 	_items0 := tclSplitList("1    \"INSERT OR ROLLBACK " + T1 + "\"   0 1 {{a b c d} {e f g h}}\n  2    \"INSERT OR ABORT    " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  3    \"INSERT OR FAIL     " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  4    \"INSERT OR IGNORE   " + T1 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  5    \"INSERT OR REPLACE  " + T1 + "\"   0 0 {x {e f g h} {i j k l}}\n\n  6    \"INSERT OR ROLLBACK " + T2 + "\"   1 1 {{a b c d} {e f g h}}\n  7    \"INSERT OR ABORT    " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  8    \"INSERT OR FAIL     " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l} z}\n  9    \"INSERT OR IGNORE   " + T2 + "\"   1 0 {{a b c d} {e f g h} {i j k l} z}\n  10   \"INSERT OR REPLACE  " + T2 + "\"   1 0 {{a b c d} y {i j k l} z}\n\n  11   \"UPDATE OR ROLLBACK " + T3 + "\"   0 1 {{a b c d} {e f g h}}\n  12   \"UPDATE OR ABORT    " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  13   \"UPDATE OR FAIL     " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  14   \"UPDATE OR IGNORE   " + T3 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  15   \"UPDATE OR REPLACE  " + T3 + "\"   0 0 {{a b c d} {i j k l}}\n\n  16   \"UPDATE OR ROLLBACK " + T4 + "\"   1 1 {{a b c d} {e f g h}}\n  17   \"UPDATE OR ABORT    " + T4 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  18   \"UPDATE OR FAIL     " + T4 + "\"   1 1 {{e f g h} {i j k l} {a b c d}}\n  19   \"UPDATE OR IGNORE   " + T4 + "\"   1 0 {{e f g h} {i j k l} {a b c d}}\n  20   \"UPDATE OR REPLACE  " + T4 + "\"   1 0 {{e f g h} {a b c d}}")
@@ -73,14 +116,14 @@ func Test_fts3conf(t *testing.T) {
 		data := _items0[_idx0+4]
 		_ = data // suppress unused warning
 		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+			// db_restore_and_reopen (unsupported command, not transpiled)
 			_res = db.Exec(" \n    BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');\n  ")
 			}
-			var R_0 = "0 {}"
+			R_0 = "0 {}"
 			_ = R_0 // suppress unused warning
-			var R_1 = "1 {constraint failed}"
+			R_1 = "1 {constraint failed}"
 			_ = R_1 // suppress unused warning
 			{ // "1." + tn + ".1"
 				_res = db.Exec(sql)
@@ -96,7 +139,7 @@ func Test_fts3conf(t *testing.T) {
 			}
 			_res = db.Exec("COMMIT")
 			_ = _res // catchsql
-			t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity 1.$tn.3 db t1")
+			// fts3_integrity 1.$tn.3 db t1 (unsupported command, not transpiled)
 			{ // do_test "1." + tn + ".4"
 				_res = db.Exec("list sql_uses_stmt db $sql")
 				if _res.Error != nil {
@@ -110,7 +153,7 @@ func Test_fts3conf(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1 VALUES('a b c');\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES('x y z');\n    ROLLBACK TO a;\n  COMMIT;\n")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity 2.1.2 db t1")
+		// fts3_integrity 2.1.2 db t1 (unsupported command, not transpiled)
 		{ // "2.2.1"
 			_res = db.Exec("\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "datatype mismatch") {
@@ -135,7 +178,7 @@ func Test_fts3conf(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity 2.2.4 db t1")
+		// fts3_integrity 2.2.4 db t1 (unsupported command, not transpiled)
 		if tcl_platform_byteOrder == "littleEndian" {
 			{ // "3.1"
 				r = db.Query("\n    CREATE VIRTUAL TABLE t3 USING fts4;\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")

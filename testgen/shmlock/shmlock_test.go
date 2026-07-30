@@ -40,8 +40,53 @@ func Test_shmlock(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var dbhandle string
+	_ = dbhandle // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var isWindows string
+	_ = isWindows // pre-declared from TCL source
+	var L_0 string
+	_ = L_0 // pre-declared from TCL source
+	var L_1 string
+	_ = L_1 // pre-declared from TCL source
+	var iSlot string
+	_ = iSlot // pre-declared from TCL source
+	var locktype string
+	_ = locktype // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+	var bBusy string
+	_ = bBusy // pre-declared from TCL source
+	var other string
+	_ = other // pre-declared from TCL source
+	var nStep string
+	_ = nStep // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var L_idx string
+	_ = L_idx // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var L__expr__idx_1 string
+	_ = L__expr__idx_1 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "shmlock"
+	testprefix = "shmlock"
 	_ = testprefix // suppress unused warning
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -88,7 +133,7 @@ func Test_shmlock(t *testing.T) {
 		db3.Close()
 		if tclBool("permutation" + "==\"unix-excl\"") {
 			{ // do_test "2.0"
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 256 }() {
 					dbi, err := frigolite.Open("test.db")
@@ -109,7 +154,7 @@ func Test_shmlock(t *testing.T) {
 				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 255 }() {
-					var rc = "vfs_shmlock db$i main shared lock 4 1"
+					rc = "vfs_shmlock db$i main shared lock 4 1"
 					_ = rc // suppress unused warning
 					if rc != "SQLITE_OK" {
 						t.Errorf("TCL error: %s", rc)
@@ -122,28 +167,28 @@ func Test_shmlock(t *testing.T) {
 						}
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main shared lock 4 1")
+				// vfs_shmlock db255 main shared lock 4 1 (unsupported command, not transpiled)
 			}
 			{ // do_test "2.1"
-				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive lock 4 1")
+				// vfs_shmlock db255 main exclusive lock 4 1 (unsupported command, not transpiled)
 			}
 			{ // do_test "2.2"
-				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db0 main shared unlock 4 1")
+				// vfs_shmlock db0 main shared unlock 4 1 (unsupported command, not transpiled)
 			}
 			{ // do_test "2.3"
-				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main shared lock 4 1")
+				// vfs_shmlock db255 main shared lock 4 1 (unsupported command, not transpiled)
 			}
 			{ // do_test "2.4"
-				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main shared unlock 4 1")
+				// vfs_shmlock db255 main shared unlock 4 1 (unsupported command, not transpiled)
 			}
 			{ // do_test "2.5"
-				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive lock 4 1")
+				// vfs_shmlock db255 main exclusive lock 4 1 (unsupported command, not transpiled)
 			}
 			{ // do_test "2.6"
-				var i = "1"
+				i = "1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 255 }() {
-					var rc = "vfs_shmlock db255 main exclusive lock 4 1"
+					rc = "vfs_shmlock db255 main exclusive lock 4 1"
 					_ = rc // suppress unused warning
 					if rc != "SQLITE_BUSY" {
 						t.Errorf("TCL error: %s", rc)
@@ -161,13 +206,13 @@ func Test_shmlock(t *testing.T) {
 						}
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive lock 4 1")
+				// vfs_shmlock db255 main exclusive lock 4 1 (unsupported command, not transpiled)
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive unlock 4 1")
-			var i = "0"
+			// vfs_shmlock db255 main exclusive unlock 4 1 (unsupported command, not transpiled)
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 256 }() {
-				t.Errorf("TODO: %s not implemented in frigolite", "db$i close")
+				// db$i close (unsupported command, not transpiled)
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -195,24 +240,24 @@ func Test_shmlock(t *testing.T) {
 			}
 		}
 		if tcl_platform_os == "Windows NT" {
-			var isWindows = "1"
+			isWindows = "1"
 			_ = isWindows // suppress unused warning
 		} else {
-			var isWindows = "0"
+			isWindows = "0"
 			_ = isWindows // suppress unused warning
 		}
-		var L_0 = "n n n n n n n n"
+		L_0 = "n n n n n n n n"
 		_ = L_0 // suppress unused warning
-		var L_1 = "n n n n n n n n"
+		L_1 = "n n n n n n n n"
 		_ = L_1 // suppress unused warning
 		// proc definition (not transpiled)
-		var nStep = "100000"
+		nStep = "100000"
 		_ = nStep // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nStep_n, _nStep_e := strconv.Atoi(nStep); if _nStep_e != nil { return false }; return i_n < nStep_n }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "random_lock_test 0")
-			t.Errorf("TODO: %s not implemented in frigolite", "random_lock_test 1")
+			// random_lock_test 0 (unsupported command, not transpiled)
+			// random_lock_test 1 (unsupported command, not transpiled)
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

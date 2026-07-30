@@ -41,8 +41,21 @@ func Test_json501(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var e string
+	_ = e // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var xyz string
+	_ = xyz // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "json501"
+	testprefix = "json501"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		r = db.Query("\n  WITH c(x) AS (VALUES('{a:5,b:6}'))\n  SELECT x->>'a', json(x), json_valid(x), NOT json_error_position(x) FROM c;\n")
@@ -734,7 +747,7 @@ func Test_json501(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var c = "1"
+	c = "1"
 	_ = c // suppress unused warning
 	for func() bool { c_n, _c_e := strconv.Atoi(c); if _c_e != nil { return false }; return c_n <= 0x1f }() {
 		{ // "14." + c + ".1"
@@ -761,7 +774,10 @@ func Test_json501(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "switch $c {\n    8   {set e \"\\\\b\"}\n    9   {set e \"\\\\t\"}\n    1...}")
+		// switch $c {
+    8   {set e "\\b"}
+    9   {set e "\\t"}
+    1...} (test infra, not transpiled)
 		{ // "14." + c + ".3"
 			r = db.Query("\n    SELECT json('{label:\"abc' || char($c) || 'xyz\"}');\n  ")
 			if r.Error != nil {

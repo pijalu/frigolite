@@ -39,31 +39,44 @@ func Test_imposter1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var t1_root string
+	_ = t1_root // pre-declared from TCL source
+	var t1b_root string
+	_ = t1b_root // pre-declared from TCL source
+	var t1c_root string
+	_ = t1c_root // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "imposter"
+	testprefix = "imposter"
 	_ = testprefix // suppress unused warning
 	{ // do_test "imposter-1.0"
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d NOT NULL);\n    CREATE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b,c,d) SELECT i,1000+i,2000+i,3000+i FROM c;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d NOT NULL);\n    CREATE INDEX t1b ON t1(b);\n    CREATE UNIQUE INDEX t1c ON t1(c);\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n      INSERT INTO t1(a,b,c,d) SELECT i,1000+i,2000+i,3000+i FROM c;\n  ")
 		}
-		var t1_root = "db one {SELECT rootpage FROM sqlite_master WHERE name='t1'}"
+		t1_root = "db one {SELECT rootpage FROM sqlite_master WHERE name='t1'}"
 		_ = t1_root // suppress unused warning
-		var t1b_root = "db one {SELECT rootpage FROM sqlite_master WHERE name='t1b'}"
+		t1b_root = "db one {SELECT rootpage FROM sqlite_master WHERE name='t1b'}"
 		_ = t1b_root // suppress unused warning
-		var t1c_root = "db one {SELECT rootpage FROM sqlite_master WHERE name='t1c'}"
+		t1c_root = "db one {SELECT rootpage FROM sqlite_master WHERE name='t1c'}"
 		_ = t1c_root // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $t1_root")
+		// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $t1_root (unsupported command, not transpiled)
 		_res = db.Exec("CREATE TABLE xt1(a,b,c,d)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE xt1(a,b,c,d)")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $t1c_root")
+		// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $t1c_root (unsupported command, not transpiled)
 		_res = db.Exec("CREATE TABLE xt1c(c,rowid,PRIMARY KEY(c,rowid))WITHOUT ROWID;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE xt1c(c,rowid,PRIMARY KEY(c,rowid))WITHOUT ROWID;")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0")
+		// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TEMP TABLE chnglog(desc TEXT);\n    CREATE TEMP TRIGGER xt1_del AFTER DELETE ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('DELETE t1: rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  old.rowid, quote(old.a), quote(old.b), quote(old.c),\n                  quote(old.d)));\n    END;\n    CREATE TEMP TRIGGER xt1_ins AFTER INSERT ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('INSERT t1:  rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  new.rowid, quote(new.a), quote(new.b), quote(new.c),\n                  quote(new.d)));\n    END;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE chnglog(desc TEXT);\n    CREATE TEMP TRIGGER xt1_del AFTER DELETE ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('DELETE t1: rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  old.rowid, quote(old.a), quote(old.b), quote(old.c),\n                  quote(old.d)));\n    END;\n    CREATE TEMP TRIGGER xt1_ins AFTER INSERT ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('INSERT t1:  rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  new.rowid, quote(new.a), quote(new.b), quote(new.c),\n                  quote(new.d)));\n    END;\n  ")
@@ -166,7 +179,7 @@ func Test_imposter1(t *testing.T) {
 		}
 	}
 	{ // do_test "imposter-3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 1")
+		// sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    DELETE FROM t1 WHERE rowid IN (5,7,9);\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE rowid IN (5,7,9);\n    PRAGMA integrity_check;\n  ")

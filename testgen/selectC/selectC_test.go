@@ -39,8 +39,21 @@ func Test_selectC(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var udf string
+	_ = udf // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "selectC"
+	testprefix = "selectC"
 	_ = testprefix // suppress unused warning
 	{ // do_test "selectC-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1,'aaa','bbb');\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 VALUES(2,'ccc','ddd');\n\n    SELECT DISTINCT a AS x, b||c AS y\n      FROM t1\n     WHERE y IN ('aaabbb','xxx');\n  ")
@@ -164,8 +177,8 @@ func Test_selectC(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	var _udf = "0" // TCL namespace variable
-	_ = _udf // suppress unused warning
+	udf = "0" // TCL namespace variable
+	_ = udf // suppress unused warning
 	{ // "selectC-4.1"
 		_res = db.Exec("\n  create table t_distinct_bug (a, b, c);\n  insert into t_distinct_bug values ('1', '1', 'a');\n  insert into t_distinct_bug values ('1', '2', 'b');\n  insert into t_distinct_bug values ('1', '3', 'c');\n  insert into t_distinct_bug values ('1', '1', 'd');\n  insert into t_distinct_bug values ('1', '2', 'e');\n  insert into t_distinct_bug values ('1', '3', 'f');\n")
 		if _res.Error != nil {

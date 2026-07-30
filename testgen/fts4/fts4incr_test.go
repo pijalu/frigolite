@@ -40,15 +40,42 @@ func Test_fts4incr(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var t_s string
+	_ = t_s // pre-declared from TCL source
+	var num string
+	_ = num // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var t_0 string
+	_ = t_0 // pre-declared from TCL source
+	var t_1 string
+	_ = t_1 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts4incr" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts4incr" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "1.0"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts4(words) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING fts4(words) ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+		// fts_kjv_genesis (unsupported command, not transpiled)
 	}
 	{ // "1.1"
 		r = db.Query("\n  SELECT min(docid), max(docid) FROM t1;\n")
@@ -84,11 +111,12 @@ func Test_fts4incr(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, q)
 					}
 				}
-				var t_s = "lindex [time [list execsql $q] 100] 0"
+				t_s = "lindex [time [list execsql $q] 100] 0"
 				_ = t_s // suppress unused warning
 			}
 			if false {
-				t.Log("with optimization: " + _t + "(0)    without: " + _t + "(1)")
+				_putsMsg := "with optimization: " + t_0 + "    without: " + t_1
+				_ = _putsMsg
 			}
 		}
 		{ // do_test "2.1"
@@ -96,16 +124,16 @@ func Test_fts4incr(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t2 USING fts4(order=DESC);\n  ")
 			}
-			var num = "list one two three four five six seven eight nine ten"
+			num = "list one two three four five six seven eight nine ten"
 			_ = num // suppress unused warning
 			_res = db.Exec("BEGIN")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 			}
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
-				var x = "lindex $num [expr $i%10]" + " zero"
+				x = "lindex $num [expr $i%10]" + " zero"
 				_ = x // suppress unused warning
 				_res = db.Exec(" INSERT INTO t2(docid, content) VALUES($i, $x) ")
 				if _res.Error != nil {

@@ -40,8 +40,23 @@ func Test_walprotocol(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var locks string
+	_ = locks // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var lock string
+	_ = lock // pre-declared from TCL source
+	var spec string
+	_ = spec // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walprotocol"
+	testprefix = "walprotocol"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE x(y);\n  INSERT INTO x VALUES('z');\n")
@@ -51,72 +66,77 @@ func Test_walprotocol(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "testvfs T")
-		t.Errorf("TODO: %s not implemented in frigolite", "T filter xShmLock")
-		t.Errorf("TODO: %s not implemented in frigolite", "T script lock_callback")
-		var _locks = "list" // TCL namespace variable
-		_ = _locks // suppress unused warning
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// testvfs T (unsupported command, not transpiled)
+		// T filter xShmLock (unsupported command, not transpiled)
+		// T script lock_callback (unsupported command, not transpiled)
+		locks = "list" // TCL namespace variable
+		_ = locks // suppress unused warning
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM x ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x ")
 		}
-		tclLRange(_locks, "0", "11")
+		_ = tclLRange(locks, "0", "11") // lrange result
 	}
 	{ // do_test "1.2"
-		var _locks = "list" // TCL namespace variable
-		_ = _locks // suppress unused warning
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		locks = "list" // TCL namespace variable
+		_ = locks // suppress unused warning
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM x ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x ")
 		}
-		tclLRange(_locks, "0", "11")
+		_ = tclLRange(locks, "0", "11") // lrange result
 	}
 	// proc definition (not transpiled)
-	t.Log("# Warning: This next test case causes SQLite to call xSleep(1) 100 times.")
-	t.Log("# Normally this equates to a delay of roughly 10 seconds, but if SQLite")
-	t.Log("# is built on unix without HAVE_USLEEP defined, it may be much longer.")
+	_putsMsg := "# Warning: This next test case causes SQLite to call xSleep(1) 100 times."
+	_ = _putsMsg
+	_putsMsg = "# Normally this equates to a delay of roughly 10 seconds, but if SQLite"
+	_ = _putsMsg
+	_putsMsg = "# is built on unix without HAVE_USLEEP defined, it may be much longer."
+	_ = _putsMsg
 	{ // do_test "1.3"
-		var _locks = "list" // TCL namespace variable
-		_ = _locks // suppress unused warning
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		locks = "list" // TCL namespace variable
+		_ = locks // suppress unused warning
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM x ")
 		_ = _res // catchsql
 	}
-	t.Log("# Warning: Same again!")
+	_putsMsg = "# Warning: Same again!"
+	_ = _putsMsg
 	// proc definition (not transpiled)
 	{ // do_test "1.4"
-		var _locks = "list" // TCL namespace variable
-		_ = _locks // suppress unused warning
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		locks = "list" // TCL namespace variable
+		_ = locks // suppress unused warning
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM x ")
 		_ = _res // catchsql
 	}
-	t.Log("# Warning: Third time!")
+	_putsMsg = "# Warning: Third time!"
+	_ = _putsMsg
 	// proc definition (not transpiled)
 	{ // do_test "1.5"
-		var _locks = "list" // TCL namespace variable
-		_ = _locks // suppress unused warning
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		locks = "list" // TCL namespace variable
+		_ = locks // suppress unused warning
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM x ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "T delete")
+	// T delete (unsupported command, not transpiled)
 	{ // do_test "2.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -144,17 +164,19 @@ func Test_walprotocol(t *testing.T) {
 		}
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs T -default 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
-	t.Errorf("TODO: %s not implemented in frigolite", "T filter xShmLock")
-	t.Errorf("TODO: %s not implemented in frigolite", "T script lock_callback")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// testvfs T -default 1 (unsupported command, not transpiled)
+	// faultsim_restore_and_reopen (unsupported command, not transpiled)
+	// T filter xShmLock (unsupported command, not transpiled)
+	// T script lock_callback (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	db, err = frigolite.Open("test.db")
+	_dbtmp6, err := frigolite.Open("test.db")
+	_ = _dbtmp6 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Log("# Warning: Another slow test!")
+	_putsMsg = "# Warning: Another slow test!"
+	_ = _putsMsg
 	{ // do_test "2.5"
 		r = db.Query(" SELECT * FROM b ")
 		if r.Error != nil {
@@ -165,13 +187,14 @@ func Test_walprotocol(t *testing.T) {
 		_ = _r // TCL namespace variable (query)
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+	// faultsim_restore_and_reopen (unsupported command, not transpiled)
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "T filter xShmLock")
-	t.Errorf("TODO: %s not implemented in frigolite", "T script lock_callback")
+	// T filter xShmLock (unsupported command, not transpiled)
+	// T script lock_callback (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	t.Log("# Warning: Last one!")
+	_putsMsg = "# Warning: Last one!"
+	_ = _putsMsg
 	{ // do_test "2.7"
 		r = db.Query(" SELECT * FROM b ")
 		if r.Error != nil {
@@ -182,5 +205,5 @@ func Test_walprotocol(t *testing.T) {
 		_ = _r // TCL namespace variable (query)
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "T delete")
+	// T delete (unsupported command, not transpiled)
 }

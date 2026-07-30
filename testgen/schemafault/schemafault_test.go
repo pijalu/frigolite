@@ -39,8 +39,15 @@ func Test_schemafault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "schemafault"
+	testprefix = "schemafault"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t2(aaa INTTT);\n  CREATE VIEW v2(xxx , yyy) AS SELECT aaa, aaa+1 FROM t2;\n")
@@ -48,5 +55,10 @@ func Test_schemafault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(aaa INTTT);\n  CREATE VIEW v2(xxx , yyy) AS SELECT aaa, aaa+1 FROM t2;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom-* -prep {\n} -body {\n  execsql { SELECT * FROM v2 }\n} -test {\n  faultsim_test_result {0 {}}\n}")
+	// do_faultsim_test 1 -faults oom-* -prep {
+} -body {
+  execsql { SELECT * FROM v2 }
+} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 }

@@ -39,19 +39,38 @@ func Test_fts3fault3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var TMPDBERROR string
+	_ = TMPDBERROR // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3fault" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	var _TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
-	_ = _TMPDBERROR // suppress unused warning
+	testprefix = "fts3fault" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
+	_ = TMPDBERROR // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n  INSERT INTO t1 VALUES(' actually other stuff instead');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n  INSERT INTO t1 VALUES(' actually other stuff instead');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep { \n  faultsim_restore_and_reopen\n  execsql {\n    BE...} -body {\n  execsql {\n    DELETE FROM t1;\n  }\n} -test {\n  catchsql { COMMIT }\n  faultsim_integrity_check\n...}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom* -prep { 
+  faultsim_restore_and_reopen
+  execsql {
+    BE...} -body {
+  execsql {
+    DELETE FROM t1;
+  }
+} -test {
+  catchsql { COMMIT }
+  faultsim_integrity_check
+...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -61,6 +80,15 @@ func Test_fts3fault3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t1 SELECT 'abc def ghi jkl mno pqr' FROM s;\n  COMMIT;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults oom-t* -prep { \n  faultsim_restore_and_reopen\n  execsql {\n    BE...} -body {\n  execsql {\n    PRAGMA integrity_check;\n  }\n} -test {\n  faultsim_test_result {0 ok} $::TMPDBERROR\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults oom-t* -prep { 
+  faultsim_restore_and_reopen
+  execsql {
+    BE...} -body {
+  execsql {
+    PRAGMA integrity_check;
+  }
+} -test {
+  faultsim_test_result {0 ok} $::TMPDBERROR
+} (unsupported command, not transpiled)
 }

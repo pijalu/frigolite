@@ -40,14 +40,31 @@ func Test_join3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sep string
+	_ = sep // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	var result = ""
+	result = ""
 	_ = result // suppress unused warning
-	var N = "1"
+	N = "1"
 	_ = N // suppress unused warning
 	for func() bool { N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; bitmask_size_n, _bitmask_size_e := strconv.Atoi(bitmask_size); if _bitmask_size_e != nil { return false }; return N_n <= bitmask_size_n }() {
 		result = tclListAppend(result, N)
@@ -60,9 +77,9 @@ func Test_join3(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t" + N + " VALUES(" + N + ")")
 			}
-			var sql = "SELECT * FROM t1"
+			sql = "SELECT * FROM t1"
 			_ = sql // suppress unused warning
-			var i = "2"
+			i = "2"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n <= N_n }() {
 				sql += ", t" + i
@@ -94,9 +111,9 @@ func Test_join3(t *testing.T) {
 	for func() bool { N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; bitmask_size_n, _bitmask_size_e := strconv.Atoi(bitmask_size); if _bitmask_size_e != nil { return false }; return N_n <= bitmask_size_n }() {
 		result = tclListAppend(result, N)
 		{ // do_test "join3-2." + N
-			var sql = "SELECT * FROM t1"
+			sql = "SELECT * FROM t1"
 			_ = sql // suppress unused warning
-			var i = "2"
+			i = "2"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n <= N_n }() {
 				sql += ", t" + i
@@ -108,13 +125,13 @@ func Test_join3(t *testing.T) {
 					}
 				}
 			}
-			var sep = "WHERE"
+			sep = "WHERE"
 			_ = sep // suppress unused warning
 			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
 				sql += " " + sep + " t" + "$i+1" + ".x==t" + i + ".x+1"
-				var sep = "AND"
+				sep = "AND"
 				_ = sep // suppress unused warning
 				// incr i 1
 				{
@@ -138,9 +155,9 @@ func Test_join3(t *testing.T) {
 		}
 	}
 	{ // do_test "join3-3.1"
-		var sql = "SELECT * FROM t1 AS t0, t1"
+		sql = "SELECT * FROM t1 AS t0, t1"
 		_ = sql // suppress unused warning
-		var i = "2"
+		i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; bitmask_size_n, _bitmask_size_e := strconv.Atoi(bitmask_size); if _bitmask_size_e != nil { return false }; return i_n <= bitmask_size_n }() {
 			sql += ", t" + i

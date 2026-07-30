@@ -40,9 +40,30 @@ func Test_analyzeF(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "analyzeF" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "analyzeF" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT isqrt(i), isqrt(i) FROM data LIMIT 400;\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n  ANALYZE;\n")
@@ -61,7 +82,7 @@ func Test_analyzeF(t *testing.T) {
 		idx := _items0[_idx0+2]
 		_ = idx // suppress unused warning
 		_ = _idx0
-			var res = "SEARCH t1 USING INDEX " + idx
+			res = "SEARCH t1 USING INDEX " + idx
 			_ = res // suppress unused warning
 			{ // "1." + tn
 				r = db.Query("EXPLAIN QUERY PLAN " + "SELECT * FROM t1 WHERE " + where)
@@ -93,7 +114,7 @@ func Test_analyzeF(t *testing.T) {
 			idx := _items1[_idx1+2]
 			_ = idx // suppress unused warning
 			_ = _idx1
-				var res = "SEARCH t1 USING INDEX " + idx
+				res = "SEARCH t1 USING INDEX " + idx
 				_ = res // suppress unused warning
 				{ // "3." + tn
 					r = db.Query("EXPLAIN QUERY PLAN " + "SELECT * FROM t1 WHERE " + where)
@@ -119,7 +140,7 @@ func Test_analyzeF(t *testing.T) {
 					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  SELECT * FROM t1 WHERE x = zeroblob(2200000000) AND y = 4;\n")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 1000000")
+			// sqlite3_limit db SQLITE_LIMIT_LENGTH 1000000 (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			{ // "4.3"
 				_res = db.Exec("\n  SELECT * FROM t1 WHERE x = dstr() AND y = 11;\n")

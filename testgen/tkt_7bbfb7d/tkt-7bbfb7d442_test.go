@@ -39,8 +39,15 @@ func Test_tkt_7bbfb7d442(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tkt-7bbfb7d442"
+	testprefix = "tkt-7bbfb7d442"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n\n  CREATE TABLE t2(c, d);\n  INSERT INTO t2 VALUES('one', 'I');\n  INSERT INTO t2 VALUES('two', 'II');\n  INSERT INTO t2 VALUES('three', 'III');\n\n  CREATE TABLE t3(t3_a PRIMARY KEY, t3_d);\n  CREATE TRIGGER t3t AFTER INSERT ON t3 WHEN new.t3_d IS NULL BEGIN\n    UPDATE t3 SET t3_d = (\n      SELECT d FROM \n        (SELECT * FROM t2 WHERE (new.t3_a%2)=(rowid%2) LIMIT 10),\n        (SELECT * FROM t1 WHERE (new.t3_a%2)=(rowid%2) LIMIT 10)\n      WHERE a = new.t3_a AND b = c\n    ) WHERE t3_a = new.t3_a;\n  END;\n")

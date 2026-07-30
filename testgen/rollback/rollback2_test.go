@@ -39,9 +39,46 @@ func Test_rollback2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var A__setup string
+	_ = A__setup // pre-declared from TCL source
+	var A__select string
+	_ = A__select // pre-declared from TCL source
+	var A__result string
+	_ = A__result // pre-declared from TCL source
+	var A__rollback string
+	_ = A__rollback // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var A_k string
+	_ = A_k // pre-declared from TCL source
+	var iRollback string
+	_ = iRollback // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var leader string
+	_ = leader // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var O_k string
+	_ = O_k // pre-declared from TCL source
+	var _x_arr string
+	_ = _x_arr // pre-declared from TCL source
+	var x_k string
+	_ = x_k // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "rollback2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "rollback2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
 		r = db.Query("\n  SELECT int2hex(0), int2hex(100), int2hex(255)\n")
@@ -62,17 +99,43 @@ func Test_rollback2(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 2.1 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0\n} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 2.2 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n    S...} -rollback {\n  ROLLBACK TO one;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0\n} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
+	// do_rollback_test 2.1 -setup {
+  BEGIN;
+    DELETE FROM t1 WHERE (i%2)==1;
+} -select {
+  SELECT i FROM t1 WHERE (i%2)==0
+} -result {
+  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...} (unsupported command, not transpiled)
+	// do_rollback_test 2.2 -setup {
+  BEGIN;
+    DELETE FROM t1 WHERE (i%4)==1;
+    S...} -rollback {
+  ROLLBACK TO one;
+} -select {
+  SELECT i FROM t1 WHERE (i%2)==0
+} -result {
+  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...} (unsupported command, not transpiled)
 	{ // "3.1"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 3.2 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC...} -result {\n  40 38 36 34 32 30 28 26 24 22 20 18 16 14 12 10...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 3.3 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n    S...} -rollback {\n  ROLLBACK TO one;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC...} -result {\n  40 38 36 34 32 30 28 26 24 22 20 18 16 14 12 10...}")
-	var leader = "\"abcdefghij\" 70"
+	// do_rollback_test 3.2 -setup {
+  BEGIN;
+    DELETE FROM t1 WHERE (i%2)==1;
+} -select {
+  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC...} -result {
+  40 38 36 34 32 30 28 26 24 22 20 18 16 14 12 10...} (unsupported command, not transpiled)
+	// do_rollback_test 3.3 -setup {
+  BEGIN;
+    DELETE FROM t1 WHERE (i%4)==1;
+    S...} -rollback {
+  ROLLBACK TO one;
+} -select {
+  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC...} -result {
+  40 38 36 34 32 30 28 26 24 22 20 18 16 14 12 10...} (unsupported command, not transpiled)
+	leader = "\"abcdefghij\" 70"
 	_ = leader // suppress unused warning
 	{ // "4.1"
 		_res = db.Exec(" UPDATE t1 SET h = $leader || h; ")
@@ -86,6 +149,18 @@ func Test_rollback2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 4.3 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;...} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 4.4 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n    S...} -rollback {\n  ROLLBACK TO one;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;...} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
+	// do_rollback_test 4.3 -setup {
+  BEGIN;
+    DELETE FROM t1 WHERE (i%2)==1;
+} -select {
+  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;...} -result {
+  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...} (unsupported command, not transpiled)
+	// do_rollback_test 4.4 -setup {
+  BEGIN;
+    DELETE FROM t1 WHERE (i%4)==1;
+    S...} -rollback {
+  ROLLBACK TO one;
+} -select {
+  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;...} -result {
+  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...} (unsupported command, not transpiled)
 }

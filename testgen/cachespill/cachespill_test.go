@@ -39,8 +39,15 @@ func Test_cachespill(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "cachespill"
+	testprefix = "cachespill"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  PRAGMA cache_size = 100;\n  CREATE TABLE t1(a);\n")

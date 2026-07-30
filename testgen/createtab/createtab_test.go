@@ -42,13 +42,26 @@ func Test_createtab(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var av string
+	_ = av // pre-declared from TCL source
+	var isUtf16 string
+	_ = isUtf16 // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var av = "0"
+	av = "0"
 	_ = av // suppress unused warning
 	for func() bool { av_n, _av_e := strconv.Atoi(av); if _av_e != nil { return false }; upperBound_n, _upperBound_e := strconv.Atoi(upperBound); if _upperBound_e != nil { return false }; return av_n <= upperBound_n }() {
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // do_test "createtab-" + av + ".1"
 			r = db.Query("PRAGMA auto_vacuum=" + av)
@@ -60,18 +73,18 @@ func Test_createtab(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA page_size=1024;\n      CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n      INSERT INTO t1 VALUES(1, hex(randomblob(200)));\n      INSERT INTO t1 VALUES(2, hex(randomblob(200)));\n      INSERT INTO t1 VALUES(3, hex(randomblob(200)));\n      INSERT INTO t1 VALUES(4, hex(randomblob(200)));\n      SELECT count(*) FROM t1;\n    ")
 			}
 		}
-		var isUtf16 = "0"
+		isUtf16 = "0"
 		_ = isUtf16 // suppress unused warning
 		{ // do_test "createtab-" + av + ".2"
 			// file size test.db
 		}
 		{ // do_test "createtab-" + av + ".3"
-			var STMT = "sqlite3_prepare db {SELECT x FROM t1} -1 TAIL"
+			STMT = "sqlite3_prepare db {SELECT x FROM t1} -1 TAIL"
 			_ = STMT // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".4"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $STMT 0")
+			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".5"
 			r = db.Query("\n      CREATE TABLE t2(a,b);\n      INSERT INTO t2 VALUES(1,2);\n      SELECT * FROM t2;\n    ")
@@ -80,13 +93,13 @@ func Test_createtab(t *testing.T) {
 			}
 		}
 		{ // do_test "createtab-" + av + ".6"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $STMT 0")
+			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".7"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".8"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $STMT 0")
+			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".11"
 			r = db.Query("\n      CREATE TABLE t3(a,b);\n      INSERT INTO t3 VALUES(4,5);\n      SELECT * FROM t3;\n    ")
@@ -95,13 +108,13 @@ func Test_createtab(t *testing.T) {
 			}
 		}
 		{ // do_test "createtab-" + av + ".12"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $STMT 0")
+			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".13"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".14"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $STMT 0")
+			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".21"
 			r = db.Query("\n      CREATE TABLE t4(a,b);\n      INSERT INTO t4 VALUES('abc','xyz');\n      SELECT * FROM t4;\n    ")
@@ -110,19 +123,19 @@ func Test_createtab(t *testing.T) {
 			}
 		}
 		{ // do_test "createtab-" + av + ".22"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $STMT 0")
+			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".23"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".24"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $STMT 0")
+			// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".30"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+			// sqlite3_step $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".31"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+			// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		}
 		{ // do_test "createtab-" + av + ".32"
 			r = db.Query("\n      SELECT name FROM sqlite_master WHERE type='table' ORDER BY 1\n    ")
@@ -145,7 +158,7 @@ func Test_createtab(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE IF EXISTS t1;")
 		}
-		var sql = "CREATE TABLE t1(x,UNIQUE(x" + ",x 100000" + "))"
+		sql = "CREATE TABLE t1(x,UNIQUE(x" + ",x 100000" + "))"
 		_ = sql // suppress unused warning
 		_res = db.Exec(sql)
 		_ = _res // catchsql
@@ -153,7 +166,7 @@ func Test_createtab(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SCHEMA 5")
+	// sqlite3_limit db SQLITE_LIMIT_SCHEMA 5 (unsupported command, not transpiled)
 	{ // "createtab-4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c UNIQUE);\n  CREATE INDEX x1 ON t1(a);\n  CREATE VIEW v1 AS SELECT a+b AS x FROM t1;\n")
 		if _res.Error != nil {

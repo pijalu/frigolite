@@ -39,8 +39,23 @@ func Test_filter2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var myres string
+	_ = myres // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "filter2"
+	testprefix = "filter2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n  INSERT INTO t1 VALUES\n   (1, 7), (2, 3), (3, 5), (4, 30), (5, 26), (6, 23), (7, 27),\n   (8, 3), (9, 17), (10, 26), (11, 33), (12, 25), (13, NULL), (14, 47),\n   (15, 36), (16, 13), (17, 45), (18, 31), (19, 11), (20, 36), (21, 37),\n   (22, 21), (23, 22), (24, 14), (25, 16), (26, 3), (27, 7), (28, 29),\n   (29, 50), (30, 38), (31, 3), (32, 36), (33, 12), (34, 4), (35, 46),\n   (36, 3), (37, 48), (38, 23), (39, NULL), (40, 24), (41, 5), (42, 46),\n   (43, 11), (44, NULL), (45, 18), (46, 25), (47, 15), (48, 18), (49, 23);\n")
@@ -205,16 +220,15 @@ func Test_filter2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.14"
-		var myres = ""
+		myres = ""
 		_ = myres // suppress unused warning
 		// skip: foreach over unresolved TCL command
-		var res2 = "30.8333 13.7273 31.4167 13.0000"
+		res2 = "30.8333 13.7273 31.4167 13.0000"
 		_ = res2 // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // "1.15"
 		r = db.Query("\n  SELECT \n    a/5,\n    sum(b) FILTER (WHERE a%5=0),\n    sum(b) FILTER (WHERE a%5=1),\n    sum(b) FILTER (WHERE a%5=2),\n    sum(b) FILTER (WHERE a%5=3),\n    sum(b) FILTER (WHERE a%5=4)\n  FROM t1 GROUP BY (a/5) ORDER BY 1;\n")

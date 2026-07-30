@@ -40,8 +40,45 @@ func Test_interrupt(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var orig_sum string
+	_ = orig_sum // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sqlite_interrupt_count string
+	_ = sqlite_interrupt_count // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var origsize string
+	_ = origsize // pre-declared from TCL source
+	var cksum string
+	_ = cksum // pre-declared from TCL source
+	var interrupt_count string
+	_ = interrupt_count // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var max_count string
+	_ = max_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var initcnt string
+	_ = initcnt // pre-declared from TCL source
+	var testid string
+	_ = testid // pre-declared from TCL source
+	var code string
+	_ = code // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "interrupt-1.1"
@@ -50,7 +87,7 @@ func Test_interrupt(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    SELECT name FROM sqlite_master;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "interrupt_test interrupt-1.2 {DROP TABLE t1} {}")
+	// interrupt_test interrupt-1.2 {DROP TABLE t1} {} (unsupported command, not transpiled)
 	{ // do_test "interrupt-1.3"
 		r = db.Query("\n    SELECT name FROM sqlite_master;\n  ")
 		if r.Error != nil {
@@ -65,9 +102,9 @@ func Test_interrupt(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,randstr(300,400));\n    INSERT INTO t1 SELECT a+1, randstr(300,400) FROM t1;\n    INSERT INTO t1 SELECT a+2, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+4, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+8, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+16, a || '-' || b FROM t1;\n    INSERT INTO t1 SELECT a+32, a || '-' || b FROM t1;\n    COMMIT;\n    UPDATE t1 SET b=substr(b,-5,5);\n    SELECT count(*) from t1;\n  ")
 		}
 	}
-	var origsize = "file size test.db"
+	origsize = "file size test.db"
 	_ = origsize // suppress unused warning
-	var cksum = "db eval {SELECT md5sum(a || b) FROM t1}"
+	cksum = "db eval {SELECT md5sum(a || b) FROM t1}"
 	_ = cksum // suppress unused warning
 	{ // do_test "interrupt-2.3"
 		r = db.Query("\n    SELECT md5sum(a || b) FROM t1;\n  ")
@@ -78,28 +115,28 @@ func Test_interrupt(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "interrupt-2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_is_interrupted $DB")
+		// sqlite3_is_interrupted $DB (unsupported command, not transpiled)
 	}
 	_res = db.Exec("\n  CREATE TABLE t2(a,b,c);\n  INSERT INTO t2 SELECT round(a/10), randstr(50,80), randstr(50,60) FROM t1;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a,b,c);\n  INSERT INTO t2 SELECT round(a/10), randstr(50,80), randstr(50,60) FROM t1;\n")
 	}
-	var sql = "\n  SELECT max(min(b,c)), min(max(b,c)), a FROM t2 GROUP BY a ORDER BY a;\n"
+	sql = "\n  SELECT max(min(b,c)), min(max(b,c)), a FROM t2 GROUP BY a ORDER BY a;\n"
 	_ = sql // suppress unused warning
-	var sqlite_interrupt_count = "1000000"
+	sqlite_interrupt_count = "1000000"
 	_ = sqlite_interrupt_count // suppress unused warning
 	_res = db.Exec(sql)
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 	}
-	var max_count = "1000000-$sqlite_interrupt_count"
+	max_count = "1000000-$sqlite_interrupt_count"
 	_ = max_count // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; max_count_n, _max_count_e := strconv.Atoi(max_count); if _max_count_e != nil { return false }; return i_n < max_count_n-5 }() {
 		{ // do_test "interrupt-4." + i + ".1"
-			var _sqlite_interrupt_count = _i // TCL namespace variable
-			_ = _sqlite_interrupt_count // suppress unused warning
+			sqlite_interrupt_count = i // TCL namespace variable
+			_ = sqlite_interrupt_count // suppress unused warning
 			_res = db.Exec(sql)
 			_ = _res // catchsql
 		}

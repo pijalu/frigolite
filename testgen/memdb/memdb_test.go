@@ -39,5 +39,54 @@ func Test_memdb(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var rx string
+	_ = rx // pre-declared from TCL source
+	var limit string
+	_ = limit // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sig string
+	_ = sig // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var sig2 string
+	_ = sig2 // pre-declared from TCL source
+	var pager_old_format string
+	_ = pager_old_format // pre-declared from TCL source
+	var conf string
+	_ = conf // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var t0 string
+	_ = t0 // pre-declared from TCL source
+	var t1 string
+	_ = t1 // pre-declared from TCL source
+	var t2 string
+	_ = t2 // pre-declared from TCL source
+	var r0 string
+	_ = r0 // pre-declared from TCL source
+	var r1 string
+	_ = r1 // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+	var conf1 string
+	_ = conf1 // pre-declared from TCL source
+	var conf2 string
+	_ = conf2 // pre-declared from TCL source
+	var before string
+	_ = before // pre-declared from TCL source
+	var after string
+	_ = after // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var fn string
+	_ = fn // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 }

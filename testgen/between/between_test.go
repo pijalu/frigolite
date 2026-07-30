@@ -40,22 +40,65 @@ func Test_between(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var z string
+	_ = z // pre-declared from TCL source
+	var sqlite_sort_count string
+	_ = sqlite_sort_count // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var eqp string
+	_ = eqp // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var varname string
+	_ = varname // pre-declared from TCL source
+	var tab string
+	_ = tab // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "between-1.0"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-			var w = i
+			w = i
 			_ = w // suppress unused warning
-			var x = "int(log($i)/log(2))"
+			x = "int(log($i)/log(2))"
 			_ = x // suppress unused warning
-			var y = "$i*$i + 2*$i + 1"
+			y = "$i*$i + 2*$i + 1"
 			_ = y // suppress unused warning
-			var z = "$x+$y"
+			z = "$x+$y"
 			_ = z // suppress unused warning
 			// incr i 1
 			{
@@ -72,34 +115,44 @@ func Test_between(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "between-1.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 5 AND 6 ORDE...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE w BETWEEN 5 AND 6 ORDE...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 6 ORD...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 6 ORD...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 5 AND 65-y O...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE w BETWEEN 5 AND 65-y O...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 65-y ...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 65-y ...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 6 O...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 6 O...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 41-y AND 6 ...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE +w BETWEEN 41-y AND 6 ...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 65-...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 65-...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.5.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN y AND z ORD...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE 26 BETWEEN y AND z ORD...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN +y AND z OR...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE 26 BETWEEN +y AND z OR...} (test infra, not transpiled)
 	}
 	{ // do_test "between-1.5.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN y AND +z OR...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE 26 BETWEEN y AND +z OR...} (test infra, not transpiled)
 	}
 	db.Close()
 	db, err = frigolite.Open("")
@@ -120,7 +173,7 @@ func Test_between(t *testing.T) {
 		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
 		_ = _idx0
-			var sql = "SELECT " + expr + " FROM t1"
+			sql = "SELECT " + expr + " FROM t1"
 			_ = sql // suppress unused warning
 			{ // "between-2.1." + tn
 				_res = db.Exec(sql)

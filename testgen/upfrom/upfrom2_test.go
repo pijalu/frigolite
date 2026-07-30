@@ -40,8 +40,25 @@ func Test_upfrom2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var wo string
+	_ = wo // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var update string
+	_ = update // pre-declared from TCL source
+	var nm string
+	_ = nm // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "upfrom2"
+	testprefix = "upfrom2"
 	_ = testprefix // suppress unused warning
 	// foreach {tn wo} "\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n"
 	_items0 := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
@@ -54,8 +71,7 @@ func Test_upfrom2(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			// eval [string map [list %WO% $wo %TN% $tn] {
-  do_execsq...
+			// eval (dynamic, not transpiled)
 		}
 		db.Close()
 		db, err = frigolite.Open("")

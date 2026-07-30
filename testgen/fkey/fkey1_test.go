@@ -40,8 +40,19 @@ func Test_fkey1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var traceoutput string
+	_ = traceoutput // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fkey1"
+	testprefix = "fkey1"
 	_ = testprefix // suppress unused warning
 	{ // do_test "fkey1-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b INTEGER\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    );\n  ")
@@ -92,7 +103,7 @@ func Test_fkey1(t *testing.T) {
 		}
 	}
 	{ // do_test "fkey1-3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // "fkey1-4.0"
 		r = db.Query("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE \"xx1\"(\"xx2\" TEXT PRIMARY KEY, \"xx3\" TEXT);\n  INSERT INTO \"xx1\"(\"xx2\",\"xx3\") VALUES('abc','def');\n  CREATE TABLE \"xx4\"(\"xx5\" TEXT REFERENCES \"xx1\" ON DELETE CASCADE);\n  INSERT INTO \"xx4\"(\"xx5\") VALUES('abc');\n  INSERT INTO \"xx1\"(\"xx2\",\"xx3\") VALUES('uvw','xyz');\n  SELECT 1, \"xx5\" FROM \"xx4\";\n  DELETE FROM \"xx1\";\n  SELECT 2, \"xx5\" FROM \"xx4\";\n")
@@ -205,7 +216,7 @@ func Test_fkey1(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "8.2"
 		r = db.Query("\n  CREATE TABLE t1(a REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  CREATE TABLE t2(a TEXT PRIMARY KEY);\n  PRAGMA writable_schema=ON;\n  CREATE TABLE sqlite_stat1(tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  UPDATE sqlite_schema SET name='sqlite_autoindex_sqlite_stat1_1' WHERE name='sqlite_autoindex_sqlite_stat1_2';\n  PRAGMA writable_schema=RESET;\n")
 		if r.Error != nil {

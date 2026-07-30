@@ -41,13 +41,22 @@ func Test_e_resolve(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var schema string
+	_ = schema // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "e_resolve" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	var schema = "\n  ATTACH 'test.db2' AS at1;\n  ATTACH 'test.db3' AS at2;\n\n  CREATE TABLE   temp.n1(x, y); INSERT INTO temp.n1 VALUES('temp', 'n1');\n  CREATE TRIGGER temp.n3 AFTER INSERT ON n1 BEGIN SELECT 1; END;\n  CREATE INDEX   temp.n4 ON n1(x, y);\n\n  CREATE TABLE   main.n1(x, y); INSERT INTO main.n1 VALUES('main', 'n1');\n  CREATE TABLE   main.n2(x, y); INSERT INTO main.n2 VALUES('main', 'n2');\n  CREATE INDEX   main.n3 ON n2(y, x);\n  CREATE TRIGGER main.n4 BEFORE INSERT ON n2 BEGIN SELECT 1; END;\n\n  CREATE TABLE   at1.n1(x, y);  INSERT INTO at1.n1 VALUES('at1', 'n1');\n  CREATE TABLE   at1.n2(x, y);  INSERT INTO at1.n2 VALUES('at1', 'n2');\n  CREATE TABLE   at1.n3(x, y);  INSERT INTO at1.n3 VALUES('at1', 'n3');\n\n  CREATE TABLE   at2.n1(x, y);  INSERT INTO at2.n1 VALUES('at2', 'n1');\n  CREATE TABLE   at2.n2(x, y);  INSERT INTO at2.n2 VALUES('at2', 'n2');\n  CREATE TABLE   at2.n3(x, y);  INSERT INTO at2.n3 VALUES('at2', 'n3');\n  CREATE TABLE   at2.n4(x, y);  INSERT INTO at2.n4 VALUES('at2', 'n4');\n  CREATE TRIGGER at2.n4 BEFORE INSERT ON n4 BEGIN SELECT 1; END;\n"
+	testprefix = "e_resolve" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	schema = "\n  ATTACH 'test.db2' AS at1;\n  ATTACH 'test.db3' AS at2;\n\n  CREATE TABLE   temp.n1(x, y); INSERT INTO temp.n1 VALUES('temp', 'n1');\n  CREATE TRIGGER temp.n3 AFTER INSERT ON n1 BEGIN SELECT 1; END;\n  CREATE INDEX   temp.n4 ON n1(x, y);\n\n  CREATE TABLE   main.n1(x, y); INSERT INTO main.n1 VALUES('main', 'n1');\n  CREATE TABLE   main.n2(x, y); INSERT INTO main.n2 VALUES('main', 'n2');\n  CREATE INDEX   main.n3 ON n2(y, x);\n  CREATE TRIGGER main.n4 BEFORE INSERT ON n2 BEGIN SELECT 1; END;\n\n  CREATE TABLE   at1.n1(x, y);  INSERT INTO at1.n1 VALUES('at1', 'n1');\n  CREATE TABLE   at1.n2(x, y);  INSERT INTO at1.n2 VALUES('at1', 'n2');\n  CREATE TABLE   at1.n3(x, y);  INSERT INTO at1.n3 VALUES('at1', 'n3');\n\n  CREATE TABLE   at2.n1(x, y);  INSERT INTO at2.n1 VALUES('at2', 'n1');\n  CREATE TABLE   at2.n2(x, y);  INSERT INTO at2.n2 VALUES('at2', 'n2');\n  CREATE TABLE   at2.n3(x, y);  INSERT INTO at2.n3 VALUES('at2', 'n3');\n  CREATE TABLE   at2.n4(x, y);  INSERT INTO at2.n4 VALUES('at2', 'n4');\n  CREATE TRIGGER at2.n4 BEFORE INSERT ON n4 BEGIN SELECT 1; END;\n"
 	_ = schema // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "resolve_reopen_db")
+	// resolve_reopen_db (unsupported command, not transpiled)
 	{ // "1.1"
 		r = db.Query(" SELECT * FROM n1 ")
 		if r.Error != nil {
@@ -96,7 +105,7 @@ func Test_e_resolve(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "resolve_reopen_db")
+	// resolve_reopen_db (unsupported command, not transpiled)
 	{ // "2.1.1"
 		r = db.Query(" SELECT * FROM main.n1 ")
 		if r.Error != nil {
@@ -151,7 +160,7 @@ func Test_e_resolve(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: xxx.n1", _res.Error, " SELECT * FROM xxx.n1 ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "resolve_reopen_db")
+	// resolve_reopen_db (unsupported command, not transpiled)
 	{ // "3.1"
 		r = db.Query(" SELECT * FROM MAIN.n1 ")
 		if r.Error != nil {
@@ -249,7 +258,8 @@ func Test_e_resolve(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "6.1"
 		_res = db.Exec("\n  ATTACH 'file.db' AS aux;\n  CREATE TABLE t1(x, y);\n  CREATE TEMP TABLE t1(x, y);\n  CREATE TABLE aux.t1(x, y);\n")

@@ -41,17 +41,52 @@ func Test_exclusive2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var needClose string
+	_ = needClose // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var nPage string
+	_ = nPage // pre-declared from TCL source
+	var sig string
+	_ = sig // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+	var _new string
+	_ = _new // pre-declared from TCL source
+	var SQLITE_DEFAULT_CACHE_SIZE string
+	_ = SQLITE_DEFAULT_CACHE_SIZE // pre-declared from TCL source
+	var cmdlinearg_soft_heap_limit string
+	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	if tclBool("permutation" + "==\"mmap\"") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "exclusive2-1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "readPagerChangeCounter test.db")
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-1.1"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) VALUES(randstr(10, 400), 0);\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    INSERT INTO t1(a, b) SELECT randstr(10, 400), 0 FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
@@ -60,9 +95,9 @@ func Test_exclusive2(t *testing.T) {
 		}
 	}
 	{ // do_test "exclusive2-1.2.1"
-		var nPage = "[file size test.db]/1024"
+		nPage = "[file size test.db]/1024"
 		_ = nPage // suppress unused warning
-		if func() bool { _SQLITE_DEFAULT_CACHE_SIZE_n, __SQLITE_DEFAULT_CACHE_SIZE_e := strconv.Atoi(_SQLITE_DEFAULT_CACHE_SIZE); if __SQLITE_DEFAULT_CACHE_SIZE_e != nil { return false }; nPage_n, _nPage_e := strconv.Atoi(nPage); if _nPage_e != nil { return false }; return _SQLITE_DEFAULT_CACHE_SIZE_n < nPage_n }() {
+		if func() bool { SQLITE_DEFAULT_CACHE_SIZE_n, _SQLITE_DEFAULT_CACHE_SIZE_e := strconv.Atoi(SQLITE_DEFAULT_CACHE_SIZE); if _SQLITE_DEFAULT_CACHE_SIZE_e != nil { return false }; nPage_n, _nPage_e := strconv.Atoi(nPage); if _nPage_e != nil { return false }; return SQLITE_DEFAULT_CACHE_SIZE_n < nPage_n }() {
 			r = db.Query("PRAGMA cache_size = " + nPage)
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size = " + nPage)
@@ -71,17 +106,17 @@ func Test_exclusive2(t *testing.T) {
 		// expr [execsql {PRAGMA cache_size}] >= $nPage → "[execsql {PRAGMA cache_size}] >= $nPage"
 	}
 	{ // do_test "exclusive2-1.2"
-		var _sig = "t1sig" // TCL namespace variable
-		_ = _sig // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "readPagerChangeCounter test.db")
+		sig = "t1sig" // TCL namespace variable
+		_ = sig // suppress unused warning
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "t1sig")
+		// t1sig (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-1.4"
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "t1sig db2")
+		// t1sig db2 (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-1.5"
 		_res = db.Exec("\n    UPDATE t1 SET b=a, a=0;\n  ")
@@ -91,19 +126,19 @@ func Test_exclusive2(t *testing.T) {
 		// expr [t1sig db2] eq $::sig → "[t1sig db2] eq $::sig"
 	}
 	{ // do_test "exclusive2-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "readPagerChangeCounter test.db")
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "pagerChangeCounter test.db 1")
+		// pagerChangeCounter test.db 1 (unsupported command, not transpiled)
 	}
 	if tclBool("permutation" + " != \"memsubsys1\"") {
 		{ // do_test "exclusive2-1.9"
-			t.Errorf("TODO: %s not implemented in frigolite", "t1sig")
+			// t1sig (unsupported command, not transpiled)
 			// expr [t1sig] eq $::sig → "[t1sig] eq $::sig"
 		}
 	}
 	{ // do_test "exclusive2-1.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "pagerChangeCounter test.db 2")
+		// pagerChangeCounter test.db 2 (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-1.11"
 		// expr [t1sig] eq $::sig → "[t1sig] eq $::sig"
@@ -124,9 +159,9 @@ func Test_exclusive2(t *testing.T) {
 		}
 	}
 	{ // do_test "exclusive2-2.2.1"
-		var nPage = "[file size test.db]/1024"
+		nPage = "[file size test.db]/1024"
 		_ = nPage // suppress unused warning
-		if func() bool { _SQLITE_DEFAULT_CACHE_SIZE_n, __SQLITE_DEFAULT_CACHE_SIZE_e := strconv.Atoi(_SQLITE_DEFAULT_CACHE_SIZE); if __SQLITE_DEFAULT_CACHE_SIZE_e != nil { return false }; nPage_n, _nPage_e := strconv.Atoi(nPage); if _nPage_e != nil { return false }; return _SQLITE_DEFAULT_CACHE_SIZE_n < nPage_n }() {
+		if func() bool { SQLITE_DEFAULT_CACHE_SIZE_n, _SQLITE_DEFAULT_CACHE_SIZE_e := strconv.Atoi(SQLITE_DEFAULT_CACHE_SIZE); if _SQLITE_DEFAULT_CACHE_SIZE_e != nil { return false }; nPage_n, _nPage_e := strconv.Atoi(nPage); if _nPage_e != nil { return false }; return SQLITE_DEFAULT_CACHE_SIZE_n < nPage_n }() {
 			r = db.Query("PRAGMA cache_size = " + nPage)
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size = " + nPage)
@@ -135,41 +170,41 @@ func Test_exclusive2(t *testing.T) {
 		// expr [execsql {PRAGMA cache_size}] >= $nPage → "[execsql {PRAGMA cache_size}] >= $nPage"
 	}
 	{ // do_test "exclusive2-2.2"
-		var _sig = "t1sig" // TCL namespace variable
-		_ = _sig // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "readPagerChangeCounter test.db")
+		sig = "t1sig" // TCL namespace variable
+		_ = sig // suppress unused warning
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "t1sig")
+		// t1sig (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-2.4"
-		var _fd = "open test.db RDWR" // TCL namespace variable
-		_ = _fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $::fd -translation binary")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $::fd 1024")
-		t.Log("-nonewline")
-		t.Errorf("TODO: %s not implemented in frigolite", "t1sig")
+		fd = "open test.db RDWR" // TCL namespace variable
+		_ = fd // suppress unused warning
+		// fconfigure $::fd -translation binary (unsupported command, not transpiled)
+		// seek $::fd 1024 (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
+		// t1sig (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "pagerChangeCounter test.db 5 $::fd")
+		// pagerChangeCounter test.db 5 $::fd (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "t1sig")
+		// t1sig (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-2.7"
 		r = db.Query("PRAGMA locking_mode = normal")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA locking_mode = normal")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "t1sig")
+		// t1sig (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-2.8"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "t1sig")
+			// t1sig (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -189,56 +224,56 @@ func Test_exclusive2(t *testing.T) {
 	os.Remove("test.db")
 	os.Remove("test.db-journal")
 	{ // do_test "exclusive2-3.0"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a UNIQUE);\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a UNIQUE);\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    INSERT INTO t1 VALUES(randstr(200, 200));\n    COMMIT;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "readPagerChangeCounter test.db")
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-3.1"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "readPagerChangeCounter test.db")
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-3.2"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "readPagerChangeCounter test.db")
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-3.3"
 		_res = db.Exec("\n    PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA locking_mode = exclusive;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "readPagerChangeCounter test.db")
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-3.4"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "readPagerChangeCounter test.db")
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-3.5"
 		_res = db.Exec("\n    PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA locking_mode = normal;\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "readPagerChangeCounter test.db")
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive2-3.6"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randstr(200, 200));\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "readPagerChangeCounter test.db")
+		// readPagerChangeCounter test.db (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
+	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 }

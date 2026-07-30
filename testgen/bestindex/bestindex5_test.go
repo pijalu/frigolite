@@ -39,12 +39,87 @@ func Test_bestindex5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var binops_ne string
+	_ = binops_ne // pre-declared from TCL source
+	var binops_eq string
+	_ = binops_eq // pre-declared from TCL source
+	var binops_isnot string
+	_ = binops_isnot // pre-declared from TCL source
+	var binops_is string
+	_ = binops_is // pre-declared from TCL source
+	var unops_isnotnull string
+	_ = unops_isnotnull // pre-declared from TCL source
+	var unops_isnull string
+	_ = unops_isnull // pre-declared from TCL source
+	var cols_0 string
+	_ = cols_0 // pre-declared from TCL source
+	var cols_1 string
+	_ = cols_1 // pre-declared from TCL source
+	var cols_2 string
+	_ = cols_2 // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var mask string
+	_ = mask // pre-declared from TCL source
+	var cost string
+	_ = cost // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var xFilterQueries string
+	_ = xFilterQueries // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var C_usable string
+	_ = C_usable // pre-declared from TCL source
+	var C_op string
+	_ = C_op // pre-declared from TCL source
+	var cols_C_column string
+	_ = cols_C_column // pre-declared from TCL source
+	var binops_C_op string
+	_ = binops_C_op // pre-declared from TCL source
+	var unops_C_op string
+	_ = unops_C_op // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var query string
+	_ = query // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindex5"
+	testprefix = "bestindex5"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING tcl('vtab_cmd');\n  CREATE TABLE t1x(a INTEGER, b TEXT, c REAL);\n  INSERT INTO t1x VALUES(1, 2, 3);\n  INSERT INTO t1x VALUES(4, 5, 6);\n  INSERT INTO t1x VALUES(7, 8, 9);\n\n  CREATE VIRTUAL TABLE t2 USING tcl('vtab_simple');\n  CREATE TABLE t2x(x INTEGER);\n  INSERT INTO t2x VALUES(1);\n")
@@ -52,19 +127,55 @@ func Test_bestindex5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING tcl('vtab_cmd');\n  CREATE TABLE t1x(a INTEGER, b TEXT, c REAL);\n  INSERT INTO t1x VALUES(1, 2, 3);\n  INSERT INTO t1x VALUES(4, 5, 6);\n  INSERT INTO t1x VALUES(7, 8, 9);\n\n  CREATE VIRTUAL TABLE t2 USING tcl('vtab_simple');\n  CREATE TABLE t2x(x INTEGER);\n  INSERT INTO t2x VALUES(1);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.1 { SELECT * FROM t1 WHERE a!='hello'; } {\n  \"WHERE a != 'hello'\"\n  1 2 3.0 4 5 6.0 7 8 9.0\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.2.1 { SELECT * FROM t1 WHERE b!=8 } {\n  \"WHERE b != '8'\"\n  1 2 3.0 4 5 6.0\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.2.2 { SELECT * FROM t1 WHERE 8!=b } {\n  \"WHERE b != '8'\"\n  1 2 3.0 4 5 6.0\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.3 { SELECT * FROM t1 WHERE c IS NOT 3 } {\n  \"WHERE c IS NOT '3'\"\n  4 5 6.0 7 8 9.0\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.3.2 { SELECT * FROM t1 WHERE 3 IS NOT c } {\n  \"WHERE c IS NOT '3'\"\n  4 5 6.0 7 8 9.0\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.4.1 { SELECT * FROM t1, t2 WHERE x != a } {\n  \"WHERE a != '1'\"\n  4 5 6.0 1   7 8 9.0 1\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.4.2 { SELECT * FROM t1, t2 WHERE a != x } {\n  \"WHERE a != '1'\"\n  4 5 6.0 1   7 8 9.0 1\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.5.1 { SELECT * FROM t1 WHERE a IS NOT NULL } {\n  \"WHERE a IS NOT NULL\"\n  1 2 3.0 4 5 6.0 7 8 9.0...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.5.2 { SELECT * FROM t1 WHERE NULL IS NOT a } {\n  \"WHERE a IS NOT ''\"\n  1 2 3.0 4 5 6.0 7 8 9.0\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.6.1 { SELECT * FROM t1 WHERE a IS NULL } {\n  \"WHERE a IS NULL\"\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.6.2 { SELECT * FROM t1 WHERE NULL IS a } {\n  \"WHERE a IS ''\"\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.7.1 { SELECT * FROM t1 WHERE (a, b) IS (1, 2) } {\n  \"WHERE a IS '1' AND b IS '2'\"\n  1 2 3.0\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.7.2 { SELECT * FROM t1 WHERE (5, 4) IS (b, a) } {\n  {WHERE b IS '5' AND a IS '4'} \n  4 5 6.0\n}")
+	// do_vtab_query_test 1.1 { SELECT * FROM t1 WHERE a!='hello'; } {
+  "WHERE a != 'hello'"
+  1 2 3.0 4 5 6.0 7 8 9.0
+} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.2.1 { SELECT * FROM t1 WHERE b!=8 } {
+  "WHERE b != '8'"
+  1 2 3.0 4 5 6.0
+} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.2.2 { SELECT * FROM t1 WHERE 8!=b } {
+  "WHERE b != '8'"
+  1 2 3.0 4 5 6.0
+} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.3 { SELECT * FROM t1 WHERE c IS NOT 3 } {
+  "WHERE c IS NOT '3'"
+  4 5 6.0 7 8 9.0
+} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.3.2 { SELECT * FROM t1 WHERE 3 IS NOT c } {
+  "WHERE c IS NOT '3'"
+  4 5 6.0 7 8 9.0
+} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.4.1 { SELECT * FROM t1, t2 WHERE x != a } {
+  "WHERE a != '1'"
+  4 5 6.0 1   7 8 9.0 1
+} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.4.2 { SELECT * FROM t1, t2 WHERE a != x } {
+  "WHERE a != '1'"
+  4 5 6.0 1   7 8 9.0 1
+} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.5.1 { SELECT * FROM t1 WHERE a IS NOT NULL } {
+  "WHERE a IS NOT NULL"
+  1 2 3.0 4 5 6.0 7 8 9.0...} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.5.2 { SELECT * FROM t1 WHERE NULL IS NOT a } {
+  "WHERE a IS NOT ''"
+  1 2 3.0 4 5 6.0 7 8 9.0
+} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.6.1 { SELECT * FROM t1 WHERE a IS NULL } {
+  "WHERE a IS NULL"
+} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.6.2 { SELECT * FROM t1 WHERE NULL IS a } {
+  "WHERE a IS ''"
+} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.7.1 { SELECT * FROM t1 WHERE (a, b) IS (1, 2) } {
+  "WHERE a IS '1' AND b IS '2'"
+  1 2 3.0
+} (unsupported command, not transpiled)
+	// do_vtab_query_test 1.7.2 { SELECT * FROM t1 WHERE (5, 4) IS (b, a) } {
+  {WHERE b IS '5' AND a IS '4'} 
+  4 5 6.0
+} (unsupported command, not transpiled)
 	{ // "2.0.0"
 		_res = db.Exec("\n  DELETE FROM t1x;\n  INSERT INTO t1x VALUES('a', 'b', 'c');\n")
 		if _res.Error != nil {

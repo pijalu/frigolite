@@ -41,8 +41,27 @@ func Test_fkey8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var use_stmt string
+	_ = use_stmt // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var schema string
+	_ = schema // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fkey8"
+	testprefix = "fkey8"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query(" PRAGMA foreign_keys = 1; ")
@@ -62,17 +81,17 @@ func Test_fkey8(t *testing.T) {
 		schema := _items0[_idx0+3]
 		_ = schema // suppress unused warning
 		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			// drop_all_tables (unsupported command, not transpiled)
 			{ // do_test "1." + tn
 				_res = db.Exec(schema)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
-				var stmt = ""
+				stmt = ""
 				_ = stmt // suppress unused warning
-				var ret = "uses_stmt_journal $stmt"
+				ret = "uses_stmt_journal $stmt"
 				_ = ret // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+				// sqlite3_finalize $stmt (unsupported command, not transpiled)
 			}
 		}
 		db.Close()

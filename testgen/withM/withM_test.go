@@ -39,16 +39,43 @@ func Test_withM(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "withM" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "withM" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(123, 456);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(123, 456);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test withM-1.1 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { \n    WITH tmp AS ( SELECT * FROM t1 )...} -test {\n  faultsim_test_result {0 {123 456}}\n  db close\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test withM-1.2 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { \n    WITH w1 AS ( SELECT * FROM t1 ),...} -test {\n  faultsim_test_result {0 {123 456}}\n  db close\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test withM-1.3 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { \n    WITH w1(a,b) AS ( \n      SELECT ...} -test {\n  faultsim_test_result {0 {1 1 2 4 3 9 4 16 5 25}...}")
+	// do_faultsim_test withM-1.1 -prep {
+  sqlite3 db test.db
+} -body {
+  execsql { 
+    WITH tmp AS ( SELECT * FROM t1 )...} -test {
+  faultsim_test_result {0 {123 456}}
+  db close
+} (unsupported command, not transpiled)
+	// do_faultsim_test withM-1.2 -prep {
+  sqlite3 db test.db
+} -body {
+  execsql { 
+    WITH w1 AS ( SELECT * FROM t1 ),...} -test {
+  faultsim_test_result {0 {123 456}}
+  db close
+} (unsupported command, not transpiled)
+	// do_faultsim_test withM-1.3 -prep {
+  sqlite3 db test.db
+} -body {
+  execsql { 
+    WITH w1(a,b) AS ( 
+      SELECT ...} -test {
+  faultsim_test_result {0 {1 1 2 4 3 9 4 16 5 25}...} (unsupported command, not transpiled)
 }

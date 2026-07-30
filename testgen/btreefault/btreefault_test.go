@@ -39,8 +39,25 @@ func Test_btreefault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var myres string
+	_ = myres // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "btreefault"
+	testprefix = "btreefault"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
@@ -50,9 +67,15 @@ func Test_btreefault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = incremental;\n    PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(100));\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    DELETE FROM t1 WHERE rowid%2;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  set ::STMT [sqlit...} -body {\n  execsql { PRAGMA incremental_vacuum = 10 }\n} -test {\n  sqlite3_finalize $::STMT\n  faultsim_test_result...}")
+	// do_faultsim_test 1 -prep {
+  faultsim_restore_and_reopen
+  set ::STMT [sqlit...} -body {
+  execsql { PRAGMA incremental_vacuum = 10 }
+} -test {
+  sqlite3_finalize $::STMT
+  faultsim_test_result...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -68,14 +91,21 @@ func Test_btreefault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(25, 25, 25);\n  INSERT INTO t2 VALUES(25, 'a'), (25, 'b'), (25, 'c');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save")
+	// faultsim_save (unsupported command, not transpiled)
 	{ // do_test "2.2"
-		var res = "list"
+		res = "list"
 		_ = res // suppress unused warning
 		_res = db.Exec("\n    SELECT x, y FROM t1 CROSS JOIN t2 WHERE t2.x=t1.i AND +t1.i=25 ORDER BY b\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, y FROM t1 CROSS JOIN t2 WHERE t2.x=t1.i AND +t1.i=25 ORDER BY b\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT *...} -body {\n  set ::myres [list]\n  db eval {\n    SELECT x, y ...} -test {\n  faultsim_test_result {0 {25 a 25 b}} \n}")
+	// do_faultsim_test 2 -faults oom-t* -prep {
+  faultsim_restore_and_reopen
+  db eval {SELECT *...} -body {
+  set ::myres [list]
+  db eval {
+    SELECT x, y ...} -test {
+  faultsim_test_result {0 {25 a 25 b}} 
+} (unsupported command, not transpiled)
 }

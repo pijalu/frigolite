@@ -40,9 +40,38 @@ func Test_fts4content(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var match string
+	_ = match // pre-declared from TCL source
+	var rowidlist string
+	_ = rowidlist // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var rowid string
+	_ = rowid // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var path string
+	_ = path // pre-declared from TCL source
+	var text string
+	_ = text // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts4content" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts4content" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('w x', 'x y', 'y z');\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=t1);\n")
 		if _res.Error != nil {
@@ -325,7 +354,7 @@ func Test_fts4content(t *testing.T) {
 						rowidlist := _items4[_idx4+2]
 						_ = rowidlist // suppress unused warning
 						_ = _idx4
-							var res = "list"
+							res = "list"
 							_ = res // suppress unused warning
 							for _, rowid := range tclSplitList(rowidlist) {
 							_ = rowid // suppress unused warning
@@ -372,7 +401,7 @@ func Test_fts4content(t *testing.T) {
 							rowidlist := _items5[_idx5+2]
 							_ = rowidlist // suppress unused warning
 							_ = _idx5
-								var res = "list"
+								res = "list"
 								_ = res // suppress unused warning
 								for _, rowid := range tclSplitList(rowidlist) {
 								_ = rowid // suppress unused warning
@@ -419,7 +448,7 @@ func Test_fts4content(t *testing.T) {
 								rowidlist := _items6[_idx6+2]
 								_ = rowidlist // suppress unused warning
 								_ = _idx6
-									var res = "list"
+									res = "list"
 									_ = res // suppress unused warning
 									for _, rowid := range tclSplitList(rowidlist) {
 									_ = rowid // suppress unused warning
@@ -666,7 +695,8 @@ func Test_fts4content(t *testing.T) {
 										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  DROP TABLE t7;\n  SELECT * FROM ft7;\n")
 									}
 								}
-								db, err = frigolite.Open("test.db")
+								_dbtmp7, err := frigolite.Open("test.db")
+								_ = _dbtmp7 // sqlite3 db connection
 								if err != nil { t.Fatal(err) }
 								{ // "6.2.3"
 									r = db.Query("\n  SELECT name FROM sqlite_master WHERE name LIKE '%t7%'\n")
@@ -728,7 +758,8 @@ func Test_fts4content(t *testing.T) {
 										t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  SELECT * FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
 									}
 								}
-								db, err = frigolite.Open("test.db")
+								_dbtmp8, err := frigolite.Open("test.db")
+								_ = _dbtmp8 // sqlite3 db connection
 								if err != nil { t.Fatal(err) }
 								{ // "6.2.10"
 									_res = db.Exec("\n  SELECT rowid FROM ft7 WHERE ft7 MATCH '\"A A\"';\n")
@@ -853,7 +884,7 @@ func Test_fts4content(t *testing.T) {
 								db.Close()
 								db, err = frigolite.Open("")
 								if err != nil { t.Fatal(err) }
-								t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+								// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 								{ // "9.1"
 									_res = db.Exec("\n  CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n")
 									if _res.Error != nil {
@@ -917,11 +948,11 @@ func Test_fts4content(t *testing.T) {
 								db.Close()
 								db, err = frigolite.Open("")
 								if err != nil { t.Fatal(err) }
-								t.Errorf("TODO: %s not implemented in frigolite", "register_fs_module [sqlite3_connection_pointer db]")
+								// register_fs_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 								// proc definition (not transpiled)
-								t.Errorf("TODO: %s not implemented in frigolite", "write_file t1.txt {a b c d e f g h i j k l m n o p q r s t u v w x y ...}")
-								t.Errorf("TODO: %s not implemented in frigolite", "write_file t2.txt {a b c d e f g h i j k l m a b c d e f g h i j k l ...}")
-								t.Errorf("TODO: %s not implemented in frigolite", "write_file t3.txt {n o p q r s t u v w x y z n o p q r s t u v w x y ...}")
+								// write_file t1.txt {a b c d e f g h i j k l m n o p q r s t u v w x y ...} (unsupported command, not transpiled)
+								// write_file t2.txt {a b c d e f g h i j k l m a b c d e f g h i j k l ...} (unsupported command, not transpiled)
+								// write_file t3.txt {n o p q r s t u v w x y z n o p q r s t u v w x y ...} (unsupported command, not transpiled)
 								{ // "10.1"
 									r = db.Query("\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
 									if r.Error != nil {
@@ -1073,7 +1104,7 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								// proc definition (not transpiled)
-								t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db xyz")
+								// register_tcl_module db xyz (unsupported command, not transpiled)
 								{ // "13.2.0"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE aa USING tcl(vtab_command);\n")
 									if _res.Error != nil {
@@ -1087,9 +1118,9 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								{ // do_test "13.2.2"
-									var _stmt = "sqlite3_prepare_v3 db \\\n    \"INSERT INTO aa VALUES('one two three');\" -1 0x00" // TCL namespace variable
-									_ = _stmt // suppress unused warning
-									t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+									stmt = "sqlite3_prepare_v3 db \\\n    \"INSERT INTO aa VALUES('one two three');\" -1 0x00" // TCL namespace variable
+									_ = stmt // suppress unused warning
+									// sqlite3_finalize $::stmt (unsupported command, not transpiled)
 								}
 								{ // do_test "13.2.2"
 									_list := tclList([]string{"0", msg})

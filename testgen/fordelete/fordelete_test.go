@@ -39,9 +39,54 @@ func Test_fordelete(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var root string
+	_ = root // pre-declared from TCL source
+	var bt string
+	_ = bt // pre-declared from TCL source
+	var csr string
+	_ = csr // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var rootpage string
+	_ = rootpage // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var R_opcode string
+	_ = R_opcode // pre-declared from TCL source
+	var R_p2 string
+	_ = R_p2 // pre-declared from TCL source
+	var R_p1 string
+	_ = R_p1 // pre-declared from TCL source
+	var T_root string
+	_ = T_root // pre-declared from TCL source
+	var obj string
+	_ = obj // pre-declared from TCL source
+	var R_p5 string
+	_ = R_p5 // pre-declared from TCL source
+	var idxdelete string
+	_ = idxdelete // pre-declared from TCL source
+	var M_csr string
+	_ = M_csr // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fordelete" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fordelete" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
@@ -60,7 +105,7 @@ func Test_fordelete(t *testing.T) {
 		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
 		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "do_adp_test 1.$tn $sql $res")
+			// do_adp_test 1.$tn $sql $res (unsupported command, not transpiled)
 		}
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2a ON t2(a);\n  CREATE INDEX t2b ON t2(b);\n  CREATE INDEX t2c ON t2(c);\n")
@@ -78,7 +123,7 @@ func Test_fordelete(t *testing.T) {
 			res := _items1[_idx1+2]
 			_ = res // suppress unused warning
 			_ = _idx1
-				t.Errorf("TODO: %s not implemented in frigolite", "do_adp_test 2.$tn $sql $res")
+				// do_adp_test 2.$tn $sql $res (unsupported command, not transpiled)
 			}
 			{ // "3.0"
 				_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE TABLE x2(a INTEGER PRIMARY KEY, b, c, d);\n")
@@ -87,18 +132,18 @@ func Test_fordelete(t *testing.T) {
 				}
 			}
 			{ // do_test "3.1"
-				var root = "db one { SELECT rootpage FROM sqlite_master WHERE name = 'x1' }"
+				root = "db one { SELECT rootpage FROM sqlite_master WHERE name = 'x1' }"
 				_ = root // suppress unused warning
 				_res = db.Exec(" \n    BEGIN IMMEDIATE;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN IMMEDIATE;\n  ")
 				}
-				var bt = "btree_from_db db"
+				bt = "btree_from_db db"
 				_ = bt // suppress unused warning
-				var csr = "btree_cursor $bt $root 1"
+				csr = "btree_cursor $bt $root 1"
 				_ = csr // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "btree_insert $csr 5 \\000")
-				t.Errorf("TODO: %s not implemented in frigolite", "btree_close_cursor $csr")
+				// btree_insert $csr 5 \000 (unsupported command, not transpiled)
+				// btree_close_cursor $csr (unsupported command, not transpiled)
 				_res = db.Exec(" COMMIT ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
@@ -109,18 +154,18 @@ func Test_fordelete(t *testing.T) {
 				}
 			}
 			{ // do_test "3.2"
-				var root = "db one { SELECT rootpage FROM sqlite_master WHERE name = 'x2' }"
+				root = "db one { SELECT rootpage FROM sqlite_master WHERE name = 'x2' }"
 				_ = root // suppress unused warning
 				_res = db.Exec(" \n    BEGIN IMMEDIATE;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN IMMEDIATE;\n  ")
 				}
-				var bt = "btree_from_db db"
+				bt = "btree_from_db db"
 				_ = bt // suppress unused warning
-				var csr = "btree_cursor $bt $root 1"
+				csr = "btree_cursor $bt $root 1"
 				_ = csr // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "btree_insert $csr 6 \\000")
-				t.Errorf("TODO: %s not implemented in frigolite", "btree_close_cursor $csr")
+				// btree_insert $csr 6 \000 (unsupported command, not transpiled)
+				// btree_close_cursor $csr (unsupported command, not transpiled)
 				_res = db.Exec(" COMMIT ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")

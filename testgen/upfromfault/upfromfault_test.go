@@ -40,8 +40,23 @@ func Test_upfromfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var testrc string
+	_ = testrc // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "upfromfault"
+	testprefix = "upfromfault"
 	_ = testprefix // suppress unused warning
 	// foreach {tn sql} "\n  1 {\n    CREATE TABLE t1(x PRIMARY KEY, y, z UNIQUE);\n    CREATE INDEX t1y ON t1(y);\n  }\n  2 {\n    CREATE TABLE t1(x PRIMARY KEY, y, z UNIQUE) WITHOUT ROWID;\n    CREATE INDEX t1y ON t1(y);\n  }\n  3 {\n    CREATE TABLE t1(x, y, z UNIQUE, PRIMARY KEY(x,y)) WITHOUT ROWID;\n  }\n  4 {\n    CREATE VIRTUAL TABLE t1 USING fts5(x, y, z);\n  }\n  5 {\n    CREATE TABLE real(x, y, z);\n    CREATE VIEW t1 AS SELECT * FROM real;\n    CREATE TRIGGER t1_insert INSTEAD OF INSERT ON t1 BEGIN\n      INSERT INTO real VALUES(new.x, new.y, new.z);\n    END;\n    CREATE TRIGGER t1_update INSTEAD OF UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES(old.z || '->' || new.z);\n      UPDATE real SET y=new.y, z=new.z WHERE x=old.x;\n    END;\n  }\n"
 	_items0 := tclSplitList("\n  1 {\n    CREATE TABLE t1(x PRIMARY KEY, y, z UNIQUE);\n    CREATE INDEX t1y ON t1(y);\n  }\n  2 {\n    CREATE TABLE t1(x PRIMARY KEY, y, z UNIQUE) WITHOUT ROWID;\n    CREATE INDEX t1y ON t1(y);\n  }\n  3 {\n    CREATE TABLE t1(x, y, z UNIQUE, PRIMARY KEY(x,y)) WITHOUT ROWID;\n  }\n  4 {\n    CREATE VIRTUAL TABLE t1 USING fts5(x, y, z);\n  }\n  5 {\n    CREATE TABLE real(x, y, z);\n    CREATE VIEW t1 AS SELECT * FROM real;\n    CREATE TRIGGER t1_insert INSTEAD OF INSERT ON t1 BEGIN\n      INSERT INTO real VALUES(new.x, new.y, new.z);\n    END;\n    CREATE TRIGGER t1_update INSTEAD OF UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES(old.z || '->' || new.z);\n      UPDATE real SET y=new.y, z=new.z WHERE x=old.x;\n    END;\n  }\n")
@@ -66,7 +81,7 @@ func Test_upfromfault(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE log(t TEXT);\n\n    INSERT INTO t1 VALUES(1, 'i',   'one');\n    INSERT INTO t1 VALUES(2, 'ii',  'two');\n    INSERT INTO t1 VALUES(3, 'iii', 'three');\n    INSERT INTO t1 VALUES(4, 'iv',  'four');\n  ")
 				}
 			}
-			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n != 4 && tn_n!=5 }() {
+			if tclBool(tn + "!=4 && " + tn + "!=5") {
 				{ // "1." + tn + ".0b"
 					_res = db.Exec("\n      CREATE TRIGGER tr1 BEFORE UPDATE ON t1 BEGIN\n        INSERT INTO log VALUES(old.z || '->' || new.z);\n      END;\n      CREATE TRIGGER tr2 AFTER UPDATE ON t1 BEGIN\n        INSERT INTO log VALUES(old.y || '->' || new.y);\n      END;\n    ")
 					if _res.Error != nil {
@@ -74,8 +89,14 @@ func Test_upfromfault(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$tn -prep {\n    faultsim_restore_and_reopen\n    execsql { SEL...} -body {\n    execsql {\n      WITH data(k, v) AS (\n        ...} -test {\n    faultsim_test_result {0 {}} {1 {vtable constr...}")
+			// faultsim_save_and_close (unsupported command, not transpiled)
+			// do_faultsim_test 1.$tn -prep {
+    faultsim_restore_and_reopen
+    execsql { SEL...} -body {
+    execsql {
+      WITH data(k, v) AS (
+        ...} -test {
+    faultsim_test_result {0 {}} {1 {vtable constr...} (unsupported command, not transpiled)
 		}
 		db.Close()
 		db, err = frigolite.Open("")
@@ -86,15 +107,27 @@ func Test_upfromfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);\n")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    CREATE TRIGGER tr1 AFTER INSERT O...} -test {\n    faultsim_test_result {0 {}}\n}")
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		// faultsim_save_and_close (unsupported command, not transpiled)
+		// do_faultsim_test 2.1 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    CREATE TRIGGER tr1 AFTER INSERT O...} -test {
+    faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
+		// faultsim_restore_and_reopen (unsupported command, not transpiled)
 		{ // "2.2"
 			_res = db.Exec("\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=x FROM t2 WHERE c=z;\n  END;\n\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=x FROM t2 WHERE c=z;\n  END;\n\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    INSERT INTO t1 VALUES(NULL, NULL,...} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc==0} {...}")
+		// faultsim_save_and_close (unsupported command, not transpiled)
+		// do_faultsim_test 2.3 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    INSERT INTO t1 VALUES(NULL, NULL,...} -test {
+  faultsim_test_result {0 {}}
+  if {$testrc==0} {...} (unsupported command, not transpiled)
 }

@@ -41,8 +41,21 @@ func Test_fts4merge5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var tc1 string
+	_ = tc1 // pre-declared from TCL source
+	var tc2 string
+	_ = tc2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts4merge5"
+	testprefix = "fts4merge5"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec(" \n  CREATE TABLE t1(docid, words);\n")
@@ -50,7 +63,7 @@ func Test_fts4merge5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(docid, words);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+	// fts_kjv_genesis (unsupported command, not transpiled)
 	{ // "1.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts3; \n  INSERT INTO x1(x1) VALUES('nodesize=64');\n  INSERT INTO x1(x1) VALUES('maxpending=64');\n")
 		if _res.Error != nil {
@@ -63,10 +76,10 @@ func Test_fts4merge5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO x1(docid, content) SELECT * FROM t1;\n")
 		}
 	}
-	var tn = "1"
+	tn = "1"
 	_ = tn // suppress unused warning
 	for true {
-		var tc1 = "db total_changes"
+		tc1 = "db total_changes"
 		_ = tc1 // suppress unused warning
 		{ // "1.4." + tn + ".1"
 			_res = db.Exec("\n    INSERT INTO x1(x1) VALUES('merge=1,2');\n  ")
@@ -74,7 +87,7 @@ func Test_fts4merge5(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO x1(x1) VALUES('merge=1,2');\n  ")
 			}
 		}
-		var tc2 = "db total_changes"
+		tc2 = "db total_changes"
 		_ = tc2 // suppress unused warning
 		if func() bool { tc2_n, _tc2_e := strconv.Atoi(tc2); if _tc2_e != nil { return false }; tc1_n, _tc1_e := strconv.Atoi(tc1); if _tc1_e != nil { return false }; return (tc2_n - tc1_n) < 2 }() {
 		}

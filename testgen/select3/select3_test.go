@@ -40,16 +40,35 @@ func Test_select3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "select3-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(n int, log int);\n    BEGIN;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(n int, log int);\n    BEGIN;\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
-			var j = "0"
+			j = "0"
 			_ = j // suppress unused warning
 			for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (1<<j_n) < i_n }() {
 				// incr j 1
@@ -319,7 +338,7 @@ func Test_select3(t *testing.T) {
 		x := _items0[_idx0+1]
 		_ = x // suppress unused warning
 		_ = _idx0
-			var x = "$x+0"
+			x = "$x+0"
 			_ = x // suppress unused warning
 			{ // "select3-8." + id
 				r = db.Query("\n     DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, $x), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;\n  ")

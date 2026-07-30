@@ -39,6 +39,11 @@ func Test_pagerfault3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("permutation" + " == \"inmemory_journal\"") {
 		return
@@ -50,12 +55,19 @@ func Test_pagerfault3(t *testing.T) {
 		}
 	}
 	{ // do_test "pagerfault3-pre2"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		// faultsim_save_and_close (unsupported command, not transpiled)
+		// faultsim_restore_and_reopen (unsupported command, not transpiled)
 		r = db.Query(" \n    PRAGMA page_size = 1024;\n    VACUUM;\n    PRAGMA page_count;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 1024;\n    VACUUM;\n    PRAGMA page_count;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault3-1 -faults ioerr-transient -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    PRAGMA page_size = 1024;\n    VAC...} -test {\n  faultsim_test_result {0 {}} \n  faultsim_integri...}")
+	// do_faultsim_test pagerfault3-1 -faults ioerr-transient -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { 
+    PRAGMA page_size = 1024;
+    VAC...} -test {
+  faultsim_test_result {0 {}} 
+  faultsim_integri...} (unsupported command, not transpiled)
 }

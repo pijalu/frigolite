@@ -40,9 +40,16 @@ func Test_with5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "with5" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "with5" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "100"
 		_res = db.Exec("\n  CREATE TABLE link(aa INT, bb INT);\n  CREATE INDEX link_f ON link(aa,bb);\n  CREATE INDEX link_t ON link(bb,aa);\n  INSERT INTO link(aa,bb) VALUES\n    (1,3),\n    (5,3),\n    (7,1),\n    (7,9),\n    (9,9),\n    (5,11),\n    (11,7),\n    (2,4),\n    (4,6),\n    (8,6);\n")
 		if _res.Error != nil {

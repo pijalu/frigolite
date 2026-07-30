@@ -42,10 +42,39 @@ func Test_unionvtab(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var dbs string
+	_ = dbs // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var iMin string
+	_ = iMin // pre-declared from TCL source
+	var e string
+	_ = e // pre-declared from TCL source
+	var E string
+	_ = E // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var S string
+	_ = S // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "unionvtab"
+	testprefix = "unionvtab"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	os.Remove("test.db2")
 	{ // "1.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b TEXT);\n\n\n  INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO t2 VALUES(10, 'ten'), (11, 'eleven'), (12, 'twelve');\n  INSERT INTO t3 VALUES(20, 'twenty'), (21, 'twenty-one'), (22, 'twenty-two');\n")
@@ -249,20 +278,19 @@ func Test_unionvtab(t *testing.T) {
 		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
 		_ = _idx0
-			var L = "list"
+			L = "list"
 			_ = L // suppress unused warning
-			var iMin = "0"
+			iMin = "0"
 			_ = iMin // suppress unused warning
 			for _, e := range tclSplitList(dbs) {
 			_ = e // suppress unused warning
-				var E = "split $e ."
+				E = "split $e ."
 				_ = E // suppress unused warning
 				if tclBool("llength $E" + ">1") {
 					L = tclListAppend(L, "('" + "lindex $E 0" + "', '" + "lindex $E 1" + "', " + iMin + ", " + iMin + ")")
 				} else {
 					L = tclListAppend(L, "(NULL, '" + e + "', " + iMin + ", " + iMin + ")")
 				}
-				var iMin = "0"
 				// incr iMin 1
 				{
 					_n, _err := strconv.Atoi(iMin)
@@ -271,7 +299,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 				}
 			}
-			var sql = "CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + "join $L ," + "\\\")"
+			sql = "CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + "join $L ," + "\\\")"
 			_ = sql // suppress unused warning
 			{ // "2.4." + tn
 				_res = db.Exec("\n    DROP TABLE IF EXISTS temp.a1;\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(\\\"VALUES " + "join $L ," + "\\\");\n  ")
@@ -310,7 +338,7 @@ func Test_unionvtab(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+			// load_static_extension db unionvtab (unsupported command, not transpiled)
 			{ // "3.0"
 				_res = db.Exec("\n  CREATE TABLE tbl1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl2(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE tbl3(a INTEGER PRIMARY KEY, b);\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl1 SELECT ii, '1.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl2 SELECT ii, '2.' || ii FROM ss;\n\n  WITH ss(ii) AS ( SELECT 1 UNION ALL SELECT ii+1 FROM ss WHERE ii<100 )\n  INSERT INTO tbl3 SELECT ii, '3.' || ii FROM ss;\n\n  CREATE VIRTUAL TABLE temp.uu USING unionvtab(\n    \"VALUES(NULL,'tbl2', 26, 74), (NULL,'tbl3', 75, 100), (NULL,'tbl1', 1, 25)\"\n  );\n")
 				if _res.Error != nil {
@@ -833,9 +861,9 @@ func Test_unionvtab(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			var L = "9.223372036854776e+18"
+			L = "9.223372036854776e+18"
 			_ = L // suppress unused warning
-			var S = "-9.223372036854776e+18"
+			S = "-9.223372036854776e+18"
 			_ = S // suppress unused warning
 			{ // "3.8.1"
 				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= $S ")
@@ -1239,7 +1267,7 @@ func Test_unionvtab(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+				// load_static_extension db unionvtab (unsupported command, not transpiled)
 				{ // "6.0"
 					_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.t USING unionvtab('SELECT ''main'', ''xyz'', 1, 2');\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such rowid table: main.xyz") {

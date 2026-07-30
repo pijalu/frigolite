@@ -40,15 +40,34 @@ func Test_limit(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var max_x_t3 string
+	_ = max_x_t3 // pre-declared from TCL source
+	var limit string
+	_ = limit // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE t1(x int, y int);\n  BEGIN;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x int, y int);\n  BEGIN;\n")
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 32 }() {
-		var j = "0"
+		j = "0"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (1<<j_n) < i_n }() {
 			// incr j 1
@@ -288,7 +307,7 @@ func Test_limit(t *testing.T) {
 		}
 	}
 	{ // do_test "limit-10.1"
-		var limit = "10"
+		limit = "10"
 		_ = limit // suppress unused warning
 		_res = db.Exec("\n    SELECT x FROM t1 LIMIT :limit;\n  ")
 		if _res.Error != nil {
@@ -296,9 +315,9 @@ func Test_limit(t *testing.T) {
 		}
 	}
 	{ // do_test "limit-10.2"
-		var limit = "5"
+		limit = "5"
 		_ = limit // suppress unused warning
-		var offset = "5"
+		offset = "5"
 		_ = offset // suppress unused warning
 		_res = db.Exec("\n    SELECT x FROM t1 LIMIT :limit OFFSET :offset;\n  ")
 		if _res.Error != nil {
@@ -306,7 +325,7 @@ func Test_limit(t *testing.T) {
 		}
 	}
 	{ // do_test "limit-10.3"
-		var limit = "-1"
+		limit = "-1"
 		_ = limit // suppress unused warning
 		_res = db.Exec("\n    SELECT x FROM t1 WHERE x<10 LIMIT :limit;\n  ")
 		if _res.Error != nil {
@@ -314,9 +333,8 @@ func Test_limit(t *testing.T) {
 		}
 	}
 	{ // do_test "limit-10.4"
-		var limit = "1.5"
+		limit = "1.5"
 		_ = limit // suppress unused warning
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -335,9 +353,8 @@ func Test_limit(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "limit-10.5"
-		var limit = "hello world"
+		limit = "hello world"
 		_ = limit // suppress unused warning
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block

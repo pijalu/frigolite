@@ -39,8 +39,15 @@ func Test_in5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "in5"
+	testprefix = "in5"
 	_ = testprefix // suppress unused warning
 	{ // do_test "in5-1.1"
 		r = db.Query("\n    CREATE TABLE t1x(x INTEGER PRIMARY KEY);\n    INSERT INTO t1x VALUES(1),(3),(5),(7),(9);\n    CREATE TABLE t1y(y INTEGER UNIQUE);\n    INSERT INTO t1y VALUES(2),(4),(6),(8);\n    CREATE TABLE t1z(z TEXT UNIQUE);\n    INSERT INTO t1z VALUES('a'),('c'),('e'),('g');\n    CREATE TABLE t2(a INTEGER, b INTEGER, c TEXT, d TEXT);\n    INSERT INTO t2 VALUES(1,2,'a','12a'),(1,2,'b','12b'),\n                         (2,3,'g','23g'),(3,5,'c','35c'),\n                         (4,6,'h','46h'),(5,6,'e','56e');\n    CREATE TABLE t3x AS SELECT x FROM t1x;\n    CREATE TABLE t3y AS SELECT y FROM t1y;\n    CREATE TABLE t3z AS SELECT z FROM t1z;\n    SELECT d FROM t2 WHERE a IN t1x AND b IN t1y AND c IN t1z ORDER BY c;\n  ")

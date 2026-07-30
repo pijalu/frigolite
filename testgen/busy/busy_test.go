@@ -39,8 +39,21 @@ func Test_busy(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var busyargs string
+	_ = busyargs // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "busy"
+	testprefix = "busy"
 	_ = testprefix // suppress unused warning
 	{ // do_test "busy-1.1"
 		db2, err = frigolite.Open("test.db")
@@ -51,7 +64,7 @@ func Test_busy(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	var busyargs = ""
+	busyargs = ""
 	_ = busyargs // suppress unused warning
 	{ // do_test "busy-1.2"
 		db2.Exec("BEGIN EXCLUSIVE")
@@ -62,7 +75,7 @@ func Test_busy(t *testing.T) {
 	{ // do_test "busy-1.3"
 	}
 	{ // do_test "busy-1.4"
-		var busyargs = ""
+		busyargs = ""
 		_ = busyargs // suppress unused warning
 		_res = db.Exec("BEGIN IMMEDIATE")
 		_ = _res // catchsql
@@ -76,7 +89,7 @@ func Test_busy(t *testing.T) {
 		}
 		db2.Exec("BEGIN; SELECT * FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		var busyargs = ""
+		busyargs = ""
 		_ = busyargs // suppress unused warning
 		_res = db.Exec("COMMIT")
 		_ = _res // catchsql

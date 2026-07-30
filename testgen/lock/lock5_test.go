@@ -40,16 +40,31 @@ func Test_lock5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var using_proxy string
+	_ = using_proxy // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var env_SQLITE_FORCE_PROXY_LOCKING string
+	_ = env_SQLITE_FORCE_PROXY_LOCKING // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "lock5"
+	testprefix = "lock5"
 	_ = testprefix // suppress unused warning
 	if false {
 		return
 	}
 	os.Remove("test.db.lock")
 	{ // do_test "lock5-dotfile.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")
 		if _res.Error != nil {
@@ -111,8 +126,8 @@ func Test_lock5(t *testing.T) {
 	os.Remove("test.db")
 	if tclBool("0==" + "0") {
 		{ // do_test "lock5-flock.1"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 			if _res.Error != nil {
@@ -164,8 +179,8 @@ func Test_lock5(t *testing.T) {
 			db2.Close()
 		}
 		{ // do_test "lock5-flock.9"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n    SELECT * FROM t1\n  ")
 			if r.Error != nil {
@@ -208,8 +223,8 @@ func Test_lock5(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "lock5-none.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -258,8 +273,8 @@ func Test_lock5(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	if tclBool("permutation" + "!=\"inmemory_journal\"") {
 		{ // do_test "2.dotfile.1"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1x ON t1(x);\n      WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n      )\n      INSERT INTO t1 SELECT hex(randomblob(20)), hex(randomblob(500)), i FROM s;\n    ")
 			if r.Error != nil {

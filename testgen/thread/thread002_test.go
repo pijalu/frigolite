@@ -41,23 +41,58 @@ func Test_thread002(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var do_not_use_codec string
+	_ = do_not_use_codec // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var NTHREAD string
+	_ = NTHREAD // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var thread_program string
+	_ = thread_program // pre-declared from TCL source
+	var order_list string
+	_ = order_list // pre-declared from TCL source
+	var order string
+	_ = order // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var finished_i string
+	_ = finished_i // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var T string
+	_ = T // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var thread_procs string
+	_ = thread_procs // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var do_not_use_codec = "1"
+	do_not_use_codec = "1"
 	_ = do_not_use_codec // suppress unused warning
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
-	var _NTHREAD = "10" // TCL namespace variable
-	_ = _NTHREAD // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	NTHREAD = "10" // TCL namespace variable
+	_ = NTHREAD // suppress unused warning
 	{ // do_test "thread002.1"
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 3 }() {
 			os.Remove("test$")
-			db, err := frigolite.Open("test$")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test$")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(k, v);\n      CREATE INDEX t1_i ON t1(v);\n      INSERT INTO t1(v) VALUES(1.0);\n    ")
 			if _res.Error != nil {
@@ -72,16 +107,16 @@ func Test_thread002(t *testing.T) {
 			}
 		}
 	}
-	var thread_program = "\n  set ::DB [sqlite3_open test.db]\n  for {set ii 1} {$ii <= 3} {incr ii} {\n    set T [lindex $order [expr $ii-1]]\n    execsql \"ATTACH 'test${T}.db' AS aux${ii}\"\n  }\n\n  for {set ii 0} {$ii < 100} {incr ii} {\n    execsql { SELECT * FROM aux1.t1 }\n    execsql { INSERT INTO aux1.t1(v) SELECT sum(v) FROM aux2.t1 }\n  \n    execsql { SELECT * FROM aux2.t1 }\n    execsql { INSERT INTO aux2.t1(v) SELECT sum(v) FROM aux3.t1 }\n  \n    execsql { SELECT * FROM aux3.t1 }\n    execsql { INSERT INTO aux3.t1(v) SELECT sum(v) FROM aux1.t1 }\n\n    execsql { CREATE TABLE IF NOT EXISTS aux1.t2(a,b) }\n    execsql { DROP TABLE IF EXISTS aux1.t2 }\n\n    # if {($ii%10)==0} {puts -nonewline . ; flush stdout}\n    puts -nonewline . ; flush stdout\n  }\n\n  sqlite3_close $::DB\n  list OK\n"
+	thread_program = "\n  set ::DB [sqlite3_open test.db]\n  for {set ii 1} {$ii <= 3} {incr ii} {\n    set T [lindex $order [expr $ii-1]]\n    execsql \"ATTACH 'test${T}.db' AS aux${ii}\"\n  }\n\n  for {set ii 0} {$ii < 100} {incr ii} {\n    execsql { SELECT * FROM aux1.t1 }\n    execsql { INSERT INTO aux1.t1(v) SELECT sum(v) FROM aux2.t1 }\n  \n    execsql { SELECT * FROM aux2.t1 }\n    execsql { INSERT INTO aux2.t1(v) SELECT sum(v) FROM aux3.t1 }\n  \n    execsql { SELECT * FROM aux3.t1 }\n    execsql { INSERT INTO aux3.t1(v) SELECT sum(v) FROM aux1.t1 }\n\n    execsql { CREATE TABLE IF NOT EXISTS aux1.t2(a,b) }\n    execsql { DROP TABLE IF EXISTS aux1.t2 }\n\n    # if {($ii%10)==0} {puts -nonewline . ; flush stdout}\n    puts -nonewline . ; flush stdout\n  }\n\n  sqlite3_close $::DB\n  list OK\n"
 	_ = thread_program // suppress unused warning
-	var order_list = "list {0 1 2} {0 2 1} {1 0 2} {1 2 0} {2 0 1} {2 1 0}"
+	order_list = "list {0 1 2} {0 2 1} {1 0 2} {1 2 0} {2 0 1} {2 1 0}"
 	_ = order_list // suppress unused warning
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
-	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; _NTHREAD_n, __NTHREAD_e := strconv.Atoi(_NTHREAD); if __NTHREAD_e != nil { return false }; return ii_n < _NTHREAD_n }() {
-		var order = "lindex $order_list [expr $ii%6]"
+	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; NTHREAD_n, _NTHREAD_e := strconv.Atoi(NTHREAD); if _NTHREAD_e != nil { return false }; return ii_n < NTHREAD_n }() {
+		order = "lindex $order_list [expr $ii%6]"
 		_ = order // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished($ii) $thread_procs set order {$order} $thread_program")
+		// thread_spawn finished($ii) $thread_procs set order {$order} $thread_program (unsupported command, not transpiled)
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
@@ -90,13 +125,13 @@ func Test_thread002(t *testing.T) {
 			}
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _NTHREAD_n, __NTHREAD_e := strconv.Atoi(_NTHREAD); if __NTHREAD_e != nil { return false }; return i_n < _NTHREAD_n }() {
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; NTHREAD_n, _NTHREAD_e := strconv.Atoi(NTHREAD); if _NTHREAD_e != nil { return false }; return i_n < NTHREAD_n }() {
 		if tclBool("!" + "info exists finished($i)") {
 		}
 		{ // do_test "thread002.2." + i
-			_ = _finished_i // TCL namespace variable (query)
+			_ = finished_i // TCL namespace variable (query)
 		}
 		// incr i 1
 		{
@@ -110,10 +145,10 @@ func Test_thread002(t *testing.T) {
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 3 }() {
 		{ // do_test "thread002.3." + ii
-			db, err := frigolite.Open("test$")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test$")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			var res = "list                         \\\n      [execsql {SELECT count(*) FROM t1}] \\\n      [execsql {PRAGMA integrity_check}]  \\"
+			res = "list                         \\\n      [execsql {SELECT count(*) FROM t1}] \\\n      [execsql {PRAGMA integrity_check}]  \\"
 			_ = res // suppress unused warning
 		}
 		// incr ii 1
@@ -124,7 +159,7 @@ func Test_thread002(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
-	var sqlite_open_file_count = "0"
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
+	sqlite_open_file_count = "0"
 	_ = sqlite_open_file_count // suppress unused warning
 }

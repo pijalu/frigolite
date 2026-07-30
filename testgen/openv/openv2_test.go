@@ -40,16 +40,24 @@ func Test_openv2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("test.db")
 	{ // do_test "openv2-1.1"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				rc = "1"
@@ -64,14 +72,15 @@ func Test_openv2(t *testing.T) {
 	{ // do_test "openv2-1.2"
 	}
 	{ // do_test "openv2-1.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE t1(x)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(x)")
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT name FROM sqlite_master")
 		if _res.Error != nil {
@@ -83,8 +92,8 @@ func Test_openv2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "openv2-2.1"
-		db, err := frigolite.Open(":memory:")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open(":memory:")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT * FROM sqlite_master")
 		if _res.Error != nil {

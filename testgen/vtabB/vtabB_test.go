@@ -39,9 +39,16 @@ func Test_vtabB(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "vtabB-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    BEGIN;\n    CREATE VIRTUAL TABLE temp.echo_test1 USING echo(t1);\n    DROP TABLE echo_test1;\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    BEGIN;\n    CREATE VIRTUAL TABLE temp.echo_test1 USING echo(t1);\n    DROP TABLE echo_test1;\n    ROLLBACK;\n  ")

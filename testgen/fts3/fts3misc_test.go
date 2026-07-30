@@ -41,8 +41,25 @@ func Test_fts3misc(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var vector string
+	_ = vector // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3misc"
+	testprefix = "fts3misc"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n  INSERT INTO t1 VALUES('one', 'i');\n  INSERT INTO t1 VALUES('one', 'ii');\n  INSERT INTO t1 VALUES('two', 'i');\n  INSERT INTO t1 VALUES('two', 'ii');\n")
@@ -65,9 +82,9 @@ func Test_fts3misc(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "2.0"
-		var cols = "list"
+		cols = "list"
 		_ = cols // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 200 }() {
 			cols = tclListAppend(cols, "c" + i)

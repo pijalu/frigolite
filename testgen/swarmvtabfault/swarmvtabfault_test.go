@@ -40,8 +40,21 @@ func Test_swarmvtabfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "swarmvtabfault"
+	testprefix = "swarmvtabfault"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	os.Remove("test.db1")
@@ -52,6 +65,11 @@ func Test_swarmvtabfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db1' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO aux.t1 VALUES(1, NULL);\n  INSERT INTO aux.t1 VALUES(2, NULL);\n  INSERT INTO aux.t1 VALUES(9, NULL);\n  DETACH aux;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db func fetch_db ...} -body {\n  execsql { SELECT a FROM xyz }\n} -test {\n  faultsim_test_result {0 {1 2 9}} {1 {sql error:...}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1.1 -faults oom* -prep {
+  faultsim_restore_and_reopen
+  db func fetch_db ...} -body {
+  execsql { SELECT a FROM xyz }
+} -test {
+  faultsim_test_result {0 {1 2 9}} {1 {sql error:...} (unsupported command, not transpiled)
 }

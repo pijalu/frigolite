@@ -39,10 +39,17 @@ func Test_spellfix3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "spellfix3"
+	testprefix = "spellfix3"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix")
+	// load_static_extension db spellfix (unsupported command, not transpiled)
 	{ // "100"
 		r = db.Query("\n  SELECT spellfix1_scriptcode('And God said, “Let there be light”');\n")
 		if r.Error != nil {

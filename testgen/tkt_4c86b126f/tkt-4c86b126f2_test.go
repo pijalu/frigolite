@@ -39,6 +39,11 @@ func Test_tkt_4c86b126f2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "tkt-4c86b126f2-1.1"
 		r = db.Query("\n  CREATE TABLE nodes(\n     local_relpath  TEXT PRIMARY KEY,\n     moved_to  TEXT\n  );\n  INSERT INTO nodes VALUES('A',NULL);\n  INSERT INTO nodes VALUES('A/B',NULL);\n  INSERT INTO nodes VALUES('',NULL);\n  INSERT INTO nodes VALUES('A/B/C-move',NULL);\n  INSERT INTO nodes VALUES('A/B/C','A/B/C-move');\n  INSERT INTO nodes VALUES('A/B-move',NULL);\n  INSERT INTO nodes VALUES('A/B-move/C-move',NULL);\n  INSERT INTO nodes VALUES('A/B-move/C','x');\n  SELECT local_relpath, moved_to\n   FROM nodes\n  WHERE (local_relpath = 'A/B' OR\n           ((local_relpath > 'A/B/') AND (local_relpath < 'A/B0')))\n    AND moved_to IS NOT NULL;\n")

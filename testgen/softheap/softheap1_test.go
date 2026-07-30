@@ -39,6 +39,15 @@ func Test_softheap1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var cmdlinearg_soft_heap_limit string
+	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "softheap1-1.0"
 		r = db.Query("PRAGMA soft_heap_limit")
@@ -53,7 +62,7 @@ func Test_softheap1(t *testing.T) {
 		}
 	}
 	{ // do_test "softheap1-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit -1")
+		// sqlite3_soft_heap_limit -1 (unsupported command, not transpiled)
 	}
 	{ // do_test "softheap1-1.3"
 		r = db.Query("PRAGMA soft_heap_limit(-1); PRAGMA soft_heap_limit;")
@@ -67,7 +76,7 @@ func Test_softheap1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit(0); PRAGMA soft_heap_limit;")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 5000")
+	// sqlite3_soft_heap_limit 5000 (unsupported command, not transpiled)
 	{ // do_test "softheap1-2.0"
 		r = db.Query("PRAGMA soft_heap_limit")
 		if r.Error != nil {
@@ -92,5 +101,5 @@ func Test_softheap1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
+	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 }

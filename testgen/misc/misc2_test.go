@@ -40,6 +40,19 @@ func Test_misc2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var rowid string
+	_ = rowid // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql
@@ -90,8 +103,8 @@ func Test_misc2(t *testing.T) {
 		}
 	}
 	{ // do_test "misc2-6.1"
-		db, err := frigolite.Open("")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -99,7 +112,8 @@ func Test_misc2(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(" pragma recursive_triggers = off ")
 	_ = _res // catchsql

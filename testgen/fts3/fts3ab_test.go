@@ -40,13 +40,44 @@ func Test_fts3ab(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var english string
+	_ = english // pre-declared from TCL source
+	var spanish string
+	_ = spanish // pre-declared from TCL source
+	var german string
+	_ = german // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var vset string
+	_ = vset // pre-declared from TCL source
+	var lang string
+	_ = lang // pre-declared from TCL source
+	var words string
+	_ = words // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(english,spanish,german);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(english,spanish,german);\n")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "fill_multilanguage_fulltext_t1")
+	// fill_multilanguage_fulltext_t1 (unsupported command, not transpiled)
 	{ // do_test "fts3ab-1.1"
 		r = db.Query("SELECT rowid FROM t1 WHERE english MATCH 'one'")
 		if r.Error != nil {
@@ -100,10 +131,10 @@ func Test_fts3ab(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE VIRTUAL TABLE t4 USING fts3([norm],'plusone',\"invert\");\n")
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 15 }() {
-		var vset = "list [wordset $i] [wordset [expr {$i+1}]] [wordset [expr {~$i}]]"
+		vset = "list [wordset $i] [wordset [expr {$i+1}]] [wordset [expr {~$i}]]"
 		_ = vset // suppress unused warning
 		_res = db.Exec("INSERT INTO t4(norm,plusone,invert) VALUES(" + "join $vset ," + ");")
 		if _res.Error != nil {

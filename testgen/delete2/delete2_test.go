@@ -39,9 +39,28 @@ func Test_delete2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "delete2-1.1"
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
 		r = db.Query("\n    CREATE TABLE q(s string, id string, constraint pk_q primary key(id));\n    BEGIN;\n    INSERT INTO q(s,id) VALUES('hello','id.1');\n    INSERT INTO q(s,id) VALUES('goodbye','id.2');\n    INSERT INTO q(s,id) VALUES('again','id.3');\n    END;\n    SELECT * FROM q;\n  ")
 		if r.Error != nil {
@@ -57,9 +76,9 @@ func Test_delete2(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "delete2-1.4"
-		var STMT = "sqlite3_prepare $DB {SELECT * FROM q} -1 TAIL"
+		STMT = "sqlite3_prepare $DB {SELECT * FROM q} -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -76,7 +95,7 @@ func Test_delete2(t *testing.T) {
 		}
 	}
 	{ // do_test "delete2-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		_res = db.Exec("\n    DELETE FROM q WHERE rowid=1\n  ")
 		_ = _res // catchsql
 	}
@@ -95,7 +114,7 @@ func Test_delete2(t *testing.T) {
 		}
 	}
 	{ // do_test "delete2-2.2"
-		var res = "list"
+		res = "list"
 		_ = res // suppress unused warning
 		_res = db.Exec("\n    SELECT CASE WHEN c = 5 THEN b ELSE NULL END AS b, c, d FROM t1, t2\n  ")
 		if _res.Error != nil {

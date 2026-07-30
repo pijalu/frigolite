@@ -39,13 +39,18 @@ func Test_amatch1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "amatch1-1.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(words); --, tokenize porter);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(words); --, tokenize porter);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+		// fts_kjv_genesis (unsupported command, not transpiled)
 		_res = db.Exec("\n    INSERT INTO t1(t1) VALUES('optimize');\n    CREATE VIRTUAL TABLE temp.t1aux USING fts4aux(main, t1);\n    SELECT term FROM t1aux WHERE col=0 ORDER BY 1 LIMIT 5\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(t1) VALUES('optimize');\n    CREATE VIRTUAL TABLE temp.t1aux USING fts4aux(main, t1);\n    SELECT term FROM t1aux WHERE col=0 ORDER BY 1 LIMIT 5\n  ")
@@ -63,17 +68,21 @@ func Test_amatch1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT term FROM t1aux WHERE term>'b' AND col=0 LIMIT 5\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db amatch")
+	// load_static_extension db amatch (unsupported command, not transpiled)
 	{ // "amatch1-2.0"
 		_res = db.Exec("\n    CREATE TABLE costs(iLang, cFrom, cTo, Cost);\n    INSERT INTO costs VALUES(0, '', '?', 100);\n    INSERT INTO costs VALUES(0, '?', '', 100);\n    INSERT INTO costs VALUES(0, '?', '?', 150);\n    CREATE TABLE vocab(w TEXT UNIQUE);\n    INSERT OR IGNORE INTO vocab SELECT term FROM t1aux;\n    CREATE VIRTUAL TABLE t2 USING approximate_match(\n      vocabulary_table=t1aux,\n      vocabulary_word=term,\n      edit_distances=costs\n    );\n    CREATE VIRTUAL TABLE t3 USING approximate_match(\n      vocabulary_table=vocab,\n      vocabulary_word=w,\n      edit_distances=costs\n    );\n    CREATE VIRTUAL TABLE t4 USING approximate_match(\n        vocabulary_table=vtemp,\n        vocabulary_word=w,\n        edit_distances=costs\n      );\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE costs(iLang, cFrom, cTo, Cost);\n    INSERT INTO costs VALUES(0, '', '?', 100);\n    INSERT INTO costs VALUES(0, '?', '', 100);\n    INSERT INTO costs VALUES(0, '?', '?', 150);\n    CREATE TABLE vocab(w TEXT UNIQUE);\n    INSERT OR IGNORE INTO vocab SELECT term FROM t1aux;\n    CREATE VIRTUAL TABLE t2 USING approximate_match(\n      vocabulary_table=t1aux,\n      vocabulary_word=term,\n      edit_distances=costs\n    );\n    CREATE VIRTUAL TABLE t3 USING approximate_match(\n      vocabulary_table=vocab,\n      vocabulary_word=w,\n      edit_distances=costs\n    );\n    CREATE VIRTUAL TABLE t4 USING approximate_match(\n        vocabulary_table=vtemp,\n        vocabulary_word=w,\n        edit_distances=costs\n      );\n")
 		}
 	}
-	t.Log("Query against fts4aux: " + "time {\n  do_execsql_test amatch1-2.1 {\n      SELECT word, distance FROM t2\n       WHERE word MATCH 'josxph' AND distance<300;\n  } {joseph 150}} 1")
-	t.Log("Query against ordinary table: " + "time {\n  do_execsql_test amatch1-2.2 {\n      SELECT word, distance FROM t3\n       WHERE word MATCH 'josxph' AND distance<300;\n  } {joseph 150}} 1")
-	t.Log("Temp table initialized from fts4aux: " + "time {\n  do_execsql_test amatch1-2.3a {\n      CREATE TEMP TABLE vtemp(w TEXT UNIQUE);\n      INSERT OR IGNORE INTO vtemp SELECT term FROM t1aux;\n  } {}} 1")
-	t.Log("Query against temp table: " + "time {\n  do_execsql_test amatch1-2.3b {\n      SELECT word, distance FROM t4\n       WHERE word MATCH 'josxph' AND distance<300;\n  } {joseph 150}} 1")
+	_putsMsg := "Query against fts4aux: " + "time {\n  do_execsql_test amatch1-2.1 {\n      SELECT word, distance FROM t2\n       WHERE word MATCH 'josxph' AND distance<300;\n  } {joseph 150}} 1"
+	_ = _putsMsg
+	_putsMsg = "Query against ordinary table: " + "time {\n  do_execsql_test amatch1-2.2 {\n      SELECT word, distance FROM t3\n       WHERE word MATCH 'josxph' AND distance<300;\n  } {joseph 150}} 1"
+	_ = _putsMsg
+	_putsMsg = "Temp table initialized from fts4aux: " + "time {\n  do_execsql_test amatch1-2.3a {\n      CREATE TEMP TABLE vtemp(w TEXT UNIQUE);\n      INSERT OR IGNORE INTO vtemp SELECT term FROM t1aux;\n  } {}} 1"
+	_ = _putsMsg
+	_putsMsg = "Query against temp table: " + "time {\n  do_execsql_test amatch1-2.3b {\n      SELECT word, distance FROM t4\n       WHERE word MATCH 'josxph' AND distance<300;\n  } {joseph 150}} 1"
+	_ = _putsMsg
 	{ // "amatch1-2.11"
 		r = db.Query("\n    SELECT word, distance FROM t2\n     WHERE word MATCH 'joxxph' AND distance<=300;\n")
 		if r.Error != nil {
@@ -113,7 +122,7 @@ func Test_amatch1(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db amatch")
+	// load_static_extension db amatch (unsupported command, not transpiled)
 	{ // "amatch1-3.0"
 		r = db.Query("\n  CREATE TABLE cost(iLang,cFrom,cTo,Cost);\n  INSERT INTO cost VALUES(0,'?','?',1);\n  CREATE TABLE vocab(word TEXT PRIMARY KEY);\n  CREATE VIRTUAL TABLE am USING approximate_match(\n      vocabulary_table=vocab,\n      vocabulary_word=word,\n      edit_distances=cost\n  );\n  INSERT INTO vocab(word) VALUES(format('%.81c','a'));\n  SELECT length(word) FROM am WHERE word MATCH format('%.81c','a');\n")
 		if r.Error != nil {

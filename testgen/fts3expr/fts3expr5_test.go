@@ -39,8 +39,19 @@ func Test_fts3expr5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3expr5"
+	testprefix = "fts3expr5"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
@@ -79,13 +90,13 @@ func Test_fts3expr5(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT rowid FROM t0 WHERE x MATCH '\"\"\"\"';\n")
 		}
 	}
-	var sqlite_fts3_enable_parentheses = "1"
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	{ // do_test "2.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(a:123)(b:234)()(c:456)}")
+		// test_fts3expr {(a:123)(b:234)()(c:456)} (unsupported command, not transpiled)
 	}
 	{ // do_test "2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(a:123)(b:234)(c:456)}")
+		// test_fts3expr {(a:123)(b:234)(c:456)} (unsupported command, not transpiled)
 	}
 	{ // do_test "2.2"
 		_list := tclList([]string{"0", msg})

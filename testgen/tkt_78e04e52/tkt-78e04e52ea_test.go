@@ -39,6 +39,11 @@ func Test_tkt_78e04e52ea(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-78e04-1.0"
 		r = db.Query("\n    CREATE TABLE \"\"(\"\" UNIQUE, x CHAR(100));\n    CREATE TABLE t2(x);\n    INSERT INTO \"\"(\"\") VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    SELECT * FROM \"\", t2;\n  ")

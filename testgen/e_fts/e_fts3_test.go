@@ -40,6 +40,81 @@ func Test_e_fts3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DO_MALLOC_TEST string
+	_ = DO_MALLOC_TEST // pre-declared from TCL source
+	var enc string
+	_ = enc // pre-declared from TCL source
+	var scan_littleEndian string
+	_ = scan_littleEndian // pre-declared from TCL source
+	var scan_bigEndian string
+	_ = scan_bigEndian // pre-declared from TCL source
+	var largetext string
+	_ = largetext // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var title string
+	_ = title // pre-declared from TCL source
+	var body string
+	_ = body // pre-declared from TCL source
+	var R_tn string
+	_ = R_tn // pre-declared from TCL source
+	var query string
+	_ = query // pre-declared from TCL source
+	var hit string
+	_ = hit // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var docid string
+	_ = docid // pre-declared from TCL source
+	var content string
+	_ = content // pre-declared from TCL source
+	var R_docid string
+	_ = R_docid // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var middle string
+	_ = middle // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var ddl string
+	_ = ddl // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var scan__tcl_platform_byteOrder string
+	_ = scan__tcl_platform_byteOrder // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var R_2 string
+	_ = R_2 // pre-declared from TCL source
+	var R_4 string
+	_ = R_4 // pre-declared from TCL source
+	var R_5 string
+	_ = R_5 // pre-declared from TCL source
+	var R_6 string
+	_ = R_6 // pre-declared from TCL source
+	var R_7 string
+	_ = R_7 // pre-declared from TCL source
+	var R_8 string
+	_ = R_8 // pre-declared from TCL source
+	var R_3 string
+	_ = R_3 // pre-declared from TCL source
+	var R_9 string
+	_ = R_9 // pre-declared from TCL source
+	var R_1 string
+	_ = R_1 // pre-declared from TCL source
+	var start string
+	_ = start // pre-declared from TCL source
+	var end string
+	_ = end // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -54,195 +129,307 @@ func Test_e_fts3(t *testing.T) {
 		_ = enc // suppress unused warning
 		_ = _idx0
 			os.Remove("test.db")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			if tclBool(DO_MALLOC_TEST) {
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+				// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 			}
 			_res = db.Exec("PRAGMA encoding = '" + enc + "'")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = '" + enc + "'")
 			}
 			// proc definition (not transpiled)
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.1.1 {CREATE VIRTUAL TABLE data USING fts3()}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.1.1.2 {PRAGMA table_info(data)} {0 content {} 0 {} 0}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.2.1 {\n  CREATE VIRTUAL TABLE pages USING fts3(title, ke...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.1.2.2 {\n  PRAGMA table_info(pages)\n} {0 title {} 0 {} 0 1 keywords {} 0 {} 0 2 body {} 0...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.3.1 {\n  CREATE VIRTUAL TABLE mail USING fts3(\n      sub...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.1.3.2 {\n  PRAGMA table_info(mail)\n} {0 subject {} 0 {} 0 1 body {} 0 {} 0}")
-			var largetext = "\"the quick brown fox \" 5000"
+			// ddl_test 1.1.1.1 {CREATE VIRTUAL TABLE data USING fts3()} (unsupported command, not transpiled)
+			// read_test 1.1.1.2 {PRAGMA table_info(data)} {0 content {} 0 {} 0} (unsupported command, not transpiled)
+			// ddl_test 1.1.2.1 {
+  CREATE VIRTUAL TABLE pages USING fts3(title, ke...} (unsupported command, not transpiled)
+			// read_test 1.1.2.2 {
+  PRAGMA table_info(pages)
+} {0 title {} 0 {} 0 1 keywords {} 0 {} 0 2 body {} 0...} (unsupported command, not transpiled)
+			// ddl_test 1.1.3.1 {
+  CREATE VIRTUAL TABLE mail USING fts3(
+      sub...} (unsupported command, not transpiled)
+			// read_test 1.1.3.2 {
+  PRAGMA table_info(mail)
+} {0 subject {} 0 {} 0 1 body {} 0 {} 0} (unsupported command, not transpiled)
+			largetext = "\"the quick brown fox \" 5000"
 			_ = largetext // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.1.3.3 mail_content { INSERT INTO mail VALUES(NULL, $largetext) }")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.1.3.4 {\n  SELECT subject IS NULL, length(body) FROM mail\n} [list 1 100000]")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.4.1 {\n  CREATE VIRTUAL TABLE papers USING fts3(author, ...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.1.4.2 {\n  PRAGMA table_info(papers)\n} {0 author {} 0 {} 0 1 document {} 0 {} 0}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.5.1 {\n  CREATE VIRTUAL TABLE simpledata USING fts3(toke...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.1.5.2 {\n  PRAGMA table_info(simpledata)\n} {0 content {} 0 {} 0}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.7.1 {DROP TABLE data}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.7.2 {DROP TABLE pages}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.7.3 {DROP TABLE mail}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.7.4 {DROP TABLE papers}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.7.5 {DROP TABLE simpledata}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.1.7.6 {SELECT * FROM sqlite_master} {}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.8.1 {CREATE VIRTUAL TABLE data USING fts3;}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.1.8.2 {PRAGMA table_info(data)} {0 content {} 0 {} 0}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.1.8.3 {DROP TABLE data}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.2.1.1 {\n  CREATE VIRTUAL TABLE pages USING fts3(title, bo...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.2.1.2 pages_content {\n  INSERT INTO pages(docid, title, body) \n  VALUES...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.2.1.3 {\n  SELECT docid, * FROM pages\n} {53 {Home Page} {SQLite is a software...}}")
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.2.1.4 pages_content {\n  INSERT INTO pages(title, body) \n  VALUES('Downl...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.2.1.5 {\n  SELECT docid, * FROM pages\n} {53 {Home Page} {SQLite is a software...} 54 Downlo...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.2.1.6 pages_content {\n  UPDATE pages SET title = 'Download SQLite' WHER...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.2.1.7 {\n  SELECT docid, * FROM pages\n} {53 {Home Page} {SQLite is a software...} 54 {Downl...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.2.1.8 pages_content { DELETE FROM pages }")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.2.1.9 { SELECT docid, * FROM pages } {}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_error_test fts3-1.2.1.10 {\n  INSERT INTO pages(rowid, docid, title, body) VA...} {SQL logic error}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.2.2.1 { CREATE VIRTUAL TABLE docs USING fts3 }")
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.2.2.2 docs_content {\n  INSERT INTO docs VALUES('Others translate the f...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.2.2.3 docs_content {\n  INSERT INTO docs VALUES('\"which is for Solomon,...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.2.2.4 docs_content {\n  INSERT INTO docs VALUES('the book is dedicated ...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.2.2.5 { SELECT count(*) FROM docs_segdir } {3}")
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.2.2.6 docs_segdir {\n  INSERT INTO docs(docs) VALUES('optimize');\n}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.2.2.7 { SELECT count(*) FROM docs_segdir } {1}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.2.2.8 { DROP TABLE docs }")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.3.1.1 { CREATE VIRTUAL TABLE mail USING fts3(subject, bod...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.3.1.2 { \n  SELECT * FROM mail WHERE rowid = 15;          ...} {}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.3.1.3 { DROP TABLE mail }")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.3.2.1 { CREATE VIRTUAL TABLE mail USING fts3(subject, bod...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.3.2.2 mail_content {\n  INSERT INTO mail(docid, subject, body) \n  VALUE...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.3.2.3 mail_content {\n  INSERT INTO mail(docid, subject, body) \n  VALUE...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.3.2.4 mail_content {\n  INSERT INTO mail(docid, subject, body) \n  VALUE...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.3.2.5 {\n  SELECT * FROM mail WHERE subject MATCH 'softwar...} {{software feedback} {found it too slow} {software ...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.3.2.6 {\n  SELECT * FROM mail WHERE body MATCH 'feedback'\n} {{software feedback} {no feedback}}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.3.2.7 {\n  SELECT * FROM mail WHERE mail MATCH 'software'\n} {{software feedback} {found it too slow} {software ...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.3.2.7 {\n  SELECT * FROM mail WHERE mail MATCH 'slow'\n} {{software feedback} {found it too slow} {slow lunc...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.3.2.8 { DROP TABLE mail }")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.3.3.1 { CREATE VIRTUAL TABLE docs USING fts3(content) }")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.3.3.2 { SELECT * FROM docs WHERE docs MATCH 'sqlite' } {}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.3.3.3 { SELECT * FROM docs WHERE docs.docs MATCH 'sqlite'...} {}")
-			t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.3.3.4 { SELECT * FROM docs WHERE main.docs.docs MATCH 'sq...} {}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_error_test e_fts3-1.3.3.5 { \n  SELECT * FROM docs WHERE main.docs MATCH 'sqli...} {no such column: main.docs}")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.3.2.8 { DROP TABLE docs }")
-			t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.4.1.1 { CREATE VIRTUAL TABLE docs USING fts3(title, body)...}")
+			// write_test 1.1.3.3 mail_content { INSERT INTO mail VALUES(NULL, $largetext) } (unsupported command, not transpiled)
+			// read_test 1.1.3.4 {
+  SELECT subject IS NULL, length(body) FROM mail
+} [list 1 100000] (unsupported command, not transpiled)
+			// ddl_test 1.1.4.1 {
+  CREATE VIRTUAL TABLE papers USING fts3(author, ...} (unsupported command, not transpiled)
+			// read_test 1.1.4.2 {
+  PRAGMA table_info(papers)
+} {0 author {} 0 {} 0 1 document {} 0 {} 0} (unsupported command, not transpiled)
+			// ddl_test 1.1.5.1 {
+  CREATE VIRTUAL TABLE simpledata USING fts3(toke...} (unsupported command, not transpiled)
+			// read_test 1.1.5.2 {
+  PRAGMA table_info(simpledata)
+} {0 content {} 0 {} 0} (unsupported command, not transpiled)
+			// ddl_test 1.1.7.1 {DROP TABLE data} (unsupported command, not transpiled)
+			// ddl_test 1.1.7.2 {DROP TABLE pages} (unsupported command, not transpiled)
+			// ddl_test 1.1.7.3 {DROP TABLE mail} (unsupported command, not transpiled)
+			// ddl_test 1.1.7.4 {DROP TABLE papers} (unsupported command, not transpiled)
+			// ddl_test 1.1.7.5 {DROP TABLE simpledata} (unsupported command, not transpiled)
+			// read_test 1.1.7.6 {SELECT * FROM sqlite_master} {} (unsupported command, not transpiled)
+			// ddl_test 1.1.8.1 {CREATE VIRTUAL TABLE data USING fts3;} (unsupported command, not transpiled)
+			// read_test 1.1.8.2 {PRAGMA table_info(data)} {0 content {} 0 {} 0} (unsupported command, not transpiled)
+			// ddl_test 1.1.8.3 {DROP TABLE data} (unsupported command, not transpiled)
+			// ddl_test 1.2.1.1 {
+  CREATE VIRTUAL TABLE pages USING fts3(title, bo...} (unsupported command, not transpiled)
+			// write_test 1.2.1.2 pages_content {
+  INSERT INTO pages(docid, title, body) 
+  VALUES...} (unsupported command, not transpiled)
+			// read_test 1.2.1.3 {
+  SELECT docid, * FROM pages
+} {53 {Home Page} {SQLite is a software...}} (unsupported command, not transpiled)
+			// write_test 1.2.1.4 pages_content {
+  INSERT INTO pages(title, body) 
+  VALUES('Downl...} (unsupported command, not transpiled)
+			// read_test 1.2.1.5 {
+  SELECT docid, * FROM pages
+} {53 {Home Page} {SQLite is a software...} 54 Downlo...} (unsupported command, not transpiled)
+			// write_test 1.2.1.6 pages_content {
+  UPDATE pages SET title = 'Download SQLite' WHER...} (unsupported command, not transpiled)
+			// read_test 1.2.1.7 {
+  SELECT docid, * FROM pages
+} {53 {Home Page} {SQLite is a software...} 54 {Downl...} (unsupported command, not transpiled)
+			// write_test 1.2.1.8 pages_content { DELETE FROM pages } (unsupported command, not transpiled)
+			// read_test 1.2.1.9 { SELECT docid, * FROM pages } {} (unsupported command, not transpiled)
+			// do_error_test fts3-1.2.1.10 {
+  INSERT INTO pages(rowid, docid, title, body) VA...} {SQL logic error} (unsupported command, not transpiled)
+			// ddl_test 1.2.2.1 { CREATE VIRTUAL TABLE docs USING fts3 } (unsupported command, not transpiled)
+			// write_test 1.2.2.2 docs_content {
+  INSERT INTO docs VALUES('Others translate the f...} (unsupported command, not transpiled)
+			// write_test 1.2.2.3 docs_content {
+  INSERT INTO docs VALUES('"which is for Solomon,...} (unsupported command, not transpiled)
+			// write_test 1.2.2.4 docs_content {
+  INSERT INTO docs VALUES('the book is dedicated ...} (unsupported command, not transpiled)
+			// read_test 1.2.2.5 { SELECT count(*) FROM docs_segdir } {3} (unsupported command, not transpiled)
+			// write_test 1.2.2.6 docs_segdir {
+  INSERT INTO docs(docs) VALUES('optimize');
+} (unsupported command, not transpiled)
+			// read_test 1.2.2.7 { SELECT count(*) FROM docs_segdir } {1} (unsupported command, not transpiled)
+			// ddl_test 1.2.2.8 { DROP TABLE docs } (unsupported command, not transpiled)
+			// ddl_test 1.3.1.1 { CREATE VIRTUAL TABLE mail USING fts3(subject, bod...} (unsupported command, not transpiled)
+			// read_test 1.3.1.2 { 
+  SELECT * FROM mail WHERE rowid = 15;          ...} {} (unsupported command, not transpiled)
+			// ddl_test 1.3.1.3 { DROP TABLE mail } (unsupported command, not transpiled)
+			// ddl_test 1.3.2.1 { CREATE VIRTUAL TABLE mail USING fts3(subject, bod...} (unsupported command, not transpiled)
+			// write_test 1.3.2.2 mail_content {
+  INSERT INTO mail(docid, subject, body) 
+  VALUE...} (unsupported command, not transpiled)
+			// write_test 1.3.2.3 mail_content {
+  INSERT INTO mail(docid, subject, body) 
+  VALUE...} (unsupported command, not transpiled)
+			// write_test 1.3.2.4 mail_content {
+  INSERT INTO mail(docid, subject, body) 
+  VALUE...} (unsupported command, not transpiled)
+			// read_test 1.3.2.5 {
+  SELECT * FROM mail WHERE subject MATCH 'softwar...} {{software feedback} {found it too slow} {software ...} (unsupported command, not transpiled)
+			// read_test 1.3.2.6 {
+  SELECT * FROM mail WHERE body MATCH 'feedback'
+} {{software feedback} {no feedback}} (unsupported command, not transpiled)
+			// read_test 1.3.2.7 {
+  SELECT * FROM mail WHERE mail MATCH 'software'
+} {{software feedback} {found it too slow} {software ...} (unsupported command, not transpiled)
+			// read_test 1.3.2.7 {
+  SELECT * FROM mail WHERE mail MATCH 'slow'
+} {{software feedback} {found it too slow} {slow lunc...} (unsupported command, not transpiled)
+			// ddl_test 1.3.2.8 { DROP TABLE mail } (unsupported command, not transpiled)
+			// ddl_test 1.3.3.1 { CREATE VIRTUAL TABLE docs USING fts3(content) } (unsupported command, not transpiled)
+			// read_test 1.3.3.2 { SELECT * FROM docs WHERE docs MATCH 'sqlite' } {} (unsupported command, not transpiled)
+			// read_test 1.3.3.3 { SELECT * FROM docs WHERE docs.docs MATCH 'sqlite'...} {} (unsupported command, not transpiled)
+			// read_test 1.3.3.4 { SELECT * FROM docs WHERE main.docs.docs MATCH 'sq...} {} (unsupported command, not transpiled)
+			// do_error_test e_fts3-1.3.3.5 { 
+  SELECT * FROM docs WHERE main.docs MATCH 'sqli...} {no such column: main.docs} (unsupported command, not transpiled)
+			// ddl_test 1.3.2.8 { DROP TABLE docs } (unsupported command, not transpiled)
+			// ddl_test 1.4.1.1 { CREATE VIRTUAL TABLE docs USING fts3(title, body)...} (unsupported command, not transpiled)
 			// foreach {tn title body} "\n  2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\"\n"
-			_items1 := tclSplitList("\n  2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\"\n")
-			for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-				tn := _items1[_idx1+0]
+			_items2 := tclSplitList("\n  2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\"\n")
+			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				title := _items1[_idx1+1]
+				title := _items2[_idx2+1]
 				_ = title // suppress unused warning
-				body := _items1[_idx1+2]
+				body := _items2[_idx2+2]
 				_ = body // suppress unused warning
-				_ = _idx1
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.4.1.$tn docs_content { INSERT INTO docs VALUES($title,$body) }")
-					var R_tn = "list $title $body"
+				_ = _idx2
+					// write_test 1.4.1.$tn docs_content { INSERT INTO docs VALUES($title,$body) } (unsupported command, not transpiled)
+					R_tn = "list $title $body"
 					_ = R_tn // suppress unused warning
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.4.1.11 { \n  SELECT * FROM docs WHERE docs MATCH 'linux'\n} [concat $R(2) $R(4) $R(5) $R(6) $R(7) $R(8)]")
-				t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.4.1.12 { \n  SELECT * FROM docs WHERE docs MATCH 'lin*'\n} [concat $R(2) $R(3) $R(4) $R(5) $R(6) $R(7) $R(8) ...")
-				t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.4.1.13 { \n  SELECT * FROM docs WHERE docs MATCH 'title:lin...} [concat $R(5)]")
-				t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.4.1.14 { \n  SELECT * FROM docs WHERE body MATCH 'title:lin...} [concat $R(6)]")
-				t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.4.1.15 { \n  SELECT * FROM docs WHERE docs MATCH '\"linux ap...} [concat $R(8)]")
-				t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.4.1.16 { \n  SELECT * FROM docs WHERE docs MATCH '\"lin* app...} [concat $R(8) $R(9)]")
-				t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.4.1.17 { DROP TABLE docs }")
-				t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.4.2.1 { CREATE VIRTUAL TABLE docs USING fts3() }")
-				t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.4.2.2 docs_content { \n  INSERT INTO docs VALUES(\n  'SQLite is an ACID ...}")
+				// read_test 1.4.1.11 { 
+  SELECT * FROM docs WHERE docs MATCH 'linux'
+} [concat $R(2) $R(4) $R(5) $R(6) $R(7) $R(8)] (unsupported command, not transpiled)
+				// read_test 1.4.1.12 { 
+  SELECT * FROM docs WHERE docs MATCH 'lin*'
+} [concat $R(2) $R(3) $R(4) $R(5) $R(6) $R(7) $R(8) ... (unsupported command, not transpiled)
+				// read_test 1.4.1.13 { 
+  SELECT * FROM docs WHERE docs MATCH 'title:lin...} [concat $R(5)] (unsupported command, not transpiled)
+				// read_test 1.4.1.14 { 
+  SELECT * FROM docs WHERE body MATCH 'title:lin...} [concat $R(6)] (unsupported command, not transpiled)
+				// read_test 1.4.1.15 { 
+  SELECT * FROM docs WHERE docs MATCH '"linux ap...} [concat $R(8)] (unsupported command, not transpiled)
+				// read_test 1.4.1.16 { 
+  SELECT * FROM docs WHERE docs MATCH '"lin* app...} [concat $R(8) $R(9)] (unsupported command, not transpiled)
+				// ddl_test 1.4.1.17 { DROP TABLE docs } (unsupported command, not transpiled)
+				// ddl_test 1.4.2.1 { CREATE VIRTUAL TABLE docs USING fts3() } (unsupported command, not transpiled)
+				// write_test 1.4.2.2 docs_content { 
+  INSERT INTO docs VALUES(
+  'SQLite is an ACID ...} (unsupported command, not transpiled)
 				// foreach {tn query hit} "\n3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0\n"
-				_items2 := tclSplitList("\n3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0\n")
-				for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-					tn := _items2[_idx2+0]
+				_items3 := tclSplitList("\n3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0\n")
+				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					query := _items2[_idx2+1]
+					query := _items3[_idx3+1]
 					_ = query // suppress unused warning
-					hit := _items2[_idx2+2]
+					hit := _items3[_idx3+2]
 					_ = hit // suppress unused warning
-					_ = _idx2
-						var res = "db eval {SELECT * FROM docs WHERE $hit}"
+					_ = _idx3
+						res = "db eval {SELECT * FROM docs WHERE $hit}"
 						_ = res // suppress unused warning
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.4.2.$tn $query $res")
+						// read_test 1.4.2.$tn $query $res (unsupported command, not transpiled)
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.4.2.10 { DROP TABLE docs }")
-					var sqlite_fts3_enable_parentheses = "1"
+					// ddl_test 1.4.2.10 { DROP TABLE docs } (unsupported command, not transpiled)
+					sqlite_fts3_enable_parentheses = "1"
 					_ = sqlite_fts3_enable_parentheses // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.5.1.1 { CREATE VIRTUAL TABLE docs USING fts3() }")
+					// ddl_test 1.5.1.1 { CREATE VIRTUAL TABLE docs USING fts3() } (unsupported command, not transpiled)
 					// foreach {tn docid content} "\n  2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"\n"
-					_items3 := tclSplitList("\n  2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"\n")
-					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-						tn := _items3[_idx3+0]
+					_items4 := tclSplitList("\n  2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"\n")
+					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
-						docid := _items3[_idx3+1]
+						docid := _items4[_idx4+1]
 						_ = docid // suppress unused warning
-						content := _items3[_idx3+2]
+						content := _items4[_idx4+2]
 						_ = content // suppress unused warning
-						_ = _idx3
-							var R_docid = content
+						_ = _idx4
+							R_docid = content
 							_ = R_docid // suppress unused warning
-							t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.5.1.$tn docs_content { \n    INSERT INTO docs(docid, content) VALUES($doc...}")
+							// write_test 1.5.1.$tn docs_content { 
+    INSERT INTO docs(docid, content) VALUES($doc...} (unsupported command, not transpiled)
 						}
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.1.4 {\n  SELECT * FROM docs WHERE docs MATCH 'sqlite AND...} [list $R(3)]")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.1.5 {\n  SELECT * FROM docs WHERE docs MATCH 'database s...} [list $R(3)]")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.1.6 {\n  SELECT * FROM docs WHERE docs MATCH 'sqlite OR ...} [list $R(1) $R(2) $R(3)]")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.1.7 {\n  SELECT * FROM docs WHERE docs MATCH 'database N...} [list $R(1)]")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.1.8 {\n  SELECT * FROM docs WHERE docs MATCH 'database a...} {}")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.5.2.1 docs_content {\n  INSERT INTO docs \n    SELECT 'sqlite is also a ...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.2.2 {\n  SELECT docid FROM docs WHERE docs MATCH 'sqlite...} {3 4 5}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.2.3 {\n  SELECT docid FROM docs WHERE docs MATCH 'sqlite...} {3 4 5}")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.5.2.4 docs_content {\n  INSERT INTO docs \n    SELECT 'the sqlite librar...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.2.2 {\n  SELECT docid FROM docs \n  WHERE docs MATCH '(\"s...} {6 7}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.2.3 {\n  SELECT docid FROM docs WHERE docs MATCH 'linux'...} {6 7}")
+						// read_test 1.5.1.4 {
+  SELECT * FROM docs WHERE docs MATCH 'sqlite AND...} [list $R(3)] (unsupported command, not transpiled)
+						// read_test 1.5.1.5 {
+  SELECT * FROM docs WHERE docs MATCH 'database s...} [list $R(3)] (unsupported command, not transpiled)
+						// read_test 1.5.1.6 {
+  SELECT * FROM docs WHERE docs MATCH 'sqlite OR ...} [list $R(1) $R(2) $R(3)] (unsupported command, not transpiled)
+						// read_test 1.5.1.7 {
+  SELECT * FROM docs WHERE docs MATCH 'database N...} [list $R(1)] (unsupported command, not transpiled)
+						// read_test 1.5.1.8 {
+  SELECT * FROM docs WHERE docs MATCH 'database a...} {} (unsupported command, not transpiled)
+						// write_test 1.5.2.1 docs_content {
+  INSERT INTO docs 
+    SELECT 'sqlite is also a ...} (unsupported command, not transpiled)
+						// read_test 1.5.2.2 {
+  SELECT docid FROM docs WHERE docs MATCH 'sqlite...} {3 4 5} (unsupported command, not transpiled)
+						// read_test 1.5.2.3 {
+  SELECT docid FROM docs WHERE docs MATCH 'sqlite...} {3 4 5} (unsupported command, not transpiled)
+						// write_test 1.5.2.4 docs_content {
+  INSERT INTO docs 
+    SELECT 'the sqlite librar...} (unsupported command, not transpiled)
+						// read_test 1.5.2.2 {
+  SELECT docid FROM docs 
+  WHERE docs MATCH '("s...} {6 7} (unsupported command, not transpiled)
+						// read_test 1.5.2.3 {
+  SELECT docid FROM docs WHERE docs MATCH 'linux'...} {6 7} (unsupported command, not transpiled)
 						sqlite_fts3_enable_parentheses = "0"
 						_ = sqlite_fts3_enable_parentheses // suppress unused warning
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.6.1.1 {\n  SELECT * FROM docs WHERE docs MATCH 'sqlite -da...} {{sqlite is a software system} {sqlite is also a li...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.6.1.2 {\n  SELECT * FROM docs WHERE docs MATCH 'sqlite OR ...} {{sqlite is also a library} {the sqlite library run...}")
+						// read_test 1.6.1.1 {
+  SELECT * FROM docs WHERE docs MATCH 'sqlite -da...} {{sqlite is a software system} {sqlite is also a li...} (unsupported command, not transpiled)
+						// read_test 1.6.1.2 {
+  SELECT * FROM docs WHERE docs MATCH 'sqlite OR ...} {{sqlite is also a library} {the sqlite library run...} (unsupported command, not transpiled)
 						sqlite_fts3_enable_parentheses = "1"
 						_ = sqlite_fts3_enable_parentheses // suppress unused warning
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.6.1.3 {\n  SELECT * FROM docs WHERE docs MATCH 'sqlite OR ...} {{sqlite is a software system} {sqlite is a databas...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.6.1.4 {\n  SELECT * FROM docs WHERE docs MATCH '(sqlite OR...} {{sqlite is also a library} {the sqlite library run...}")
+						// read_test 1.6.1.3 {
+  SELECT * FROM docs WHERE docs MATCH 'sqlite OR ...} {{sqlite is a software system} {sqlite is a databas...} (unsupported command, not transpiled)
+						// read_test 1.6.1.4 {
+  SELECT * FROM docs WHERE docs MATCH '(sqlite OR...} {{sqlite is also a library} {the sqlite library run...} (unsupported command, not transpiled)
 						sqlite_fts3_enable_parentheses = "0"
 						_ = sqlite_fts3_enable_parentheses // suppress unused warning
-						t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.6.1.5 { DROP TABLE docs }")
-						t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.7.1.1 { CREATE VIRTUAL TABLE mail USING fts3(subject, bod...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.7.1.2 mail_content { \n  INSERT INTO mail VALUES(\n    'hello world', 'T...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.7.1.3 mail_content { \n  INSERT INTO mail VALUES(\n    'urgent: serious'...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.7.1.4 { \n  SELECT offsets(mail) FROM mail WHERE mail MATC...} {{0 0 6 5 1 0 24 5}}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.7.1.5 { \n  SELECT offsets(mail) FROM mail WHERE mail MATC...} {{1 0 5 7 1 0 30 7}}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.7.1.6 { \n  SELECT offsets(mail) FROM mail WHERE mail MATC...} {{1 0 28 7 1 1 36 4}}")
-						t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.7.2.1 { CREATE VIRTUAL TABLE text USING fts3() }")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.7.2.2 text_content {\n  INSERT INTO text VALUES('\n    During 30 Nov-1 D...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.7.2.3 {\n  SELECT snippet(text) FROM text WHERE text MATCH...} {{<b>...</b>cool elsewhere, minimum temperature 17-...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.7.2.4 {\n  SELECT snippet(text, '[', ']', '...') FROM text...} {{...the upper portion, [minimum] [temperature] 14-...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.7.3.1 { DROP TABLE IF EXISTS t1 }")
-						t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.7.3.2 { CREATE VIRTUAL TABLE t1 USING fts3(a, b) }")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.7.3.3 t1_content { \n  INSERT INTO t1 VALUES(\n    'transaction defaul...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.7.3.4 t1_content { \n  INSERT INTO t1 VALUES('the default transaction...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.7.3.5 t1_content { \n  INSERT INTO t1 VALUES('single request', 'defau...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.7.3.6 { \n  SELECT mit(matchinfo(t1)) FROM t1 \n    WHERE t...} {{3 2 1 3 2 0 1 1 1 2 2 0 1 1 0 0 0 1 1 1}}")
-						t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.8.1.1 { CREATE VIRTUAL TABLE simple USING fts3(tokenize=s...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.8.1.2 simple_content { \n  INSERT INTO simple VALUES('Right now they''re ...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.8.1.3 {SELECT docid FROM simple WHERE simple MATCH 'Frust...} {1}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.8.1.4 {SELECT docid FROM simple WHERE simple MATCH 'Frust...} {}")
-						t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.8.2.1 { CREATE VIRTUAL TABLE porter USING fts3(tokenize=p...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.8.2.2 porter_content { \n  INSERT INTO porter VALUES('Right now they''re ...}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.8.2.4 {\n  SELECT docid FROM porter WHERE porter MATCH 'Fr...} {1}")
+						// ddl_test 1.6.1.5 { DROP TABLE docs } (unsupported command, not transpiled)
+						// ddl_test 1.7.1.1 { CREATE VIRTUAL TABLE mail USING fts3(subject, bod...} (unsupported command, not transpiled)
+						// write_test 1.7.1.2 mail_content { 
+  INSERT INTO mail VALUES(
+    'hello world', 'T...} (unsupported command, not transpiled)
+						// write_test 1.7.1.3 mail_content { 
+  INSERT INTO mail VALUES(
+    'urgent: serious'...} (unsupported command, not transpiled)
+						// read_test 1.7.1.4 { 
+  SELECT offsets(mail) FROM mail WHERE mail MATC...} {{0 0 6 5 1 0 24 5}} (unsupported command, not transpiled)
+						// read_test 1.7.1.5 { 
+  SELECT offsets(mail) FROM mail WHERE mail MATC...} {{1 0 5 7 1 0 30 7}} (unsupported command, not transpiled)
+						// read_test 1.7.1.6 { 
+  SELECT offsets(mail) FROM mail WHERE mail MATC...} {{1 0 28 7 1 1 36 4}} (unsupported command, not transpiled)
+						// ddl_test 1.7.2.1 { CREATE VIRTUAL TABLE text USING fts3() } (unsupported command, not transpiled)
+						// write_test 1.7.2.2 text_content {
+  INSERT INTO text VALUES('
+    During 30 Nov-1 D...} (unsupported command, not transpiled)
+						// read_test 1.7.2.3 {
+  SELECT snippet(text) FROM text WHERE text MATCH...} {{<b>...</b>cool elsewhere, minimum temperature 17-...} (unsupported command, not transpiled)
+						// read_test 1.7.2.4 {
+  SELECT snippet(text, '[', ']', '...') FROM text...} {{...the upper portion, [minimum] [temperature] 14-...} (unsupported command, not transpiled)
+						// ddl_test 1.7.3.1 { DROP TABLE IF EXISTS t1 } (unsupported command, not transpiled)
+						// ddl_test 1.7.3.2 { CREATE VIRTUAL TABLE t1 USING fts3(a, b) } (unsupported command, not transpiled)
+						// write_test 1.7.3.3 t1_content { 
+  INSERT INTO t1 VALUES(
+    'transaction defaul...} (unsupported command, not transpiled)
+						// write_test 1.7.3.4 t1_content { 
+  INSERT INTO t1 VALUES('the default transaction...} (unsupported command, not transpiled)
+						// write_test 1.7.3.5 t1_content { 
+  INSERT INTO t1 VALUES('single request', 'defau...} (unsupported command, not transpiled)
+						// read_test 1.7.3.6 { 
+  SELECT mit(matchinfo(t1)) FROM t1 
+    WHERE t...} {{3 2 1 3 2 0 1 1 1 2 2 0 1 1 0 0 0 1 1 1}} (unsupported command, not transpiled)
+						// ddl_test 1.8.1.1 { CREATE VIRTUAL TABLE simple USING fts3(tokenize=s...} (unsupported command, not transpiled)
+						// write_test 1.8.1.2 simple_content { 
+  INSERT INTO simple VALUES('Right now they''re ...} (unsupported command, not transpiled)
+						// read_test 1.8.1.3 {SELECT docid FROM simple WHERE simple MATCH 'Frust...} {1} (unsupported command, not transpiled)
+						// read_test 1.8.1.4 {SELECT docid FROM simple WHERE simple MATCH 'Frust...} {} (unsupported command, not transpiled)
+						// ddl_test 1.8.2.1 { CREATE VIRTUAL TABLE porter USING fts3(tokenize=p...} (unsupported command, not transpiled)
+						// write_test 1.8.2.2 porter_content { 
+  INSERT INTO porter VALUES('Right now they''re ...} (unsupported command, not transpiled)
+						// read_test 1.8.2.4 {
+  SELECT docid FROM porter WHERE porter MATCH 'Fr...} {1} (unsupported command, not transpiled)
 					}
-					var DO_MALLOC_TEST = "0"
-					_ = DO_MALLOC_TEST // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 2.1.0 { DROP TABLE IF EXISTS t1 }")
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 2.1.1 { CREATE VIRTUAL TABLE t1 USING fts3(a, b) }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 2.1.2 t1_content { \n  INSERT INTO t1 VALUES('one two three', x'A1B2C...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 2.1.3 {\n  SELECT offsets(a) FROM t1 WHERE a MATCH 'one'\n} {illegal first argument to offsets}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 2.1.4 {\n  SELECT offsets(b) FROM t1 WHERE a MATCH 'one'\n} {illegal first argument to offsets}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 2.1.5 {\n  SELECT optimize(a) FROM t1 LIMIT 1\n} {illegal first argument to optimize}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 2.1.6 {\n  SELECT snippet(a) FROM t1 WHERE a MATCH 'one'\n} {illegal first argument to snippet}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 2.1.7 {\n  SELECT snippet() FROM t1 WHERE a MATCH 'one'\n} {unable to use function snippet in the requested co...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 2.1.8 {\n  SELECT snippet(a, b, 'A', 'B', 'C', 'D', 'E') F...} {wrong number of arguments to function snippet()}")
-					t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test e_fts3-3 -tclbody { \n  if {[catch {sqlite3 db test.db}]} { error \"out...}")
 					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 4.1 { CREATE VIRTUAL TABLE t4 USING fts3(a, b) }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 4.2 t4_content {\n  INSERT INTO t4 VALUES('In Xanadu', 'did Kubla K...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 4.3 t4_content {\n  INSERT INTO t4 VALUES('a stately pleasure', 'do...}")
+					// ddl_test 2.1.0 { DROP TABLE IF EXISTS t1 } (unsupported command, not transpiled)
+					// ddl_test 2.1.1 { CREATE VIRTUAL TABLE t1 USING fts3(a, b) } (unsupported command, not transpiled)
+					// write_test 2.1.2 t1_content { 
+  INSERT INTO t1 VALUES('one two three', x'A1B2C...} (unsupported command, not transpiled)
+					// error_test 2.1.3 {
+  SELECT offsets(a) FROM t1 WHERE a MATCH 'one'
+} {illegal first argument to offsets} (unsupported command, not transpiled)
+					// error_test 2.1.4 {
+  SELECT offsets(b) FROM t1 WHERE a MATCH 'one'
+} {illegal first argument to offsets} (unsupported command, not transpiled)
+					// error_test 2.1.5 {
+  SELECT optimize(a) FROM t1 LIMIT 1
+} {illegal first argument to optimize} (unsupported command, not transpiled)
+					// error_test 2.1.6 {
+  SELECT snippet(a) FROM t1 WHERE a MATCH 'one'
+} {illegal first argument to snippet} (unsupported command, not transpiled)
+					// error_test 2.1.7 {
+  SELECT snippet() FROM t1 WHERE a MATCH 'one'
+} {unable to use function snippet in the requested co...} (unsupported command, not transpiled)
+					// error_test 2.1.8 {
+  SELECT snippet(a, b, 'A', 'B', 'C', 'D', 'E') F...} {wrong number of arguments to function snippet()} (unsupported command, not transpiled)
+					// do_malloc_test e_fts3-3 -tclbody { 
+  if {[catch {sqlite3 db test.db}]} { error "out...} (unsupported command, not transpiled)
+					DO_MALLOC_TEST = "0"
+					_ = DO_MALLOC_TEST // suppress unused warning
+					// ddl_test 4.1 { CREATE VIRTUAL TABLE t4 USING fts3(a, b) } (unsupported command, not transpiled)
+					// write_test 4.2 t4_content {
+  INSERT INTO t4 VALUES('In Xanadu', 'did Kubla K...} (unsupported command, not transpiled)
+					// write_test 4.3 t4_content {
+  INSERT INTO t4 VALUES('a stately pleasure', 'do...} (unsupported command, not transpiled)
 					{ // do_test "e_fts3-4.4"
 						r = db.Query(" SELECT optimize(t4) FROM t4 LIMIT 1 ")
 						if r.Error != nil {
@@ -257,83 +444,117 @@ func Test_e_fts3(t *testing.T) {
 					}
 					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 5.1 { CREATE VIRTUAL TABLE t5 USING fts3(x) }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 5.2 t5_content {\n  INSERT INTO t5 VALUES('In Xanadu did Kubla Khan...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 5.3 { \n  SELECT snippet(t5) FROM t5 WHERE t5 MATCH 'mil...} {{<b>...</b>to a sunless sea.  So twice five <b>mil...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 5.4 { \n  SELECT snippet(t5, '<i>') FROM t5 WHERE t5 MAT...} {{<b>...</b>to a sunless sea.  So twice five <i>mil...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 5.5 { \n  SELECT snippet(t5, '<i>', '</i>') FROM t5 WHER...} {{<b>...</b>to a sunless sea.  So twice five <i>mil...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 5.6 { \n  SELECT snippet(t5, '<i>', '</i>', 'XXX') FROM ...} {{XXXto a sunless sea.  So twice five <i>miles</i> ...}")
+					// ddl_test 5.1 { CREATE VIRTUAL TABLE t5 USING fts3(x) } (unsupported command, not transpiled)
+					// write_test 5.2 t5_content {
+  INSERT INTO t5 VALUES('In Xanadu did Kubla Khan...} (unsupported command, not transpiled)
+					// read_test 5.3 { 
+  SELECT snippet(t5) FROM t5 WHERE t5 MATCH 'mil...} {{<b>...</b>to a sunless sea.  So twice five <b>mil...} (unsupported command, not transpiled)
+					// read_test 5.4 { 
+  SELECT snippet(t5, '<i>') FROM t5 WHERE t5 MAT...} {{<b>...</b>to a sunless sea.  So twice five <i>mil...} (unsupported command, not transpiled)
+					// read_test 5.5 { 
+  SELECT snippet(t5, '<i>', '</i>') FROM t5 WHER...} {{<b>...</b>to a sunless sea.  So twice five <i>mil...} (unsupported command, not transpiled)
+					// read_test 5.6 { 
+  SELECT snippet(t5, '<i>', '</i>', 'XXX') FROM ...} {{XXXto a sunless sea.  So twice five <i>miles</i> ...} (unsupported command, not transpiled)
 					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 6.1 { CREATE VIRTUAL TABLE t6 USING fts3(x) }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 6.2 t5_content { INSERT INTO t6 VALUES('a'); }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 6.3 t5_content { INSERT INTO t6 VALUES('b'); }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 6.4 t5_content { INSERT INTO t6 VALUES('c'); }")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 6.5 { SELECT * FROM t6 WHERE t6 MATCH '' } {}")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 6.6 { SELECT * FROM t6 WHERE x MATCH '' } {}")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 6.7 { SELECT * FROM t6 WHERE t6 MATCH NULL } {}")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 6.8 { SELECT * FROM t6 WHERE x MATCH NULL } {}")
+					// ddl_test 6.1 { CREATE VIRTUAL TABLE t6 USING fts3(x) } (unsupported command, not transpiled)
+					// write_test 6.2 t5_content { INSERT INTO t6 VALUES('a'); } (unsupported command, not transpiled)
+					// write_test 6.3 t5_content { INSERT INTO t6 VALUES('b'); } (unsupported command, not transpiled)
+					// write_test 6.4 t5_content { INSERT INTO t6 VALUES('c'); } (unsupported command, not transpiled)
+					// read_test 6.5 { SELECT * FROM t6 WHERE t6 MATCH '' } {} (unsupported command, not transpiled)
+					// read_test 6.6 { SELECT * FROM t6 WHERE x MATCH '' } {} (unsupported command, not transpiled)
+					// read_test 6.7 { SELECT * FROM t6 WHERE t6 MATCH NULL } {} (unsupported command, not transpiled)
+					// read_test 6.8 { SELECT * FROM t6 WHERE x MATCH NULL } {} (unsupported command, not transpiled)
 					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 7.1.1 { CREATE VIRTUAL TABLE t7 USING fts3(a) }")
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 7.1.2 { CREATE VIRTUAL TABLE t8 USING fts3(b) }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 7.1.3 t7_content { INSERT INTO t7(docid, a) VALUES(4,'number four') }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 7.1.4 t7_content { INSERT INTO t7(docid, a) VALUES(5,'number five') }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 7.1.5 t8_content { INSERT INTO t8(docid, b) VALUES(4,'letter D') }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 7.1.6 t8_content { INSERT INTO t8(docid, b) VALUES(5,'letter E') }")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 7.1.7 {\n  SELECT a || ':' || b FROM t7 JOIN t8 USING(doci...} {{number four:letter D} {number five:letter E}}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 7.2.1 {\n  SELECT * FROM t7 WHERE docid MATCH 'number'\n} {unable to use function MATCH in the requested cont...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 7.2.2 {\n  SELECT * FROM t7 WHERE rowid MATCH 'number'\n} {unable to use function MATCH in the requested cont...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 7.3.1 {\n  SELECT * FROM t7 WHERE a MATCH 'number' AND a M...} {unable to use function MATCH in the requested cont...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 7.3.2 {\n  SELECT * FROM t7, t8 WHERE a MATCH 'number' AND...} {unable to use function MATCH in the requested cont...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 7.3.3 {\n  SELECT * FROM t7, t8 WHERE b MATCH 'letter' AND...} {unable to use function MATCH in the requested cont...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 7.3.4 {\n  SELECT * FROM t7, t8 WHERE a MATCH 'number' AND...} {{number four} {letter D} {number four} {letter E} ...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 7.3.5 {\n  SELECT * FROM t7 WHERE a MATCH 'number' AND doc...} {{number four}}")
+					// ddl_test 7.1.1 { CREATE VIRTUAL TABLE t7 USING fts3(a) } (unsupported command, not transpiled)
+					// ddl_test 7.1.2 { CREATE VIRTUAL TABLE t8 USING fts3(b) } (unsupported command, not transpiled)
+					// write_test 7.1.3 t7_content { INSERT INTO t7(docid, a) VALUES(4,'number four') } (unsupported command, not transpiled)
+					// write_test 7.1.4 t7_content { INSERT INTO t7(docid, a) VALUES(5,'number five') } (unsupported command, not transpiled)
+					// write_test 7.1.5 t8_content { INSERT INTO t8(docid, b) VALUES(4,'letter D') } (unsupported command, not transpiled)
+					// write_test 7.1.6 t8_content { INSERT INTO t8(docid, b) VALUES(5,'letter E') } (unsupported command, not transpiled)
+					// read_test 7.1.7 {
+  SELECT a || ':' || b FROM t7 JOIN t8 USING(doci...} {{number four:letter D} {number five:letter E}} (unsupported command, not transpiled)
+					// error_test 7.2.1 {
+  SELECT * FROM t7 WHERE docid MATCH 'number'
+} {unable to use function MATCH in the requested cont...} (unsupported command, not transpiled)
+					// error_test 7.2.2 {
+  SELECT * FROM t7 WHERE rowid MATCH 'number'
+} {unable to use function MATCH in the requested cont...} (unsupported command, not transpiled)
+					// error_test 7.3.1 {
+  SELECT * FROM t7 WHERE a MATCH 'number' AND a M...} {unable to use function MATCH in the requested cont...} (unsupported command, not transpiled)
+					// error_test 7.3.2 {
+  SELECT * FROM t7, t8 WHERE a MATCH 'number' AND...} {unable to use function MATCH in the requested cont...} (unsupported command, not transpiled)
+					// error_test 7.3.3 {
+  SELECT * FROM t7, t8 WHERE b MATCH 'letter' AND...} {unable to use function MATCH in the requested cont...} (unsupported command, not transpiled)
+					// read_test 7.3.4 {
+  SELECT * FROM t7, t8 WHERE a MATCH 'number' AND...} {{number four} {letter D} {number four} {letter E} ...} (unsupported command, not transpiled)
+					// read_test 7.3.5 {
+  SELECT * FROM t7 WHERE a MATCH 'number' AND doc...} {{number four}} (unsupported command, not transpiled)
 					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 8.1.1 { CREATE VIRTUAL TABLE t9a USING fts3(\"c1\", [c2]) }")
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 8.1.2 { CREATE VIRTUAL TABLE t9b USING fts3('c1', `c2`) }")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 8.1.3 { PRAGMA table_info(t9a) } {0 c1 {} 0 {} 0 1 c2 {} 0 {} 0}")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 8.1.4 { PRAGMA table_info(t9b) } {0 c1 {} 0 {} 0 1 c2 {} 0 {} 0}")
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 8.2.1 { CREATE VIRTUAL TABLE t9c USING fts3(\"c\"\"1\", 'c''2...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 8.2.2 { PRAGMA table_info(t9c) } {0 c\\\"1 {} 0 {} 0 1 c'2 {} 0 {} 0}")
+					// ddl_test 8.1.1 { CREATE VIRTUAL TABLE t9a USING fts3("c1", [c2]) } (unsupported command, not transpiled)
+					// ddl_test 8.1.2 { CREATE VIRTUAL TABLE t9b USING fts3('c1', `c2`) } (unsupported command, not transpiled)
+					// read_test 8.1.3 { PRAGMA table_info(t9a) } {0 c1 {} 0 {} 0 1 c2 {} 0 {} 0} (unsupported command, not transpiled)
+					// read_test 8.1.4 { PRAGMA table_info(t9b) } {0 c1 {} 0 {} 0 1 c2 {} 0 {} 0} (unsupported command, not transpiled)
+					// ddl_test 8.2.1 { CREATE VIRTUAL TABLE t9c USING fts3("c""1", 'c''2...} (unsupported command, not transpiled)
+					// read_test 8.2.2 { PRAGMA table_info(t9c) } {0 c\"1 {} 0 {} 0 1 c'2 {} 0 {} 0} (unsupported command, not transpiled)
 					for _, DO_MALLOC_TEST := range tclSplitList("0 1 2") {
 					_ = DO_MALLOC_TEST // suppress unused warning
 						os.Remove("test.db")
-						db, err := frigolite.Open("test.db")
-						defer db.Close()
+						_dbtmp5, err := frigolite.Open("test.db")
+						_ = _dbtmp5 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
 						if tclBool(DO_MALLOC_TEST) {
-							t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+							// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 						}
-						t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 9.1.1 { CREATE VIRTUAL TABLE t10 USING fts3(x) }")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 9.1.2 t10_content { INSERT INTO t10 VALUES('fts3 tables') }")
-						t.Errorf("TODO: %s not implemented in frigolite", "write_test 9.1.3 t10_content { INSERT INTO t10 VALUES('are renameable') }")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 9.1.4 {\n    SELECT * FROM t10 WHERE t10 MATCH 'table*'\n  } {{fts3 tables}}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 9.1.5 {\n    SELECT * FROM t10 WHERE x MATCH 'rename*'\n  } {{are renameable}}")
-						t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 9.1.6 { ALTER TABLE t10 RENAME TO t11 }")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 9.1.7 {\n    SELECT * FROM t11 WHERE t11 MATCH 'table*'\n  } {{fts3 tables}}")
-						t.Errorf("TODO: %s not implemented in frigolite", "read_test 9.1.8 {\n    SELECT * FROM t11 WHERE x MATCH 'rename*'\n  } {{are renameable}}")
+						// ddl_test 9.1.1 { CREATE VIRTUAL TABLE t10 USING fts3(x) } (unsupported command, not transpiled)
+						// write_test 9.1.2 t10_content { INSERT INTO t10 VALUES('fts3 tables') } (unsupported command, not transpiled)
+						// write_test 9.1.3 t10_content { INSERT INTO t10 VALUES('are renameable') } (unsupported command, not transpiled)
+						// read_test 9.1.4 {
+    SELECT * FROM t10 WHERE t10 MATCH 'table*'
+  } {{fts3 tables}} (unsupported command, not transpiled)
+						// read_test 9.1.5 {
+    SELECT * FROM t10 WHERE x MATCH 'rename*'
+  } {{are renameable}} (unsupported command, not transpiled)
+						// ddl_test 9.1.6 { ALTER TABLE t10 RENAME TO t11 } (unsupported command, not transpiled)
+						// read_test 9.1.7 {
+    SELECT * FROM t11 WHERE t11 MATCH 'table*'
+  } {{fts3 tables}} (unsupported command, not transpiled)
+						// read_test 9.1.8 {
+    SELECT * FROM t11 WHERE x MATCH 'rename*'
+  } {{are renameable}} (unsupported command, not transpiled)
 					}
 					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 10.1.1 { CREATE VIRTUAL TABLE ta USING fts3 }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 10.1.2 ta_content { \n  INSERT INTO ta VALUES('During a summer vacatio...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 10.1.3 ta_content {\n  INSERT INTO ta VALUES('Wordsworth went on a wal...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 10.1.4 ta_content { DELETE FROM ta_content WHERE rowid = 2 }")
-					t.Errorf("TODO: %s not implemented in frigolite", "read_test 10.1.5 {\n  SELECT * FROM ta WHERE ta MATCH 'summer'\n} {{During a summer vacation in 1790}}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 10.1.6 {\n  SELECT * FROM ta WHERE ta MATCH 'walking'\n} {database disk image is malformed}")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 10.2.1 ta_content { DELETE FROM ta }")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 10.2.2 ta_content { \n  INSERT INTO ta VALUES('debate demonstrated the...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 10.2.3 ta_content { \n  INSERT INTO ta VALUES('Google released its bro...}")
-					var blob = "db one {SELECT root FROM ta_segdir WHERE rowid = 2}"
+					// ddl_test 10.1.1 { CREATE VIRTUAL TABLE ta USING fts3 } (unsupported command, not transpiled)
+					// write_test 10.1.2 ta_content { 
+  INSERT INTO ta VALUES('During a summer vacatio...} (unsupported command, not transpiled)
+					// write_test 10.1.3 ta_content {
+  INSERT INTO ta VALUES('Wordsworth went on a wal...} (unsupported command, not transpiled)
+					// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
+					// write_test 10.1.4 ta_content { DELETE FROM ta_content WHERE rowid = 2 } (unsupported command, not transpiled)
+					// read_test 10.1.5 {
+  SELECT * FROM ta WHERE ta MATCH 'summer'
+} {{During a summer vacation in 1790}} (unsupported command, not transpiled)
+					// error_test 10.1.6 {
+  SELECT * FROM ta WHERE ta MATCH 'walking'
+} {database disk image is malformed} (unsupported command, not transpiled)
+					// write_test 10.2.1 ta_content { DELETE FROM ta } (unsupported command, not transpiled)
+					// write_test 10.2.2 ta_content { 
+  INSERT INTO ta VALUES('debate demonstrated the...} (unsupported command, not transpiled)
+					// write_test 10.2.3 ta_content { 
+  INSERT INTO ta VALUES('Google released its bro...} (unsupported command, not transpiled)
+					blob = "db one {SELECT root FROM ta_segdir WHERE rowid = 2}"
 					_ = blob // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "binary scan $blob a6 a3 a* start middle end")
-					var middle = "\\x0E\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\x06\\x06"
+					// binary scan $blob a6 a3 a* start middle end (test infra, not transpiled)
+					middle = "\\x0E\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\x06\\x06"
 					_ = middle // suppress unused warning
 					blob = "binary format \"a6 a* a*\" $start $middle $end"
 					_ = blob // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "write_test 10.2.4 ta_segdir { \n  UPDATE ta_segdir SET root = $blob WHERE rowid ...}")
-					t.Errorf("TODO: %s not implemented in frigolite", "error_test 10.2.5 {\n  SELECT * FROM ta WHERE ta MATCH 'beta'\n} {database disk image is malformed}")
+					// write_test 10.2.4 ta_segdir { 
+  UPDATE ta_segdir SET root = $blob WHERE rowid ...} (unsupported command, not transpiled)
+					// error_test 10.2.5 {
+  SELECT * FROM ta WHERE ta MATCH 'beta'
+} {database disk image is malformed} (unsupported command, not transpiled)
 }

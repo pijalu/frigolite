@@ -40,8 +40,33 @@ func Test_upsert4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var rtbl_0 string
+	_ = rtbl_0 // pre-declared from TCL source
+	var rtbl_1 string
+	_ = rtbl_1 // pre-declared from TCL source
+	var rtbl_2 string
+	_ = rtbl_2 // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var oc string
+	_ = oc // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var rtbl_res string
+	_ = rtbl_res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "upsert4"
+	testprefix = "upsert4"
 	_ = testprefix // suppress unused warning
 	// foreach {tn sql} "\n  1 { CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c UNIQUE) }\n  2 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) }\n  3 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID}\n"
 	_items0 := tclSplitList("\n  1 { CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c UNIQUE) }\n  2 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) }\n  3 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID}\n")
@@ -155,11 +180,11 @@ func Test_upsert4(t *testing.T) {
 				}
 			}
 		}
-		var rtbl_0 = "0 {}"
+		rtbl_0 = "0 {}"
 		_ = rtbl_0 // suppress unused warning
-		var rtbl_1 = "/1 .*failed.*/"
+		rtbl_1 = "/1 .*failed.*/"
 		_ = rtbl_1 // suppress unused warning
-		var rtbl_2 = "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
+		rtbl_2 = "1 {ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint}"
 		_ = rtbl_2 // suppress unused warning
 		// foreach {tn sql} "\n  1 { \n      CREATE TABLE xyz(a INTEGER PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  2 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  3 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n"
 		_items1 := tclSplitList("\n  1 { \n      CREATE TABLE xyz(a INTEGER PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  2 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  3 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n")

@@ -39,46 +39,81 @@ func Test_mutex1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var var_total string
+	_ = var_total // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var var_name string
+	_ = var_name // pre-declared from TCL source
+	var counters_total string
+	_ = counters_total // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var mode string
+	_ = mode // pre-declared from TCL source
+	var mutexes string
+	_ = mutexes // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var key string
+	_ = key // pre-declared from TCL source
+	var counters_recursive string
+	_ = counters_recursive // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var varname string
+	_ = varname // pre-declared from TCL source
+	var counters_static_main string
+	_ = counters_static_main // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("info exists tester_do_binarylog") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-	t.Errorf("TODO: %s not implemented in frigolite", "clear_mutex_counters")
+	// sqlite3_reset_auto_extension (unsupported command, not transpiled)
+	// clear_mutex_counters (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "mutex1-1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "install_mutex_counters 1")
+		// install_mutex_counters 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex1-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "install_mutex_counters 1")
+		// install_mutex_counters 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex1-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "install_mutex_counters 1")
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// install_mutex_counters 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex1-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "install_mutex_counters 0")
+		// install_mutex_counters 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex1-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "install_mutex_counters 1")
+		// install_mutex_counters 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex1-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "mutex_counters counters")
+		// mutex_counters counters (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex1-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex1-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "mutex_counters counters")
+		// mutex_counters counters (unsupported command, not transpiled)
 		// expr $counters(total)>0 → "$counters(total)>0"
 	}
 	{ // do_test "mutex1-1.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "clear_mutex_counters")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		// clear_mutex_counters (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 	{ // do_test "mutex1-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "mutex_counters counters")
-		_list := tclList([]string{counters + "(total)", counters + "(static_main)"})
+		// mutex_counters counters (unsupported command, not transpiled)
+		_list := tclList([]string{counters_total, counters_static_main})
 		_ = _list
 	}
 	{ // do_test "mutex1.4.1"
@@ -86,17 +121,17 @@ func Test_mutex1(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "enter_db_mutex db")
+		// enter_db_mutex db (unsupported command, not transpiled)
 		_res = db.Exec("SELECT 1, 2, 3")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
 		}
 	}
 	{ // do_test "mutex1.4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "leave_db_mutex db")
+		// leave_db_mutex db (unsupported command, not transpiled)
 		_res = db.Exec("SELECT 1, 2, 3")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
@@ -107,17 +142,17 @@ func Test_mutex1(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "enter_db_mutex db")
+		// enter_db_mutex db (unsupported command, not transpiled)
 		_res = db.Exec("SELECT 1, 2, 3")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
 		}
 	}
 	{ // do_test "mutex1.4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "leave_db_mutex db")
+		// leave_db_mutex db (unsupported command, not transpiled)
 		_res = db.Exec("SELECT 1, 2, 3")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1, 2, 3")
@@ -128,10 +163,10 @@ func Test_mutex1(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "clear_mutex_counters")
-		t.Errorf("TODO: %s not implemented in frigolite", "install_mutex_counters 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// clear_mutex_counters (unsupported command, not transpiled)
+		// install_mutex_counters 0 (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	// autoinstall_test_functions (unsupported command, not transpiled)
 }

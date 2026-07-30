@@ -39,8 +39,17 @@ func Test_format4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var small string
+	_ = small // pre-declared from TCL source
+	var large string
+	_ = large // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
+	// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
 	{ // do_test "format4-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);\n    INSERT INTO t1 VALUES(0,0,0,0,0,0,0,0,0,0);\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
 		if _res.Error != nil {

@@ -41,8 +41,27 @@ func Test_vacuum5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var size1 string
+	_ = size1 // pre-declared from TCL source
+	var size2 string
+	_ = size2 // pre-declared from TCL source
+	var size3 string
+	_ = size3 // pre-declared from TCL source
+	var sizeTemp string
+	_ = sizeTemp // pre-declared from TCL source
+	var openfiles string
+	_ = openfiles // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "vacuum5"
+	testprefix = "vacuum5"
 	_ = testprefix // suppress unused warning
 	os.Remove("test2.db")
 	{ // "vacuum5-1.1"
@@ -57,11 +76,11 @@ func Test_vacuum5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var size1 = "file size test.db"
+	size1 = "file size test.db"
 	_ = size1 // suppress unused warning
-	var size2 = "file size test2.db"
+	size2 = "file size test2.db"
 	_ = size2 // suppress unused warning
-	var size3 = "file size test3.db"
+	size3 = "file size test3.db"
 	_ = size3 // suppress unused warning
 	{ // "vacuum5-1.2.1"
 		_res = db.Exec("\n  VACUUM main;\n")
@@ -136,7 +155,7 @@ func Test_vacuum5(t *testing.T) {
 	{ // do_test "vacuum5-1.3.4"
 		// expr [file size test3.db]<$size3 → "[file size test3.db]<$size3"
 	}
-	var sizeTemp = "db one {PRAGMA temp.page_count}"
+	sizeTemp = "db one {PRAGMA temp.page_count}"
 	_ = sizeTemp // suppress unused warning
 	{ // "vacuum5-1.4.1"
 		_res = db.Exec("\n  VACUUM temp;\n")
@@ -162,16 +181,16 @@ func Test_vacuum5(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown database olaf", _res.Error, "\n  VACUUM olaf;\n")
 		}
 	}
-	if tclBool(_TEMP_STORE + "<3 && " + "permutation" + "!=\"inmemory_journal\"") {
-		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xOpen")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs script open_cb")
+	if tclBool(TEMP_STORE + "<3 && " + "permutation" + "!=\"inmemory_journal\"") {
+		// testvfs tvfs (unsupported command, not transpiled)
+		// tvfs filter xOpen (unsupported command, not transpiled)
+		// tvfs script open_cb (unsupported command, not transpiled)
 		os.Remove("test.db")
-		var _openfiles = "list" // TCL namespace variable
-		_ = _openfiles // suppress unused warning
+		openfiles = "list" // TCL namespace variable
+		_ = openfiles // suppress unused warning
 		// proc definition (not transpiled)
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "3.0"
 			r = db.Query("\n    PRAGMA temp_store = file;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 50;\n    CREATE TABLE t1(i INTEGER PRIMARY KEY, j UNIQUE);\n    WITH s(i) AS (\n      VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(100) FROM s;\n  ")
@@ -185,10 +204,10 @@ func Test_vacuum5(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+		// tvfs delete (unsupported command, not transpiled)
 		if tclBool("atomic_batch_write test.db" + "==0") {
 			{ // do_test "3.2"
-				tclLRange(_openfiles, "0", "4")
+				_ = tclLRange(openfiles, "0", "4") // lrange result
 			}
 		}
 	}

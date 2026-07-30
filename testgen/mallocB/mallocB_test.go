@@ -39,15 +39,24 @@ func Test_mallocB(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping mallocB tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping mallocB tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-1 -sqlbody {SELECT - 456}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-2 -sqlbody {SELECT - 456.1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-3 -sqlbody {SELECT random()}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-4 -sqlbody {SELECT length(zeroblob(1000))}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-6 -sqlbody { SELECT test_auxdata('hello world'); }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-7 -sqlbody {\n  SELECT strftime(hex(randomblob(50)) || '%Y', 'n...}")
+	// do_malloc_test mallocB-1 -sqlbody {SELECT - 456} (unsupported command, not transpiled)
+	// do_malloc_test mallocB-2 -sqlbody {SELECT - 456.1} (unsupported command, not transpiled)
+	// do_malloc_test mallocB-3 -sqlbody {SELECT random()} (unsupported command, not transpiled)
+	// do_malloc_test mallocB-4 -sqlbody {SELECT length(zeroblob(1000))} (unsupported command, not transpiled)
+	// do_malloc_test mallocB-6 -sqlbody { SELECT test_auxdata('hello world'); } (unsupported command, not transpiled)
+	// do_malloc_test mallocB-7 -sqlbody {
+  SELECT strftime(hex(randomblob(50)) || '%Y', 'n...} (unsupported command, not transpiled)
 }

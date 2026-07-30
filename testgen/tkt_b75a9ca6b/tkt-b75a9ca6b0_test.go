@@ -39,8 +39,31 @@ func Test_tkt_b75a9ca6b0(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var idxscan string
+	_ = idxscan // pre-declared from TCL source
+	var tblscan string
+	_ = tblscan // pre-declared from TCL source
+	var grpsort string
+	_ = grpsort // pre-declared from TCL source
+	var sort string
+	_ = sort // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var eqp string
+	_ = eqp // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tkt-b75a9ca6b0"
+	testprefix = "tkt-b75a9ca6b0"
 	_ = testprefix // suppress unused warning
 	{ // "1"
 		_res = db.Exec("\n  CREATE TABLE t1 (x, y);\n  INSERT INTO t1 VALUES (1, 3); \n  INSERT INTO t1 VALUES (2, 2);\n  INSERT INTO t1 VALUES (3, 1);\n")
@@ -54,13 +77,13 @@ func Test_tkt_b75a9ca6b0(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(x, y);\n")
 		}
 	}
-	var idxscan = "SCAN t1 USING COVERING INDEX i1"
+	idxscan = "SCAN t1 USING COVERING INDEX i1"
 	_ = idxscan // suppress unused warning
-	var tblscan = "SCAN t1"
+	tblscan = "SCAN t1"
 	_ = tblscan // suppress unused warning
-	var grpsort = "USE TEMP B-TREE FOR GROUP BY"
+	grpsort = "USE TEMP B-TREE FOR GROUP BY"
 	_ = grpsort // suppress unused warning
-	var sort = "USE TEMP B-TREE FOR ORDER BY"
+	sort = "USE TEMP B-TREE FOR ORDER BY"
 	_ = sort // suppress unused warning
 	// foreach {tn q res eqp} "-nocommands {\n  1 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x,y\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  2 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  3 \"SELECT * FROM t1 GROUP BY y, x ORDER BY y, x\"\n  {3 1  2 2  1 3} {" + idxscan + "*" + sort + "}\n  \n  4 \"SELECT * FROM t1 GROUP BY x ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  5 \"SELECT * FROM t1 GROUP BY y ORDER BY y\"\n  {3 1  2 2  1 3} {" + tblscan + "*" + grpsort + "}\n\n  6 \"SELECT * FROM t1 GROUP BY y ORDER BY x\"\n  {1 3  2 2  3 1} {" + tblscan + "*" + grpsort + "*" + sort + "}\n\n  7 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x, y DESC\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  8 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x DESC, y DESC\"\n  {3 1  2 2  1 3} {" + idxscan + "}\n\n  9 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x ASC, y ASC\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  10 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x COLLATE nocase, y\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n}"
 	_items0 := tclSplitList("-nocommands {\n  1 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x,y\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  2 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  3 \"SELECT * FROM t1 GROUP BY y, x ORDER BY y, x\"\n  {3 1  2 2  1 3} {" + idxscan + "*" + sort + "}\n  \n  4 \"SELECT * FROM t1 GROUP BY x ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  5 \"SELECT * FROM t1 GROUP BY y ORDER BY y\"\n  {3 1  2 2  1 3} {" + tblscan + "*" + grpsort + "}\n\n  6 \"SELECT * FROM t1 GROUP BY y ORDER BY x\"\n  {1 3  2 2  3 1} {" + tblscan + "*" + grpsort + "*" + sort + "}\n\n  7 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x, y DESC\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  8 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x DESC, y DESC\"\n  {3 1  2 2  1 3} {" + idxscan + "}\n\n  9 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x ASC, y ASC\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  10 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x COLLATE nocase, y\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n}")

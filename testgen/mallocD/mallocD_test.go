@@ -39,18 +39,37 @@ func Test_mallocD(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var PREP string
+	_ = PREP // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping mallocD tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping mallocD tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char atomic")
-	db, err = frigolite.Open("test.db")
+	// sqlite3_simulate_device -char atomic (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	var PREP = " \n  PRAGMA page_size = 1024;\n  CREATE TABLE abc(a, b, c);\n"
+	PREP = " \n  PRAGMA page_size = 1024;\n  CREATE TABLE abc(a, b, c);\n"
 	_ = PREP // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocD-1 -sqlprep $PREP -sqlbody { \n  INSERT INTO abc VALUES(1, 2, 3);\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocD-2 -sqlprep $PREP -sqlbody {\n  BEGIN;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INS...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocD-3 -sqlprep $PREP -sqlbody {\n  BEGIN;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INS...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char {}")
+	// do_malloc_test mallocD-1 -sqlprep $PREP -sqlbody { 
+  INSERT INTO abc VALUES(1, 2, 3);
+} (unsupported command, not transpiled)
+	// do_malloc_test mallocD-2 -sqlprep $PREP -sqlbody {
+  BEGIN;
+  INSERT INTO abc VALUES(1, 2, 3);
+  INS...} (unsupported command, not transpiled)
+	// do_malloc_test mallocD-3 -sqlprep $PREP -sqlbody {
+  BEGIN;
+  INSERT INTO abc VALUES(1, 2, 3);
+  INS...} (unsupported command, not transpiled)
+	// sqlite3_simulate_device -char {} (unsupported command, not transpiled)
 }

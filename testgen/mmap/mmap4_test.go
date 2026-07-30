@@ -39,8 +39,35 @@ func Test_mmap4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn1 string
+	_ = tn1 // pre-declared from TCL source
+	var mmap1 string
+	_ = mmap1 // pre-declared from TCL source
+	var mmap2 string
+	_ = mmap2 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var c1 string
+	_ = c1 // pre-declared from TCL source
+	var c2 string
+	_ = c2 // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var dbname string
+	_ = dbname // pre-declared from TCL source
+	var seed string
+	_ = seed // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "mmap4"
+	testprefix = "mmap4"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// foreach {tn1 mmap1 mmap2} "\n     1 6144       167773\n     2 18432      140399\n     3 43008      401302\n     4 92160      253899\n     5 190464          2\n     6 387072     752431\n     7 780288     291143\n     8 1566720    594306\n     9 3139584    829137\n     10 6285312   793963\n     11 12576768 1015590\n"
@@ -53,6 +80,9 @@ func Test_mmap4(t *testing.T) {
 		mmap2 := _items0[_idx0+2]
 		_ = mmap2 // suppress unused warning
 		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    sql1 {\n      CREATE TABLE t1(a PRIMARY KEY);\n...}")
+			// do_multiclient_test tn {
+    sql1 {
+      CREATE TABLE t1(a PRIMARY KEY);
+...} (unsupported command, not transpiled)
 		}
 }

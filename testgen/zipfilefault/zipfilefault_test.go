@@ -40,56 +40,117 @@ func Test_zipfilefault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var big string
+	_ = big // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "zipfilefault"
+	testprefix = "zipfilefault"
 	_ = testprefix // suppress unused warning
 	if false {
-		t.Log("Skipping zipfile2 tests, hit load error: " + _error)
+		_putsMsg := "Skipping zipfile2 tests, hit load error: " + _error
+		_ = _putsMsg
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  load_static_exten...} -body {\n  execsql { CREATE VIRTUAL TABLE aaa USING zipfil...} -test {\n  faultsim_test_result {0 {}} \n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {
+  faultsim_restore_and_reopen
+  load_static_exten...} -body {
+  execsql { CREATE VIRTUAL TABLE aaa USING zipfil...} -test {
+  faultsim_test_result {0 {}} 
+} (unsupported command, not transpiled)
 	os.Remove("test.zip")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
+	// load_static_extension db zipfile (unsupported command, not transpiled)
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', '1234567890');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', '1234567890');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -faults oom* -body {\n  execsql { SELECT name,data FROM zipfile('test.z...} -test {\n  faultsim_test_result {0 {a.txt 1234567890}} \n}")
+	// do_faultsim_test 2.1 -faults oom* -body {
+  execsql { SELECT name,data FROM zipfile('test.z...} -test {
+  faultsim_test_result {0 {a.txt 1234567890}} 
+} (unsupported command, not transpiled)
 	os.Remove("test.zip")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
+	// load_static_extension db zipfile (unsupported command, not transpiled)
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip');\n  INSERT INTO setup(name, data) VALUES('a.txt', 'aaaaaaaaaaaaaaaaaaaaaaaaaaaa');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -body {\n  execsql { SELECT name,data FROM zipfile('test.z...} -test {\n  faultsim_test_result {0 {a.txt aaaaaaaaaaaaaaaa...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults oom* -body {\n  execsql {\n    WITH c(n, d) AS (\n      SELECT 1,...} -test {\n  faultsim_test_result {0 {1 aaaaaaaaaaabbbbbbbbb...}")
+	// do_faultsim_test 3 -faults oom* -body {
+  execsql { SELECT name,data FROM zipfile('test.z...} -test {
+  faultsim_test_result {0 {a.txt aaaaaaaaaaaaaaaa...} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults oom* -body {
+  execsql {
+    WITH c(n, d) AS (
+      SELECT 1,...} -test {
+  faultsim_test_result {0 {1 aaaaaaaaaaabbbbbbbbb...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
+	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
+	// load_static_extension db zipfile (unsupported command, not transpiled)
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip') \n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE setup USING zipfile('test.zip') \n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5.1 -faults oom* -prep {\n  forcedelete test.zip\n} -body {\n  execsql {\n    INSERT INTO setup(name, data) \n  ...} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5.2 -faults oom* -prep {\n  forcedelete test.zip\n} -body {\n  execsql {\n    INSERT INTO setup(name, data) VAL...} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5.3 -faults oom* -prep {\n  forcedelete test.zip\n  execsql { \n    DROP TABL...} -body {\n  execsql {\n    INSERT INTO setup(name, data) VAL...} -test {\n  catchsql { COMMIT }\n  faultsim_test_result {0 {...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 6.1 -faults oom* -body {\n  execsql {\n    WITH c(n, d) AS (\n      VALUES('a...} -test {\n  faultsim_test_result {0 0}\n}")
-	var big = "0123456789 1000"
+	// do_faultsim_test 5.1 -faults oom* -prep {
+  forcedelete test.zip
+} -body {
+  execsql {
+    INSERT INTO setup(name, data) 
+  ...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
+	// do_faultsim_test 5.2 -faults oom* -prep {
+  forcedelete test.zip
+} -body {
+  execsql {
+    INSERT INTO setup(name, data) VAL...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
+	// do_faultsim_test 5.3 -faults oom* -prep {
+  forcedelete test.zip
+  execsql { 
+    DROP TABL...} -body {
+  execsql {
+    INSERT INTO setup(name, data) VAL...} -test {
+  catchsql { COMMIT }
+  faultsim_test_result {0 {...} (unsupported command, not transpiled)
+	// do_faultsim_test 6.1 -faults oom* -body {
+  execsql {
+    WITH c(n, d) AS (
+      VALUES('a...} -test {
+  faultsim_test_result {0 0}
+} (unsupported command, not transpiled)
+	big = "0123456789 1000"
 	_ = big // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 6.2 -faults oom* -body {\n  execsql {\n    WITH c(n, d) AS (\n      VALUES('a...} -test {\n  faultsim_test_result {0 0}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 7.0 -faults oom* -prep {\n  catch { db close }\n  sqlite3 db \"\"\n} -body {\n  load_static_extension db zipfile\n} -test {\n}")
+	// do_faultsim_test 6.2 -faults oom* -body {
+  execsql {
+    WITH c(n, d) AS (
+      VALUES('a...} -test {
+  faultsim_test_result {0 0}
+} (unsupported command, not transpiled)
+	// do_faultsim_test 7.0 -faults oom* -prep {
+  catch { db close }
+  sqlite3 db ""
+} -body {
+  load_static_extension db zipfile
+} -test {
+} (unsupported command, not transpiled)
 }

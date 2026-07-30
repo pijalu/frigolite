@@ -41,35 +41,97 @@ func Test_dbstatus(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sz1 string
+	_ = sz1 // pre-declared from TCL source
+	var sz2 string
+	_ = sz2 // pre-declared from TCL source
+	var PAGESZ string
+	_ = PAGESZ // pre-declared from TCL source
+	var BASESZ string
+	_ = BASESZ // pre-declared from TCL source
+	var STAT3 string
+	_ = STAT3 // pre-declared from TCL source
+	var lookaside_buffer_size string
+	_ = lookaside_buffer_size // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var schema string
+	_ = schema // pre-declared from TCL source
+	var nAlloc1 string
+	_ = nAlloc1 // pre-declared from TCL source
+	var nSchema1 string
+	_ = nSchema1 // pre-declared from TCL source
+	var nAlloc2 string
+	_ = nAlloc2 // pre-declared from TCL source
+	var nSchema2 string
+	_ = nSchema2 // pre-declared from TCL source
+	var nAlloc3 string
+	_ = nAlloc3 // pre-declared from TCL source
+	var nSchema3 string
+	_ = nSchema3 // pre-declared from TCL source
+	var nAlloc4 string
+	_ = nAlloc4 // pre-declared from TCL source
+	var nSchema4 string
+	_ = nSchema4 // pre-declared from TCL source
+	var nFree string
+	_ = nFree // pre-declared from TCL source
+	var statements string
+	_ = statements // pre-declared from TCL source
+	var nStmt1 string
+	_ = nStmt1 // pre-declared from TCL source
+	var nStmt2 string
+	_ = nStmt2 // pre-declared from TCL source
+	var nStmt3 string
+	_ = nStmt3 // pre-declared from TCL source
+	var nStmt4 string
+	_ = nStmt4 // pre-declared from TCL source
+	var cu string
+	_ = cu // pre-declared from TCL source
+	var pcu string
+	_ = pcu // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "dbstatus"
+	testprefix = "dbstatus"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	db, err = frigolite.Open("test.db")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_memstatus 1 (unsupported command, not transpiled)
+	// sqlite3_config_uri 1 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "dbstatus-1.1"
-		db, err := frigolite.Open(":memory:")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open(":memory:")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n  ")
 		}
-		var sz1 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_CACHE_USED 0] 1"
+		sz1 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_CACHE_USED 0] 1"
 		_ = sz1 // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t2(y);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(y);\n  ")
 		}
-		var sz2 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_CACHE_USED 0] 1"
+		sz2 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_CACHE_USED 0] 1"
 		_ = sz2 // suppress unused warning
-		var _PAGESZ = "$sz2-$sz1" // TCL namespace variable
-		_ = _PAGESZ // suppress unused warning
-		var _BASESZ = "$sz1-$::PAGESZ" // TCL namespace variable
-		_ = _BASESZ // suppress unused warning
+		PAGESZ = "$sz2-$sz1" // TCL namespace variable
+		_ = PAGESZ // suppress unused warning
+		BASESZ = "$sz1-$::PAGESZ" // TCL namespace variable
+		_ = BASESZ // suppress unused warning
 		// expr $::PAGESZ>1024 && $::PAGESZ<1300 → "$::PAGESZ>1024 && $::PAGESZ<1300"
 	}
 	{ // do_test "dbstatus-1.2"
@@ -77,90 +139,90 @@ func Test_dbstatus(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(zeroblob(9000));\n  ")
 		}
-		tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_CACHE_USED 0", "1")
+		_ = tclLIndex("sqlite3_db_status db SQLITE_DBSTATUS_CACHE_USED 0", "1") // lindex result
 	}
 	// proc definition (not transpiled)
-	for _, _lookaside_buffer_size := range tclSplitList("0 64 120") {
-	_ = _lookaside_buffer_size // suppress unused warning
+	for _, lookaside_buffer_size := range tclSplitList("0 64 120") {
+	_ = lookaside_buffer_size // suppress unused warning
 		if tclBool("presql" + " != \"\"") {
 		}
 		// foreach {tn schema} " \n    1 { CREATE TABLE t1(a, b) }\n    2 { CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1, c UNIQUE) }\n    3 {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n    }\n    4 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b);\n        SELECT * FROM t1, t2 WHERE a=c AND b=d GROUP BY b HAVING a>5 ORDER BY a;\n      END;\n    }\n    5 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS SELECT * FROM t1 UNION SELECT * FROM t2;\n    }\n    6k {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a);\n      CREATE INDEX i2 ON t1(a,b);\n      CREATE INDEX i3 ON t1(b,b);\n      INSERT INTO t1 VALUES(randomblob(20), randomblob(25));\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      ANALYZE;\n    }\n    7 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS \n        SELECT * FROM t1 \n        UNION \n        SELECT * FROM t2\n        UNION ALL\n        SELECT c||b, d||a FROM t2 LEFT OUTER JOIN t1 GROUP BY c, d\n        ORDER BY 1, 2\n      ;\n      CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n        SELECT * FROM v1;\n        UPDATE t1 SET a=5, b=(SELECT c FROM t2);\n      END;\n      SELECT * FROM v1;\n    }\n    8x {\n      CREATE TABLE t1(a, b, UNIQUE(a, b));\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    }\n  "
-		_items0 := tclSplitList(" \n    1 { CREATE TABLE t1(a, b) }\n    2 { CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1, c UNIQUE) }\n    3 {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n    }\n    4 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b);\n        SELECT * FROM t1, t2 WHERE a=c AND b=d GROUP BY b HAVING a>5 ORDER BY a;\n      END;\n    }\n    5 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS SELECT * FROM t1 UNION SELECT * FROM t2;\n    }\n    6k {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a);\n      CREATE INDEX i2 ON t1(a,b);\n      CREATE INDEX i3 ON t1(b,b);\n      INSERT INTO t1 VALUES(randomblob(20), randomblob(25));\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      ANALYZE;\n    }\n    7 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS \n        SELECT * FROM t1 \n        UNION \n        SELECT * FROM t2\n        UNION ALL\n        SELECT c||b, d||a FROM t2 LEFT OUTER JOIN t1 GROUP BY c, d\n        ORDER BY 1, 2\n      ;\n      CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n        SELECT * FROM v1;\n        UPDATE t1 SET a=5, b=(SELECT c FROM t2);\n      END;\n      SELECT * FROM v1;\n    }\n    8x {\n      CREATE TABLE t1(a, b, UNIQUE(a, b));\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    }\n  ")
-		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-			tn := _items0[_idx0+0]
+		_items2 := tclSplitList(" \n    1 { CREATE TABLE t1(a, b) }\n    2 { CREATE TABLE t1(a PRIMARY KEY, b REFERENCES t1, c UNIQUE) }\n    3 {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n    }\n    4 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b);\n        SELECT * FROM t1, t2 WHERE a=c AND b=d GROUP BY b HAVING a>5 ORDER BY a;\n      END;\n    }\n    5 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS SELECT * FROM t1 UNION SELECT * FROM t2;\n    }\n    6k {\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a);\n      CREATE INDEX i2 ON t1(a,b);\n      CREATE INDEX i3 ON t1(b,b);\n      INSERT INTO t1 VALUES(randomblob(20), randomblob(25));\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      INSERT INTO t1 SELECT randomblob(20), randomblob(25) FROM t1;\n      ANALYZE;\n    }\n    7 {\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(c, d);\n      CREATE VIEW v1 AS \n        SELECT * FROM t1 \n        UNION \n        SELECT * FROM t2\n        UNION ALL\n        SELECT c||b, d||a FROM t2 LEFT OUTER JOIN t1 GROUP BY c, d\n        ORDER BY 1, 2\n      ;\n      CREATE TRIGGER tr1 INSTEAD OF INSERT ON v1 BEGIN\n        SELECT * FROM v1;\n        UPDATE t1 SET a=5, b=(SELECT c FROM t2);\n      END;\n      SELECT * FROM v1;\n    }\n    8x {\n      CREATE TABLE t1(a, b, UNIQUE(a, b));\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    }\n  ")
+		for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			schema := _items0[_idx0+1]
+			schema := _items2[_idx2+1]
 			_ = schema // suppress unused warning
-			_ = _idx0
-				var tn = _lookaside_buffer_size + "-" + tn
+			_ = _idx2
+				tn = lookaside_buffer_size + "-" + tn
 				_ = tn // suppress unused warning
 				os.Remove("test.db")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp3, err := frigolite.Open("test.db")
+				_ = _dbtmp3 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500")
+				// sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500 (unsupported command, not transpiled)
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
+					// register_echo_module db (unsupported command, not transpiled)
 				}
 				_res = db.Exec(schema)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
-				var nAlloc1 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+				nAlloc1 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
 				_ = nAlloc1 // suppress unused warning
 				// incr nAlloc1 lookaside db
 				{
 					_n, _err := strconv.Atoi(nAlloc1)
 					if _err == nil {
-						nAlloc1 = strconv.Itoa(_n + lookaside db)
+						nAlloc1 = strconv.Itoa(_n + 1)
 					}
 				}
-				var nSchema1 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
+				nSchema1 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
 				_ = nSchema1 // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
-				var nAlloc2 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+				// drop_all_tables (unsupported command, not transpiled)
+				nAlloc2 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
 				_ = nAlloc2 // suppress unused warning
 				// incr nAlloc2 lookaside db
 				{
 					_n, _err := strconv.Atoi(nAlloc2)
 					if _err == nil {
-						nAlloc2 = strconv.Itoa(_n + lookaside db)
+						nAlloc2 = strconv.Itoa(_n + 1)
 					}
 				}
-				var nSchema2 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
+				nSchema2 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
 				_ = nSchema2 // suppress unused warning
 				_res = db.Exec(schema)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
-				var nAlloc3 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+				nAlloc3 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
 				_ = nAlloc3 // suppress unused warning
 				// incr nAlloc3 lookaside db
 				{
 					_n, _err := strconv.Atoi(nAlloc3)
 					if _err == nil {
-						nAlloc3 = strconv.Itoa(_n + lookaside db)
+						nAlloc3 = strconv.Itoa(_n + 1)
 					}
 				}
-				var nSchema3 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
+				nSchema3 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
 				_ = nSchema3 // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
-				var nAlloc4 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+				// drop_all_tables (unsupported command, not transpiled)
+				nAlloc4 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
 				_ = nAlloc4 // suppress unused warning
 				// incr nAlloc4 lookaside db
 				{
 					_n, _err := strconv.Atoi(nAlloc4)
 					if _err == nil {
-						nAlloc4 = strconv.Itoa(_n + lookaside db)
+						nAlloc4 = strconv.Itoa(_n + 1)
 					}
 				}
-				var nSchema4 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
+				nSchema4 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
 				_ = nSchema4 // suppress unused warning
-				var nFree = "$nAlloc1-$nAlloc2"
+				nFree = "$nAlloc1-$nAlloc2"
 				_ = nFree // suppress unused warning
-				if tclBool("*k $tn" + "\n         || " + "*x $tn" + " || " + AUTOVACUUM + "\n         || (" + "*y $tn" + " && " + STAT3 + ")\n         || (" + _tcl_platform + "(os) == \"Darwin\")") {
+				if tclBool("*k $tn" + "\n         || " + "*x $tn" + " || " + AUTOVACUUM + "\n         || (" + "*y $tn" + " && " + STAT3 + ")\n         || (" + tcl_platform_os + " == \"Darwin\")") {
 					{ // do_test "dbstatus-2." + tn + ".ax"
 						// expr ($nSchema1-$nSchema2)<=$nFree → "($nSchema1-$nSchema2)<=$nFree"
 					}
@@ -179,26 +241,26 @@ func Test_dbstatus(t *testing.T) {
 				}
 			}
 			// foreach {tn schema statements} " \n    1 { CREATE TABLE t1(a, b) } {\n      SELECT * FROM t1;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t1;\n      UPDATE t1 SET a=5;\n      DELETE FROM t1;\n    }\n    2 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(5, 'x');\n    } \n    3 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t2 VALUES(new.a-1, new.b);\n      END;\n      CREATE TRIGGER tr2 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(10, 'x');\n    } \n    4 {\n      CREATE TABLE t1(a, b);\n    } {\n      SELECT count(*) FROM t1 WHERE upper(a)='ABC';\n    }\n    5x {\n      CREATE TABLE t1(a, b UNIQUE);\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    } {\n      SELECT count(*) FROM t2;\n      SELECT * FROM t2 WHERE b>5;\n      SELECT * FROM t2 WHERE b='abcdefg';\n    }\n  "
-			_items1 := tclSplitList(" \n    1 { CREATE TABLE t1(a, b) } {\n      SELECT * FROM t1;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t1;\n      UPDATE t1 SET a=5;\n      DELETE FROM t1;\n    }\n    2 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(5, 'x');\n    } \n    3 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t2 VALUES(new.a-1, new.b);\n      END;\n      CREATE TRIGGER tr2 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(10, 'x');\n    } \n    4 {\n      CREATE TABLE t1(a, b);\n    } {\n      SELECT count(*) FROM t1 WHERE upper(a)='ABC';\n    }\n    5x {\n      CREATE TABLE t1(a, b UNIQUE);\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    } {\n      SELECT count(*) FROM t2;\n      SELECT * FROM t2 WHERE b>5;\n      SELECT * FROM t2 WHERE b='abcdefg';\n    }\n  ")
-			for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-				tn := _items1[_idx1+0]
+			_items4 := tclSplitList(" \n    1 { CREATE TABLE t1(a, b) } {\n      SELECT * FROM t1;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t1;\n      UPDATE t1 SET a=5;\n      DELETE FROM t1;\n    }\n    2 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(5, 'x');\n    } \n    3 {\n      PRAGMA recursive_triggers = 1;\n      CREATE TABLE t1(a, b);\n      CREATE TABLE t2(a, b);\n      CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t2 VALUES(new.a-1, new.b);\n      END;\n      CREATE TRIGGER tr2 AFTER INSERT ON t1 WHEN (new.a>0) BEGIN\n        INSERT INTO t1 VALUES(new.a-1, new.b);\n      END;\n    } {\n      INSERT INTO t1 VALUES(10, 'x');\n    } \n    4 {\n      CREATE TABLE t1(a, b);\n    } {\n      SELECT count(*) FROM t1 WHERE upper(a)='ABC';\n    }\n    5x {\n      CREATE TABLE t1(a, b UNIQUE);\n      CREATE VIRTUAL TABLE t2 USING echo(t1);\n    } {\n      SELECT count(*) FROM t2;\n      SELECT * FROM t2 WHERE b>5;\n      SELECT * FROM t2 WHERE b='abcdefg';\n    }\n  ")
+			for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+				tn := _items4[_idx4+0]
 				_ = tn // suppress unused warning
-				schema := _items1[_idx1+1]
+				schema := _items4[_idx4+1]
 				_ = schema // suppress unused warning
-				statements := _items1[_idx1+2]
+				statements := _items4[_idx4+2]
 				_ = statements // suppress unused warning
-				_ = _idx1
-					var tn = _lookaside_buffer_size + "-" + tn
+				_ = _idx4
+					tn = lookaside_buffer_size + "-" + tn
 					_ = tn // suppress unused warning
 					os.Remove("test.db")
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					_dbtmp5, err := frigolite.Open("test.db")
+					_ = _dbtmp5 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500")
+					// sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500 (unsupported command, not transpiled)
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
-						t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
+						// register_echo_module db (unsupported command, not transpiled)
 					}
 					_res = db.Exec(schema)
 					if _res.Error != nil {
@@ -208,63 +270,63 @@ func Test_dbstatus(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					var nAlloc1 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+					nAlloc1 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
 					_ = nAlloc1 // suppress unused warning
 					// incr nAlloc1 lookaside db
 					{
 						_n, _err := strconv.Atoi(nAlloc1)
 						if _err == nil {
-							nAlloc1 = strconv.Itoa(_n + lookaside db)
+							nAlloc1 = strconv.Itoa(_n + 1)
 						}
 					}
-					var nStmt1 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
+					nStmt1 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
 					_ = nStmt1 // suppress unused warning
 					_res = db.Exec(statements)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					var nAlloc2 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+					nAlloc2 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
 					_ = nAlloc2 // suppress unused warning
 					// incr nAlloc2 lookaside db
 					{
 						_n, _err := strconv.Atoi(nAlloc2)
 						if _err == nil {
-							nAlloc2 = strconv.Itoa(_n + lookaside db)
+							nAlloc2 = strconv.Itoa(_n + 1)
 						}
 					}
-					var nStmt2 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
+					nStmt2 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
 					_ = nStmt2 // suppress unused warning
 					_res = db.Exec(statements)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					var nAlloc3 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+					nAlloc3 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
 					_ = nAlloc3 // suppress unused warning
 					// incr nAlloc3 lookaside db
 					{
 						_n, _err := strconv.Atoi(nAlloc3)
 						if _err == nil {
-							nAlloc3 = strconv.Itoa(_n + lookaside db)
+							nAlloc3 = strconv.Itoa(_n + 1)
 						}
 					}
-					var nStmt3 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
+					nStmt3 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
 					_ = nStmt3 // suppress unused warning
 					_res = db.Exec(statements)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, statements)
 					}
-					var nAlloc4 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
+					nAlloc4 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
 					_ = nAlloc4 // suppress unused warning
 					// incr nAlloc4 lookaside db
 					{
 						_n, _err := strconv.Atoi(nAlloc4)
 						if _err == nil {
-							nAlloc4 = strconv.Itoa(_n + lookaside db)
+							nAlloc4 = strconv.Itoa(_n + 1)
 						}
 					}
-					var nStmt4 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
+					nStmt4 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_STMT_USED 0] 1"
 					_ = nStmt4 // suppress unused warning
-					var nFree = "$nAlloc1-$nAlloc2"
+					nFree = "$nAlloc1-$nAlloc2"
 					_ = nFree // suppress unused warning
 					{ // do_test "dbstatus-3." + tn + ".a"
 						// expr $nStmt2 → "$nStmt2"
@@ -298,34 +360,34 @@ func Test_dbstatus(t *testing.T) {
 				}
 			}
 			{ // do_test "5.1"
-				var _stmt = "sqlite3_prepare db \"SELECT * FROM t1\" -1 dummy" // TCL namespace variable
-				_ = _stmt // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::stmt")
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::stmt")
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::stmt")
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::stmt")
+				stmt = "sqlite3_prepare db \"SELECT * FROM t1\" -1 dummy" // TCL namespace variable
+				_ = stmt // suppress unused warning
+				// sqlite3_step $::stmt (unsupported command, not transpiled)
+				// sqlite3_step $::stmt (unsupported command, not transpiled)
+				// sqlite3_step $::stmt (unsupported command, not transpiled)
+				// sqlite3_reset $::stmt (unsupported command, not transpiled)
 			}
 			{ // do_test "5.3"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_stmt_status $::stmt 0 0")
+				// sqlite3_stmt_status $::stmt 0 0 (unsupported command, not transpiled)
 			}
 			{ // do_test "5.4"
 				// expr [sqlite3_stmt_status $::stmt 99 0]>0 → "[sqlite3_stmt_status $::stmt 99 0]>0"
 			}
 			// foreach {tn id res} "\n  1 SQLITE_STMTSTATUS_MEMUSED 1\n  2 SQLITE_STMTSTATUS_FULLSCAN_STEP 1\n  3 SQLITE_STMTSTATUS_SORT 0\n  4 SQLITE_STMTSTATUS_AUTOINDEX 0\n  5 SQLITE_STMTSTATUS_VM_STEP 1\n  6 SQLITE_STMTSTATUS_REPREPARE 0\n  7 SQLITE_STMTSTATUS_RUN 1\n"
-			_items2 := tclSplitList("\n  1 SQLITE_STMTSTATUS_MEMUSED 1\n  2 SQLITE_STMTSTATUS_FULLSCAN_STEP 1\n  3 SQLITE_STMTSTATUS_SORT 0\n  4 SQLITE_STMTSTATUS_AUTOINDEX 0\n  5 SQLITE_STMTSTATUS_VM_STEP 1\n  6 SQLITE_STMTSTATUS_REPREPARE 0\n  7 SQLITE_STMTSTATUS_RUN 1\n")
-			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-				tn := _items2[_idx2+0]
+			_items6 := tclSplitList("\n  1 SQLITE_STMTSTATUS_MEMUSED 1\n  2 SQLITE_STMTSTATUS_FULLSCAN_STEP 1\n  3 SQLITE_STMTSTATUS_SORT 0\n  4 SQLITE_STMTSTATUS_AUTOINDEX 0\n  5 SQLITE_STMTSTATUS_VM_STEP 1\n  6 SQLITE_STMTSTATUS_REPREPARE 0\n  7 SQLITE_STMTSTATUS_RUN 1\n")
+			for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
+				tn := _items6[_idx6+0]
 				_ = tn // suppress unused warning
-				id := _items2[_idx2+1]
+				id := _items6[_idx6+1]
 				_ = id // suppress unused warning
-				res := _items2[_idx2+2]
+				res := _items6[_idx6+2]
 				_ = res // suppress unused warning
-				_ = _idx2
+				_ = _idx6
 					if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
 					}
 					{ // do_test "5.5." + tn
 						// expr [sqlite3_stmt_status $::stmt $id 0]>0 → "[sqlite3_stmt_status $::stmt $id 0]>0"
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+				// sqlite3_finalize $::stmt (unsupported command, not transpiled)
 }

@@ -39,6 +39,11 @@ func Test_tkt_4a03edc4c8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-4a03ed-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(\n      a INTEGER PRIMARY KEY ON CONFLICT REPLACE,\n      b UNIQUE ON CONFLICT FAIL\n    );\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n  ")

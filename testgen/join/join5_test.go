@@ -39,8 +39,15 @@ func Test_join5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "join5"
+	testprefix = "join5"
 	_ = testprefix // suppress unused warning
 	{ // do_test "join5-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a integer primary key, b integer, c integer);\n    CREATE TABLE t2(x integer primary key, y);\n    CREATE TABLE t3(p integer primary key, q);\n    INSERT INTO t3 VALUES(11,'t3-11');\n    INSERT INTO t3 VALUES(12,'t3-12');\n    INSERT INTO t2 VALUES(11,'t2-11');\n    INSERT INTO t2 VALUES(12,'t2-12');\n    INSERT INTO t1 VALUES(1, 5, 0);\n    INSERT INTO t1 VALUES(2, 11, 2);\n    INSERT INTO t1 VALUES(3, 12, 1);\n    COMMIT;\n  ")

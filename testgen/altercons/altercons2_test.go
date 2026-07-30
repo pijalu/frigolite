@@ -40,8 +40,27 @@ func Test_altercons2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var newsql string
+	_ = newsql // pre-declared from TCL source
+	var alter string
+	_ = alter // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var final string
+	_ = final // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "altercons2"
+	testprefix = "altercons2"
 	_ = testprefix // suppress unused warning
 	// foreach {tn newsql alter res final} "\n  1 \"CREATE TABLE t1(a, b\"\n    \"ALTER TABLE t1 ALTER c SET NOT NULL\"\n    {1 {database disk image is malformed}}\n    \"CREATE TABLE t1(a, b\"\n\n  2 \"CREATE TABLE t1(a, b, \"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {0 {}}\n    \"CREATE TABLE t1(a, b, \"\n\n  3 \"CREATE TABLE t1(a, b, CHECK( ...\"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {0 {}}\n    \"CREATE TABLE t1(a, b, CHECK( ...\"\n\n  4 \"CREATE TABLE t1(a, b, c NOT NULL\"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {0 {}}\n    \"CREATE TABLE t1(a, b, c \"\n\n  5 \"CREATE TABLE\"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {1 {database disk image is malformed}}\n    \"CREATE TABLE\"\n\n  6 \"CREATE TABLE\"\n    \"ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a!=0)\"\n    {1 {database disk image is malformed}}\n    \"CREATE TABLE\"\n\n"
 	_items0 := tclSplitList("\n  1 \"CREATE TABLE t1(a, b\"\n    \"ALTER TABLE t1 ALTER c SET NOT NULL\"\n    {1 {database disk image is malformed}}\n    \"CREATE TABLE t1(a, b\"\n\n  2 \"CREATE TABLE t1(a, b, \"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {0 {}}\n    \"CREATE TABLE t1(a, b, \"\n\n  3 \"CREATE TABLE t1(a, b, CHECK( ...\"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {0 {}}\n    \"CREATE TABLE t1(a, b, CHECK( ...\"\n\n  4 \"CREATE TABLE t1(a, b, c NOT NULL\"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {0 {}}\n    \"CREATE TABLE t1(a, b, c \"\n\n  5 \"CREATE TABLE\"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {1 {database disk image is malformed}}\n    \"CREATE TABLE\"\n\n  6 \"CREATE TABLE\"\n    \"ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a!=0)\"\n    {1 {database disk image is malformed}}\n    \"CREATE TABLE\"\n\n")
@@ -95,7 +114,8 @@ func Test_altercons2(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// proc definition (not transpiled)
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE x1(a PRIMARY KEY, b CHECK(a!=b) NOT NULL, c);\n")

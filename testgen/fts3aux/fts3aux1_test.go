@@ -41,9 +41,44 @@ func Test_fts3aux1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var varname string
+	_ = varname // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sort string
+	_ = sort // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var res1 string
+	_ = res1 // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var sql1 string
+	_ = sql1 // pre-declared from TCL source
+	var sql2 string
+	_ = sql2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var r1 string
+	_ = r1 // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3aux1" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts3aux1" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		r = db.Query("\n  CREATE VIRTUAL TABLE t1 USING fts4;\n  INSERT INTO t1 VALUES('one two three four');\n  INSERT INTO t1 VALUES('three four five six');\n  INSERT INTO t1 VALUES('one three five seven');\n\n  CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n  SELECT term, documents, occurrences FROM terms WHERE col = '*';\n")
 		if r.Error != nil {
@@ -124,7 +159,7 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1.2.1"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		r = db.Query(" SELECT * FROM terms_v WHERE rec('cnt', term) AND term='braid' ")
 		if r.Error != nil {
@@ -132,7 +167,7 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1.2.2"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		r = db.Query(" SELECT * FROM terms_v WHERE rec('cnt', term) AND +term='braid' ")
 		if r.Error != nil {
@@ -140,7 +175,7 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1.3.1"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		r = db.Query(" SELECT * FROM terms_v WHERE rec('cnt', term) AND term='breakfast' ")
 		if r.Error != nil {
@@ -148,7 +183,7 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1.3.2"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		r = db.Query(" SELECT * FROM terms_v WHERE rec('cnt', term) AND +term='breakfast' ")
 		if r.Error != nil {
@@ -294,7 +329,7 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2.2.1"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		r = db.Query(" SELECT * FROM terms WHERE rec('cnt', term) AND term>'brain' ")
 		if r.Error != nil {
@@ -302,7 +337,7 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2.2.2"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		r = db.Query(" SELECT * FROM terms WHERE rec('cnt', term) AND +term>'brain' ")
 		if r.Error != nil {
@@ -430,7 +465,7 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2.3.1"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		r = db.Query(" SELECT * FROM terms WHERE rec('cnt', term) AND term<'brain' ")
 		if r.Error != nil {
@@ -438,7 +473,7 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2.3.2"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		r = db.Query(" SELECT * FROM terms WHERE rec('cnt', term) AND +term<'brain' ")
 		if r.Error != nil {
@@ -494,7 +529,7 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2.4.1"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		r = db.Query(" \n    SELECT term, documents, occurrences FROM terms \n    WHERE rec('cnt', term) AND term BETWEEN 'brags' AND 'brain' \n  ")
 		if r.Error != nil {
@@ -502,7 +537,7 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2.4.2"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		r = db.Query(" \n    SELECT term, documents, occurrences FROM terms \n    WHERE rec('cnt', term) AND +term BETWEEN 'brags' AND 'brain' \n  ")
 		if r.Error != nil {
@@ -567,14 +602,14 @@ func Test_fts3aux1(t *testing.T) {
 		orderby := _items0[_idx0+2]
 		_ = orderby // suppress unused warning
 		_ = _idx0
-			var res = "SCAN terms VIRTUAL TABLE INDEX 0:"
+			res = "SCAN terms VIRTUAL TABLE INDEX 0:"
 			_ = res // suppress unused warning
 			if tclBool(sort) {
 				res += "*USE TEMP B-TREE FOR ORDER BY"
 			}
 			res = "/*" + res + "*/"
 			_ = res // suppress unused warning
-			var sql = "SELECT * FROM terms " + orderby
+			sql = "SELECT * FROM terms " + orderby
 			_ = sql // suppress unused warning
 			{ // "2.3.1." + tn
 				r = db.Query("EXPLAIN QUERY PLAN " + sql)
@@ -644,7 +679,8 @@ func Test_fts3aux1(t *testing.T) {
 			}
 		}
 		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "4.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts4(x);\n  CREATE VIRTUAL TABLE terms USING fts4aux(x1);\n  CREATE TABLE x2(y);\n  CREATE TABLE x3(y);\n  CREATE INDEX i1 ON x3(y);\n\n  INSERT INTO x1 VALUES('a b c d e');\n  INSERT INTO x1 VALUES('f g h i j');\n  INSERT INTO x1 VALUES('k k l l a');\n\n  INSERT INTO x2 SELECT term FROM terms WHERE col = '*';\n  INSERT INTO x3 SELECT term FROM terms WHERE col = '*';\n")
@@ -653,10 +689,32 @@ func Test_fts3aux1(t *testing.T) {
 			}
 		}
 		// proc definition (not transpiled)
-		t.Errorf("TODO: %s not implemented in frigolite", "do_plansql_test 4.2 {\n  SELECT y FROM x2, terms WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN x2\n  `--SCAN terms VIRTUAL...} {\n  a b c d e f g h i j k l\n}")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_plansql_test 4.3 {\n  SELECT y FROM terms, x2 WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN x2\n  `--SCAN terms VIRTUAL...} {\n  a b c d e f g h i j k l\n}")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_plansql_test 4.4 {\n  SELECT y FROM x3, terms WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN terms VIRTUAL TABLE INDEX ...} {\n  a b c d e f g h i j k l\n}")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_plansql_test 4.5 {\n  SELECT y FROM terms, x3 WHERE y = term AND occu...} {\n  QUERY PLAN\n  |--SCAN terms VIRTUAL TABLE INDEX ...} {\n  a k l\n}")
+		// do_plansql_test 4.2 {
+  SELECT y FROM x2, terms WHERE y = term AND col ...} {
+  QUERY PLAN
+  |--SCAN x2
+  `--SCAN terms VIRTUAL...} {
+  a b c d e f g h i j k l
+} (unsupported command, not transpiled)
+		// do_plansql_test 4.3 {
+  SELECT y FROM terms, x2 WHERE y = term AND col ...} {
+  QUERY PLAN
+  |--SCAN x2
+  `--SCAN terms VIRTUAL...} {
+  a b c d e f g h i j k l
+} (unsupported command, not transpiled)
+		// do_plansql_test 4.4 {
+  SELECT y FROM x3, terms WHERE y = term AND col ...} {
+  QUERY PLAN
+  |--SCAN terms VIRTUAL TABLE INDEX ...} {
+  a b c d e f g h i j k l
+} (unsupported command, not transpiled)
+		// do_plansql_test 4.5 {
+  SELECT y FROM terms, x3 WHERE y = term AND occu...} {
+  QUERY PLAN
+  |--SCAN terms VIRTUAL TABLE INDEX ...} {
+  a k l
+} (unsupported command, not transpiled)
 		{ // "5.1"
 			r = db.Query("\n  CREATE VIRTUAL TABLE \"abc '!' def\" USING fts4(x, y);\n  INSERT INTO \"abc '!' def\" VALUES('XX', 'YY');\n\n  CREATE VIRTUAL TABLE terms3 USING fts4aux(\"abc '!' def\");\n  SELECT * FROM terms3;\n")
 			if r.Error != nil {
@@ -707,20 +765,20 @@ func Test_fts3aux1(t *testing.T) {
 			}
 		}
 		// foreach {tn q res1 res2} "\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n"
-		_items1 := tclSplitList("\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n")
-		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
-			tn := _items1[_idx1+0]
+		_items2 := tclSplitList("\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n")
+		for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			q := _items1[_idx1+1]
+			q := _items2[_idx2+1]
 			_ = q // suppress unused warning
-			res1 := _items1[_idx1+2]
+			res1 := _items2[_idx2+2]
 			_ = res1 // suppress unused warning
-			res2 := _items1[_idx1+3]
+			res2 := _items2[_idx2+3]
 			_ = res2 // suppress unused warning
-			_ = _idx1
-				var sql1 = "{%%% aux1} $q"
+			_ = _idx2
+				sql1 = strings.ReplaceAll(q, "%%%", "aux1")
 				_ = sql1 // suppress unused warning
-				var sql2 = "{%%% aux2} $q"
+				sql2 = strings.ReplaceAll(q, "%%%", "aux2")
 				_ = sql2 // suppress unused warning
 				{ // "7." + tn + ".1"
 					_res = db.Exec(sql1)

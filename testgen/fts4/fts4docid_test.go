@@ -40,9 +40,38 @@ func Test_fts4docid(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var docid string
+	_ = docid // pre-declared from TCL source
+	var content string
+	_ = content // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var ref string
+	_ = ref // pre-declared from TCL source
+	var order string
+	_ = order // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts4docid" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts4docid" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts4; ")
 		if _res.Error != nil {
@@ -228,15 +257,15 @@ func Test_fts4docid(t *testing.T) {
 					order := _items2[_idx2+2]
 					_ = order // suppress unused warning
 					_ = _idx2
-						var w = "\"xxx $ref\" $where"
+						w = ""
 						_ = w // suppress unused warning
-						var q = "SELECT docid FROM t1 " + w + " " + order
+						q = "SELECT docid FROM t1 " + w + " " + order
 						_ = q // suppress unused warning
 						if func() bool { tn2_n, _tn2_e := strconv.Atoi(tn2); if _tn2_e != nil { return false }; return tn2_n < 5 }() {
-							var _r = "lsort -integer -increasing $result"
+							_r = "lsort -integer -increasing $result"
 							_ = _r // suppress unused warning
 						} else {
-							var _r = "lsort -integer -decreasing $result"
+							_r = "lsort -integer -decreasing $result"
 							_ = _r // suppress unused warning
 						}
 						{ // "3." + tn + "." + tn2

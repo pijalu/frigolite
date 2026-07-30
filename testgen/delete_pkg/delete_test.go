@@ -41,9 +41,29 @@ func Test_delete(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "delete-1.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -61,7 +81,6 @@ func Test_delete(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "delete-2.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -157,7 +176,6 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE table2(f1 int, f2 int)")
 		}
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -175,7 +193,6 @@ func Test_delete(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "delete-4.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -211,7 +228,7 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 200 }() {
 			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
@@ -246,7 +263,7 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 200 }() {
 			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
@@ -291,7 +308,7 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 200 }() {
 			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
@@ -316,7 +333,7 @@ func Test_delete(t *testing.T) {
 		}
 	}
 	{ // do_test "delete-5.3"
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 200 }() {
 			_res = db.Exec("DELETE FROM table1 WHERE f1==" + i)
@@ -349,7 +366,7 @@ func Test_delete(t *testing.T) {
 		}
 	}
 	{ // do_test "delete-5.5"
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 70 }() {
 			_res = db.Exec("DELETE FROM table1 WHERE f1==" + i)
@@ -370,7 +387,7 @@ func Test_delete(t *testing.T) {
 		}
 	}
 	{ // do_test "delete-5.6"
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
 			_res = db.Exec("DELETE FROM table1 WHERE f1==" + i)
@@ -407,7 +424,7 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN; DELETE FROM table1")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 3000 }() {
 			_res = db.Exec("INSERT INTO table1 VALUES(" + i + "," + "$i*$i" + ")")
@@ -561,10 +578,11 @@ func Test_delete(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		// file attributes test.db -readonly 1
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-	_ = _DB // suppress unused warning
+	DB = "sqlite3_connection_pointer db" // TCL namespace variable
+	_ = DB // suppress unused warning
 	{ // do_test "delete-8.1"
 		_res = db.Exec("\n    DELETE FROM t3;\n  ")
 		_ = _res // catchsql
@@ -604,8 +622,8 @@ func Test_delete(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "delete-9.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(c, d);\n    INSERT INTO t5 VALUES(1, 2);\n    INSERT INTO t5 VALUES(3, 4);\n    INSERT INTO t5 VALUES(5, 6);\n    INSERT INTO t6 VALUES('a', 'b');\n    INSERT INTO t6 VALUES('c', 'd');\n    CREATE INDEX i5 ON t5(a);\n    CREATE INDEX i6 ON t6(c);\n  ")
 		if _res.Error != nil {
@@ -613,7 +631,7 @@ func Test_delete(t *testing.T) {
 		}
 	}
 	{ // do_test "delete-9.2"
-		var res = "list"
+		res = "list"
 		_ = res // suppress unused warning
 		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
 		if _res.Error != nil {
@@ -625,7 +643,7 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t5 VALUES(1, 2);\n    INSERT INTO t5 VALUES(3, 4);\n    INSERT INTO t5 VALUES(5, 6);\n  ")
 		}
-		var res = "list"
+		res = "list"
 		_ = res // suppress unused warning
 		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
 		if _res.Error != nil {
@@ -637,7 +655,7 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t5;\n    INSERT INTO t5 VALUES(1, 2);\n    INSERT INTO t5 VALUES(3, 4);\n    INSERT INTO t5 VALUES(5, 6);\n  ")
 		}
-		var res = "list"
+		res = "list"
 		_ = res // suppress unused warning
 		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
 		if _res.Error != nil {
@@ -649,7 +667,7 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t5;\n    INSERT INTO t5 VALUES(1, 2);\n    INSERT INTO t5 VALUES(3, 4);\n    INSERT INTO t5 VALUES(5, 6);\n  ")
 		}
-		var res = "list"
+		res = "list"
 		_ = res // suppress unused warning
 		_res = db.Exec(" SELECT t5.rowid AS r, c, d FROM t5, t6 ORDER BY a ")
 		if _res.Error != nil {

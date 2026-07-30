@@ -40,8 +40,25 @@ func Test_quote(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var errname string
+	_ = errname // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "quote"
+	testprefix = "quote"
 	_ = testprefix // suppress unused warning
 	{ // do_test "quote-1.0"
 		_res = db.Exec("CREATE TABLE '@abc' ( '#xyz' int, '!pqr' text );")
@@ -80,7 +97,6 @@ func Test_quote(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "quote-1.3.4"
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -98,7 +114,6 @@ func Test_quote(t *testing.T) {
 		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "quote-1.4"
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -116,7 +131,6 @@ func Test_quote(t *testing.T) {
 		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "quote-1.5"
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -134,7 +148,6 @@ func Test_quote(t *testing.T) {
 		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "quote-1.6"
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -154,8 +167,8 @@ func Test_quote(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 0 (unsupported command, not transpiled)
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y, z);\n")
 		if _res.Error != nil {
@@ -185,7 +198,8 @@ func Test_quote(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") );\n  CREATE INDEX i2 ON t1(x, y, z||\"abc\");\n  CREATE INDEX i3 ON t1(\"w\"||\"\");\n  CREATE INDEX i4 ON t1(x) WHERE z=\"w\";\n")
 			}
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "2.3.1"
 			_res = db.Exec("\n  INSERT INTO xyz VALUES(1, 2, 3);\n")

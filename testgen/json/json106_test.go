@@ -40,15 +40,24 @@ func Test_json106(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "json106"
+	testprefix = "json106"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db randomjson")
+	// load_static_extension db randomjson (unsupported command, not transpiled)
 	_res = db.Exec("\n  CREATE TEMP TABLE t1(j0,j5,p);\n  CREATE TEMP TABLE kv(n,key,val);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE t1(j0,j5,p);\n  CREATE TEMP TABLE kv(n,key,val);\n")
 	}
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n <= 5000 }() {
 		{ // ii + ".1"

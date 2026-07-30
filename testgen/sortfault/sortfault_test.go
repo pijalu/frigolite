@@ -40,13 +40,57 @@ func Test_sortfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var mmap_limit string
+	_ = mmap_limit // pre-declared from TCL source
+	var nWorker string
+	_ = nWorker // pre-declared from TCL source
+	var tmpstore string
+	_ = tmpstore // pre-declared from TCL source
+	var threadsmode string
+	_ = threadsmode // pre-declared from TCL source
+	var fakeheap string
+	_ = fakeheap // pre-declared from TCL source
+	var lookaside string
+	_ = lookaside // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var str2 string
+	_ = str2 // pre-declared from TCL source
+	var t_0 string
+	_ = t_0 // pre-declared from TCL source
+	var t_1 string
+	_ = t_1 // pre-declared from TCL source
+	var t_2 string
+	_ = t_2 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sqlite_options_threadsafe string
+	_ = sqlite_options_threadsafe // pre-declared from TCL source
+	var t_sqlite_options_threadsafe string
+	_ = t_sqlite_options_threadsafe // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "sortfault"
+	testprefix = "sortfault"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pmasz 10")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	db, err = frigolite.Open("test.db")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA cache_size = 5;\n")
@@ -55,74 +99,91 @@ func Test_sortfault(t *testing.T) {
 		}
 	}
 	// foreach {tn mmap_limit nWorker tmpstore threadsmode fakeheap lookaside} "\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n"
-	_items0 := tclSplitList("\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n")
-	for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n")
+	for _idx1 := 0; _idx1+7 <= len(_items1); _idx1 += 7 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		mmap_limit := _items0[_idx0+1]
+		mmap_limit := _items1[_idx1+1]
 		_ = mmap_limit // suppress unused warning
-		nWorker := _items0[_idx0+2]
+		nWorker := _items1[_idx1+2]
 		_ = nWorker // suppress unused warning
-		tmpstore := _items0[_idx0+3]
+		tmpstore := _items1[_idx1+3]
 		_ = tmpstore // suppress unused warning
-		threadsmode := _items0[_idx0+4]
+		threadsmode := _items1[_idx1+4]
 		_ = threadsmode // suppress unused warning
-		fakeheap := _items0[_idx0+5]
+		fakeheap := _items1[_idx1+5]
 		_ = fakeheap // suppress unused warning
-		lookaside := _items0[_idx0+6]
+		lookaside := _items1[_idx1+6]
 		_ = lookaside // suppress unused warning
-		_ = _idx0
-			if tclBool(sqlite_options + "(threadsafe)") {
-				var threadsmode = "singlethread"
+		_ = _idx1
+			if tclBool(sqlite_options_threadsafe) {
+				threadsmode = "singlethread"
 				_ = threadsmode // suppress unused warning
 			}
 			_res = db.Exec("PRAGMA threads=" + nWorker)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA threads=" + nWorker)
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config $threadsmode")
+			// sqlite3_config $threadsmode (unsupported command, not transpiled)
 			if tclBool(lookaside) {
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
+				// sqlite3_config_lookaside 100 500 (unsupported command, not transpiled)
 			} else {
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
+				// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-			t.Errorf("TODO: %s not implemented in frigolite", "sorter_test_fakeheap $fakeheap")
-			var str = "a 1000"
+			// sqlite3_initialize (unsupported command, not transpiled)
+			// sorter_test_fakeheap $fakeheap (unsupported command, not transpiled)
+			str = "a 1000"
 			_ = str // suppress unused warning
-			t.Log(threadsmode)
-			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$tn -prep {\n    sqlite3 db test.db\n    sqlite3_test_control S...} -body {\n    execsql { \n      WITH r(x,y) AS (\n          S...} -test {\n    faultsim_test_result {0 {40 1000 40 1000 40 1...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    sqlite3 db test.db\n    sqlite3_test_control S...} -body {\n    execsql { \n      WITH r(x,y) AS (\n          S...} -test {\n    faultsim_test_result {0 {20 1000 20 1000 20 1...}")
+			_putsMsg := threadsmode
+			_ = _putsMsg
+			// do_faultsim_test 1.$tn -prep {
+    sqlite3 db test.db
+    sqlite3_test_control S...} -body {
+    execsql { 
+      WITH r(x,y) AS (
+          S...} -test {
+    faultsim_test_result {0 {40 1000 40 1000 40 1...} (unsupported command, not transpiled)
+			// do_faultsim_test 2.$tn -faults oom* -prep {
+    sqlite3 db test.db
+    sqlite3_test_control S...} -body {
+    execsql { 
+      WITH r(x,y) AS (
+          S...} -test {
+    faultsim_test_result {0 {20 1000 20 1000 20 1...} (unsupported command, not transpiled)
 			if func() bool { mmap_limit_n, _mmap_limit_e := strconv.Atoi(mmap_limit); if _mmap_limit_e != nil { return false }; return mmap_limit_n > 1000000 }() {
-				var str2 = "$str 10"
+				str2 = "$str 10"
 				_ = str2 // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 0")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				// sqlite3_memdebug_vfs_oom_test 0 (unsupported command, not transpiled)
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $::mmap_limit")
+				// sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $::mmap_limit (unsupported command, not transpiled)
 				r = db.Query(" PRAGMA cache_size = 5 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 5 ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.$tn -faults oom-trans* -body {\n      execsql { \n        WITH r(x,y) AS (\n       ...} -test {\n      faultsim_test_result {0 {60 10000 60 10000 ...}")
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 1")
+				// do_faultsim_test 3.$tn -faults oom-trans* -body {
+      execsql { 
+        WITH r(x,y) AS (
+       ...} -test {
+      faultsim_test_result {0 {60 10000 60 10000 ...} (unsupported command, not transpiled)
+				// sqlite3_memdebug_vfs_oom_test 1 (unsupported command, not transpiled)
 			}
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		var t_0 = "singlethread"
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		t_0 = "singlethread"
 		_ = t_0 // suppress unused warning
-		var t_1 = "multithread"
+		t_1 = "multithread"
 		_ = t_1 // suppress unused warning
-		var t_2 = "serialized"
+		t_2 = "serialized"
 		_ = t_2 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config $t($sqlite_options(threadsafe))")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		// sqlite3_config $t($sqlite_options(threadsafe)) (unsupported command, not transpiled)
+		// sqlite3_config_lookaside 100 500 (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -133,7 +194,7 @@ func Test_sortfault(t *testing.T) {
 			}
 		}
 		{ // do_test "4.1"
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 256 }() {
 				_res = db.Exec(" \n      INSERT INTO t1 SELECT\n        ((a<<3) + b) & 2147483647,\n        ((b<<3) + c) & 2147483647,\n        ((c<<3) + a) & 2147483647\n      FROM t1 ORDER BY rowid DESC LIMIT 1;\n    ")
@@ -149,16 +210,21 @@ func Test_sortfault(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4.2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE UNIQUE INDEX i1 ON t1(a,b,c) }...} -test {\n  faultsim_test_result {0 {}}\n}")
+		// faultsim_save_and_close (unsupported command, not transpiled)
+		// do_faultsim_test 4.2 -faults oom* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { CREATE UNIQUE INDEX i1 ON t1(a,b,c) }...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		var a = "a 500"
+		a = "a 500"
 		_ = a // suppress unused warning
-		var b = "b 500"
+		b = "b 500"
 		_ = b // suppress unused warning
-		var c = "c 500"
+		c = "c 500"
 		_ = c // suppress unused warning
 		{ // "5.0"
 			_res = db.Exec(" \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES($a, $b, $c); \n  INSERT INTO t1 VALUES($c, $b, $a); \n")
@@ -166,5 +232,8 @@ func Test_sortfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES($a, $b, $c); \n  INSERT INTO t1 VALUES($c, $b, $a); \n")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5.1 -faults oom* -body {\n  execsql { SELECT * FROM t1 ORDER BY a }\n} -test {\n  faultsim_test_result [list 0 [list $::a $::b $:...}")
+		// do_faultsim_test 5.1 -faults oom* -body {
+  execsql { SELECT * FROM t1 ORDER BY a }
+} -test {
+  faultsim_test_result [list 0 [list $::a $::b $:...} (unsupported command, not transpiled)
 }

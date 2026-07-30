@@ -39,8 +39,19 @@ func Test_pushdown(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "pushdown"
+	testprefix = "pushdown"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 'b1', 'c1');\n  INSERT INTO t1 VALUES(2, 'b2', 'c2');\n  INSERT INTO t1 VALUES(3, 'b3', 'c3');\n  INSERT INTO t1 VALUES(4, 'b4', 'c4');\n  CREATE INDEX i1 ON t1(a, c);\n")
@@ -50,7 +61,7 @@ func Test_pushdown(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		var L = "list"
+		L = "list"
 		_ = L // suppress unused warning
 		r = db.Query(" SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c) ")
 		if r.Error != nil {
@@ -58,7 +69,7 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		var L = "list"
+		L = "list"
 		_ = L // suppress unused warning
 		r = db.Query(" SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b) ")
 		if r.Error != nil {
@@ -72,7 +83,7 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4"
-		var L = "list"
+		L = "list"
 		_ = L // suppress unused warning
 		r = db.Query(" SELECT * FROM t1 WHERE a=2 AND f(b) AND f(c) ")
 		if r.Error != nil {
@@ -80,7 +91,7 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	{ // do_test "1.5"
-		var L = "list"
+		L = "list"
 		_ = L // suppress unused warning
 		r = db.Query(" SELECT * FROM t1 WHERE a=3 AND f(c) AND f(b) ")
 		if r.Error != nil {
@@ -94,7 +105,7 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		var L = "list"
+		L = "list"
 		_ = L // suppress unused warning
 		r = db.Query("\n    SELECT * FROM u1 WHERE f('one')=123 AND 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    )\n  ")
 		if r.Error != nil {
@@ -102,7 +113,7 @@ func Test_pushdown(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		var L = "list"
+		L = "list"
 		_ = L // suppress unused warning
 		r = db.Query("\n    SELECT * FROM u1 WHERE 123=(\n      SELECT x FROM u2 WHERE x=a AND f('two')\n    ) AND f('three')=123\n  ")
 		if r.Error != nil {

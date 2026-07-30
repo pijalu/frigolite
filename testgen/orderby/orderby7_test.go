@@ -39,9 +39,16 @@ func Test_orderby7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "orderby7" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "orderby7" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE fts USING fts3(content TEXT);\n  INSERT INTO fts(rowid,content)\n     VALUES(1,'this is a test of the fts3 virtual'),\n           (2,'table used as part of a join together'),\n           (3,'with the DISTINCT keyword.  There was'),\n           (4,'a bug at one time (2013-06 through 2014-04)'),\n           (5,'that prevented this from working correctly.'),\n           (11,'a row that occurs twice'),\n           (12,'a row that occurs twice');\n \n  CREATE TABLE t1(x TEXT PRIMARY KEY, y);\n  INSERT OR IGNORE INTO t1 SELECT content, rowid+100 FROM fts;\n")
 		if _res.Error != nil {

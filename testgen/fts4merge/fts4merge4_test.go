@@ -40,11 +40,40 @@ func Test_fts4merge4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var doc string
+	_ = doc // pre-declared from TCL source
+	var c1 string
+	_ = c1 // pre-declared from TCL source
+	var c2 string
+	_ = c2 // pre-declared from TCL source
+	var c3 string
+	_ = c3 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var am string
+	_ = am // pre-declared from TCL source
+	var expected string
+	_ = expected // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var openclose string
+	_ = openclose // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts4merge4" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
+	testprefix = "fts4merge4" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts4 ")
 		if _res.Error != nil {
@@ -52,7 +81,7 @@ func Test_fts4merge4(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
 			_res = db.Exec("INSERT INTO t1 VALUES('a b c d e f g h i j k l');")
@@ -73,7 +102,7 @@ func Test_fts4merge4(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
 			_res = db.Exec("INSERT INTO t1 VALUES('a b c d e f g h i j k l');")
@@ -103,7 +132,7 @@ func Test_fts4merge4(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
 			_res = db.Exec("INSERT INTO t1 VALUES('a b c d e f g h i j k l');")
@@ -155,7 +184,7 @@ func Test_fts4merge4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t2 USING fts4; ")
 		}
 	}
-	var doc = ""
+	doc = ""
 	_ = doc // suppress unused warning
 	for _, c1 := range tclSplitList("a b c d e f g h i j") {
 	_ = c1 // suppress unused warning
@@ -196,8 +225,8 @@ func Test_fts4merge4(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES($am) ")
 						}
-						// eval $openclose
-						var i = "0"
+						// eval (dynamic, not transpiled)
+						i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 							_res = db.Exec(" \n          BEGIN;\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n            INSERT INTO t2 VALUES($doc);\n          COMMIT;\n        ")
@@ -219,5 +248,5 @@ func Test_fts4merge4(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+			// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

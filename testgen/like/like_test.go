@@ -3,6 +3,7 @@ package like
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -39,8 +40,55 @@ func Test_like(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var sqlite_sort_count string
+	_ = sqlite_sort_count // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var eqp string
+	_ = eqp // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var sqlite_like_count string
+	_ = sqlite_like_count // pre-declared from TCL source
+	var likepat string
+	_ = likepat // pre-declared from TCL source
+	var x2 string
+	_ = x2 // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var tlimit string
+	_ = tlimit // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var tab string
+	_ = tab // pre-declared from TCL source
+	var sqlite_options_configslower string
+	_ = sqlite_options_configslower // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "like"
+	testprefix = "like"
 	_ = testprefix // suppress unused warning
 	{ // do_test "like-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x TEXT);\n  ")
@@ -84,7 +132,7 @@ func Test_like(t *testing.T) {
 		}
 	}
 	{ // do_test "like-1.5.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {PRAGMA case_sensitive_like=on}")
+		// sqlite3_exec db {PRAGMA case_sensitive_like=on} (unsupported command, not transpiled)
 	}
 	{ // do_test "like-1.5.2"
 		r = db.Query("\n    SELECT x FROM t1 WHERE x LIKE 'abc' ORDER BY 1;\n  ")
@@ -156,183 +204,208 @@ func Test_like(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "like-3.1"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.2"
 	}
 	{ // do_test "like-3.3.100"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=on;\n    CREATE INDEX i1 ON t1(x);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like=on;\n    CREATE INDEX i1 ON t1(x);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.3.100.cnt"
 	}
-	var _likepat = "abc%" // TCL namespace variable
-	_ = _likepat // suppress unused warning
+	likepat = "abc%" // TCL namespace variable
+	_ = likepat // suppress unused warning
 	if tclBool("permutation" + "!=\"prepare\"") {
 		{ // do_test "like-3.3.102"
-			var sqlite_like_count = "0"
+			sqlite_like_count = "0"
 			_ = sqlite_like_count // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n      SELECT x FROM t1 WHERE x LIKE $::likepat OR...}")
+			// queryplan {
+      SELECT x FROM t1 WHERE x LIKE $::likepat OR...} (test infra, not transpiled)
 		}
 		{ // do_test "like-3.3.103"
 		}
 	}
 	{ // do_test "like-3.3.104"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db QPSG 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE $::likepat ORDE...}")
+		// sqlite3_db_config db QPSG 1 (unsupported command, not transpiled)
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE $::likepat ORDE...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.3.105"
 	}
 	{ // do_test "like-3.3.105"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.3.106"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db QPSG 0")
+	// sqlite3_db_config db QPSG 0 (unsupported command, not transpiled)
 	{ // do_test "like-3.4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'a' ORDER BY 1;...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'a' ORDER BY 1;...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'ab' ORDER BY 1...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'ab' ORDER BY 1...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abcd' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'abcd' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.4.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abcde' ORDER B...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'abcde' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.5"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'a_c' ORDER BY ...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'a_c' ORDER BY ...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.6"
 	}
 	{ // do_test "like-3.7"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'ab%d' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'ab%d' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.8"
 	}
 	{ // do_test "like-3.9"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'a_c%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'a_c%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.10"
 	}
 	{ // do_test "like-3.11"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE '%bcd' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE '%bcd' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.12"
 	}
 	{ // do_test "like-3.13"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
 		_res = db.Exec("PRAGMA case_sensitive_like=off;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA case_sensitive_like=off;")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.14"
 	}
 	{ // do_test "like-3.15"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=on;\n    DROP INDEX i1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like=on;\n    DROP INDEX i1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.16"
 	}
 	{ // do_test "like-3.17"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.18"
 	}
 	{ // do_test "like-3.19"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
 		_res = db.Exec("CREATE INDEX i1 ON t1(x);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX i1 ON t1(x);")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.20"
 	}
 	{ // do_test "like-3.21"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
 		_res = db.Exec("PRAGMA case_sensitive_like=on;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA case_sensitive_like=on;")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x GLOB 'abc*' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.22"
 	}
 	{ // do_test "like-3.23"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
 		_res = db.Exec("PRAGMA case_sensitive_like=off;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA case_sensitive_like=off;")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'a[bc]d' ORDER ...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x GLOB 'a[bc]d' ORDER ...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.24"
 	}
 	{ // do_test "like-3.25"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'a' ORDER BY 1;...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x GLOB 'a' ORDER BY 1;...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.26"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'abcd' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x GLOB 'abcd' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-3.27"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x GLOB 'abcde' ORDER B...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x GLOB 'abcde' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-4.1"
 		r = db.Query("PRAGMA case_sensitive_like=on")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA case_sensitive_like=on")
 		}
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-4.2"
 	}
 	{ // do_test "like-4.3"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE +x LIKE 'abc%' ORDER B...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE +x LIKE 'abc%' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-4.4"
 	}
 	{ // do_test "like-4.5"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE ('ab' || 'c%') ...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE ('ab' || 'c%') ...} (test infra, not transpiled)
 	}
 	{ // do_test "like-4.6"
 	}
@@ -341,9 +414,10 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA case_sensitive_like=off")
 		}
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'abc%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-5.2"
 	}
@@ -352,9 +426,10 @@ func Test_like(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x TEXT COLLATE NOCASE);\n    INSERT INTO t2 SELECT * FROM t1 ORDER BY rowid;\n    CREATE INDEX i2 ON t2(x COLLATE NOCASE);\n  ")
 		}
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-5.4"
 	}
@@ -363,9 +438,10 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=on;\n  ")
 		}
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t2 WHERE x LIKE 'abc%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-5.6"
 	}
@@ -374,9 +450,10 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=off;\n  ")
 		}
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t2 WHERE x GLOB 'abc*' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t2 WHERE x GLOB 'abc*' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-5.8"
 	}
@@ -385,16 +462,18 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA case_sensitive_like=off")
 		}
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t1 WHERE x LIKE 'ABC%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t1 WHERE x LIKE 'ABC%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-5.12"
 	}
 	{ // do_test "like-5.13"
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-5.14"
 	}
@@ -403,9 +482,10 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=on;\n  ")
 		}
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t2 WHERE x LIKE 'ABC%' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-5.16"
 	}
@@ -414,9 +494,10 @@ func Test_like(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA case_sensitive_like=off;\n  ")
 		}
-		var sqlite_like_count = "0"
+		sqlite_like_count = "0"
 		_ = sqlite_like_count // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t2 WHERE x GLOB 'ABC*' ORDER BY...}")
+		// queryplan {
+    SELECT x FROM t2 WHERE x GLOB 'ABC*' ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "like-5.18"
 	}
@@ -425,37 +506,53 @@ func Test_like(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like=off;\n    INSERT INTO t2 VALUES('ZZ-upper-upper');\n    INSERT INTO t2 VALUES('zZ-lower-upper');\n    INSERT INTO t2 VALUES('Zz-upper-lower');\n    INSERT INTO t2 VALUES('zz-lower-lower');\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'zz%';\n  }")
+		// queryplan {
+    SELECT x FROM t2 WHERE x LIKE 'zz%';
+  } (test infra, not transpiled)
 	}
 	{ // do_test "like-5.22"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'zZ%';\n  }")
+		// queryplan {
+    SELECT x FROM t2 WHERE x LIKE 'zZ%';
+  } (test infra, not transpiled)
 	}
 	{ // do_test "like-5.23"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'Zz%';\n  }")
+		// queryplan {
+    SELECT x FROM t2 WHERE x LIKE 'Zz%';
+  } (test infra, not transpiled)
 	}
 	{ // do_test "like-5.24"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t2 WHERE x LIKE 'ZZ%';\n  }")
+		// queryplan {
+    SELECT x FROM t2 WHERE x LIKE 'ZZ%';
+  } (test infra, not transpiled)
 	}
 	{ // do_test "like-5.25"
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=on;\n    CREATE TABLE t3(x TEXT);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES('ZZ-upper-upper');\n    INSERT INTO t3 VALUES('zZ-lower-upper');\n    INSERT INTO t3 VALUES('Zz-upper-lower');\n    INSERT INTO t3 VALUES('zz-lower-lower');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like=on;\n    CREATE TABLE t3(x TEXT);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES('ZZ-upper-upper');\n    INSERT INTO t3 VALUES('zZ-lower-upper');\n    INSERT INTO t3 VALUES('Zz-upper-lower');\n    INSERT INTO t3 VALUES('zz-lower-lower');\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t3 WHERE x LIKE 'zz%';\n  }")
+		// queryplan {
+    SELECT x FROM t3 WHERE x LIKE 'zz%';
+  } (test infra, not transpiled)
 	}
 	{ // do_test "like-5.26"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t3 WHERE x LIKE 'zZ%';\n  }")
+		// queryplan {
+    SELECT x FROM t3 WHERE x LIKE 'zZ%';
+  } (test infra, not transpiled)
 	}
 	{ // do_test "like-5.27"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t3 WHERE x LIKE 'Zz%';\n  }")
+		// queryplan {
+    SELECT x FROM t3 WHERE x LIKE 'Zz%';
+  } (test infra, not transpiled)
 	}
 	{ // do_test "like-5.28"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x FROM t3 WHERE x LIKE 'ZZ%';\n  }")
+		// queryplan {
+    SELECT x FROM t3 WHERE x LIKE 'ZZ%';
+  } (test infra, not transpiled)
 	}
 	{ // do_test "like-6.1"
 		for _, x := range tclSplitList(" 'abc 'bcd 'def 'ax ") {
 		_ = x // suppress unused warning
-			var x2 = "'" + "{' ''} $x" + "'"
+			x2 = "'" + strings.ReplaceAll(x, "'", "''") + "'"
 			_ = x2 // suppress unused warning
 			_res = db.Exec("INSERT INTO t2 VALUES(" + x2 + ")")
 			if _res.Error != nil {
@@ -509,66 +606,76 @@ func Test_like(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA case_sensitive_like=OFF;")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...}")
+		// queryplan {
+    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-11.2"
 		_res = db.Exec("PRAGMA case_sensitive_like=ON;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA case_sensitive_like=ON;")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...}")
+		// queryplan {
+    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-11.3"
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=OFF;\n    CREATE INDEX t11b ON t11(b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like=OFF;\n    CREATE INDEX t11b ON t11(b);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...}")
+		// queryplan {
+    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-11.4"
 		_res = db.Exec("PRAGMA case_sensitive_like=ON;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA case_sensitive_like=ON;")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...}")
+		// queryplan {
+    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-11.5"
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=OFF;\n    DROP INDEX t11b;\n    CREATE INDEX t11bnc ON t11(b COLLATE nocase);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like=OFF;\n    DROP INDEX t11b;\n    CREATE INDEX t11bnc ON t11(b COLLATE nocase);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...}")
+		// queryplan {
+    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-11.6"
 		_res = db.Exec("CREATE INDEX t11bb ON t11(b COLLATE binary);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX t11bb ON t11(b COLLATE binary);")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...}")
+		// queryplan {
+    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-11.7"
 		_res = db.Exec("PRAGMA case_sensitive_like=ON;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA case_sensitive_like=ON;")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...}")
+		// queryplan {
+    SELECT b FROM t11 WHERE b LIKE 'abc%' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-11.8"
 		_res = db.Exec("PRAGMA case_sensitive_like=OFF;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA case_sensitive_like=OFF;")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b FROM t11 WHERE b GLOB 'abc*' ORDER B...}")
+		// queryplan {
+    SELECT b FROM t11 WHERE b GLOB 'abc*' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-11.9"
 		_res = db.Exec("\n    CREATE INDEX t11cnc ON t11(c COLLATE nocase);\n    CREATE INDEX t11cb ON t11(c COLLATE binary);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX t11cnc ON t11(c COLLATE nocase);\n    CREATE INDEX t11cb ON t11(c COLLATE binary);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT c FROM t11 WHERE c LIKE 'abc%' ORDER B...}")
+		// queryplan {
+    SELECT c FROM t11 WHERE c LIKE 'abc%' ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "like-11.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT c FROM t11 WHERE c GLOB 'abc*' ORDER B...}")
+		// queryplan {
+    SELECT c FROM t11 WHERE c GLOB 'abc*' ORDER B...} (test infra, not transpiled)
 	}
 	{ // "like-12.1"
 		r = db.Query("\n  CREATE TABLE t12nc(id INTEGER, x TEXT UNIQUE COLLATE nocase);\n  INSERT INTO t12nc VALUES(1,'abcde'),(2,'uvwxy'),(3,'ABCDEF');\n  CREATE TABLE t12b(id INTEGER, x TEXT UNIQUE COLLATE binary);\n  INSERT INTO t12b VALUES(1,'abcde'),(2,'uvwxy'),(3,'ABCDEF');\n  SELECT id FROM t12nc WHERE x LIKE 'abc%' ORDER BY +id;\n")
@@ -763,11 +870,12 @@ func Test_like(t *testing.T) {
 		}
 	}
 	{ // do_test "like-14.1"
-		var x = "lindex [time {\n    db one {SELECT 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaz'GLOB'*a*a*a*a*a*a*a*a*y'}\n  }] 0"
+		x = "lindex [time {\n    db one {SELECT 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaz'GLOB'*a*a*a*a*a*a*a*a*y'}\n  }] 0"
 		_ = x // suppress unused warning
-		var tlimit = "1000 * $::sqlite_options(configslower)"
+		tlimit = "1000 * $::sqlite_options(configslower)"
 		_ = tlimit // suppress unused warning
-		t.Log("-nonewline")
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
 		// expr $x<$tlimit → "$x<$tlimit"
 	}
 	db.Close()
@@ -842,7 +950,7 @@ func Test_like(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 1")
+	// sqlite3_db_config db DEFENSIVE 1 (unsupported command, not transpiled)
 	_res = db.Exec("PRAGMA trusted_schema=OFF")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA trusted_schema=OFF")

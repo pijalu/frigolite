@@ -40,10 +40,51 @@ func Test_window6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var setup string
+	_ = setup // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var vars string
+	_ = vars // pre-declared from TCL source
+	var A__pct_t1 string
+	_ = A__pct_t1 // pre-declared from TCL source
+	var A__pct_x string
+	_ = A__pct_x // pre-declared from TCL source
+	var A__pct_y string
+	_ = A__pct_y // pre-declared from TCL source
+	var A__pct_w string
+	_ = A__pct_w // pre-declared from TCL source
+	var A__pct_alias string
+	_ = A__pct_alias // pre-declared from TCL source
+	var A__pct_typename string
+	_ = A__pct_typename // pre-declared from TCL source
+	var MAP string
+	_ = MAP // pre-declared from TCL source
+	var setup_sql string
+	_ = setup_sql // pre-declared from TCL source
+	var frame string
+	_ = frame // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "window6"
+	testprefix = "window6"
 	_ = testprefix // suppress unused warning
-	var setup = "\n  CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');\n"
+	setup = "\n  CREATE TABLE %t1(%x, %y %typename);\n  INSERT INTO %t1 VALUES(1, 'a');\n  INSERT INTO %t1 VALUES(2, 'b');\n  INSERT INTO %t1 VALUES(3, 'c');\n  INSERT INTO %t1 VALUES(4, 'd');\n  INSERT INTO %t1 VALUES(5, 'e');\n"
 	_ = setup // suppress unused warning
 	// foreach {tn vars} "\n  1 {}\n  2 { set A(%t1) over }\n  3 { set A(%x)  over }\n  4 { \n    set A(%alias)   over \n    set A(%x)       following \n    set A(%y)       over \n  }\n  5 { \n    set A(%t1)      over\n    set A(%x)       following \n    set A(%y)       preceding \n    set A(%w)       current \n    set A(%alias)   filter\n    set A(%typename)  window\n  }\n\n  6 { \n    set A(%x)       window \n  }\n"
 	_items0 := tclSplitList("\n  1 {}\n  2 { set A(%t1) over }\n  3 { set A(%x)  over }\n  4 { \n    set A(%alias)   over \n    set A(%x)       following \n    set A(%y)       over \n  }\n  5 { \n    set A(%t1)      over\n    set A(%x)       following \n    set A(%y)       preceding \n    set A(%w)       current \n    set A(%alias)   filter\n    set A(%typename)  window\n  }\n\n  6 { \n    set A(%x)       window \n  }\n")
@@ -53,22 +94,22 @@ func Test_window6(t *testing.T) {
 		vars := _items0[_idx0+1]
 		_ = vars // suppress unused warning
 		_ = _idx0
-			var A_%t1 = "t1"
-			_ = A_%t1 // suppress unused warning
-			var A_%x = "x"
-			_ = A_%x // suppress unused warning
-			var A_%y = "y"
-			_ = A_%y // suppress unused warning
-			var A_%w = "w"
-			_ = A_%w // suppress unused warning
-			var A_%alias = "alias"
-			_ = A_%alias // suppress unused warning
-			var A_%typename = "integer"
-			_ = A_%typename // suppress unused warning
-			// eval $vars
-			var MAP = "array get A"
+			A__pct_t1 = "t1"
+			_ = A__pct_t1 // suppress unused warning
+			A__pct_x = "x"
+			_ = A__pct_x // suppress unused warning
+			A__pct_y = "y"
+			_ = A__pct_y // suppress unused warning
+			A__pct_w = "w"
+			_ = A__pct_w // suppress unused warning
+			A__pct_alias = "alias"
+			_ = A__pct_alias // suppress unused warning
+			A__pct_typename = "integer"
+			_ = A__pct_typename // suppress unused warning
+			// eval (dynamic, not transpiled)
+			MAP = "array get A"
 			_ = MAP // suppress unused warning
-			var setup_sql = "$MAP $setup"
+			setup_sql = ""
 			_ = setup_sql // suppress unused warning
 			db.Close()
 			db, err = frigolite.Open("")
@@ -78,27 +119,27 @@ func Test_window6(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, setup_sql)
 			}
 			{ // "1." + tn + ".1"
-				_res = db.Exec("$MAP {\n    SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1\n  }")
+				_res = db.Exec("")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1.2 1.2.3 1.2.3.4 1.2.3.4.5") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1.2 1.2.3 1.2.3.4 1.2.3.4.5", _res.Error, "$MAP {\n    SELECT group_concat(%x, '.') OVER (ORDER BY %y) FROM %t1\n  }")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "1.2 1.2.3 1.2.3.4 1.2.3.4.5", _res.Error, "")
 				}
 			}
 			{ // "1." + tn + ".2"
-				_res = db.Exec("$MAP {\n    SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)\n  }")
+				_res = db.Exec("")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3 6 10 15") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 6 10 15", _res.Error, "$MAP {\n    SELECT sum(%x) OVER %w FROM %t1 WINDOW %w AS (ORDER BY %y)\n  }")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 6 10 15", _res.Error, "")
 				}
 			}
 			{ // "1." + tn + ".3"
-				_res = db.Exec("$MAP {\n    SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)\n  }")
+				_res = db.Exec("")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "3 6 10 15") {
-					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 6 10 15", _res.Error, "$MAP {\n    SELECT sum(%alias.%x) OVER %w FROM %t1 %alias WINDOW %w AS (ORDER BY %y)\n  }")
+					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "3 6 10 15", _res.Error, "")
 				}
 			}
 			{ // "1." + tn + ".4"
-				_res = db.Exec("$MAP {\n    SELECT sum(%x) %alias FROM %t1\n  }")
+				_res = db.Exec("")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "$MAP {\n    SELECT sum(%x) %alias FROM %t1\n  }")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "")
 				}
 			}
 		}

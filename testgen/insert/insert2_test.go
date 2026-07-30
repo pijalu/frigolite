@@ -40,18 +40,35 @@ func Test_insert2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "insert2"
+	testprefix = "insert2"
 	_ = testprefix // suppress unused warning
 	{ // do_test "insert2-1.0"
 		_res = db.Exec("CREATE TABLE d1(n int, log int);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE d1(n int, log int);")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 20 }() {
-			var j = "0"
+			j = "0"
 			_ = j // suppress unused warning
 			for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (1<<j_n) < i_n }() {
 				// incr j 1
@@ -108,7 +125,7 @@ func Test_insert2(t *testing.T) {
 			_res = db.Exec("DROP TABLE t1")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
-		var _r = "execsql {\n    CREATE TABLE t1(log int, cnt int);\n    CREATE INDEX i1 ON t1(log);\n    CREATE INDEX i2 ON t1(cnt);\n    INSERT INTO t1 SELECT log, count() FROM d1 GROUP BY log;\n    SELECT * FROM t1 ORDER BY log;\n  }"
+		_r = "execsql {\n    CREATE TABLE t1(log int, cnt int);\n    CREATE INDEX i1 ON t1(log);\n    CREATE INDEX i2 ON t1(cnt);\n    INSERT INTO t1 SELECT log, count() FROM d1 GROUP BY log;\n    SELECT * FROM t1 ORDER BY log;\n  }"
 		_ = _r // suppress unused warning
 		_r = tclListAppend(_r, "execsql {SELECT cnt FROM t1 WHERE log=3}")
 		_r = tclListAppend(_r, "execsql {SELECT log FROM t1 WHERE cnt=4 ORDER BY log}")
@@ -146,7 +163,7 @@ func Test_insert2(t *testing.T) {
 		}
 	}
 	{ // do_test "insert2-3.2"
-		var x = "db total_changes"
+		x = "db total_changes"
 		_ = x // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t4 VALUES(2,4);\n    INSERT INTO t4 VALUES(3,6);\n    INSERT INTO t4 VALUES(4,8);\n    INSERT INTO t4 VALUES(5,10);\n    INSERT INTO t4 VALUES(6,12);\n    INSERT INTO t4 VALUES(7,14);\n    INSERT INTO t4 VALUES(8,16);\n    INSERT INTO t4 VALUES(9,18);\n    INSERT INTO t4 VALUES(10,20);\n    COMMIT;\n  ")
 		if _res.Error != nil {

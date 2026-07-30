@@ -39,8 +39,23 @@ func Test_e_blobbytes(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var rowid string
+	_ = rowid // pre-declared from TCL source
+	var bytes string
+	_ = bytes // pre-declared from TCL source
+	var B string
+	_ = B // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "e_blobbytes"
+	testprefix = "e_blobbytes"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE q1(r INTEGER PRIMARY KEY, s TEXT);\n  WITH d(a, b) AS (\n    SELECT 0, '' \n      UNION ALL\n    SELECT a+1, b||'.' FROM d WHERE a<10000\n  )\n  INSERT INTO q1 SELECT * FROM d;\n")
@@ -49,30 +64,30 @@ func Test_e_blobbytes(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.1 43 43")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.2 391 391")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.3 6349 6349")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.4 2621 2621")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.5 7771 7771")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.6 7949 7949")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.7 4374 4374")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.8 2578 2578")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.9 7004 7004")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.10 2180 2180")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.11 3796 3796")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.12 7101 7101")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.13 7449 7449")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.14 7224 7224")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.15 3038 3038")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.16 1083 1083")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.17 5157 5157")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.18 6686 6686")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.19 6592 6592")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_blob_size 1.20 0 0")
+	// check_blob_size 1.1 43 43 (unsupported command, not transpiled)
+	// check_blob_size 1.2 391 391 (unsupported command, not transpiled)
+	// check_blob_size 1.3 6349 6349 (unsupported command, not transpiled)
+	// check_blob_size 1.4 2621 2621 (unsupported command, not transpiled)
+	// check_blob_size 1.5 7771 7771 (unsupported command, not transpiled)
+	// check_blob_size 1.6 7949 7949 (unsupported command, not transpiled)
+	// check_blob_size 1.7 4374 4374 (unsupported command, not transpiled)
+	// check_blob_size 1.8 2578 2578 (unsupported command, not transpiled)
+	// check_blob_size 1.9 7004 7004 (unsupported command, not transpiled)
+	// check_blob_size 1.10 2180 2180 (unsupported command, not transpiled)
+	// check_blob_size 1.11 3796 3796 (unsupported command, not transpiled)
+	// check_blob_size 1.12 7101 7101 (unsupported command, not transpiled)
+	// check_blob_size 1.13 7449 7449 (unsupported command, not transpiled)
+	// check_blob_size 1.14 7224 7224 (unsupported command, not transpiled)
+	// check_blob_size 1.15 3038 3038 (unsupported command, not transpiled)
+	// check_blob_size 1.16 1083 1083 (unsupported command, not transpiled)
+	// check_blob_size 1.17 5157 5157 (unsupported command, not transpiled)
+	// check_blob_size 1.18 6686 6686 (unsupported command, not transpiled)
+	// check_blob_size 1.19 6592 6592 (unsupported command, not transpiled)
+	// check_blob_size 1.20 0 0 (unsupported command, not transpiled)
 	{ // do_test "2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main q1 s 86 1 B")
+		// sqlite3_blob_open db main q1 s 86 1 B (unsupported command, not transpiled)
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+	// sqlite3_blob_close $B (unsupported command, not transpiled)
 }

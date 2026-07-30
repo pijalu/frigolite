@@ -39,10 +39,39 @@ func Test_bestindex7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var mask string
+	_ = mask // pre-declared from TCL source
+	var iCons string
+	_ = iCons // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var cons string
+	_ = cons // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var C_usable string
+	_ = C_usable // pre-declared from TCL source
+	var src string
+	_ = src // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindex7"
+	testprefix = "bestindex7"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(0), (2);\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n")

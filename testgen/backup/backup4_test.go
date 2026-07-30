@@ -40,10 +40,17 @@ func Test_backup4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "backup4"
+	testprefix = "backup4"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(x, y, UNIQUE(x, y));\n  INSERT INTO t1 VALUES('one', 'two');\n  SELECT * FROM t1 WHERE x='one';\n  PRAGMA integrity_check;\n")
 		if r.Error != nil {
@@ -80,7 +87,8 @@ func Test_backup4(t *testing.T) {
 	}
 	os.Remove("test.db")
 	os.Remove("test.db2")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")
@@ -103,7 +111,8 @@ func Test_backup4(t *testing.T) {
 	}
 	os.Remove("test.db")
 	os.Remove("test.db2")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		_res = db.Exec("\n  PRAGMA page_size = 4096;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")

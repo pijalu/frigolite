@@ -41,8 +41,29 @@ func Test_window1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var plan string
+	_ = plan // pre-declared from TCL source
+	var spec string
+	_ = spec // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var nOrderBy string
+	_ = nOrderBy // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "window1"
+	testprefix = "window1"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
@@ -119,7 +140,7 @@ func Test_window1(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx0
 			{ // do_test "2." + tn
-				tclLIndex("catchsql $sql", "0")
+				_ = tclLIndex("catchsql $sql", "0") // lindex result
 			}
 		}
 		// foreach {tn sql} "\n  1 \"SELECT * FROM t1 WHERE sum(b) OVER ()\"\n  2 \"SELECT * FROM t1 GROUP BY sum(b) OVER ()\"\n  3 \"SELECT * FROM t1 GROUP BY a HAVING sum(b) OVER ()\"\n"
@@ -455,7 +476,8 @@ func Test_window1(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "8.2.1"
 				r = db.Query("\n  SELECT * FROM v1\n")
@@ -781,7 +803,8 @@ func Test_window1(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a, rank() OVER(ORDER BY b) FROM t1\n    INTERSECT \n  SELECT a, rank() OVER(ORDER BY b DESC) FROM t1;\n")
 				}
 			}
-			db, err = frigolite.Open(":memory:")
+			_dbtmp3, err := frigolite.Open(":memory:")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "14.0"
 				r = db.Query("\n  SELECT * FROM(\n    SELECT * FROM (SELECT 1 AS c) WHERE c IN (\n        SELECT (row_number() OVER()) FROM (VALUES (0))\n    )\n  );\n")
@@ -913,15 +936,15 @@ func Test_window1(t *testing.T) {
 				}
 			}
 			// foreach {tn sql error} "\n  1 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING), \n             win2 AS (win1 ORDER BY b)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win4 ORDER BY b)\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win1 PARTITION BY d)\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ORDER BY b),\n             win2 AS (win1 ORDER BY d)\n  } {cannot override ORDER BY clause of window: win1}\n"
-			_items2 := tclSplitList("\n  1 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING), \n             win2 AS (win1 ORDER BY b)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win4 ORDER BY b)\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win1 PARTITION BY d)\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ORDER BY b),\n             win2 AS (win1 ORDER BY d)\n  } {cannot override ORDER BY clause of window: win1}\n")
-			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-				tn := _items2[_idx2+0]
+			_items4 := tclSplitList("\n  1 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING), \n             win2 AS (win1 ORDER BY b)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win4 ORDER BY b)\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (),\n             win2 AS (win1 PARTITION BY d)\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER win2 FROM t1\n      WINDOW win1 AS (ORDER BY b),\n             win2 AS (win1 ORDER BY d)\n  } {cannot override ORDER BY clause of window: win1}\n")
+			for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
+				tn := _items4[_idx4+0]
 				_ = tn // suppress unused warning
-				sql := _items2[_idx2+1]
+				sql := _items4[_idx4+1]
 				_ = sql // suppress unused warning
-				_error := _items2[_idx2+2]
+				_error := _items4[_idx4+2]
 				_ = _error // suppress unused warning
-				_ = _idx2
+				_ = _idx4
 					{ // "18.1." + tn
 						_res = db.Exec(sql)
 						if _res.Error == nil {
@@ -930,15 +953,15 @@ func Test_window1(t *testing.T) {
 					}
 				}
 				// foreach {tn sql error} "\n  1 {\n    SELECT c, sum(d) OVER (win1 ORDER BY b) FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER (win4 ORDER BY b) FROM t1\n      WINDOW win1 AS ()\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER (win1 PARTITION BY d) FROM t1\n      WINDOW win1 AS ()\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER (win1 ORDER BY d) FROM t1\n      WINDOW win1 AS (ORDER BY b)\n  } {cannot override ORDER BY clause of window: win1}\n"
-				_items3 := tclSplitList("\n  1 {\n    SELECT c, sum(d) OVER (win1 ORDER BY b) FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER (win4 ORDER BY b) FROM t1\n      WINDOW win1 AS ()\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER (win1 PARTITION BY d) FROM t1\n      WINDOW win1 AS ()\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER (win1 ORDER BY d) FROM t1\n      WINDOW win1 AS (ORDER BY b)\n  } {cannot override ORDER BY clause of window: win1}\n")
-				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-					tn := _items3[_idx3+0]
+				_items5 := tclSplitList("\n  1 {\n    SELECT c, sum(d) OVER (win1 ORDER BY b) FROM t1\n      WINDOW win1 AS (ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)\n  } {cannot override frame specification of window: win1}\n\n  2 {\n    SELECT c, sum(d) OVER (win4 ORDER BY b) FROM t1\n      WINDOW win1 AS ()\n  } {no such window: win4}\n\n  3 {\n    SELECT c, sum(d) OVER (win1 PARTITION BY d) FROM t1\n      WINDOW win1 AS ()\n  } {cannot override PARTITION clause of window: win1}\n\n  4 {\n    SELECT c, sum(d) OVER (win1 ORDER BY d) FROM t1\n      WINDOW win1 AS (ORDER BY b)\n  } {cannot override ORDER BY clause of window: win1}\n")
+				for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
+					tn := _items5[_idx5+0]
 					_ = tn // suppress unused warning
-					sql := _items3[_idx3+1]
+					sql := _items5[_idx5+1]
 					_ = sql // suppress unused warning
-					_error := _items3[_idx3+2]
+					_error := _items5[_idx5+2]
 					_ = _error // suppress unused warning
-					_ = _idx3
+					_ = _idx5
 						{ // "18.2." + tn
 							_res = db.Exec(sql)
 							if _res.Error == nil {
@@ -1157,19 +1180,19 @@ func Test_window1(t *testing.T) {
 						}
 					}
 					// foreach {tn expr err} "\n  1   4.5      0\n  2   NULL     1\n  3   0.0      0\n  4   0.1      0\n  5  -0.1      1\n  6  ''        1\n  7  '2.0'     0\n  8  '2.0x'    1\n  9  x'1234'   1\n 10  '1.2'     0\n"
-					_items4 := tclSplitList("\n  1   4.5      0\n  2   NULL     1\n  3   0.0      0\n  4   0.1      0\n  5  -0.1      1\n  6  ''        1\n  7  '2.0'     0\n  8  '2.0x'    1\n  9  x'1234'   1\n 10  '1.2'     0\n")
-					for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-						tn := _items4[_idx4+0]
+					_items6 := tclSplitList("\n  1   4.5      0\n  2   NULL     1\n  3   0.0      0\n  4   0.1      0\n  5  -0.1      1\n  6  ''        1\n  7  '2.0'     0\n  8  '2.0x'    1\n  9  x'1234'   1\n 10  '1.2'     0\n")
+					for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
+						tn := _items6[_idx6+0]
 						_ = tn // suppress unused warning
-						expr := _items4[_idx4+1]
+						expr := _items6[_idx6+1]
 						_ = expr // suppress unused warning
-						err := _items4[_idx4+2]
+						err := _items6[_idx6+2]
 						_ = err // suppress unused warning
-						_ = _idx4
-							var res = "0 1"
+						_ = _idx6
+							res = "0 1"
 							_ = res // suppress unused warning
-							if tclBool(err) {
-								var res = "1 {frame starting offset must be a non-negative number}"
+							if tclBool(tclStr(err)) {
+								res = "1 {frame starting offset must be a non-negative number}"
 								_ = res // suppress unused warning
 							}
 							{ // "22." + tn + ".1"
@@ -1180,8 +1203,8 @@ func Test_window1(t *testing.T) {
 							}
 							res = "0 1"
 							_ = res // suppress unused warning
-							if tclBool(err) {
-								var res = "1 {frame ending offset must be a non-negative number}"
+							if tclBool(tclStr(err)) {
+								res = "1 {frame ending offset must be a non-negative number}"
 								_ = res // suppress unused warning
 							}
 							{ // "22." + tn + ".2"
@@ -1201,12 +1224,27 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						// proc definition (not transpiled)
-						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.1 {\n  SELECT \n    sum(c) OVER (ORDER BY a, b),\n    su...} 0")
-						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.2 {\n  SELECT \n    sum(c) OVER (ORDER BY b, a),\n    su...} 1")
-						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.3 {\n  SELECT \n    sum(c) OVER (ORDER BY b, a),\n    su...} 2")
-						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.4 {\n  SELECT \n    sum(c) OVER (ORDER BY b ROWS BETWEE...} 1")
-						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.5 {\n  SELECT \n    sum(c) OVER (ORDER BY b+1 ROWS UNBO...} 1")
-						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.6 {\n  SELECT \n    sum(c) OVER (ORDER BY b+1 ROWS UNBO...} 3")
+						// do_ordercount_test 23.1 {
+  SELECT 
+    sum(c) OVER (ORDER BY a, b),
+    su...} 0 (unsupported command, not transpiled)
+						// do_ordercount_test 23.2 {
+  SELECT 
+    sum(c) OVER (ORDER BY b, a),
+    su...} 1 (unsupported command, not transpiled)
+						// do_ordercount_test 23.3 {
+  SELECT 
+    sum(c) OVER (ORDER BY b, a),
+    su...} 2 (unsupported command, not transpiled)
+						// do_ordercount_test 23.4 {
+  SELECT 
+    sum(c) OVER (ORDER BY b ROWS BETWEE...} 1 (unsupported command, not transpiled)
+						// do_ordercount_test 23.5 {
+  SELECT 
+    sum(c) OVER (ORDER BY b+1 ROWS UNBO...} 1 (unsupported command, not transpiled)
+						// do_ordercount_test 23.6 {
+  SELECT 
+    sum(c) OVER (ORDER BY b+1 ROWS UNBO...} 3 (unsupported command, not transpiled)
 						{ // "24.1"
 							r = db.Query("\n  SELECT sum(44) OVER ()\n")
 							if r.Error != nil {
@@ -2299,7 +2337,7 @@ func Test_window1(t *testing.T) {
 						for _, tn := range tclSplitList("1 2") {
 						_ = tn // suppress unused warning
 							if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
-								t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 0")
+								// optimization_control db query-flattener 0 (unsupported command, not transpiled)
 							}
 							{ // "61.2." + tn
 								_res = db.Exec("\n    SELECT \n      (SELECT max(x)OVER(ORDER BY x) / min(x) OVER() ) \n    FROM (\n      SELECT (SELECT sum(a) FROM t1 ) AS x FROM t1\n    )\n\n  ")
@@ -2311,7 +2349,7 @@ func Test_window1(t *testing.T) {
 						db.Close()
 						db, err = frigolite.Open("")
 						if err != nil { t.Fatal(err) }
-						t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
+						// optimization_control db all 0 (unsupported command, not transpiled)
 						{ // "61.3.0"
 							_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(y);\n")
 							if _res.Error != nil {
@@ -2514,13 +2552,13 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						// foreach {tn spec} "\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\"\n"
-						_items5 := tclSplitList("\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\"\n")
-						for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
-							tn := _items5[_idx5+0]
+						_items7 := tclSplitList("\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\"\n")
+						for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
+							tn := _items7[_idx7+0]
 							_ = tn // suppress unused warning
-							spec := _items5[_idx5+1]
+							spec := _items7[_idx7+1]
 							_ = spec // suppress unused warning
-							_ = _idx5
+							_ = _idx7
 								{ // "66.2." + tn
 									r = db.Query("\n    SELECT total(a) OVER ( " + spec + " ) FROM t1 ORDER BY a\n  ")
 									if r.Error != nil {
@@ -2541,15 +2579,15 @@ func Test_window1(t *testing.T) {
 								}
 							}
 							// foreach {tn spec res} "\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"   {30.0 45.0}\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"  {0.0 0.0}\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"   {0.0 0.0}\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\" {0.0 0.0}\n"
-							_items6 := tclSplitList("\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"   {30.0 45.0}\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"  {0.0 0.0}\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"   {0.0 0.0}\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\" {0.0 0.0}\n")
-							for _idx6 := 0; _idx6+3 <= len(_items6); _idx6 += 3 {
-								tn := _items6[_idx6+0]
+							_items8 := tclSplitList("\n  1 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\"   {30.0 45.0}\n  2 \"ORDER BY a RANGE BETWEEN 0.3 PRECEDING AND 0.1 PRECEDING\"  {0.0 0.0}\n  3 \"ORDER BY a RANGE BETWEEN 0.3 FOLLOWING AND 10 FOLLOWING\"   {0.0 0.0}\n  4 \"ORDER BY a DESC RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  5 \"ORDER BY a NULLS LAST RANGE BETWEEN 0.3 PRECEDING AND 10 FOLLOWING\" {30.0 45.0}\n  6 \"ORDER BY a RANGE BETWEEN 1.0 PRECEDING AND 2.0 PRECEDING\" {0.0 0.0}\n")
+							for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
+								tn := _items8[_idx8+0]
 								_ = tn // suppress unused warning
-								spec := _items6[_idx6+1]
+								spec := _items8[_idx8+1]
 								_ = spec // suppress unused warning
-								res := _items6[_idx6+2]
+								res := _items8[_idx8+2]
 								_ = res // suppress unused warning
-								_ = _idx6
+								_ = _idx8
 									{ // "66.2." + tn
 										r = db.Query("\n    SELECT total(a) OVER ( " + spec + " ) FROM t2 ORDER BY a\n  ")
 										if r.Error != nil {

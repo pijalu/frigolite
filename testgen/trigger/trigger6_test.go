@@ -39,14 +39,23 @@ func Test_trigger6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var trigger6_cnt string
+	_ = trigger6_cnt // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "trigger6-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    CREATE TABLE log(a, b, c);\n    CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES(1, new.x, new.y);\n    END;\n    CREATE TRIGGER r2 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES(2, new.x, new.y);\n    END;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    CREATE TABLE log(a, b, c);\n    CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES(1, new.x, new.y);\n    END;\n    CREATE TRIGGER r2 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES(2, new.x, new.y);\n    END;\n  ")
 		}
-		var _trigger6_cnt = "0" // TCL namespace variable
-		_ = _trigger6_cnt // suppress unused warning
+		trigger6_cnt = "0" // TCL namespace variable
+		_ = trigger6_cnt // suppress unused warning
 		// proc definition (not transpiled)
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,counter());\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {

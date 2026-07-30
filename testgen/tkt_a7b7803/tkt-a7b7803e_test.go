@@ -39,6 +39,11 @@ func Test_tkt_a7b7803e(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-a7b7803e.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(0,'first'),(99,'fuzzy');\n    SELECT (t1.a==0) AS x, b\n      FROM t1\n     WHERE a=0 OR x;\n  ")

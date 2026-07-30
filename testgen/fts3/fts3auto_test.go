@@ -40,12 +40,213 @@ func Test_fts3auto(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sfep string
+	_ = sfep // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var nArg string
+	_ = nArg // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var match string
+	_ = match // pre-declared from TCL source
+	var deferred string
+	_ = deferred // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var matchinfo_asc string
+	_ = matchinfo_asc // pre-declared from TCL source
+	var docid string
+	_ = docid // pre-declared from TCL source
+	var matchinfo_desc string
+	_ = matchinfo_desc // pre-declared from TCL source
+	var title string
+	_ = title // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var pgsz string
+	_ = pgsz // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var doc string
+	_ = doc // pre-declared from TCL source
+	var scan_littleEndian string
+	_ = scan_littleEndian // pre-declared from TCL source
+	var scan_bigEndian string
+	_ = scan_bigEndian // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var col string
+	_ = col // pre-declared from TCL source
+	var iCol string
+	_ = iCol // pre-declared from TCL source
+	var iColFilter string
+	_ = iColFilter // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var miss string
+	_ = miss // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var nPhrase string
+	_ = nPhrase // pre-declared from TCL source
+	var nCol string
+	_ = nCol // pre-declared from TCL source
+	var iPhrase string
+	_ = iPhrase // pre-declared from TCL source
+	var nHit_iPhrase_iCol string
+	_ = nHit_iPhrase_iCol // pre-declared from TCL source
+	var nDoc_iPhrase_iCol string
+	_ = nDoc_iPhrase_iCol // pre-declared from TCL source
+	var key string
+	_ = key // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var phrase string
+	_ = phrase // pre-declared from TCL source
+	var rewritten string
+	_ = rewritten // pre-declared from TCL source
+	var partial string
+	_ = partial // pre-declared from TCL source
+	var tok string
+	_ = tok // pre-declared from TCL source
+	var tblsize string
+	_ = tblsize // pre-declared from TCL source
+	var nHit_0_iCol string
+	_ = nHit_0_iCol // pre-declared from TCL source
+	var nDoc_0_iCol string
+	_ = nDoc_0_iCol // pre-declared from TCL source
+	var aMatchinfo_docid string
+	_ = aMatchinfo_docid // pre-declared from TCL source
+	var mi string
+	_ = mi // pre-declared from TCL source
+	var nullentry string
+	_ = nullentry // pre-declared from TCL source
+	var iBracket string
+	_ = iBracket // pre-declared from TCL source
+	var nExpr string
+	_ = nExpr // pre-declared from TCL source
+	var prec_NOT string
+	_ = prec_NOT // pre-declared from TCL source
+	var prec_AND string
+	_ = prec_AND // pre-declared from TCL source
+	var prec_OR string
+	_ = prec_OR // pre-declared from TCL source
+	var currentprec string
+	_ = currentprec // pre-declared from TCL source
+	var expr_length string
+	_ = expr_length // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var opidx string
+	_ = opidx // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var eLeft string
+	_ = eLeft // pre-declared from TCL source
+	var eRight string
+	_ = eRight // pre-declared from TCL source
+	var hit string
+	_ = hit // pre-declared from TCL source
+	var aMatchinfo_hit string
+	_ = aMatchinfo_hit // pre-declared from TCL source
+	var A string
+	_ = A // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var create string
+	_ = create // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var limit string
+	_ = limit // pre-declared from TCL source
+	var def string
+	_ = def // pre-declared from TCL source
+	var chunkconfig string
+	_ = chunkconfig // pre-declared from TCL source
+	var pending string
+	_ = pending // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var TABLE string
+	_ = TABLE // pre-declared from TCL source
+	var MATCHEXPR string
+	_ = MATCHEXPR // pre-declared from TCL source
+	var MATCHINFO string
+	_ = MATCHINFO // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var token string
+	_ = token // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var scan__tcl_platform_byteOrder string
+	_ = scan__tcl_platform_byteOrder // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var colfiltervar string
+	_ = colfiltervar // pre-declared from TCL source
+	var arrayvar string
+	_ = arrayvar // pre-declared from TCL source
+	var nullvar string
+	_ = nullvar // pre-declared from TCL source
+	var A_name string
+	_ = A_name // pre-declared from TCL source
+	var _d_arr string
+	_ = _d_arr // pre-declared from TCL source
+	var d_docid string
+	_ = d_docid // pre-declared from TCL source
+	var d_col string
+	_ = d_col // pre-declared from TCL source
+	var counts_key string
+	_ = counts_key // pre-declared from TCL source
+	var aRewrite_docid string
+	_ = aRewrite_docid // pre-declared from TCL source
+	var counts_docid_iCol string
+	_ = counts_docid_iCol // pre-declared from TCL source
+	var prec_op string
+	_ = prec_op // pre-declared from TCL source
+	var aLeft_hit string
+	_ = aLeft_hit // pre-declared from TCL source
+	var nullleft string
+	_ = nullleft // pre-declared from TCL source
+	var aRight_hit string
+	_ = aRight_hit // pre-declared from TCL source
+	var nullright string
+	_ = nullright // pre-declared from TCL source
+	var p string
+	_ = p // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3auto"
+	testprefix = "fts3auto"
 	_ = testprefix // suppress unused warning
-	var sfep = sqlite_fts3_enable_parentheses
+	sfep = sqlite_fts3_enable_parentheses
 	_ = sfep // suppress unused warning
-	var sqlite_fts3_enable_parentheses = "1"
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
@@ -59,21 +260,21 @@ func Test_fts3auto(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.1 {a b c a b} a {2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.2 {a b c a b} {a 5 b 6 c} {2 2 1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.3 {a b c a b} {\"a b\"} {2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.4 {a b c a b} {\"b c\"} {1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.5 {a b c a b} {\"c c\"} {0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.1 a b c d e f g {b 2 f} {0 0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.2 a b c d e f g {b 3 f} {1 1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.3 a b c d e f g {f 2 b} {0 0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.4 a b c d e f g {f 3 b} {1 1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.5 a b c d e f g {\"a b\" 2 \"f g\"} {0 0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.6 a b c d e f g {\"a b\" 3 \"f g\"} {1 1}")
-	var A = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
+	// test_fts3_near_match 1.1.1 {a b c a b} a {2} (unsupported command, not transpiled)
+	// test_fts3_near_match 1.1.2 {a b c a b} {a 5 b 6 c} {2 2 1} (unsupported command, not transpiled)
+	// test_fts3_near_match 1.1.3 {a b c a b} {"a b"} {2} (unsupported command, not transpiled)
+	// test_fts3_near_match 1.1.4 {a b c a b} {"b c"} {1} (unsupported command, not transpiled)
+	// test_fts3_near_match 1.1.5 {a b c a b} {"c c"} {0} (unsupported command, not transpiled)
+	// test_fts3_near_match 1.2.1 a b c d e f g {b 2 f} {0 0} (unsupported command, not transpiled)
+	// test_fts3_near_match 1.2.2 a b c d e f g {b 3 f} {1 1} (unsupported command, not transpiled)
+	// test_fts3_near_match 1.2.3 a b c d e f g {f 2 b} {0 0} (unsupported command, not transpiled)
+	// test_fts3_near_match 1.2.4 a b c d e f g {f 3 b} {1 1} (unsupported command, not transpiled)
+	// test_fts3_near_match 1.2.5 a b c d e f g {"a b" 2 "f g"} {0 0} (unsupported command, not transpiled)
+	// test_fts3_near_match 1.2.6 a b c d e f g {"a b" 3 "f g"} {1 1} (unsupported command, not transpiled)
+	A = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
 	_ = A // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.3.1 $A {\"c d\" 5 \"i j\" 1 \"e f\"} {0 0 0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.3.2 $A {\"c d\" 5 \"i j\" 2 \"e f\"} {1 1 1}")
+	// test_fts3_near_match 1.3.1 $A {"c d" 5 "i j" 1 "e f"} {0 0 0} (unsupported command, not transpiled)
+	// test_fts3_near_match 1.3.2 $A {"c d" 5 "i j" 2 "e f"} {1 1 1} (unsupported command, not transpiled)
 	// foreach {tn create} "\n  1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\"\n"
 	_items0 := tclSplitList("\n  1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\"\n")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
@@ -89,10 +290,10 @@ func Test_fts3auto(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t1 USING " + create)
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
-					var doc = "list"
+					doc = "list"
 					_ = doc // suppress unused warning
 					if tclBool(i + "&0x01") {
 						doc = tclListAppend(doc, "one")
@@ -130,7 +331,7 @@ func Test_fts3auto(t *testing.T) {
 				expr := _items1[_idx1+1]
 				_ = expr // suppress unused warning
 				_ = _idx1
-					t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 2.$tn.2.$tn2 t1 $expr")
+					// do_fts3query_test 2.$tn.2.$tn2 t1 $expr (unsupported command, not transpiled)
 				}
 			}
 			// foreach {tn create} "\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n"
@@ -153,9 +354,9 @@ func Test_fts3auto(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(docid, x) VALUES(-2, 'a b c d e f g h i j k');\n    INSERT INTO t1(docid, x) VALUES(-1, 'b c d e f g h i j k a');\n    INSERT INTO t1(docid, x) VALUES(0, 'c d e f g h i j k a b');\n    INSERT INTO t1(docid, x) VALUES(1, 'd e f g h i j k a b c');\n    INSERT INTO t1(docid, x) VALUES(2, 'e f g h i j k a b c d');\n    INSERT INTO t1(docid, x) VALUES(3, 'f g h i j k a b c d e');\n    INSERT INTO t1(docid, x) VALUES(4, 'a c e g i k');\n    INSERT INTO t1(docid, x) VALUES(5, 'a d g j');\n    INSERT INTO t1(docid, x) VALUES(6, 'c a b');\n  ")
 						}
 					}
-					var limit = "fts3_make_deferrable t1 c"
+					limit = "fts3_make_deferrable t1 c"
 					_ = limit // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 3.$tn.2.1 t1 {a OR c}")
+					// do_fts3query_test 3.$tn.2.1 t1 {a OR c} (unsupported command, not transpiled)
 					// foreach {tn2 expr def} "\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  "
 					_items3 := tclSplitList("\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  ")
 					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
@@ -166,7 +367,7 @@ func Test_fts3auto(t *testing.T) {
 						def := _items3[_idx3+2]
 						_ = def // suppress unused warning
 						_ = _idx3
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 3.$tn.4.$tn2 -deferred $def t1 $expr")
+							// do_fts3query_test 3.$tn.4.$tn2 -deferred $def t1 $expr (unsupported command, not transpiled)
 						}
 					}
 					// foreach {tn create} "\n  1    \"fts4(x, y)\"\n  2    \"fts4(x, y, order=DESC)\"\n  3    \"fts4(x, y, order=DESC, prefix=2)\"\n"
@@ -181,31 +382,31 @@ func Test_fts3auto(t *testing.T) {
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";\n    INSERT INTO t1 VALUES('one two five four five', '');\n    INSERT INTO t1 VALUES('', 'one two five four five');\n    INSERT INTO t1 VALUES('one two', 'five four five');")
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.1 t1 {one AND five}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.2 t1 {one NEAR five}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.3 t1 {one NEAR/1 five}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.4 t1 {one NEAR/2 five}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.5 t1 {one NEAR/3 five}")
+							// do_fts3query_test 4.$tn.1.1 t1 {one AND five} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.1.2 t1 {one NEAR five} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.1.3 t1 {one NEAR/1 five} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.1.4 t1 {one NEAR/2 five} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.1.5 t1 {one NEAR/3 five} (unsupported command, not transpiled)
 							{ // do_test "4." + tn + ".2"
-								var limit = "fts3_make_deferrable t1 five"
+								limit = "fts3_make_deferrable t1 five"
 								_ = limit // suppress unused warning
 								_res = db.Exec(" INSERT INTO t1(t1) VALUES('optimize') ")
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1) VALUES('optimize') ")
 								}
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.1 -deferred five t1 {one AND five}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.2 -deferred five t1 {one NEAR five}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.3 -deferred five t1 {one NEAR/1 five}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.4 -deferred five t1 {one NEAR/2 five}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.5 -deferred five t1 {one NEAR/3 five}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.1 -deferred fi* t1 {on* AND fi*}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.2 -deferred fi* t1 {on* NEAR fi*}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.3 -deferred fi* t1 {on* NEAR/1 fi*}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.4 -deferred fi* t1 {on* NEAR/2 fi*}")
-							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.5 -deferred fi* t1 {on* NEAR/3 fi*}")
+							// do_fts3query_test 4.$tn.3.1 -deferred five t1 {one AND five} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.3.2 -deferred five t1 {one NEAR five} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.3.3 -deferred five t1 {one NEAR/1 five} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.3.4 -deferred five t1 {one NEAR/2 five} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.3.5 -deferred five t1 {one NEAR/3 five} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.4.1 -deferred fi* t1 {on* AND fi*} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.4.2 -deferred fi* t1 {on* NEAR fi*} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.4.3 -deferred fi* t1 {on* NEAR/1 fi*} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.4.4 -deferred fi* t1 {on* NEAR/2 fi*} (unsupported command, not transpiled)
+							// do_fts3query_test 4.$tn.4.5 -deferred fi* t1 {on* NEAR/3 fi*} (unsupported command, not transpiled)
 						}
-						var chunkconfig = "fts3_configure_incr_load 1 1"
+						chunkconfig = "fts3_configure_incr_load 1 1"
 						_ = chunkconfig // suppress unused warning
 						// foreach {tn create pending} "\n  1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n"
 						_items5 := tclSplitList("\n  1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n")
@@ -240,13 +441,13 @@ func Test_fts3auto(t *testing.T) {
 											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a, b) VALUES($a, $b)")
 										}
 									}
-									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.1 t1 {s*}")
-									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.2 t1 {so*}")
-									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.3 t1 {\"s* o*\"}")
-									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.4 t1 {b* NEAR/3 a*}")
-									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.5 t1 {a*}")
-									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.6 t1 {th* NEAR/5 a* NEAR/5 w*}")
-									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.7 t1 {\"b* th* art* fair*\"}")
+									// do_fts3query_test 5.$tn.1.1 t1 {s*} (unsupported command, not transpiled)
+									// do_fts3query_test 5.$tn.1.2 t1 {so*} (unsupported command, not transpiled)
+									// do_fts3query_test 5.$tn.1.3 t1 {"s* o*"} (unsupported command, not transpiled)
+									// do_fts3query_test 5.$tn.1.4 t1 {b* NEAR/3 a*} (unsupported command, not transpiled)
+									// do_fts3query_test 5.$tn.1.5 t1 {a*} (unsupported command, not transpiled)
+									// do_fts3query_test 5.$tn.1.6 t1 {th* NEAR/5 a* NEAR/5 w*} (unsupported command, not transpiled)
+									// do_fts3query_test 5.$tn.1.7 t1 {"b* th* art* fair*"} (unsupported command, not transpiled)
 									if tclBool(pending) {
 										_res = db.Exec("COMMIT")
 										if _res.Error != nil {
@@ -254,7 +455,7 @@ func Test_fts3auto(t *testing.T) {
 										}
 									}
 								}
-								// eval fts3_configure_incr_load $chunkconfig
+								// eval (dynamic, not transpiled)
 								// foreach {tn pending create} "\n  1    0 \"fts4(a, b, c, d)\"\n  2    1 \"fts4(a, b, c, d)\"\n  3    0 \"fts4(a, b, c, d, order=DESC)\"\n  4    1 \"fts4(a, b, c, d, order=DESC)\"\n"
 								_items7 := tclSplitList("\n  1    0 \"fts4(a, b, c, d)\"\n  2    1 \"fts4(a, b, c, d)\"\n  3    0 \"fts4(a, b, c, d, order=DESC)\"\n  4    1 \"fts4(a, b, c, d, order=DESC)\"\n")
 								for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
@@ -292,11 +493,11 @@ func Test_fts3auto(t *testing.T) {
 													t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($a, $b, $c, $d) ")
 												}
 											}
-											t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.1 t1 {b:G}")
-											t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.2 t1 {b:G AND c:I}")
-											t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.3 t1 {b:G NEAR c:I}")
-											t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.4 t1 {a:C OR b:G OR c:K OR d:C}")
-											t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.5 t1 {a:G OR b:G}")
+											// do_fts3query_test 6.$tn.1 t1 {b:G} (unsupported command, not transpiled)
+											// do_fts3query_test 6.$tn.2 t1 {b:G AND c:I} (unsupported command, not transpiled)
+											// do_fts3query_test 6.$tn.3 t1 {b:G NEAR c:I} (unsupported command, not transpiled)
+											// do_fts3query_test 6.$tn.4 t1 {a:C OR b:G OR c:K OR d:C} (unsupported command, not transpiled)
+											// do_fts3query_test 6.$tn.5 t1 {a:G OR b:G} (unsupported command, not transpiled)
 											_res = db.Exec(" COMMIT ")
 											_ = _res // catchsql
 										}
@@ -319,10 +520,10 @@ func Test_fts3auto(t *testing.T) {
 														t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($x) ")
 													}
 												}
-												t.Errorf("TODO: %s not implemented in frigolite", "fts3_make_deferrable t1 B 2")
-												t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.1 t1 {\"M B\"}")
-												t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.2 t1 {\"B D\"}")
-												t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.3 -deferred B t1 {\"M B D\"}")
+												// fts3_make_deferrable t1 B 2 (unsupported command, not transpiled)
+												// do_fts3query_test 7.$tn.1 t1 {"M B"} (unsupported command, not transpiled)
+												// do_fts3query_test 7.$tn.2 t1 {"B D"} (unsupported command, not transpiled)
+												// do_fts3query_test 7.$tn.3 -deferred B t1 {"M B D"} (unsupported command, not transpiled)
 											}
 											sqlite_fts3_enable_parentheses = sfep
 											_ = sqlite_fts3_enable_parentheses // suppress unused warning

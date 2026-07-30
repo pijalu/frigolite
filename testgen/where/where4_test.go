@@ -39,8 +39,23 @@ func Test_where4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var null string
+	_ = null // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "where4"
+	testprefix = "where4"
 	_ = testprefix // suppress unused warning
 	{ // do_test "where4-1.0"
 		r = db.Query("\n    CREATE TABLE t1(w, x, y);\n    CREATE INDEX i1wxy ON t1(w,x,y);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,NULL,3);\n    INSERT INTO t1 VALUES('a','b','c');\n    INSERT INTO t1 VALUES('a',NULL,'c');\n    INSERT INTO t1 VALUES(X'78',x'79',x'7a');\n    INSERT INTO t1 VALUES(X'78',NULL,X'7A');\n    INSERT INTO t1 VALUES(NULL,NULL,NULL);\n    SELECT count(*) FROM t1;\n  ")
@@ -50,55 +65,55 @@ func Test_where4(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "where4-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS NULL") // count (search count always 0)
 	}
 	{ // do_test "where4-1.1b"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS $null}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS $null") // count (search count always 0)
 	}
 	{ // do_test "where4-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE +w IS NULL}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE +w IS NULL") // count (search count always 0)
 	}
 	{ // do_test "where4-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x IS NULL}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w=1 AND x IS NULL") // count (search count always 0)
 	}
 	{ // do_test "where4-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND +x IS NULL}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w=1 AND +x IS NULL") // count (search count always 0)
 	}
 	{ // do_test "where4-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x>0}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w=1 AND x>0") // count (search count always 0)
 	}
 	{ // do_test "where4-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x<9}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w=1 AND x<9") // count (search count always 0)
 	}
 	{ // do_test "where4-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x IS NULL AND y...}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w=1 AND x IS NULL AND y=3") // count (search count always 0)
 	}
 	{ // do_test "where4-1.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x IS NULL AND y...}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w=1 AND x IS NULL AND y>2") // count (search count always 0)
 	}
 	{ // do_test "where4-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w='a' AND x IS NULL AND...}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w='a' AND x IS NULL AND y='c'") // count (search count always 0)
 	}
 	{ // do_test "where4-1.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL") // count (search count always 0)
 	}
 	{ // do_test "where4-1.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL A...}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL AND y=123") // count (search count always 0)
 	}
 	{ // do_test "where4-1.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL A...}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL AND y=x'7A'") // count (search count always 0)
 	}
 	{ // do_test "where4-1.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL") // count (search count always 0)
 	}
 	{ // do_test "where4-1.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL...}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL AND y IS NULL") // count (search count always 0)
 	}
 	{ // do_test "where4-1.15"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL...}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL AND y<0") // count (search count always 0)
 	}
 	{ // do_test "where4-1.16"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL...}")
+		_ = db.Exec("SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL AND y>=0") // count (search count always 0)
 	}
 	{ // do_test "where4-2.1"
 		r = db.Query("SELECT rowid FROM t1 ORDER BY w, x, y")

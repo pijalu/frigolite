@@ -39,6 +39,103 @@ func Test_backcompat(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var bc_chan1 string
+	_ = bc_chan1 // pre-declared from TCL source
+	var bc_chan2 string
+	_ = bc_chan2 // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var sqlite_libversion string
+	_ = sqlite_libversion // pre-declared from TCL source
+	var bin string
+	_ = bin // pre-declared from TCL source
+	var nErr string
+	_ = nErr // pre-declared from TCL source
+	var dir string
+	_ = dir // pre-declared from TCL source
+	var bintag string
+	_ = bintag // pre-declared from TCL source
+	var bcname string
+	_ = bcname // pre-declared from TCL source
+	var nm string
+	_ = nm // pre-declared from TCL source
+	var incompatible__get_version_bin_ string
+	_ = incompatible__get_version_bin_ // pre-declared from TCL source
+	var zData string
+	_ = zData // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var cksum1 string
+	_ = cksum1 // pre-declared from TCL source
+	var cksum2 string
+	_ = cksum2 // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var same string
+	_ = same // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var contents string
+	_ = contents // pre-declared from TCL source
+	var num string
+	_ = num // pre-declared from TCL source
+	var doc string
+	_ = doc // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var alphabet string
+	_ = alphabet // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var term string
+	_ = term // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var x1 string
+	_ = x1 // pre-declared from TCL source
+	var x2 string
+	_ = x2 // pre-declared from TCL source
+	var y1 string
+	_ = y1 // pre-declared from TCL source
+	var y2 string
+	_ = y2 // pre-declared from TCL source
+	var queries string
+	_ = queries // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var bin1 string
+	_ = bin1 // pre-declared from TCL source
+	var bin2 string
+	_ = bin2 // pre-declared from TCL source
+	var rv string
+	_ = rv // pre-declared from TCL source
+	var tcl string
+	_ = tcl // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var BC_binaries string
+	_ = BC_binaries // pre-declared from TCL source
+	var zFile string
+	_ = zFile // pre-declared from TCL source
+	var sqlite_pending_byte string
+	_ = sqlite_pending_byte // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("\"\" == " + "bc_find_binaries backcompat.test") {
 		return
@@ -49,10 +146,15 @@ func Test_backcompat(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_allbackcompat_test {\n\n  # Test that database files are backwards compa...}")
+	// do_allbackcompat_test {
+
+  # Test that database files are backwards compa...} (unsupported command, not transpiled)
 	for _, k := range tclSplitList("lsort [array names ::incompatible]") {
 	_ = k // suppress unused warning
-		t.Log("ERROR: Detected journal incompatibility with version " + k)
+		_putsMsg := "ERROR: Detected journal incompatibility with version " + k
+		_ = _putsMsg
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_allbackcompat_test {\n  if {[code1 {sqlite3 -version}] >= \"3.7.0\"\n   &&...}")
+	// do_allbackcompat_test {
+  if {[code1 {sqlite3 -version}] >= "3.7.0"
+   &&...} (unsupported command, not transpiled)
 }

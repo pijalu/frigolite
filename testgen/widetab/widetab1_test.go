@@ -39,8 +39,15 @@ func Test_widetab1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "widetab1"
+	testprefix = "widetab1"
 	_ = testprefix // suppress unused warning
 	{ // "100"
 		_res = db.Exec("\n  CREATE TABLE a(\n   a00, a01, a02, a03, a04, a05, a06, a07, a08, a09,\n   a10, a11, a12, a13, a14, a15, a16, a17, a18, a19,\n   a20, a21, a22, a23, a24, a25, a26, a27, a28, a29,\n   a30, a31, a32, a33, a34, a35, a36, a37, a38, a39,\n   a40, a41, a42, a43, a44, a45, a46, a47, a48, a49,\n   a50, a51, a52, a53, a54, a55, a56, a57, a58, a59,\n   pd, bn, vb, bc, cn, ie, qm);\n  CREATE INDEX a1 on a(pd, bn, vb, bc, cn); -- preferred index\n  CREATE INDEX a2 on a(pd, bc, ie, qm);     -- suboptimal index\n  CREATE TABLE b(bg, bc, bn, iv, ln, mg);\n  CREATE INDEX b1 on b(bn, iv, bg);\n")

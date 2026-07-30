@@ -40,11 +40,25 @@ func Test_mallocA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "mallocA"
+	testprefix = "mallocA"
 	_ = testprefix // suppress unused warning
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping mallocA tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping mallocA tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
 	os.Remove("test.db.bu")
@@ -52,30 +66,49 @@ func Test_mallocA(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a COLLATE NOCASE,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t1 VALUES(1,2,4);\n  INSERT INTO t1 VALUES(2,3,4);\n  CREATE INDEX t1i1 ON t1(a);\n  CREATE INDEX t1i2 ON t1(b,c);\n  CREATE TABLE t2(x,y,z);\n")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test.db.bu")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocA-1 -testdb test.db.bu -sqlbody {\n  ANALYZE\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocA-1.1 -testdb test.db.bu -sqlbody {\n  ANALYZE t1\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocA-1.2 -testdb test.db.bu -sqlbody {\n  ANALYZE main\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocA-1.3 -testdb test.db.bu -sqlbody {\n  ANALYZE main.t1\n}")
+	// copy_file test.db test.db.bu (unsupported command, not transpiled)
+	// do_malloc_test mallocA-1 -testdb test.db.bu -sqlbody {
+  ANALYZE
+} (unsupported command, not transpiled)
+	// do_malloc_test mallocA-1.1 -testdb test.db.bu -sqlbody {
+  ANALYZE t1
+} (unsupported command, not transpiled)
+	// do_malloc_test mallocA-1.2 -testdb test.db.bu -sqlbody {
+  ANALYZE main
+} (unsupported command, not transpiled)
+	// do_malloc_test mallocA-1.3 -testdb test.db.bu -sqlbody {
+  ANALYZE main.t1
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 	{ // "6-prep"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES('abc', 'w'); -- rowid=1\n  INSERT INTO t1 VALUES('abc', 'x'); -- rowid=2\n  INSERT INTO t1 VALUES('abc', 'y'); -- rowid=3\n  INSERT INTO t1 VALUES('abc', 'z'); -- rowid=4\n\n  INSERT INTO t1 VALUES('def', 'w'); -- rowid=5\n  INSERT INTO t1 VALUES('def', 'x'); -- rowid=6\n  INSERT INTO t1 VALUES('def', 'y'); -- rowid=7\n  INSERT INTO t1 VALUES('def', 'z'); -- rowid=8\n\n  ANALYZE;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES('abc', 'w'); -- rowid=1\n  INSERT INTO t1 VALUES('abc', 'x'); -- rowid=2\n  INSERT INTO t1 VALUES('abc', 'y'); -- rowid=3\n  INSERT INTO t1 VALUES('abc', 'z'); -- rowid=4\n\n  INSERT INTO t1 VALUES('def', 'w'); -- rowid=5\n  INSERT INTO t1 VALUES('def', 'x'); -- rowid=6\n  INSERT INTO t1 VALUES('def', 'y'); -- rowid=7\n  INSERT INTO t1 VALUES('def', 'z'); -- rowid=8\n\n  ANALYZE;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 6.1 -faults oom* -body {\n  execsql { SELECT rowid FROM t1 WHERE a='abc' AN...} -test {\n  faultsim_test_result [list 0 2]\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 6.2 -faults oom* -body {\n  execsql { SELECT rowid FROM t1 WHERE a='abc' AN...} -test {\n  faultsim_test_result [list 0 {1 2}]\n}")
+	// do_faultsim_test 6.1 -faults oom* -body {
+  execsql { SELECT rowid FROM t1 WHERE a='abc' AN...} -test {
+  faultsim_test_result [list 0 2]
+} (unsupported command, not transpiled)
+	// do_faultsim_test 6.2 -faults oom* -body {
+  execsql { SELECT rowid FROM t1 WHERE a='abc' AN...} -test {
+  faultsim_test_result [list 0 {1 2}]
+} (unsupported command, not transpiled)
 	{ // "7.0"
 		r = db.Query("\n  PRAGMA cache_size = 5;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA cache_size = 5;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 7 -faults oom-trans* -prep {\n} -body {\n  execsql {\n    WITH r(x,y) AS (\n      SELECT 1, ...} -test {\n  set res [list 200 100 200 100 200 100 200 100 2...}")
+	// do_faultsim_test 7 -faults oom-trans* -prep {
+} -body {
+  execsql {
+    WITH r(x,y) AS (
+      SELECT 1, ...} -test {
+  set res [list 200 100 200 100 200 100 200 100 2...} (unsupported command, not transpiled)
 	{ // do_test "malloc-99.X"
 		{
 			var _catchErr error

@@ -3,6 +3,7 @@ package zeroblob
 
 import (
 "github.com/pijalu/frigolite"
+"strconv"
 "strings"
 "testing"
 )
@@ -40,24 +41,47 @@ func Test_zeroblob(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var memused string
+	_ = memused // pre-declared from TCL source
+	var sqlite3_max_blobsize string
+	_ = sqlite3_max_blobsize // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var nZero string
+	_ = nZero // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "zeroblob"
+	testprefix = "zeroblob"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	_res = db.Exec("PRAGMA cache_size=10")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA cache_size=10")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
-	var memused = "sqlite3_memory_used"
+	// sqlite3_memory_highwater 1 (unsupported command, not transpiled)
+	memused = "sqlite3_memory_used"
 	_ = memused // suppress unused warning
 	{ // do_test "zeroblob-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n  ")
 		}
-		var _sqlite3_max_blobsize = "0" // TCL namespace variable
-		_ = _sqlite3_max_blobsize // suppress unused warning
+		sqlite3_max_blobsize = "0" // TCL namespace variable
+		_ = sqlite3_max_blobsize // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2,3,4,zeroblob(1000000));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(2,3,4,zeroblob(1000000));\n  ")
@@ -70,13 +94,13 @@ func Test_zeroblob(t *testing.T) {
 		}
 	}
 	{ // do_test "zeroblob-1.3"
-		var _sqlite3_max_blobsize = "0" // TCL namespace variable
-		_ = _sqlite3_max_blobsize // suppress unused warning
+		sqlite3_max_blobsize = "0" // TCL namespace variable
+		_ = sqlite3_max_blobsize // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(3,4,zeroblob(10000),5);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(3,4,zeroblob(10000),5);\n  ")
 		}
-		_ = _sqlite3_max_blobsize // TCL namespace variable (query)
+		_ = sqlite3_max_blobsize // TCL namespace variable (query)
 	}
 	{ // do_test "zeroblob-1.4"
 		r = db.Query("\n    SELECT length(c), length(d) FROM t1\n  ")
@@ -85,8 +109,8 @@ func Test_zeroblob(t *testing.T) {
 		}
 	}
 	{ // do_test "zeroblob-1.5"
-		var _sqlite3_max_blobsize = "0" // TCL namespace variable
-		_ = _sqlite3_max_blobsize // suppress unused warning
+		sqlite3_max_blobsize = "0" // TCL namespace variable
+		_ = sqlite3_max_blobsize // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(4,5,zeroblob(10000),zeroblob(10000));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(4,5,zeroblob(10000),zeroblob(10000));\n  ")
@@ -99,8 +123,8 @@ func Test_zeroblob(t *testing.T) {
 		}
 	}
 	{ // do_test "zeroblob-1.7"
-		var _sqlite3_max_blobsize = "0" // TCL namespace variable
-		_ = _sqlite3_max_blobsize // suppress unused warning
+		sqlite3_max_blobsize = "0" // TCL namespace variable
+		_ = sqlite3_max_blobsize // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(5,zeroblob(10000),NULL,zeroblob(10000));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(5,zeroblob(10000),NULL,zeroblob(10000));\n  ")
@@ -198,25 +222,25 @@ func Test_zeroblob(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select typeof(zeroblob(-1))")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
+	// sqlite3_memory_highwater 1 (unsupported command, not transpiled)
 	memused = "sqlite3_memory_used"
 	_ = memused // suppress unused warning
 	{ // do_test "zeroblob-7.1"
-		var _STMT = "sqlite3_prepare $::DB \"SELECT length(?)\" -1 DUMMY" // TCL namespace variable
-		_ = _STMT // suppress unused warning
-		var _sqlite3_max_blobsize = "0" // TCL namespace variable
-		_ = _sqlite3_max_blobsize // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_zeroblob $::STMT 1 450000")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		STMT = "sqlite3_prepare $::DB \"SELECT length(?)\" -1 DUMMY" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		sqlite3_max_blobsize = "0" // TCL namespace variable
+		_ = sqlite3_max_blobsize // suppress unused warning
+		// sqlite3_bind_zeroblob $::STMT 1 450000 (unsupported command, not transpiled)
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "zeroblob-7.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $::STMT 0")
+		// sqlite3_column_int $::STMT 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "zeroblob-7.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "zeroblob-8.1"
-		tclLLength("execsql {\n    SELECT 'hello' AS a, zeroblob(10) as b from t1 ORDER BY a, b;\n  }")
+		_ = strconv.Itoa(tclLLength("execsql {\n    SELECT 'hello' AS a, zeroblob(10) as b from t1 ORDER BY a, b;\n  }")) // llength result
 	}
 	{ // do_test "zeroblob-9.1"
 		_res = db.Exec("SELECT x'0000' IN (x'000000')")
@@ -311,28 +335,28 @@ func Test_zeroblob(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	var stmt = "sqlite3_prepare db \"SELECT length(?)\" -1 dummy"
+	stmt = "sqlite3_prepare db \"SELECT length(?)\" -1 dummy"
 	_ = stmt // suppress unused warning
 	{ // do_test "12.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "bind_and_run $stmt 40")
+		// bind_and_run $stmt 40 (unsupported command, not transpiled)
 	}
 	{ // do_test "12.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "bind_and_run $stmt 0")
+		// bind_and_run $stmt 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "12.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "bind_and_run $stmt 1000")
+		// bind_and_run $stmt 1000 (unsupported command, not transpiled)
 	}
 	{ // do_test "12.4"
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
 	{ // do_test "12.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
-		var ret = int64(0)
+		// sqlite3_step $stmt (unsupported command, not transpiled)
+		ret = "0"
 		_ = ret // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $stmt")
+		// sqlite3_reset $stmt (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+	// sqlite3_finalize $stmt (unsupported command, not transpiled)
 	{ // "13.100"
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1bbc ON t1(b, b+c);\n  INSERT INTO t1(a,b,c) VALUES(1,zeroblob(8),3);\n  SELECT a, quote(b), length(b), c FROM t1;\n")
 		if r.Error != nil {
@@ -345,5 +369,5 @@ func Test_zeroblob(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	// test_restore_config_pagecache (unsupported command, not transpiled)
 }

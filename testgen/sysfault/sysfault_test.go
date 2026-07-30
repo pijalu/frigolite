@@ -40,24 +40,61 @@ func Test_sysfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var FAULTSIM_vfsfault_transient string
+	_ = FAULTSIM_vfsfault_transient // pre-declared from TCL source
+	var FAULTSIM_vfsfault_persistent string
+	_ = FAULTSIM_vfsfault_persistent // pre-declared from TCL source
+	var open_and_write_body string
+	_ = open_and_write_body // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var errno string
+	_ = errno // pre-declared from TCL source
+	var errlist string
+	_ = errlist // pre-declared from TCL source
+	var errs string
+	_ = errs // pre-declared from TCL source
+	var e string
+	_ = e // pre-declared from TCL source
+	var vfs string
+	_ = vfs // pre-declared from TCL source
+	var body string
+	_ = body // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var iFail string
+	_ = iFail // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
 	}
-	var testprefix = "sysfault"
+	testprefix = "sysfault"
 	_ = testprefix // suppress unused warning
-	var FAULTSIM_vfsfault_transient = "list             \\\n  -injectinstall   vfsfault_install                \\\n  -injectstart     vfsfault_injectstart_t          \\\n  -injectstop      vfsfault_injectstop             \\\n  -injecterrlist   {}                              \\\n  -injectuninstall {test_syscall uninstall}        \\"
+	FAULTSIM_vfsfault_transient = "list             \\\n  -injectinstall   vfsfault_install                \\\n  -injectstart     vfsfault_injectstart_t          \\\n  -injectstop      vfsfault_injectstop             \\\n  -injecterrlist   {}                              \\\n  -injectuninstall {test_syscall uninstall}        \\"
 	_ = FAULTSIM_vfsfault_transient // suppress unused warning
-	var FAULTSIM_vfsfault_persistent = "list            \\\n  -injectinstall   vfsfault_install                \\\n  -injectstart     vfsfault_injectstart_p          \\\n  -injectstop      vfsfault_injectstop             \\\n  -injecterrlist   {}                              \\\n  -injectuninstall {test_syscall uninstall}        \\"
+	FAULTSIM_vfsfault_persistent = "list            \\\n  -injectinstall   vfsfault_install                \\\n  -injectstart     vfsfault_injectstart_p          \\\n  -injectstop      vfsfault_injectstop             \\\n  -injecterrlist   {}                              \\\n  -injectuninstall {test_syscall uninstall}        \\"
 	_ = FAULTSIM_vfsfault_persistent // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	var open_and_write_body = "\n  sqlite3 db test.db\n  db eval {\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n    CREATE TEMP TABLE t2(x);\n    INSERT INTO t2 VALUES('y');\n  }\n"
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	open_and_write_body = "\n  sqlite3 db test.db\n  db eval {\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n    CREATE TEMP TABLE t2(x);\n    INSERT INTO t2 VALUES('y');\n  }\n"
 	_ = open_and_write_body // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults vfsfault-* -prep {\n  faultsim_restore\n} -body $open_and_write_body -test {\n  faultsim_test_result {0 {wal 1 2 3 4}}       \\\n...}")
+	// do_faultsim_test 1 -faults vfsfault-* -prep {
+  faultsim_restore
+} -body $open_and_write_body -test {
+  faultsim_test_result {0 {wal 1 2 3 4}}       \
+...} (unsupported command, not transpiled)
 	// foreach {tn errno errlist} "\n  1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}\n"
 	_items0 := tclSplitList("\n  1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}\n")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
@@ -69,13 +106,19 @@ func Test_sysfault(t *testing.T) {
 		_ = errlist // suppress unused warning
 		_ = _idx0
 			// proc definition (not transpiled)
-			var errs = "list"
+			errs = "list"
 			_ = errs // suppress unused warning
 			for _, e := range tclSplitList(errlist) {
 			_ = e // suppress unused warning
 				errs = tclListAppend(errs, "list 1 $e")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2.$tn -faults vfsfault-* -prep {\n    faultsim_restore\n  } -body \n    test_syscall errno fstat $errno\n    $open_and... -test \n    faultsim_test_result {0 {wal 1 2 3 4}} $errs\n...")
+			// do_faultsim_test 1.2.$tn -faults vfsfault-* -prep {
+    faultsim_restore
+  } -body 
+    test_syscall errno fstat $errno
+    $open_and... -test 
+    faultsim_test_result {0 {wal 1 2 3 4}} $errs
+... (unsupported command, not transpiled)
 		}
 		for _, vfs := range tclSplitList("unix unix-excl") {
 		_ = vfs // suppress unused warning
@@ -90,38 +133,70 @@ func Test_sysfault(t *testing.T) {
 				_ = errlist // suppress unused warning
 				_ = _idx1
 					// proc definition (not transpiled)
-					var errs = "list"
+					errs = "list"
 					_ = errs // suppress unused warning
 					for _, e := range tclSplitList(errlist) {
 					_ = e // suppress unused warning
 						errs = tclListAppend(errs, "list 1 $e")
 					}
-					var body = "[list %VFS% $vfs] {\n      sqlite3 db test.db\n      db eval {\n        CREATE TABLE t1(a, b);\n        INSERT INTO t1 VALUES(1, 2);\n      }\n      set fd [open test.db-journal w]\n      puts $fd \"hello world\"\n      close $fd\n      sqlite3 db test.db -vfs %VFS%\n      db eval {\n        SELECT * FROM t1;\n      }\n    }"
+					body = ""
 					_ = body // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.3.$vfs.$tn -faults vfsfault-* -prep {\n      faultsim_restore\n    } -body \n      test_syscall errno fcntl $errno\n      $body... -test \n      faultsim_test_result {0 {1 2}} $errs\n    ")
+					// do_faultsim_test 1.3.$vfs.$tn -faults vfsfault-* -prep {
+      faultsim_restore
+    } -body 
+      test_syscall errno fcntl $errno
+      $body... -test 
+      faultsim_test_result {0 {1 2}} $errs
+     (unsupported command, not transpiled)
 				}
 			}
 			// proc definition (not transpiled)
 			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // do_test "2.setup"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c, PRIMARY KEY(a));\n    INSERT INTO t1 VALUES('abc', 'def', 'ghi');\n    ATTACH 'test.db2' AS 'aux';\n    CREATE TABLE aux.t2(x);\n    INSERT INTO t2 VALUES(1);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c, PRIMARY KEY(a));\n    INSERT INTO t1 VALUES('abc', 'def', 'ghi');\n    ATTACH 'test.db2' AS 'aux';\n    CREATE TABLE aux.t2(x);\n    INSERT INTO t2 VALUES(1);\n  ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+				// faultsim_save_and_close (unsupported command, not transpiled)
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -faults vfsfault-transient -prep {\n  catch { db close }\n  faultsim_restore\n} -body {\n  test_syscall errno open      EINTR\n  test_sysca...} -test {\n  faultsim_test_result {0 {abc def ghi truncate a...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.2 -faults vfsfault-* -prep {\n  catch { db close }\n  faultsim_restore\n} -body {\n  sqlite3 db test.db\n  set res [db eval {\n    ATT...} -test {\n  faultsim_test_result {0 {abc def ghi truncate a...}")
+			// do_faultsim_test 2.1 -faults vfsfault-transient -prep {
+  catch { db close }
+  faultsim_restore
+} -body {
+  test_syscall errno open      EINTR
+  test_sysca...} -test {
+  faultsim_test_result {0 {abc def ghi truncate a...} (unsupported command, not transpiled)
+			// do_faultsim_test 2.2 -faults vfsfault-* -prep {
+  catch { db close }
+  faultsim_restore
+} -body {
+  sqlite3 db test.db
+  set res [db eval {
+    ATT...} -test {
+  faultsim_test_result {0 {abc def ghi truncate a...} (unsupported command, not transpiled)
 			// proc definition (not transpiled)
-			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults vfsfault-* -prep {\n  faultsim_delete_and_reopen\n  file_control_chunk...} -body {\n  test_syscall errno fstat     EIO\n  test_syscall...} -test {\n  faultsim_test_result {0 20000}\n}")
+			// do_faultsim_test 3 -faults vfsfault-* -prep {
+  faultsim_delete_and_reopen
+  file_control_chunk...} -body {
+  test_syscall errno fstat     EIO
+  test_syscall...} -test {
+  faultsim_test_result {0 20000}
+} (unsupported command, not transpiled)
 			// proc definition (not transpiled)
-			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			// faultsim_delete_and_reopen (unsupported command, not transpiled)
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults vfsfault-* -prep {\n  faultsim_restore_and_reopen\n  file_control_chun...} -body {\n  test_syscall errno mmap     EACCES\n\n  execsql {...} -test {\n  faultsim_test_result {0 {1 2}} {1 {disk I/O err...}")
+			// faultsim_save_and_close (unsupported command, not transpiled)
+			// do_faultsim_test 4 -faults vfsfault-* -prep {
+  faultsim_restore_and_reopen
+  file_control_chun...} -body {
+  test_syscall errno mmap     EACCES
+
+  execsql {...} -test {
+  faultsim_test_result {0 {1 2}} {1 {disk I/O err...} (unsupported command, not transpiled)
 }

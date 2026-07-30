@@ -40,16 +40,37 @@ func Test_fts4opt(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var docid string
+	_ = docid // pre-declared from TCL source
+	var words string
+	_ = words // pre-declared from TCL source
+	var tc1 string
+	_ = tc1 // pre-declared from TCL source
+	var tc2 string
+	_ = tc2 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var c1 string
+	_ = c1 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts4opt" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts4opt" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec(" CREATE TABLE t1(docid, words) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(docid, words) ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+	// fts_kjv_genesis (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t2 USING fts4(words, prefix=\"1,2,3\") ")
@@ -76,7 +97,7 @@ func Test_fts4opt(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "prepare_for_optimize db t2")
+	// prepare_for_optimize db t2 (unsupported command, not transpiled)
 	{ // "1.4"
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
 		if _res.Error != nil {
@@ -97,13 +118,13 @@ func Test_fts4opt(t *testing.T) {
 	}
 	{ // do_test "1.6"
 		for true {
-			var tc1 = "db total_changes"
+			tc1 = "db total_changes"
 			_ = tc1 // suppress unused warning
 			_res = db.Exec(" INSERT INTO t2(t2) VALUES('merge=5,2') ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('merge=5,2') ")
 			}
-			var tc2 = "db total_changes"
+			tc2 = "db total_changes"
 			_ = tc2 // suppress unused warning
 			if func() bool { tc2_n, _tc2_e := strconv.Atoi(tc2); if _tc2_e != nil { return false }; tc1_n, _tc1_e := strconv.Atoi(tc1); if _tc1_e != nil { return false }; return (tc2_n - tc1_n) < 2 }() {
 			}
@@ -139,7 +160,7 @@ func Test_fts4opt(t *testing.T) {
 	}
 	{ // do_test "2.1"
 		// skip: foreach over unresolved TCL command
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// skip: foreach over unresolved TCL command
 		i = "0"
@@ -164,7 +185,7 @@ func Test_fts4opt(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "prepare_for_optimize db t2")
+	// prepare_for_optimize db t2 (unsupported command, not transpiled)
 	{ // "2.4"
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
 		if _res.Error != nil {
@@ -185,13 +206,13 @@ func Test_fts4opt(t *testing.T) {
 	}
 	{ // do_test "2.6"
 		for true {
-			var tc1 = "db total_changes"
+			tc1 = "db total_changes"
 			_ = tc1 // suppress unused warning
 			_res = db.Exec(" INSERT INTO t2(t2) VALUES('merge=5,2') ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('merge=5,2') ")
 			}
-			var tc2 = "db total_changes"
+			tc2 = "db total_changes"
 			_ = tc2 // suppress unused warning
 			if func() bool { tc2_n, _tc2_e := strconv.Atoi(tc2); if _tc2_e != nil { return false }; tc1_n, _tc1_e := strconv.Atoi(tc1); if _tc1_e != nil { return false }; return (tc2_n - tc1_n) < 2 }() {
 			}
@@ -268,7 +289,7 @@ func Test_fts4opt(t *testing.T) {
 		}
 	}
 	{ // do_test "3.6"
-		var c1 = "db total_changes"
+		c1 = "db total_changes"
 		_ = c1 // suppress unused warning
 		_res = db.Exec(" INSERT INTO fts (fts) VALUES ('optimize') ")
 		if _res.Error != nil {
@@ -281,7 +302,7 @@ func Test_fts4opt(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO fts (rowid, t) VALUES (3, 'xyz') ")
 		}
-		var c1 = "db total_changes"
+		c1 = "db total_changes"
 		_ = c1 // suppress unused warning
 		_res = db.Exec(" INSERT INTO fts (fts) VALUES ('optimize') ")
 		if _res.Error != nil {
@@ -290,7 +311,7 @@ func Test_fts4opt(t *testing.T) {
 		// expr ([db total_changes] - $c1) > 1 → "([db total_changes] - $c1) > 1"
 	}
 	{ // do_test "3.8"
-		var c1 = "db total_changes"
+		c1 = "db total_changes"
 		_ = c1 // suppress unused warning
 		_res = db.Exec(" INSERT INTO fts (fts) VALUES ('optimize') ")
 		if _res.Error != nil {

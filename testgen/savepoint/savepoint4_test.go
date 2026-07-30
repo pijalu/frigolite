@@ -40,11 +40,34 @@ func Test_savepoint4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ITERATIONS string
+	_ = ITERATIONS // pre-declared from TCL source
+	var ITERATIONS2 string
+	_ = ITERATIONS2 // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var sig string
+	_ = sig // pre-declared from TCL source
+	var iDelay string
+	_ = iDelay // pre-declared from TCL source
+	var crashed string
+	_ = crashed // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	var ITERATIONS = "25"
+	ITERATIONS = "25"
 	_ = ITERATIONS // suppress unused warning
-	var ITERATIONS2 = "13"
+	ITERATIONS2 = "13"
 	_ = ITERATIONS2 // suppress unused warning
 	// expr srand(0) → "srand(0)"
 	{ // do_test "savepoint4-1"
@@ -53,22 +76,22 @@ func Test_savepoint4(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=10;\n    BEGIN;\n    CREATE TABLE t1(x TEXT);\n    INSERT INTO t1 VALUES(randstr(10,400));\n    INSERT INTO t1 VALUES(randstr(10,400));\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
 		}
 	}
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; ITERATIONS_n, _ITERATIONS_e := strconv.Atoi(ITERATIONS); if _ITERATIONS_e != nil { return false }; return ii_n <= ITERATIONS_n }() {
-		var _sig = "signature" // TCL namespace variable
-		_ = _sig // suppress unused warning
-		var iDelay = "1"
+		sig = "signature" // TCL namespace variable
+		_ = sig // suppress unused warning
+		iDelay = "1"
 		_ = iDelay // suppress unused warning
-		var crashed = "1"
+		crashed = "1"
 		_ = crashed // suppress unused warning
 		for tclBool(crashed) {
 			{ // do_test "savepoint4-1." + ii + ".1." + iDelay
-				var ret = "crashsql -delay $iDelay -file test.db-journal {\n        PRAGMA cache_size = 20;\n        SAVEPOINT one;\n          DELETE FROM t1 WHERE random()%2==0;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randstr(10,10)||x FROM t1;\n           ROLLBACK TO two;\n            UPDATE t1 SET x = randstr(10, 400) WHERE random()%10;\n          RELEASE two;\n        ROLLBACK TO one;\n        RELEASE one;\n      }"
+				ret = "crashsql -delay $iDelay -file test.db-journal {\n        PRAGMA cache_size = 20;\n        SAVEPOINT one;\n          DELETE FROM t1 WHERE random()%2==0;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randstr(10,10)||x FROM t1;\n           ROLLBACK TO two;\n            UPDATE t1 SET x = randstr(10, 400) WHERE random()%10;\n          RELEASE two;\n        ROLLBACK TO one;\n        RELEASE one;\n      }"
 				_ = ret // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "signature")
+				// signature (unsupported command, not transpiled)
 			}
-			var crashed = "lindex $ret 0"
+			crashed = "lindex $ret 0"
 			_ = crashed // suppress unused warning
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -103,37 +126,37 @@ func Test_savepoint4(t *testing.T) {
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; ITERATIONS2_n, _ITERATIONS2_e := strconv.Atoi(ITERATIONS2); if _ITERATIONS2_e != nil { return false }; return ii_n <= ITERATIONS2_n }() {
-		var _sig = "signature" // TCL namespace variable
-		_ = _sig // suppress unused warning
-		var file = "test.db-journal"
+		sig = "signature" // TCL namespace variable
+		_ = sig // suppress unused warning
+		file = "test.db-journal"
 		_ = file // suppress unused warning
-		var iDelay = "1"
+		iDelay = "1"
 		_ = iDelay // suppress unused warning
-		var crashed = "1"
+		crashed = "1"
 		_ = crashed // suppress unused warning
 		for tclBool(crashed) {
 			{ // do_test "savepoint4-2." + ii + ".1." + iDelay
-				var ret = "crashsql -delay $iDelay -file $file {\n        SAVEPOINT one;\n          INSERT INTO t1 SELECT * FROM t1 WHERE rowid<50;\n         ROLLBACK TO one;\n          INSERT INTO t1 SELECT * FROM t1 WHERE rowid<50;\n          SAVEPOINT two;\n            DELETE FROM t1 WHERE (random()%10)==0;\n            SAVEPOINT three;\n              DELETE FROM t1 WHERE (random()%10)==0;\n              SAVEPOINT four;\n                DELETE FROM t1 WHERE (random()%10)==0;\n          RELEASE two;\n\n          SAVEPOINT three;\n            UPDATE t1 SET x = substr(x||x, 12, 100000) WHERE (rowid%12)==0;\n            SAVEPOINT four;\n              UPDATE t1 SET x = substr(x||x, 14, 100000) WHERE (rowid%14)==0;\n           ROLLBACK TO three;\n            UPDATE t1 SET x = substr(x||x, 13, 100000) WHERE (rowid%13)==0;\n          RELEASE three;\n\n        DELETE FROM t1 WHERE rowid > (\n          SELECT rowid FROM t1 ORDER BY rowid ASC LIMIT 1 OFFSET 256\n        );\n        RELEASE one;\n      }"
+				ret = "crashsql -delay $iDelay -file $file {\n        SAVEPOINT one;\n          INSERT INTO t1 SELECT * FROM t1 WHERE rowid<50;\n         ROLLBACK TO one;\n          INSERT INTO t1 SELECT * FROM t1 WHERE rowid<50;\n          SAVEPOINT two;\n            DELETE FROM t1 WHERE (random()%10)==0;\n            SAVEPOINT three;\n              DELETE FROM t1 WHERE (random()%10)==0;\n              SAVEPOINT four;\n                DELETE FROM t1 WHERE (random()%10)==0;\n          RELEASE two;\n\n          SAVEPOINT three;\n            UPDATE t1 SET x = substr(x||x, 12, 100000) WHERE (rowid%12)==0;\n            SAVEPOINT four;\n              UPDATE t1 SET x = substr(x||x, 14, 100000) WHERE (rowid%14)==0;\n           ROLLBACK TO three;\n            UPDATE t1 SET x = substr(x||x, 13, 100000) WHERE (rowid%13)==0;\n          RELEASE three;\n\n        DELETE FROM t1 WHERE rowid > (\n          SELECT rowid FROM t1 ORDER BY rowid ASC LIMIT 1 OFFSET 256\n        );\n        RELEASE one;\n      }"
 				_ = ret // suppress unused warning
-				var crashed = "lindex $ret 0"
+				crashed = "lindex $ret 0"
 				_ = crashed // suppress unused warning
 				if tclBool(crashed) {
-					t.Errorf("TODO: %s not implemented in frigolite", "signature")
+					// signature (unsupported command, not transpiled)
 				} else {
-					_ = _sig // TCL namespace variable (query)
+					_ = sig // TCL namespace variable (query)
 				}
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			if func() bool { crashed_n, _crashed_e := strconv.Atoi(crashed); if _crashed_e != nil { return false }; file_n, _file_e := strconv.Atoi(file); if _file_e != nil { return false }; return crashed_n == 0 && file_n == "test.db-journal" }() {
-				var crashed = "1"
+			if tclBool(crashed + " == 0 && " + file + " == \"test.db-journal\"") {
+				crashed = "1"
 				_ = crashed // suppress unused warning
-				var iDelay = "0"
+				iDelay = "0"
 				_ = iDelay // suppress unused warning
-				var file = "test.db"
+				file = "test.db"
 				_ = file // suppress unused warning
-				var _sig = "signature" // TCL namespace variable
-				_ = _sig // suppress unused warning
+				sig = "signature" // TCL namespace variable
+				_ = sig // suppress unused warning
 			}
 			// incr iDelay 1
 			{

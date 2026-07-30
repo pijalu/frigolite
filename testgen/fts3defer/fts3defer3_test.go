@@ -41,25 +41,42 @@ func Test_fts3defer3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nDoclist string
+	_ = nDoclist // pre-declared from TCL source
+	var nDoc string
+	_ = nDoc // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var document string
+	_ = document // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3defer3"
+	testprefix = "fts3defer3"
 	_ = testprefix // suppress unused warning
-	var nDoclist = "3204"
+	nDoclist = "3204"
 	_ = nDoclist // suppress unused warning
-	var nDoc = "800"
+	nDoc = "800"
 	_ = nDoc // suppress unused warning
 	{ // do_test "1.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4;\n      BEGIN;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4;\n      BEGIN;\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nDoc_n, _nDoc_e := strconv.Atoi(nDoc); if _nDoc_e != nil { return false }; return i_n <= nDoc_n }() {
-			var document = "b b"
+			document = "b b"
 			_ = document // suppress unused warning
 			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 200 }() {
-				var document = "a b"
+				document = "a b"
 				_ = document // suppress unused warning
 			}
 			_res = db.Exec(" INSERT INTO t1 (docid, content) VALUES($i, $document) ")
@@ -104,9 +121,10 @@ func Test_fts3defer3(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4"
-		var fd = "db incrblob t1_segments block 2"
+		fd = "db incrblob t1_segments block 2"
 		_ = fd // suppress unused warning
-		t.Log("-nonewline")
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
 		// close $fd
 	}
 	{ // "1.5"

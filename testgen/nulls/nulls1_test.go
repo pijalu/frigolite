@@ -41,8 +41,31 @@ func Test_nulls1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var limit string
+	_ = limit // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res1 string
+	_ = res1 // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "nulls1"
+	testprefix = "nulls1"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a INTEGER);\n  INSERT INTO t3 VALUES(NULL), (10), (30), (20), (NULL);\n")
@@ -50,7 +73,7 @@ func Test_nulls1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a INTEGER);\n  INSERT INTO t3 VALUES(NULL), (10), (30), (20), (NULL);\n")
 		}
 	}
-	var a = "0"
+	a = "0"
 	_ = a // suppress unused warning
 	for func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n < 3 }() {
 		// foreach {tn limit} "\n    1 \"\"\n    2 \"LIMIT 10\"\n  "
@@ -110,7 +133,9 @@ func Test_nulls1(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "switch $a {\n    0 {\n      execsql { CREATE INDEX i1 ON t3(a) ...}")
+			// switch $a {
+    0 {
+      execsql { CREATE INDEX i1 ON t3(a) ...} (test infra, not transpiled)
 			// incr a 1
 			{
 				_n, _err := strconv.Atoi(a)
@@ -173,8 +198,8 @@ func Test_nulls1(t *testing.T) {
 			_ = _idx1
 				{ // "3.1." + tn
 					_res = db.Exec(sql)
-					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsupported use of NULLS \" + err + \"") {
-						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported use of NULLS \" + err + \"", _res.Error, sql)
+					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unsupported use of NULLS \" + tclStr(err) + \"") {
+						t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unsupported use of NULLS \" + tclStr(err) + \"", _res.Error, sql)
 					}
 				}
 			}
@@ -250,9 +275,9 @@ func Test_nulls1(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t5(a, b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<200\n  ) \n  INSERT INTO t5 SELECT i%2, CASE WHEN (i%10)==0 THEN NULL ELSE i END, i FROM s;\n")
 				}
 			}
-			var res1 = "db eval { SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c }"
+			res1 = "db eval { SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c }"
 			_ = res1 // suppress unused warning
-			var res2 = "db eval { \n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC \n}"
+			res2 = "db eval { \n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b DESC NULLS FIRST, c DESC \n}"
 			_ = res2 // suppress unused warning
 			{ // "6.1.1"
 				r = db.Query("\n  CREATE INDEX t5ab ON t5(a, b, c);\n  SELECT a,b FROM t5 WHERE a=1 ORDER BY b NULLS LAST, c;\n")

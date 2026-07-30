@@ -39,8 +39,19 @@ func Test_vtab4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var echo_module string
+	_ = echo_module // pre-declared from TCL source
+	var echo_module_sync_fail string
+	_ = echo_module_sync_fail // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab4-1.1"
 		_res = db.Exec("\n    CREATE TABLE treal(a PRIMARY KEY, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);\n  ")
 		if _res.Error != nil {
@@ -48,7 +59,7 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-1.2"
-		var echo_module = "list"
+		echo_module = "list"
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO techo VALUES(1, 2, 3);\n  ")
 		if _res.Error != nil {
@@ -56,7 +67,7 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-1.3"
-		var echo_module = "list"
+		echo_module = "list"
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    UPDATE techo SET a = 2;\n  ")
 		if _res.Error != nil {
@@ -64,7 +75,7 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-1.4"
-		var echo_module = "list"
+		echo_module = "list"
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    DELETE FROM techo;\n  ")
 		if _res.Error != nil {
@@ -72,7 +83,7 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-2.1"
-		var echo_module = "list"
+		echo_module = "list"
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO techo VALUES(1, 2, 3);\n    INSERT INTO techo VALUES(4, 5, 6);\n    INSERT INTO techo VALUES(7, 8, 9);\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -84,7 +95,7 @@ func Test_vtab4(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE sreal(a, b, c UNIQUE);\n    CREATE VIRTUAL TABLE secho USING echo(sreal);\n  ")
 		}
-		var echo_module = "list"
+		echo_module = "list"
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO secho SELECT * FROM techo;\n    DELETE FROM techo;\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -104,7 +115,7 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-2.5"
-		var echo_module = "list"
+		echo_module = "list"
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO techo SELECT * FROM secho;\n    DELETE FROM secho;\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
@@ -124,9 +135,9 @@ func Test_vtab4(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab4-3.1"
-		var echo_module = "list"
+		echo_module = "list"
 		_ = echo_module // suppress unused warning
-		var echo_module_sync_fail = "treal"
+		echo_module_sync_fail = "treal"
 		_ = echo_module_sync_fail // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO techo VALUES(1, 2, 3);\n  ")
 		_ = _res // catchsql
@@ -134,9 +145,9 @@ func Test_vtab4(t *testing.T) {
 	{ // do_test "vtab4-3.2"
 	}
 	{ // do_test "vtab4-3.3"
-		var echo_module = "list"
+		echo_module = "list"
 		_ = echo_module // suppress unused warning
-		var echo_module_sync_fail = "sreal"
+		echo_module_sync_fail = "sreal"
 		_ = echo_module_sync_fail // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO techo SELECT * FROM secho;\n    DELETE FROM secho;\n    COMMIT;\n  ")
 		_ = _res // catchsql

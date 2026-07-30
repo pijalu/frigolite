@@ -40,6 +40,23 @@ func Test_tkt2332(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var iKey string
+	_ = iKey // pre-declared from TCL source
+	var Len string
+	_ = Len // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var blobstr string
+	_ = blobstr // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2332.1"
 		r = db.Query("\n    CREATE TABLE blobs (k INTEGER PRIMARY KEY, v BLOB);\n    PRAGMA cache_size = 100;\n  ")
@@ -47,15 +64,15 @@ func Test_tkt2332(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE blobs (k INTEGER PRIMARY KEY, v BLOB);\n    PRAGMA cache_size = 100;\n  ")
 		}
 	}
-	var _iKey = "1" // TCL namespace variable
-	_ = _iKey // suppress unused warning
+	iKey = "1" // TCL namespace variable
+	_ = iKey // suppress unused warning
 	for _, Len := range tclSplitList("list 10000 100000 1000000") {
 	_ = Len // suppress unused warning
 		{ // do_test "tkt2332." + Len + ".1"
-			var val = "6.099e-320"
+			val = "6.099e-320"
 			_ = val // suppress unused warning
-			var _blobstr = "\\\n      [string repeat $val [expr ($Len/[string length $val])+1]] 0 [expr $Len-1]" // TCL namespace variable
-			_ = _blobstr // suppress unused warning
+			blobstr = "\\\n      [string repeat $val [expr ($Len/[string length $val])+1]] 0 [expr $Len-1]" // TCL namespace variable
+			_ = blobstr // suppress unused warning
 			_res = db.Exec(" INSERT INTO blobs VALUES($::iKey, zeroblob($Len)) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO blobs VALUES($::iKey, zeroblob($Len)) ")
@@ -68,9 +85,10 @@ func Test_tkt2332(t *testing.T) {
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".3"
-			var _fd = "db incrblob blobs v $::iKey" // TCL namespace variable
-			_ = _fd // suppress unused warning
-			t.Log("-nonewline")
+			fd = "db incrblob blobs v $::iKey" // TCL namespace variable
+			_ = fd // suppress unused warning
+			_putsMsg := "-nonewline"
+			_ = _putsMsg
 			// close $::fd
 		}
 		{ // do_test "tkt2332." + Len + ".4"
@@ -80,14 +98,13 @@ func Test_tkt2332(t *testing.T) {
 			}
 		}
 		{ // do_test "tkt2332." + Len + ".5"
-			tclLIndex("execsql {SELECT v FROM blobs WHERE k = $::iKey}", "0")
+			_ = tclLIndex("execsql {SELECT v FROM blobs WHERE k = $::iKey}", "0") // lindex result
 		}
-		var _iKey = "0"
-		// incr _iKey 1
+		// incr iKey 1
 		{
-			_n, _err := strconv.Atoi(_iKey)
+			_n, _err := strconv.Atoi(iKey)
 			if _err == nil {
-				_iKey = strconv.Itoa(_n + 1)
+				iKey = strconv.Itoa(_n + 1)
 			}
 		}
 	}

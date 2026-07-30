@@ -39,21 +39,46 @@ func Test_fts3ah(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var doc string
+	_ = doc // pre-declared from TCL source
+	var char string
+	_ = char // pre-declared from TCL source
+	var _len string
+	_ = _len // pre-declared from TCL source
+	var doc1 string
+	_ = doc1 // pre-declared from TCL source
+	var doc2 string
+	_ = doc2 // pre-declared from TCL source
+	var doc3 string
+	_ = doc3 // pre-declared from TCL source
+	var aterm string
+	_ = aterm // pre-declared from TCL source
+	var bterm string
+	_ = bterm // pre-declared from TCL source
+	var xterm string
+	_ = xterm // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var chars string
+	_ = chars // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	var _len = "5000"
+	_len = "5000"
 	_ = _len // suppress unused warning
-	var doc1 = "bigtermdoc {a b c d} $len"
+	doc1 = "bigtermdoc {a b c d} $len"
 	_ = doc1 // suppress unused warning
-	var doc2 = "bigtermdoc {b d e f} $len"
+	doc2 = "bigtermdoc {b d e f} $len"
 	_ = doc2 // suppress unused warning
-	var doc3 = "bigtermdoc {a c e} $len"
+	doc3 = "bigtermdoc {a c e} $len"
 	_ = doc3 // suppress unused warning
-	var aterm = "a $len"
+	aterm = "a $len"
 	_ = aterm // suppress unused warning
-	var bterm = "b $len"
+	bterm = "b $len"
 	_ = bterm // suppress unused warning
-	var xterm = "x $len"
+	xterm = "x $len"
 	_ = xterm // suppress unused warning
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1 (rowid, content) VALUES(1, $doc1);\n  INSERT INTO t1 (rowid, content) VALUES(2, $doc2);\n  INSERT INTO t1 (rowid, content) VALUES(3, $doc3);\n")
 	if _res.Error != nil {

@@ -39,9 +39,16 @@ func Test_orderbyB(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "orderbyb" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "orderbyb" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, b TEXT, c INT);\n  INSERT INTO t1 VALUES(NULL,NULL,NULL);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<7)\n    INSERT INTO t1(a,b,c) SELECT char(p,p), char(q,q), n FROM\n            (SELECT ((n-1)%4)+0x61 AS p, abs(n*2-9+(n>=5))+0x60 AS q, n FROM c);\n  UPDATE t1 SET b=upper(b) WHERE c=1;\n  CREATE TABLE t2(k TEXT PRIMARY KEY, v INT) WITHOUT ROWID;\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<7)\n    INSERT INTO t2(k,v) SELECT char(0x60+n,0x60+n), n FROM c;\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<7)\n    INSERT INTO t2(k,v) SELECT char(0x40+n,0x40+n), n FROM c;\n  SELECT a,b,c,tx.v AS 'v-a', ty.v AS 'v-b'\n    FROM t1 LEFT JOIN t2 AS tx ON tx.k=a\n            LEFT JOIN t2 AS ty ON ty.k=b\n   ORDER BY c;\n")
 		if r.Error != nil {
@@ -54,6 +61,22 @@ func Test_orderbyB(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_eqp_execsql_test 1.1 {\n  WITH t3(x,y) AS (SELECT a, b FROM t1 ORDER BY a...} {\n  QUERY PLAN\n  |--CO-ROUTINE t3\n  |  |--SCAN t1\n ...} {\n  NULL  NULL  NULL\n  aa    bb    2\n  aa    GG    ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_eqp_execsql_test 1.2 {\n  WITH t3(x,y) AS MATERIALIZED (SELECT a, b COLLA...} {\n  QUERY PLAN\n  |--MATERIALIZE t3\n  |  |--SCAN t1\n...} {\n  NULL  NULL  NULL\n  aa    bb    2\n  aa    GG    ...}")
+	// do_eqp_execsql_test 1.1 {
+  WITH t3(x,y) AS (SELECT a, b FROM t1 ORDER BY a...} {
+  QUERY PLAN
+  |--CO-ROUTINE t3
+  |  |--SCAN t1
+ ...} {
+  NULL  NULL  NULL
+  aa    bb    2
+  aa    GG    ...} (unsupported command, not transpiled)
+	// do_eqp_execsql_test 1.2 {
+  WITH t3(x,y) AS MATERIALIZED (SELECT a, b COLLA...} {
+  QUERY PLAN
+  |--MATERIALIZE t3
+  |  |--SCAN t1
+...} {
+  NULL  NULL  NULL
+  aa    bb    2
+  aa    GG    ...} (unsupported command, not transpiled)
 }

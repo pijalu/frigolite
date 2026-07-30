@@ -40,8 +40,15 @@ func Test_upsert3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "zipfile"
+	testprefix = "zipfile"
 	_ = testprefix // suppress unused warning
 	{ // "upsert3-100"
 		_res = db.Exec("\n  CREATE TABLE t1(k int, v text);\n  CREATE UNIQUE INDEX x1 ON t1(k, v);\n")

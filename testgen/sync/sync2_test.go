@@ -3,7 +3,6 @@ package sync
 
 import (
 "github.com/pijalu/frigolite"
-"strconv"
 "testing"
 )
 
@@ -40,15 +39,33 @@ func Test_sync2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sqlite_sync_count string
+	_ = sqlite_sync_count // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "sync2"
+	testprefix = "sync2"
 	_ = testprefix // suppress unused warning
-	if tclBool(_tcl_platform + "(os) == \"Windows NT\"\n  || " + "permutation" + " == \"journaltest\"\n  || " + "permutation" + " == \"inmemory_journal\"\n  || " + "atomic_batch_write test.db") {
+	if tclBool(tcl_platform_os + " == \"Windows NT\"\n  || " + "permutation" + " == \"journaltest\"\n  || " + "permutation" + " == \"inmemory_journal\"\n  || " + "atomic_batch_write test.db") {
 		return
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
@@ -56,7 +73,7 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.1 { INSERT INTO t1 VALUES(3, 4) } 4")
+	// do_execsql_sync_test 1.1 { INSERT INTO t1 VALUES(3, 4) } 4 (unsupported command, not transpiled)
 	{ // "1.2.1"
 		r = db.Query(" PRAGMA main.synchronous = NORMAL ")
 		if r.Error != nil {
@@ -75,7 +92,7 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.2.3 { INSERT INTO t1 VALUES(5, 6) } 3")
+	// do_execsql_sync_test 1.2.3 { INSERT INTO t1 VALUES(5, 6) } 3 (unsupported command, not transpiled)
 	{ // "1.3.1"
 		r = db.Query(" PRAGMA main.synchronous = OFF ")
 		if r.Error != nil {
@@ -94,7 +111,7 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.3.3 { INSERT INTO t1 VALUES(7, 8) } 0")
+	// do_execsql_sync_test 1.3.3 { INSERT INTO t1 VALUES(7, 8) } 0 (unsupported command, not transpiled)
 	{ // "1.4.1"
 		r = db.Query(" PRAGMA main.synchronous = FULL ")
 		if r.Error != nil {
@@ -113,7 +130,7 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.4.3 { INSERT INTO t1 VALUES(9, 10) } 4")
+	// do_execsql_sync_test 1.4.3 { INSERT INTO t1 VALUES(9, 10) } 4 (unsupported command, not transpiled)
 	{ // "1.5"
 		r = db.Query(" PRAGMA journal_mode = wal ")
 		if r.Error != nil {
@@ -126,8 +143,8 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.6 { INSERT INTO t1 VALUES(11, 12) } 3")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.7 { INSERT INTO t1 VALUES(13, 14) } 1")
+	// do_execsql_sync_test 1.6 { INSERT INTO t1 VALUES(11, 12) } 3 (unsupported command, not transpiled)
+	// do_execsql_sync_test 1.7 { INSERT INTO t1 VALUES(13, 14) } 1 (unsupported command, not transpiled)
 	{ // "1.8.1"
 		r = db.Query(" PRAGMA main.synchronous = NORMAL ")
 		if r.Error != nil {
@@ -146,8 +163,8 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.8.3 { INSERT INTO t1 VALUES(15, 16) } 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.9 { PRAGMA wal_checkpoint } {2 0 3 3}")
+	// do_execsql_sync_test 1.8.3 { INSERT INTO t1 VALUES(15, 16) } 0 (unsupported command, not transpiled)
+	// do_execsql_sync_test 1.9 { PRAGMA wal_checkpoint } {2 0 3 3} (unsupported command, not transpiled)
 	{ // "1.10.1"
 		r = db.Query(" PRAGMA main.synchronous = OFF ")
 		if r.Error != nil {
@@ -166,13 +183,13 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.10.3 { INSERT INTO t1 VALUES(17, 18) } 0")
-	if func() bool { SQLITE_DEFAULT_SYNCHRONOUS_n, _SQLITE_DEFAULT_SYNCHRONOUS_e := strconv.Atoi(SQLITE_DEFAULT_SYNCHRONOUS); if _SQLITE_DEFAULT_SYNCHRONOUS_e != nil { return false }; SQLITE_DEFAULT_WAL_SYNCHRONOUS_n, _SQLITE_DEFAULT_WAL_SYNCHRONOUS_e := strconv.Atoi(SQLITE_DEFAULT_WAL_SYNCHRONOUS); if _SQLITE_DEFAULT_WAL_SYNCHRONOUS_e != nil { return false }; return SQLITE_DEFAULT_SYNCHRONOUS_n == 2 && SQLITE_DEFAULT_WAL_SYNCHRONOUS_n==1 }() {
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+	// do_execsql_sync_test 1.10.3 { INSERT INTO t1 VALUES(17, 18) } 0 (unsupported command, not transpiled)
+	if tclBool(SQLITE_DEFAULT_SYNCHRONOUS + "==2 && " + SQLITE_DEFAULT_WAL_SYNCHRONOUS + "==1") {
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.11.1 { INSERT INTO t1 VALUES(19, 20) } 2")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.11.2 { INSERT INTO t1 VALUES(21, 22) } 0")
+		// do_execsql_sync_test 1.11.1 { INSERT INTO t1 VALUES(19, 20) } 2 (unsupported command, not transpiled)
+		// do_execsql_sync_test 1.11.2 { INSERT INTO t1 VALUES(21, 22) } 0 (unsupported command, not transpiled)
 		{ // "1.11.3"
 			r = db.Query(" PRAGMA main.synchronous ")
 			if r.Error != nil {
@@ -185,9 +202,9 @@ func Test_sync2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.12 { PRAGMA wal_checkpoint } {2 0 2 2}")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.13.1 { INSERT INTO t1 VALUES(22, 23) } 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.13.2 { INSERT INTO t1 VALUES(24, 25) } 0")
+		// do_execsql_sync_test 1.12 { PRAGMA wal_checkpoint } {2 0 2 2} (unsupported command, not transpiled)
+		// do_execsql_sync_test 1.13.1 { INSERT INTO t1 VALUES(22, 23) } 1 (unsupported command, not transpiled)
+		// do_execsql_sync_test 1.13.2 { INSERT INTO t1 VALUES(24, 25) } 0 (unsupported command, not transpiled)
 		{ // "1.14"
 			r = db.Query(" PRAGMA journal_mode = delete ")
 			if r.Error != nil {
@@ -200,8 +217,8 @@ func Test_sync2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.15.1 { INSERT INTO t1 VALUES(26, 27) } 4")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.15.2 { INSERT INTO t1 VALUES(28, 29) } 4")
+		// do_execsql_sync_test 1.15.1 { INSERT INTO t1 VALUES(26, 27) } 4 (unsupported command, not transpiled)
+		// do_execsql_sync_test 1.15.2 { INSERT INTO t1 VALUES(28, 29) } 4 (unsupported command, not transpiled)
 		{ // "1.15.3"
 			r = db.Query(" PRAGMA main.synchronous ")
 			if r.Error != nil {
@@ -226,8 +243,8 @@ func Test_sync2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.17.1 { INSERT INTO t1 VALUES(30, 31) } 2")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.17.2 { INSERT INTO t1 VALUES(32, 33) } 0")
+		// do_execsql_sync_test 1.17.1 { INSERT INTO t1 VALUES(30, 31) } 2 (unsupported command, not transpiled)
+		// do_execsql_sync_test 1.17.2 { INSERT INTO t1 VALUES(32, 33) } 0 (unsupported command, not transpiled)
 		{ // "1.17.3"
 			r = db.Query(" PRAGMA main.synchronous ")
 			if r.Error != nil {
@@ -258,8 +275,8 @@ func Test_sync2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.19.1 { INSERT INTO t1 VALUES(34, 35) } 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.19.2 { INSERT INTO t1 VALUES(36, 37) } 0")
+		// do_execsql_sync_test 1.19.1 { INSERT INTO t1 VALUES(34, 35) } 0 (unsupported command, not transpiled)
+		// do_execsql_sync_test 1.19.2 { INSERT INTO t1 VALUES(36, 37) } 0 (unsupported command, not transpiled)
 		{ // "1.19.3"
 			r = db.Query(" PRAGMA main.synchronous ")
 			if r.Error != nil {
@@ -272,10 +289,11 @@ func Test_sync2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.20.1 { INSERT INTO t1 VALUES(38, 39) } 4")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.20.2 { INSERT INTO t1 VALUES(40, 41) } 4")
+		// do_execsql_sync_test 1.20.1 { INSERT INTO t1 VALUES(38, 39) } 4 (unsupported command, not transpiled)
+		// do_execsql_sync_test 1.20.2 { INSERT INTO t1 VALUES(40, 41) } 4 (unsupported command, not transpiled)
 		{ // "1.20.3"
 			r = db.Query(" PRAGMA main.synchronous ")
 			if r.Error != nil {

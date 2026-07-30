@@ -39,9 +39,16 @@ func Test_fts3aux2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3aux2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts3aux2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, b, languageid=l);\n  INSERT INTO t1(a, b, l) VALUES\n    ('zero zero', 'zero zero', 0),\n    ('one two', 'three four', 1),\n    ('five six', 'seven eight', 2)\n  ;\n  CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n")
 		if _res.Error != nil {

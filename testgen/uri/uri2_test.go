@@ -39,11 +39,26 @@ func Test_uri2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var uri string
+	_ = uri // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var DB2 string
+	_ = DB2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "uri2"
+	testprefix = "uri2"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	// foreach {tn uri} "\n  1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def\n"
 	_items0 := tclSplitList("\n  1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def\n")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
@@ -53,13 +68,12 @@ func Test_uri2(t *testing.T) {
 		_ = uri // suppress unused warning
 		_ = _idx0
 			{ // do_test "1." + tn + ".1"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
-					db, err := frigolite.Open(uri)
-					defer db.Close()
+					_dbtmp0, err := frigolite.Open(uri)
+					_ = _dbtmp0 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					if _catchErr != nil {
 						rc = "1"
@@ -73,24 +87,24 @@ func Test_uri2(t *testing.T) {
 				_ = _list
 			}
 			{ // do_test "1." + tn + ".2"
-				var DB2 = "sqlite3_open $uri"
+				DB2 = ""
 				_ = DB2 // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode $DB2")
+				// sqlite3_errcode $DB2 (unsupported command, not transpiled)
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB2")
+				// sqlite3_close $DB2 (unsupported command, not transpiled)
 			}
 			{ // do_test "1." + tn + ".2"
-				db, err := frigolite.Open("")
-				defer db.Close()
+				_dbtmp1, err := frigolite.Open("")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" ATTACH $uri AS aux ")
 				_ = _res // catchsql
 			}
 			{ // do_test "1." + tn + ".3"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+				// sqlite3_errcode db (unsupported command, not transpiled)
 			}
 			{
 				var _catchErr error

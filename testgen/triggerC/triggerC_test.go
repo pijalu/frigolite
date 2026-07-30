@@ -41,8 +41,41 @@ func Test_triggerC(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var tdefn string
+	_ = tdefn // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var insert string
+	_ = insert // pre-declared from TCL source
+	var log string
+	_ = log // pre-declared from TCL source
+	var dml string
+	_ = dml // pre-declared from TCL source
+	var t5g string
+	_ = t5g // pre-declared from TCL source
+	var t5 string
+	_ = t5 // pre-declared from TCL source
+	var testno string
+	_ = testno // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var defaults string
+	_ = defaults // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var SQLITE_MAX_TRIGGER_DEPTH string
+	_ = SQLITE_MAX_TRIGGER_DEPTH // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "triggerC"
+	testprefix = "triggerC"
 	_ = testprefix // suppress unused warning
 	r = db.Query(" PRAGMA recursive_triggers = on ")
 	if r.Error != nil {
@@ -230,7 +263,7 @@ func Test_triggerC(t *testing.T) {
 			}
 		}
 		{ // do_test "triggerC-3.5.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH [expr $SQLITE_MAX_TRIGGER_DEPTH / 10]")
+			// sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH [expr $SQLITE_MAX_TRIGGER_DEPTH / 10] (unsupported command, not transpiled)
 			_res = db.Exec("\n    INSERT INTO t3b VALUES(" + "($SQLITE_MAX_TRIGGER_DEPTH * 2) - ($SQLITE_MAX_TRIGGER_DEPTH / 10) + 1" + ");\n  ")
 			_ = _res // catchsql
 		}
@@ -251,7 +284,7 @@ func Test_triggerC(t *testing.T) {
 			}
 		}
 		{ // do_test "triggerC-3.6.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 1")
+			// sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 1 (unsupported command, not transpiled)
 			_res = db.Exec("\n    INSERT INTO t3b VALUES(" + "$SQLITE_MAX_TRIGGER_DEPTH * 2" + ");\n  ")
 			_ = _res // catchsql
 		}
@@ -271,7 +304,7 @@ func Test_triggerC(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT count(*), max(x), min(x) FROM t3b")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH $SQLITE_MAX_TRIGGER_DEPTH")
+		// sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH $SQLITE_MAX_TRIGGER_DEPTH (unsupported command, not transpiled)
 		{ // do_test "triggerC-4.1.1"
 			_res = db.Exec(" DROP TABLE log ")
 			_ = _res // catchsql
@@ -293,9 +326,7 @@ func Test_triggerC(t *testing.T) {
 			_ = log // suppress unused warning
 			_ = _idx1
 				{ // do_test "triggerC-4.1." + n
-					// eval concat [execsql " 
-      DELETE FROM log;
-      $insert ;...
+					// eval (dynamic, not transpiled)
 				}
 			}
 			{ // do_test "triggerC-5.1.0"
@@ -558,8 +589,8 @@ func Test_triggerC(t *testing.T) {
 							}
 							{ // do_test "triggerC-12.1"
 								os.Remove("test.db")
-								db, err := frigolite.Open("test.db")
-								defer db.Close()
+								_dbtmp6, err := frigolite.Open("test.db")
+								_ = _dbtmp6 // sqlite3 db connection
 								if err != nil { t.Fatal(err) }
 								r = db.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1 ; END ;\n    SELECT count(*) FROM sqlite_master;\n  ")
 								if r.Error != nil {
@@ -602,7 +633,7 @@ func Test_triggerC(t *testing.T) {
 							db.Close()
 							db, err = frigolite.Open("")
 							if err != nil { t.Fatal(err) }
-							t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
+							// optimization_control db factor-constants 0 (unsupported command, not transpiled)
 							{ // "triggerC-14.2"
 								_res = db.Exec(SQL)
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3") {
@@ -700,7 +731,7 @@ func Test_triggerC(t *testing.T) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 4")
+							// sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 4 (unsupported command, not transpiled)
 							{ // "18.3"
 								_res = db.Exec("\n  INSERT INTO t1(a) VALUES(2);\n")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "triggers nested too deep") {

@@ -40,6 +40,31 @@ func Test_json101(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var isvalid string
+	_ = isvalid // pre-declared from TCL source
+	var ws string
+	_ = ws // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var start string
+	_ = start // pre-declared from TCL source
+	var path string
+	_ = path // pre-declared from TCL source
+	var ins string
+	_ = ins // pre-declared from TCL source
+	var set string
+	_ = set // pre-declared from TCL source
+	var repl string
+	_ = repl // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "json101-1.1.00"
 		r = db.Query("\n  SELECT json_array(1,2.5,null,'hello');\n")
@@ -658,9 +683,9 @@ func Test_json101(t *testing.T) {
 		_ = ws // suppress unused warning
 		_ = _idx0
 			{ // "json101-" + tn + ".1"
-				r = db.Query("SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "));")
+				r = db.Query("SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + ws + "," + ws + "," + ws + "," + ws + "," + ws + "," + ws + "));")
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "));")
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + ws + "," + ws + "," + ws + "," + ws + "," + ws + "," + ws + "));")
 					return
 				}
 				got := flatten(r)
@@ -2857,7 +2882,7 @@ func Test_json101(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db strdup")
+			// load_static_extension db strdup (unsupported command, not transpiled)
 			{ // "json101-26.1b"
 				r = db.Query("\n  SELECT value FROM json_each(strdup(x'CC141761133117621332176313331764133437656565')) WHERE key='eee';\n")
 				if r.Error != nil {

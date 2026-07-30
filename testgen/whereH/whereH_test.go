@@ -39,6 +39,11 @@ func Test_whereH(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "whereH-1.1"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX t1abc ON t1(a,b,c);\n  CREATE INDEX t1bc ON t1(b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT d FROM t1 WHERE a=? AND b=? AND c>=? ORDER BY c;\n")

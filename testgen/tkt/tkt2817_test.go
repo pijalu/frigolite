@@ -40,6 +40,13 @@ func Test_tkt2817(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2817-1.0"
 		_res = db.Exec("\n    CREATE TEMP TABLE tbl(a, b, c);\n    -- INSERT INTO tbl VALUES(1, 'abc', 'def');\n    -- INSERT INTO tbl VALUES(2, 'ghi', 'jkl');\n  ")
@@ -55,12 +62,14 @@ func Test_tkt2817(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tkt2817-2.0"
 		_res = db.Exec("\n    CREATE TEMP TABLE tmp(a, b, c);\n    INSERT INTO tmp VALUES(1, 'abc', 'def');\n    INSERT INTO tmp VALUES(2, 'ghi', 'jkl');\n  ")
@@ -76,7 +85,8 @@ func Test_tkt2817(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }

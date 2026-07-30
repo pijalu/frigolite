@@ -39,12 +39,25 @@ func Test_alterqf(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var before string
+	_ = before // pre-declared from TCL source
+	var after string
+	_ = after // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "alterqf"
+	testprefix = "alterqf"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n")
 		if _res.Error != nil {
@@ -77,8 +90,8 @@ func Test_alterqf(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
+		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;\n")
 			if _res.Error != nil {

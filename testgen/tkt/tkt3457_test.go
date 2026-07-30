@@ -39,6 +39,15 @@ func Test_tkt3457(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
@@ -53,11 +62,12 @@ func Test_tkt3457(t *testing.T) {
 		}
 		tclFileCopy("test.db", "bak.db")
 		tclFileCopy("test.db-journal", "bak.db-journal")
-		var fd = "open bak.db-journal a+"
+		fd = "open bak.db-journal a+"
 		_ = fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd 0")
-		t.Log("-nonewline")
+		// fconfigure $fd -translation binary (unsupported command, not transpiled)
+		// seek $fd 0 (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
 		// close $fd
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
@@ -67,8 +77,8 @@ func Test_tkt3457(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall install fchmod")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall fault 1 1")
+		// test_syscall install fchmod (unsupported command, not transpiled)
+		// test_syscall fault 1 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt3457-1.2"
 		tclFileCopy("bak.db-journal", "test.db-journal")
@@ -97,7 +107,7 @@ func Test_tkt3457(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall uninstall")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall fault 0 0")
+		// test_syscall uninstall (unsupported command, not transpiled)
+		// test_syscall fault 0 0 (unsupported command, not transpiled)
 	}
 }

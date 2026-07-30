@@ -40,39 +40,185 @@ func Test_walthread(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DBNAME string
+	_ = DBNAME // pre-declared from TCL source
+	var sqlite_walsummary_mmap_incr string
+	_ = sqlite_walsummary_mmap_incr // pre-declared from TCL source
+	var seconds_walthread_1 string
+	_ = seconds_walthread_1 // pre-declared from TCL source
+	var seconds_walthread_2 string
+	_ = seconds_walthread_2 // pre-declared from TCL source
+	var seconds_walthread_3 string
+	_ = seconds_walthread_3 // pre-declared from TCL source
+	var seconds_walthread_4 string
+	_ = seconds_walthread_4 // pre-declared from TCL source
+	var seconds_walthread_5 string
+	_ = seconds_walthread_5 // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var A string
+	_ = A // pre-declared from TCL source
+	var P_testname string
+	_ = P_testname // pre-declared from TCL source
+	var P_seconds string
+	_ = P_seconds // pre-declared from TCL source
+	var P_init string
+	_ = P_init // pre-declared from TCL source
+	var P_threads string
+	_ = P_threads // pre-declared from TCL source
+	var P_processes string
+	_ = P_processes // pre-declared from TCL source
+	var P_check string
+	_ = P_check // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var count string
+	_ = count // pre-declared from TCL source
+	var prg string
+	_ = prg // pre-declared from TCL source
+	var T string
+	_ = T // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var vars string
+	_ = vars // pre-declared from TCL source
+	var program string
+	_ = program // pre-declared from TCL source
+	var report string
+	_ = report // pre-declared from TCL source
+	var reslist string
+	_ = reslist // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var results string
+	_ = results // pre-declared from TCL source
+	var nRun string
+	_ = nRun // pre-declared from TCL source
+	var nextwrite string
+	_ = nextwrite // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var max string
+	_ = max // pre-declared from TCL source
+	var sum1 string
+	_ = sum1 // pre-declared from TCL source
+	var sum2 string
+	_ = sum2 // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var s1 string
+	_ = s1 // pre-declared from TCL source
+	var s2 string
+	_ = s2 // pre-declared from TCL source
+	var row string
+	_ = row // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var varname string
+	_ = varname // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var lvar string
+	_ = lvar // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var ic string
+	_ = ic // pre-declared from TCL source
+	var ms string
+	_ = ms // pre-declared from TCL source
+	var E_pid string
+	_ = E_pid // pre-declared from TCL source
+	var E_seconds string
+	_ = E_seconds // pre-declared from TCL source
+	var finished string
+	_ = finished // pre-declared from TCL source
+	var nDel string
+	_ = nDel // pre-declared from TCL source
+	var nEntry string
+	_ = nEntry // pre-declared from TCL source
+	var E_nthread string
+	_ = E_nthread // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var pgsz string
+	_ = pgsz // pre-declared from TCL source
+	var nFrame string
+	_ = nFrame // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	var DBNAME = "wt-" + "0" + "-test.db"
+	DBNAME = "wt-" + "0" + "-test.db"
 	_ = DBNAME // suppress unused warning
-	var sqlite_walsummary_mmap_incr = "64"
+	sqlite_walsummary_mmap_incr = "64"
 	_ = sqlite_walsummary_mmap_incr // suppress unused warning
-	var seconds_walthread_1 = "20"
+	seconds_walthread_1 = "20"
 	_ = seconds_walthread_1 // suppress unused warning
-	var seconds_walthread_2 = "20"
+	seconds_walthread_2 = "20"
 	_ = seconds_walthread_2 // suppress unused warning
-	var seconds_walthread_3 = "20"
+	seconds_walthread_3 = "20"
 	_ = seconds_walthread_3 // suppress unused warning
-	var seconds_walthread_4 = "20"
+	seconds_walthread_4 = "20"
 	_ = seconds_walthread_4 // suppress unused warning
-	var seconds_walthread_5 = "1"
+	seconds_walthread_5 = "1"
 	_ = seconds_walthread_5 // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_thread_test2 walthread-1 -seconds $seconds(walthread-1) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n    CR...} -thread main 10 {\n\n  proc read_transaction {} {\n    set results [db...} -thread ckpt 1 {\n  set nRun 0\n  while {[tt_continue]} {\n    db eva...}")
+	// do_thread_test2 walthread-1 -seconds $seconds(walthread-1) -init {
+  execsql {
+    PRAGMA journal_mode = WAL;
+    CR...} -thread main 10 {
+
+  proc read_transaction {} {
+    set results [db...} -thread ckpt 1 {
+  set nRun 0
+  while {[tt_continue]} {
+    db eva...} (unsupported command, not transpiled)
 	if tclBool("atomic_batch_write $::DBNAME" + "==0") {
-		t.Errorf("TODO: %s not implemented in frigolite", "do_thread_test2 walthread-2 -seconds $seconds(walthread-2) -init {\n    execsql { CREATE TABLE t1(x INTEGER PRIMARY K...} -thread RB 2 [string map [list %DB% $::DBNAME] {\n\n    db close\n... -thread WAL 2 [string map [list %DB% $::DBNAME] {\n    db close\n ...")
+		// do_thread_test2 walthread-2 -seconds $seconds(walthread-2) -init {
+    execsql { CREATE TABLE t1(x INTEGER PRIMARY K...} -thread RB 2 [string map [list %DB% $::DBNAME] {
+
+    db close
+... -thread WAL 2 [string map [list %DB% $::DBNAME] {
+    db close
+ ... (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_thread_test walthread-3 -seconds $seconds(walthread-3) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n    CR...} -thread t 10 {\n\n  set nextwrite $E(pid)\n\n  proc wal_hook {zDb nE...} -check {\n  puts \"  Final db contains [db eval {SELECT coun...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_thread_test2 walthread-4 -seconds $seconds(walthread-4) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n    CR...} -thread r 1 {\n  # This connection only ever reads the database....} -thread w 1 {\n\n  proc wal_hook {zDb nEntry} {\n    if {$nEntry>1...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_thread_test walthread-5 -seconds $seconds(walthread-5) -init {\n\n  proc log_file_size {nFrame pgsz} {\n    expr {1...} -thread T 5 {\n  db eval { SELECT count(*) FROM t1 }\n}")
+	// do_thread_test walthread-3 -seconds $seconds(walthread-3) -init {
+  execsql {
+    PRAGMA journal_mode = WAL;
+    CR...} -thread t 10 {
+
+  set nextwrite $E(pid)
+
+  proc wal_hook {zDb nE...} -check {
+  puts "  Final db contains [db eval {SELECT coun...} (unsupported command, not transpiled)
+	// do_thread_test2 walthread-4 -seconds $seconds(walthread-4) -init {
+  execsql {
+    PRAGMA journal_mode = WAL;
+    CR...} -thread r 1 {
+  # This connection only ever reads the database....} -thread w 1 {
+
+  proc wal_hook {zDb nEntry} {
+    if {$nEntry>1...} (unsupported command, not transpiled)
+	// do_thread_test walthread-5 -seconds $seconds(walthread-5) -init {
+
+  proc log_file_size {nFrame pgsz} {
+    expr {1...} -thread T 5 {
+  db eval { SELECT count(*) FROM t1 }
+} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	os.Remove(_DBNAME)
-	os.Remove(_DBNAME + "-bak.db-wal")
+	os.Remove(DBNAME)
+	os.Remove(DBNAME + "-bak.db-wal")
 }

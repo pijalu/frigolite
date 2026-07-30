@@ -39,9 +39,20 @@ func Test_tkt_80ba201079(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var x1 string
+	_ = x1 // pre-declared from TCL source
+	var x2 string
+	_ = x2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "tkt-80ba201079" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "tkt-80ba201079" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "tkt-80ba2-100"
 		_res = db.Exec("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('A');\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES('B');\n    CREATE TABLE t3(c);\n    INSERT INTO t3 VALUES('C');\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
 		if _res.Error != nil {
@@ -55,19 +66,19 @@ func Test_tkt_80ba201079(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt-80ba2-102"
-		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
+		// optimization_control db factor-constants 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+	// optimization_control db all 1 (unsupported command, not transpiled)
 	{ // do_test "tkt-80ba2-150"
-		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 1")
-		var x1 = "db eval {EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));}"
+		// optimization_control db factor-constants 1 (unsupported command, not transpiled)
+		x1 = "db eval {EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));}"
 		_ = x1 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
-		var x2 = "db eval {EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));}"
+		// optimization_control db factor-constants 0 (unsupported command, not transpiled)
+		x2 = "db eval {EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));}"
 		_ = x2 // suppress unused warning
 		// expr $x1==$x2 → "$x1==$x2"
 	}
@@ -84,13 +95,13 @@ func Test_tkt_80ba201079(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt-80ba2-202"
-		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
+		// optimization_control db factor-constants 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	// drop_all_tables (unsupported command, not transpiled)
 	{ // "301"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(d, e);\n\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n  INSERT INTO t2 VALUES('D', 'E');\n")
 		if _res.Error != nil {

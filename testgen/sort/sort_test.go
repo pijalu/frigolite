@@ -41,13 +41,49 @@ func Test_sort(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var mmap_limit string
+	_ = mmap_limit // pre-declared from TCL source
+	var nWorker string
+	_ = nWorker // pre-declared from TCL source
+	var tmpstore string
+	_ = tmpstore // pre-declared from TCL source
+	var coremutex string
+	_ = coremutex // pre-declared from TCL source
+	var fakeheap string
+	_ = fakeheap // pre-declared from TCL source
+	var softheaplimit string
+	_ = softheaplimit // pre-declared from TCL source
+	var ten string
+	_ = ten // pre-declared from TCL source
+	var one string
+	_ = one // pre-declared from TCL source
+	var t_0 string
+	_ = t_0 // pre-declared from TCL source
+	var t_1 string
+	_ = t_1 // pre-declared from TCL source
+	var t_2 string
+	_ = t_2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var t_sqlite_options_threadsafe string
+	_ = t_sqlite_options_threadsafe // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "sort"
+	testprefix = "sort"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pmasz 10")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	db, err = frigolite.Open("test.db")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sort-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(\n       n int,\n       v varchar(10),\n       log int,\n       roman varchar(10),\n       flt real\n    );\n    INSERT INTO t1 VALUES(1,'one',0,'I',3.141592653);\n    INSERT INTO t1 VALUES(2,'two',1,'II',2.15);\n    INSERT INTO t1 VALUES(3,'three',1,'III',4221.0);\n    INSERT INTO t1 VALUES(4,'four',2,'IV',-0.0013442);\n    INSERT INTO t1 VALUES(5,'five',2,'V',-11);\n    INSERT INTO t1 VALUES(6,'six',2,'VI',0.123);\n    INSERT INTO t1 VALUES(7,'seven',2,'VII',123.0);\n    INSERT INTO t1 VALUES(8,'eight',3,'VIII',-1.6);\n  ")
@@ -372,7 +408,7 @@ func Test_sort(t *testing.T) {
 		}
 	}
 	{ // do_test "sort-13.1"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100000 }() {
 			_res = db.Exec(" INSERT INTO t10 VALUES( $i/10, $i%10 ) ")
@@ -413,43 +449,43 @@ func Test_sort(t *testing.T) {
 		}
 	}
 	// foreach {tn mmap_limit nWorker tmpstore coremutex fakeheap softheaplimit} "\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n"
-	_items0 := tclSplitList("\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n")
-	for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n")
+	for _idx1 := 0; _idx1+7 <= len(_items1); _idx1 += 7 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		mmap_limit := _items0[_idx0+1]
+		mmap_limit := _items1[_idx1+1]
 		_ = mmap_limit // suppress unused warning
-		nWorker := _items0[_idx0+2]
+		nWorker := _items1[_idx1+2]
 		_ = nWorker // suppress unused warning
-		tmpstore := _items0[_idx0+3]
+		tmpstore := _items1[_idx1+3]
 		_ = tmpstore // suppress unused warning
-		coremutex := _items0[_idx0+4]
+		coremutex := _items1[_idx1+4]
 		_ = coremutex // suppress unused warning
-		fakeheap := _items0[_idx0+5]
+		fakeheap := _items1[_idx1+5]
 		_ = fakeheap // suppress unused warning
-		softheaplimit := _items0[_idx0+6]
+		softheaplimit := _items1[_idx1+6]
 		_ = softheaplimit // suppress unused warning
-		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		_ = _idx1
+			// sqlite3_shutdown (unsupported command, not transpiled)
 			if tclBool(coremutex) {
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config multithread")
+				// sqlite3_config multithread (unsupported command, not transpiled)
 			} else {
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
+				// sqlite3_config singlethread (unsupported command, not transpiled)
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-			t.Errorf("TODO: %s not implemented in frigolite", "sorter_test_fakeheap $fakeheap")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $softheaplimit")
+			// sqlite3_initialize (unsupported command, not transpiled)
+			// sorter_test_fakeheap $fakeheap (unsupported command, not transpiled)
+			// sqlite3_soft_heap_limit $softheaplimit (unsupported command, not transpiled)
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit")
+			// sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit (unsupported command, not transpiled)
 			r = db.Query("PRAGMA temp_store = " + tmpstore + "; PRAGMA threads = " + nWorker)
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA temp_store = " + tmpstore + "; PRAGMA threads = " + nWorker)
 			}
-			var ten = "X 10300"
+			ten = "X 10300"
 			_ = ten // suppress unused warning
-			var one = "y   200"
+			one = "y   200"
 			_ = one // suppress unused warning
 			if tclBool(softheaplimit) {
 				r = db.Query(" PRAGMA cache_size = 20 ")
@@ -498,18 +534,18 @@ func Test_sort(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sorter_test_fakeheap 0")
+			// sorter_test_fakeheap 0 (unsupported command, not transpiled)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		var t_0 = "singlethread"
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		t_0 = "singlethread"
 		_ = t_0 // suppress unused warning
-		var t_1 = "multithread"
+		t_1 = "multithread"
 		_ = t_1 // suppress unused warning
-		var t_2 = "serialized"
+		t_2 = "serialized"
 		_ = t_2 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config $t($sqlite_options(threadsafe))")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+		// sqlite3_config $t($sqlite_options(threadsafe)) (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
+		// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

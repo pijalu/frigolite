@@ -39,6 +39,11 @@ func Test_tkt1537(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt1537-1.1"
 		r = db.Query("\n    CREATE TABLE t1(id, a1, a2);\n    INSERT INTO t1 VALUES(1, NULL, NULL);\n    INSERT INTO t1 VALUES(2, 1, 3);\n    CREATE TABLE t2(id, b);\n    INSERT INTO t2 VALUES(3, 1);\n    INSERT INTO t2 VALUES(4, NULL);\n    SELECT * FROM t1 LEFT JOIN t2 ON a1=b OR a2=+b;\n  ")

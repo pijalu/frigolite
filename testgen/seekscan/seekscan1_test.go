@@ -39,8 +39,15 @@ func Test_seekscan1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "seekscan1"
+	testprefix = "seekscan1"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b INT, c INT NOT NULL, PRIMARY KEY(a,b,c));\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<1997)\n    INSERT INTO t1(a,b,c) SELECT printf('xyz%d',x/10),x/6,x FROM c;\n  INSERT INTO t1 VALUES('abc',234,6);\n  INSERT INTO t1 VALUES('abc',345,7);\n  ANALYZE;\n")

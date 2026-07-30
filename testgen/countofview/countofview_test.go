@@ -39,8 +39,15 @@ func Test_countofview(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "countofview"
+	testprefix = "countofview"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t2(c);\n  CREATE TABLE t3(f);\n\n  INSERT INTO t2 VALUES(1), (2);\n  INSERT INTO t3 VALUES(3);\n")

@@ -39,9 +39,26 @@ func Test_orderby9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var l1 string
+	_ = l1 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "orderby9" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "orderby9" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "setup"
 		r = db.Query("\n  -- create a table with many entries\n  CREATE TABLE t1(x);\n  WITH RECURSIVE\n     c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1 SELECT x FROM c;\n")
 		if r.Error != nil {
@@ -50,7 +67,7 @@ func Test_orderby9(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
-		var l1 = ""
+		l1 = ""
 		_ = l1 // suppress unused warning
 		_res = db.Exec("SELECT random() AS y FROM t1 ORDER BY 1;")
 		if _res.Error != nil {
@@ -59,7 +76,7 @@ func Test_orderby9(t *testing.T) {
 		// expr $l1==[lsort -command bigintcompare $l1] → "$l1==[lsort -command bigintcompare $l1]"
 	}
 	{ // do_test "1.1"
-		var l1 = ""
+		l1 = ""
 		_ = l1 // suppress unused warning
 		_res = db.Exec("SELECT random() AS y FROM t1 ORDER BY random();")
 		if _res.Error != nil {
@@ -68,7 +85,7 @@ func Test_orderby9(t *testing.T) {
 		// expr $l1==[lsort -command bigintcompare $l1] → "$l1==[lsort -command bigintcompare $l1]"
 	}
 	{ // do_test "1.2"
-		var l1 = ""
+		l1 = ""
 		_ = l1 // suppress unused warning
 		_res = db.Exec("SELECT random() AS y FROM t1 ORDER BY +random();")
 		if _res.Error != nil {

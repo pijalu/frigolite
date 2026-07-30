@@ -40,11 +40,23 @@ func Test_sqldiff1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var PROG string
+	_ = PROG // pre-declared from TCL source
+	var line string
+	_ = line // pre-declared from TCL source
+	var MSG string
+	_ = MSG // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var PROG = "test_find_sqldiff"
+	PROG = "test_find_sqldiff"
 	_ = PROG // suppress unused warning
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sqldiff-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b) SELECT x, printf('abc-%d-xyz',x) FROM c;\n    INSERT INTO t2(a,b) SELECT a, b FROM t1;\n  ")
@@ -55,61 +67,62 @@ func Test_sqldiff1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test2.db' AS x2;\n    DELETE FROM x2.t1 WHERE a=49;\n    DELETE FROM x2.t2 WHERE a=48;\n    INSERT INTO x2.t1(a,b) VALUES(1234,'hello');\n    INSERT INTO x2.t2(a,b) VALUES(50.5,'xyzzy');\n    INSERT INTO x2.t2(a,b) VALUES(51.5,'');\n    INSERT INTO x2.t2(a,b) VALUES(52.5,''||X'0d0a');\n    INSERT INTO x2.t2(a,b) VALUES(53.5,'one'||X'0a0d');\n    INSERT INTO x2.t2(a,b) VALUES(54.5,'one'||X'0a'||'two');\n    CREATE TABLE x2.t3(a,b,c);\n    INSERT INTO x2.t3 VALUES(111,222,333);\n    CREATE TABLE main.t4(x,y,z);\n    INSERT INTO t4 SELECT * FROM t3;\n  ")
 		}
-		var line = "exec " + PROG + " test.db test2.db"
+		line = "exec " + PROG + " test.db test2.db"
 		_ = line // suppress unused warning
 		{
-			var _MSG string // catch result ("0"=ok, "1"=error)
+			var MSG string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
-			_ = _MSG // suppress unused warning
+			_ = MSG // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			// eval $line
+			// eval (dynamic, not transpiled)
 			if _catchErr != nil {
-				_MSG = "1"
+				MSG = "1"
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				_MSG = "0"
+				MSG = "0"
 				_catchErrMsg = ""
 			}
 		}
 	}
 	{ // do_test "sqldiff-1.1"
-		_ = _MSG // TCL namespace variable (query)
+		_ = MSG // TCL namespace variable (query)
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sqldiff-2.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  ")
 		}
-		db, err := frigolite.Open("test2.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test2.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ")
 		}
-		var line = "exec " + PROG + " test.db test2.db"
+		line = "exec " + PROG + " test.db test2.db"
 		_ = line // suppress unused warning
 		{
-			var _MSG string // catch result ("0"=ok, "1"=error)
+			var MSG string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
-			_ = _MSG // suppress unused warning
+			_ = MSG // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			// eval $line
+			// eval (dynamic, not transpiled)
 			if _catchErr != nil {
-				_MSG = "1"
+				MSG = "1"
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				_MSG = "0"
+				MSG = "0"
 				_catchErrMsg = ""
 			}
 		}
 	}
 	{ // do_test "sqldiff-2.1"
-		_ = _MSG // TCL namespace variable (query)
+		_ = MSG // TCL namespace variable (query)
 	}
 }

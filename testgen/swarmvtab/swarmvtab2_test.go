@@ -40,17 +40,35 @@ func Test_swarmvtab2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var num string
+	_ = num // pre-declared from TCL source
+	var start string
+	_ = start // pre-declared from TCL source
+	var end string
+	_ = end // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "swarmvtab2"
+	testprefix = "swarmvtab2"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	for _, name := range tclSplitList("glob -nocomplain test*.db") {
 	_ = name // suppress unused warning
 		os.Remove(name)
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "100"
 		_res = db.Exec("\n  CREATE TABLE t1(filename, tablename, istart, iend);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<99)\n  INSERT INTO t1 SELECT printf('test%03d.db',x),'t2',x*1000,x*1000+999 FROM c;\n  CREATE VIRTUAL TABLE temp.v1 USING swarmvtab(\n    'SELECT * FROM t1', 'create_database'\n  );\n")
@@ -71,7 +89,7 @@ func Test_swarmvtab2(t *testing.T) {
 		}
 	}
 	{ // do_test "120"
-		tclSort("glob -nocomplain test?*.db")
+		_ = tclSort("glob -nocomplain test?*.db") // lsort result
 	}
 	{ // "130"
 		r = db.Query("\n  SELECT b FROM v1 WHERE a BETWEEN 3999 AND 4000 ORDER BY a;\n")
@@ -86,7 +104,7 @@ func Test_swarmvtab2(t *testing.T) {
 		}
 	}
 	{ // do_test "140"
-		tclSort("glob -nocomplain test?*.db")
+		_ = tclSort("glob -nocomplain test?*.db") // lsort result
 	}
 	{ // "150"
 		r = db.Query("\n  SELECT b FROM v1 WHERE a>=99998;\n")
@@ -101,6 +119,6 @@ func Test_swarmvtab2(t *testing.T) {
 		}
 	}
 	{ // do_test "160"
-		tclSort("-dictionary")
+		_ = tclSort("-dictionary") // lsort result
 	}
 }

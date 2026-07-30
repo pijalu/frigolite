@@ -39,14 +39,27 @@ func Test_keyword1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var kwlist string
+	_ = kwlist // pre-declared from TCL source
+	var exprkw string
+	_ = exprkw // pre-declared from TCL source
+	var kw string
+	_ = kw // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n")
 	}
-	var kwlist = "\n  abort\n  after\n  analyze\n  asc\n  attach\n  before\n  begin\n  by\n  cascade\n  cast\n  column\n  conflict\n  current_date\n  current_time\n  current_timestamp\n  database\n  deferred\n  desc\n  detach\n  end\n  each\n  exclusive\n  explain\n  fail\n  for\n  glob\n  if\n  ignore\n  immediate\n  initially\n  instead\n  key\n  like\n  match\n  of\n  offset\n  plan\n  pragma\n  query\n  raise\n  recursive\n  regexp\n  reindex\n  release\n  rename\n  replace\n  restrict\n  rollback\n  row\n  savepoint\n  temp\n  temporary\n  trigger\n  vacuum\n  view\n  virtual\n  with\n  without\n"
+	kwlist = "\n  abort\n  after\n  analyze\n  asc\n  attach\n  before\n  begin\n  by\n  cascade\n  cast\n  column\n  conflict\n  current_date\n  current_time\n  current_timestamp\n  database\n  deferred\n  desc\n  detach\n  end\n  each\n  exclusive\n  explain\n  fail\n  for\n  glob\n  if\n  ignore\n  immediate\n  initially\n  instead\n  key\n  like\n  match\n  of\n  offset\n  plan\n  pragma\n  query\n  raise\n  recursive\n  regexp\n  reindex\n  release\n  rename\n  replace\n  restrict\n  rollback\n  row\n  savepoint\n  temp\n  temporary\n  trigger\n  vacuum\n  view\n  virtual\n  with\n  without\n"
 	_ = kwlist // suppress unused warning
-	var exprkw = "\n  cast\n  current_date\n  current_time\n  current_timestamp\n  raise\n"
+	exprkw = "\n  cast\n  current_date\n  current_time\n  current_timestamp\n  raise\n"
 	_ = exprkw // suppress unused warning
 	for _, kw := range tclSplitList(kwlist) {
 	_ = kw // suppress unused warning

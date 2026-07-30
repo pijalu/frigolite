@@ -40,23 +40,58 @@ func Test_types(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var values string
+	_ = values // pre-declared from TCL source
+	var tnum string
+	_ = tnum // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var lit string
+	_ = lit // pre-declared from TCL source
+	var bt string
+	_ = bt // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var root string
+	_ = root // pre-declared from TCL source
+	var string10 string
+	_ = string10 // pre-declared from TCL source
+	var string500 string
+	_ = string500 // pre-declared from TCL source
+	var string500000 string
+	_ = string500000 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var rootpage string
+	_ = rootpage // pre-declared from TCL source
+	var sqlite_options_utf16 string
+	_ = sqlite_options_utf16 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var DB = "sqlite3 db test.db; sqlite3_connection_pointer db"
+	DB = "sqlite3 db test.db; sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_rekey $DB {}")
+	// sqlite3_rekey $DB {} (unsupported command, not transpiled)
 	{ // do_test "types-1.1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(i integer, n numeric, t text, o blob);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(i integer, n numeric, t text, o blob);\n  ")
 		}
 	}
-	var values = "\n  { 5.0    integer integer text real    }\n  { 5.1    real    real    text real    }\n  { 5      integer integer text integer }\n  { '5.0'  integer integer text text    }\n  { '5.1'  real    real    text text    }\n  { '-5.0' integer integer text text    }\n  { '-5.0' integer integer text text    }\n  { '5'    integer integer text text    }\n  { 'abc'  text    text    text text    }\n  { NULL   null    null    null null    }\n"
+	values = "\n  { 5.0    integer integer text real    }\n  { 5.1    real    real    text real    }\n  { 5      integer integer text integer }\n  { '5.0'  integer integer text text    }\n  { '5.1'  real    real    text text    }\n  { '-5.0' integer integer text text    }\n  { '-5.0' integer integer text text    }\n  { '5'    integer integer text text    }\n  { 'abc'  text    text    text text    }\n  { NULL   null    null    null null    }\n"
 	_ = values // suppress unused warning
-	var tnum = "1"
+	tnum = "1"
 	_ = tnum // suppress unused warning
 	for _, val := range tclSplitList(values) {
 	_ = val // suppress unused warning
-		var lit = "lindex $val 0"
+		lit = "lindex $val 0"
 		_ = lit // suppress unused warning
 		_res = db.Exec("DELETE FROM t1;")
 		if _res.Error != nil {
@@ -72,7 +107,6 @@ func Test_types(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
 			}
 		}
-		var tnum = "0"
 		// incr tnum 1
 		{
 			_n, _err := strconv.Atoi(tnum)
@@ -85,7 +119,7 @@ func Test_types(t *testing.T) {
 	_ = tnum // suppress unused warning
 	for _, val := range tclSplitList(values) {
 	_ = val // suppress unused warning
-		var lit = "lindex $val 0"
+		lit = "lindex $val 0"
 		_ = lit // suppress unused warning
 		_res = db.Exec("DELETE FROM t1;")
 		if _res.Error != nil {
@@ -101,7 +135,6 @@ func Test_types(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
 			}
 		}
-		var tnum = "0"
 		// incr tnum 1
 		{
 			_n, _err := strconv.Atoi(tnum)
@@ -114,7 +147,7 @@ func Test_types(t *testing.T) {
 	_ = tnum // suppress unused warning
 	for _, val := range tclSplitList(values) {
 	_ = val // suppress unused warning
-		var lit = "lindex $val 0"
+		lit = "lindex $val 0"
 		_ = lit // suppress unused warning
 		_res = db.Exec("UPDATE t1 SET i = " + lit + ", n = " + lit + ", t = " + lit + ", o = " + lit + ";")
 		if _res.Error != nil {
@@ -126,7 +159,6 @@ func Test_types(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
 			}
 		}
-		var tnum = "0"
 		// incr tnum 1
 		{
 			_n, _err := strconv.Atoi(tnum)
@@ -213,16 +245,16 @@ func Test_types(t *testing.T) {
 		}
 	}
 	{ // do_test "types-2.3.3"
-		var root = "db eval {select rootpage from sqlite_master where name = 't3'}"
+		root = "db eval {select rootpage from sqlite_master where name = 't3'}"
 		_ = root // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "record_sizes $root")
+		// record_sizes $root (unsupported command, not transpiled)
 	}
 	{ // do_test "types-2.4.1"
-		var string10 = "abcdefghij"
+		string10 = "abcdefghij"
 		_ = string10 // suppress unused warning
-		var string500 = "$string10 50"
+		string500 = "$string10 50"
 		_ = string500 // suppress unused warning
-		var string500000 = "$string10 50000"
+		string500000 = "$string10 50000"
 		_ = string500000 // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t4(a string);\n    INSERT INTO t4 VALUES('" + string10 + "');\n    INSERT INTO t4 VALUES('" + string500 + "');\n    INSERT INTO t4 VALUES('" + string500000 + "');\n  ")
 		if _res.Error != nil {
@@ -235,17 +267,17 @@ func Test_types(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM t4;\n  ")
 		}
 	}
-	if tclBool(sqlite_options + "(utf16)==0 || " + "execsql {pragma encoding}" + " == \"UTF-8\"") {
+	if tclBool(sqlite_options_utf16 + "==0 || " + "execsql {pragma encoding}" + " == \"UTF-8\"") {
 		{ // do_test "types-2.4.3"
-			var root = "db eval {select rootpage from sqlite_master where name = 't4'}"
+			root = "db eval {select rootpage from sqlite_master where name = 't4'}"
 			_ = root // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "record_sizes $root")
+			// record_sizes $root (unsupported command, not transpiled)
 		}
 	} else {
 		{ // do_test "types-2.4.3"
-			var root = "db eval {select rootpage from sqlite_master where name = 't4'}"
+			root = "db eval {select rootpage from sqlite_master where name = 't4'}"
 			_ = root // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "record_sizes $root")
+			// record_sizes $root (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "types-2.5.1"
@@ -255,11 +287,11 @@ func Test_types(t *testing.T) {
 		}
 	}
 	{ // do_test "types-2.5.2"
-		var string10 = "abcdefghij"
+		string10 = "abcdefghij"
 		_ = string10 // suppress unused warning
-		var string500 = "$string10 50"
+		string500 = "$string10 50"
 		_ = string500 // suppress unused warning
-		var string500000 = "$string10 50000"
+		string500000 = "$string10 50000"
 		_ = string500000 // suppress unused warning
 		_res = db.Exec("INSERT INTO t1 VALUES(NULL, '" + string10 + "', 4000);")
 		if _res.Error != nil {

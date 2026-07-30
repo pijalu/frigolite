@@ -39,6 +39,13 @@ func Test_collateA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "collateA-1.1"
 		r = db.Query("\n    CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT COLLATE BINARY,\n      c TEXT COLLATE RTRIM\n    );\n    INSERT INTO t1 VALUES(1, 'abcde','abcde');\n    INSERT INTO t1 VALUES(2, 'xyzzy ','xyzzy ');\n    INSERT INTO t1 VALUES(3, 'xyzzy  ','xyzzy  ');\n    INSERT INTO t1 VALUES(4, 'xyzzy   ','xyzzy   ');\n    INSERT INTO t1 VALUES(5, '   ', '   ');\n    INSERT INTO t1 VALUES(6, '', '');\n    SELECT count(*) FROM t1;\n  ")
@@ -317,8 +324,8 @@ func Test_collateA(t *testing.T) {
 		}
 	}
 	{ // do_test "collateA-3.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    REINDEX;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {

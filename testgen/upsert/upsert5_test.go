@@ -40,8 +40,21 @@ func Test_upsert5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var WO string
+	_ = WO // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "upsert5"
+	testprefix = "upsert5"
 	_ = testprefix // suppress unused warning
 	// foreach {tn sql} "\n  1 { CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c UNIQUE, d UNIQUE, e UNIQUE) }\n  2 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE, d UNIQUE, e UNIQUE) }\n  3 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE, d UNIQUE, e UNIQUE) WITHOUT ROWID}\n  4 { CREATE TABLE t1(e UNIQUE, d UNIQUE, c UNIQUE, a INTEGER PRIMARY KEY, b) }\n  5 { CREATE TABLE t1(e UNIQUE, d UNIQUE, c UNIQUE, a INT PRIMARY KEY, b) }\n  6 { CREATE TABLE t1(e UNIQUE, d UNIQUE, c UNIQUE, a INT PRIMARY KEY, b) WITHOUT ROWID}\n"
 	_items0 := tclSplitList("\n  1 { CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c UNIQUE, d UNIQUE, e UNIQUE) }\n  2 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE, d UNIQUE, e UNIQUE) }\n  3 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE, d UNIQUE, e UNIQUE) WITHOUT ROWID}\n  4 { CREATE TABLE t1(e UNIQUE, d UNIQUE, c UNIQUE, a INTEGER PRIMARY KEY, b) }\n  5 { CREATE TABLE t1(e UNIQUE, d UNIQUE, c UNIQUE, a INT PRIMARY KEY, b) }\n  6 { CREATE TABLE t1(e UNIQUE, d UNIQUE, c UNIQUE, a INT PRIMARY KEY, b) WITHOUT ROWID}\n")

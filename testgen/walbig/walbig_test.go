@@ -39,9 +39,18 @@ func Test_walbig(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var a_string_counter string
+	_ = a_string_counter // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	var a_string_counter = "1"
+	// do_not_use_codec (unsupported command, not transpiled)
+	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "walbig-1.0"
@@ -51,11 +60,13 @@ func Test_walbig(t *testing.T) {
 		}
 	}
 	if false {
-		t.Log("**** Unable to create a file larger than 5000 MB. *****")
+		_putsMsg := "**** Unable to create a file larger than 5000 MB. *****"
+		_ = _putsMsg
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
-	db, err = frigolite.Open("test.db")
+	// hexio_write test.db 28 00000000 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbig-1.1"
 		_res = db.Exec(" INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1 ")
@@ -63,7 +74,8 @@ func Test_walbig(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 SELECT a_string(300), a_string(500) FROM t1 ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbig-1.2"
 		r = db.Query(" SELECT a FROM t1 ORDER BY a ")

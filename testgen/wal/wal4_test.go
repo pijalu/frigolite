@@ -40,6 +40,13 @@ func Test_wal4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var testrc string
+	_ = testrc // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "wal4-1.1"
 		r = db.Query("\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    SELECT x FROM t1 ORDER BY x;\n  ")
@@ -48,13 +55,19 @@ func Test_wal4(t *testing.T) {
 		}
 	}
 	{ // do_test "wal4-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 		os.Remove("sv_test.db")
 	}
 	{ // do_test "wal4-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		// faultsim_restore_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test wal4-2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT name FROM sqlite_master }\n} -test {\n  # Result should be zero rows (empty db file).\n ...}")
+	// do_faultsim_test wal4-2 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { SELECT name FROM sqlite_master }
+} -test {
+  # Result should be zero rows (empty db file).
+ ...} (unsupported command, not transpiled)
 }

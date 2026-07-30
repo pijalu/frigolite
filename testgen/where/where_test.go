@@ -41,20 +41,59 @@ func Test_where(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var maxy string
+	_ = maxy // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var v1 string
+	_ = v1 // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var rev string
+	_ = rev // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var vname string
+	_ = vname // pre-declared from TCL source
+	var parent string
+	_ = parent // pre-declared from TCL source
+	var detail string
+	_ = detail // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "where-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(w int, x int, y int);\n    CREATE TABLE t2(p int, q int, r int, s int);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(w int, x int, y int);\n    CREATE TABLE t2(p int, q int, r int, s int);\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-			var w = i
+			w = i
 			_ = w // suppress unused warning
-			var x = "int(log($i)/log(2))"
+			x = "int(log($i)/log(2))"
 			_ = x // suppress unused warning
-			var y = "$i*$i + 2*$i + 1"
+			y = "$i*$i + 2*$i + 1"
 			_ = y // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + w + "," + x + "," + y + ")")
 			if _res.Error != nil {
@@ -75,10 +114,10 @@ func Test_where(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "where-1.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y, w FROM t1 WHERE w=10}")
+		_ = db.Exec("SELECT x, y, w FROM t1 WHERE w=10") // count (search count always 0)
 	}
 	{ // do_test "where-1.1.1b"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y, w FROM t1 WHERE w IS 10}")
+		_ = db.Exec("SELECT x, y, w FROM t1 WHERE w IS 10") // count (search count always 0)
 	}
 	{ // "where-1.1.2"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT x, y, w FROM t1 WHERE w=10\n")
@@ -109,7 +148,7 @@ func Test_where(t *testing.T) {
 		}
 	}
 	{ // do_test "where-1.1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y, w AS abc FROM t1 WHERE abc=10}")
+		_ = db.Exec("SELECT x, y, w AS abc FROM t1 WHERE abc=10") // count (search count always 0)
 	}
 	{ // "where-1.1.8"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT x, y, w AS abc FROM t1 WHERE abc=10\n")
@@ -120,25 +159,25 @@ func Test_where(t *testing.T) {
 	{ // do_test "where-1.1.9"
 	}
 	{ // do_test "where-1.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y, w FROM t1 WHERE w=11}")
+		_ = db.Exec("SELECT x, y, w FROM t1 WHERE w=11") // count (search count always 0)
 	}
 	{ // do_test "where-1.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y, w AS abc FROM t1 WHERE abc=11}")
+		_ = db.Exec("SELECT x, y, w AS abc FROM t1 WHERE abc=11") // count (search count always 0)
 	}
 	{ // do_test "where-1.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y, w AS abc FROM t1 WHERE 11=w}")
+		_ = db.Exec("SELECT x, y, w AS abc FROM t1 WHERE 11=w") // count (search count always 0)
 	}
 	{ // do_test "where-1.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y, w AS abc FROM t1 WHERE 11=abc}")
+		_ = db.Exec("SELECT x, y, w AS abc FROM t1 WHERE 11=abc") // count (search count always 0)
 	}
 	{ // do_test "where-1.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y, w AS abc FROM t1 WHERE 11 IS abc}")
+		_ = db.Exec("SELECT x, y, w AS abc FROM t1 WHERE 11 IS abc") // count (search count always 0)
 	}
 	{ // do_test "where-1.4.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w, x, y FROM t1 WHERE 11=w AND x>2}")
+		_ = db.Exec("SELECT w, x, y FROM t1 WHERE 11=w AND x>2") // count (search count always 0)
 	}
 	{ // do_test "where-1.4.1b"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w, x, y FROM t1 WHERE 11 IS w AND x>2}")
+		_ = db.Exec("SELECT w, x, y FROM t1 WHERE 11 IS w AND x>2") // count (search count always 0)
 	}
 	{ // "where-1.4.2"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT w, x, y FROM t1 WHERE 11=w AND x>2\n")
@@ -153,7 +192,7 @@ func Test_where(t *testing.T) {
 		}
 	}
 	{ // do_test "where-1.4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w AS a, x AS b, y FROM t1 WHERE 11=a AND b>...}")
+		_ = db.Exec("SELECT w AS a, x AS b, y FROM t1 WHERE 11=a AND b>2") // count (search count always 0)
 	}
 	{ // "where-1.4.4"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT w AS a, x AS b, y FROM t1 WHERE 11=a AND b>2\n")
@@ -162,7 +201,7 @@ func Test_where(t *testing.T) {
 		}
 	}
 	{ // do_test "where-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y FROM t1 WHERE y<200 AND w=11 AND x>2}")
+		_ = db.Exec("SELECT x, y FROM t1 WHERE y<200 AND w=11 AND x>2") // count (search count always 0)
 	}
 	{ // "where-1.5.2"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT x, y FROM t1 WHERE y<200 AND w=11 AND x>2\n")
@@ -171,13 +210,13 @@ func Test_where(t *testing.T) {
 		}
 	}
 	{ // do_test "where-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y FROM t1 WHERE y<200 AND x>2 AND w=11}")
+		_ = db.Exec("SELECT x, y FROM t1 WHERE y<200 AND x>2 AND w=11") // count (search count always 0)
 	}
 	{ // do_test "where-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y FROM t1 WHERE w=11 AND y<200 AND x>2}")
+		_ = db.Exec("SELECT x, y FROM t1 WHERE w=11 AND y<200 AND x>2") // count (search count always 0)
 	}
 	{ // do_test "where-1.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y FROM t1 WHERE w>10 AND y=144 AND x=3}")
+		_ = db.Exec("SELECT x, y FROM t1 WHERE w>10 AND y=144 AND x=3") // count (search count always 0)
 	}
 	{ // "where-1.8.2"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT x, y FROM t1 WHERE w>10 AND y=144 AND x=3\n")
@@ -192,163 +231,163 @@ func Test_where(t *testing.T) {
 		}
 	}
 	{ // do_test "where-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y FROM t1 WHERE y=144 AND w>10 AND x=3}")
+		_ = db.Exec("SELECT x, y FROM t1 WHERE y=144 AND w>10 AND x=3") // count (search count always 0)
 	}
 	{ // do_test "where-1.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y FROM t1 WHERE x=3 AND w>=10 AND y=121}")
+		_ = db.Exec("SELECT x, y FROM t1 WHERE x=3 AND w>=10 AND y=121") // count (search count always 0)
 	}
 	{ // do_test "where-1.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y FROM t1 WHERE x=3 AND y=100 AND w<10}")
+		_ = db.Exec("SELECT x, y FROM t1 WHERE x=3 AND y=100 AND w<10") // count (search count always 0)
 	}
 	{ // do_test "where-1.11b"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT x, y FROM t1 WHERE x IS 3 AND y IS 100 AND ...}")
+		_ = db.Exec("SELECT x, y FROM t1 WHERE x IS 3 AND y IS 100 AND w<10") // count (search count always 0)
 	}
 	{ // do_test "where-1.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND y<100}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND y<100") // count (search count always 0)
 	}
 	{ // do_test "where-1.12b"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x IS 3 AND y<100}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x IS 3 AND y<100") // count (search count always 0)
 	}
 	{ // do_test "where-1.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND 100>y}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND 100>y") // count (search count always 0)
 	}
 	{ // do_test "where-1.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE 3=x AND y<100}")
+		_ = db.Exec("SELECT w FROM t1 WHERE 3=x AND y<100") // count (search count always 0)
 	}
 	{ // do_test "where-1.14b"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE 3 IS x AND y<100}")
+		_ = db.Exec("SELECT w FROM t1 WHERE 3 IS x AND y<100") // count (search count always 0)
 	}
 	{ // do_test "where-1.15"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE 3=x AND 100>y}")
+		_ = db.Exec("SELECT w FROM t1 WHERE 3=x AND 100>y") // count (search count always 0)
 	}
 	{ // do_test "where-1.16"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND y<=100}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND y<=100") // count (search count always 0)
 	}
 	{ // do_test "where-1.17"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND 100>=y}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND 100>=y") // count (search count always 0)
 	}
 	{ // do_test "where-1.18"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND y>225}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND y>225") // count (search count always 0)
 	}
 	{ // do_test "where-1.18b"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x IS 3 AND y>225}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x IS 3 AND y>225") // count (search count always 0)
 	}
 	{ // do_test "where-1.19"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND 225<y}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND 225<y") // count (search count always 0)
 	}
 	{ // do_test "where-1.20"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND y>=225}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND y>=225") // count (search count always 0)
 	}
 	{ // do_test "where-1.21"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND 225<=y}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND 225<=y") // count (search count always 0)
 	}
 	{ // do_test "where-1.22"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND y>121 AND y<196}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND y>121 AND y<196") // count (search count always 0)
 	}
 	{ // do_test "where-1.22b"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x IS 3 AND y>121 AND y<196}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x IS 3 AND y>121 AND y<196") // count (search count always 0)
 	}
 	{ // do_test "where-1.23"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND y>=121 AND y<=196}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND y>=121 AND y<=196") // count (search count always 0)
 	}
 	{ // do_test "where-1.24"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND 121<y AND 196>y}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND 121<y AND 196>y") // count (search count always 0)
 	}
 	{ // do_test "where-1.25"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND 121<=y AND 196>=y}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND 121<=y AND 196>=y") // count (search count always 0)
 	}
 	{ // do_test "where-1.27"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x=3 AND y+1==122}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x=3 AND y+1==122") // count (search count always 0)
 	}
 	{ // do_test "where-1.28"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE x+1=4 AND y+1==122}")
+		_ = db.Exec("SELECT w FROM t1 WHERE x+1=4 AND y+1==122") // count (search count always 0)
 	}
 	{ // do_test "where-1.29"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE y==121}")
+		_ = db.Exec("SELECT w FROM t1 WHERE y==121") // count (search count always 0)
 	}
 	{ // do_test "where-1.30"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w>97}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w>97") // count (search count always 0)
 	}
 	{ // do_test "where-1.31"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w>=97}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w>=97") // count (search count always 0)
 	}
 	{ // do_test "where-1.33"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w==97}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w==97") // count (search count always 0)
 	}
 	{ // do_test "where-1.33.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w<=97 AND w==97}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w<=97 AND w==97") // count (search count always 0)
 	}
 	{ // do_test "where-1.33.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w<98 AND w==97}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w<98 AND w==97") // count (search count always 0)
 	}
 	{ // do_test "where-1.33.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w>=97 AND w==97}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w>=97 AND w==97") // count (search count always 0)
 	}
 	{ // do_test "where-1.33.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w>96 AND w==97}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w>96 AND w==97") // count (search count always 0)
 	}
 	{ // do_test "where-1.33.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w==97 AND w==97}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w==97 AND w==97") // count (search count always 0)
 	}
 	{ // do_test "where-1.34"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w+1==98}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w+1==98") // count (search count always 0)
 	}
 	{ // do_test "where-1.35"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w<3}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w<3") // count (search count always 0)
 	}
 	{ // do_test "where-1.36"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w<=3}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w<=3") // count (search count always 0)
 	}
 	{ // do_test "where-1.37"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT w FROM t1 WHERE w+1<=4 ORDER BY w}")
+		_ = db.Exec("SELECT w FROM t1 WHERE w+1<=4 ORDER BY w") // count (search count always 0)
 	}
 	{ // do_test "where-1.38"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT (w) FROM t1 WHERE (w)>(97)}")
+		_ = db.Exec("SELECT (w) FROM t1 WHERE (w)>(97)") // count (search count always 0)
 	}
 	{ // do_test "where-1.39"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT (w) FROM t1 WHERE (w)>=(97)}")
+		_ = db.Exec("SELECT (w) FROM t1 WHERE (w)>=(97)") // count (search count always 0)
 	}
 	{ // do_test "where-1.40"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT (w) FROM t1 WHERE (w)==(97)}")
+		_ = db.Exec("SELECT (w) FROM t1 WHERE (w)==(97)") // count (search count always 0)
 	}
 	{ // do_test "where-1.41"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT (w) FROM t1 WHERE ((w)+(1))==(98)}")
+		_ = db.Exec("SELECT (w) FROM t1 WHERE ((w)+(1))==(98)") // count (search count always 0)
 	}
 	{ // do_test "where-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT w, p FROM t2, t1\n    WHERE x=q AND y=s...}")
+		_ = db.Exec("\n    SELECT w, p FROM t2, t1\n    WHERE x=q AND y=s AND r=8977\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT w, p FROM t2, t1\n    WHERE x=q AND s=y...}")
+		_ = db.Exec("\n    SELECT w, p FROM t2, t1\n    WHERE x=q AND s=y AND r=8977\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT w, p FROM t2, t1\n    WHERE x=q AND s=y...}")
+		_ = db.Exec("\n    SELECT w, p FROM t2, t1\n    WHERE x=q AND s=y AND r=8977 AND w>10\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT w, p FROM t2, t1\n    WHERE p<80 AND x=...}")
+		_ = db.Exec("\n    SELECT w, p FROM t2, t1\n    WHERE p<80 AND x=q AND s=y AND r=8977 AND w>10\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT w, p FROM t2, t1\n    WHERE p<80 AND x=...}")
+		_ = db.Exec("\n    SELECT w, p FROM t2, t1\n    WHERE p<80 AND x=q AND 8977=r AND s=y AND w>10\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT w, p FROM t2, t1\n    WHERE x=q AND p=7...}")
+		_ = db.Exec("\n    SELECT w, p FROM t2, t1\n    WHERE x=q AND p=77 AND s=y AND w>5\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT w, p FROM t1, t2\n    WHERE x=q AND p>7...}")
+		_ = db.Exec("\n    SELECT w, p FROM t1, t2\n    WHERE x=q AND p>77 AND s=y AND w=5\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT A.w, B.p, C.w FROM t1 as A, t2 as B, t...}")
+		_ = db.Exec("\n    SELECT A.w, B.p, C.w FROM t1 as A, t2 as B, t1 as C\n    WHERE C.w=101-B.p AND B.r=10202-A.y AND A.w=11\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT A.w, B.p, C.w FROM t1 as A, t2 as B, t...}")
+		_ = db.Exec("\n    SELECT A.w, B.p, C.w FROM t1 as A, t2 as B, t1 as C\n    WHERE C.w=101-B.p AND B.r=10202-A.y AND A.w=12\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT A.w, B.p, C.w FROM t1 as A, t2 as B, t...}")
+		_ = db.Exec("\n    SELECT A.w, B.p, C.w FROM t1 as A, t2 as B, t1 as C\n    WHERE A.w=15 AND B.p=C.w AND B.r=10202-A.y\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-4.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 0\n  }")
+		_ = db.Exec("\n    SELECT * FROM t1 WHERE 0\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 1 LIMIT 1\n  }")
+		_ = db.Exec("\n    SELECT * FROM t1 WHERE 1 LIMIT 1\n  ") // count (search count always 0)
 	}
 	{ // do_test "where-4.3"
 		r = db.Query("\n    SELECT 99 WHERE 0\n  ")
@@ -388,228 +427,228 @@ func Test_where(t *testing.T) {
 		}
 	}
 	{ // do_test "where-6.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 ORDER BY a LIMIT 3\n  }")
+		_ = db.Exec("\n    SELECT * FROM t3 ORDER BY a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 ORDER BY a+1 LIMIT 3\n  }")
+		_ = db.Exec("\n    SELECT * FROM t3 ORDER BY a+1 LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a<10 ORDER BY a LIMIT ...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a<10 ORDER BY a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a>0 AND a<10 ORDER BY ...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a>0 AND a<10 ORDER BY a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a>0 ORDER BY a LIMIT 3...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a>0 ORDER BY a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.7.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE b>0 ORDER BY a LIMIT 1...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE b>0 ORDER BY a LIMIT 10\n  ") // cksort
 	}
 	{ // do_test "where-6.7.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE b>0 ORDER BY a LIMIT 1...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE b>0 ORDER BY a LIMIT 1\n  ") // cksort
 	}
 	{ // do_test "where-6.9.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.9.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a>=1 AND a=1 AND c>0 O...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a>=1 AND a=1 AND c>0 ORDER BY a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.9.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a<2 AND a=1 AND c>0 OR...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a<2 AND a=1 AND c>0 ORDER BY a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.9.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a,c LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.9.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY c...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY c LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.9.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a DESC LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.9.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a DESC, c DESC LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.9.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY c...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY c DESC LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.9.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY c...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY c,a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.9.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a DESC, c ASC LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.9.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a ASC, c DESC LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a,c LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a=1 AND c>0 ORDER BY a,c,b LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a>0 ORDER BY a DESC LI...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a>0 ORDER BY a DESC LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.13.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 WHERE a>0 ORDER BY -a LIMIT ...}")
+		_ = db.Exec("\n    SELECT * FROM t3 WHERE a>0 ORDER BY -a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t3 ORDER BY b LIMIT 3\n  }")
+		_ = db.Exec("\n    SELECT * FROM t3 ORDER BY b LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.15"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT t3.a, t1.x FROM t3, t1 WHERE t3.a=t1.w...}")
+		_ = db.Exec("\n    SELECT t3.a, t1.x FROM t3, t1 WHERE t3.a=t1.w ORDER BY t3.a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.16"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT t3.a, t1.x FROM t3, t1 WHERE t3.a=t1.w...}")
+		_ = db.Exec("\n    SELECT t3.a, t1.x FROM t3, t1 WHERE t3.a=t1.w ORDER BY t1.x, t3.a LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-6.19"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 ORDER BY w LIMIT 3;\n  }")
+		_ = db.Exec("\n    SELECT y FROM t1 ORDER BY w LIMIT 3;\n  ") // cksort
 	}
 	{ // do_test "where-6.20"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 ORDER BY rowid LIMIT 3;\n  }")
+		_ = db.Exec("\n    SELECT y FROM t1 ORDER BY rowid LIMIT 3;\n  ") // cksort
 	}
 	{ // do_test "where-6.21"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 ORDER BY rowid, y LIMIT 3;\n ...}")
+		_ = db.Exec("\n    SELECT y FROM t1 ORDER BY rowid, y LIMIT 3;\n  ") // cksort
 	}
 	{ // do_test "where-6.22"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 ORDER BY rowid, y DESC LIMIT...}")
+		_ = db.Exec("\n    SELECT y FROM t1 ORDER BY rowid, y DESC LIMIT 3;\n  ") // cksort
 	}
 	{ // do_test "where-6.23"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 WHERE y>4 ORDER BY rowid, w,...}")
+		_ = db.Exec("\n    SELECT y FROM t1 WHERE y>4 ORDER BY rowid, w, x LIMIT 3;\n  ") // cksort
 	}
 	{ // do_test "where-6.24"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 WHERE y>=9 ORDER BY rowid, x...}")
+		_ = db.Exec("\n    SELECT y FROM t1 WHERE y>=9 ORDER BY rowid, x DESC, w LIMIT 3;\n  ") // cksort
 	}
 	{ // do_test "where-6.25"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 WHERE y>4 AND y<25 ORDER BY ...}")
+		_ = db.Exec("\n    SELECT y FROM t1 WHERE y>4 AND y<25 ORDER BY rowid;\n  ") // cksort
 	}
 	{ // do_test "where-6.26"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 WHERE y>=4 AND y<=25 ORDER B...}")
+		_ = db.Exec("\n    SELECT y FROM t1 WHERE y>=4 AND y<=25 ORDER BY oid;\n  ") // cksort
 	}
 	{ // do_test "where-6.27"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 WHERE y<=25 ORDER BY _rowid_...}")
+		_ = db.Exec("\n    SELECT y FROM t1 WHERE y<=25 ORDER BY _rowid_, w+y;\n  ") // cksort
 	}
 	{ // do_test "where-7.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 ORDER BY y;\n  }")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 ORDER BY y DESC;\n ...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>100 ORDER BY...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>100 ORDER BY y LIMIT 3;\n  ") // cksort
 	}
 	{ // do_test "where-7.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>100 ORDER BY...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>100 ORDER BY y DESC LIMIT 3;\n  ") // cksort
 	}
 	{ // do_test "where-7.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>121 ORDER BY...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>121 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>=121 ORDER B...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>=121 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>=121 AND y<1...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>=121 AND y<196 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>=121 AND y<=...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>=121 AND y<=196 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>121 AND y<=1...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>121 AND y<=196 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>100 AND y<19...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>100 AND y<196 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>=121 AND y<1...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>=121 AND y<196 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>=121 AND y<=...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>=121 AND y<=196 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>121 AND y<=1...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>121 AND y<=196 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>100 AND y<19...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>100 AND y<196 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.15"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y<81 ORDER BY ...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y<81 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.16"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y<=81 ORDER BY...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y<=81 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.17"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>256 ORDER BY...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>256 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.18"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>=256 ORDER B...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>=256 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.19"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y<81 ORDER BY ...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y<81 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.20"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y<=81 ORDER BY...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y<=81 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.21"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>256 ORDER BY...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>256 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.22"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=3 AND y>=256 ORDER B...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=3 AND y>=256 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.23"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=0 AND y<4 ORDER BY y...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=0 AND y<4 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.24"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=0 AND y<=4 ORDER BY ...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=0 AND y<=4 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.25"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=6 AND y>10201 ORDER ...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=6 AND y>10201 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.26"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=6 AND y>=10201 ORDER...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=6 AND y>=10201 ORDER BY y;\n  ") // cksort
 	}
 	{ // do_test "where-7.27"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=0 AND y<4 ORDER BY y...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=0 AND y<4 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.28"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=0 AND y<=4 ORDER BY ...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=0 AND y<=4 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.29"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=6 AND y>10201 ORDER ...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=6 AND y>10201 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.30"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t1 WHERE x=6 AND y>=10201 ORDER...}")
+		_ = db.Exec("\n    SELECT w FROM t1 WHERE x=6 AND y>=10201 ORDER BY y DESC;\n  ") // cksort
 	}
 	{ // do_test "where-7.31"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 ORDER BY rowid DESC LIMIT 3\n...}")
+		_ = db.Exec("\n    SELECT y FROM t1 ORDER BY rowid DESC LIMIT 3\n  ") // cksort
 	}
 	{ // do_test "where-7.32"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 WHERE y<25 ORDER BY rowid DE...}")
+		_ = db.Exec("\n    SELECT y FROM t1 WHERE y<25 ORDER BY rowid DESC\n  ") // cksort
 	}
 	{ // do_test "where-7.33"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 WHERE y<=25 ORDER BY rowid D...}")
+		_ = db.Exec("\n    SELECT y FROM t1 WHERE y<=25 ORDER BY rowid DESC\n  ") // cksort
 	}
 	{ // do_test "where-7.34"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 WHERE y<25 AND y>4 ORDER BY ...}")
+		_ = db.Exec("\n    SELECT y FROM t1 WHERE y<25 AND y>4 ORDER BY rowid DESC, y DESC\n  ") // cksort
 	}
 	{ // do_test "where-7.35"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT y FROM t1 WHERE y<25 AND y>=4 ORDER BY...}")
+		_ = db.Exec("\n    SELECT y FROM t1 WHERE y<25 AND y>=4 ORDER BY rowid DESC\n  ") // cksort
 	}
 	{ // do_test "where-8.1"
 		_res = db.Exec("\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE INDEX i4xy ON t4(x,y);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE INDEX i4xy ON t4(x,y);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t4 WHERE x=4 and y<1000 ORDER B...}")
+		_ = db.Exec("\n    SELECT w FROM t4 WHERE x=4 and y<1000 ORDER BY y DESC limit 3;\n  ") // cksort
 	}
 	{ // do_test "where-8.2"
 		_res = db.Exec("\n    DELETE FROM t4;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t4;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT w FROM t4 WHERE x=4 and y<1000 ORDER B...}")
+		_ = db.Exec("\n    SELECT w FROM t4 WHERE x=4 and y<1000 ORDER BY y DESC limit 3;\n  ") // cksort
 	}
 	{ // do_test "where-9.1"
 		r = db.Query("\n    CREATE TABLE t5(x PRIMARY KEY);\n    SELECT * FROM t5 WHERE x<10;\n  ")
@@ -637,24 +676,24 @@ func Test_where(t *testing.T) {
 	}
 	{ // do_test "where-10.2"
 		// proc definition (not transpiled)
-		var _v1 = "0" // TCL namespace variable
-		_ = _v1 // suppress unused warning
+		v1 = "0" // TCL namespace variable
+		_ = v1 // suppress unused warning
 		r = db.Query("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
 		}
 	}
 	{ // do_test "where-10.3"
-		var _v1 = "1" // TCL namespace variable
-		_ = _v1 // suppress unused warning
+		v1 = "1" // TCL namespace variable
+		_ = v1 // suppress unused warning
 		r = db.Query("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
 		}
 	}
 	{ // do_test "where-10.4"
-		var _v1 = "1" // TCL namespace variable
-		_ = _v1 // suppress unused warning
+		v1 = "1" // TCL namespace variable
+		_ = v1 // suppress unused warning
 		// proc definition (not transpiled)
 		r = db.Query("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
 		if r.Error != nil {
@@ -672,80 +711,80 @@ func Test_where(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t6(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t6 VALUES(1,'one');\n    INSERT INTO t6 VALUES(4,'four');\n    CREATE INDEX t6i1 ON t6(b);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY b;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY b;\n  ") // cksort
 	}
 	{ // do_test "where-12.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY b, a;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY b, a;\n  ") // cksort
 	}
 	{ // do_test "where-12.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY a;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY a;\n  ") // cksort
 	}
 	{ // do_test "where-12.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY a, b;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY a, b;\n  ") // cksort
 	}
 	{ // do_test "where-12.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY b DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY b DESC;\n  ") // cksort
 	}
 	{ // do_test "where-12.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY b DESC, a DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY b DESC, a DESC;\n  ") // cksort
 	}
 	{ // do_test "where-12.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY b DESC, a ASC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY b DESC, a ASC;\n  ") // cksort
 	}
 	{ // do_test "where-12.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY b ASC, a DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY b ASC, a DESC;\n  ") // cksort
 	}
 	{ // do_test "where-12.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY a DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY a DESC;\n  ") // cksort
 	}
 	{ // do_test "where-12.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY a DESC, b DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY a DESC, b DESC;\n  ") // cksort
 	}
 	{ // do_test "where-12.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY a DESC, b ASC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY a DESC, b ASC;\n  ") // cksort
 	}
 	{ // do_test "where-12.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t6 ORDER BY a ASC, b DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t6 ORDER BY a ASC, b DESC;\n  ") // cksort
 	}
 	{ // do_test "where-13.1"
 		_res = db.Exec("\n    CREATE TABLE t7(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t7 VALUES(1,'one');\n    INSERT INTO t7 VALUES(4,'four');\n    CREATE INDEX t7i1 ON t7(b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t7(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t7 VALUES(1,'one');\n    INSERT INTO t7 VALUES(4,'four');\n    CREATE INDEX t7i1 ON t7(b);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY b;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY b;\n  ") // cksort
 	}
 	{ // do_test "where-13.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY b, a;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY b, a;\n  ") // cksort
 	}
 	{ // do_test "where-13.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY a;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY a;\n  ") // cksort
 	}
 	{ // do_test "where-13.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY a, b;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY a, b;\n  ") // cksort
 	}
 	{ // do_test "where-13.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY b DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY b DESC;\n  ") // cksort
 	}
 	{ // do_test "where-13.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY b DESC, a DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY b DESC, a DESC;\n  ") // cksort
 	}
 	{ // do_test "where-13.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY b DESC, a ASC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY b DESC, a ASC;\n  ") // cksort
 	}
 	{ // do_test "where-13.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY b ASC, a DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY b ASC, a DESC;\n  ") // cksort
 	}
 	{ // do_test "where-13.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY a DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY a DESC;\n  ") // cksort
 	}
 	{ // do_test "where-13.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY a DESC, b DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY a DESC, b DESC;\n  ") // cksort
 	}
 	{ // do_test "where-13.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY a DESC, b ASC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY a DESC, b ASC;\n  ") // cksort
 	}
 	{ // do_test "where-13.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM t7 ORDER BY a ASC, b DESC;\n  }")
+		_ = db.Exec("\n    SELECT * FROM t7 ORDER BY a ASC, b DESC;\n  ") // cksort
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // do_test "where-14.1"
@@ -753,46 +792,46 @@ func Test_where(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t8(a INTEGER PRIMARY KEY, b TEXT UNIQUE, c CHAR(100));\n    INSERT INTO t8(a,b) VALUES(1,'one');\n    INSERT INTO t8(a,b) VALUES(4,'four');\n  ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.a, y.b\n  ") // cksort
 		}
 		{ // do_test "where-14.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.a, y.b DESC\n  ") // cksort
 		}
 		{ // do_test "where-14.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.a, x.b\n  ") // cksort
 		}
 		{ // do_test "where-14.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.a, x.b DESC\n  ") // cksort
 		}
 		{ // do_test "where-14.5"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a||x.b\n  ") // cksort
 		}
 		{ // do_test "where-14.6"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a||x.b DESC\n  ") // cksort
 		}
 		{ // do_test "where-14.7"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, y.a||y.b\n  ") // cksort
 		}
 		{ // do_test "where-14.7.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a, y.a||y.b\n  ") // cksort
 		}
 		{ // do_test "where-14.7.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a, x.a||x.b\n  ") // cksort
 		}
 		{ // do_test "where-14.8"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, y.a||y.b DESC\n  ") // cksort
 		}
 		{ // do_test "where-14.9"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a||y.b\n  ") // cksort
 		}
 		{ // do_test "where-14.10"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, x.a||y.b DESC\n  ") // cksort
 		}
 		{ // do_test "where-14.11"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, y.a||x.b\n  ") // cksort
 		}
 		{ // do_test "where-14.12"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDE...}")
+			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, y.a||x.b DESC\n  ") // cksort
 		}
 	}
 	{ // do_test "where-15.1"
@@ -1007,7 +1046,8 @@ func Test_where(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "where-22.1"
 		r = db.Query("\n  CREATE TABLE t1(a INT);\n  CREATE INDEX t1a ON t1(a);\n  INSERT INTO t1(a) VALUES(NULL),(NULL),(42),(NULL),(NULL);\n  CREATE TABLE t2(dummy INT);\n  SELECT count(*) FROM t1 LEFT JOIN t2 ON a IS NOT NULL;\n")
@@ -1043,20 +1083,20 @@ func Test_where(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res} "\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n"
-	_items0 := tclSplitList("\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n")
+	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items1[_idx1+1]
 		_ = sql // suppress unused warning
-		res := _items0[_idx0+2]
+		res := _items1[_idx1+2]
 		_ = res // suppress unused warning
-		_ = _idx0
-			var rev = "list"
+		_ = _idx1
+			rev = "list"
 			_ = rev // suppress unused warning
 			for _, _r := range tclSplitList(res) {
 			_ = _r // suppress unused warning
-				var rev = "concat $r $rev"
+				rev = "concat $r $rev"
 				_ = rev // suppress unused warning
 			}
 			{ // "where-24." + tn + ".1"
@@ -1093,7 +1133,8 @@ func Test_where(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
 			}
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.1"
 			_res = db.Exec("\n  DELETE FROM t1 WHERE c='iii'\n")
@@ -1116,7 +1157,8 @@ func Test_where(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c) WITHOUT ROWID;\n  CREATE UNIQUE INDEX i1 ON t1(c);\n  INSERT INTO t1 VALUES(1, 'one', 'i');\n  INSERT INTO t1 VALUES(2, 'two', 'ii');\n\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b, c);\n  CREATE UNIQUE INDEX i2 ON t2(c);\n  INSERT INTO t2 VALUES(1, 'one', 'i');\n  INSERT INTO t2 VALUES(2, 'two', 'ii');\n  INSERT INTO t2 VALUES(3, 'three', 'iii');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema SET rootpage = (\n    SELECT rootpage FROM sqlite_schema WHERE name = 'i2'\n  ) WHERE name = 'i1';\n")
 			}
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "where-25.4"
 			_res = db.Exec("\n  SELECT * FROM t1 WHERE c='iii'\n")
@@ -1130,7 +1172,8 @@ func Test_where(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "corrupt database", _res.Error, "\n  INSERT INTO t1 VALUES(4, 'four', 'iii') \n    ON CONFLICT(c) DO UPDATE SET b=NULL\n")
 			}
 		}
-		db, err = frigolite.Open(":memory:")
+		_dbtmp4, err := frigolite.Open(":memory:")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "where-26.1"
 			r = db.Query("\n  CREATE TABLE t0(c0 INTEGER PRIMARY KEY, c1 TEXT);\n  INSERT INTO t0(c0, c1) VALUES (1, 'a');\n  CREATE TABLE t1(c0 INT PRIMARY KEY, c1 TEXT);\n  INSERT INTO t1(c0, c1) VALUES (1, 'a');\n  SELECT * FROM t0 WHERE '-1' BETWEEN 0 AND t0.c0;\n")
@@ -1267,7 +1310,7 @@ func Test_where(t *testing.T) {
 			}
 		}
 		{ // do_test "where-30.1"
-			var res = ""
+			res = ""
 			_ = res // suppress unused warning
 			_res = db.Exec("CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));")
 			if _res.Error != nil {

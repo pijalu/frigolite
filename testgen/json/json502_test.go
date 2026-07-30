@@ -40,8 +40,17 @@ func Test_json502(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var h string
+	_ = h // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "json502"
+	testprefix = "json502"
 	_ = testprefix // suppress unused warning
 	{ // "2.1"
 		r = db.Query("\n  SELECT json_error_position('{a:null,{\"h\":[1,[1,2,3]],\"j\":\"abc\"}:true}');\n")

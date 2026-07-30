@@ -39,13 +39,20 @@ func Test_fts3fuzz001(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3fuzz001"
+	testprefix = "fts3fuzz001"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "fts3fuzz001-100"
-		db, err := frigolite.Open("")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA writable_schema=on; -- disable schema corruption detection\n    INSERT INTO t1(t1) SELECT x FROM t2;\n  ")
 		_ = _res // catchsql

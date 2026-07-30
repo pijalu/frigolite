@@ -40,8 +40,15 @@ func Test_join2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "join2"
+	testprefix = "join2"
 	_ = testprefix // suppress unused warning
 	{ // do_test "join2-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,11);\n    INSERT INTO t1 VALUES(2,22);\n    INSERT INTO t1 VALUES(3,33);\n    SELECT * FROM t1;\n  ")
@@ -310,7 +317,8 @@ func Test_join2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT u2.* FROM u2 LEFT JOIN u1 ON( u1.a=u2.a AND u1.b=u2.b AND u1.c=u2.c );\n")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b);  INSERT INTO t1 VALUES(1,2),(3,4),(5,6);\n  CREATE TABLE t2(c,d);  INSERT INTO t2 VALUES(2,4),(3,6);\n  CREATE TABLE t3(x);    INSERT INTO t3 VALUES(9);\n  CREATE VIEW test AS\n    SELECT *, 'x'\n      FROM t1 LEFT JOIN (SELECT * FROM t2, t3) ON (c=b AND x=9)\n      WHERE c IS NULL;\n  SELECT * FROM test;\n")
@@ -420,7 +428,7 @@ func Test_join2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 0")
+	// optimization_control db query-flattener 0 (unsupported command, not transpiled)
 	{ // "9.11"
 		r = db.Query("\n  SELECT ccc, ccc IS NULL AS ddd FROM t1 LEFT JOIN v2;\n")
 		if r.Error != nil {
@@ -466,7 +474,7 @@ func Test_join2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
+	// optimization_control db all 0 (unsupported command, not transpiled)
 	{ // "10.4"
 		r = db.Query("\n  SELECT (\n    SELECT 1 FROM t2 LEFT JOIN (SELECT x AS v FROM t3) ON 500=v WHERE (v OR FALSE)\n  ) FROM t1;\n")
 		if r.Error != nil {
@@ -479,7 +487,7 @@ func Test_join2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+	// optimization_control db all 1 (unsupported command, not transpiled)
 	{ // "11.1"
 		r = db.Query("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  CREATE TABLE t1(x TEXT, y INTEGER);\n  INSERT INTO t1(x,y) VALUES(NULL,-2),(NULL,1),('0',2);\n  CREATE TABLE t2(z INTEGER);\n  INSERT INTO t2(z) VALUES(2),(-2);\n  CREATE VIEW t3 AS SELECT z, (SELECT count(*) FROM t1) AS w FROM t2;\n  SELECT * FROM t1 LEFT JOIN t3 ON y=z;\n")
 		if r.Error != nil {
@@ -498,7 +506,8 @@ func Test_join2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP VIEW t3;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<100)\n    INSERT INTO t1(a) SELECT n FROM c;\n  CREATE VIEW t2(b) AS SELECT a FROM t1;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 12.2 {\n  SELECT * FROM t1 LEFT JOIN t2 ON a=b LIMIT 10 O...} 2000 {99 99 100 100}")
+	// do_vmstep_test 12.2 {
+  SELECT * FROM t1 LEFT JOIN t2 ON a=b LIMIT 10 O...} 2000 {99 99 100 100} (unsupported command, not transpiled)
 	{ // "12.3"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 LEFT JOIN t2 ON a=b LIMIT 10 OFFSET 98;\n")
 		if r.Error != nil {

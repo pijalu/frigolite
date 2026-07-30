@@ -40,6 +40,15 @@ func Test_tkt3929(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3929-1.0"
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    CREATE TRIGGER t1_t1 AFTER INSERT ON t1 BEGIN\n      UPDATE t1 SET b = 'value: ' || a WHERE t1.rowid = new.rowid;\n    END;\n  ")
@@ -54,7 +63,7 @@ func Test_tkt3929(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3930-1.2"
-		var i = "3"
+		i = "3"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			_res = db.Exec(" INSERT INTO t1(a) VALUES($i) ")

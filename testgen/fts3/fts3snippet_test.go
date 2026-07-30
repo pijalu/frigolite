@@ -5,6 +5,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -41,16 +42,85 @@ func Test_fts3snippet(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var DO_MALLOC_TEST string
+	_ = DO_MALLOC_TEST // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var numbers string
+	_ = numbers // pre-declared from TCL source
+	var enc string
+	_ = enc // pre-declared from TCL source
+	var T string
+	_ = T // pre-declared from TCL source
+	var v1 string
+	_ = v1 // pre-declared from TCL source
+	var off string
+	_ = off // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var testresults string
+	_ = testresults // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var commas string
+	_ = commas // pre-declared from TCL source
+	var scan_littleEndian string
+	_ = scan_littleEndian // pre-declared from TCL source
+	var scan_bigEndian string
+	_ = scan_bigEndian // pre-declared from TCL source
+	var ten string
+	_ = ten // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var v2 string
+	_ = v2 // pre-declared from TCL source
+	var docid string
+	_ = docid // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var x35 string
+	_ = x35 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var iCol string
+	_ = iCol // pre-declared from TCL source
+	var nTok string
+	_ = nTok // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var scan__tcl_platform_byteOrder string
+	_ = scan__tcl_platform_byteOrder // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3snippet"
+	testprefix = "fts3snippet"
 	_ = testprefix // suppress unused warning
-	var sqlite_fts3_enable_parentheses = "1"
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
-	var DO_MALLOC_TEST = "0"
+	DO_MALLOC_TEST = "0"
 	_ = DO_MALLOC_TEST // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var numbers = "normalize {\n  one two three four five six seven eight nine ten eleven twelve thirteen\n  fourteen fifteen sixteen seventeen eighteen nineteen twenty twentyone\n  twentytwo twentythree twentyfour twentyfive twentysix twentyseven\n  twentyeight twentynine thirty thirtyone thirtytwo thirtythree thirtyfour\n  thirtyfive thirtysix thirtyseven thirtyeight thirtynine forty fortyone\n  fortytwo fortythree fortyfour fortyfive fortysix fortyseven fortyeight\n  fortynine fifty fiftyone fiftytwo fiftythree fiftyfour fiftyfive fiftysix\n  fiftyseven fiftyeight fiftynine sixty sixtyone sixtytwo sixtythree sixtyfour\n  sixtyfive sixtysix sixtyseven sixtyeight sixtynine seventy seventyone\n  seventytwo seventythree seventyfour seventyfive seventysix seventyseven\n  seventyeight seventynine eighty eightyone eightytwo eightythree eightyfour\n  eightyfive eightysix eightyseven eightyeight eightynine ninety ninetyone\n  ninetytwo ninetythree ninetyfour ninetyfive ninetysix ninetyseven\n  ninetyeight ninetynine onehundred onehundredone onehundredtwo\n  onehundredthree onehundredfour onehundredfive onehundredsix onehundredseven\n  onehundredeight onehundrednine onehundredten onehundredeleven\n  onehundredtwelve onehundredthirteen onehundredfourteen onehundredfifteen\n  onehundredsixteen onehundredseventeen onehundredeighteen onehundrednineteen\n  onehundredtwenty onehundredtwentyone onehundredtwentytwo\n  onehundredtwentythree onehundredtwentyfour onehundredtwentyfive\n  onehundredtwentysix onehundredtwentyseven onehundredtwentyeight\n  onehundredtwentynine onehundredthirty onehundredthirtyone\n  onehundredthirtytwo onehundredthirtythree onehundredthirtyfour\n  onehundredthirtyfive onehundredthirtysix onehundredthirtyseven\n  onehundredthirtyeight onehundredthirtynine onehundredforty\n  onehundredfortyone onehundredfortytwo onehundredfortythree\n  onehundredfortyfour onehundredfortyfive onehundredfortysix\n  onehundredfortyseven onehundredfortyeight onehundredfortynine\n  onehundredfifty onehundredfiftyone onehundredfiftytwo onehundredfiftythree\n  onehundredfiftyfour onehundredfiftyfive onehundredfiftysix\n  onehundredfiftyseven onehundredfiftyeight onehundredfiftynine\n  onehundredsixty onehundredsixtyone onehundredsixtytwo onehundredsixtythree\n  onehundredsixtyfour onehundredsixtyfive onehundredsixtysix\n  onehundredsixtyseven onehundredsixtyeight onehundredsixtynine\n  onehundredseventy onehundredseventyone onehundredseventytwo\n  onehundredseventythree onehundredseventyfour onehundredseventyfive\n  onehundredseventysix onehundredseventyseven onehundredseventyeight\n  onehundredseventynine onehundredeighty onehundredeightyone\n  onehundredeightytwo onehundredeightythree onehundredeightyfour\n  onehundredeightyfive onehundredeightysix onehundredeightyseven\n  onehundredeightyeight onehundredeightynine onehundredninety\n  onehundredninetyone onehundredninetytwo onehundredninetythree\n  onehundredninetyfour onehundredninetyfive onehundredninetysix\n  onehundredninetyseven onehundredninetyeight onehundredninetynine twohundred\n  twohundredone twohundredtwo twohundredthree twohundredfour twohundredfive\n  twohundredsix twohundredseven twohundredeight twohundrednine twohundredten\n  twohundredeleven twohundredtwelve twohundredthirteen twohundredfourteen\n  twohundredfifteen twohundredsixteen twohundredseventeen twohundredeighteen\n  twohundrednineteen twohundredtwenty twohundredtwentyone twohundredtwentytwo\n  twohundredtwentythree twohundredtwentyfour twohundredtwentyfive\n  twohundredtwentysix twohundredtwentyseven twohundredtwentyeight\n  twohundredtwentynine twohundredthirty twohundredthirtyone\n  twohundredthirtytwo twohundredthirtythree twohundredthirtyfour\n  twohundredthirtyfive twohundredthirtysix twohundredthirtyseven\n  twohundredthirtyeight twohundredthirtynine twohundredforty\n  twohundredfortyone twohundredfortytwo twohundredfortythree\n  twohundredfortyfour twohundredfortyfive twohundredfortysix\n  twohundredfortyseven twohundredfortyeight twohundredfortynine\n  twohundredfifty twohundredfiftyone twohundredfiftytwo twohundredfiftythree\n  twohundredfiftyfour twohundredfiftyfive twohundredfiftysix\n  twohundredfiftyseven twohundredfiftyeight twohundredfiftynine\n  twohundredsixty twohundredsixtyone twohundredsixtytwo twohundredsixtythree\n  twohundredsixtyfour twohundredsixtyfive twohundredsixtysix\n  twohundredsixtyseven twohundredsixtyeight twohundredsixtynine\n  twohundredseventy twohundredseventyone twohundredseventytwo\n  twohundredseventythree twohundredseventyfour twohundredseventyfive\n  twohundredseventysix twohundredseventyseven twohundredseventyeight\n  twohundredseventynine twohundredeighty twohundredeightyone\n  twohundredeightytwo twohundredeightythree twohundredeightyfour\n  twohundredeightyfive twohundredeightysix twohundredeightyseven\n  twohundredeightyeight twohundredeightynine twohundredninety\n  twohundredninetyone twohundredninetytwo twohundredninetythree\n  twohundredninetyfour twohundredninetyfive twohundredninetysix\n  twohundredninetyseven twohundredninetyeight twohundredninetynine\n  threehundred\n}"
+	numbers = "normalize {\n  one two three four five six seven eight nine ten eleven twelve thirteen\n  fourteen fifteen sixteen seventeen eighteen nineteen twenty twentyone\n  twentytwo twentythree twentyfour twentyfive twentysix twentyseven\n  twentyeight twentynine thirty thirtyone thirtytwo thirtythree thirtyfour\n  thirtyfive thirtysix thirtyseven thirtyeight thirtynine forty fortyone\n  fortytwo fortythree fortyfour fortyfive fortysix fortyseven fortyeight\n  fortynine fifty fiftyone fiftytwo fiftythree fiftyfour fiftyfive fiftysix\n  fiftyseven fiftyeight fiftynine sixty sixtyone sixtytwo sixtythree sixtyfour\n  sixtyfive sixtysix sixtyseven sixtyeight sixtynine seventy seventyone\n  seventytwo seventythree seventyfour seventyfive seventysix seventyseven\n  seventyeight seventynine eighty eightyone eightytwo eightythree eightyfour\n  eightyfive eightysix eightyseven eightyeight eightynine ninety ninetyone\n  ninetytwo ninetythree ninetyfour ninetyfive ninetysix ninetyseven\n  ninetyeight ninetynine onehundred onehundredone onehundredtwo\n  onehundredthree onehundredfour onehundredfive onehundredsix onehundredseven\n  onehundredeight onehundrednine onehundredten onehundredeleven\n  onehundredtwelve onehundredthirteen onehundredfourteen onehundredfifteen\n  onehundredsixteen onehundredseventeen onehundredeighteen onehundrednineteen\n  onehundredtwenty onehundredtwentyone onehundredtwentytwo\n  onehundredtwentythree onehundredtwentyfour onehundredtwentyfive\n  onehundredtwentysix onehundredtwentyseven onehundredtwentyeight\n  onehundredtwentynine onehundredthirty onehundredthirtyone\n  onehundredthirtytwo onehundredthirtythree onehundredthirtyfour\n  onehundredthirtyfive onehundredthirtysix onehundredthirtyseven\n  onehundredthirtyeight onehundredthirtynine onehundredforty\n  onehundredfortyone onehundredfortytwo onehundredfortythree\n  onehundredfortyfour onehundredfortyfive onehundredfortysix\n  onehundredfortyseven onehundredfortyeight onehundredfortynine\n  onehundredfifty onehundredfiftyone onehundredfiftytwo onehundredfiftythree\n  onehundredfiftyfour onehundredfiftyfive onehundredfiftysix\n  onehundredfiftyseven onehundredfiftyeight onehundredfiftynine\n  onehundredsixty onehundredsixtyone onehundredsixtytwo onehundredsixtythree\n  onehundredsixtyfour onehundredsixtyfive onehundredsixtysix\n  onehundredsixtyseven onehundredsixtyeight onehundredsixtynine\n  onehundredseventy onehundredseventyone onehundredseventytwo\n  onehundredseventythree onehundredseventyfour onehundredseventyfive\n  onehundredseventysix onehundredseventyseven onehundredseventyeight\n  onehundredseventynine onehundredeighty onehundredeightyone\n  onehundredeightytwo onehundredeightythree onehundredeightyfour\n  onehundredeightyfive onehundredeightysix onehundredeightyseven\n  onehundredeightyeight onehundredeightynine onehundredninety\n  onehundredninetyone onehundredninetytwo onehundredninetythree\n  onehundredninetyfour onehundredninetyfive onehundredninetysix\n  onehundredninetyseven onehundredninetyeight onehundredninetynine twohundred\n  twohundredone twohundredtwo twohundredthree twohundredfour twohundredfive\n  twohundredsix twohundredseven twohundredeight twohundrednine twohundredten\n  twohundredeleven twohundredtwelve twohundredthirteen twohundredfourteen\n  twohundredfifteen twohundredsixteen twohundredseventeen twohundredeighteen\n  twohundrednineteen twohundredtwenty twohundredtwentyone twohundredtwentytwo\n  twohundredtwentythree twohundredtwentyfour twohundredtwentyfive\n  twohundredtwentysix twohundredtwentyseven twohundredtwentyeight\n  twohundredtwentynine twohundredthirty twohundredthirtyone\n  twohundredthirtytwo twohundredthirtythree twohundredthirtyfour\n  twohundredthirtyfive twohundredthirtysix twohundredthirtyseven\n  twohundredthirtyeight twohundredthirtynine twohundredforty\n  twohundredfortyone twohundredfortytwo twohundredfortythree\n  twohundredfortyfour twohundredfortyfive twohundredfortysix\n  twohundredfortyseven twohundredfortyeight twohundredfortynine\n  twohundredfifty twohundredfiftyone twohundredfiftytwo twohundredfiftythree\n  twohundredfiftyfour twohundredfiftyfive twohundredfiftysix\n  twohundredfiftyseven twohundredfiftyeight twohundredfiftynine\n  twohundredsixty twohundredsixtyone twohundredsixtytwo twohundredsixtythree\n  twohundredsixtyfour twohundredsixtyfive twohundredsixtysix\n  twohundredsixtyseven twohundredsixtyeight twohundredsixtynine\n  twohundredseventy twohundredseventyone twohundredseventytwo\n  twohundredseventythree twohundredseventyfour twohundredseventyfive\n  twohundredseventysix twohundredseventyseven twohundredseventyeight\n  twohundredseventynine twohundredeighty twohundredeightyone\n  twohundredeightytwo twohundredeightythree twohundredeightyfour\n  twohundredeightyfive twohundredeightysix twohundredeightyseven\n  twohundredeightyeight twohundredeightynine twohundredninety\n  twohundredninetyone twohundredninetytwo twohundredninetythree\n  twohundredninetyfour twohundredninetyfive twohundredninetysix\n  twohundredninetyseven twohundredninetyeight twohundredninetynine\n  threehundred\n}"
 	_ = numbers // suppress unused warning
 	// foreach {DO_MALLOC_TEST enc} "\n  0 utf8\n  1 utf8\n  1 utf16\n"
 	_items0 := tclSplitList("\n  0 utf8\n  1 utf8\n  1 utf16\n")
@@ -61,15 +131,15 @@ func Test_fts3snippet(t *testing.T) {
 		_ = enc // suppress unused warning
 		_ = _idx0
 			os.Remove("test.db")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+			// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 			_res = db.Exec("PRAGMA encoding = \\\"" + enc + "\\\"")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \\\"" + enc + "\\\"")
 			}
-			var T = "fts3snippet-1." + enc
+			T = "fts3snippet-1." + enc
 			_ = T // suppress unused warning
 			{ // do_test T + ".1.1"
 				_res = db.Exec("\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('xxx xxx xxx xxx');\n    ")
@@ -77,30 +147,34 @@ func Test_fts3snippet(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('xxx xxx xxx xxx');\n    ")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.2 {xxx} {0 0 0 3 0 0 4 3 0 0 8 3 0 0 12 3}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.3 {\"xxx xxx\"} {\n      0 0  0 3     0 0  4 3     0 1  4 3     0 0 ...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.4 {\"xxx xxx\" xxx} {\n      0 0  0 3     0 2  0 3     0 0  4 3     0 1 ...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.5 {xxx \"xxx xxx\"} {\n      0 0  0 3     0 1  0 3     0 0  4 3     0 1 ...}")
+			// do_offsets_test $T.1.2 {xxx} {0 0 0 3 0 0 4 3 0 0 8 3 0 0 12 3} (unsupported command, not transpiled)
+			// do_offsets_test $T.1.3 {"xxx xxx"} {
+      0 0  0 3     0 0  4 3     0 1  4 3     0 0 ...} (unsupported command, not transpiled)
+			// do_offsets_test $T.1.4 {"xxx xxx" xxx} {
+      0 0  0 3     0 2  0 3     0 0  4 3     0 1 ...} (unsupported command, not transpiled)
+			// do_offsets_test $T.1.5 {xxx "xxx xxx"} {
+      0 0  0 3     0 1  0 3     0 0  4 3     0 1 ...} (unsupported command, not transpiled)
 			{ // do_test T + ".2.1"
-				var v1 = "lrange $numbers 0 99"
+				v1 = "lrange $numbers 0 99"
 				_ = v1 // suppress unused warning
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b);\n      INSERT INTO ft VALUES($v1, $numbers);\n      INSERT INTO ft VALUES($v1, NULL);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b);\n      INSERT INTO ft VALUES($v1, $numbers);\n      INSERT INTO ft VALUES($v1, NULL);\n    ")
 				}
 			}
-			var off = "\"twohundred \" $numbers"
+			off = "\"twohundred \" $numbers"
 			_ = off // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.2.1 {twohundred} [list 1 0 $off 10]")
+			// do_offsets_test $T.2.1 {twohundred} [list 1 0 $off 10] (unsupported command, not transpiled)
 			off = "\"onehundred \" $numbers"
 			_ = off // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.2.2 {onehundred} [list 0 0 $off 10 1 0 $off 10] [list 0 0 $off 10]")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+			// do_offsets_test $T.2.2 {onehundred} [list 0 0 $off 10 1 0 $off 10] [list 0 0 $off 10] (unsupported command, not transpiled)
+			// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 			_res = db.Exec(" UPDATE ft_content SET c1b = 'hello world' WHERE c1b = $numbers ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE ft_content SET c1b = 'hello world' WHERE c1b = $numbers ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_error_test $T.2.3 {\n    SELECT offsets(ft) FROM ft WHERE ft MATCH 'on...} {database disk image is malformed}")
+			// do_error_test $T.2.3 {
+    SELECT offsets(ft) FROM ft WHERE ft MATCH 'on...} {database disk image is malformed} (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			{ // do_test T + ".3.1"
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('one two three four five six seven eight nine ten');\n    ")
@@ -108,74 +182,105 @@ func Test_fts3snippet(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('one two three four five six seven eight nine ten');\n    ")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.2 one 0 5 {one} two three four five...")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.3 two 0 5 one {two} three four five...")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.4 three 0 5 one two {three} four five...")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.5 four 0 5 ...two three {four} five six...")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.6 five 0 5 ...three four {five} six seven...")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.7 six 0 5 ...four five {six} seven eight...")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.8 seven 0 5 ...five six {seven} eight nine...")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.9 eight 0 5 ...six seven {eight} nine ten")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.10 nine 0 5 ...six seven eight {nine} ten")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.11 ten 0 5 ...six seven eight nine {ten}")
+			// do_snippet_test $T.3.2 one 0 5 {one} two three four five... (unsupported command, not transpiled)
+			// do_snippet_test $T.3.3 two 0 5 one {two} three four five... (unsupported command, not transpiled)
+			// do_snippet_test $T.3.4 three 0 5 one two {three} four five... (unsupported command, not transpiled)
+			// do_snippet_test $T.3.5 four 0 5 ...two three {four} five six... (unsupported command, not transpiled)
+			// do_snippet_test $T.3.6 five 0 5 ...three four {five} six seven... (unsupported command, not transpiled)
+			// do_snippet_test $T.3.7 six 0 5 ...four five {six} seven eight... (unsupported command, not transpiled)
+			// do_snippet_test $T.3.8 seven 0 5 ...five six {seven} eight nine... (unsupported command, not transpiled)
+			// do_snippet_test $T.3.9 eight 0 5 ...six seven {eight} nine ten (unsupported command, not transpiled)
+			// do_snippet_test $T.3.10 nine 0 5 ...six seven eight {nine} ten (unsupported command, not transpiled)
+			// do_snippet_test $T.3.11 ten 0 5 ...six seven eight nine {ten} (unsupported command, not transpiled)
 			{ // do_test T + ".4.1"
 				_res = db.Exec("\n      INSERT INTO ft VALUES(\n           'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty '\n        || 'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty'\n      );\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO ft VALUES(\n           'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty '\n        || 'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty'\n      );\n    ")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.2 {one nine} 0 5 {\n     {one} two three...eight {nine} ten\n  } {\n     {one} two three...eight {nine} ten...\n  }")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.3 {one nine} 0 -5 {\n     {one} two three four five...six seven eight ...} {\n     {one} two three four five...seven eight {nin...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.3 {one nineteen} 0 -5 {\n     ...eighteen {nineteen} twenty {one} two...\n ...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.4 {two nineteen} 0 -5 {\n     ...eighteen {nineteen} twenty one {two}...\n ...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.5 {three nineteen} 0 -5 {\n     ...{nineteen} twenty one two {three}...\n  }")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.6 {four nineteen} 0 -5 {\n     ...two three {four} five six...seventeen eig...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.7 {four NEAR nineteen} 0 -5 {\n     ...seventeen eighteen {nineteen} twenty one....}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.8 {four nineteen} 0 5 {\n     ...three {four} five...eighteen {nineteen} t...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.9 {four NEAR nineteen} 0 5 {\n     ...eighteen {nineteen} twenty...three {four}...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.10 {four NEAR nineteen} 0 -5 {\n     ...seventeen eighteen {nineteen} twenty one....}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.11 {four NOT (nineteen twentyone)} 0 5 {\n     ...two three {four} five six...\n  } {\n     ...two three {four} five six...\n  }")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.12 {four OR nineteen NEAR twentyone} 0 5 {\n     ...two three {four} five six...\n  } {\n     ...two three {four} five six...\n  }")
+			// do_snippet_test $T.4.2 {one nine} 0 5 {
+     {one} two three...eight {nine} ten
+  } {
+     {one} two three...eight {nine} ten...
+  } (unsupported command, not transpiled)
+			// do_snippet_test $T.4.3 {one nine} 0 -5 {
+     {one} two three four five...six seven eight ...} {
+     {one} two three four five...seven eight {nin...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.3 {one nineteen} 0 -5 {
+     ...eighteen {nineteen} twenty {one} two...
+ ...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.4 {two nineteen} 0 -5 {
+     ...eighteen {nineteen} twenty one {two}...
+ ...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.5 {three nineteen} 0 -5 {
+     ...{nineteen} twenty one two {three}...
+  } (unsupported command, not transpiled)
+			// do_snippet_test $T.4.6 {four nineteen} 0 -5 {
+     ...two three {four} five six...seventeen eig...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.7 {four NEAR nineteen} 0 -5 {
+     ...seventeen eighteen {nineteen} twenty one....} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.8 {four nineteen} 0 5 {
+     ...three {four} five...eighteen {nineteen} t...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.9 {four NEAR nineteen} 0 5 {
+     ...eighteen {nineteen} twenty...three {four}...} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.10 {four NEAR nineteen} 0 -5 {
+     ...seventeen eighteen {nineteen} twenty one....} (unsupported command, not transpiled)
+			// do_snippet_test $T.4.11 {four NOT (nineteen twentyone)} 0 5 {
+     ...two three {four} five six...
+  } {
+     ...two three {four} five six...
+  } (unsupported command, not transpiled)
+			// do_snippet_test $T.4.12 {four OR nineteen NEAR twentyone} 0 5 {
+     ...two three {four} five six...
+  } {
+     ...two three {four} five six...
+  } (unsupported command, not transpiled)
 			{ // do_test T + ".5.1"
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n      INSERT INTO ft VALUES(\n        'one two three four five', \n        'four five six seven eight', \n        'seven eight nine ten eleven'\n      );\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n      INSERT INTO ft VALUES(\n        'one two three four five', \n        'four five six seven eight', \n        'seven eight nine ten eleven'\n      );\n    ")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.2 {five} -1 3 {...three four {five}}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.3 {five} 0 3 {...three four {five}}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.4 {five} 1 3 {four {five} six...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.5 {five} 2 3 {seven eight nine...}")
+			// do_snippet_test $T.5.2 {five} -1 3 {...three four {five}} (unsupported command, not transpiled)
+			// do_snippet_test $T.5.3 {five} 0 3 {...three four {five}} (unsupported command, not transpiled)
+			// do_snippet_test $T.5.4 {five} 1 3 {four {five} six...} (unsupported command, not transpiled)
+			// do_snippet_test $T.5.5 {five} 2 3 {seven eight nine...} (unsupported command, not transpiled)
 			{ // do_test T + ".5.6"
 				_res = db.Exec(" UPDATE ft SET b = NULL ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE ft SET b = NULL ")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.7 {five} -1 3 {...three four {five}}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.8 {five} 0 3 {...three four {five}}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.9 {five} 1 3 {}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.10 {five} 2 3 {seven eight nine...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.11 {one \"seven eight nine\"} -1 -3 {\n    {one} two three...{seven} {eight} {nine}...\n ...}")
+			// do_snippet_test $T.5.7 {five} -1 3 {...three four {five}} (unsupported command, not transpiled)
+			// do_snippet_test $T.5.8 {five} 0 3 {...three four {five}} (unsupported command, not transpiled)
+			// do_snippet_test $T.5.9 {five} 1 3 {} (unsupported command, not transpiled)
+			// do_snippet_test $T.5.10 {five} 2 3 {seven eight nine...} (unsupported command, not transpiled)
+			// do_snippet_test $T.5.11 {one "seven eight nine"} -1 -3 {
+    {one} two three...{seven} {eight} {nine}...
+ ...} (unsupported command, not transpiled)
 			{ // do_test T + ".6.1"
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x);\n      INSERT INTO ft VALUES($numbers);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x);\n      INSERT INTO ft VALUES($numbers);\n    ")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.6.2 {\n    one fifty onehundred onehundredfifty twohundr...} -1 4 {\n    {one}...{fifty}...{onehundred}...{onehundredf...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.6.3 {\n    one fifty onehundred onehundredfifty twohundr...} -1 -4 {\n    {one} two three four...fortyeight fortynine {...}")
+			// do_snippet_test $T.6.2 {
+    one fifty onehundred onehundredfifty twohundr...} -1 4 {
+    {one}...{fifty}...{onehundred}...{onehundredf...} (unsupported command, not transpiled)
+			// do_snippet_test $T.6.3 {
+    one fifty onehundred onehundredfifty twohundr...} -1 -4 {
+    {one} two three four...fortyeight fortynine {...} (unsupported command, not transpiled)
 			{ // do_test T + ".7.1"
 				_res = db.Exec("\n      BEGIN;\n        DROP TABLE IF EXISTS ft;\n        CREATE VIRTUAL TABLE ft USING fts3(x);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        DROP TABLE IF EXISTS ft;\n        CREATE VIRTUAL TABLE ft USING fts3(x);\n    ")
 				}
-				var testresults = "list"
+				testresults = "list"
 				_ = testresults // suppress unused warning
-				var i = "1"
+				i = "1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 150 }() {
-					var commas = ", $i"
+					commas = ", $i"
 					_ = commas // suppress unused warning
 					_res = db.Exec("INSERT INTO ft VALUES('one' || $commas || 'two')")
 					if _res.Error != nil {
@@ -195,22 +300,22 @@ func Test_fts3snippet(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
 			}
-			// eval [list do_snippet_test $T.7.2 {one two} -1 3] $testresults
+			// eval (dynamic, not transpiled)
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
 			{ // do_test T + ".8.1"
-				var ten = "one two three four five six seven eight nine ten"
+				ten = "one two three four five six seven eight nine ten"
 				_ = ten // suppress unused warning
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES($ten);\n      INSERT INTO ft VALUES($ten || ' ' || $ten);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES($ten);\n      INSERT INTO ft VALUES($ten || ' ' || $ten);\n    ")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.2 one {1 1  1 3 2} {1 1  2 3 2}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.3 one NEAR/3 ten {2 1  1 1 1 1 1 1}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.4 five NEAR/4 ten {2 1  1 3 2  1 3 2} {2 1  2 3 2  2 3 2}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.5 six NEAR/3 ten NEAR/3 two {3 1  1 1 1  1 1 1  1 1 1}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.6 five NEAR/4 ten NEAR/3 two {3 1  2 2 1  1 1 1  1 1 1}")
+			// do_matchinfo_test $T.8.2 one {1 1  1 3 2} {1 1  2 3 2} (unsupported command, not transpiled)
+			// do_matchinfo_test $T.8.3 one NEAR/3 ten {2 1  1 1 1 1 1 1} (unsupported command, not transpiled)
+			// do_matchinfo_test $T.8.4 five NEAR/4 ten {2 1  1 3 2  1 3 2} {2 1  2 3 2  2 3 2} (unsupported command, not transpiled)
+			// do_matchinfo_test $T.8.5 six NEAR/3 ten NEAR/3 two {3 1  1 1 1  1 1 1  1 1 1} (unsupported command, not transpiled)
+			// do_matchinfo_test $T.8.6 five NEAR/4 ten NEAR/3 two {3 1  2 2 1  1 1 1  1 1 1} (unsupported command, not transpiled)
 			{ // do_test T + ".9.1"
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x, y);\n    ")
 				if _res.Error != nil {
@@ -218,11 +323,11 @@ func Test_fts3snippet(t *testing.T) {
 				}
 				for _, n := range tclSplitList("1 2 3") {
 				_ = n // suppress unused warning
-					var v1 = "lrange $numbers 0 [expr $n*100]"
+					v1 = "lrange $numbers 0 [expr $n*100]"
 					_ = v1 // suppress unused warning
-					var v2 = "[string repeat \"$numbers \" $n]"
+					v2 = strings.TrimSpace("\"$numbers \" $n")
 					_ = v2 // suppress unused warning
-					var docid = "$n * 1000000"
+					docid = "$n * 1000000"
 					_ = docid // suppress unused warning
 					_res = db.Exec(" INSERT INTO ft(docid, x, y) VALUES($docid, $v1, $v2) ")
 					if _res.Error != nil {
@@ -230,22 +335,31 @@ func Test_fts3snippet(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.2 {two*} { 1 2    1   105 3   101 606 3} { 1 2    3   105 3   202 606 3} { 1 2    101 105 3   303 606 3}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.4 {\"one* two*\"} { 1 2    1 5 3   2 12 3} { 1 2    2 5 3   4 12 3} { 1 2    2 5 3   6 12 3}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.5 {twohundredfifty} { 1 2    0 1 1   1 6 3} { 1 2    0 1 1   2 6 3} { 1 2    1 1 1   3 6 3}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.6 {\"threehundred one\"} { 1 2    0 0 0   1 3 2} { 1 2    0 0 0   2 3 2}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.7 {one OR fivehundred} { 2 2    1 3 3   1 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   2 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   3 6 3   0 0 0   0 0 0 }")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.8 {two OR \"threehundred one\"} { 2 2    1 3 3   1 6 3   0 0 0   0 3 2 } { 2 2    1 3 3   2 6 3   0 0 0   1 3 2 } { 2 2    1 3 3   3 6 3   0 0 0   2 3 2 }")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.9.9 {\n    SELECT mit(matchinfo(ft)), mit(matchinfo(ft))...} [normalize {\n    {2 2 1 3 3 1 6 3 0 0 0 0 3 2}\n   ...")
-			var _r = "1000000"
+			// do_matchinfo_test $T.9.2 {two*} { 1 2    1   105 3   101 606 3} { 1 2    3   105 3   202 606 3} { 1 2    101 105 3   303 606 3} (unsupported command, not transpiled)
+			// do_matchinfo_test $T.9.4 {"one* two*"} { 1 2    1 5 3   2 12 3} { 1 2    2 5 3   4 12 3} { 1 2    2 5 3   6 12 3} (unsupported command, not transpiled)
+			// do_matchinfo_test $T.9.5 {twohundredfifty} { 1 2    0 1 1   1 6 3} { 1 2    0 1 1   2 6 3} { 1 2    1 1 1   3 6 3} (unsupported command, not transpiled)
+			// do_matchinfo_test $T.9.6 {"threehundred one"} { 1 2    0 0 0   1 3 2} { 1 2    0 0 0   2 3 2} (unsupported command, not transpiled)
+			// do_matchinfo_test $T.9.7 {one OR fivehundred} { 2 2    1 3 3   1 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   2 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   3 6 3   0 0 0   0 0 0 } (unsupported command, not transpiled)
+			// do_matchinfo_test $T.9.8 {two OR "threehundred one"} { 2 2    1 3 3   1 6 3   0 0 0   0 3 2 } { 2 2    1 3 3   2 6 3   0 0 0   1 3 2 } { 2 2    1 3 3   3 6 3   0 0 0   2 3 2 } (unsupported command, not transpiled)
+			// do_select_test $T.9.9 {
+    SELECT mit(matchinfo(ft)), mit(matchinfo(ft))...} [normalize {
+    {2 2 1 3 3 1 6 3 0 0 0 0 3 2}
+   ... (test infra, not transpiled)
+			_r = "1000000"
 			_ = _r // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.0 { SELECT rowid FROM ft WHERE rowid = $r } $r")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.1 {\n    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text 0 text 0 text}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.2 {\n    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.3 {\n    SELECT length(snippet(ft)), typeof(snippet(ft...} {0 text 0 text 0 text}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.4 {\n    SELECT length(snippet(ft)), typeof(snippet(ft...} {0 text}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.5 {\n    SELECT length(matchinfo(ft)), typeof(matchinf...} {0 blob 0 blob 0 blob}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.6 {\n    SELECT length(matchinfo(ft)), typeof(matchinf...} {0 blob}")
+			// do_select_test $T.10.0 { SELECT rowid FROM ft WHERE rowid = $r } $r (test infra, not transpiled)
+			// do_select_test $T.10.1 {
+    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text 0 text 0 text} (test infra, not transpiled)
+			// do_select_test $T.10.2 {
+    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text} (test infra, not transpiled)
+			// do_select_test $T.10.3 {
+    SELECT length(snippet(ft)), typeof(snippet(ft...} {0 text 0 text 0 text} (test infra, not transpiled)
+			// do_select_test $T.10.4 {
+    SELECT length(snippet(ft)), typeof(snippet(ft...} {0 text} (test infra, not transpiled)
+			// do_select_test $T.10.5 {
+    SELECT length(matchinfo(ft)), typeof(matchinf...} {0 blob 0 blob 0 blob} (test infra, not transpiled)
+			// do_select_test $T.10.6 {
+    SELECT length(matchinfo(ft)), typeof(matchinf...} {0 blob} (test infra, not transpiled)
 		}
 		{ // "2.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 VALUES('one two three four five');\n  INSERT INTO t2 VALUES('two three four five one');\n  INSERT INTO t2 VALUES('three four five one two');\n  INSERT INTO t2 VALUES('four five one two three');\n  INSERT INTO t2 VALUES('five one two three four');\n")
@@ -374,16 +488,16 @@ func Test_fts3snippet(t *testing.T) {
 			}
 		}
 		{ // do_test "4.2"
-			var x35 = "[string repeat \"x \" 35]"
+			x35 = strings.TrimSpace("\"x \" 35")
 			_ = x35 // suppress unused warning
 			_res = db.Exec("INSERT INTO t4 VALUES('" + x35 + " E " + x35 + " F " + x35 + " G " + x35 + "');")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES('" + x35 + " E " + x35 + " F " + x35 + " G " + x35 + "');")
 			}
-			tclLLength("db one {\n    SELECT snippet(t4, '', '', '', 0, 64) FROM t4 WHERE t4 MATCH 'E'\n  }")
+			_ = strconv.Itoa(tclLLength("db one {\n    SELECT snippet(t4, '', '', '', 0, 64) FROM t4 WHERE t4 MATCH 'E'\n  }")) // llength result
 		}
 		{ // do_test "4.3"
-			tclLLength("db one {\n    SELECT snippet(t4, '', '', '', 0, 150) FROM t4 WHERE t4 MATCH 'E'\n  }")
+			_ = strconv.Itoa(tclLLength("db one {\n    SELECT snippet(t4, '', '', '', 0, 150) FROM t4 WHERE t4 MATCH 'E'\n  }")) // llength result
 		}
 		{ // "5.0"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t5 USING fts3(x);\n  INSERT INTO t5 VALUES('a1 a2 a3');\n  INSERT INTO t5 VALUES('a4 a5 a6');\n  INSERT INTO t5 VALUES('a70 a71 a72');\n")

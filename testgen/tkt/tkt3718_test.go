@@ -39,6 +39,35 @@ func Test_tkt3718(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var io string
+	_ = io // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var results string
+	_ = results // pre-declared from TCL source
+	var i1 string
+	_ = i1 // pre-declared from TCL source
+	var i2 string
+	_ = i2 // pre-declared from TCL source
+	var i3 string
+	_ = i3 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var doit string
+	_ = doit // pre-declared from TCL source
+	var zSql string
+	_ = zSql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3718-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1 VALUES(4, 'four');\n    INSERT INTO t1 VALUES(5, 'five');\n    CREATE TABLE t2(a PRIMARY KEY, b);\n  ")

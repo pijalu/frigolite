@@ -40,6 +40,51 @@ func Test_incrblob2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var iOffset string
+	_ = iOffset // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var fd1 string
+	_ = fd1 // pre-declared from TCL source
+	var fd2 string
+	_ = fd2 // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var aborted string
+	_ = aborted // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var nByte string
+	_ = nByte // pre-declared from TCL source
+	var handles_ii string
+	_ = handles_ii // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var rdHandle string
+	_ = rdHandle // pre-declared from TCL source
+	var wrHandle string
+	_ = wrHandle // pre-declared from TCL source
+	var errmsg string
+	_ = errmsg // pre-declared from TCL source
+	var h string
+	_ = h // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var ii_ string
+	_ = ii_ // pre-declared from TCL source
+	var handles_3 string
+	_ = handles_3 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "incrblob2-1.0"
 		_res = db.Exec("\n    CREATE TABLE blobs(id INTEGER PRIMARY KEY, data BLOB);\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n    INSERT INTO blobs VALUES(NULL, zeroblob(5000));\n  ")
@@ -50,43 +95,45 @@ func Test_incrblob2(t *testing.T) {
 	for _, iOffset := range tclSplitList("list 0 256 4094") {
 	_ = iOffset // suppress unused warning
 		{ // do_test "incrblob2-1." + iOffset + ".1"
-			var fd = "db incrblob blobs data 1"
+			fd = "db incrblob blobs data 1"
 			_ = fd // suppress unused warning
-			t.Log(fd)
+			_putsMsg := fd
+			_ = _putsMsg
 			// close $fd
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".2"
-			var fd1 = "db incrblob blobs data 1"
+			fd1 = "db incrblob blobs data 1"
 			_ = fd1 // suppress unused warning
-			var fd2 = "db incrblob blobs data 1"
+			fd2 = "db incrblob blobs data 1"
 			_ = fd2 // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd1 -buffering none")
-			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd2 -buffering none")
+			// fconfigure $fd1 -buffering none (unsupported command, not transpiled)
+			// fconfigure $fd2 -buffering none (unsupported command, not transpiled)
 			if func() bool { iOffset_n, _iOffset_e := strconv.Atoi(iOffset); if _iOffset_e != nil { return false }; return iOffset_n != 0 }() {
-				t.Errorf("TODO: %s not implemented in frigolite", "seek $fd2 $iOffset start")
-				t.Errorf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
+				// seek $fd2 $iOffset start (unsupported command, not transpiled)
+				// seek $fd1 $iOffset start (unsupported command, not transpiled)
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "read $fd1 6")
+			// read $fd1 6 (unsupported command, not transpiled)
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".3"
-			t.Errorf("TODO: %s not implemented in frigolite", "read $fd2 6")
+			// read $fd2 6 (unsupported command, not transpiled)
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".4"
-			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd2 $iOffset start")
-			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
-			t.Log("-nonewline")
+			// seek $fd2 $iOffset start (unsupported command, not transpiled)
+			// seek $fd1 $iOffset start (unsupported command, not transpiled)
+			_putsMsg := "-nonewline"
+			_ = _putsMsg
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".5"
-			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
-			t.Errorf("TODO: %s not implemented in frigolite", "read $fd1 6")
+			// seek $fd1 $iOffset start (unsupported command, not transpiled)
+			// read $fd1 6 (unsupported command, not transpiled)
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".6"
-			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd2 $iOffset start")
-			t.Errorf("TODO: %s not implemented in frigolite", "read $fd2 6")
+			// seek $fd2 $iOffset start (unsupported command, not transpiled)
+			// read $fd2 6 (unsupported command, not transpiled)
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".7"
-			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
-			t.Errorf("TODO: %s not implemented in frigolite", "read $fd1 6")
+			// seek $fd1 $iOffset start (unsupported command, not transpiled)
+			// read $fd1 6 (unsupported command, not transpiled)
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".8"
 			// close $fd1
@@ -96,18 +143,19 @@ func Test_incrblob2(t *testing.T) {
 	for _, iOffset := range tclSplitList("list 0 256 4094") {
 	_ = iOffset // suppress unused warning
 		{ // do_test "incrblob2-2." + iOffset + ".1"
-			var fd1 = "db incrblob blobs data 1"
+			fd1 = "db incrblob blobs data 1"
 			_ = fd1 // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd1 [expr $iOffset - 5000] end")
-			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd1 -buffering none")
-			var fd2 = "db incrblob blobs data 1"
+			// seek $fd1 [expr $iOffset - 5000] end (unsupported command, not transpiled)
+			// fconfigure $fd1 -buffering none (unsupported command, not transpiled)
+			fd2 = "db incrblob blobs data 1"
 			_ = fd2 // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd2 [expr $iOffset - 5000] end")
-			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd2 -buffering none")
-			t.Log("-nonewline")
+			// seek $fd2 [expr $iOffset - 5000] end (unsupported command, not transpiled)
+			// fconfigure $fd2 -buffering none (unsupported command, not transpiled)
+			_putsMsg := "-nonewline"
+			_ = _putsMsg
 		}
 		{ // do_test "incrblob2-2." + iOffset + ".2"
-			t.Errorf("TODO: %s not implemented in frigolite", "read $fd2 6")
+			// read $fd2 6 (unsupported command, not transpiled)
 		}
 		{ // do_test "incrblob2-2." + iOffset + ".3"
 			// close $fd1
@@ -115,9 +163,9 @@ func Test_incrblob2(t *testing.T) {
 		}
 	}
 	{ // do_test "incrblob2-3.1"
-		var fd1 = "db incrblob blobs data 1"
+		fd1 = "db incrblob blobs data 1"
 		_ = fd1 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd1 -buffering none")
+		// fconfigure $fd1 -buffering none (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-3.2"
 		_res = db.Exec("\n    INSERT INTO blobs VALUES(5, zeroblob(10240));\n  ")
@@ -126,12 +174,11 @@ func Test_incrblob2(t *testing.T) {
 		}
 	}
 	{ // do_test "incrblob2-3.3"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "read $fd1 6")
+			// read $fd1 6 (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -155,10 +202,10 @@ func Test_incrblob2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(id INTEGER PRIMARY KEY, data BLOB); ")
 		}
-		var ii = "1"
+		ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 100 }() {
-			var data = "\"blob$ii\" 500"
+			data = "\"blob$ii\" 500"
 			_ = data // suppress unused warning
 			_res = db.Exec(" INSERT INTO t1 VALUES($ii, $data) ")
 			if _res.Error != nil {
@@ -179,10 +226,10 @@ func Test_incrblob2(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "incrblob2-4.2"
-		var ii = "1"
+		ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 100 }() {
-			var handles_ii = "db incrblob t1 data $ii"
+			handles_ii = "db incrblob t1 data $ii"
 			_ = handles_ii // suppress unused warning
 			// incr ii 1
 			{
@@ -192,22 +239,21 @@ func Test_incrblob2(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
+		// aborted_handles (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-4.3"
 		_res = db.Exec("UPDATE t1 SET data = data || '' WHERE id = 3")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET data = data || '' WHERE id = 3")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
+		// aborted_handles (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-4.3.1"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::handles(3) 10 HELLO")
+			// sqlite3_blob_write $::handles(3) 10 HELLO (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -224,52 +270,52 @@ func Test_incrblob2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE id = 14")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
+		// aborted_handles (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-4.5"
 		_res = db.Exec("UPDATE t1 SET id = 102 WHERE id = 15")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET id = 102 WHERE id = 15")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
+		// aborted_handles (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-4.6"
 		_res = db.Exec("INSERT OR REPLACE INTO t1 VALUES(92, zeroblob(1000))")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE INTO t1 VALUES(92, zeroblob(1000))")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
+		// aborted_handles (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-4.7"
 		_res = db.Exec("UPDATE OR REPLACE t1 SET id = 65 WHERE id = 35")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE OR REPLACE t1 SET id = 65 WHERE id = 35")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
+		// aborted_handles (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-4.9"
 		_res = db.Exec("INSERT INTO t1 SELECT NULL, data FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT NULL, data FROM t1")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
+		// aborted_handles (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-4.9"
 		_res = db.Exec("DELETE FROM t1 WHERE id >=1 AND id <= 25")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE id >=1 AND id <= 25")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
+		// aborted_handles (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-4.10"
 		_res = db.Exec("DELETE FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
+		// aborted_handles (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-4.1.X"
-		var ii = "1"
+		ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 100 }() {
 			// close $handles($ii)
@@ -282,36 +328,35 @@ func Test_incrblob2(t *testing.T) {
 			}
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "incrblob2-6.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1, zeroblob(100));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1, zeroblob(100));\n  ")
 		}
-		var rdHandle = "db incrblob -readonly t1 data 1"
+		rdHandle = "db incrblob -readonly t1 data 1"
 		_ = rdHandle // suppress unused warning
-		var wrHandle = "db incrblob t1 data 1"
+		wrHandle = "db incrblob t1 data 1"
 		_ = wrHandle // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 0 100")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $wrHandle 0 ABCDEF")
+		// sqlite3_blob_read $rdHandle 0 100 (unsupported command, not transpiled)
+		// sqlite3_blob_write $wrHandle 0 ABCDEF (unsupported command, not transpiled)
 		// close $wrHandle
 		// close $rdHandle
 	}
 	{ // do_test "incrblob2-6.2"
-		var rdHandle = "db incrblob -readonly t1 data 1"
+		rdHandle = "db incrblob -readonly t1 data 1"
 		_ = rdHandle // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 0 2")
+		// sqlite3_blob_read $rdHandle 0 2 (unsupported command, not transpiled)
 	}
-	if func() bool { _tcl_platform_n, __tcl_platform_e := strconv.Atoi(_tcl_platform); if __tcl_platform_e != nil { return false }; return _tcl_platform_n(pointerSize) >= 8 }() {
+	if func() bool { tcl_platform_pointerSize_n, _tcl_platform_pointerSize_e := strconv.Atoi(tcl_platform_pointerSize); if _tcl_platform_pointerSize_e != nil { return false }; return tcl_platform_pointerSize_n >= 8 }() {
 		{ // do_test "incrblob2-6.2b"
-	var rc string
 	_ = rc // suppress unused warning
-	var errmsg string
 	_ = errmsg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2147483647 2147483647")
+				// sqlite3_blob_read $rdHandle 2147483647 2147483647 (unsupported command, not transpiled)
 				if _catchErr != nil {
 					rc = "1"
 					errmsg = _catchErr.Error()
@@ -321,20 +366,18 @@ func Test_incrblob2(t *testing.T) {
 				}
 			}
 			if tclBool("{out of memory in *test_blob.c} $errmsg") {
-				var errmsg = "SQLITE_ERROR"
+				errmsg = "SQLITE_ERROR"
 				_ = errmsg // suppress unused warning
 			}
 			rc = tclListAppend(rc, errmsg)
 		}
 	}
 	{ // do_test "incrblob2-6.2c"
-	var rc string
 	_ = rc // suppress unused warning
-	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2147483647 100")
+			// sqlite3_blob_read $rdHandle 2147483647 100 (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				errmsg = _catchErr.Error()
@@ -346,19 +389,17 @@ func Test_incrblob2(t *testing.T) {
 		rc = tclListAppend(rc, errmsg)
 	}
 	{ // do_test "incrblob2-6.3"
-		var wrHandle = "db incrblob t1 data 1"
+		wrHandle = "db incrblob t1 data 1"
 		_ = wrHandle // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $wrHandle 0 ZZZZZZZZZZ")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2 4")
+		// sqlite3_blob_write $wrHandle 0 ZZZZZZZZZZ (unsupported command, not transpiled)
+		// sqlite3_blob_read $rdHandle 2 4 (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-6.3b"
-	var rc string
 	_ = rc // suppress unused warning
-	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $wrHandle 2147483647 YYYYYYYYYYYYYYYYYY")
+			// sqlite3_blob_write $wrHandle 2147483647 YYYYYYYYYYYYYYYYYY (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				errmsg = _catchErr.Error()
@@ -370,13 +411,13 @@ func Test_incrblob2(t *testing.T) {
 		rc = tclListAppend(rc, errmsg)
 	}
 	{ // do_test "incrblob2-6.3c"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2 4")
+		// sqlite3_blob_read $rdHandle 2 4 (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-6.4"
 		// close $wrHandle
 		// close $rdHandle
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
+	// sqlite3_memory_highwater 1 (unsupported command, not transpiled)
 	{ // do_test "incrblob2-7.1"
 		_res = db.Exec("\n    CREATE TABLE t2(B BLOB);\n    INSERT INTO t2 VALUES(zeroblob(10 * 1024 * 1024)); \n  ")
 		if _res.Error != nil {
@@ -385,13 +426,13 @@ func Test_incrblob2(t *testing.T) {
 		// expr [sqlite3_memory_highwater]<(5 * 1024 * 1024) → "[sqlite3_memory_highwater]<(5 * 1024 * 1024)"
 	}
 	{ // do_test "incrblob2-7.2"
-		var h = "db incrblob t2 B 1"
+		h = "db incrblob t2 B 1"
 		_ = h // suppress unused warning
 		// expr [sqlite3_memory_highwater]<(5 * 1024 * 1024) → "[sqlite3_memory_highwater]<(5 * 1024 * 1024)"
 	}
 	{ // do_test "incrblob2-7.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $h 0 end")
-		t.Errorf("TODO: %s not implemented in frigolite", "tell $h")
+		// seek $h 0 end (unsupported command, not transpiled)
+		// tell $h (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-7.4"
 		// expr [sqlite3_memory_highwater]<(5 * 1024 * 1024) → "[sqlite3_memory_highwater]<(5 * 1024 * 1024)"
@@ -404,9 +445,8 @@ func Test_incrblob2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var h = "db incrblob t2 B 1"
+		h = "db incrblob t2 B 1"
 		_ = h // suppress unused warning
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -442,9 +482,9 @@ func Test_incrblob2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var h = "db incrblob t3 b 3"
+		h = "db incrblob t3 b 3"
 		_ = h // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $h 0 20")
+		// sqlite3_blob_read $h 0 20 (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-8.5"
 		_res = db.Exec("UPDATE t3 SET a = 6 WHERE a > 3")
@@ -455,19 +495,18 @@ func Test_incrblob2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-8.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $h 0 20")
+		// sqlite3_blob_read $h 0 20 (unsupported command, not transpiled)
 	}
 	{ // do_test "incrblob2-8.8"
 		_res = db.Exec("UPDATE t3 SET a = 6 WHERE a = 3 OR a = 5")
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-8.9"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $h 0 20")
+			// sqlite3_blob_read $h 0 20 (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

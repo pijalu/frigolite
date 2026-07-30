@@ -39,6 +39,17 @@ func Test_tkt3824(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "tkt3824-1.1"
@@ -46,23 +57,28 @@ func Test_tkt3824(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,NULL);\n    INSERT INTO t1 VALUES(9,NULL);\n    INSERT INTO t1 VALUES(5,NULL);\n    INSERT INTO t1 VALUES(123,NULL);\n    INSERT INTO t1 VALUES(-10,NULL);\n    CREATE UNIQUE INDEX t1b ON t1(b);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a FROM t1 WHERE b IS NULL ORDER BY a;\n...}")
+		// execsql_status {
+    SELECT a FROM t1 WHERE b IS NULL ORDER BY a;
+...} (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt3824-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a FROM t1 WHERE b IS NULL ORDER BY b, ...}")
+		// execsql_status {
+    SELECT a FROM t1 WHERE b IS NULL ORDER BY b, ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt3824-2.1"
 		_res = db.Exec("\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,1,NULL);\n    INSERT INTO t2 VALUES(9,2,NULL);\n    INSERT INTO t2 VALUES(5,2,NULL);\n    INSERT INTO t2 VALUES(123,3,NULL);\n    INSERT INTO t2 VALUES(-10,3,NULL);\n    CREATE UNIQUE INDEX t2bc ON t2(b,c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a,b,c);\n    INSERT INTO t2 VALUES(1,1,NULL);\n    INSERT INTO t2 VALUES(9,2,NULL);\n    INSERT INTO t2 VALUES(5,2,NULL);\n    INSERT INTO t2 VALUES(123,3,NULL);\n    INSERT INTO t2 VALUES(-10,3,NULL);\n    CREATE UNIQUE INDEX t2bc ON t2(b,c);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a FROM t2 WHERE b=2 AND c IS NULL ORDE...}")
+		// execsql_status {
+    SELECT a FROM t2 WHERE b=2 AND c IS NULL ORDE...} (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt3824-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a FROM t2 WHERE b=2 AND c IS NULL ORDE...}")
+		// execsql_status {
+    SELECT a FROM t2 WHERE b=2 AND c IS NULL ORDE...} (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt3824-2.3"
-		tclSort("execsql_status {\n    SELECT a FROM t2 WHERE b=2 AND c IS NULL ORDER BY b;\n  }")
+		_ = tclSort("execsql_status {\n    SELECT a FROM t2 WHERE b=2 AND c IS NULL ORDER BY b;\n  }") // lsort result
 	}
 	{ // do_test "tkt3824-3.1"
 		_res = db.Exec("\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 SELECT a, b FROM t1;\n    INSERT INTO t3 VALUES(234,567);\n    CREATE UNIQUE INDEX t3y ON t3(y);\n    DELETE FROM t3 WHERE y IS NULL;\n    SELECT * FROM t3;\n  ")

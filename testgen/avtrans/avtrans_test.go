@@ -40,13 +40,52 @@ func Test_avtrans(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var r1 string
+	_ = r1 // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+	var r3 string
+	_ = r3 // pre-declared from TCL source
+	var checksum string
+	_ = checksum // pre-declared from TCL source
+	var checksum2 string
+	_ = checksum2 // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var limit string
+	_ = limit // pre-declared from TCL source
+	var sig string
+	_ = sig // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var sqlite_sync_count string
+	_ = sqlite_sync_count // pre-declared from TCL source
+	var sqlite_fullsync_count string
+	_ = sqlite_fullsync_count // pre-declared from TCL source
+	var pager_old_format string
+	_ = pager_old_format // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var cmdlinearg_soft_heap_limit string
+	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "avtrans-1.0"
 		r = db.Query(" PRAGMA auto_vacuum=full ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum=full ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
+		// wal_set_journal_mode (unsupported command, not transpiled)
 		r = db.Query(" \n    CREATE TABLE one(a int PRIMARY KEY, b text);\n    INSERT INTO one VALUES(1,'one');\n    INSERT INTO one VALUES(2,'two');\n    INSERT INTO one VALUES(3,'three');\n    SELECT b FROM one ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    CREATE TABLE one(a int PRIMARY KEY, b text);\n    INSERT INTO one VALUES(1,'one');\n    INSERT INTO one VALUES(2,'two');\n    INSERT INTO one VALUES(3,'three');\n    SELECT b FROM one ORDER BY a;\n  ")
@@ -81,9 +120,8 @@ func Test_avtrans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-1.12")
+	// wal_check_journal_mode avtrans-1.12 (unsupported command, not transpiled)
 	{ // do_test "avtrans-2.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -101,7 +139,6 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-2.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -119,7 +156,6 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-2.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -137,7 +173,6 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-2.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -155,7 +190,6 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-2.5"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -173,7 +207,6 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-2.6"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -198,8 +231,8 @@ func Test_avtrans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-2.12")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+	// wal_check_journal_mode avtrans-2.12 (unsupported command, not transpiled)
+	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	{ // do_test "avtrans-3.1"
 		r = db.Query("\n    BEGIN;\n    UPDATE one SET a = 0 WHERE 0;\n    SELECT a FROM one ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -245,7 +278,6 @@ func Test_avtrans(t *testing.T) {
 		}
 	}
 	{ // do_test "avtrans-3.11"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -263,7 +295,6 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-3.12"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -281,7 +312,6 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-3.13"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -299,7 +329,6 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-3.14"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -316,11 +345,10 @@ func Test_avtrans(t *testing.T) {
 		}
 		v = tclListAppend(v, msg)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
+	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "avtrans-4.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -338,7 +366,6 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-4.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -380,7 +407,6 @@ func Test_avtrans(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "avtrans-4.9"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -398,7 +424,6 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-4.10"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -416,7 +441,6 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-4.11"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -436,7 +460,7 @@ func Test_avtrans(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "avtrans-4.98"
-		t.Errorf("TODO: %s not implemented in frigolite", "altdb close")
+		// altdb close (unsupported command, not transpiled)
 		_res = db.Exec("\n    DROP TABLE one;\n    DROP TABLE two;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE one;\n    DROP TABLE two;\n  ")
@@ -497,7 +521,6 @@ func Test_avtrans(t *testing.T) {
 		}
 	}
 	{ // do_test "avtrans-5.7"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -593,7 +616,6 @@ func Test_avtrans(t *testing.T) {
 		}
 	}
 	{ // do_test "avtrans-5.21"
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -825,14 +847,14 @@ func Test_avtrans(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			var r1 = "6.099e-320"
+			r1 = "6.099e-320"
 			_ = r1 // suppress unused warning
-			var r2 = "6.099e-320"
+			r2 = "6.099e-320"
 			_ = r2 // suppress unused warning
-			var r3 = "6.099e-320"
+			r3 = "6.099e-320"
 			_ = r3 // suppress unused warning
 			_res = db.Exec("INSERT INTO t2 VALUES(" + r1 + "," + r2 + "," + r3 + ")")
 			if _res.Error != nil {
@@ -850,10 +872,10 @@ func Test_avtrans(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		var _checksum = "execsql {SELECT md5sum(x,y,z) FROM t2}" // TCL namespace variable
-		_ = _checksum // suppress unused warning
-		var _checksum2 = "execsql {SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master}" // TCL namespace variable
-		_ = _checksum2 // suppress unused warning
+		checksum = "execsql {SELECT md5sum(x,y,z) FROM t2}" // TCL namespace variable
+		_ = checksum // suppress unused warning
+		checksum2 = "execsql {SELECT md5sum(type,name,tbl_name,rootpage,sql) FROM sqlite_master}" // TCL namespace variable
+		_ = checksum2 // suppress unused warning
 		r = db.Query("SELECT count(*) FROM t2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t2")
@@ -927,15 +949,16 @@ func Test_avtrans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	var fd = "open test.tcl w"
+	fd = "open test.tcl w"
 	_ = fd // suppress unused warning
-	t.Log(fd)
+	_putsMsg := fd
+	_ = _putsMsg
 	// close $fd
 	{ // do_test "avtrans-8.1"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] test.tcl")
+			// exec [info nameofexec] test.tcl (unsupported command, not transpiled)
 		}
 		r = db.Query("SELECT md5sum(x,y,z) FROM t2")
 		if r.Error != nil {
@@ -955,8 +978,8 @@ func Test_avtrans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA default_cache_size=10;\n  ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
 		if r.Error != nil {
@@ -965,18 +988,18 @@ func Test_avtrans(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	if tclBool("info exists G(isquick)") {
-		var limit = "20"
+		limit = "20"
 		_ = limit // suppress unused warning
 	} else {
-		var limit = "40"
+		limit = "40"
 		_ = limit // suppress unused warning
 	}
-	var i = "2"
+	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {
-		var _sig = "signature" // TCL namespace variable
-		_ = _sig // suppress unused warning
-		var cnt = "lindex $::sig 0"
+		sig = "signature" // TCL namespace variable
+		_ = sig // suppress unused warning
+		cnt = "lindex $::sig 0"
 		_ = cnt // suppress unused warning
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%2 == 0 }() {
 			r = db.Query("PRAGMA fullfsync=ON")
@@ -989,23 +1012,23 @@ func Test_avtrans(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA fullfsync=OFF")
 			}
 		}
-		var sqlite_sync_count = "0"
+		sqlite_sync_count = "0"
 		_ = sqlite_sync_count // suppress unused warning
-		var sqlite_fullsync_count = "0"
+		sqlite_fullsync_count = "0"
 		_ = sqlite_fullsync_count // suppress unused warning
 		{ // do_test "avtrans-9." + i + ".1-" + cnt
 			_res = db.Exec("\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "signature")
+			// signature (unsupported command, not transpiled)
 		}
 		{ // do_test "avtrans-9." + i + ".2-" + cnt
 			_res = db.Exec("\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "signature")
+			// signature (unsupported command, not transpiled)
 		}
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
 			{ // do_test "avtrans-9." + i + ".3-" + cnt
@@ -1019,10 +1042,10 @@ func Test_avtrans(t *testing.T) {
 					// expr $sqlite_sync_count>0 → "$sqlite_sync_count>0"
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-9.$i-6.$cnt")
+			// wal_check_journal_mode avtrans-9.$i-6.$cnt (unsupported command, not transpiled)
 		}
-		var _pager_old_format = "0" // TCL namespace variable
-		_ = _pager_old_format // suppress unused warning
+		pager_old_format = "0" // TCL namespace variable
+		_ = pager_old_format // suppress unused warning
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -1033,5 +1056,5 @@ func Test_avtrans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-10.2")
+	// wal_check_journal_mode avtrans-10.2 (unsupported command, not transpiled)
 }

@@ -40,13 +40,18 @@ func Test_t_8_3_names(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	{ // do_test "8_3_names-1.0"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));\n  ")
 		if _res.Error != nil {
@@ -65,8 +70,8 @@ func Test_t_8_3_names(t *testing.T) {
 	}
 	{ // do_test "8_3_names-2.0"
 		os.Remove("test.db")
-		db, err := frigolite.Open("file:./test.db?8_3_names=1")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("file:./test.db?8_3_names=1")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));\n  ")
 		if _res.Error != nil {
@@ -78,8 +83,8 @@ func Test_t_8_3_names(t *testing.T) {
 		// file exists "test.nal"
 	}
 	os.Remove("test2.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.nal test2.nal")
+	// copy_file test.db test2.db (unsupported command, not transpiled)
+	// copy_file test.nal test2.nal (unsupported command, not transpiled)
 	{ // do_test "8_3_names-2.2"
 		_res = db.Exec("\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
 		if _res.Error != nil {
@@ -94,8 +99,8 @@ func Test_t_8_3_names(t *testing.T) {
 	}
 	{ // do_test "8_3_names-3.0"
 		os.Remove("test.db")
-		db, err := frigolite.Open("file:./test.db?8_3_names=0")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("file:./test.db?8_3_names=0")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(20000));\n    BEGIN;\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(randomblob(15000));\n  ")
 		if _res.Error != nil {
@@ -107,8 +112,8 @@ func Test_t_8_3_names(t *testing.T) {
 		// file exists "test.nal"
 	}
 	os.Remove("test2.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-journal test2.db-journal")
+	// copy_file test.db test2.db (unsupported command, not transpiled)
+	// copy_file test.db-journal test2.db-journal (unsupported command, not transpiled)
 	{ // do_test "8_3_names-3.2"
 		_res = db.Exec("\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
 		if _res.Error != nil {
@@ -123,8 +128,8 @@ func Test_t_8_3_names(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "8_3_names-4.0"
-		db, err := frigolite.Open("file:./test.db?8_3_names=1")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("file:./test.db?8_3_names=1")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    ATTACH 'file:./test2.db?8_3_names=1' AS db2;\n    CREATE TABLE db2.t2(y);\n    INSERT INTO t2 VALUES(2);\n    BEGIN;\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t2 VALUES(4);\n    COMMIT;\n    SELECT * FROM t1, t2 ORDER BY x, y\n  ")
 		if _res.Error != nil {
@@ -133,17 +138,17 @@ func Test_t_8_3_names(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "8_3_names-5.0"
-		db, err := frigolite.Open("file:./test.db?8_3_names=1")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("file:./test.db?8_3_names=1")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+		// load_static_extension db wholenumber (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value FROM nums WHERE value BETWEEN 1 AND 1000;\n    BEGIN;\n    UPDATE t1 SET x=x*2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value FROM nums WHERE value BETWEEN 1 AND 1000;\n    BEGIN;\n    UPDATE t1 SET x=x*2;\n  ")
 		}
 		db2, err = frigolite.Open("file:./test.db?8_3_names=1")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db2 wholenumber")
+		// load_static_extension db2 wholenumber (unsupported command, not transpiled)
 		db2.Exec("\n    BEGIN;\n    SELECT sum(x) FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}

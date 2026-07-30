@@ -39,8 +39,15 @@ func Test_windowA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "windowA"
+	testprefix = "windowA"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b CHAR(1), d FLOAT);\n  INSERT INTO t1 VALUES\n   (1, 'A', 5.4),\n   (2, 'B', 5.55),\n   (3, 'C', 8.0),\n   (4, 'D', 10.25),\n   (5, 'E', 10.26),\n   (6, 'N', NULL),\n   (7, 'N', NULL);\n")

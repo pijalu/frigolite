@@ -40,8 +40,15 @@ func Test_upfrom4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "upfrom4"
+	testprefix = "upfrom4"
 	_ = testprefix // suppress unused warning
 	{ // "100"
 		r = db.Query("\n  DROP TABLE IF EXISTS t5;\n  DROP TABLE IF EXISTS m1;\n  DROP TABLE IF EXISTS m2;\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b TEXT, c TEXT);\n  CREATE TABLE m1(x INTEGER PRIMARY KEY, y TEXT);\n  CREATE TABLE m2(u INTEGER PRIMARY KEY, v TEXT);\n\n  INSERT INTO t5 VALUES(1, 'one', 'ONE');\n  INSERT INTO t5 VALUES(2, 'two', 'TWO');\n  INSERT INTO t5 VALUES(3, 'three', 'THREE');\n  INSERT INTO t5 VALUES(4, 'four', 'FOUR');\n\n  INSERT INTO m1 VALUES(1, 'i');\n  INSERT INTO m1 VALUES(2, 'ii');\n  INSERT INTO m1 VALUES(3, 'iii');\n\n  INSERT INTO m2 VALUES(1, 'I');\n  INSERT INTO m2 VALUES(3, 'II');\n  INSERT INTO m2 VALUES(4, 'III');\n  SELECT * FROM t5;\n")

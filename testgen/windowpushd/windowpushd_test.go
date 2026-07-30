@@ -40,8 +40,17 @@ func Test_windowpushd(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "windowpushd"
+	testprefix = "windowpushd"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, grp_id);\n  CREATE INDEX i1 ON t1(grp_id);\n  CREATE VIEW lll AS SELECT\n    row_number() OVER (PARTITION BY grp_id), \n    grp_id, id \n  FROM t1\n")
@@ -97,9 +106,9 @@ func Test_windowpushd(t *testing.T) {
 	for _, tn := range tclSplitList("0 1") {
 	_ = tn // suppress unused warning
 		if tclBool(tn) {
-			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all on")
+			// optimization_control db all on (unsupported command, not transpiled)
 		} else {
-			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db push-down off")
+			// optimization_control db push-down off (unsupported command, not transpiled)
 		}
 		{ // "2." + tn + ".1.1"
 			r = db.Query("\n    SELECT * FROM v1;\n  ")

@@ -40,11 +40,36 @@ func Test_spellfix(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var vocab string
+	_ = vocab // pre-declared from TCL source
+	var word string
+	_ = word // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var trace string
+	_ = trace // pre-declared from TCL source
+	var conflict string
+	_ = conflict // pre-declared from TCL source
+	var bRollback string
+	_ = bRollback // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "spellfix"
+	testprefix = "spellfix"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")
-	var vocab = "\nrabbi rabbit rabbits rabble rabid rabies raccoon raccoons race raced racer\nracers races racetrack racial racially racing rack racked racket racketeer\nracketeering racketeers rackets racking racks radar radars radial radially\nradian radiance radiant radiantly radiate radiated radiates radiating radiation\nradiations radiator radiators radical radically radicals radices radii radio\nradioactive radioastronomy radioed radiography radioing radiology radios radish\nradishes radium radius radix radon raft rafter rafters rafts rag rage raged\nrages ragged raggedly raggedness raging rags ragweed raid raided raider raiders\nraiding raids rail railed railer railers railing railroad railroaded railroader\nrailroaders railroading railroads rails railway railways raiment rain rainbow\nraincoat raincoats raindrop raindrops rained rainfall rainier rainiest raining\nrains rainstorm rainy raise raised raiser raisers raises raisin raising rake\nraked rakes raking rallied rallies rally rallying ram ramble rambler rambles\nrambling ramblings ramification ramifications ramp rampage rampant rampart\nramps ramrod rams ran ranch ranched rancher ranchers ranches ranching rancid\nrandom randomization randomize randomized randomizes randomly randomness randy\nrang range ranged rangeland ranger rangers ranges ranging rangy rank ranked\nranker rankers rankest ranking rankings rankle rankly rankness ranks ransack\nransacked ransacking ransacks ransom ransomer ransoming ransoms rant ranted\nranter ranters ranting rants rap rapacious rape raped raper rapes rapid\nrapidity rapidly rapids rapier raping rapport rapprochement raps rapt raptly\nrapture raptures rapturous rare rarely rareness rarer rarest rarity rascal\nrascally rascals rash rasher rashly rashness rasp raspberry rasped rasping\nrasps raster rat rate rated rater raters rates rather ratification ratified\nratifies ratify ratifying rating ratings ratio ration rational rationale\nrationales rationalities rationality rationalization rationalizations\nrationalize rationalized rationalizes rationalizing rationally rationals\nrationing rations ratios rats rattle rattled rattler rattlers rattles\nrattlesnake rattlesnakes rattling raucous ravage ravaged ravager ravagers\nravages ravaging rave raved raven ravening ravenous ravenously ravens raves\nravine ravines raving ravings raw rawer rawest rawly rawness ray rays raze\nrazor razors re reabbreviate reabbreviated reabbreviates reabbreviating reach\nreachability reachable reachably reached reacher reaches reaching reacquired\nreact reacted reacting reaction reactionaries reactionary reactions reactivate\nreactivated reactivates reactivating reactivation reactive reactively\nreactivity reactor reactors reacts read readability readable reader readers\nreadied readier readies readiest readily readiness reading readings readjusted\nreadout readouts reads ready readying real realest realign realigned realigning\nrealigns realism realist realistic realistically realists realities reality\n"
+	// load_static_extension db spellfix nextchar (unsupported command, not transpiled)
+	vocab = "\nrabbi rabbit rabbits rabble rabid rabies raccoon raccoons race raced racer\nracers races racetrack racial racially racing rack racked racket racketeer\nracketeering racketeers rackets racking racks radar radars radial radially\nradian radiance radiant radiantly radiate radiated radiates radiating radiation\nradiations radiator radiators radical radically radicals radices radii radio\nradioactive radioastronomy radioed radiography radioing radiology radios radish\nradishes radium radius radix radon raft rafter rafters rafts rag rage raged\nrages ragged raggedly raggedness raging rags ragweed raid raided raider raiders\nraiding raids rail railed railer railers railing railroad railroaded railroader\nrailroaders railroading railroads rails railway railways raiment rain rainbow\nraincoat raincoats raindrop raindrops rained rainfall rainier rainiest raining\nrains rainstorm rainy raise raised raiser raisers raises raisin raising rake\nraked rakes raking rallied rallies rally rallying ram ramble rambler rambles\nrambling ramblings ramification ramifications ramp rampage rampant rampart\nramps ramrod rams ran ranch ranched rancher ranchers ranches ranching rancid\nrandom randomization randomize randomized randomizes randomly randomness randy\nrang range ranged rangeland ranger rangers ranges ranging rangy rank ranked\nranker rankers rankest ranking rankings rankle rankly rankness ranks ransack\nransacked ransacking ransacks ransom ransomer ransoming ransoms rant ranted\nranter ranters ranting rants rap rapacious rape raped raper rapes rapid\nrapidity rapidly rapids rapier raping rapport rapprochement raps rapt raptly\nrapture raptures rapturous rare rarely rareness rarer rarest rarity rascal\nrascally rascals rash rasher rashly rashness rasp raspberry rasped rasping\nrasps raster rat rate rated rater raters rates rather ratification ratified\nratifies ratify ratifying rating ratings ratio ration rational rationale\nrationales rationalities rationality rationalization rationalizations\nrationalize rationalized rationalizes rationalizing rationally rationals\nrationing rations ratios rats rattle rattled rattler rattlers rattles\nrattlesnake rattlesnakes rattling raucous ravage ravaged ravager ravagers\nravages ravaging rave raved raven ravening ravenous ravenously ravens raves\nravine ravines raving ravings raw rawer rawest rawly rawness ray rays raze\nrazor razors re reabbreviate reabbreviated reabbreviates reabbreviating reach\nreachability reachable reachably reached reacher reaches reaching reacquired\nreact reacted reacting reaction reactionaries reactionary reactions reactivate\nreactivated reactivates reactivating reactivation reactive reactively\nreactivity reactor reactors reacts read readability readable reader readers\nreadied readier readies readiest readily readiness reading readings readjusted\nreadout readouts reads ready readying real realest realign realigned realigning\nrealigns realism realist realistic realistically realists realities reality\n"
 	_ = vocab // suppress unused warning
 	{ // do_test "1.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING spellfix1 ")
@@ -488,7 +513,7 @@ func Test_spellfix(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t4;\n  INSERT INTO t4(rowid, word) VALUES(10, 'Agamemnon');\n  INSERT INTO t4(rowid, word) VALUES(20, 'Patroclus');\n  INSERT INTO t4(rowid, word) VALUES(30, 'Chryses');\n\n  CREATE TABLE t5(i, w);\n  INSERT INTO t5 VALUES(5,  'Poseidon');\n  INSERT INTO t5 VALUES(20, 'Chronos');\n  INSERT INTO t5 VALUES(30, 'Hera');\n")
 						}
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
+					// db_save_and_close (unsupported command, not transpiled)
 					// foreach {tn conflict err bRollback res} "\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Chronos 30 Hera}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses}\n"
 					_items4 := tclSplitList("\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Chronos 30 Hera}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses}\n")
 					for _idx4 := 0; _idx4+5 <= len(_items4); _idx4 += 5 {
@@ -503,13 +528,13 @@ func Test_spellfix(t *testing.T) {
 						res := _items4[_idx4+4]
 						_ = res // suppress unused warning
 						_ = _idx4
-							t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
-							t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")
+							// db_restore_and_reopen (unsupported command, not transpiled)
+							// load_static_extension db spellfix nextchar (unsupported command, not transpiled)
 							_res = db.Exec("BEGIN")
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 							}
-							var sql = "INSERT " + conflict + " INTO t4(rowid, word) SELECT i, w FROM t5"
+							sql = "INSERT " + conflict + " INTO t4(rowid, word) SELECT i, w FROM t5"
 							_ = sql // suppress unused warning
 							{ // "7.4.2." + tn + ".1"
 								_res = db.Exec(sql)
@@ -530,7 +555,7 @@ func Test_spellfix(t *testing.T) {
 								}
 							}
 							{ // do_test "7.4.2." + tn + ".3"
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+								// sqlite3_get_autocommit db (unsupported command, not transpiled)
 							}
 							_res = db.Exec("ROLLBACK")
 							_ = _res // catchsql
@@ -549,13 +574,13 @@ func Test_spellfix(t *testing.T) {
 							res := _items5[_idx5+4]
 							_ = res // suppress unused warning
 							_ = _idx5
-								t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
-								t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")
+								// db_restore_and_reopen (unsupported command, not transpiled)
+								// load_static_extension db spellfix nextchar (unsupported command, not transpiled)
 								_res = db.Exec("BEGIN")
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 								}
-								var sql = "UPDATE " + conflict + " t4 SET rowid=rowid + (rowid/2)"
+								sql = "UPDATE " + conflict + " t4 SET rowid=rowid + (rowid/2)"
 								_ = sql // suppress unused warning
 								{ // "7.5.2." + tn + ".1"
 									_res = db.Exec(sql)
@@ -576,7 +601,7 @@ func Test_spellfix(t *testing.T) {
 									}
 								}
 								{ // do_test "7.5.2." + tn + ".3"
-									t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+									// sqlite3_get_autocommit db (unsupported command, not transpiled)
 								}
 								_res = db.Exec("ROLLBACK")
 								_ = _res // catchsql

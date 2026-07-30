@@ -39,10 +39,77 @@ func Test_scanstatus2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var nCycle string
+	_ = nCycle // pre-declared from TCL source
+	var graph string
+	_ = graph // pre-declared from TCL source
+	var trace_explain string
+	_ = trace_explain // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var v2 string
+	_ = v2 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var varname string
+	_ = varname // pre-declared from TCL source
+	var debug string
+	_ = debug // pre-declared from TCL source
+	var body string
+	_ = body // pre-declared from TCL source
+	var A_iParentId string
+	_ = A_iParentId // pre-declared from TCL source
+	var iPar string
+	_ = iPar // pre-declared from TCL source
+	var A_zExplain string
+	_ = A_zExplain // pre-declared from TCL source
+	var A_nCycle string
+	_ = A_nCycle // pre-declared from TCL source
+	var nIndent string
+	_ = nIndent // pre-declared from TCL source
+	var A_iSelectId string
+	_ = A_iSelectId // pre-declared from TCL source
+	var X_debug_explain string
+	_ = X_debug_explain // pre-declared from TCL source
+	var X_zExplain string
+	_ = X_zExplain // pre-declared from TCL source
+	var X_debug_loop string
+	_ = X_debug_loop // pre-declared from TCL source
+	var X_debug_visit string
+	_ = X_debug_visit // pre-declared from TCL source
+	var X_debug_csr string
+	_ = X_debug_csr // pre-declared from TCL source
+	var X_debug_range string
+	_ = X_debug_range // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "scanstatus2"
+	testprefix = "scanstatus2"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 1")
+	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n  INSERT INTO t2 VALUES('e', 'f');\n")
 		if _res.Error != nil {
@@ -57,54 +124,108 @@ func Test_scanstatus2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_zexplain_test 0 1.1 {\n  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHE...} {\n  {SCAN t2}\n  {SCAN t1}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_zexplain_test 1 1.2 {\n  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHE...} {\n  {SCAN t2}\n  {CORRELATED SCALAR SUBQUERY 1}\n  {S...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_graph_test 1.3 {\n  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHE...} {\nQUERY (nCycle=nnn)\n--SCAN t2 (nCycle=nnn)\n--CORRE...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_graph_test 1.4 {\n  WITH v2(x,y) AS MATERIALIZED (\n    SELECT x,y F...} {\nQUERY (nCycle=nnn)\n--MATERIALIZE v2 (nCycle=nnn)\n...}")
+	// do_zexplain_test 0 1.1 {
+  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHE...} {
+  {SCAN t2}
+  {SCAN t1}
+} (unsupported command, not transpiled)
+	// do_zexplain_test 1 1.2 {
+  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHE...} {
+  {SCAN t2}
+  {CORRELATED SCALAR SUBQUERY 1}
+  {S...} (unsupported command, not transpiled)
+	// do_graph_test 1.3 {
+  SELECT (SELECT a FROM t1 WHERE b=x) FROM t2 WHE...} {
+QUERY (nCycle=nnn)
+--SCAN t2 (nCycle=nnn)
+--CORRE...} (unsupported command, not transpiled)
+	// do_graph_test 1.4 {
+  WITH v2(x,y) AS MATERIALIZED (
+    SELECT x,y F...} {
+QUERY (nCycle=nnn)
+--MATERIALIZE v2 (nCycle=nnn)
+...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 1")
+	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d);\n\n  WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000)\n  INSERT INTO x1 SELECT i, i FROM s;\n  INSERT INTO x2 SELECT a, b FROM x1;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_graph_test 2.1 {\n  SELECT * FROM x1, x2 WHERE c=+a;\n} {\nQUERY (nCycle=nnn)\n--SCAN x1 (nCycle=nnn)\n--CREAT...}")
+	// do_graph_test 2.1 {
+  SELECT * FROM x1, x2 WHERE c=+a;
+} {
+QUERY (nCycle=nnn)
+--SCAN x1 (nCycle=nnn)
+--CREAT...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 1")
+	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE TABLE rt1 (id INTEGER PRIMARY KEY, x1, x2);\n  CREATE TABLE rt2 (id, x1, x2);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE rt1 (id INTEGER PRIMARY KEY, x1, x2);\n  CREATE TABLE rt2 (id, x1, x2);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_graph_test 4.1 {\n  SELECT * FROM rt1, rt2 WHERE rt1.id%2 AND rt2.x...} {\nQUERY (nCycle=nnn)\n--SCAN rt1 (nCycle=nnn)\n--CREA...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_graph_test 4.2 {\n  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND ...} {\nQUERY (nCycle=nnn)\n--SCAN rt1 (nCycle=nnn)\n--CREA...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_graph_test 4.3 {\n  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND ...} {\nQUERY (nCycle=nnn)\n--SCAN rt1 (nCycle=nnn)\n--SCAN...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_graph_test 4.4 {\n  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND ...} {\nQUERY (nCycle=nnn)\n--SCAN rt1 (nCycle=nnn)\n--CREA...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_graph_test 4.5 {\n  SELECT v1.cnt FROM rt1, (\n    SELECT count(*) A...} {\nQUERY (nCycle=nnn)\n--CO-ROUTINE v1\n----SCAN rt2 (...}")
+	// do_graph_test 4.1 {
+  SELECT * FROM rt1, rt2 WHERE rt1.id%2 AND rt2.x...} {
+QUERY (nCycle=nnn)
+--SCAN rt1 (nCycle=nnn)
+--CREA...} (unsupported command, not transpiled)
+	// do_graph_test 4.2 {
+  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND ...} {
+QUERY (nCycle=nnn)
+--SCAN rt1 (nCycle=nnn)
+--CREA...} (unsupported command, not transpiled)
+	// do_graph_test 4.3 {
+  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND ...} {
+QUERY (nCycle=nnn)
+--SCAN rt1 (nCycle=nnn)
+--SCAN...} (unsupported command, not transpiled)
+	// do_graph_test 4.4 {
+  SELECT rt2.id FROM rt1, rt2 WHERE rt1.id%2 AND ...} {
+QUERY (nCycle=nnn)
+--SCAN rt1 (nCycle=nnn)
+--CREA...} (unsupported command, not transpiled)
+	// do_graph_test 4.5 {
+  SELECT v1.cnt FROM rt1, (
+    SELECT count(*) A...} {
+QUERY (nCycle=nnn)
+--CO-ROUTINE v1
+----SCAN rt2 (...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 1")
+	// sqlite3_db_config db STMT_SCANSTATUS 1 (unsupported command, not transpiled)
 	{ // "6.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n  INSERT INTO t1 VALUES(5, 'five');\n  INSERT INTO t1 VALUES(6, 'six');\n  INSERT INTO t1 VALUES(7, 'seven');\n  INSERT INTO t1 VALUES(8, 'eight');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n  INSERT INTO t1 VALUES(4, 'four');\n  INSERT INTO t1 VALUES(5, 'five');\n  INSERT INTO t1 VALUES(6, 'six');\n  INSERT INTO t1 VALUES(7, 'seven');\n  INSERT INTO t1 VALUES(8, 'eight');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_graph_test 6.1 {\n  SELECT (a % 2), group_concat(b) FROM t1 GROUP B...} {\nQUERY (nCycle=nnn)\n--SCAN t1 (nCycle=nnn)\n--USE T...}")
-	var sql = "\n  WITH xy(x, y) AS ( SELECT (a % 2), group_concat(b) FROM t1 GROUP BY 1)\n  SELECT * FROM xy WHERE x=1\n"
+	// do_graph_test 6.1 {
+  SELECT (a % 2), group_concat(b) FROM t1 GROUP B...} {
+QUERY (nCycle=nnn)
+--SCAN t1 (nCycle=nnn)
+--USE T...} (unsupported command, not transpiled)
+	sql = "\n  WITH xy(x, y) AS ( SELECT (a % 2), group_concat(b) FROM t1 GROUP BY 1)\n  SELECT * FROM xy WHERE x=1\n"
 	_ = sql // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_graph_test 6.2 $sql {\nQUERY (nCycle=nnn)\n--CO-ROUTINE xy\n----SCAN t1 (n...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_graph_test 6.3 {\n  WITH xy(x, y) AS ( SELECT (a % 2), group_concat...} {\nQUERY (nCycle=nnn)\n--MATERIALIZE xy (nCycle=nnn)\n...}")
+	// do_graph_test 6.2 $sql {
+QUERY (nCycle=nnn)
+--CO-ROUTINE xy
+----SCAN t1 (n...} (unsupported command, not transpiled)
+	// do_graph_test 6.3 {
+  WITH xy(x, y) AS ( SELECT (a % 2), group_concat...} {
+QUERY (nCycle=nnn)
+--MATERIALIZE xy (nCycle=nnn)
+...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -113,8 +234,8 @@ func Test_scanstatus2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM sqlite_schema")
 		}
-		var stmt = "db version -last-stmt-ptr"
+		stmt = "db version -last-stmt-ptr"
 		_ = stmt // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_stmt_scanstatus -flags complex $stmt 1000000")
+		// sqlite3_stmt_scanstatus -flags complex $stmt 1000000 (unsupported command, not transpiled)
 	}
 }

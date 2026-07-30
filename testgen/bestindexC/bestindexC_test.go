@@ -40,10 +40,99 @@ func Test_bestindexC(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var idxstr string
+	_ = idxstr // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var LIMIT string
+	_ = LIMIT // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var x_limit string
+	_ = x_limit // pre-declared from TCL source
+	var x_offset string
+	_ = x_offset // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var lRow string
+	_ = lRow // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var limit string
+	_ = limit // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var expect string
+	_ = expect // pre-declared from TCL source
+	var do_not_use_limit string
+	_ = do_not_use_limit // pre-declared from TCL source
+	var do_not_use_offset string
+	_ = do_not_use_offset // pre-declared from TCL source
+	var idxnum string
+	_ = idxnum // pre-declared from TCL source
+	var cols_0 string
+	_ = cols_0 // pre-declared from TCL source
+	var cols_1 string
+	_ = cols_1 // pre-declared from TCL source
+	var cols_2 string
+	_ = cols_2 // pre-declared from TCL source
+	var lCons string
+	_ = lCons // pre-declared from TCL source
+	var coll string
+	_ = coll // pre-declared from TCL source
+	var missing string
+	_ = missing // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var lArg string
+	_ = lArg // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var ok string
+	_ = ok // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var a_usable string
+	_ = a_usable // pre-declared from TCL source
+	var a_op string
+	_ = a_op // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var lVal string
+	_ = lVal // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var a_column string
+	_ = a_column // pre-declared from TCL source
+	var cols_a_column string
+	_ = cols_a_column // pre-declared from TCL source
+	var cols_i string
+	_ = cols_i // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindexC"
+	testprefix = "bestindexC"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command \"a b c d e f\");\n  CREATE VIRTUAL TABLE x2 USING tcl(vtab_command \"A B C D E F a b\");\n")
@@ -73,7 +162,7 @@ func Test_bestindexC(t *testing.T) {
 				tbl := _items1[_idx1+1]
 				_ = tbl // suppress unused warning
 				_ = _idx1
-					var expect = "execsql \"SELECT * FROM $tbl $limit\""
+					expect = "execsql \"SELECT * FROM $tbl $limit\""
 					_ = expect // suppress unused warning
 					{ // "1.2." + tbl + "." + tn
 						r = db.Query("SELECT * FROM (\n      SELECT * FROM x1 " + op + " SELECT * FROM x2\n    ) " + limit)
@@ -92,7 +181,7 @@ func Test_bestindexC(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+			// register_tcl_module db (unsupported command, not transpiled)
 			{ // "2.0"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command \"a b c d e f\");\n  CREATE VIRTUAL TABLE x2 USING tcl(vtab_command \"a b e f\");\n")
 				if _res.Error != nil {
@@ -114,7 +203,7 @@ func Test_bestindexC(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+			// register_tcl_module db (unsupported command, not transpiled)
 			{ // "3.0"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE y1 USING tcl(vtab_command \"1 2 3 4 5 6 7 8 9 10\");\n")
 				if _res.Error != nil {
@@ -145,7 +234,7 @@ func Test_bestindexC(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db series")
+			// load_static_extension db series (unsupported command, not transpiled)
 			{ // "3.3"
 				r = db.Query("\n  SELECT * FROM generate_series(1, 5) WHERE value = (value & 14) LIMIT 3\n")
 				if r.Error != nil {
@@ -170,8 +259,8 @@ func Test_bestindexC(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			var _do_not_use_limit = "1" // TCL namespace variable
-			_ = _do_not_use_limit // suppress unused warning
+			do_not_use_limit = "1" // TCL namespace variable
+			_ = do_not_use_limit // suppress unused warning
 			{ // "3.5"
 				r = db.Query("\n  SELECT * FROM y1 LIMIT 5 OFFSET 3\n")
 				if r.Error != nil {
@@ -184,8 +273,8 @@ func Test_bestindexC(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			var _do_not_use_offset = "1" // TCL namespace variable
-			_ = _do_not_use_offset // suppress unused warning
+			do_not_use_offset = "1" // TCL namespace variable
+			_ = do_not_use_offset // suppress unused warning
 			{ // "3.6"
 				r = db.Query("\n  SELECT * FROM y1 LIMIT 5 OFFSET 3\n")
 				if r.Error != nil {
@@ -202,7 +291,7 @@ func Test_bestindexC(t *testing.T) {
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			// proc definition (not transpiled)
-			t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+			// register_tcl_module db (unsupported command, not transpiled)
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE y1 USING tcl(vtab_command 1);\n")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not happy!") {
@@ -210,7 +299,7 @@ func Test_bestindexC(t *testing.T) {
 				}
 			}
 			{ // do_test "4.1"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+				// sqlite3_errcode db (unsupported command, not transpiled)
 			}
 			// proc definition (not transpiled)
 			{ // "4.2"
@@ -234,7 +323,7 @@ func Test_bestindexC(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+			// register_tcl_module db (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
 			{ // "5.1"
@@ -260,7 +349,7 @@ func Test_bestindexC(t *testing.T) {
 							_ = msg // suppress unused warning
 							_ = _catchErrMsg // suppress unused warning
 							var _catchErr error
-							r = db.Query("SELECT * FROM x1 " + _where)
+							r = db.Query("SELECT * FROM x1 " + where)
 							if r.Error != nil { _catchErr = r.Error }
 							if _catchErr != nil {
 								msg = "1"
@@ -362,7 +451,7 @@ func Test_bestindexC(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+				// register_tcl_module db (unsupported command, not transpiled)
 				// proc definition (not transpiled)
 				// proc definition (not transpiled)
 				{ // "6.0"

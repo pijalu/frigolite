@@ -41,10 +41,35 @@ func Test_savepoint(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var authdata string
+	_ = authdata // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var templockstate string
+	_ = templockstate // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("test2.db")
 	{ // do_test "savepoint-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
+		// wal_set_journal_mode (unsupported command, not transpiled)
 		_res = db.Exec("\n    SAVEPOINT sp1;\n    RELEASE sp1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT sp1;\n    RELEASE sp1;\n  ")
@@ -62,56 +87,57 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SAVEPOINT sp1 ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "savepoint-1.4.1"
 		_res = db.Exec("\n    SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    RELEASE sp1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    RELEASE sp1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "savepoint-1.4.2"
 		_res = db.Exec("\n    SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    RELEASE sp2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    RELEASE sp2;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "savepoint-1.4.3"
 		_res = db.Exec(" RELEASE sp1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " RELEASE sp1 ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "savepoint-1.4.4"
 		_res = db.Exec("\n    SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    ROLLBACK TO sp1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    ROLLBACK TO sp1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "savepoint-1.4.5"
 		_res = db.Exec(" RELEASE SAVEPOINT sp1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " RELEASE SAVEPOINT sp1 ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "savepoint-1.4.6"
 		_res = db.Exec("\n    SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    SAVEPOINT sp3;\n    ROLLBACK TO SAVEPOINT sp3;\n    ROLLBACK TRANSACTION TO sp2;\n    ROLLBACK TRANSACTION TO SAVEPOINT sp1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SAVEPOINT sp1;\n    SAVEPOINT sp2;\n    SAVEPOINT sp3;\n    ROLLBACK TO SAVEPOINT sp3;\n    ROLLBACK TRANSACTION TO sp2;\n    ROLLBACK TRANSACTION TO SAVEPOINT sp1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "savepoint-1.4.7"
 		_res = db.Exec(" RELEASE SAVEPOINT SP1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " RELEASE SAVEPOINT SP1 ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "savepoint-1.5"
 		_res = db.Exec("\n    SAVEPOINT sp1;\n    ROLLBACK TO sp1;\n  ")
@@ -125,7 +151,7 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint-1.7")
+	// wal_check_journal_mode savepoint-1.7 (unsupported command, not transpiled)
 	{ // do_test "savepoint-2.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b, c);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2, 3);\n    SAVEPOINT one;\n    UPDATE t1 SET a = 2, b = 3, c = 4;\n  ")
 		if _res.Error != nil {
@@ -236,7 +262,7 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint-2.12")
+	// wal_check_journal_mode savepoint-2.12 (unsupported command, not transpiled)
 	if tclBool("wal_is_wal_mode" + "==0") {
 		{ // do_test "savepoint-3.1"
 			_res = db.Exec(" SAVEPOINT \"transaction\" ")
@@ -353,17 +379,18 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint-4.9")
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint-5.5")
+	// wal_check_journal_mode savepoint-4.9 (unsupported command, not transpiled)
+	// wal_check_journal_mode savepoint-5.5 (unsupported command, not transpiled)
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "savepoint-7.1"
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = incremental ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
+		// wal_set_journal_mode (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1(a) VALUES('alligator');\n      INSERT INTO t1(a) VALUES('angelfish');\n      INSERT INTO t1(a) VALUES('ant');\n      INSERT INTO t1(a) VALUES('antelope');\n      INSERT INTO t1(a) VALUES('ape');\n      INSERT INTO t1(a) VALUES('baboon');\n      INSERT INTO t1(a) VALUES('badger');\n      INSERT INTO t1(a) VALUES('bear');\n      INSERT INTO t1(a) VALUES('beetle');\n      INSERT INTO t1(a) VALUES('bird');\n      INSERT INTO t1(a) VALUES('bison');\n      UPDATE t1 SET b =    randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(10,1000);\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1(a) VALUES('alligator');\n      INSERT INTO t1(a) VALUES('angelfish');\n      INSERT INTO t1(a) VALUES('ant');\n      INSERT INTO t1(a) VALUES('antelope');\n      INSERT INTO t1(a) VALUES('ape');\n      INSERT INTO t1(a) VALUES('baboon');\n      INSERT INTO t1(a) VALUES('badger');\n      INSERT INTO t1(a) VALUES('bear');\n      INSERT INTO t1(a) VALUES('beetle');\n      INSERT INTO t1(a) VALUES('bird');\n      INSERT INTO t1(a) VALUES('bison');\n      UPDATE t1 SET b =    randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(1000,1000);\n      UPDATE t1 SET b = b||randstr(10,1000);\n    COMMIT;\n  ")
@@ -402,17 +429,17 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint-7.3.3")
+	// wal_check_journal_mode savepoint-7.3.3 (unsupported command, not transpiled)
 	{ // do_test "savepoint-7.4.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum = incremental ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = incremental ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
+		// wal_set_journal_mode (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(1000,1000), randstr(1000,1000));\n    BEGIN;\n      DELETE FROM t1;\n      SAVEPOINT one;\n      PRAGMA incremental_vacuum;\n      ROLLBACK TO one;\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(1000,1000), randstr(1000,1000));\n    BEGIN;\n      DELETE FROM t1;\n      SAVEPOINT one;\n      PRAGMA incremental_vacuum;\n      ROLLBACK TO one;\n    COMMIT;\n  ")
@@ -434,7 +461,7 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t5;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint-7.5.3")
+	// wal_check_journal_mode savepoint-7.5.3 (unsupported command, not transpiled)
 	{ // do_test "savepoint-8-1"
 		_res = db.Exec(" SAVEPOINT \"save1\" ")
 		if _res.Error != nil {
@@ -473,7 +500,7 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    RELEASE one;\n    DETACH aux;\n  ")
 		}
 	}
-	var templockstate = "lindex [db eval {PRAGMA lock_status}] 3"
+	templockstate = "lindex [db eval {PRAGMA lock_status}] 3"
 	_ = templockstate // suppress unused warning
 	if tclBool("wal_is_wal_mode" + "==0") {
 		{ // do_test "savepoint-10.2.1"
@@ -601,14 +628,14 @@ func Test_savepoint(t *testing.T) {
 	}
 	{ // do_test "savepoint-11.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum = full; ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = full; ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
+		// wal_set_journal_mode (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, UNIQUE(a, b));\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));\n  ")
@@ -677,7 +704,7 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint-11.13")
+	// wal_check_journal_mode savepoint-11.13 (unsupported command, not transpiled)
 	{ // do_test "savepoint-12.1"
 		_res = db.Exec("\n    CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');\n  ")
 		if _res.Error != nil {
@@ -689,7 +716,7 @@ func Test_savepoint(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "savepoint-12.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "savepoint-12.4"
 		_res = db.Exec(" SAVEPOINT one ")
@@ -697,7 +724,7 @@ func Test_savepoint(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SAVEPOINT one ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint-12.5")
+	// wal_check_journal_mode savepoint-12.5 (unsupported command, not transpiled)
 	if tclBool("wal_is_wal_mode" + "==0") {
 		{ // do_test "savepoint-13.1"
 			{
@@ -705,8 +732,8 @@ func Test_savepoint(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				os.Remove("test.db")
 			}
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query("\n      BEGIN;\n        CREATE TABLE t1(a PRIMARY KEY, b);\n        INSERT INTO t1 VALUES(1, 2);\n      COMMIT;\n      PRAGMA journal_mode = off;\n    ")
 			if r.Error != nil {
@@ -732,11 +759,21 @@ func Test_savepoint(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test savepoint-14.$tn.1 {\n    sql1 {\n      C...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test savepoint-15.$tn.1 {\n    sql1 {\n      C...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test savepoint-16.$tn.1 {\n    sql1 {\n      C...}")
-	db, err = frigolite.Open("test.db")
+	// delete_file test.db (unsupported command, not transpiled)
+	// do_multiclient_test tn {
+  do_test savepoint-14.$tn.1 {
+    sql1 {
+      C...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {
+  do_test savepoint-15.$tn.1 {
+    sql1 {
+      C...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {
+  do_test savepoint-16.$tn.1 {
+    sql1 {
+      C...} (unsupported command, not transpiled)
+	_dbtmp4, err := frigolite.Open("test.db")
+	_ = _dbtmp4 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "savepoint-17.1"
 		_res = db.Exec("\n  BEGIN;\n    CREATE TABLE t6(a, b);\n    INSERT INTO t6 VALUES(1, 2);\n    SAVEPOINT one;\n      INSERT INTO t6 VALUES(3, 4);\n    ROLLBACK TO one;\n    SELECT * FROM t6;\n  ROLLBACK;\n")

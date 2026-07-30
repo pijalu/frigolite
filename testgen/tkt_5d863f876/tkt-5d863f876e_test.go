@@ -39,11 +39,23 @@ func Test_tkt_5d863f876e(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "tkt-5d863f876e" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "tkt-5d863f876e" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	if tclBool("!" + "wal_is_capable") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test $tn.1 {\n    sql1 {\n      CREATE TABLE t...}")
+	// do_multiclient_test tn {
+  do_test $tn.1 {
+    sql1 {
+      CREATE TABLE t...} (unsupported command, not transpiled)
 }

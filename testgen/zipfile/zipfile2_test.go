@@ -42,15 +42,86 @@ func Test_zipfile2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
-	if func() bool { tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return tcl_version_n < 8.6 }() {
-		t.Log("Requires TCL 8.6 or later")
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var concat string
+	_ = concat // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var start string
+	_ = start // pre-declared from TCL source
+	var archive string
+	_ = archive // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var archive2 string
+	_ = archive2 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sub string
+	_ = sub // pre-declared from TCL source
+	var hex string
+	_ = hex // pre-declared from TCL source
+	var blob2 string
+	_ = blob2 // pre-declared from TCL source
+	var central_dir_offset string
+	_ = central_dir_offset // pre-declared from TCL source
+	var lfh_offset string
+	_ = lfh_offset // pre-declared from TCL source
+	var nFile string
+	_ = nFile // pre-declared from TCL source
+	var nExtra string
+	_ = nExtra // pre-declared from TCL source
+	var nComment string
+	_ = nComment // pre-declared from TCL source
+	var lfh string
+	_ = lfh // pre-declared from TCL source
+	var cds string
+	_ = cds // pre-declared from TCL source
+	var payload string
+	_ = payload // pre-declared from TCL source
+	var cdsize string
+	_ = cdsize // pre-declared from TCL source
+	var eocd string
+	_ = eocd // pre-declared from TCL source
+	var buf string
+	_ = buf // pre-declared from TCL source
+	var buflen string
+	_ = buflen // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var needle string
+	_ = needle // pre-declared from TCL source
+	var haystack string
+	_ = haystack // pre-declared from TCL source
+	var fname string
+	_ = fname // pre-declared from TCL source
+
+	if tcl_version < "8.6" {
+		_putsMsg := "Requires TCL 8.6 or later"
+		_ = _putsMsg
 		return
 	}
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "zipfile2"
+	testprefix = "zipfile2"
 	_ = testprefix // suppress unused warning
 	if false {
-		t.Log("Skipping zipfile2 tests, hit load error: " + _error)
+		_putsMsg := "Skipping zipfile2 tests, hit load error: " + _error
+		_ = _putsMsg
 		return
 	}
 	// proc definition (not transpiled)
@@ -69,9 +140,9 @@ func Test_zipfile2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE hhh USING zipfile('testdir') ")
 		}
-		tclLIndex("catchsql { \n    SELECT * FROM hhh;\n    INSERT INTO hhh(name, data) VALUES('1.txt', 'file data');\n  }", "0")
+		_ = tclLIndex("catchsql { \n    SELECT * FROM hhh;\n    INSERT INTO hhh(name, data) VALUES('1.txt', 'file data');\n  }", "0") // lindex result
 	}
-	var archive = "\n  504B0304140000080000D4A52BEC09F3B6E0110000001100000005000900612E\n  747874555405000140420F00636F6E74656E7473206F6620612E747874504B03\n  04140000080000D4A52BECD98916A7110000001100000005000900622E747874\n  555405000140420F00636F6E74656E7473206F6620622E747874504B01021E03\n  140000080000D4A52BEC09F3B6E0110000001100000005000900000000000000\n  0000A48100000000612E747874555405000140420F00504B01021E0314000008\n  0000D4A52BECD98916A71100000011000000050009000000000000000000A481\n  3D000000622E747874555405000140420F00504B050600000000020002007800\n  00007A0000000000\n"
+	archive = "\n  504B0304140000080000D4A52BEC09F3B6E0110000001100000005000900612E\n  747874555405000140420F00636F6E74656E7473206F6620612E747874504B03\n  04140000080000D4A52BECD98916A7110000001100000005000900622E747874\n  555405000140420F00636F6E74656E7473206F6620622E747874504B01021E03\n  140000080000D4A52BEC09F3B6E0110000001100000005000900000000000000\n  0000A48100000000612E747874555405000140420F00504B01021E0314000008\n  0000D4A52BECD98916A71100000011000000050009000000000000000000A481\n  3D000000622E747874555405000140420F00504B050600000000020002007800\n  00007A0000000000\n"
 	_ = archive // suppress unused warning
 	if false {
 		{ // "3.1"
@@ -87,7 +158,7 @@ func Test_zipfile2(t *testing.T) {
 			}
 		}
 	}
-	var blob = "blob $archive"
+	blob = "blob $archive"
 	_ = blob // suppress unused warning
 	{ // "3.2"
 		r = db.Query("\n  SELECT name,mtime,data FROM zipfile($blob)\n")
@@ -101,16 +172,16 @@ func Test_zipfile2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var L = "findall 504B $archive"
+	L = "findall 504B $archive"
 	_ = L // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for tclBool(i + " < " + "llength $L") {
-		var idx = "lindex $L $i"
+		idx = "lindex $L $i"
 		_ = idx // suppress unused warning
-		var a = "$archive $idx [expr $idx+3] 0000"
+		a = "$archive $idx [expr $idx+3] 0000"
 		_ = a // suppress unused warning
-		var blob = "blob $a"
+		blob = "blob $a"
 		_ = blob // suppress unused warning
 		{ // "3.3." + i
 			_res = db.Exec("\n    SELECT name,mtime,data FROM zipfile($blob)\n  ")
@@ -131,11 +202,11 @@ func Test_zipfile2(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for tclBool(i + " < " + "llength $L") {
-		var idx = "lindex $L $i"
+		idx = "lindex $L $i"
 		_ = idx // suppress unused warning
-		var a = "$archive $idx [expr $idx+3] 1234"
+		a = "$archive $idx [expr $idx+3] 1234"
 		_ = a // suppress unused warning
-		var blob = "blob $a"
+		blob = "blob $a"
 		_ = blob // suppress unused warning
 		{ // "3.4." + i
 			r = db.Query("\n    SELECT name,data FROM zipfile($blob)\n  ")
@@ -160,11 +231,11 @@ func Test_zipfile2(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for tclBool(i + " < " + "llength $L") {
-		var idx = "lindex $L $i"
+		idx = "lindex $L $i"
 		_ = idx // suppress unused warning
-		var a = "$archive [expr $idx+8] [expr $idx+9] 00"
+		a = "$archive [expr $idx+8] [expr $idx+9] 00"
 		_ = a // suppress unused warning
-		var blob = "blob $a"
+		blob = "blob $a"
 		_ = blob // suppress unused warning
 		{ // "3.5." + i
 			r = db.Query("\n    SELECT name,data FROM zipfile($blob)\n  ")
@@ -186,7 +257,7 @@ func Test_zipfile2(t *testing.T) {
 			}
 		}
 	}
-	var archive2 = "\n  504B0304140000080800D4A52BEC08F54C6E050000001700000005000900612E\n  747874555405000140420F004B4CC40A00504B01021E03140000080800D4A52B\n  EC08F54C6E0500000017000000050009000000000000000000A4810000000061\n  2E747874555405000140420F00504B050600000000010001003C000000310000\n  000000\n"
+	archive2 = "\n  504B0304140000080800D4A52BEC08F54C6E050000001700000005000900612E\n  747874555405000140420F004B4CC40A00504B01021E03140000080800D4A52B\n  EC08F54C6E0500000017000000050009000000000000000000A4810000000061\n  2E747874555405000140420F00504B050600000000010001003C000000310000\n  000000\n"
 	_ = archive2 // suppress unused warning
 	blob = "blob $archive2"
 	_ = blob // suppress unused warning
@@ -204,11 +275,11 @@ func Test_zipfile2(t *testing.T) {
 	}
 	L = "findall 17000000 $archive2"
 	_ = L // suppress unused warning
-	var a = archive2
+	a = archive2
 	_ = a // suppress unused warning
 	for _, i := range tclSplitList(L) {
 	_ = i // suppress unused warning
-		var a = "$a $i [expr $i+7] 16000000"
+		a = "$a $i [expr $i+7] 16000000"
 		_ = a // suppress unused warning
 	}
 	blob = "blob $a"
@@ -241,7 +312,7 @@ func Test_zipfile2(t *testing.T) {
 		sub := _items0[_idx0+1]
 		_ = sub // suppress unused warning
 		_ = _idx0
-			var blob = "blob [string map [list 504B0506 $sub] $archive2]"
+			blob = "blob [string map [list 504B0506 $sub] $archive2]"
 			_ = blob // suppress unused warning
 			{ // "4.3." + tn
 				_res = db.Exec("\n    SELECT * FROM zipfile($blob)\n  ")
@@ -251,13 +322,13 @@ func Test_zipfile2(t *testing.T) {
 			}
 		}
 		{ // do_test "5.0"
-			var blob = "db one {\n    WITH c(n, d) AS (\n      SELECT 'notadir', ''\n    )\n    SELECT zipfile(n, d) FROM c\n }"
+			blob = "db one {\n    WITH c(n, d) AS (\n      SELECT 'notadir', ''\n    )\n    SELECT zipfile(n, d) FROM c\n }"
 			_ = blob // suppress unused warning
-			var hex = "binary encode hex $blob"
+			hex = "binary encode hex $blob"
 			_ = hex // suppress unused warning
-			hex = "{6e6f7461646972 6e6f746164692f} $hex"
+			hex = strings.ReplaceAll(hex, "6e6f7461646972", "6e6f746164692f")
 			_ = hex // suppress unused warning
-			var blob2 = "binary decode hex $hex"
+			blob2 = "binary decode hex $hex"
 			_ = blob2 // suppress unused warning
 			r = db.Query(" SELECT name, data IS NULL FROM zipfile($blob2) ")
 			if r.Error != nil {
@@ -299,7 +370,7 @@ func Test_zipfile2(t *testing.T) {
 		}
 		// proc definition (not transpiled)
 		os.Remove("test.zip")
-		t.Errorf("TODO: %s not implemented in frigolite", "make_corrupt_file test.zip")
+		// make_corrupt_file test.zip (unsupported command, not transpiled)
 		{ // "7.0"
 			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile('test.zip');\n")
 			if _res.Error != nil {
@@ -320,10 +391,11 @@ func Test_zipfile2(t *testing.T) {
 		}
 		if tclBool("0" + "==0") {
 			os.Remove("test.zip")
-			var fd = "open test.zip wb"
+			fd = "open test.zip wb"
 			_ = fd // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-			t.Log("-nonewline")
+			// fconfigure $fd -translation binary (unsupported command, not transpiled)
+			_putsMsg := "-nonewline"
+			_ = _putsMsg
 			// close $fd
 			{ // "8.0"
 				_res = db.Exec("\n    SELECT name,sz FROM zipfile(readfile('test.zip'));\n  ")

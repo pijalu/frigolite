@@ -39,6 +39,11 @@ func Test_tkt_b351d95f9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-b351d95.1"
 		r = db.Query("\n    CREATE table t1(a,b);\n    INSERT INTO t1 VALUES('name1','This is a test');\n    INSERT INTO t1 VALUES('name2','xyz');\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 SELECT a, CASE b WHEN 'xyz' THEN null ELSE b END FROM t1;\n    SELECT x, y FROM t2 ORDER BY x;\n  ")

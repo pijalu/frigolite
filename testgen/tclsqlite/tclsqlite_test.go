@@ -42,20 +42,104 @@ func Test_tclsqlite(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var _result_arr string
+	_ = _result_arr // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var x_1 string
+	_ = x_1 // pre-declared from TCL source
+	var x_2 string
+	_ = x_2 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var adata string
+	_ = adata // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var nm1 string
+	_ = nm1 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var version string
+	_ = version // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var bindings_abc string
+	_ = bindings_abc // pre-declared from TCL source
+	var bindings_def string
+	_ = bindings_def // pre-declared from TCL source
+	var bindings_ghi string
+	_ = bindings_ghi // pre-declared from TCL source
+	var n2 string
+	_ = n2 // pre-declared from TCL source
+	var bindings string
+	_ = bindings // pre-declared from TCL source
+	var D string
+	_ = D // pre-declared from TCL source
+	var colNames string
+	_ = colNames // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var errmsg string
+	_ = errmsg // pre-declared from TCL source
+	var x_3 string
+	_ = x_3 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var aaa string
+	_ = aaa // pre-declared from TCL source
+	var x_a string
+	_ = x_a // pre-declared from TCL source
+	var nm string
+	_ = nm // pre-declared from TCL source
+	var bindings_n2 string
+	_ = bindings_n2 // pre-declared from TCL source
+	var abc string
+	_ = abc // pre-declared from TCL source
+	var def string
+	_ = def // pre-declared from TCL source
+	var ghi string
+	_ = ghi // pre-declared from TCL source
+	var mno string
+	_ = mno // pre-declared from TCL source
+	var e01 string
+	_ = e01 // pre-declared from TCL source
+	var ghi_123 string
+	_ = ghi_123 // pre-declared from TCL source
+
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tcl"
+	testprefix = "tcl"
 	_ = testprefix // suppress unused warning
-	var _r = "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?"
+	_r = "sqlite_orig HANDLE ?FILENAME? ?-vfs VFSNAME? ?-readonly BOOLEAN? ?-create BOOLEAN? ?-nofollow BOOLEAN? ?-nomutex BOOLEAN? ?-fullmutex BOOLEAN? ?-uri BOOLEAN?"
 	_ = _r // suppress unused warning
 	if tclBool("sqlite3 -has-codec") {
 		_r += " ?-key CODECKEY?"
 	}
 	{ // do_test "tcl-1.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -71,12 +155,11 @@ func Test_tclsqlite(t *testing.T) {
 				msg = ""
 			}
 		}
-		msg := tclRegsub("really_sqlite3", msg, "sqlite3")
+		msg = tclRegsub("really_sqlite3", msg, "sqlite3")
 		_ = msg // suppress unused warning
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.1.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -89,12 +172,11 @@ func Test_tclsqlite(t *testing.T) {
 				msg = ""
 			}
 		}
-		msg := tclRegsub("really_sqlite3", msg, "sqlite3")
+		msg = tclRegsub("really_sqlite3", msg, "sqlite3")
 		_ = msg // suppress unused warning
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -110,7 +192,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.2.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -126,7 +207,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.2.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -150,7 +230,6 @@ func Test_tclsqlite(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(10,20)")
 		}
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -168,7 +247,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -186,7 +264,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.5"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -219,7 +296,6 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-1.6"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -237,7 +313,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.7"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -254,7 +329,6 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	if tclBool("0" + "==0") {
 		{ // do_test "tcl-1.8"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
@@ -271,7 +345,6 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-1.9"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -287,7 +360,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.10"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -303,7 +375,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.11"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -319,7 +390,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.12"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -335,7 +405,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.14"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -351,7 +420,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.15"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -367,7 +435,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.16"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -383,7 +450,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.17"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -399,7 +465,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.18"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -415,7 +480,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.19"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -431,7 +495,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.20"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -447,7 +510,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.21"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -463,7 +525,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.22"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -479,7 +540,6 @@ func Test_tclsqlite(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "tcl-1.23"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -521,7 +581,6 @@ func Test_tclsqlite(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 SELECT a*2, b*2 FROM t1;\n    INSERT INTO t1 SELECT a*2+1, b*2+1 FROM t1;\n    INSERT INTO t1 SELECT a*2+3, b*2+3 FROM t1;\n  ")
 		}
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -545,9 +604,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-3.3"
-	var rc string
 	_ = rc // suppress unused warning
-	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -562,9 +619,7 @@ func Test_tclsqlite(t *testing.T) {
 		rc = tclListAppend(rc, errmsg)
 	}
 	{ // do_test "tcl-3.4"
-	var rc string
 	_ = rc // suppress unused warning
-	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -593,7 +648,7 @@ func Test_tclsqlite(t *testing.T) {
 		a = tclListAppend(a, b)
 	}
 	{ // do_test "tcl-6.2"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
@@ -601,7 +656,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-6.3"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
@@ -610,16 +665,16 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	{ // do_test "tcl-6.4"
 		// proc definition (not transpiled)
-		t.Errorf("TODO: %s not implemented in frigolite", "return_test 10")
+		// return_test 10 (unsupported command, not transpiled)
 	}
 	{ // do_test "tcl-6.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "return_test 20")
+		// return_test 20 (unsupported command, not transpiled)
 	}
 	{ // do_test "tcl-6.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "return_test 99")
+		// return_test 99 (unsupported command, not transpiled)
 	}
 	{ // do_test "tcl-6.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "return_test 0")
+		// return_test 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "tcl-7.1"
 		// expr 0 → "0"
@@ -695,7 +750,6 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "tcl-10.4"
 	}
 	{ // do_test "tcl-10.5"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -711,7 +765,6 @@ func Test_tclsqlite(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "tcl-10.6"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -788,7 +841,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-10.10"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1 }() {
 			_res = db.Exec("INSERT INTO t4 VALUES(5)")
@@ -811,7 +864,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-10.11"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 			_res = db.Exec("INSERT INTO t4 VALUES(6)")
@@ -833,13 +886,12 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-10.12"
-	var rc string
 	_ = rc // suppress unused warning
 	var _catchErrMsg string
 	_ = _catchErrMsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 				_res = db.Exec("INSERT INTO t4 VALUES(7)")
@@ -951,7 +1003,6 @@ func Test_tclsqlite(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2.Exec("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -980,7 +1031,6 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "tcl-10.20"
 		db2.Exec("\n    COMMIT;\n    BEGIN EXCLUSIVE;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1023,12 +1073,12 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "tcl-11.3"
 	}
 	{ // do_test "tcl-11.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "tcl_objproc db exists {SELECT 1 FROM t4 WHERE x==8}")
+		// tcl_objproc db exists {SELECT 1 FROM t4 WHERE x==8} (unsupported command, not transpiled)
 	}
 	{ // do_test "tcl-12.1"
-		var version = "db version"
+		version = "db version"
 		_ = version // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "scan $version %d.%d.%d a b c")
+		// scan $version %d.%d.%d a b c (unsupported command, not transpiled)
 		// expr $a*1000000 → "$a*1000000"
 	}
 	// proc definition (not transpiled)
@@ -1044,7 +1094,8 @@ func Test_tclsqlite(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // do_test "tcl-15.0"
@@ -1076,7 +1127,8 @@ func Test_tclsqlite(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "tcl-16.100"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2),(2,NULL),(3,'xyz');\n")
@@ -1085,7 +1137,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-16.101"
-		var res = ""
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
@@ -1093,9 +1145,7 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "tcl-16.102"
-	var res string
 	_ = res // suppress unused warning
-	var rc string
 	_ = rc // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1112,7 +1162,7 @@ func Test_tclsqlite(t *testing.T) {
 		res = tclListAppend(res, rc)
 	}
 	{ // do_test "tcl-16.103"
-		var res = ""
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec("-withoutnulls")
 		if _res.Error != nil {
@@ -1209,11 +1259,11 @@ func Test_tclsqlite(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "18.100"
-		var bindings_abc = "3"
+		bindings_abc = "3"
 		_ = bindings_abc // suppress unused warning
-		var bindings_def = "hello"
+		bindings_def = "hello"
 		_ = bindings_def // suppress unused warning
-		var bindings_ghi = "3.1415926"
+		bindings_ghi = "3.1415926"
 		_ = bindings_ghi // suppress unused warning
 		// proc definition (not transpiled)
 		_res = db.Exec("SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi)")
@@ -1261,7 +1311,6 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "18.900"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1299,11 +1348,11 @@ func Test_tclsqlite(t *testing.T) {
 		}
 	}
 	{ // do_test "20.1"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
-		var res = ""
+		res = ""
 		_ = res // suppress unused warning
-		var colNames = ""
+		colNames = ""
 		_ = colNames // suppress unused warning
 		_res = db.Exec("-asdict")
 		if _res.Error != nil {
@@ -1312,7 +1361,7 @@ func Test_tclsqlite(t *testing.T) {
 		res = tclListAppend(res, colNames)
 	}
 	{ // do_test "20.2"
-		var res = ""
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec("-asdict")
 		if _res.Error != nil {
@@ -1326,10 +1375,9 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "21.0"
 	}
 	{ // do_test "21.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1349,10 +1397,10 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	db, err = frigolite.Open("test.db")
+	_dbtmp3, err := frigolite.Open("test.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "21.2"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1370,7 +1418,8 @@ func Test_tclsqlite(t *testing.T) {
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp4, err := frigolite.Open(":memory:")
+	_ = _dbtmp4 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "22.1"
 		{

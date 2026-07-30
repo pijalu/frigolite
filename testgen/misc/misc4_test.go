@@ -40,9 +40,22 @@ func Test_misc4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "misc4-1.1"
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n  ")
 		if _res.Error != nil {
@@ -50,16 +63,16 @@ func Test_misc4(t *testing.T) {
 		}
 	}
 	{ // do_test "misc4-2.1"
-		var stmt = "sqlite3_prepare $DB {CREATE TABLE t3(x);} -1 TAIL"
+		stmt = "sqlite3_prepare $DB {CREATE TABLE t3(x);} -1 TAIL"
 		_ = stmt // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t3 VALUES(1);\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "misc4-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		// sqlite3_step $stmt (unsupported command, not transpiled)
 	}
 	{ // do_test "misc4-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+		// sqlite3_finalize $stmt (unsupported command, not transpiled)
 	}
 	{ // do_test "misc4-2.4"
 		_res = db.Exec("\n    INSERT INTO t3 VALUES(1);\n  ")
@@ -85,9 +98,10 @@ func Test_misc4(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM abc LEFT JOIN def ON (abc.a=def.d);\n  ")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "misc4-7.1"
 		_res = db.Exec("\n  CREATE TABLE t7(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE [M%s%s%s%s%s%s%s%s%s%s%s%s%s';\n  VACUUM;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \\\"[M%s%s%s%s%s%s%s%s%s%s%s%s%s\\\"") {

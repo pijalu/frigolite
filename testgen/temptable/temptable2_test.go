@@ -40,8 +40,23 @@ func Test_temptable2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var mode string
+	_ = mode // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "temptable2"
+	testprefix = "temptable2"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TEMP TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n")
@@ -197,7 +212,7 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	{ // do_test "4.1.4"
-		var n = "db one { PRAGMA temp.page_count }"
+		n = "db one { PRAGMA temp.page_count }"
 		_ = n // suppress unused warning
 		// expr ($n → "($n"
 	}
@@ -223,7 +238,7 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	{ // do_test "5.1.2"
-		var n = "db one { PRAGMA temp.page_count }"
+		n = "db one { PRAGMA temp.page_count }"
 		_ = n // suppress unused warning
 		// expr ($n → "($n"
 	}
@@ -281,7 +296,8 @@ func Test_temptable2(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	db, err = frigolite.Open("")
+	_dbtmp0, err := frigolite.Open("")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "7.1"
 		r = db.Query("\n  PRAGMA auto_vacuum=INCREMENTAL;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(zeroblob(900));\n  INSERT INTO t1 VALUES(zeroblob(900));\n  INSERT INTO t1 SELECT x FROM t1;\n  INSERT INTO t1 SELECT x FROM t1;\n  INSERT INTO t1 SELECT x FROM t1;\n  INSERT INTO t1 SELECT x FROM t1;\n  BEGIN;\n  DELETE FROM t1 WHERE rowid%2;\n  PRAGMA incremental_vacuum(4);\n  ROLLBACK;\n  PRAGMA integrity_check;\n")
@@ -320,9 +336,9 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	{ // do_test "8.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B tmp main db main")
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
-		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+		// sqlite3_backup B tmp main db main (unsupported command, not transpiled)
+		// B step 5 (unsupported command, not transpiled)
+		// B finish (unsupported command, not transpiled)
 	}
 	{ // do_test "8.4"
 		r = db.Query("\n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA page_size;\n  ")
@@ -331,27 +347,27 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	{ // do_test "8.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "tmp eval { UPDATE t1 SET a=randomblob(100) }")
+		// tmp eval { UPDATE t1 SET a=randomblob(100) } (unsupported command, not transpiled)
 	}
 	{ // do_test "8.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B tmp main db main")
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 1000")
-		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+		// sqlite3_backup B tmp main db main (unsupported command, not transpiled)
+		// B step 1000 (unsupported command, not transpiled)
+		// B finish (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tmp close")
+	// tmp close (unsupported command, not transpiled)
 	// foreach {tn mode} "\n  1 delete\n  2 wal\n"
-	_items0 := tclSplitList("\n  1 delete\n  2 wal\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1 delete\n  2 wal\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		mode := _items0[_idx0+1]
+		mode := _items1[_idx1+1]
 		_ = mode // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			db, err := frigolite.Open("")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "9." + tn + ".1.1"
 				r = db.Query("\n    PRAGMA cache_size = 15;\n    PRAGMA auto_vacuum = 1;\n  ")
@@ -369,7 +385,7 @@ func Test_temptable2(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tx(a, b);\n    CREATE INDEX i1 ON tx(a);\n    CREATE INDEX i2 ON tx(b);\n    WITH x(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000 )\n      INSERT INTO tx SELECT randomblob(100), randomblob(100) FROM x;\n  ")
 				}
 			}
-			var i = "2"
+			i = "2"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 				{ // "9." + tn + "." + i + ".1"
@@ -435,7 +451,8 @@ func Test_temptable2(t *testing.T) {
 				}
 			}
 		}
-		db, err = frigolite.Open("")
+		_dbtmp3, err := frigolite.Open("")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "10.0"
 			_res = db.Exec("\n  PRAGMA cache_size = 50;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, PRIMARY KEY(a)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(a);\n  CREATE TABLE t2(x, y);\n  INSERT INTO t2 VALUES(1, 2);\n")

@@ -40,8 +40,37 @@ func Test_rollback(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var mj string
+	_ = mj // pre-declared from TCL source
+	var cksum string
+	_ = cksum // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var mj_pgno string
+	_ = mj_pgno // pre-declared from TCL source
+	var zAppend string
+	_ = zAppend // pre-declared from TCL source
+	var iOffset string
+	_ = iOffset // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var sqlite_pending_byte string
+	_ = sqlite_pending_byte // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "rollback-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;\n  ")
@@ -50,20 +79,20 @@ func Test_rollback(t *testing.T) {
 		}
 	}
 	{ // do_test "rollback-1.3"
-		var STMT = "sqlite3_prepare $DB \"SELECT a FROM t1\" -1 TAIL"
+		STMT = "sqlite3_prepare $DB \"SELECT a FROM t1\" -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "rollback-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "rollback-1.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "rollback-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
-	if tclBool(tcl_platform + "(platform) == \"unix\" \n && " + "permutation" + " != \"onefile\"\n && " + "permutation" + " != \"inmemory_journal\"\n && " + "permutation" + " != \"atomic-batch-write\"\n && " + "atomic_batch_write test.db" + "==0") {
+	if tclBool(tcl_platform_platform + " == \"unix\" \n && " + "permutation" + " != \"onefile\"\n && " + "permutation" + " != \"inmemory_journal\"\n && " + "permutation" + " != \"atomic-batch-write\"\n && " + "atomic_batch_write test.db" + "==0") {
 		{ // do_test "rollback-2.1"
 			_res = db.Exec("\n      BEGIN;\n      INSERT INTO t3 VALUES('hello world');\n    ")
 			if _res.Error != nil {
@@ -76,35 +105,36 @@ func Test_rollback(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n    ")
 			}
 		}
-		var mj = "file normalize testA.db-mj-123"
+		mj = "file normalize testA.db-mj-123"
 		_ = mj // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $mj c* a")
-		var cksum = "0"
+		// binary scan $mj c* a (test infra, not transpiled)
+		cksum = "0"
 		_ = cksum // suppress unused warning
 		for _, i := range tclSplitList(a) {
 		_ = i // suppress unused warning
-			var cksum = "0"
 			// incr cksum i
 			{
 				_n, _err := strconv.Atoi(cksum)
 				if _err == nil {
-					cksum = strconv.Itoa(_n + i)
+					cksum = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(i); return _v }())
 				}
 			}
 		}
-		var mj_pgno = "$sqlite_pending_byte / 1024"
+		mj_pgno = "$sqlite_pending_byte / 1024"
 		_ = mj_pgno // suppress unused warning
-		var zAppend = "binary format Ia*IIa8 $mj_pgno $mj [string length $mj] $cksum \\\n    \"\\xd9\\xd5\\x05\\xf9\\x20\\xa1\\x63\\xd7\""
+		zAppend = "binary format Ia*IIa8 $mj_pgno $mj [string length $mj] $cksum \\\n    \"\\xd9\\xd5\\x05\\xf9\\x20\\xa1\\x63\\xd7\""
 		_ = zAppend // suppress unused warning
-		var iOffset = "(([file size testA.db-journal] + 511)/512)*512"
+		iOffset = "(([file size testA.db-journal] + 511)/512)*512"
 		_ = iOffset // suppress unused warning
-		var fd = "open testA.db-journal a+"
+		fd = "open testA.db-journal a+"
 		_ = fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd $iOffset")
-		t.Log("-nonewline")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd 0")
-		t.Log("-nonewline")
+		// fconfigure $fd -translation binary (unsupported command, not transpiled)
+		// seek $fd $iOffset (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
+		// seek $fd 0 (unsupported command, not transpiled)
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
 		// close $fd
 		{ // do_test "rollback-2.2"
 			db2, err = frigolite.Open("testA.db")

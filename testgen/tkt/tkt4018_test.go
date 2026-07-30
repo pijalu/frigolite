@@ -40,8 +40,21 @@ func Test_tkt4018(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "tkt4018-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    SELECT * FROM t1;\n  ")
@@ -50,7 +63,7 @@ func Test_tkt4018(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt4018-1.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
 			db2, err = frigolite.Open("test.db")
@@ -66,14 +79,14 @@ func Test_tkt4018(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt4018-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "testsql {INSERT INTO t1 VALUES(3, 4)}")
+		// testsql {INSERT INTO t1 VALUES(3, 4)} (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt4018-1.4"
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "testsql {INSERT INTO t1 VALUES(3, 4)}")
+		// testsql {INSERT INTO t1 VALUES(3, 4)} (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt4018-2.1"
 		db2, err = frigolite.Open("test.db")

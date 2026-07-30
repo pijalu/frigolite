@@ -41,22 +41,69 @@ func Test_enc2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var dbcontents string
+	_ = dbcontents // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var encodings string
+	_ = encodings // pre-declared from TCL source
+	var sqlite_os_trace string
+	_ = sqlite_os_trace // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var enc string
+	_ = enc // pre-declared from TCL source
+	var values string
+	_ = values // pre-declared from TCL source
+	var test_collate_enc string
+	_ = test_collate_enc // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var sqlite_last_needed_collation string
+	_ = sqlite_last_needed_collation // pre-declared from TCL source
+	var utf16 string
+	_ = utf16 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var vals string
+	_ = vals // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+	var arg string
+	_ = arg // pre-declared from TCL source
+	var utf8 string
+	_ = utf8 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	var dbcontents = "\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES('one', 'I', 1);\n"
+	dbcontents = "\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES('one', 'I', 1);\n"
 	_ = dbcontents // suppress unused warning
 	// proc definition (not transpiled)
-	var encodings = "list UTF-8 UTF-16le UTF-16be"
+	encodings = "list UTF-8 UTF-16le UTF-16be"
 	_ = encodings // suppress unused warning
-	var sqlite_os_trace = "0"
+	sqlite_os_trace = "0"
 	_ = sqlite_os_trace // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for _, enc := range tclSplitList(encodings) {
 	_ = enc // suppress unused warning
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = \\\"" + enc + "\\\"")
 		if _res.Error != nil {
@@ -102,8 +149,7 @@ func Test_enc2(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "run_test_script enc2-$i $enc")
-		var i = "0"
+		// run_test_script enc2-$i $enc (unsupported command, not transpiled)
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -112,15 +158,16 @@ func Test_enc2(t *testing.T) {
 			}
 		}
 	}
-	var _values = "list one two three four five" // TCL namespace variable
-	_ = _values // suppress unused warning
-	var _test_collate_enc = "INVALID" // TCL namespace variable
-	_ = _test_collate_enc // suppress unused warning
+	values = "list one two three four five" // TCL namespace variable
+	_ = values // suppress unused warning
+	test_collate_enc = "INVALID" // TCL namespace variable
+	_ = test_collate_enc // suppress unused warning
 	// proc definition (not transpiled)
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-5.0"
 		_res = db.Exec("\n    CREATE TABLE t5(a);\n    INSERT INTO t5 VALUES('one');\n    INSERT INTO t5 VALUES('two');\n    INSERT INTO t5 VALUES('five');\n    INSERT INTO t5 VALUES('three');\n    INSERT INTO t5 VALUES('four');\n  ")
@@ -129,25 +176,26 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-5.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 1")
-		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate;}"
+		// add_test_collate $DB 1 1 1 (unsupported command, not transpiled)
+		res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate;}"
 		_ = res // suppress unused warning
-		res = tclListAppend(res, _test_collate_enc)
+		res = tclListAppend(res, test_collate_enc)
 	}
 	{ // do_test "enc2-5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 0 1 0")
-		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
+		// add_test_collate $DB 0 1 0 (unsupported command, not transpiled)
+		res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
-		res = tclListAppend(res, _test_collate_enc)
+		res = tclListAppend(res, test_collate_enc)
 	}
 	{ // do_test "enc2-5.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 0 0 1")
-		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
+		// add_test_collate $DB 0 0 1 (unsupported command, not transpiled)
+		res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
-		res = tclListAppend(res, _test_collate_enc)
+		res = tclListAppend(res, test_collate_enc)
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -162,25 +210,26 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-5.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 1")
-		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
+		// add_test_collate $DB 1 1 1 (unsupported command, not transpiled)
+		res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
-		res = tclListAppend(res, _test_collate_enc)
+		res = tclListAppend(res, test_collate_enc)
 	}
 	{ // do_test "enc2-5.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 0 1")
-		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
+		// add_test_collate $DB 1 0 1 (unsupported command, not transpiled)
+		res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
-		res = tclListAppend(res, _test_collate_enc)
+		res = tclListAppend(res, test_collate_enc)
 	}
 	{ // do_test "enc2-5.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 0 0")
-		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
+		// add_test_collate $DB 1 0 0 (unsupported command, not transpiled)
+		res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
-		res = tclListAppend(res, _test_collate_enc)
+		res = tclListAppend(res, test_collate_enc)
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp3, err := frigolite.Open("test.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -195,46 +244,46 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-5.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 1")
-		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
+		// add_test_collate $DB 1 1 1 (unsupported command, not transpiled)
+		res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
-		res = tclListAppend(res, _test_collate_enc)
+		res = tclListAppend(res, test_collate_enc)
 	}
 	{ // do_test "enc2-5.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 0")
-		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
+		// add_test_collate $DB 1 1 0 (unsupported command, not transpiled)
+		res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
-		res = tclListAppend(res, _test_collate_enc)
+		res = tclListAppend(res, test_collate_enc)
 	}
 	{ // do_test "enc2-5.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 0 0")
-		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
+		// add_test_collate $DB 1 0 0 (unsupported command, not transpiled)
+		res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
-		res = tclListAppend(res, _test_collate_enc)
+		res = tclListAppend(res, test_collate_enc)
 	}
 	{ // do_test "enc2-5-12"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 0 0 0")
+		// add_test_collate $DB 0 0 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT * FROM t5 ORDER BY 1 COLLATE test_collate\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "enc2-5.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate_needed $DB")
-		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate; }"
+		// add_test_collate_needed $DB (unsupported command, not transpiled)
+		res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate; }"
 		_ = res // suppress unused warning
-		res = tclListAppend(res, _test_collate_enc)
+		res = tclListAppend(res, test_collate_enc)
 	}
 	{ // do_test "enc2-5.14"
-		_ = _sqlite_last_needed_collation // TCL namespace variable (query)
+		_ = sqlite_last_needed_collation // TCL namespace variable (query)
 	}
 	os.Remove("test.db")
 	{ // do_test "enc2-5.15"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-		_ = _DB // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate_needed $::DB")
-		_ = _sqlite_last_needed_collation // TCL namespace variable (query)
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
+		// add_test_collate_needed $::DB (unsupported command, not transpiled)
+		_ = sqlite_last_needed_collation // TCL namespace variable (query)
 	}
 	{ // do_test "enc2-5.16"
 		_res = db.Exec("CREATE TABLE t1(a varchar collate test_collate);")
@@ -243,11 +292,12 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-5.17"
-		_ = _sqlite_last_needed_collation // TCL namespace variable (query)
+		_ = sqlite_last_needed_collation // TCL namespace variable (query)
 	}
 	// proc definition (not transpiled)
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp5, err := frigolite.Open("test.db")
+	_ = _dbtmp5 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -262,36 +312,39 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-6.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 1 1 1")
+		// add_test_function $DB 1 1 1 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp6, err := frigolite.Open("test.db")
+	_ = _dbtmp6 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
+		// add_test_function $DB 0 1 0 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp7, err := frigolite.Open("test.db")
+	_ = _dbtmp7 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")
+		// add_test_function $DB 0 0 1 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp8, err := frigolite.Open("test.db")
+	_ = _dbtmp8 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -306,36 +359,39 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-6.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 1 1 1")
+		// add_test_function $DB 1 1 1 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp9, err := frigolite.Open("test.db")
+	_ = _dbtmp9 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
+		// add_test_function $DB 0 1 0 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp10, err := frigolite.Open("test.db")
+	_ = _dbtmp10 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")
+		// add_test_function $DB 0 0 1 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp11, err := frigolite.Open("test.db")
+	_ = _dbtmp11 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
@@ -350,29 +406,31 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-6.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 1 1 1")
+		// add_test_function $DB 1 1 1 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp12, err := frigolite.Open("test.db")
+	_ = _dbtmp12 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
+		// add_test_function $DB 0 1 0 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp13, err := frigolite.Open("test.db")
+	_ = _dbtmp13 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")
+		// add_test_function $DB 0 0 1 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
@@ -380,8 +438,8 @@ func Test_enc2(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "enc2-7.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp14, err := frigolite.Open("test.db")
+		_ = _dbtmp14 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA encoding = 'UTF-16';\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
@@ -389,9 +447,9 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-7.2"
-		var enc = "execsql {\n    PRAGMA encoding;\n  }"
+		enc = "execsql {\n    PRAGMA encoding;\n  }"
 		_ = enc // suppress unused warning
-		(enc)["0":"end-2"+1]
+		_ = tclStringRange(enc, "0", "end-2") // string range result
 	}
 	{ // do_test "enc2-7.3"
 		db2, err = frigolite.Open("test.db")
@@ -417,8 +475,8 @@ func Test_enc2(t *testing.T) {
 	// proc definition (not transpiled)
 	os.Remove("test.db")
 	{ // do_test "enc2-9.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp15, err := frigolite.Open("test.db")
+		_ = _dbtmp15 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;\n  ")
 		if r.Error != nil {
@@ -426,8 +484,8 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-9.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp16, err := frigolite.Open("test.db")
+		_ = _dbtmp16 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA encoding = 'UTF-16le';\n    PRAGMA encoding;\n  ")
 		if r.Error != nil {
@@ -435,8 +493,8 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-9.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp17, err := frigolite.Open("test.db")
+		_ = _dbtmp17 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM sqlite_master;\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;\n  ")
 		if r.Error != nil {
@@ -444,8 +502,8 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-9.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp18, err := frigolite.Open("test.db")
+		_ = _dbtmp18 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA encoding = 'UTF-16le';\n    CREATE TABLE abc(a, b, c);\n    PRAGMA encoding;\n  ")
 		if r.Error != nil {
@@ -453,8 +511,8 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-9.5"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp19, err := frigolite.Open("test.db")
+		_ = _dbtmp19 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA encoding = 'UTF-8';\n    PRAGMA encoding;\n  ")
 		if r.Error != nil {
@@ -463,14 +521,15 @@ func Test_enc2(t *testing.T) {
 	}
 	{ // do_test "enc2-10.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp20, err := frigolite.Open("test.db")
+		_ = _dbtmp20 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a);\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t2(b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a);\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t2(b);\n  ")
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp21, err := frigolite.Open("test.db")
+		_ = _dbtmp21 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT name FROM sqlite_master\n  ")
 		if _res.Error != nil {

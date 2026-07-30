@@ -39,6 +39,11 @@ func Test_whereB(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "whereB-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x,y);    -- affinity of t1.y is NONE\n    INSERT INTO t1 VALUES(1,99);\n\n    CREATE TABLE t2(a, b TEXT);  -- affinity of t2.b is TEXT\n    CREATE INDEX t2b ON t2(b);\n    INSERT INTO t2 VALUES(2,99);\n\n    SELECT x, a, y=b FROM t1, t2 ORDER BY +x, +a;\n  ")

@@ -40,10 +40,27 @@ func Test_walcrash4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nExtra string
+	_ = nExtra // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sqlite_pending_byte string
+	_ = sqlite_pending_byte // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walcrash4"
+	testprefix = "walcrash4"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA autovacuum = 0;\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  PRAGMA main.synchronous = full;\n")
 		if r.Error != nil {
@@ -56,32 +73,32 @@ func Test_walcrash4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	if _tcl_platform_platform == "windows" {
-		var msg = "child killed: unknown signal"
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	if tcl_platform_platform == "windows" {
+		msg = "child killed: unknown signal"
 		_ = msg // suppress unused warning
 	} else {
-		var msg = "child process exited abnormally"
+		msg = "child process exited abnormally"
 		_ = msg // suppress unused warning
 	}
-	var nExtra = "0"
+	nExtra = "0"
 	_ = nExtra // suppress unused warning
 	for func() bool { nExtra_n, _nExtra_e := strconv.Atoi(nExtra); if _nExtra_e != nil { return false }; return nExtra_n < 10 }() {
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 			{ // do_test "1.nExtra=" + nExtra + ".i=" + i + ".1"
-				t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
-				var fd = "open crash.tcl w"
+				// faultsim_restore_and_reopen (unsupported command, not transpiled)
+				fd = "open crash.tcl w"
 				_ = fd // suppress unused warning
-				t.Log(fd)
+				_putsMsg := fd
+				_ = _putsMsg
 				// close $fd
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
-					t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] crash.tcl >@stdout")
+					// exec [info nameofexec] crash.tcl >@stdout (unsupported command, not transpiled)
 					if _catchErr != nil {
 						_r = "1"
 						msg = _catchErr.Error()

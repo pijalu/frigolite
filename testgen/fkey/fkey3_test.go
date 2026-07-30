@@ -40,8 +40,15 @@ func Test_fkey3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fkey3"
+	testprefix = "fkey3"
 	_ = testprefix // suppress unused warning
 	{ // do_test "fkey3-1.1"
 		r = db.Query("\n    PRAGMA foreign_keys=ON;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(100);\n    INSERT INTO t1 VALUES(101);\n    CREATE TABLE t2(y INTEGER REFERENCES t1 (x));\n    INSERT INTO t2 VALUES(100);\n    INSERT INTO t2 VALUES(101);\n    SELECT 1, x FROM t1;\n    SELECT 2, y FROM t2;\n  ")

@@ -39,8 +39,19 @@ func Test_minmax4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "minmax4"
+	testprefix = "minmax4"
 	_ = testprefix // suppress unused warning
 	{ // do_test "minmax4-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(p,q);\n    SELECT p, max(q) FROM t1;\n  ")

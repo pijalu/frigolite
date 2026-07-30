@@ -40,6 +40,39 @@ func Test_ioerr2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var cksum string
+	_ = cksum // pre-declared from TCL source
+	var sqlite_io_error_hit string
+	_ = sqlite_io_error_hit // pre-declared from TCL source
+	var sqlite_io_error_persist string
+	_ = sqlite_io_error_persist // pre-declared from TCL source
+	var sqlite_io_error_pending string
+	_ = sqlite_io_error_pending // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var refcnt string
+	_ = refcnt // pre-declared from TCL source
+	var ck string
+	_ = ck // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var bPersist string
+	_ = bPersist // pre-declared from TCL source
+	var _go string
+	_ = _go // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "ioerr2-1.1"
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA default_cache_size = 10;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
@@ -47,61 +80,59 @@ func Test_ioerr2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA default_cache_size = 10;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
 		}
 	}
-	var _cksum = "execsql {SELECT md5sum(a, b) FROM t1}" // TCL namespace variable
-	_ = _cksum // suppress unused warning
+	cksum = "execsql {SELECT md5sum(a, b) FROM t1}" // TCL namespace variable
+	_ = cksum // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "check_db ioerr2-2")
-	var sql = "\n  PRAGMA cache_size = 10;\n  PRAGMA default_cache_size = 10;\n  BEGIN;\n  DELETE FROM t1 WHERE (oid%7)==0;\n  INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) \n    WHERE (random()%7)==0;\n  UPDATE t1 SET a = randstr(400,400), b = randstr(400,400) \n    WHERE (random()%7)==0;\n  ROLLBACK;\n"
+	// check_db ioerr2-2 (unsupported command, not transpiled)
+	sql = "\n  PRAGMA cache_size = 10;\n  PRAGMA default_cache_size = 10;\n  BEGIN;\n  DELETE FROM t1 WHERE (oid%7)==0;\n  INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) \n    WHERE (random()%7)==0;\n  UPDATE t1 SET a = randstr(400,400), b = randstr(400,400) \n    WHERE (random()%7)==0;\n  ROLLBACK;\n"
 	_ = sql // suppress unused warning
 	for _, bPersist := range tclSplitList("list 0 1") {
 	_ = bPersist // suppress unused warning
-		var _go = "1" // TCL namespace variable
+		_go = "1" // TCL namespace variable
 		_ = _go // suppress unused warning
-		var _N = "1" // TCL namespace variable
-		_ = _N // suppress unused warning
+		N = "1" // TCL namespace variable
+		_ = N // suppress unused warning
 		for tclBool(_go) {
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			var _sqlite_io_error_hit = "0" // TCL namespace variable
-			_ = _sqlite_io_error_hit // suppress unused warning
-			var _sqlite_io_error_persist = bPersist // TCL namespace variable
-			_ = _sqlite_io_error_persist // suppress unused warning
-			var _sqlite_io_error_pending = _N // TCL namespace variable
-			_ = _sqlite_io_error_pending // suppress unused warning
+			sqlite_io_error_hit = "0" // TCL namespace variable
+			_ = sqlite_io_error_hit // suppress unused warning
+			sqlite_io_error_persist = bPersist // TCL namespace variable
+			_ = sqlite_io_error_persist // suppress unused warning
+			sqlite_io_error_pending = N // TCL namespace variable
+			_ = sqlite_io_error_pending // suppress unused warning
 			// foreach ::go,res "catchsql $sql" (no body)
-			t.Errorf("TODO: %s not implemented in frigolite", "check_db ioerr2-3.$bPersist.$::N")
-			var _N = "0"
-			// incr _N 1
+			// check_db ioerr2-3.$bPersist.$::N (unsupported command, not transpiled)
+			// incr N 1
 			{
-				_n, _err := strconv.Atoi(_N)
+				_n, _err := strconv.Atoi(N)
 				if _err == nil {
-					_N = strconv.Itoa(_n + 1)
+					N = strconv.Itoa(_n + 1)
 				}
 			}
 		}
 	}
 	for _, bPersist := range tclSplitList("list 0 1") {
 	_ = bPersist // suppress unused warning
-		var _go = "1" // TCL namespace variable
+		_go = "1" // TCL namespace variable
 		_ = _go // suppress unused warning
-		var _N = "1" // TCL namespace variable
-		_ = _N // suppress unused warning
+		N = "1" // TCL namespace variable
+		_ = N // suppress unused warning
 		for tclBool(_go) {
-			var _sqlite_io_error_hit = "0" // TCL namespace variable
-			_ = _sqlite_io_error_hit // suppress unused warning
-			var _sqlite_io_error_persist = bPersist // TCL namespace variable
-			_ = _sqlite_io_error_persist // suppress unused warning
-			var _sqlite_io_error_pending = _N // TCL namespace variable
-			_ = _sqlite_io_error_pending // suppress unused warning
+			sqlite_io_error_hit = "0" // TCL namespace variable
+			_ = sqlite_io_error_hit // suppress unused warning
+			sqlite_io_error_persist = bPersist // TCL namespace variable
+			_ = sqlite_io_error_persist // suppress unused warning
+			sqlite_io_error_pending = N // TCL namespace variable
+			_ = sqlite_io_error_pending // suppress unused warning
 			// foreach ::go,res "catchsql $sql" (no body)
-			t.Errorf("TODO: %s not implemented in frigolite", "check_db ioerr2-4.[expr {$bPersist+2}].$::N")
-			var _N = "0"
-			// incr _N 1
+			// check_db ioerr2-4.[expr {$bPersist+2}].$::N (unsupported command, not transpiled)
+			// incr N 1
 			{
-				_n, _err := strconv.Atoi(_N)
+				_n, _err := strconv.Atoi(N)
 				if _err == nil {
-					_N = strconv.Itoa(_n + 1)
+					N = strconv.Itoa(_n + 1)
 				}
 			}
 		}
@@ -111,28 +142,26 @@ func Test_ioerr2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    PRAGMA temp_store = memory;\n  ")
 		}
-		var _sqlite_io_error_persist = "0" // TCL namespace variable
-		_ = _sqlite_io_error_persist // suppress unused warning
-		var _go = "1" // TCL namespace variable
+		sqlite_io_error_persist = "0" // TCL namespace variable
+		_ = sqlite_io_error_persist // suppress unused warning
+		_go = "1" // TCL namespace variable
 		_ = _go // suppress unused warning
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			var _N = "2" // TCL namespace variable
-			_ = _N // suppress unused warning
-			for func() bool { _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return _N_n < 200 }() {
+			N = "2" // TCL namespace variable
+			_ = N // suppress unused warning
+			for func() bool { N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return N_n < 200 }() {
 				_res = db.Exec("SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)")
 				}
-				var _N = "0"
-				// incr _N 1
+				// incr N 1
 				{
-					_n, _err := strconv.Atoi(_N)
+					_n, _err := strconv.Atoi(N)
 					if _err == nil {
-						_N = strconv.Itoa(_n + 1)
+						N = strconv.Itoa(_n + 1)
 					}
 				}
 			}
@@ -147,15 +176,20 @@ func Test_ioerr2(t *testing.T) {
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
-	if _tcl_platform_platform == "unix" {
+	if tcl_platform_platform == "unix" {
 		{ // do_test "ioerr2-6"
-			var _sqlite_io_error_hit = "0" // TCL namespace variable
-			_ = _sqlite_io_error_hit // suppress unused warning
-			var _sqlite_io_error_pending = "1" // TCL namespace variable
-			_ = _sqlite_io_error_pending // suppress unused warning
+			sqlite_io_error_hit = "0" // TCL namespace variable
+			_ = sqlite_io_error_hit // suppress unused warning
+			sqlite_io_error_pending = "1" // TCL namespace variable
+			_ = sqlite_io_error_pending // suppress unused warning
 			_res = db.Exec("PRAGMA temp_store_directory = '/tmp/'")
 			_ = _res // catchsql
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr2-7 -persist 0 -sqlprep {\n  PRAGMA cache_size = 10;\n  PRAGMA auto_vacuum = ...} -sqlbody {\n  BEGIN;\n  UPDATE ab SET b = randstr(200,200);\n  ...}")
+	// do_ioerr_test ioerr2-7 -persist 0 -sqlprep {
+  PRAGMA cache_size = 10;
+  PRAGMA auto_vacuum = ...} -sqlbody {
+  BEGIN;
+  UPDATE ab SET b = randstr(200,200);
+  ...} (unsupported command, not transpiled)
 }

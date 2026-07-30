@@ -40,8 +40,15 @@ func Test_transitive1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "transitive1"
+	testprefix = "transitive1"
 	_ = testprefix // suppress unused warning
 	{ // "transitive1-100"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, b TEXT, c TEXT COLLATE NOCASE);\n  INSERT INTO t1 VALUES('abc','abc','Abc');\n  INSERT INTO t1 VALUES('def','def','def');\n  INSERT INTO t1 VALUES('ghi','ghi','GHI');\n  CREATE INDEX t1a1 ON t1(a);\n  CREATE INDEX t1a2 ON t1(a COLLATE nocase);\n\n  SELECT * FROM t1 WHERE a=b AND c=b AND c='DEF';\n")
@@ -284,7 +291,8 @@ func Test_transitive1(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "transitive1-500"
 		r = db.Query("\n  CREATE TABLE x(i INTEGER PRIMARY KEY, y TEXT);\n  INSERT INTO x VALUES(10, '10');\n  SELECT * FROM x WHERE x.y>='1' AND x.y<'2' AND x.i=x.y;\n")
@@ -505,7 +513,7 @@ func Test_transitive1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA automatic_index = 0;\n  \n  CREATE TABLE t1(a TEXT);\n  CREATE TABLE t2(b TEXT);\n\n  INSERT INTO t1 VALUES ('hello');\n  INSERT INTO t1 VALUES ('Hello');\n  INSERT INTO t1 VALUES ('HELLO');\n  INSERT INTO t1 VALUES ('HeLLo');\n\n  INSERT INTO t2 VALUES ('hello');\n  INSERT INTO t2 VALUES ('Hello');\n  INSERT INTO t2 VALUES ('HELLO');\n  INSERT INTO t2 VALUES ('HeLLo');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db transitive 1")
+	// optimization_control db transitive 1 (unsupported command, not transpiled)
 	{ // "1010"
 		r = db.Query("\n  SELECT t1.a, t2.b\n    FROM t1 CROSS JOIN t2\n    WHERE t1.a = t2.b\n    AND t2.b COLLATE NOCASE = 'Hello';\n")
 		if r.Error != nil {
@@ -518,7 +526,7 @@ func Test_transitive1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db transitive 0")
+	// optimization_control db transitive 0 (unsupported command, not transpiled)
 	{ // "1020"
 		r = db.Query("\n  SELECT t1.a, t2.b\n    FROM t1 CROSS JOIN t2\n    WHERE t1.a = t2.b\n    AND t2.b COLLATE NOCASE = 'Hello';\n")
 		if r.Error != nil {

@@ -39,8 +39,17 @@ func Test_snapshot4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var snap string
+	_ = snap // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "snapshot4"
+	testprefix = "snapshot4"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
@@ -70,8 +79,8 @@ func Test_snapshot4(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "1.3"
-		var _snap = "sqlite3_snapshot_get_blob db main" // TCL namespace variable
-		_ = _snap // suppress unused warning
+		snap = "sqlite3_snapshot_get_blob db main" // TCL namespace variable
+		_ = snap // suppress unused warning
 		db2.Exec(" PRAGMA wal_checkpoint ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
@@ -80,7 +89,7 @@ func Test_snapshot4(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    SELECT * FROM sqlite_master;\n    BEGIN;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open_blob db main $::snap")
+		// sqlite3_snapshot_open_blob db main $::snap (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT count(*) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1\n  ")

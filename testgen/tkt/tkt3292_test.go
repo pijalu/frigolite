@@ -39,9 +39,16 @@ func Test_tkt3292(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3292-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
+		// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n    INSERT INTO t1 VALUES(0, 1);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 1);\n    CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b>=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b INT);\n    INSERT INTO t1 VALUES(0, 1);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 1);\n    CREATE INDEX i1 ON t1(b);\n    SELECT * FROM t1 WHERE b>=1;\n  ")

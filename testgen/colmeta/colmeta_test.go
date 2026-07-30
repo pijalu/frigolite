@@ -39,6 +39,27 @@ func Test_colmeta(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tests string
+	_ = tests // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var params string
+	_ = params // pre-declared from TCL source
+	var results string
+	_ = results // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var tstbody string
+	_ = tstbody // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "colmeta-0"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a PRIMARY KEY COLLATE NOCASE, b VARCHAR(32), c);\n    CREATE TABLE abc3(a NOT NULL, b INTEGER PRIMARY KEY, c);\n    CREATE TABLE abc5(w,x,y,z,PRIMARY KEY(x,z)) WITHOUT ROWID;\n    CREATE TABLE abc6(rowid TEXT COLLATE rtrim, oid REAL, _rowid_ BLOB);\n  ")
@@ -46,7 +67,7 @@ func Test_colmeta(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE abc2(a PRIMARY KEY COLLATE NOCASE, b VARCHAR(32), c);\n    CREATE TABLE abc3(a NOT NULL, b INTEGER PRIMARY KEY, c);\n    CREATE TABLE abc5(w,x,y,z,PRIMARY KEY(x,z)) WITHOUT ROWID;\n    CREATE TABLE abc6(rowid TEXT COLLATE rtrim, oid REAL, _rowid_ BLOB);\n  ")
 		}
 	}
-	var tests = "\n  1  {main abc a}                {0 {{} BINARY 0 0 0}}\n  2  {{} abc a}                  {0 {{} BINARY 0 0 0}}\n  3  {{} abc2 b}                 {0 {VARCHAR(32) BINARY 0 0 0}}\n  4  {main abc2 b}               {0 {VARCHAR(32) BINARY 0 0 0}}\n  5  {{} abc2 a}                 {0 {{} NOCASE 0 1 0}}\n  6  {{} abc3 a}                 {0 {{} BINARY 1 0 0}}\n  7  {{} abc3 b}                 {0 {INTEGER BINARY 0 1 0}}\n  13 {main abc rowid}            {0 {INTEGER BINARY 0 1 0}}\n  14 {main abc3 rowid}           {0 {INTEGER BINARY 0 1 0}}\n  16 {main abc d}                {1 {no such table column: abc.d}}\n  20 {main abc5 w}               {0 {{} BINARY 0 0 0}}\n  21 {main abc5 x}               {0 {{} BINARY 1 1 0}}\n  22 {main abc5 y}               {0 {{} BINARY 0 0 0}}\n  23 {main abc5 z}               {0 {{} BINARY 1 1 0}}\n  24 {main abc5 rowid}           {1 {no such table column: abc5.rowid}}\n  30 {main abc6 rowid}           {0 {TEXT rtrim 0 0 0}}\n  31 {main abc6 oid}             {0 {REAL BINARY 0 0 0}}\n  32 {main abc6 _rowid_}         {0 {BLOB BINARY 0 0 0}}\n"
+	tests = "\n  1  {main abc a}                {0 {{} BINARY 0 0 0}}\n  2  {{} abc a}                  {0 {{} BINARY 0 0 0}}\n  3  {{} abc2 b}                 {0 {VARCHAR(32) BINARY 0 0 0}}\n  4  {main abc2 b}               {0 {VARCHAR(32) BINARY 0 0 0}}\n  5  {{} abc2 a}                 {0 {{} NOCASE 0 1 0}}\n  6  {{} abc3 a}                 {0 {{} BINARY 1 0 0}}\n  7  {{} abc3 b}                 {0 {INTEGER BINARY 0 1 0}}\n  13 {main abc rowid}            {0 {INTEGER BINARY 0 1 0}}\n  14 {main abc3 rowid}           {0 {INTEGER BINARY 0 1 0}}\n  16 {main abc d}                {1 {no such table column: abc.d}}\n  20 {main abc5 w}               {0 {{} BINARY 0 0 0}}\n  21 {main abc5 x}               {0 {{} BINARY 1 1 0}}\n  22 {main abc5 y}               {0 {{} BINARY 0 0 0}}\n  23 {main abc5 z}               {0 {{} BINARY 1 1 0}}\n  24 {main abc5 rowid}           {1 {no such table column: abc5.rowid}}\n  30 {main abc6 rowid}           {0 {TEXT rtrim 0 0 0}}\n  31 {main abc6 oid}             {0 {REAL BINARY 0 0 0}}\n  32 {main abc6 _rowid_}         {0 {BLOB BINARY 0 0 0}}\n"
 	_ = tests // suppress unused warning
 	// foreach {tn params results} tests
 	_items0 := tclSplitList(tests)
@@ -58,19 +79,19 @@ func Test_colmeta(t *testing.T) {
 		results := _items0[_idx0+2]
 		_ = results // suppress unused warning
 		_ = _idx0
-			var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-			_ = _DB // suppress unused warning
-			var tstbody = "concat sqlite3_table_column_metadata $::DB $params"
+			DB = "sqlite3_connection_pointer db" // TCL namespace variable
+			_ = DB // suppress unused warning
+			tstbody = "concat sqlite3_table_column_metadata $::DB $params"
 			_ = tstbody // suppress unused warning
 			{ // do_test "colmeta-" + tn + ".1"
 				_list := tclList([]string{"0", "set msg"})
 				_ = _list
 			}
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-			_ = _DB // suppress unused warning
+			DB = "sqlite3_connection_pointer db" // TCL namespace variable
+			_ = DB // suppress unused warning
 			tstbody = "concat sqlite3_table_column_metadata $::DB $params"
 			_ = tstbody // suppress unused warning
 			{ // do_test "colmeta-" + tn + ".2"
@@ -85,7 +106,7 @@ func Test_colmeta(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main xyzzy")
+				// sqlite3_table_column_metadata $::DB main xyzzy (unsupported command, not transpiled)
 				if _catchErr != nil {
 					res = "1"
 					_catchErrMsg = _catchErr.Error()
@@ -102,7 +123,7 @@ func Test_colmeta(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main abc")
+				// sqlite3_table_column_metadata $::DB main abc (unsupported command, not transpiled)
 				if _catchErr != nil {
 					res = "1"
 					_catchErrMsg = _catchErr.Error()

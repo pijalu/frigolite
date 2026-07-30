@@ -39,14 +39,21 @@ func Test_win32nolock(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	if tcl_platform_os != "Windows NT" {
 	}
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "win32nolock"
+	testprefix = "win32nolock"
 	_ = testprefix // suppress unused warning
 	{ // do_test "win32nolock-1.0"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
@@ -62,8 +69,8 @@ func Test_win32nolock(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "win32nolock-1.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -108,8 +115,8 @@ func Test_win32nolock(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.9.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -120,8 +127,8 @@ func Test_win32nolock(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.10.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -132,8 +139,8 @@ func Test_win32nolock(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.11.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -144,8 +151,8 @@ func Test_win32nolock(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "win32nolock-1.12.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

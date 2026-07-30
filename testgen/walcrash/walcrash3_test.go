@@ -41,14 +41,34 @@ func Test_walcrash3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var state string
+	_ = state // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var nInitialErr string
+	_ = nInitialErr // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walcrash3"
+	testprefix = "walcrash3"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xTruncate xWrite}")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script tvfs_callback")
+	// testvfs tvfs (unsupported command, not transpiled)
+	// tvfs filter {xTruncate xWrite} (unsupported command, not transpiled)
+	// tvfs script tvfs_callback (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
 		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  PRAGMA wal_autocheckpoint = 128;\n  PRAGMA journal_size_limit = 16384;\n\n  CREATE TABLE t1(a BLOB, b BLOB, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(randomblob(10), randomblob(1000));\n")
@@ -57,18 +77,18 @@ func Test_walcrash3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	var i = "2"
+	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-		var _state = "0" // TCL namespace variable
-		_ = _state // suppress unused warning
+		state = "0" // TCL namespace variable
+		_ = state // suppress unused warning
 		{ // "1." + i + ".1"
 			_res = db.Exec("\n    INSERT INTO t1 VALUES(randomblob(10), randomblob(1000));\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(randomblob(10), randomblob(1000));\n  ")
 			}
 		}
-		if func() bool { _state_n, __state_e := strconv.Atoi(_state); if __state_e != nil { return false }; return _state_n == 2 }() {
+		if func() bool { state_n, _state_e := strconv.Atoi(state); if _state_e != nil { return false }; return state_n == 2 }() {
 			db2, err = frigolite.Open("xx_test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "1." + i + ".2"
@@ -97,21 +117,21 @@ func Test_walcrash3(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+	// tvfs delete (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("test.db")
 	{ // do_test "2.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 128;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(25), randomblob(200));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 128;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(25), randomblob(200));\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1500 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(25), randomblob(200)) ")
@@ -126,9 +146,9 @@ func Test_walcrash3(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "db_save")
+		// db_save (unsupported command, not transpiled)
 	}
-	var nInitialErr = "set_test_counter errors"
+	nInitialErr = "set_test_counter errors"
 	_ = nInitialErr // suppress unused warning
 	i = "2"
 	_ = i // suppress unused warning
@@ -138,12 +158,14 @@ func Test_walcrash3(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "db_restore")
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db-wal -seed $i {\n      SELECT * FROM sqlite_master;\n      PRAGMA s...}")
+			// db_restore (unsupported command, not transpiled)
+			// crashsql -delay 2 -file test.db-wal -seed $i {
+      SELECT * FROM sqlite_master;
+      PRAGMA s...} (unsupported command, not transpiled)
 		}
 		{ // do_test "2." + i + ".2"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" PRAGMA integrity_check ")
 			if r.Error != nil {

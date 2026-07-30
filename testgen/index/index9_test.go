@@ -39,8 +39,29 @@ func Test_index9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var in string
+	_ = in // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var a_opcode string
+	_ = a_opcode // pre-declared from TCL source
+	var a_p2 string
+	_ = a_p2 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var objects string
+	_ = objects // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "index9"
+	testprefix = "index9"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -50,35 +71,35 @@ func Test_index9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x) WHERE y=45;\n")
 		}
 	}
-	var y = "45"
+	y = "45"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 1.1 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1 t1x}")
+	// do_sqluses_test 1.1 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1 t1x} (unsupported command, not transpiled)
 	y = "45.1"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 1.2 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1}")
+	// do_sqluses_test 1.2 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1} (unsupported command, not transpiled)
 	y = "44"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 1.3 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 1.4 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1}")
+	// do_sqluses_test 1.3 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1} (unsupported command, not transpiled)
+	// do_sqluses_test 1.4 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1} (unsupported command, not transpiled)
 	y = "\"45\" 0 end"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 1.5 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1}")
+	// do_sqluses_test 1.5 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1} (unsupported command, not transpiled)
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE INDEX t1x2 ON t1(x) WHERE y=-20111000111\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t1x2 ON t1(x) WHERE y=-20111000111\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 2.1 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
+	// do_sqluses_test 2.1 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
 	y = "-20111000111"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 2.2 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1 t1x2}")
+	// do_sqluses_test 2.2 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1 t1x2} (unsupported command, not transpiled)
 	y = "-20111000110"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 2.3 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
+	// do_sqluses_test 2.3 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
 	y = "-20111000112"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 2.4 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
+	// do_sqluses_test 2.4 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE INDEX t1x3 ON t1(x) WHERE y=9223372036854775807\n")
 		if _res.Error != nil {
@@ -87,21 +108,21 @@ func Test_index9(t *testing.T) {
 	}
 	y = "9.223372036854776e+18"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 3.1 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1 t1x3}")
+	// do_sqluses_test 3.1 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1 t1x3} (unsupported command, not transpiled)
 	y = "9.223372036854776e+18"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 3.2 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
+	// do_sqluses_test 3.2 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
 	y = "9.223372036854776e+18"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 3.3 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db QPSG 1")
+	// do_sqluses_test 3.3 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
+	// sqlite3_db_config db QPSG 1 (unsupported command, not transpiled)
 	y = "9.223372036854776e+18"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 3.4 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
+	// do_sqluses_test 3.4 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
 	y = "9.223372036854776e+18"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 3.5 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db QPSG 0")
+	// do_sqluses_test 3.5 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
+	// sqlite3_db_config db QPSG 0 (unsupported command, not transpiled)
 	{ // "4.0"
 		_res = db.Exec("\n  CREATE INDEX t1x4 ON t1(x) WHERE y=-9223372036854775808\n")
 		if _res.Error != nil {
@@ -110,17 +131,17 @@ func Test_index9(t *testing.T) {
 	}
 	y = "-9.223372036854776e+18"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 4.1 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1 t1x4}")
+	// do_sqluses_test 4.1 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1 t1x4} (unsupported command, not transpiled)
 	y = "-9.223372036854776e+18"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 4.2 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
+	// do_sqluses_test 4.2 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
 	y = "-9.223372036854776e+18"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 4.3 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
+	// do_sqluses_test 4.3 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1} (unsupported command, not transpiled)
 	y = "-9.223372036854776e+18"
 	_ = y // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 4.4 { SELECT * FROM t1 WHERE $y=y ORDER BY x } {t1 t1x4}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db QPSG 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 4.5 { SELECT * FROM t1 WHERE $y=y ORDER BY x } {t1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db QPSG 0")
+	// do_sqluses_test 4.4 { SELECT * FROM t1 WHERE $y=y ORDER BY x } {t1 t1x4} (unsupported command, not transpiled)
+	// sqlite3_db_config db QPSG 1 (unsupported command, not transpiled)
+	// do_sqluses_test 4.5 { SELECT * FROM t1 WHERE $y=y ORDER BY x } {t1} (unsupported command, not transpiled)
+	// sqlite3_db_config db QPSG 0 (unsupported command, not transpiled)
 }

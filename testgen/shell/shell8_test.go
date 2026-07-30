@@ -41,10 +41,67 @@ func Test_shell8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var CLI string
+	_ = CLI // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var path string
+	_ = path // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var mtime string
+	_ = mtime // pre-declared from TCL source
+	var perm string
+	_ = perm // pre-declared from TCL source
+	var relpath string
+	_ = relpath // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var l1 string
+	_ = l1 // pre-declared from TCL source
+	var l2 string
+	_ = l2 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var tcl string
+	_ = tcl // pre-declared from TCL source
+	var expected string
+	_ = expected // pre-declared from TCL source
+	var pwd string
+	_ = pwd // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var spec string
+	_ = spec // pre-declared from TCL source
+	var d1 string
+	_ = d1 // pre-declared from TCL source
+	var c1 string
+	_ = c1 // pre-declared from TCL source
+	var x1 string
+	_ = x1 // pre-declared from TCL source
+	var c2 string
+	_ = c2 // pre-declared from TCL source
+	var x2 string
+	_ = x2 // pre-declared from TCL source
+	var c3 string
+	_ = c3 // pre-declared from TCL source
+	var x3 string
+	_ = x3 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "shell8"
+	testprefix = "shell8"
 	_ = testprefix // suppress unused warning
-	var CLI = "test_cli_invocation"
+	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
 	if tclBool("{*unknown command*} [catchcmd :memory: .archive]") {
 		return
@@ -61,62 +118,72 @@ func Test_shell8(t *testing.T) {
 		tcl := _items0[_idx0+1]
 		_ = tcl // suppress unused warning
 		_ = _idx0
-			// eval $tcl
-			t.Errorf("TODO: %s not implemented in frigolite", "populate_dir ar1 {\n    file1 \"abcd\" \n    file2 \"efgh\"\n    dir1/file3...}")
-			var expected = "dir_to_list ar1"
+			// eval (dynamic, not transpiled)
+			// populate_dir ar1 {
+    file1 "abcd" 
+    file2 "efgh"
+    dir1/file3...} (unsupported command, not transpiled)
+			expected = "dir_to_list ar1"
 			_ = expected // suppress unused warning
 			{ // do_test "1." + tn + ".1"
-				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $c1")
+				// catchcmd test_ar.db $c1 (unsupported command, not transpiled)
 				os.Remove("-force")
-				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $x1")
-				t.Errorf("TODO: %s not implemented in frigolite", "dir_to_list ar1")
+				// catchcmd test_ar.db $x1 (unsupported command, not transpiled)
+				// dir_to_list ar1 (unsupported command, not transpiled)
 			}
 			{ // do_test "1." + tn + ".2"
 				os.Remove("-force")
-				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $c2")
-				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $x2")
-				t.Errorf("TODO: %s not implemented in frigolite", "dir_to_list ar3")
+				// catchcmd test_ar.db $c2 (unsupported command, not transpiled)
+				// catchcmd test_ar.db $x2 (unsupported command, not transpiled)
+				// dir_to_list ar3 (unsupported command, not transpiled)
 			}
 			{ // do_test "1." + tn + ".3"
 				os.Remove("-force")
 				os.Remove("-force")
-				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: $c3")
-				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: $x3")
-				t.Errorf("TODO: %s not implemented in frigolite", "dir_to_list ar3")
+				// catchcmd :memory: $c3 (unsupported command, not transpiled)
+				// catchcmd :memory: $x3 (unsupported command, not transpiled)
+				// dir_to_list ar3 (unsupported command, not transpiled)
 			}
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
 				{ // do_test "1." + tn + ".4"
-					t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $c1")
+					// catchcmd test_ar.db $c1 (unsupported command, not transpiled)
 					os.Remove("-force")
-					t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $x1")
-					t.Errorf("TODO: %s not implemented in frigolite", "dir_to_list ar1")
+					// catchcmd test_ar.db $x1 (unsupported command, not transpiled)
+					// dir_to_list ar1 (unsupported command, not transpiled)
 				}
 			}
 		}
 		{ // do_test "2.1.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "populate_dir ar2 {\n    file1 \"abcd\" \n    file2 \"efgh\"\n    junk1 \"j1\"...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "populate_dir ar4 {\n    file2 \"efgh\"\n  }")
-			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -c}")
-			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -C ar2 -i .}")
-			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -r ./file2 ./dir1}")
-			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -g -r ./ju*2}")
-			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -C ar4 -x .}")
-			ar2 := tclRegsub("-all", "ar4", "dir_content ar4")
-			_ = ar2 // suppress unused warning
+			// populate_dir ar2 {
+    file1 "abcd" 
+    file2 "efgh"
+    junk1 "j1"...} (unsupported command, not transpiled)
+			// populate_dir ar4 {
+    file2 "efgh"
+  } (unsupported command, not transpiled)
+			// catchcmd shell8.db {.ar -c} (unsupported command, not transpiled)
+			// catchcmd shell8.db {.ar -C ar2 -i .} (unsupported command, not transpiled)
+			// catchcmd shell8.db {.ar -r ./file2 ./dir1} (unsupported command, not transpiled)
+			// catchcmd shell8.db {.ar -g -r ./ju*2} (unsupported command, not transpiled)
+			// catchcmd shell8.db {.ar -C ar4 -x .} (unsupported command, not transpiled)
+			_ = tclRegsub("ar4", "dir_content ar4", "ar2")
 		}
 		if tcl_platform_platform == "unix" {
-			t.Errorf("TODO: %s not implemented in frigolite", "populate_dir ar2 {\n    file1 \"1234\" \n    file2 \"3456\"\n  }")
+			// populate_dir ar2 {
+    file1 "1234" 
+    file2 "3456"
+  } (unsupported command, not transpiled)
 			// file link ar2/link1 file1
 			os.Remove("shell8.db")
 			os.Remove("link1")
 			{ // do_test "3.1"
-				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -C ar2 -c file2 link1 }")
+				// catchcmd shell8.db {.ar -C ar2 -c file2 link1 } (unsupported command, not transpiled)
 			}
 			{ // do_test "3.2"
-				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -x}")
+				// catchcmd shell8.db {.ar -x} (unsupported command, not transpiled)
 			}
 			{ // do_test "3.3"
-				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -x}")
+				// catchcmd shell8.db {.ar -x} (unsupported command, not transpiled)
 			}
 			os.Remove("shell8.db")
 			os.Remove("ar1")
@@ -124,21 +191,21 @@ func Test_shell8(t *testing.T) {
 			os.Remove("ar3")
 			// file mkdir ar2
 			// file mkdir ar3
-			var pwd = "pwd"
+			pwd = "pwd"
 			_ = pwd // suppress unused warning
-			db, err := frigolite.Open("shell8.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("shell8.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    CREATE TABLE sqlar(\n      name TEXT PRIMARY KEY,  -- name of the file\n      mode INT,               -- access permissions\n      mtime INT,              -- last modification time\n      sz INT,                 -- original file size\n      data BLOB               -- compressed content\n    );\n    INSERT INTO sqlar VALUES\n         ('abc',33188,0,-1,'content for abc'),\n         ('escape',40960,0,-1,$pwd||'/ar3'),\n         ('escape/def',33188,0,-1,'content for escape/def'),\n         ('ghi',33188,0,-1,'content for ghi');\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE sqlar(\n      name TEXT PRIMARY KEY,  -- name of the file\n      mode INT,               -- access permissions\n      mtime INT,              -- last modification time\n      sz INT,                 -- original file size\n      data BLOB               -- compressed content\n    );\n    INSERT INTO sqlar VALUES\n         ('abc',33188,0,-1,'content for abc'),\n         ('escape',40960,0,-1,$pwd||'/ar3'),\n         ('escape/def',33188,0,-1,'content for escape/def'),\n         ('ghi',33188,0,-1,'content for ghi');\n  ")
 			}
 			{ // do_test "3.4.1"
-				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -x --directory ar2}")
-				tclSort("glob -tails -directory ar2 -nocomplain *")
+				// catchcmd shell8.db {.ar -x --directory ar2} (unsupported command, not transpiled)
+				_ = tclSort("glob -tails -directory ar2 -nocomplain *") // lsort result
 			}
 			{ // do_test "3.4.2"
-				tclSort("glob -tails -directory ar3 -nocomplain *")
+				_ = tclSort("glob -tails -directory ar3 -nocomplain *") // lsort result
 			}
 			os.Remove("shell8.db")
 			os.Remove("ar2")

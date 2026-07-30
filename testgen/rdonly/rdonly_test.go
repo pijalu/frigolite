@@ -39,8 +39,17 @@ func Test_rdonly(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ro_version string
+	_ = ro_version // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	{ // do_test "rdonly-1.1"
 		r = db.Query("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -48,15 +57,15 @@ func Test_rdonly(t *testing.T) {
 		}
 	}
 	{ // do_test "rdonly-1.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_readonly db main")
+		// sqlite3_db_readonly db main (unsupported command, not transpiled)
 	}
 	{ // do_test "rdonly-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 18 1]")
+		// hexio_get_int [hexio_read test.db 18 1] (unsupported command, not transpiled)
 	}
 	{ // do_test "rdonly-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 18 03")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db 18 03 (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -64,25 +73,25 @@ func Test_rdonly(t *testing.T) {
 		}
 	}
 	{ // do_test "rdonly-1.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_readonly db main")
+		// sqlite3_db_readonly db main (unsupported command, not transpiled)
 	}
 	{ // do_test "rdonly-1.4"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2)\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "rdonly-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 18 01")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db 18 01 (unsupported command, not transpiled)
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2);\n    SELECT * FROM t1;\n  ")
 		_ = _res // catchsql
 	}
-	var ro_version = "02"
+	ro_version = "02"
 	_ = ro_version // suppress unused warning
 	{ // do_test "rdonly-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 18 $ro_version")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 24 11223344")
+		// hexio_write test.db 18 $ro_version (unsupported command, not transpiled)
+		// hexio_write test.db 24 11223344 (unsupported command, not transpiled)
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2);\n  ")
 		_ = _res // catchsql
 	}

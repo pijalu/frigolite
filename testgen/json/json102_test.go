@@ -40,6 +40,25 @@ func Test_json102(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var correct_answer string
+	_ = correct_answer // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var x0 string
+	_ = x0 // pre-declared from TCL source
+	var x5 string
+	_ = x5 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "json102-100"
 		r = db.Query("\n  SELECT json_object('ex','[52,3.14159]');\n")
@@ -2129,10 +2148,10 @@ func Test_json102(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-		var str = "abcdef" + "\\\" [expr {$i+50}]" + "uvwxyz"
+		str = "abcdef" + "\\\" [expr {$i+50}]" + "uvwxyz"
 		_ = str // suppress unused warning
 		{ // do_test "json102-" + "format %d [expr {$i+1300}]"
 			_res = db.Exec("SELECT json_extract(json_array($::str),'$[0]')==$::str")

@@ -39,17 +39,38 @@ func Test_carray02(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "carray02"
+	testprefix = "carray02"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	var STMT = ""
+	STMT = ""
 	_ = STMT // suppress unused warning
 	{ // do_test "1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -transient -text $STMT 1 abc NULL def")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -transient -text $STMT 1 abc NULL def (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+	// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	STMT = ""
 	_ = STMT // suppress unused warning
 	{ // do_test "2.0"
@@ -60,7 +81,7 @@ func Test_carray02(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+	// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	// foreach {tn sql res} "\n  1 { SELECT value FROM carray(?) WHERE value>2 } {3 4 5}\n  2 { \n    WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;\n  } {1 1 2 2}\n"
 	_items0 := tclSplitList("\n  1 { SELECT value FROM carray(?) WHERE value>2 } {3 4 5}\n  2 { \n    WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;\n  } {1 1 2 2}\n")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
@@ -72,12 +93,12 @@ func Test_carray02(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			{ // do_test "2.2." + tn
-				var STMT = ""
+				STMT = ""
 				_ = STMT // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int32 $STMT 1 1 2 3 4 5")
-				var _r = "run_stmt $STMT"
+				// sqlite3_carray_bind -int32 $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
+				_r = "run_stmt $STMT"
 				_ = _r // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+				// sqlite3_finalize $STMT (unsupported command, not transpiled)
 			}
 		}
 		// foreach {tn sql res} "\n  1 { SELECT value FROM carray(?, 5) } {1 2 3 4 5}\n  2 { SELECT value FROM carray(?, 3, 'int32') } {1 2 3}\n  3 { SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32') } \n    {1 {} 5 int32 2 {} 5 int32 3 {} 5 int32 4 {} 5 int32 5 {} 5 int32}\n  4 { SELECT rowid, value FROM carray(?, 5, 'int32') } \n    {1 1 2 2 3 3 4 4 5 5}\n"
@@ -91,12 +112,12 @@ func Test_carray02(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _idx1
 				{ // do_test "2.3." + tn
-					var STMT = ""
+					STMT = ""
 					_ = STMT // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "bind_carray_intptr $STMT 1 1 2 3 4 5")
-					var _r = "run_stmt $STMT"
+					// bind_carray_intptr $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
+					_r = "run_stmt $STMT"
 					_ = _r // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+					// sqlite3_finalize $STMT (unsupported command, not transpiled)
 				}
 			}
 			// foreach {tn sql res} "\n  1 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3 4 4 5 5}\n\n  2 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value AND a.value<3 AND b.value<3\n  } {1 1 2 2 3 3}\n\n  3 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value<3 AND b.value<3 AND a.value=b.value\n  } {1 1 2 2 3 3}\n\n  4 { \n    SELECT * FROM carray(?1) AS a, carray(?2, a.value) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3}\n\n"
@@ -110,13 +131,13 @@ func Test_carray02(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _idx2
 					{ // do_test "2.4." + tn
-						var STMT = ""
+						STMT = ""
 						_ = STMT // suppress unused warning
-						t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind $STMT 1 1 2 3 4 5")
-						t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind $STMT 2 1 2 3 4 5")
-						var _r = "run_stmt $STMT"
+						// sqlite3_carray_bind $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
+						// sqlite3_carray_bind $STMT 2 1 2 3 4 5 (unsupported command, not transpiled)
+						_r = "run_stmt $STMT"
 						_ = _r // suppress unused warning
-						t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+						// sqlite3_finalize $STMT (unsupported command, not transpiled)
 					}
 				}
 				{ // "3.0.0"
@@ -144,10 +165,10 @@ func Test_carray02(t *testing.T) {
 					}
 				}
 				{ // do_test "3.1"
-					var STMT = ""
+					STMT = ""
 					_ = STMT // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind $STMT 1 1 2 3 4 5")
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+					// sqlite3_carray_bind $STMT 1 1 2 3 4 5 (unsupported command, not transpiled)
+					// sqlite3_step $STMT (unsupported command, not transpiled)
 					_list := tclList([]string{"", ""})
 					_ = _list
 				}

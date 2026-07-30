@@ -39,9 +39,16 @@ func Test_fts4min(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts4min" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts4min" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "0.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a NOT NULL, b);\n  CREATE INDEX i1 ON t1(a);\n")
 		if _res.Error != nil {

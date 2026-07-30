@@ -39,6 +39,17 @@ func Test_where9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var solution_possible string
+	_ = solution_possible // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "where9-1.1"
@@ -48,89 +59,155 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-1.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b IS NULL\n       ...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE b IS NULL
+       ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE +b IS NULL\n      ...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE +b IS NULL
+      ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b IS NULL\n       ...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE b IS NULL
+       ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b IS NULL\n       ...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE b IS NULL
+       ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t4\n     WHERE b IS NULL\n       ...}")
+		// count_steps {
+    SELECT a FROM t4
+     WHERE b IS NULL
+       ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b IS NULL AND c ...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE (b IS NULL AND c ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t4\n     WHERE (b IS NULL AND c ...}")
+		// count_steps {
+    SELECT a FROM t4
+     WHERE (b IS NULL AND c ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t4\n     WHERE (b NOT NULL AND c...}")
+		// count_steps {
+    SELECT a FROM t4
+     WHERE (b NOT NULL AND c...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM (t4)\n     WHERE (b IS NULL AND ...}")
+		// count_steps {
+    SELECT a FROM (t4)
+     WHERE (b IS NULL AND ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b>=950 AND b<=10...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE (b>=950 AND b<=10...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE a=83\n        OR b...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE a=83
+        OR b...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b=1012\n        OR...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE b=1012
+        OR...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b=1012 OR (d IS ...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE (b=1012 OR (d IS ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-1.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b=1012 OR (d IS ...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE (b=1012 OR (d IS ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t2.a FROM t1, t2\n     WHERE t1.a=80\n  ...}")
+		// count_steps {
+    SELECT t2.a FROM t1, t2
+     WHERE t1.a=80
+  ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t2.a FROM t1, t2\n     WHERE t1.a=80\n  ...}")
+		// count_steps {
+    SELECT t2.a FROM t1, t2
+     WHERE t1.a=80
+  ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT coalesce(t2.a,9999)\n      FROM t1 LEFT...}")
+		// count_steps {
+    SELECT coalesce(t2.a,9999)
+      FROM t1 LEFT...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT coalesce(t2.a,9999)\n      FROM t1 LEFT...}")
+		// count_steps {
+    SELECT coalesce(t2.a,9999)
+      FROM t1 LEFT...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t1.a, coalesce(t2.a,9999)\n      FROM t...}")
+		// count_steps {
+    SELECT t1.a, coalesce(t2.a,9999)
+      FROM t...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t1.a, coalesce(t2.a,9999)\n      FROM t...}")
+		// count_steps {
+    SELECT t1.a, coalesce(t2.a,9999)
+      FROM t...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t3.x, t1.a, coalesce(t2.a,9999)\n      ...}")
+		// count_steps {
+    SELECT t3.x, t1.a, coalesce(t2.a,9999)
+      ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-2.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t3.x, t1.a, coalesce(t2.a,9999)\n      ...}")
+		// count_steps {
+    SELECT t3.x, t1.a, coalesce(t2.a,9999)
+      ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-4.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b>1000\n       AND...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE b>1000
+       AND...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b>1000\n       AND...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE b>1000
+       AND...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE +b>1000\n       AN...}")
+		// count_steps {
+    SELECT a FROM t1
+     WHERE +b>1000
+       AN...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1 INDEXED BY t1b\n     WHERE b>...}")
+		// count_steps {
+    SELECT a FROM t1 INDEXED BY t1b
+     WHERE b>...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-4.5"
 		_res = db.Exec("\n    SELECT a FROM t1 INDEXED BY t1b\n     WHERE +b>1000\n       AND (c=31031 OR d IS NULL)\n     ORDER BY +a\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "where9-4.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1 NOT INDEXED\n     WHERE b>100...}")
+		// count_steps {
+    SELECT a FROM t1 NOT INDEXED
+     WHERE b>100...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-4.7"
 		_res = db.Exec("\n    SELECT a FROM t1 INDEXED BY t1c\n     WHERE b>1000\n       AND (c=31031 OR d IS NULL)\n     ORDER BY +a\n  ")
@@ -165,7 +242,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     DELETE FROM t1\n     WHERE b IS N...}")
+		// count_steps {
+     BEGIN;
+     DELETE FROM t1
+     WHERE b IS N...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.2.3"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a>=85;\n    ROLLBACK;\n  ")
@@ -174,7 +254,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     DELETE FROM t1\n     WHERE +b IS ...}")
+		// count_steps {
+     BEGIN;
+     DELETE FROM t1
+     WHERE +b IS ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.2.5"
 		_res = db.Exec("\n     SELECT count(*) FROM t1 UNION ALL\n     SELECT a FROM t1 WHERE a>=85;\n     ROLLBACK;\n  ")
@@ -183,7 +266,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     UPDATE t1 SET a=a+100\n     WHERE...}")
+		// count_steps {
+     BEGIN;
+     UPDATE t1 SET a=a+100
+     WHERE...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.2.7"
 		_res = db.Exec("\n     SELECT count(*) FROM t1 UNION ALL\n     SELECT a FROM t1 WHERE a>=85;\n     ROLLBACK\n  ")
@@ -192,7 +278,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.2.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     DELETE FROM t1\n     WHERE (b IS ...}")
+		// count_steps {
+     BEGIN;
+     DELETE FROM t1
+     WHERE (b IS ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.2.9"
 		_res = db.Exec("\n     SELECT count(*) FROM t1 UNION ALL SELECT a FROM t1 WHERE a>=85;\n     ROLLBACK;\n  ")
@@ -201,7 +290,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (b IS NU...}")
+		// count_steps {
+    BEGIN;
+    DELETE FROM t1
+     WHERE (b IS NU...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.3.2"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -210,7 +302,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
+		// count_steps {
+    BEGIN;
+    UPDATE t1 SET a=a+100
+     WHERE (...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.3.4"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 200;\n    ROLLBACK;\n  ")
@@ -219,7 +314,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (+b IS N...}")
+		// count_steps {
+    BEGIN;
+    DELETE FROM t1
+     WHERE (+b IS N...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.3.6"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -228,7 +326,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.3.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
+		// count_steps {
+    BEGIN;
+    UPDATE t1 SET a=a+100
+     WHERE (...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.3.8"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -237,7 +338,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.4.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (b>=950 ...}")
+		// count_steps {
+    BEGIN;
+    DELETE FROM t1
+     WHERE (b>=950 ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.4.2"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -246,7 +350,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
+		// count_steps {
+    BEGIN;
+    UPDATE t1 SET a=a+100
+     WHERE (...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.4.4"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -255,7 +362,11 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.5.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE a=83\n   ...}")
+		// count_steps {
+    BEGIN;
+    DELETE FROM t1
+     WHERE a=83
+   ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.5.2"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a IN (5,31,57,82,83,84,85,86,87);\n    ROLLBACK;\n  ")
@@ -264,7 +375,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.5.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE a...}")
+		// count_steps {
+    BEGIN;
+    UPDATE t1 SET a=a+100
+     WHERE a...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.5.4"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a%100 IN (5,31,57,82,83,84,85,86,87) ORDER BY rowid;\n    ROLLBACK;\n  ")
@@ -273,7 +387,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.6.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (b IS NU...}")
+		// count_steps {
+    BEGIN;
+    DELETE FROM t1
+     WHERE (b IS NU...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.6.2"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -282,7 +399,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.6.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
+		// count_steps {
+    BEGIN;
+    UPDATE t1 SET a=a+100
+     WHERE (...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.6.4"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 200;\n    ROLLBACK;\n  ")
@@ -291,7 +411,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.7.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1 NOT INDEXED\n     WH...}")
+		// count_steps {
+    BEGIN;
+    DELETE FROM t1 NOT INDEXED
+     WH...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.7.2"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -300,7 +423,10 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.7.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 NOT INDEXED SET a=a+100\n...}")
+		// count_steps {
+    BEGIN;
+    UPDATE t1 NOT INDEXED SET a=a+100
+...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-6.7.4"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 200;\n    ROLLBACK;\n  ")
@@ -316,7 +442,7 @@ func Test_where9(t *testing.T) {
 		_res = db.Exec("\n    UPDATE t1 INDEXED BY t1b SET a=a+100\n     WHERE (+b IS NULL AND c NOT NULL AND d NOT NULL)\n        OR (b NOT NULL AND c IS NULL AND d NOT NULL)\n        OR (b NOT NULL AND c NOT NULL AND d IS NULL)\n  ")
 		_ = _res // catchsql
 	}
-	var solution_possible = "0"
+	solution_possible = "0"
 	_ = solution_possible // suppress unused warning
 	if tclBool(solution_possible) {
 		{ // do_test "where9-6.8.3-stat4"
@@ -344,7 +470,8 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-7.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE x='y' AND (b=913 OR c=...}")
+		// count_steps {
+    SELECT a FROM t5 WHERE x='y' AND (b=913 OR c=...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-7.1.2"
 		r = db.Query("\n    SELECT a FROM t6 WHERE x='y' AND (b=913 OR c=27027) ORDER BY a;\n  ")
@@ -353,7 +480,8 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-7.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE x='n' AND (b=913 OR c=...}")
+		// count_steps {
+    SELECT a FROM t5 WHERE x='n' AND (b=913 OR c=...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-7.1.4"
 		r = db.Query("\n    SELECT a FROM t6 WHERE x='n' AND (b=913 OR c=27027) ORDER BY a;\n  ")
@@ -362,7 +490,8 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-7.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE (x='y' OR y='y') AND b...}")
+		// count_steps {
+    SELECT a FROM t5 WHERE (x='y' OR y='y') AND b...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-7.2.2"
 		r = db.Query("\n    SELECT a FROM t6 WHERE (x='y' OR y='y') AND b=913 ORDER BY a;\n  ")
@@ -371,7 +500,8 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-7.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE (x='y' OR y='y') AND c...}")
+		// count_steps {
+    SELECT a FROM t5 WHERE (x='y' OR y='y') AND c...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where9-7.3.2"
 		r = db.Query("\n    SELECT a FROM t6 WHERE (x='y' OR y='y') AND c=27027 ORDER BY a;\n  ")

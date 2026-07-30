@@ -39,8 +39,23 @@ func Test_changes(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var wor string
+	_ = wor // pre-declared from TCL source
+	var nBig string
+	_ = nBig // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "changes"
+	testprefix = "changes"
 	_ = testprefix // suppress unused warning
 	// foreach {tn nRow wor} "\n  1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"\n"
 	_items0 := tclSplitList("\n  1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"\n")
@@ -55,7 +70,7 @@ func Test_changes(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			var nBig = "$nRow"
+			nBig = "$nRow"
 			_ = nBig // suppress unused warning
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")

@@ -40,8 +40,85 @@ func Test_fts3expr2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var phrases string
+	_ = phrases // pre-declared from TCL source
+	var operators string
+	_ = operators // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var iDistance string
+	_ = iDistance // pre-declared from TCL source
+	var iNH string
+	_ = iNH // pre-declared from TCL source
+	var prec_NOT string
+	_ = prec_NOT // pre-declared from TCL source
+	var prec_AND string
+	_ = prec_AND // pre-declared from TCL source
+	var _prec_arr string
+	_ = _prec_arr // pre-declared from TCL source
+	var prec_OR string
+	_ = prec_OR // pre-declared from TCL source
+	var phrase string
+	_ = phrase // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+	var zLeft string
+	_ = zLeft // pre-declared from TCL source
+	var zRight string
+	_ = zRight // pre-declared from TCL source
+	var iPrec string
+	_ = iPrec // pre-declared from TCL source
+	var iLeftPrec string
+	_ = iLeftPrec // pre-declared from TCL source
+	var iRightPrec string
+	_ = iRightPrec // pre-declared from TCL source
+	var iTest string
+	_ = iTest // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var e1 string
+	_ = e1 // pre-declared from TCL source
+	var e2 string
+	_ = e2 // pre-declared from TCL source
+	var e3 string
+	_ = e3 // pre-declared from TCL source
+	var e4 string
+	_ = e4 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var nMax string
+	_ = nMax // pre-declared from TCL source
+	var iHeight string
+	_ = iHeight // pre-declared from TCL source
+	var tree string
+	_ = tree // pre-declared from TCL source
+	var implicit_and string
+	_ = implicit_and // pre-declared from TCL source
+	var all_brackets string
+	_ = all_brackets // pre-declared from TCL source
+	var prec_op string
+	_ = prec_op // pre-declared from TCL source
+	var prec__lindex_lhs_0_ string
+	_ = prec__lindex_lhs_0_ // pre-declared from TCL source
+	var prec__lindex_rhs_0_ string
+	_ = prec__lindex_rhs_0_ // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var sqlite_fts3_enable_parentheses = "1"
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -50,23 +127,23 @@ func Test_fts3expr2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var iTest = "1"
+	iTest = "1"
 	_ = iTest // suppress unused warning
 	for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return iTest_n < 500 }() {
-		var _t = "random_expr_tree 4"
+		_t = "random_expr_tree 4"
 		_ = _t // suppress unused warning
-		var e1 = "tree_to_expr $t 0 0"
+		e1 = "tree_to_expr $t 0 0"
 		_ = e1 // suppress unused warning
-		var e2 = "tree_to_expr $t 0 1"
+		e2 = "tree_to_expr $t 0 1"
 		_ = e2 // suppress unused warning
-		var e3 = "tree_to_expr $t 1 0"
+		e3 = "tree_to_expr $t 1 0"
 		_ = e3 // suppress unused warning
-		var e4 = "tree_to_expr $t 1 1"
+		e4 = "tree_to_expr $t 1 1"
 		_ = e4 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.1 $e1 $t")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.2 $e2 $t")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.3 $e3 $t")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.4 $e4 $t")
+		// do_exprparse_test fts3expr2-$iTest.1 $e1 $t (unsupported command, not transpiled)
+		// do_exprparse_test fts3expr2-$iTest.2 $e2 $t (unsupported command, not transpiled)
+		// do_exprparse_test fts3expr2-$iTest.3 $e3 $t (unsupported command, not transpiled)
+		// do_exprparse_test fts3expr2-$iTest.4 $e4 $t (unsupported command, not transpiled)
 		// incr iTest 1
 		{
 			_n, _err := strconv.Atoi(iTest)

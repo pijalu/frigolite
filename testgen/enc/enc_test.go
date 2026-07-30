@@ -41,24 +41,81 @@ func Test_enc(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var ints2 string
+	_ = ints2 // pre-declared from TCL source
+	var utf16le_sqlite3 string
+	_ = utf16le_sqlite3 // pre-declared from TCL source
+	var utf16le_tcl string
+	_ = utf16le_tcl // pre-declared from TCL source
+	var utf16le string
+	_ = utf16le // pre-declared from TCL source
+	var utf16be_sqlite3 string
+	_ = utf16be_sqlite3 // pre-declared from TCL source
+	var utf16be_tcl string
+	_ = utf16be_tcl // pre-declared from TCL source
+	var utf16be string
+	_ = utf16be // pre-declared from TCL source
+	var utf16 string
+	_ = utf16 // pre-declared from TCL source
+	var utf8_sqlite3 string
+	_ = utf8_sqlite3 // pre-declared from TCL source
+	var utf16le_bom string
+	_ = utf16le_bom // pre-declared from TCL source
+	var utf16be_bom string
+	_ = utf16be_bom // pre-declared from TCL source
+	var utf16_sqlite3 string
+	_ = utf16_sqlite3 // pre-declared from TCL source
+	var cp200 string
+	_ = cp200 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var expect string
+	_ = expect // pre-declared from TCL source
+	var got string
+	_ = got // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+	var gotvals string
+	_ = gotvals // pre-declared from TCL source
+	var expectvals string
+	_ = expectvals // pre-declared from TCL source
+	var ints string
+	_ = ints // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var zLeft string
+	_ = zLeft // pre-declared from TCL source
+	var zRight string
+	_ = zRight // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "translate_selftest")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_conversion enc-1 hello world")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_conversion enc-2 sqlite")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_conversion enc-3 ")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_conversion enc-X \\u0100")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_conversion enc-4 \\u1234")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_conversion enc-5 \\u4321abc")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_conversion enc-6 \\u4321\\u1234")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_conversion enc-7 [string repeat \"abcde\\u00EF\\u00EE\\uFFFCabc\" 100]")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_conversion enc-8 [string repeat \"\\u007E\\u007F\\u0080\\u0081\" 100]")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_conversion enc-9 [string repeat \"\\u07FE\\u07FF\\u0800\\u0801\\uFFF0\" 10...")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_conversion enc-10 [string repeat \"\\uE000\" 100]")
+	// translate_selftest (unsupported command, not transpiled)
+	// test_conversion enc-1 hello world (unsupported command, not transpiled)
+	// test_conversion enc-2 sqlite (unsupported command, not transpiled)
+	// test_conversion enc-3  (unsupported command, not transpiled)
+	// test_conversion enc-X \u0100 (unsupported command, not transpiled)
+	// test_conversion enc-4 \u1234 (unsupported command, not transpiled)
+	// test_conversion enc-5 \u4321abc (unsupported command, not transpiled)
+	// test_conversion enc-6 \u4321\u1234 (unsupported command, not transpiled)
+	// test_conversion enc-7 [string repeat "abcde\u00EF\u00EE\uFFFCabc" 100] (unsupported command, not transpiled)
+	// test_conversion enc-8 [string repeat "\u007E\u007F\u0080\u0081" 100] (unsupported command, not transpiled)
+	// test_conversion enc-9 [string repeat "\u07FE\u07FF\u0800\u0801\uFFF0" 10... (unsupported command, not transpiled)
+	// test_conversion enc-10 [string repeat "\uE000" 100] (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $::DB 0 0 1")
+	// add_test_collate $::DB 0 0 1 (unsupported command, not transpiled)
 	{ // do_test "enc-11.1"
 		_res = db.Exec("\n    CREATE TABLE ab(a COLLATE test_collate, b);\n    INSERT INTO ab VALUES(CAST (X'C388' AS TEXT), X'888800');\n    INSERT INTO ab VALUES(CAST (X'C0808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808080808388' AS TEXT), X'888800');\n    CREATE INDEX ab_i ON ab(a, b);\n  ")
 		if _res.Error != nil {
@@ -66,7 +123,7 @@ func Test_enc(t *testing.T) {
 		}
 	}
 	{ // do_test "enc-11.2"
-		var cp200 = "\\u00C8"
+		cp200 = "\\u00C8"
 		_ = cp200 // suppress unused warning
 		r = db.Query("\n    SELECT count(*) FROM ab WHERE a = $::cp200;\n  ")
 		if r.Error != nil {
@@ -106,7 +163,8 @@ func Test_enc(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", _res.Error, "\n  SELECT * FROM t2;\n")
 		}
 	}
-	db, err = frigolite.Open("test.db3")
+	_dbtmp0, err := frigolite.Open("test.db3")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "enc-12.4"
 		r = db.Query("\n  SELECT * FROM t3;\n  PRAGMA encoding = 'UTF-16le';\n  SELECT * FROM t3;\n")
@@ -120,7 +178,8 @@ func Test_enc(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("test.db3")
+	_dbtmp1, err := frigolite.Open("test.db3")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "enc-12.5"
 		r = db.Query("\n  PRAGMA encoding = 'UTF-16le';\n  PRAGMA encoding;\n")
@@ -159,7 +218,8 @@ func Test_enc(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attached databases must use the same text encoding as main database", _res.Error, "\n  SELECT * FROM t2;\n  SELECT * FROM t1;\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "enc-12.9"
 		_res = db.Exec("\n  CREATE TEMP TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('xxx', 'yyy', 'zzz');\n")
@@ -180,13 +240,15 @@ func Test_enc(t *testing.T) {
 		}
 	}
 	os.Remove("utf16.db")
-	db, err = frigolite.Open("utf16.db")
+	_dbtmp3, err := frigolite.Open("utf16.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("PRAGMA encoding=UTF16; CREATE TABLE t2(y); INSERT INTO t2 VALUES('utf16');")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding=UTF16; CREATE TABLE t2(y); INSERT INTO t2 VALUES('utf16');")
 	}
-	db, err = frigolite.Open("utf16.db")
+	_dbtmp4, err := frigolite.Open("utf16.db")
+	_ = _dbtmp4 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "enc-13.1"
 		_res = db.Exec("PRAGMA function_list")

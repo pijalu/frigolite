@@ -3,6 +3,7 @@ package orderby
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -39,9 +40,32 @@ func Test_orderby6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var rowidclause string
+	_ = rowidclause // pre-declared from TCL source
+	var tx string
+	_ = tx // pre-declared from TCL source
+	var limit string
+	_ = limit // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var sql1 string
+	_ = sql1 // pre-declared from TCL source
+	var sql2 string
+	_ = sql2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "orderby6" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "orderby6" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// foreach {tn rowidclause} "1 {} 2 {WITHOUT ROWID}"
 	_items0 := tclSplitList("1 {} 2 {WITHOUT ROWID}")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
@@ -219,14 +243,14 @@ func Test_orderby6(t *testing.T) {
 				orderby := _items1[_idx1+3]
 				_ = orderby // suppress unused warning
 				_ = _idx1
-					var sql1 = "SELECT a FROM t1 ORDER BY " + orderby + " LIMIT " + limit + " OFFSET " + offset + ";"
+					sql1 = "SELECT a FROM t1 ORDER BY " + orderby + " LIMIT " + limit + " OFFSET " + offset + ";"
 					_ = sql1 // suppress unused warning
-					var sql2 = "{+ {}} $sql1"
+					sql2 = strings.ReplaceAll(sql1, "+", "{}")
 					_ = sql2 // suppress unused warning
 					{ // do_test tn + ".21." + tx
-						_res = db.Exec(_sql2)
+						_res = db.Exec(sql2)
 						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, _sql2)
+							t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql2)
 						}
 					}
 				}

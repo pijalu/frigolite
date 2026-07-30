@@ -40,13 +40,24 @@ func Test_sidedelete(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "sidedelete-1.1"
 		_res = db.Exec("\n    CREATE TABLE sequence(a INTEGER PRIMARY KEY);\n    INSERT INTO sequence VALUES(1);\n    INSERT INTO sequence VALUES(2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE sequence(a INTEGER PRIMARY KEY);\n    INSERT INTO sequence VALUES(1);\n    INSERT INTO sequence VALUES(2);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 8 }() {
 			_res = db.Exec("\n      INSERT INTO sequence SELECT a+(SELECT max(a) FROM sequence) FROM sequence;\n    ")
@@ -72,10 +83,10 @@ func Test_sidedelete(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE chng(a PRIMARY KEY, b);\n    SELECT count(*) FROM t1;\n    SELECT count(*) FROM chng;\n  ")
 		}
 	}
-	var i = "2"
+	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-		var n = "($i+2)/2"
+		n = "($i+2)/2"
 		_ = n // suppress unused warning
 		{ // do_test "sidedelete-2." + i + ".1"
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a<=$i;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a<=$i/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;\n    ")
@@ -102,7 +113,7 @@ func Test_sidedelete(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-		var n = "($i+1)/2"
+		n = "($i+1)/2"
 		_ = n // suppress unused warning
 		{ // do_test "sidedelete-3." + i + ".1"
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a<=$i;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;\n    ")

@@ -39,12 +39,23 @@ func Test_tkt3793(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var busyconnection string
+	_ = busyconnection // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "tkt3793-1.1"
-		db, err := frigolite.Open("file:test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("file:test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db1, err = frigolite.Open("file:test.db?cache=private")
 		if err != nil { t.Fatal(err) }
@@ -68,11 +79,11 @@ func Test_tkt3793(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    BEGIN;\n    UPDATE t1 SET b = randstr(50,50);\n  ")
 		}
 	}
-	var x = "0"
+	x = "0"
 	_ = x // suppress unused warning
 	{ // do_test "tkt3793-3"
 		db1.Close()
 		db2.Close()
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

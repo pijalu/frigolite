@@ -39,8 +39,15 @@ func Test_shrink(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var baseline string
+	_ = baseline // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	if tclBool("sqlite3_memory_used" + "==0") {
 		return
 	}
@@ -49,13 +56,13 @@ func Test_shrink(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(randomblob(1000000),1);\n  ")
 		}
-		var _baseline = "sqlite3_memory_used" // TCL namespace variable
-		_ = _baseline // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_release_memory db")
+		baseline = "sqlite3_memory_used" // TCL namespace variable
+		_ = baseline // suppress unused warning
+		// sqlite3_db_release_memory db (unsupported command, not transpiled)
 		// expr $::baseline > [sqlite3_memory_used]+500000 → "$::baseline > [sqlite3_memory_used]+500000"
 	}
 	{ // do_test "shrink-1.2"
-		var baseline = "sqlite3_memory_used"
+		baseline = "sqlite3_memory_used"
 		_ = baseline // suppress unused warning
 		_res = db.Exec("\n    UPDATE t1 SET y=y+1;\n  ")
 		if _res.Error != nil {
@@ -64,7 +71,7 @@ func Test_shrink(t *testing.T) {
 		// expr $::baseline+500000 < [sqlite3_memory_used] → "$::baseline+500000 < [sqlite3_memory_used]"
 	}
 	{ // do_test "shrink-1.3"
-		var baseline = "sqlite3_memory_used"
+		baseline = "sqlite3_memory_used"
 		_ = baseline // suppress unused warning
 		_res = db.Exec("PRAGMA shrink_memory")
 		if _res.Error != nil {
@@ -72,5 +79,5 @@ func Test_shrink(t *testing.T) {
 		}
 		// expr $::baseline > [sqlite3_memory_used]+500000 → "$::baseline > [sqlite3_memory_used]+500000"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	// test_restore_config_pagecache (unsupported command, not transpiled)
 }

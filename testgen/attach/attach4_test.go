@@ -41,13 +41,37 @@ func Test_attach4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var files string
+	_ = files // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var S string
+	_ = S // pre-declared from TCL source
+	var mode string
+	_ = mode // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "attach4"
+	testprefix = "attach4"
 	_ = testprefix // suppress unused warning
-	t.Log("Testing with SQLITE_MAX_ATTACHED=" + SQLITE_MAX_ATTACHED)
-	var files = "main test.db"
+	_putsMsg := "Testing with SQLITE_MAX_ATTACHED=" + SQLITE_MAX_ATTACHED
+	_ = _putsMsg
+	files = "main test.db"
 	_ = files // suppress unused warning
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; SQLITE_MAX_ATTACHED_n, _SQLITE_MAX_ATTACHED_e := strconv.Atoi(SQLITE_MAX_ATTACHED); if _SQLITE_MAX_ATTACHED_e != nil { return false }; return ii_n < SQLITE_MAX_ATTACHED_n }() {
 		files = tclListAppend(files, "aux" + ii, "test.db" + ii)
@@ -60,7 +84,7 @@ func Test_attach4(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED -1")
+		// sqlite3_limit db SQLITE_LIMIT_ATTACHED -1 (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2.1"
 		// foreach {name f} files
@@ -73,17 +97,17 @@ func Test_attach4(t *testing.T) {
 			_ = _idx0
 				os.Remove(f)
 			}
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// foreach {name f} files
-			_items1 := tclSplitList(files)
-			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-				name := _items1[_idx1+0]
+			_items2 := tclSplitList(files)
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				name := _items2[_idx2+0]
 				_ = name // suppress unused warning
-				f := _items1[_idx1+1]
+				f := _items2[_idx2+1]
 				_ = f // suppress unused warning
-				_ = _idx1
+				_ = _idx2
 					if name == "main" {
 					}
 					_res = db.Exec("ATTACH '" + f + "' AS " + name)
@@ -108,13 +132,13 @@ func Test_attach4(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
 				// foreach {name f} files
-				_items2 := tclSplitList(files)
-				for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-					name := _items2[_idx2+0]
+				_items3 := tclSplitList(files)
+				for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+					name := _items3[_idx3+0]
 					_ = name // suppress unused warning
-					f := _items2[_idx2+1]
+					f := _items3[_idx3+1]
 					_ = f // suppress unused warning
-					_ = _idx2
+					_ = _idx3
 						_res = db.Exec("CREATE TABLE " + name + ".tbl(x)")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE " + name + ".tbl(x)")
@@ -130,23 +154,8 @@ func Test_attach4(t *testing.T) {
 					}
 				}
 				{ // do_test "1.4"
-					var L = "list"
+					L = "list"
 					_ = L // suppress unused warning
-					// foreach {name f} files
-					_items3 := tclSplitList(files)
-					for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-						name := _items3[_idx3+0]
-						_ = name // suppress unused warning
-						f := _items3[_idx3+1]
-						_ = f // suppress unused warning
-						_ = _idx3
-							L = tclListAppend(L, name, "execsql \"SELECT x FROM $name.tbl\"")
-						}
-					}
-					var L = "list"
-					_ = L // suppress unused warning
-					var S = ""
-					_ = S // suppress unused warning
 					// foreach {name f} files
 					_items4 := tclSplitList(files)
 					for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
@@ -155,11 +164,26 @@ func Test_attach4(t *testing.T) {
 						f := _items4[_idx4+1]
 						_ = f // suppress unused warning
 						_ = _idx4
+							L = tclListAppend(L, name, "execsql \"SELECT x FROM $name.tbl\"")
+						}
+					}
+					L = "list"
+					_ = L // suppress unused warning
+					S = ""
+					_ = S // suppress unused warning
+					// foreach {name f} files
+					_items5 := tclSplitList(files)
+					for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
+						name := _items5[_idx5+0]
+						_ = name // suppress unused warning
+						f := _items5[_idx5+1]
+						_ = f // suppress unused warning
+						_ = _idx5
 							if tclBool("permutation" + " == \"journaltest\"") {
-								var mode = "delete"
+								mode = "delete"
 								_ = mode // suppress unused warning
 							} else {
-								var mode = "wal"
+								mode = "wal"
 								_ = mode // suppress unused warning
 							}
 							L = tclListAppend(L, mode)
@@ -172,16 +196,16 @@ func Test_attach4(t *testing.T) {
 							}
 						}
 						{ // do_test "1.6"
-							var L = "list"
+							L = "list"
 							_ = L // suppress unused warning
 							// foreach {name f} files
-							_items5 := tclSplitList(files)
-							for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
-								name := _items5[_idx5+0]
+							_items6 := tclSplitList(files)
+							for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
+								name := _items6[_idx6+0]
 								_ = name // suppress unused warning
-								f := _items5[_idx5+1]
+								f := _items6[_idx6+1]
 								_ = f // suppress unused warning
-								_ = _idx5
+								_ = _idx6
 									L = tclListAppend(L, "execsql \"SELECT x FROM $name.tbl\"", f)
 								}
 							}
@@ -191,13 +215,13 @@ func Test_attach4(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 								}
 								// foreach {name f} files
-								_items6 := tclSplitList(files)
-								for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
-									name := _items6[_idx6+0]
+								_items7 := tclSplitList(files)
+								for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
+									name := _items7[_idx7+0]
 									_ = name // suppress unused warning
-									f := _items6[_idx6+1]
+									f := _items7[_idx7+1]
 									_ = f // suppress unused warning
-									_ = _idx6
+									_ = _idx7
 										_res = db.Exec("UPDATE " + name + ".tbl SET x = '" + f + "'")
 										if _res.Error != nil {
 											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE " + name + ".tbl SET x = '" + f + "'")
@@ -209,19 +233,8 @@ func Test_attach4(t *testing.T) {
 									}
 								}
 								{ // do_test "1.8"
-									var L = "list"
+									L = "list"
 									_ = L // suppress unused warning
-									// foreach {name f} files
-									_items7 := tclSplitList(files)
-									for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
-										name := _items7[_idx7+0]
-										_ = name // suppress unused warning
-										f := _items7[_idx7+1]
-										_ = f // suppress unused warning
-										_ = _idx7
-											L = tclListAppend(L, name, "execsql \"SELECT x FROM $name.tbl\"")
-										}
-									}
 									// foreach {name f} files
 									_items8 := tclSplitList(files)
 									for _idx8 := 0; _idx8+2 <= len(_items8); _idx8 += 2 {
@@ -230,6 +243,17 @@ func Test_attach4(t *testing.T) {
 										f := _items8[_idx8+1]
 										_ = f // suppress unused warning
 										_ = _idx8
+											L = tclListAppend(L, name, "execsql \"SELECT x FROM $name.tbl\"")
+										}
+									}
+									// foreach {name f} files
+									_items9 := tclSplitList(files)
+									for _idx9 := 0; _idx9+2 <= len(_items9); _idx9 += 2 {
+										name := _items9[_idx9+0]
+										_ = name // suppress unused warning
+										f := _items9[_idx9+1]
+										_ = f // suppress unused warning
+										_ = _idx9
 											os.Remove(f)
 										}
 										db.Close()

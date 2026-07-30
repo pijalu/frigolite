@@ -39,8 +39,27 @@ func Test_unordered(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var idxmode string
+	_ = idxmode // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var r_ordered string
+	_ = r_ordered // pre-declared from TCL source
+	var r_unordered string
+	_ = r_unordered // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var r_idxmode string
+	_ = r_idxmode // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "unordered"
+	testprefix = "unordered"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES(1, 'xxx');\n  INSERT INTO t1 SELECT a+1, b FROM t1;\n  INSERT INTO t1 SELECT a+2, b FROM t1;\n  INSERT INTO t1 SELECT a+4, b FROM t1;\n  INSERT INTO t1 SELECT a+8, b FROM t1;\n  INSERT INTO t1 SELECT a+16, b FROM t1;\n  INSERT INTO t1 SELECT a+32, b FROM t1;\n  INSERT INTO t1 SELECT a+64, b FROM t1;\n  ANALYZE;\n")
@@ -60,21 +79,21 @@ func Test_unordered(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE sqlite_stat1 SET stat = stat || ' unordered' ")
 			}
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// foreach {tn sql r(ordered) r(unordered)} "\n    1   \"SELECT * FROM t1 ORDER BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR ORDER BY}\n    2   \"SELECT * FROM t1 WHERE a > 100\"\n        {SEARCH t1 USING INDEX i1 (a>?)}\n        {SCAN t1}\n    3   \"SELECT * FROM t1 WHERE a = ? ORDER BY rowid\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)*USE TEMP B-TREE FOR ORDER BY}\n    4   \"SELECT max(a) FROM t1\"\n        {SEARCH t1 USING COVERING INDEX i1}\n        {SEARCH t1}\n    5   \"SELECT group_concat(b) FROM t1 GROUP BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR GROUP BY}\n\n    6   \"SELECT * FROM t1 WHERE a = ?\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)}\n    7   \"SELECT count(*) FROM t1\"\n        {SCAN t1 USING COVERING INDEX i1}\n        {SCAN t1}\n  "
-		_items0 := tclSplitList("\n    1   \"SELECT * FROM t1 ORDER BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR ORDER BY}\n    2   \"SELECT * FROM t1 WHERE a > 100\"\n        {SEARCH t1 USING INDEX i1 (a>?)}\n        {SCAN t1}\n    3   \"SELECT * FROM t1 WHERE a = ? ORDER BY rowid\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)*USE TEMP B-TREE FOR ORDER BY}\n    4   \"SELECT max(a) FROM t1\"\n        {SEARCH t1 USING COVERING INDEX i1}\n        {SEARCH t1}\n    5   \"SELECT group_concat(b) FROM t1 GROUP BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR GROUP BY}\n\n    6   \"SELECT * FROM t1 WHERE a = ?\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)}\n    7   \"SELECT count(*) FROM t1\"\n        {SCAN t1 USING COVERING INDEX i1}\n        {SCAN t1}\n  ")
-		for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-			tn := _items0[_idx0+0]
+		_items1 := tclSplitList("\n    1   \"SELECT * FROM t1 ORDER BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR ORDER BY}\n    2   \"SELECT * FROM t1 WHERE a > 100\"\n        {SEARCH t1 USING INDEX i1 (a>?)}\n        {SCAN t1}\n    3   \"SELECT * FROM t1 WHERE a = ? ORDER BY rowid\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)*USE TEMP B-TREE FOR ORDER BY}\n    4   \"SELECT max(a) FROM t1\"\n        {SEARCH t1 USING COVERING INDEX i1}\n        {SEARCH t1}\n    5   \"SELECT group_concat(b) FROM t1 GROUP BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR GROUP BY}\n\n    6   \"SELECT * FROM t1 WHERE a = ?\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)}\n    7   \"SELECT count(*) FROM t1\"\n        {SCAN t1 USING COVERING INDEX i1}\n        {SCAN t1}\n  ")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items0[_idx0+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			r_ordered := _items0[_idx0+2]
+			r_ordered := _items1[_idx1+2]
 			_ = r_ordered // suppress unused warning
-			r_unordered := _items0[_idx0+3]
+			r_unordered := _items1[_idx1+3]
 			_ = r_unordered // suppress unused warning
-			_ = _idx0
+			_ = _idx1
 				{ // "1." + idxmode + "." + tn
 					r = db.Query("EXPLAIN QUERY PLAN " + sql)
 					if r.Error != nil {

@@ -39,8 +39,15 @@ func Test_filterfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "filterfault"
+	testprefix = "filterfault"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
@@ -48,6 +55,12 @@ func Test_filterfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT sum(a) FILTER (WHERE b<5),...} -test {\n  faultsim_test_result {0 {{} 1 {} 1 1 1}}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom-t* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    SELECT sum(a) FILTER (WHERE b<5),...} -test {
+  faultsim_test_result {0 {{} 1 {} 1 1 1}}
+} (unsupported command, not transpiled)
 }

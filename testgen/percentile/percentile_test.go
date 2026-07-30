@@ -40,6 +40,25 @@ func Test_percentile(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var in string
+	_ = in // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var disc string
+	_ = disc // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var oba string
+	_ = oba // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "percentile-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1),(4),(6),(7),(8),(9),(11),(11),(11);\n  ")
@@ -344,7 +363,7 @@ func Test_percentile(t *testing.T) {
 					_ = _idx3
 						if tclBool(oba) {
 						}
-						var sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)"
+						sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)"
 						_ = sql // suppress unused warning
 						{ // "percentile-3." + id + ".1"
 							_res = db.Exec(sql)

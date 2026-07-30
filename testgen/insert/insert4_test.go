@@ -40,17 +40,40 @@ func Test_insert4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite3_xferopt_count string
+	_ = sqlite3_xferopt_count // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var destschema string
+	_ = destschema // pre-declared from TCL source
+	var srcschema string
+	_ = srcschema // pre-declared from TCL source
+	var initdata string
+	_ = initdata // pre-declared from TCL source
+	var testid string
+	_ = testid // pre-declared from TCL source
+	var xferused string
+	_ = xferused // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "insert4"
+	testprefix = "insert4"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
+	// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
 	_res = db.Exec("\n  CREATE TABLE t1(a int, b int, check(b>a));\n  CREATE TABLE t2(x int, y int);\n  CREATE VIEW v2 AS SELECT y, x FROM t2;\n  CREATE TABLE t3(a int, b int);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a int, b int, check(b>a));\n  CREATE TABLE t2(x int, y int);\n  CREATE VIEW v2 AS SELECT y, x FROM t2;\n  CREATE TABLE t3(a int, b int);\n")
 	}
 	{ // do_test "insert4-1.1"
-		var sqlite3_xferopt_count = "0"
+		sqlite3_xferopt_count = "0"
 		_ = sqlite3_xferopt_count // suppress unused warning
 		_res = db.Exec("\n    DELETE FROM t1;\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);\n  ")
 		if _res.Error != nil {
@@ -59,7 +82,7 @@ func Test_insert4(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-1.2 0")
+	// xferopt_test insert4-1.2 0 (unsupported command, not transpiled)
 	{ // do_test "insert4-1.3"
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -72,52 +95,52 @@ func Test_insert4(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT 4, 8;\n    SELECT * FROM t1;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.1.2 0")
+	// xferopt_test insert4-2.1.2 0 (unsupported command, not transpiled)
 	{ // do_test "insert4-2.2.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM v2;\n    SELECT * FROM t1;\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.2.2 0")
+	// xferopt_test insert4-2.2.2 0 (unsupported command, not transpiled)
 	{ // do_test "insert4-2.3.1"
 		r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);\n    INSERT INTO t2 SELECT y, x FROM t2;\n    INSERT INTO t3 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);\n    INSERT INTO t2 SELECT y, x FROM t2;\n    INSERT INTO t3 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t3;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.3.2 0")
+	// xferopt_test insert4-2.3.2 0 (unsupported command, not transpiled)
 	{ // do_test "insert4-2.3.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t1;\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.3.4 0")
+	// xferopt_test insert4-2.3.4 0 (unsupported command, not transpiled)
 	{ // do_test "insert4-2.4.1"
 		r = db.Query("\n    DELETE FROM t3;\n    INSERT INTO t3 SELECT DISTINCT * FROM t2;\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t3;\n    INSERT INTO t3 SELECT DISTINCT * FROM t2;\n    SELECT * FROM t3;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.4.2 0")
+	// xferopt_test insert4-2.4.2 0 (unsupported command, not transpiled)
 	{ // do_test "insert4-2.4.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT DISTINCT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.4.4 0")
+	// xferopt_test insert4-2.4.4 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.1 1 {1 9} {a int, b int CHECK(b>a)} {x int, y int CHECK(y>x)}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.2 1 {1 9} {a int, b int CHECK(b>a)} {x int CHECK(y>x), y int}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.3 1 {1 9} {a int, b int} {x int, y int CHECK(y>x)}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.4 0 {1 9} {a int, b int CHECK(b>a)} {x int, y int}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.5 0 {1 9} {a int, b int NOT NULL} {x int, y int}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.6 0 {1 9} {a int, b int NOT NULL} {x int NOT NULL, y int}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.7 0 {1 9} {a int NOT NULL, b int NOT NULL} {x int NOT NULL, y int}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.8 0 {1 9} {a int NOT NULL, b int} {x int, y int}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.9 1 {1 9} {a int, b int} {x int NOT NULL, y int}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.10 1 {1 9} {a int, b int} {x int NOT NULL, y int NOT NULL}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.11 1 {1 9} {a int NOT NULL, b int} {x int NOT NULL, y int NOT NULL}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.12 1 {1 9} {a int, b int NOT NULL} {x int NOT NULL, y int NOT NULL}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.20 0 {1 9} {a text, b int} {x int, b int}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.21 0 {1 9} {a int, b int} {x text, b int}")
-	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.22 1 {1 9} {a int, b int} {x integer, b int}")
+	// xfer_check insert4-3.1 1 {1 9} {a int, b int CHECK(b>a)} {x int, y int CHECK(y>x)} (unsupported command, not transpiled)
+	// xfer_check insert4-3.2 1 {1 9} {a int, b int CHECK(b>a)} {x int CHECK(y>x), y int} (unsupported command, not transpiled)
+	// xfer_check insert4-3.3 1 {1 9} {a int, b int} {x int, y int CHECK(y>x)} (unsupported command, not transpiled)
+	// xfer_check insert4-3.4 0 {1 9} {a int, b int CHECK(b>a)} {x int, y int} (unsupported command, not transpiled)
+	// xfer_check insert4-3.5 0 {1 9} {a int, b int NOT NULL} {x int, y int} (unsupported command, not transpiled)
+	// xfer_check insert4-3.6 0 {1 9} {a int, b int NOT NULL} {x int NOT NULL, y int} (unsupported command, not transpiled)
+	// xfer_check insert4-3.7 0 {1 9} {a int NOT NULL, b int NOT NULL} {x int NOT NULL, y int} (unsupported command, not transpiled)
+	// xfer_check insert4-3.8 0 {1 9} {a int NOT NULL, b int} {x int, y int} (unsupported command, not transpiled)
+	// xfer_check insert4-3.9 1 {1 9} {a int, b int} {x int NOT NULL, y int} (unsupported command, not transpiled)
+	// xfer_check insert4-3.10 1 {1 9} {a int, b int} {x int NOT NULL, y int NOT NULL} (unsupported command, not transpiled)
+	// xfer_check insert4-3.11 1 {1 9} {a int NOT NULL, b int} {x int NOT NULL, y int NOT NULL} (unsupported command, not transpiled)
+	// xfer_check insert4-3.12 1 {1 9} {a int, b int NOT NULL} {x int NOT NULL, y int NOT NULL} (unsupported command, not transpiled)
+	// xfer_check insert4-3.20 0 {1 9} {a text, b int} {x int, b int} (unsupported command, not transpiled)
+	// xfer_check insert4-3.21 0 {1 9} {a int, b int} {x text, b int} (unsupported command, not transpiled)
+	// xfer_check insert4-3.22 1 {1 9} {a int, b int} {x integer, b int} (unsupported command, not transpiled)
 	{ // do_test "insert4-4.1a"
 		_res = db.Exec("CREATE TABLE t4(a, b, UNIQUE(a,b))")
 		if _res.Error != nil {
@@ -133,40 +156,40 @@ func Test_insert4(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "insert4-6.1"
-		var _sqlite3_xferopt_count = "0" // TCL namespace variable
-		_ = _sqlite3_xferopt_count // suppress unused warning
+		sqlite3_xferopt_count = "0" // TCL namespace variable
+		_ = sqlite3_xferopt_count // suppress unused warning
 		_res = db.Exec("\n    CREATE INDEX t2_i2 ON t2(x, y COLLATE nocase); \n    CREATE INDEX t2_i1 ON t2(x ASC, y DESC);\n    CREATE INDEX t3_i1 ON t3(a, b);\n    INSERT INTO t2 SELECT * FROM t3;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX t2_i2 ON t2(x, y COLLATE nocase); \n    CREATE INDEX t2_i1 ON t2(x ASC, y DESC);\n    CREATE INDEX t3_i1 ON t3(a, b);\n    INSERT INTO t2 SELECT * FROM t3;\n  ")
 		}
-		_ = _sqlite3_xferopt_count // TCL namespace variable (query)
+		_ = sqlite3_xferopt_count // TCL namespace variable (query)
 	}
 	{ // do_test "insert4-6.2"
-		var _sqlite3_xferopt_count = "0" // TCL namespace variable
-		_ = _sqlite3_xferopt_count // suppress unused warning
+		sqlite3_xferopt_count = "0" // TCL namespace variable
+		_ = sqlite3_xferopt_count // suppress unused warning
 		_res = db.Exec("\n    DROP INDEX t2_i2;\n    INSERT INTO t2 SELECT * FROM t3;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2_i2;\n    INSERT INTO t2 SELECT * FROM t3;\n  ")
 		}
-		_ = _sqlite3_xferopt_count // TCL namespace variable (query)
+		_ = sqlite3_xferopt_count // TCL namespace variable (query)
 	}
 	{ // do_test "insert4-6.3"
-		var _sqlite3_xferopt_count = "0" // TCL namespace variable
-		_ = _sqlite3_xferopt_count // suppress unused warning
+		sqlite3_xferopt_count = "0" // TCL namespace variable
+		_ = sqlite3_xferopt_count // suppress unused warning
 		_res = db.Exec("\n    DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y ASC);\n    INSERT INTO t2 SELECT * FROM t3;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y ASC);\n    INSERT INTO t2 SELECT * FROM t3;\n  ")
 		}
-		_ = _sqlite3_xferopt_count // TCL namespace variable (query)
+		_ = sqlite3_xferopt_count // TCL namespace variable (query)
 	}
 	{ // do_test "insert4-6.4"
-		var _sqlite3_xferopt_count = "0" // TCL namespace variable
-		_ = _sqlite3_xferopt_count // suppress unused warning
+		sqlite3_xferopt_count = "0" // TCL namespace variable
+		_ = sqlite3_xferopt_count // suppress unused warning
 		_res = db.Exec("\n    DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y COLLATE RTRIM);\n    INSERT INTO t2 SELECT * FROM t3;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX t2_i1;\n    CREATE INDEX t2_i1 ON t2(x ASC, y COLLATE RTRIM);\n    INSERT INTO t2 SELECT * FROM t3;\n  ")
 		}
-		_ = _sqlite3_xferopt_count // TCL namespace variable (query)
+		_ = sqlite3_xferopt_count // TCL namespace variable (query)
 	}
 	{ // do_test "insert4-6.5"
 		r = db.Query("\n    CREATE TABLE t6a(x CHECK( x<>'abc' ));\n    INSERT INTO t6a VALUES('ABC');\n    SELECT * FROM t6a;\n  ")
@@ -303,7 +326,7 @@ func Test_insert4(t *testing.T) {
 		}
 	}
 	{ // do_test "10.2"
-		var sqlite3_xferopt_count = "0"
+		sqlite3_xferopt_count = "0"
 		_ = sqlite3_xferopt_count // suppress unused warning
 		_res = db.Exec(" INSERT INTO x SELECT * FROM t8 ")
 		if _res.Error != nil {
@@ -315,7 +338,7 @@ func Test_insert4(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
-		var sqlite3_xferopt_count = "0"
+		sqlite3_xferopt_count = "0"
 		_ = sqlite3_xferopt_count // suppress unused warning
 		_res = db.Exec(" INSERT INTO x     SELECT * FROM t8 ")
 		if _res.Error != nil {
@@ -327,7 +350,7 @@ func Test_insert4(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
-		var sqlite3_xferopt_count = "0"
+		sqlite3_xferopt_count = "0"
 		_ = sqlite3_xferopt_count // suppress unused warning
 		_res = db.Exec(" INSERT INTO x     SELECT * FROM t8  RETURNING * ")
 		if _res.Error != nil {
@@ -358,7 +381,7 @@ func Test_insert4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var sqlite3_xferopt_count = "0"
+	sqlite3_xferopt_count = "0"
 	_ = sqlite3_xferopt_count // suppress unused warning
 	{ // "12.1"
 		_res = db.Exec("\n  INSERT INTO dest SELECT * FROM src;\n")

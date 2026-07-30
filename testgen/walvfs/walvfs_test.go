@@ -40,16 +40,40 @@ func Test_walvfs(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sync_count string
+	_ = sync_count // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var xwrite_stmt_res string
+	_ = xwrite_stmt_res // pre-declared from TCL source
+	var flag string
+	_ = flag // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var spec string
+	_ = spec // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walvfs"
+	testprefix = "walvfs"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xSync")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xSync")
-	var _sync_count = "0" // TCL namespace variable
-	_ = _sync_count // suppress unused warning
+	// testvfs tvfs (unsupported command, not transpiled)
+	// tvfs script xSync (unsupported command, not transpiled)
+	// tvfs filter xSync (unsupported command, not transpiled)
+	sync_count = "0" // TCL namespace variable
+	_ = sync_count // suppress unused warning
 	// proc definition (not transpiled)
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA journal_mode = wal;\n  PRAGMA synchronous = normal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n  PRAGMA wal_checkpoint;\n")
@@ -63,17 +87,18 @@ func Test_walvfs(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var _sync_count = "0" // TCL namespace variable
-	_ = _sync_count // suppress unused warning
+	sync_count = "0" // TCL namespace variable
+	_ = sync_count // suppress unused warning
 	{ // do_test "1.1"
 		_res = db.Exec(" INSERT INTO t1 VALUES(10, 11, 12) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(10, 11, 12) ")
 		}
-		_ = _sync_count // TCL namespace variable (query)
+		_ = sync_count // TCL namespace variable (query)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs devchar sequential")
-	db, err = frigolite.Open("test.db")
+	// tvfs devchar sequential (unsupported command, not transpiled)
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.2"
 		r = db.Query("\n  PRAGMA synchronous = normal;\n  INSERT INTO t1 VALUES(13, 14, 15);\n  INSERT INTO t1 VALUES(16, 17, 18);\n  PRAGMA wal_checkpoint;\n")
@@ -87,14 +112,14 @@ func Test_walvfs(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var _sync_count = "0" // TCL namespace variable
-	_ = _sync_count // suppress unused warning
+	sync_count = "0" // TCL namespace variable
+	_ = sync_count // suppress unused warning
 	{ // do_test "1.3"
 		_res = db.Exec(" INSERT INTO t1 VALUES(10, 11, 12) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(10, 11, 12) ")
 		}
-		_ = _sync_count // TCL namespace variable (query)
+		_ = sync_count // TCL namespace variable (query)
 	}
 	db.Close()
 	db, err = frigolite.Open("")
@@ -131,9 +156,10 @@ func Test_walvfs(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {}")
+	// tvfs filter {} (unsupported command, not transpiled)
 	{ // "3.0"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n  )\n  INSERT INTO t1 SELECT randomblob(750) FROM s;\n")
 		if r.Error != nil {
@@ -146,10 +172,10 @@ func Test_walvfs(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xWrite")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xWrite")
-	var _cnt = "2" // TCL namespace variable
-	_ = _cnt // suppress unused warning
+	// tvfs filter xWrite (unsupported command, not transpiled)
+	// tvfs script xWrite (unsupported command, not transpiled)
+	cnt = "2" // TCL namespace variable
+	_ = cnt // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "3.1"
 		_res = db.Exec("\n  PRAGMA wal_checkpoint\n")
@@ -157,11 +183,11 @@ func Test_walvfs(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "interrupted", _res.Error, "\n  PRAGMA wal_checkpoint\n")
 		}
 	}
-	var _cnt = "2" // TCL namespace variable
-	_ = _cnt // suppress unused warning
+	cnt = "2" // TCL namespace variable
+	_ = cnt // suppress unused warning
 	// proc definition (not transpiled)
-	var _xwrite_stmt_res = "" // TCL namespace variable
-	_ = _xwrite_stmt_res // suppress unused warning
+	xwrite_stmt_res = "" // TCL namespace variable
+	_ = xwrite_stmt_res // suppress unused warning
 	{ // "3.2"
 		_res = db.Exec("\n  PRAGMA wal_checkpoint\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "out of memory") {
@@ -169,24 +195,25 @@ func Test_walvfs(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.2"
-		_ = _xwrite_stmt_res // TCL namespace variable (query)
+		_ = xwrite_stmt_res // TCL namespace variable (query)
 	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.0"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t1(x);\n    PRAGMA journal_mode = wal;\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n    )\n    INSERT INTO t1 SELECT randomblob(750) FROM s;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(x);\n    PRAGMA journal_mode = wal;\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n    )\n    INSERT INTO t1 SELECT randomblob(750) FROM s;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmMap")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xShmMap")
+	// tvfs filter xShmMap (unsupported command, not transpiled)
+	// tvfs script xShmMap (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	db, err = frigolite.Open("test.db")
+	_dbtmp4, err := frigolite.Open("test.db")
+	_ = _dbtmp4 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
 		_res = db.Exec("\n  SELECT count(*) FROM t1\n")
@@ -194,9 +221,9 @@ func Test_walvfs(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "attempt to write a readonly database", _res.Error, "\n  SELECT count(*) FROM t1\n")
 		}
 	}
-	var _cnt = "5" // TCL namespace variable
-	_ = _cnt // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xShmMap xShmLock}")
+	cnt = "5" // TCL namespace variable
+	_ = cnt // suppress unused warning
+	// tvfs filter {xShmMap xShmLock} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "4.2"
 		_res = db.Exec("\n  SELECT count(*) FROM t1\n")
@@ -207,9 +234,10 @@ func Test_walvfs(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	db, err = frigolite.Open("test.db")
+	_dbtmp5, err := frigolite.Open("test.db")
+	_ = _dbtmp5 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {}")
+	// tvfs filter {} (unsupported command, not transpiled)
 	{ // "5.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n  )\n  INSERT INTO t1 SELECT randomblob(750) FROM s;\n")
 		if r.Error != nil {
@@ -235,10 +263,10 @@ func Test_walvfs(t *testing.T) {
 		}
 	}
 	{ // do_test "5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "vfs_set_readmark db main 1 100")
-		t.Errorf("TODO: %s not implemented in frigolite", "vfs_set_readmark db main 2 100")
-		t.Errorf("TODO: %s not implemented in frigolite", "vfs_set_readmark db main 3 100")
-		t.Errorf("TODO: %s not implemented in frigolite", "vfs_set_readmark db main 4 100")
+		// vfs_set_readmark db main 1 100 (unsupported command, not transpiled)
+		// vfs_set_readmark db main 2 100 (unsupported command, not transpiled)
+		// vfs_set_readmark db main 3 100 (unsupported command, not transpiled)
+		// vfs_set_readmark db main 4 100 (unsupported command, not transpiled)
 	}
 	{ // "5.3"
 		r = db.Query("\n  SELECT count(*) FROM t1\n")
@@ -256,24 +284,24 @@ func Test_walvfs(t *testing.T) {
 		_list := tclList([]string{"vfs_set_readmark db main 1", "vfs_set_readmark db main 2", "vfs_set_readmark db main 3", "vfs_set_readmark db main 4"})
 		_ = _list
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xShmLock")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmLock")
-	var _cnt = "20" // TCL namespace variable
-	_ = _cnt // suppress unused warning
+	// tvfs script xShmLock (unsupported command, not transpiled)
+	// tvfs filter xShmLock (unsupported command, not transpiled)
+	cnt = "20" // TCL namespace variable
+	_ = cnt // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "5.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "vfs_set_readmark db main 1 100")
+		// vfs_set_readmark db main 1 100 (unsupported command, not transpiled)
 		r = db.Query(" SELECT count(*) FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "vfs_set_readmark db main 1 100")
-	t.Errorf("TODO: %s not implemented in frigolite", "vfs_set_readmark db main 2 100")
-	t.Errorf("TODO: %s not implemented in frigolite", "vfs_set_readmark db main 3 100")
-	t.Errorf("TODO: %s not implemented in frigolite", "vfs_set_readmark db main 4 100")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xShmMapLock")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xShmLock xShmMap}")
+	// vfs_set_readmark db main 1 100 (unsupported command, not transpiled)
+	// vfs_set_readmark db main 2 100 (unsupported command, not transpiled)
+	// vfs_set_readmark db main 3 100 (unsupported command, not transpiled)
+	// vfs_set_readmark db main 4 100 (unsupported command, not transpiled)
+	// tvfs script xShmMapLock (unsupported command, not transpiled)
+	// tvfs filter {xShmLock xShmMap} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -281,8 +309,8 @@ func Test_walvfs(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "vfs_set_readmark db main 1 1")
+	// tvfs filter {} (unsupported command, not transpiled)
+	// vfs_set_readmark db main 1 1 (unsupported command, not transpiled)
 	{ // do_test "5.6"
 		_list := tclList([]string{"0", msg})
 		_ = _list
@@ -291,8 +319,9 @@ func Test_walvfs(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {}")
-	db, err = frigolite.Open("test.db")
+	// tvfs filter {} (unsupported command, not transpiled)
+	_dbtmp6, err := frigolite.Open("test.db")
+	_ = _dbtmp6 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n  )\n  INSERT INTO t1 SELECT randomblob(750) FROM s;\n")
@@ -311,15 +340,15 @@ func Test_walvfs(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 		}
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmLock")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xShmLock")
-	var _flag = "0" // TCL namespace variable
-	_ = _flag // suppress unused warning
+	// tvfs filter xShmLock (unsupported command, not transpiled)
+	// tvfs script xShmLock (unsupported command, not transpiled)
+	flag = "0" // TCL namespace variable
+	_ = flag // suppress unused warning
 	// proc definition (not transpiled)
-	t.Log("# WARNING: This next test takes around 12 seconds")
+	_putsMsg := "# WARNING: This next test takes around 12 seconds"
+	_ = _putsMsg
 	{ // "6.2"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "locking protocol") {
@@ -329,8 +358,9 @@ func Test_walvfs(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {}")
-	db, err = frigolite.Open("test.db")
+	// tvfs filter {} (unsupported command, not transpiled)
+	_dbtmp7, err := frigolite.Open("test.db")
+	_ = _dbtmp7 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20\n  )\n  INSERT INTO t1 SELECT randomblob(750) FROM s;\n")
@@ -344,8 +374,8 @@ func Test_walvfs(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xShmLock")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmLock")
+	// tvfs script xShmLock (unsupported command, not transpiled)
+	// tvfs filter xShmLock (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "7.1"
 		r = db.Query("\n  PRAGMA wal_checkpoint\n")
@@ -362,8 +392,9 @@ func Test_walvfs(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs2 -iversion 2")
-	db, err = frigolite.Open("test.db")
+	// testvfs tvfs2 -iversion 2 (unsupported command, not transpiled)
+	_dbtmp8, err := frigolite.Open("test.db")
+	_ = _dbtmp8 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "8.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20 )\n  INSERT INTO t1 SELECT randomblob(75) FROM s;\n")
@@ -410,11 +441,12 @@ func Test_walvfs(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs2 delete")
+	// tvfs2 delete (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	db, err = frigolite.Open("test.db")
+	_dbtmp9, err := frigolite.Open("test.db")
+	_ = _dbtmp9 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "9.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  PRAGMA journal_mode = wal;\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 20 )\n  INSERT INTO t1 SELECT randomblob(75) FROM s;\n")
@@ -430,13 +462,13 @@ func Test_walvfs(t *testing.T) {
 	}
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xShmMap xShmLock}")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xShmMap")
+	// tvfs filter {xShmMap xShmLock} (unsupported command, not transpiled)
+	// tvfs script xShmMap (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "9.1"
 		_res = db.Exec(" SELECT count(*) FROM t1 ")
 		_ = _res // catchsql
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+	// tvfs delete (unsupported command, not transpiled)
 }

@@ -40,6 +40,11 @@ func Test_func9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "func9-100"
 		r = db.Query("\n  SELECT concat('abc',123,null,'xyz');\n")

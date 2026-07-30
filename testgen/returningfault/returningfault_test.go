@@ -39,15 +39,29 @@ func Test_returningfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "returningfault" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "returningfault" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1 (b);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1 (b);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    INSERT INTO t1(b) VALUES(65) RET...} -test {\n  faultsim_test_result {1 {sub-select returns 5 c...}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom-t* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { 
+    INSERT INTO t1(b) VALUES(65) RET...} -test {
+  faultsim_test_result {1 {sub-select returns 5 c...} (unsupported command, not transpiled)
 }

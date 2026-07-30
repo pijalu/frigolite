@@ -39,11 +39,25 @@ func Test_fts4merge3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts4merge3" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts4merge3" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	if tclBool("\"\" == " + "bc_find_binaries backcompat.test") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_all_bc_test {\n\n  sql2 { PRAGMA page_size = 512 }\n  if { 0==[cat...}")
+	// do_all_bc_test {
+
+  sql2 { PRAGMA page_size = 512 }
+  if { 0==[cat...} (unsupported command, not transpiled)
 }

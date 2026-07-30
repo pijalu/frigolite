@@ -39,6 +39,19 @@ func Test_auth3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var authcode string
+	_ = authcode // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var code string
+	_ = code // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if false {
 		return
@@ -51,14 +64,14 @@ func Test_auth3(t *testing.T) {
 		}
 	}
 	{ // do_test "auth3.1.2"
-		var _authcode = "SQLITE_DENY" // TCL namespace variable
-		_ = _authcode // suppress unused warning
+		authcode = "SQLITE_DENY" // TCL namespace variable
+		_ = authcode // suppress unused warning
 		_res = db.Exec(" DELETE FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "auth3.1.3"
-		var _authcode = "SQLITE_INVALID" // TCL namespace variable
-		_ = _authcode // suppress unused warning
+		authcode = "SQLITE_INVALID" // TCL namespace variable
+		_ = authcode // suppress unused warning
 		_res = db.Exec(" DELETE FROM t1 ")
 		_ = _res // catchsql
 	}
@@ -69,29 +82,29 @@ func Test_auth3(t *testing.T) {
 		}
 	}
 	{ // do_test "auth3-1.5"
-		var _authcode = "SQLITE_IGNORE" // TCL namespace variable
-		_ = _authcode // suppress unused warning
+		authcode = "SQLITE_IGNORE" // TCL namespace variable
+		_ = authcode // suppress unused warning
 		r = db.Query(" \n    DELETE FROM t1;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    DELETE FROM t1;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "auth3-1.6"
-		var _authcode = "SQLITE_OK" // TCL namespace variable
-		_ = _authcode // suppress unused warning
+		authcode = "SQLITE_OK" // TCL namespace variable
+		_ = authcode // suppress unused warning
 		r = db.Query("\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    DELETE FROM t1;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    DELETE FROM t1;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "auth3-2.1"
-		var _authcode = "SQLITE_OK" // TCL namespace variable
-		_ = _authcode // suppress unused warning
+		authcode = "SQLITE_OK" // TCL namespace variable
+		_ = authcode // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n  ")
 		}
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		_res = db.Exec("\n    DELETE FROM t1;\n  ")
 		if _res.Error != nil {
@@ -99,13 +112,13 @@ func Test_auth3(t *testing.T) {
 		}
 	}
 	{ // do_test "auth3-2.2"
-		var _authcode = "SQLITE_IGNORE" // TCL namespace variable
-		_ = _authcode // suppress unused warning
+		authcode = "SQLITE_IGNORE" // TCL namespace variable
+		_ = authcode // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n  ")
 		}
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		_res = db.Exec("\n    DELETE FROM t1;\n  ")
 		if _res.Error != nil {

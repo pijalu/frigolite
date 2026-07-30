@@ -39,11 +39,19 @@ func Test_atomic(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "atomic" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "atomic" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	if tclBool("atomic_batch_write test.db" + "==0") {
-		t.Log("No f2fs atomic-batch-write support. Skipping tests...")
+		_putsMsg := "No f2fs atomic-batch-write support. Skipping tests..."
+		_ = _putsMsg
 		return
 	}
 	db.Close()

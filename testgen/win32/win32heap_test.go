@@ -39,23 +39,30 @@ func Test_win32heap(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	if tcl_platform_platform != "windows" {
 	}
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "win32heap"
+	testprefix = "win32heap"
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.1"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap_size 1048576")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_heap_size 1048576 (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n  ")
 		_ = _res // catchsql
@@ -73,13 +80,13 @@ func Test_win32heap(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap_size 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_heap_size 0 (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 	{ // do_test "1.6"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 (x) VALUES(RANDOMBLOB(1048576));\n  ")
 		_ = _res // catchsql

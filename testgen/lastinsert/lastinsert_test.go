@@ -39,6 +39,11 @@ func Test_lastinsert(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "lastinsert-1.1"
 		_res = db.Exec("\n        create table t1 (k integer primary key);\n        insert into t1 values (1);\n        insert into t1 values (NULL);\n        insert into t1 values (NULL);\n        select last_insert_rowid();\n    ")

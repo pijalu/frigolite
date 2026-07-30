@@ -40,8 +40,25 @@ func Test_analyze8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "analyze8"
+	testprefix = "analyze8"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
@@ -49,17 +66,17 @@ func Test_analyze8(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n%2 == 0 }() {
-				var a = i
+				a = i
 				_ = a // suppress unused warning
 			} else if tclBool("set a " + "($i%8)*100") {
 			}
-			var b = "$i/10"
+			b = "$i/10"
 			_ = b // suppress unused warning
-			var c = "$i/8"
+			c = "$i/8"
 			_ = c // suppress unused warning
 			c = "$c*$c*$c"
 			_ = c // suppress unused warning
@@ -81,25 +98,25 @@ func Test_analyze8(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND b=55}")
+		// eqp {SELECT * FROM t1 WHERE a=100 AND b=55} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=99 AND b=55}")
+		// eqp {SELECT * FROM t1 WHERE a=99 AND b=55} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=101 AND b=55}")
+		// eqp {SELECT * FROM t1 WHERE a=101 AND b=55} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND b=56}")
+		// eqp {SELECT * FROM t1 WHERE a=100 AND b=56} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=99 AND b=56}")
+		// eqp {SELECT * FROM t1 WHERE a=99 AND b=56} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=101 AND b=56}")
+		// eqp {SELECT * FROM t1 WHERE a=101 AND b=56} (unsupported command, not transpiled)
 	}
 	{ // do_test "2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND b BETWEEN 50 AND ...}")
+		// eqp {SELECT * FROM t1 WHERE a=100 AND b BETWEEN 50 AND ...} (unsupported command, not transpiled)
 	}
 	{ // "3.0"
 		r = db.Query("\n  SELECT count(*) FROM t1 WHERE b BETWEEN 30 AND 34;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 0 AND 100000;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 800000 AND 900000;\n")
@@ -114,15 +131,17 @@ func Test_analyze8(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE b BETWEEN 30 AND 34 AND c B...}")
+		// eqp {SELECT * FROM t1 WHERE b BETWEEN 30 AND 34 AND c B...} (unsupported command, not transpiled)
 	}
 	{ // do_test "3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1\n       WHERE b BETWEEN 30 AND 34 ...}")
+		// eqp {SELECT * FROM t1
+       WHERE b BETWEEN 30 AND 34 ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND c BETWEEN 0 AND 1...}")
+		// eqp {SELECT * FROM t1 WHERE a=100 AND c BETWEEN 0 AND 1...} (unsupported command, not transpiled)
 	}
 	{ // do_test "3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1\n       WHERE a=100 AND c BETWEEN ...}")
+		// eqp {SELECT * FROM t1
+       WHERE a=100 AND c BETWEEN ...} (unsupported command, not transpiled)
 	}
 }

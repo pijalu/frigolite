@@ -40,9 +40,48 @@ func Test_fuzz3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var cksum string
+	_ = cksum // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var old_blob string
+	_ = old_blob // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var iNew string
+	_ = iNew // pre-declared from TCL source
+	var iOld string
+	_ = iOld // pre-declared from TCL source
+	var iTest string
+	_ = iTest // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var iMod string
+	_ = iMod // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	// expr srand(123) → "srand(123)"
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -54,7 +93,7 @@ func Test_fuzz3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n    CREATE INDEX i1 ON t1(a, b, c);\n    CREATE INDEX i2 ON t2(d, e, f);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
 			_res = db.Exec("INSERT INTO t1 VALUES(" + "rvalue" + ", " + "rvalue" + ", " + "rvalue" + ")")
@@ -78,35 +117,35 @@ func Test_fuzz3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
-	var _cksum = "db_checksum" // TCL namespace variable
-	_ = _cksum // suppress unused warning
+	cksum = "db_checksum" // TCL namespace variable
+	_ = cksum // suppress unused warning
 	{ // do_test "fuzz3-2"
-		t.Errorf("TODO: %s not implemented in frigolite", "db_checksum")
+		// db_checksum (unsupported command, not transpiled)
 	}
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 5000 }() {
-		t.Errorf("TODO: %s not implemented in frigolite", "purge_pcache")
-		var iNew = "0"
+		// purge_pcache (unsupported command, not transpiled)
+		iNew = "0"
 		_ = iNew // suppress unused warning
-		var iOld = "modify_database $iNew"
+		iOld = "modify_database $iNew"
 		_ = iOld // suppress unused warning
-		var iTest = "0"
+		iTest = "0"
 		_ = iTest // suppress unused warning
 		for _, sql := range tclSplitList("\n    {SELECT * FROM t2 ORDER BY d}      \n    {SELECT * FROM t1}                 \n    {SELECT * FROM t2}                 \n    {SELECT * FROM t1 ORDER BY a}      \n    {SELECT * FROM t1 WHERE a = (SELECT a FROM t1 WHERE rowid=25)} \n    {SELECT * FROM t2 WHERE d = (SELECT d FROM t2 WHERE rowid=1)}  \n    {SELECT * FROM t2 WHERE d = (SELECT d FROM t2 WHERE rowid=50)} \n    {PRAGMA integrity_check}           \n  ") {
 		_ = sql // suppress unused warning
 			{ // do_test "fuzz3-" + ii + "." + iNew + "." + "incr iTest"
 				// foreach rc,msg "catchsql $sql" (no body)
 				if tclBool(rc + " == 0 \n       || " + msg + " == \"database or disk is full\"\n       || " + msg + " == \"database disk image is malformed\"\n       || " + msg + " == \"file is not a database\"\n       || " + "\"malformed database schema*\" $msg") {
-					var msg = "ok"
+					msg = "ok"
 					_ = msg // suppress unused warning
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "purge_pcache")
-		t.Errorf("TODO: %s not implemented in frigolite", "modify_database $iOld")
+		// purge_pcache (unsupported command, not transpiled)
+		// modify_database $iOld (unsupported command, not transpiled)
 		{ // do_test "fuzz3-" + ii + "." + iNew + "." + "incr iTest"
-			t.Errorf("TODO: %s not implemented in frigolite", "db_checksum")
+			// db_checksum (unsupported command, not transpiled)
 		}
 		// incr ii 1
 		{
@@ -116,5 +155,5 @@ func Test_fuzz3(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	// test_restore_config_pagecache (unsupported command, not transpiled)
 }

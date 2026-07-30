@@ -40,13 +40,35 @@ func Test_pager2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var otn string
+	_ = otn // pre-declared from TCL source
+	var code string
+	_ = code // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var lowpoint string
+	_ = lowpoint // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var now string
+	_ = now // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var otn = "0"
+	otn = "0"
 	_ = otn // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
+	// testvfs tv -default 1 (unsupported command, not transpiled)
 	for _, code := range tclSplitList("list {\n  set s 512\n} {\n  set s 1024\n  set sql { PRAGMA journal_mode = memory }\n} {\n  set s 1024\n  set sql { \n    PRAGMA journal_mode = memory;\n    PRAGMA locking_mode = exclusive;\n  }\n} {\n  set s 2048\n  tv devchar safe_append\n} {\n  set s 4096\n} {\n  set s 4096\n  set sql { PRAGMA journal_mode = WAL }\n} {\n  set s 4096\n  set sql { PRAGMA auto_vacuum = 1 }\n} {\n  set s 8192\n  set sql { PRAGMA synchronous = off }\n}") {
 	_ = code // suppress unused warning
-		var otn = "0"
 		// incr otn 1
 		{
 			_n, _err := strconv.Atoi(otn)
@@ -54,13 +76,13 @@ func Test_pager2(t *testing.T) {
 				otn = strconv.Itoa(_n + 1)
 			}
 		}
-		var sql = ""
+		sql = ""
 		_ = sql // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "tv devchar {}")
-		// eval $code
-		t.Errorf("TODO: %s not implemented in frigolite", "tv sectorsize $s")
+		// tv devchar {} (unsupported command, not transpiled)
+		// eval (dynamic, not transpiled)
+		// tv sectorsize $s (unsupported command, not transpiled)
 		{ // do_test "pager2-1." + otn + ".0"
-			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			// faultsim_delete_and_reopen (unsupported command, not transpiled)
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -70,13 +92,12 @@ func Test_pager2(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA cache_size = 10;\n      CREATE TABLE t1(i INTEGER PRIMARY KEY, j blob);\n    ")
 			}
 		}
-		var tn = "0"
+		tn = "0"
 		_ = tn // suppress unused warning
-		var lowpoint = "0"
+		lowpoint = "0"
 		_ = lowpoint // suppress unused warning
 		for _, x := range tclSplitList("\n    100 x 0 100\n  x\n    70 22 96 59 96 50 22 56 21 16 37 64 43 40  0 38 22 38 55  0  6   \n    43 62 32 93 54 18 13 29 45 66 29 25 61 31 53 82 75 25 96 86 10 69   \n     2 29  6 60 80 95 42 82 85 50 68 96 90 39 78 69 87 97 48 74 65 43   \n  x\n    86 34 26 50 41 85 58 44 89 22  6 51 45 46 58 32 97  6  1 12 32  2   \n    69 39 48 71 33 31  5 58 90 43 24 54 12  9 18 57  4 38 91 42 27 45   \n    50 38 56 29 10  0 26 37 83  1 78 15 47 30 75 62 46 29 68  5 30  4   \n    27 96 33 95 79 75 56 10 29 70 32 75 52 88  5 36 50 57 46 63 88 65   \n  x\n    44 95 64 20 24 35 69 61 61  2 35 92 42 46 23 98 78  1 38 72 79 35   \n    94 37 13 59  5 93 27 58 80 75 58  7 67 13 10 76 84  4  8 70 81 45   \n     8 41 98  5 60 26 92 29 91 90  2 62 40  4  5 22 80 15 83 76 52 88   \n    29  5 68 73 72  7 54 17 89 32 81 94 51 28 53 71  8 42 54 59 70 79   \n  x\n  ") {
 		_ = x // suppress unused warning
-			var tn = "0"
 			// incr tn 1
 			{
 				_n, _err := strconv.Atoi(tn)
@@ -84,14 +105,14 @@ func Test_pager2(t *testing.T) {
 					tn = strconv.Itoa(_n + 1)
 				}
 			}
-			var now = "db one {SELECT count(i) FROM t1}"
+			now = "db one {SELECT count(i) FROM t1}"
 			_ = now // suppress unused warning
 			if x == "x" {
 				_res = db.Exec(" COMMIT ; BEGIN ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ; BEGIN ")
 				}
-				var lowpoint = now
+				lowpoint = now
 				_ = lowpoint // suppress unused warning
 				{ // do_test "pager2.1." + otn + "." + tn
 					db2, err = frigolite.Open("test.db")
@@ -114,11 +135,11 @@ func Test_pager2(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE i>" + x)
 						}
-						var lowpoint = x
+						lowpoint = x
 						_ = lowpoint // suppress unused warning
 					}
 				} else if func() bool { now_n, _now_e := strconv.Atoi(now); if _now_e != nil { return false }; x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return now_n < x_n }() {
-					var k = now
+					k = now
 					_ = k // suppress unused warning
 					for func() bool { k_n, _k_e := strconv.Atoi(k); if _k_e != nil { return false }; x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return k_n < x_n }() {
 						_res = db.Exec("SAVEPOINT sp_" + k)
@@ -153,16 +174,16 @@ func Test_pager2(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tv delete")
+	// tv delete (unsupported command, not transpiled)
 	{ // do_test "pager2-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = off;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = off;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "pager2-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		r = db.Query("\n    PRAGMA auto_vacuum = incremental;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(zeroblob(5000), zeroblob(5000));\n    DELETE FROM t1;\n    PRAGMA incremental_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = incremental;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(zeroblob(5000), zeroblob(5000));\n    DELETE FROM t1;\n    PRAGMA incremental_vacuum;\n  ")

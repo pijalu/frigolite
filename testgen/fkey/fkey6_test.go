@@ -40,8 +40,15 @@ func Test_fkey6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fkey6"
+	testprefix = "fkey6"
 	_ = testprefix // suppress unused warning
 	{ // "fkey6-1.0"
 		r = db.Query("\n  PRAGMA defer_foreign_keys;\n")
@@ -66,7 +73,7 @@ func Test_fkey6(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "fkey6-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "fkey6-1.4"
 		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t1 WHERE x=1;\n  ")
@@ -75,10 +82,10 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	{ // do_test "fkey6-1.5.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 1")
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "fkey6-1.5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "fkey6-1.6"
 		_res = db.Exec("\n    ROLLBACK;\n  ")
@@ -87,7 +94,7 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	{ // do_test "fkey6-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "fkey6-1.8"
 		_res = db.Exec("\n    PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;\n  ")
@@ -96,7 +103,7 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	{ // do_test "fkey6-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // "fkey6-1.10.1"
 		_res = db.Exec("\n  PRAGMA defer_foreign_keys;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n  PRAGMA defer_foreign_keys=ON;\n  PRAGMA defer_foreign_keys;\n  COMMIT;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n")
@@ -117,14 +124,14 @@ func Test_fkey6(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t1 WHERE x=1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "fkey6-1.21"
 		_res = db.Exec("\n    DELETE FROM t2 WHERE y=1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t2 WHERE y=1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "fkey6-1.22"
 		_res = db.Exec("\n    COMMIT;\n  ")

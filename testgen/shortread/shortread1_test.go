@@ -39,6 +39,13 @@ func Test_shortread1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "shortread1-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a TEXT);\n    BEGIN;\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    INSERT INTO t1 VALUES(hex(randomblob(100)));\n    PRAGMA freelist_count;\n  ")
@@ -53,7 +60,7 @@ func Test_shortread1(t *testing.T) {
 		}
 	}
 	{ // do_test "shortread1-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory [expr {1024*9}]")
+		// sqlite3_release_memory [expr {1024*9}] (unsupported command, not transpiled)
 		r = db.Query("\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;\n  ")

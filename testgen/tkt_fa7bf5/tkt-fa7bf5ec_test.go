@@ -39,6 +39,11 @@ func Test_tkt_fa7bf5ec(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-fa7bf5ec-1"
 		r = db.Query("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES ('a');\n    INSERT INTO t1 VALUES ('A');\n    INSERT INTO t1 VALUES ('A');\n    SELECT count(CASE WHEN x='a' THEN 1 END),\n           count(CASE WHEN x='A' THEN 1 END)\n      FROM t1;\n  ")

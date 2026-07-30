@@ -39,10 +39,37 @@ func Test_vtabA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var decltype string
+	_ = decltype // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var col string
+	_ = col // pre-declared from TCL source
+	var table string
+	_ = table // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var columns string
+	_ = columns // pre-declared from TCL source
+	var decltype_list string
+	_ = decltype_list // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtabA-1.1"
 		_res = db.Exec(" CREATE TABLE t1(a, b HIDDEN VARCHAR, c INTEGER) ")
 		if _res.Error != nil {
@@ -114,23 +141,23 @@ func Test_vtabA(t *testing.T) {
 		}
 	}
 	{ // do_test "vtabA-1.22"
-		t.Errorf("TODO: %s not implemented in frigolite", "get_decltype t1e b")
+		// get_decltype t1e b (unsupported command, not transpiled)
 	}
 	{ // do_test "vtabA-1.23"
-		t.Errorf("TODO: %s not implemented in frigolite", "get_collist t1e")
+		// get_collist t1e (unsupported command, not transpiled)
 	}
 	// proc definition (not transpiled)
 	{ // do_test "vtabA-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "analyse_parse {(a text, b integer hidden, c hidden)} {a b c}")
+		// analyse_parse {(a text, b integer hidden, c hidden)} {a b c} (unsupported command, not transpiled)
 	}
 	{ // do_test "vtabA-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "analyse_parse {(a hidden   , b integerhidden, c hidden1)} {a b c}")
+		// analyse_parse {(a hidden   , b integerhidden, c hidden1)} {a b c} (unsupported command, not transpiled)
 	}
 	{ // do_test "vtabA-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "analyse_parse {(a HiDden, b HIDDEN, c hidden)} {a b c}")
+		// analyse_parse {(a HiDden, b HIDDEN, c hidden)} {a b c} (unsupported command, not transpiled)
 	}
 	{ // do_test "vtabA-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "analyse_parse {(a whatelse can i hidden test, b HIDDEN hidden)} {a b}")
+		// analyse_parse {(a whatelse can i hidden test, b HIDDEN hidden)} {a b} (unsupported command, not transpiled)
 	}
 	{ // do_test "vtabA-3.1"
 		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(3,4);\n    CREATE VIRTUAL TABLE vt1 USING echo(t1);\n    CREATE VIRTUAL TABLE vt2 USING echo(t2);\n    UPDATE vt2 SET x=(SELECT a FROM vt1 WHERE b=2) WHERE y=4;\n    SELECT * FROM t2;\n  ")

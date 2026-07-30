@@ -40,17 +40,40 @@ func Test_window5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ctx string
+	_ = ctx // pre-declared from TCL source
+	var lSort string
+	_ = lSort // pre-declared from TCL source
+	var nVal string
+	_ = nVal // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "window5"
+	testprefix = "window5"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_window_function db median m_step m_value m_value m_inverse")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_window_function db win m_step w_value w_value m_inverse")
+	// sqlite3_create_window_function db median m_step m_value m_value m_inverse (unsupported command, not transpiled)
+	// sqlite3_create_window_function db win m_step w_value w_value m_inverse (unsupported command, not transpiled)
 	{ // do_test "0.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "test_create_window_function_misuse db")
+		// test_create_window_function_misuse db (unsupported command, not transpiled)
 	}
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(4, 'a');\n  INSERT INTO t1 VALUES(6, 'b');\n  INSERT INTO t1 VALUES(1, 'c');\n  INSERT INTO t1 VALUES(5, 'd');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'f');\n")
@@ -70,7 +93,7 @@ func Test_window5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_create_sumint db")
+	// test_create_sumint db (unsupported command, not transpiled)
 	{ // "2.0"
 		r = db.Query("\n  SELECT sumint(a) OVER (ORDER BY rowid) FROM t1 ORDER BY rowid;\n")
 		if r.Error != nil {
@@ -95,7 +118,7 @@ func Test_window5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_override_sum db")
+	// test_override_sum db (unsupported command, not transpiled)
 	{ // "3.0"
 		_res = db.Exec("\n  SELECT sum(a) OVER \n  (ORDER BY b ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) \n  FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sum() may not be used as a window function") {

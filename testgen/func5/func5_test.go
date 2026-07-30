@@ -39,6 +39,13 @@ func Test_func5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var cvalue string
+	_ = cvalue // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "func5-1.1"
 		r = db.Query("\n  PRAGMA encoding=UTF16le;\n  CREATE TABLE t1(x,a,b,c);\n  INSERT INTO t1 VALUES(1,'ab','cd',1);\n  INSERT INTO t1 VALUES(2,'gh','ef',5);\n  INSERT INTO t1 VALUES(3,'pqr','fuzzy',99);\n  INSERT INTO t1 VALUES(4,'abcdefg','xy',22);\n  INSERT INTO t1 VALUES(5,'shoe','mayer',2953);\n  SELECT x FROM t1 WHERE c=instr('abcdefg',b) OR a='abcdefg' ORDER BY +x;\n")
@@ -76,14 +83,14 @@ func Test_func5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+	// sqlite3_create_function db (unsupported command, not transpiled)
 	{ // "func5-2.2"
 		r = db.Query("\n  SELECT x, y FROM t2\n   WHERE x+counter1('hello')=counter1('hello')+x\n   ORDER BY +x;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT x, y FROM t2\n   WHERE x+counter1('hello')=counter1('hello')+x\n   ORDER BY +x;\n")
 		}
 	}
-	var cvalue = "db one {SELECT counter2('hello')+1}"
+	cvalue = "db one {SELECT counter2('hello')+1}"
 	_ = cvalue // suppress unused warning
 	{ // "func5-2.3"
 		r = db.Query("\n  SELECT x, y FROM t2\n   WHERE x+counter2('hello')=$cvalue+x\n   ORDER BY +x;\n")

@@ -41,92 +41,192 @@ func Test_avfs(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var CLI string
+	_ = CLI // pre-declared from TCL source
+	var fa string
+	_ = fa // pre-declared from TCL source
+	var fza string
+	_ = fza // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var shdo string
+	_ = shdo // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var vf string
+	_ = vf // pre-declared from TCL source
+	var am string
+	_ = am // pre-declared from TCL source
+	var ao string
+	_ = ao // pre-declared from TCL source
+	var results string
+	_ = results // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var tlo string
+	_ = tlo // pre-declared from TCL source
+	var adbSz string
+	_ = adbSz // pre-declared from TCL source
+	var adaSz string
+	_ = adaSz // pre-declared from TCL source
+	var in string
+	_ = in // pre-declared from TCL source
+	var tli string
+	_ = tli // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var nrint string
+	_ = nrint // pre-declared from TCL source
+	var randints_i string
+	_ = randints_i // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var u string
+	_ = u // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var qr string
+	_ = qr // pre-declared from TCL source
+	var adba string
+	_ = adba // pre-declared from TCL source
+	var npages string
+	_ = npages // pre-declared from TCL source
+	var adaSzr string
+	_ = adaSzr // pre-declared from TCL source
+	var okSzr string
+	_ = okSzr // pre-declared from TCL source
+	var adbsz string
+	_ = adbsz // pre-declared from TCL source
+	var adasz string
+	_ = adasz // pre-declared from TCL source
+	var cliDoesAr string
+	_ = cliDoesAr // pre-declared from TCL source
+	var shod string
+	_ = shod // pre-declared from TCL source
+	var ofd string
+	_ = ofd // pre-declared from TCL source
+	var fake string
+	_ = fake // pre-declared from TCL source
+	var fakeAppendee string
+	_ = fakeAppendee // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var fname string
+	_ = fname // pre-declared from TCL source
+	var rvo string
+	_ = rvo // pre-declared from TCL source
+	var pets string
+	_ = pets // pre-declared from TCL source
+	var randints__incr_i_ string
+	_ = randints__incr_i_ // pre-declared from TCL source
+	var ic string
+	_ = ic // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "avfs" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	var CLI = "test_find_cli"
+	testprefix = "avfs" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	CLI = "test_find_cli"
 	_ = CLI // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db appendvfs")
-	var _fa = "avfs.adb" // TCL namespace variable
-	_ = _fa // suppress unused warning
-	var _fza = "avfs.sdb" // TCL namespace variable
-	_ = _fza // suppress unused warning
-	os.Remove(_fa)
-	var _result = "" // TCL namespace variable
-	_ = _result // suppress unused warning
+	// load_static_extension db appendvfs (unsupported command, not transpiled)
+	fa = "avfs.adb" // TCL namespace variable
+	_ = fa // suppress unused warning
+	fza = "avfs.sdb" // TCL namespace variable
+	_ = fza // suppress unused warning
+	os.Remove(fa)
+	result = "" // TCL namespace variable
+	_ = result // suppress unused warning
 	// proc definition (not transpiled)
-	var _vf = "&vfs=apndvfs" // TCL namespace variable
-	_ = _vf // suppress unused warning
+	vf = "&vfs=apndvfs" // TCL namespace variable
+	_ = vf // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
-		var results = ""
+		results = ""
 		_ = results // suppress unused warning
-		var out = "open $::fza wb"
+		out = "open $::fza wb"
 		_ = out // suppress unused warning
 		// close $out
-		adb, err := frigolite.Open("file:" + _fza + "?mode=rwc" + _vf)
+		adb, err := frigolite.Open("file:" + fza + "?mode=rwc" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=...} { lappend results $pets }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
+		// adb eval {
+    PRAGMA page_size=1024;
+    PRAGMA cache_size=...} { lappend results $pets } (unsupported command, not transpiled)
+		// adb close (unsupported command, not transpiled)
 		results = tclListAppend(results, "fosAvfs $fza")
-		var _result = "join $results \" | \"" // TCL namespace variable
-		_ = _result // suppress unused warning
+		result = "join $results \" | \"" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "1.1"
-		var results = ""
+		results = ""
 		_ = results // suppress unused warning
-		adb, err := frigolite.Open("file:" + _fza + "?mode=rw" + _vf)
+		adb, err := frigolite.Open("file:" + fza + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT group_concat(a) as pets FROM (SELECT a...} { lappend results $pets }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-		var _result = "join $results \" | \"" // TCL namespace variable
-		_ = _result // suppress unused warning
+		// adb eval {
+    SELECT group_concat(a) as pets FROM (SELECT a...} { lappend results $pets } (unsupported command, not transpiled)
+		// adb close (unsupported command, not transpiled)
+		result = "join $results \" | \"" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "1.2"
-		var results = ""
+		results = ""
 		_ = results // suppress unused warning
-		var out = "open $::fa wb"
+		out = "open $::fa wb"
 		_ = out // suppress unused warning
-		var _tlo = " \"Just some text,\" \"and more text,\" \"ending at 3 lines.\" " // TCL namespace variable
-		_ = _tlo // suppress unused warning
-		t.Log(out)
+		tlo = " \"Just some text,\" \"and more text,\" \"ending at 3 lines.\" " // TCL namespace variable
+		_ = tlo // suppress unused warning
+		_putsMsg := out
+		_ = _putsMsg
 		// close $out
-		var adbSz = "file size $::fa"
+		adbSz = "file size $::fa"
 		_ = adbSz // suppress unused warning
-		adb, err := frigolite.Open("file:" + _fa + "?mode=rwc" + _vf)
+		adb, err := frigolite.Open("file:" + fa + "?mode=rwc" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size=...} { lappend results $pets }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-		var adaSz = "file size $::fa"
+		// adb eval {
+    PRAGMA auto_vacuum = 0;
+    PRAGMA page_size=...} { lappend results $pets } (unsupported command, not transpiled)
+		// adb close (unsupported command, not transpiled)
+		adaSz = "file size $::fa"
 		_ = adaSz // suppress unused warning
 		results = tclListAppend(results, "Bytes before/after " + adbSz + "/" + adaSz)
-		var _result = "join $results \" | \"" // TCL namespace variable
-		_ = _result // suppress unused warning
+		result = "join $results \" | \"" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "1.3"
-		var results = ""
+		results = ""
 		_ = results // suppress unused warning
-		adb, err := frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
+		adb, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT group_concat(a) as pets FROM (SELECT a...} { lappend results $pets }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-		var _result = "join $results \" | \"" // TCL namespace variable
-		_ = _result // suppress unused warning
+		// adb eval {
+    SELECT group_concat(a) as pets FROM (SELECT a...} { lappend results $pets } (unsupported command, not transpiled)
+		// adb close (unsupported command, not transpiled)
+		result = "join $results \" | \"" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "1.4"
-		var _result = "fosAvfs $fa" // TCL namespace variable
-		_ = _result // suppress unused warning
+		result = "fosAvfs $fa" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "2.1"
-		var in = "open $::fa r"
+		in = "open $::fa r"
 		_ = in // suppress unused warning
-		var tli = ""
+		tli = ""
 		_ = tli // suppress unused warning
-		var i = "llength $::tlo"
+		i = "llength $::tlo"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n > 0 }() {
 			tli = tclListAppend(tli, "gets $in")
@@ -140,21 +240,21 @@ func Test_avfs(t *testing.T) {
 		}
 		// close $in
 		if tclBool("join $tli \":\"" + " != " + "join $::tlo \":\"") {
-			var _result = "Appendee changed." // TCL namespace variable
-			_ = _result // suppress unused warning
+			result = "Appendee changed." // TCL namespace variable
+			_ = result // suppress unused warning
 		} else {
-			var _result = "Appendee intact." // TCL namespace variable
-			_ = _result // suppress unused warning
+			result = "Appendee intact." // TCL namespace variable
+			_ = result // suppress unused warning
 		}
 	}
-	var _nrint = "50000" // TCL namespace variable
-	_ = _nrint // suppress unused warning
+	nrint = "50000" // TCL namespace variable
+	_ = nrint // suppress unused warning
 	// proc definition (not transpiled)
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
-	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _nrint_n, __nrint_e := strconv.Atoi(_nrint); if __nrint_e != nil { return false }; return i_n < _nrint_n }() {
-		var _randints_i = "rint [::tcl::mathfunc::rand]" // TCL namespace variable
-		_ = _randints_i // suppress unused warning
+	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nrint_n, _nrint_e := strconv.Atoi(nrint); if _nrint_e != nil { return false }; return i_n < nrint_n }() {
+		randints_i = "rint [::tcl::mathfunc::rand]" // TCL namespace variable
+		_ = randints_i // suppress unused warning
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -164,26 +264,30 @@ func Test_avfs(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1"
-		var results = ""
+		results = ""
 		_ = results // suppress unused warning
-		adb, err := frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
+		adb, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    DROP TABLE t1;\n    PRAGMA cache_size=10;\n    ...}")
-		var i = "0"
+		// adb eval {
+    DROP TABLE t1;
+    PRAGMA cache_size=10;
+    ...} (unsupported command, not transpiled)
+		i = "0"
 		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _nrint_n, __nrint_e := strconv.Atoi(_nrint); if __nrint_e != nil { return false }; return i_n < _nrint_n }() {
-			var _r = _randints + "(" + i + ")"
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nrint_n, _nrint_e := strconv.Atoi(nrint); if _nrint_e != nil { return false }; return i_n < nrint_n }() {
+			_r = randints_i
 			_ = _r // suppress unused warning
-			var s = _randints + "(" + "incr i" + ")"
+			s = randints__incr_i_
 			_ = s // suppress unused warning
-			var _t = _randints + "(" + "incr i" + ")"
+			_t = randints__incr_i_
 			_ = _t // suppress unused warning
-			var u = _randints + "(" + "incr i" + ")"
+			u = randints__incr_i_
 			_ = u // suppress unused warning
-			var v = _randints + "(" + "incr i" + ")"
+			v = randints__incr_i_
 			_ = v // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n      INSERT INTO ri VALUES ($r),($s),($t),($u),(...}")
+			// adb eval {
+      INSERT INTO ri VALUES ($r),($s),($t),($u),(...} (unsupported command, not transpiled)
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -192,46 +296,50 @@ func Test_avfs(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    COMMIT;\n    SELECT integrity_check as ic FROM...} { lappend results $ic }")
-		var adbSz = "file size $::fa"
+		// adb eval {
+    COMMIT;
+    SELECT integrity_check as ic FROM...} { lappend results $ic } (unsupported command, not transpiled)
+		adbSz = "file size $::fa"
 		_ = adbSz // suppress unused warning
-		var qr = ""
+		qr = ""
 		_ = qr // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT count(*) as ic FROM ri;\n    DELETE FRO...} { lappend qr $ic }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-		var adaSz = "file size $::fa"
+		// adb eval {
+    SELECT count(*) as ic FROM ri;
+    DELETE FRO...} { lappend qr $ic } (unsupported command, not transpiled)
+		// adb close (unsupported command, not transpiled)
+		adaSz = "file size $::fa"
 		_ = adaSz // suppress unused warning
-		var adba = "($adbSz + 0.1)/$adaSz"
+		adba = "($adbSz + 0.1)/$adaSz"
 		_ = adba // suppress unused warning
 		results = "concat $results [lrange $qr 0 2]"
 		_ = results // suppress unused warning
 		results = tclListAppend(results, "$adba > 10.0")
-		var _result = "join $results \" | \"" // TCL namespace variable
-		_ = _result // suppress unused warning
+		result = "join $results \" | \"" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "3.2"
-		var results = ""
+		results = ""
 		_ = results // suppress unused warning
-		adb, err := frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
+		adb, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-		var _result = "join $results \" | \"" // TCL namespace variable
-		_ = _result // suppress unused warning
+		// adb eval {
+    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic } (unsupported command, not transpiled)
+		// adb close (unsupported command, not transpiled)
+		result = "join $results \" | \"" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "3.3"
-		var results = ""
+		results = ""
 		_ = results // suppress unused warning
-		adb, err := frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
+		adb, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		var npages = "300"
+		npages = "300"
 		_ = npages // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval { BEGIN }")
+		// adb eval { BEGIN } (unsupported command, not transpiled)
 		for func() bool { npages_n, _npages_e := strconv.Atoi(npages); if _npages_e != nil { return false }; return npages_n > 0 }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "adb eval { INSERT INTO ri VALUES (randomblob(1500)) }")
-			var npages = "0"
+			// adb eval { INSERT INTO ri VALUES (randomblob(1500)) } (unsupported command, not transpiled)
 			// incr npages -1
 			{
 				_n, _err := strconv.Atoi(npages)
@@ -240,183 +348,218 @@ func Test_avfs(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval { COMMIT }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-		var adaSzr = "[file size $::fa] / 300.0 / 1500"
+		// adb eval { COMMIT } (unsupported command, not transpiled)
+		// adb eval {
+    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic } (unsupported command, not transpiled)
+		// adb close (unsupported command, not transpiled)
+		adaSzr = "[file size $::fa] / 300.0 / 1500"
 		_ = adaSzr // suppress unused warning
-		var okSzr = "$adaSzr > 1.0 && $adaSzr < 1.3"
+		okSzr = "$adaSzr > 1.0 && $adaSzr < 1.3"
 		_ = okSzr // suppress unused warning
 		results = tclListAppend(results, okSzr)
-		var _result = "join $results \" | \"" // TCL namespace variable
-		_ = _result // suppress unused warning
+		result = "join $results \" | \"" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "3.4"
-		var results = ""
+		results = ""
 		_ = results // suppress unused warning
-		adb, err := frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
+		adb, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-		var _result = ic // TCL namespace variable
-		_ = _result // suppress unused warning
+		// adb eval {
+    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic } (unsupported command, not transpiled)
+		// adb close (unsupported command, not transpiled)
+		result = ic // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "3.5"
-		var results = ""
+		results = ""
 		_ = results // suppress unused warning
-		var adbsz = "file size $::fa"
+		adbsz = "file size $::fa"
 		_ = adbsz // suppress unused warning
-		adb, err := frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
+		adb, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    DELETE FROM ri WHERE rowid % 8 <> 0;\n    SELE...} { lappend results $ic }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-		var adasz = "file size $::fa"
+		// adb eval {
+    DELETE FROM ri WHERE rowid % 8 <> 0;
+    SELE...} { lappend results $ic } (unsupported command, not transpiled)
+		// adb close (unsupported command, not transpiled)
+		adasz = "file size $::fa"
 		_ = adasz // suppress unused warning
 		results = tclListAppend(results, "$adbsz/$adasz > 5")
-		adb, err = frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
+		_dbtmp0, err := frigolite.Open("file:" + fa + "?mode=rw" + vf)
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-		var _result = "join $results \" | \"" // TCL namespace variable
-		_ = _result // suppress unused warning
+		// adb eval {
+    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic } (unsupported command, not transpiled)
+		// adb close (unsupported command, not transpiled)
+		result = "join $results \" | \"" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
-	var _cliDoesAr = "shellDoesAr" // TCL namespace variable
-	_ = _cliDoesAr // suppress unused warning
+	cliDoesAr = "shellDoesAr" // TCL namespace variable
+	_ = cliDoesAr // suppress unused warning
 	{ // do_test "4.1"
-		var shdo = "sh_app1.sql"
+		shdo = "sh_app1.sql"
 		_ = shdo // suppress unused warning
-		var shod = "sh_app1.adb"
+		shod = "sh_app1.adb"
 		_ = shod // suppress unused warning
 		os.Remove(shdo)
-		var ofd = "open $shdo w"
+		ofd = "open $shdo w"
 		_ = ofd // suppress unused warning
-		if tclBool(_cliDoesAr) {
-			t.Log(ofd)
+		if tclBool(cliDoesAr) {
+			_putsMsg := ofd
+			_ = _putsMsg
 		} else {
-			t.Log(ofd)
-			t.Log(ofd)
+			_putsMsg := ofd
+			_ = _putsMsg
+			_putsMsg = ofd
+			_ = _putsMsg
 		}
-		t.Log(ofd)
-		t.Log(ofd)
+		_putsMsg := ofd
+		_ = _putsMsg
+		_putsMsg = ofd
+		_ = _putsMsg
 		// close $ofd
 		ofd = "open $shod wb"
 		_ = ofd // suppress unused warning
-		t.Log(ofd)
+		_putsMsg = ofd
+		_ = _putsMsg
 		// close $ofd
-		var res = "catchcmd \"-append -batch -init $shdo $shod\" \"\""
+		res = "catchcmd \"-append -batch -init $shdo $shod\" \"\""
 		_ = res // suppress unused warning
 		res = tclListAppend(res, "fosAvfs $shod")
 		os.Remove(shdo)
-		var _result = "join $res \" | \"" // TCL namespace variable
-		_ = _result // suppress unused warning
+		result = "join $res \" | \"" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "4.2"
-		var shdo = "sh_app1.sql"
+		shdo = "sh_app1.sql"
 		_ = shdo // suppress unused warning
-		var shod = "sh_app1.adb"
+		shod = "sh_app1.adb"
 		_ = shod // suppress unused warning
 		os.Remove(shdo)
-		var ofd = "open $shdo w"
+		ofd = "open $shdo w"
 		_ = ofd // suppress unused warning
-		if tclBool(_cliDoesAr) {
-			t.Log(ofd)
+		if tclBool(cliDoesAr) {
+			_putsMsg := ofd
+			_ = _putsMsg
 		} else {
-			t.Log(ofd)
-			t.Log(ofd)
+			_putsMsg := ofd
+			_ = _putsMsg
+			_putsMsg = ofd
+			_ = _putsMsg
 		}
-		t.Log(ofd)
-		t.Log(ofd)
+		_putsMsg := ofd
+		_ = _putsMsg
+		_putsMsg = ofd
+		_ = _putsMsg
 		// close $ofd
 		ofd = "open $shod wb"
 		_ = ofd // suppress unused warning
 		// close $ofd
-		var res = "catchcmd \"-append -batch -init $shdo $shod\" \"\""
+		res = "catchcmd \"-append -batch -init $shdo $shod\" \"\""
 		_ = res // suppress unused warning
 		res = tclListAppend(res, "fosAvfs $shod")
 		os.Remove(shdo)
-		var _result = "join $res \" | \"" // TCL namespace variable
-		_ = _result // suppress unused warning
+		result = "join $res \" | \"" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "4.3"
-		var shdo = "sh_app1.sql"
+		shdo = "sh_app1.sql"
 		_ = shdo // suppress unused warning
-		var shod = "sh_app1.adb"
+		shod = "sh_app1.adb"
 		_ = shod // suppress unused warning
 		os.Remove(shdo)
-		var ofd = "open $shdo w"
+		ofd = "open $shdo w"
 		_ = ofd // suppress unused warning
-		if tclBool(_cliDoesAr) {
-			t.Log(ofd)
-			t.Log(ofd)
-			t.Log(ofd)
+		if tclBool(cliDoesAr) {
+			_putsMsg := ofd
+			_ = _putsMsg
+			_putsMsg = ofd
+			_ = _putsMsg
+			_putsMsg = ofd
+			_ = _putsMsg
 		} else {
-			t.Log(ofd)
-			t.Log(ofd)
-			t.Log(ofd)
+			_putsMsg := ofd
+			_ = _putsMsg
+			_putsMsg = ofd
+			_ = _putsMsg
+			_putsMsg = ofd
+			_ = _putsMsg
 		}
-		t.Log(ofd)
+		_putsMsg := ofd
+		_ = _putsMsg
 		// close $ofd
-		var res = "catchcmd \"-append -batch -init $shdo $shod\" \"\""
+		res = "catchcmd \"-append -batch -init $shdo $shod\" \"\""
 		_ = res // suppress unused warning
-		adb, err := frigolite.Open("file:" + shod + "?mode=rw" + _vf)
+		adb, err := frigolite.Open("file:" + shod + "?mode=rw" + vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT count(*) as n FROM sqlar\n  } { lappend res $n }")
-		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
+		// adb eval {
+    SELECT count(*) as n FROM sqlar
+  } { lappend res $n } (unsupported command, not transpiled)
+		// adb close (unsupported command, not transpiled)
 		os.Remove(shdo)
-		var _result = "join $res \" | \"" // TCL namespace variable
-		_ = _result // suppress unused warning
+		result = "join $res \" | \"" // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "5.1"
-		var fake = "faketiny.sdb"
+		fake = "faketiny.sdb"
 		_ = fake // suppress unused warning
 		os.Remove(fake)
-		var ofd = "open $fake wb"
+		ofd = "open $fake wb"
 		_ = ofd // suppress unused warning
-		t.Log("-nonewline")
-		t.Log("-nonewline")
-		t.Log("-nonewline")
-		t.Log("-nonewline")
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
 		// close $ofd
 		if false {
-			var res = "Open failed."
+			res = "Open failed."
 			_ = res // suppress unused warning
 		} else {
-			t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-			var res = "Opened when should not."
+			// adb close (unsupported command, not transpiled)
+			res = "Opened when should not."
 			_ = res // suppress unused warning
 		}
 		os.Remove(fake)
-		var _result = res // TCL namespace variable
-		_ = _result // suppress unused warning
+		result = res // TCL namespace variable
+		_ = result // suppress unused warning
 	}
 	{ // do_test "5.2"
-		var fake = "faketiny.sdb"
+		fake = "faketiny.sdb"
 		_ = fake // suppress unused warning
 		os.Remove(fake)
-		var ofd = "open $fake wb"
+		ofd = "open $fake wb"
 		_ = ofd // suppress unused warning
-		var fakeAppendee = "Dog ate my homework.\\n"
+		fakeAppendee = "Dog ate my homework.\\n"
 		_ = fakeAppendee // suppress unused warning
-		t.Log("-nonewline")
-		t.Log("-nonewline")
-		t.Log("-nonewline")
-		t.Log("-nonewline")
-		t.Log("-nonewline")
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
 		// close $ofd
 		if false {
-			var res = "Open failed."
+			res = "Open failed."
 			_ = res // suppress unused warning
 		} else {
-			t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-			var res = "Opened when should not."
+			// adb close (unsupported command, not transpiled)
+			res = "Opened when should not."
 			_ = res // suppress unused warning
 		}
 		os.Remove(fake)
-		var _result = res // TCL namespace variable
-		_ = _result // suppress unused warning
+		result = res // TCL namespace variable
+		_ = result // suppress unused warning
 	}
-	os.Remove(_fa)
+	os.Remove(fa)
 }

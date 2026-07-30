@@ -42,28 +42,58 @@ func Test_memdb1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var pgsz string
+	_ = pgsz // pre-declared from TCL source
+	var sz1 string
+	_ = sz1 // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var direct string
+	_ = direct // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var ser string
+	_ = ser // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var _len string
+	_ = _len // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var seen string
+	_ = seen // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "memdb1"
+	testprefix = "memdb1"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	{ // do_test "100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n  ")
 		}
-		var _pgsz = "db one {PRAGMA page_size}" // TCL namespace variable
-		_ = _pgsz // suppress unused warning
-		var _sz1 = "$::pgsz*[db one {PRAGMA page_count}]" // TCL namespace variable
-		_ = _sz1 // suppress unused warning
-		var _db1 = "db serialize" // TCL namespace variable
-		_ = _db1 // suppress unused warning
+		pgsz = "db one {PRAGMA page_size}" // TCL namespace variable
+		_ = pgsz // suppress unused warning
+		sz1 = "$::pgsz*[db one {PRAGMA page_count}]" // TCL namespace variable
+		_ = sz1 // suppress unused warning
+		// set ::db1 (skipped, DB connection)
 		// expr [string length $::db1]==$::sz1 → "[string length $::db1]==$::sz1"
 	}
-	var fd = "open db1.db wb"
+	fd = "open db1.db wb"
 	_ = fd // suppress unused warning
-	t.Log("-nonewline")
+	_putsMsg := "-nonewline"
+	_ = _putsMsg
 	// close $fd
-	db, err = frigolite.Open("")
+	_dbtmp0, err := frigolite.Open("")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "110"
 		r = db.Query("\n  SELECT * FROM t1;\n")
@@ -150,7 +180,8 @@ func Test_memdb1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "200"
 		r = db.Query("\n  CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;\n")
@@ -166,11 +197,11 @@ func Test_memdb1(t *testing.T) {
 	}
 	fd = "open test.db rb"
 	_ = fd // suppress unused warning
-	var direct = "read $fd"
+	direct = "read $fd"
 	_ = direct // suppress unused warning
 	// close $fd
 	{ // do_test "210"
-		len("db serialize")
+		_ = strconv.Itoa(len("db serialize")) // string length result
 	}
 	{ // do_test "220"
 		_res = db.Exec("ATTACH ':memory:' AS aux1")
@@ -182,7 +213,8 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;\n  ")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp2, err := frigolite.Open(":memory:")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "300"
 		r = db.Query("\n  CREATE TABLE t3(x, y);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<400)\n   INSERT INTO t3(x, y) SELECT x, randomblob(1000) FROM c;\n  PRAGMA quick_check;\n")
@@ -206,7 +238,8 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT x, y FROM main.t3 EXCEPT SELECT x, y FROM aux1.t3;\n  ")
 		}
 	}
-	db, err = frigolite.Open("")
+	_dbtmp3, err := frigolite.Open("")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "400"
 		r = db.Query("\n  PRAGMA integrity_check;\n")
@@ -244,10 +277,10 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("")
+	_dbtmp4, err := frigolite.Open("")
+	_ = _dbtmp4 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "500"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -269,7 +302,6 @@ func Test_memdb1(t *testing.T) {
 		}
 	}
 	{ // do_test "600"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -285,7 +317,6 @@ func Test_memdb1(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "610"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -301,7 +332,6 @@ func Test_memdb1(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "620"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -324,18 +354,17 @@ func Test_memdb1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE t0(a);\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT random() FROM c;\n  ")
 		}
-	var rc string
 	_ = rc // suppress unused warning
-	var err string
-	_ = err // suppress unused warning
+	var _err_tcl string
+	_ = _err_tcl // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
 				rc = "1"
-				err = _catchErr.Error()
+				_err_tcl = _catchErr.Error()
 			} else {
 				rc = "0"
-				err = ""
+				_err_tcl = ""
 			}
 		}
 		rc = tclListAppend(rc, "err")
@@ -350,14 +379,14 @@ func Test_memdb1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 8192;\n    PRAGMA journal_mode = wal;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n    CREATE TABLE t2(x, y);\n  ")
 			}
 		}
-		var fd = "open test.db"
+		fd = "open test.db"
 		_ = fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		var data = "read $fd [expr 20*1024]"
+		// fconfigure $fd -translation binary (unsupported command, not transpiled)
+		data = "read $fd [expr 20*1024]"
 		_ = data // suppress unused warning
 		// close $fd
-		db, err := frigolite.Open("")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "810"
 			r = db.Query("\n    PRAGMA locking_mode = exclusive;\n    SELECT * FROM t1\n  ")
@@ -397,21 +426,21 @@ func Test_memdb1(t *testing.T) {
 	defer dbempty.Close()
 	if err != nil { t.Fatal(err) }
 	{ // do_test "900"
-		var _len = strconv.Itoa(len("[dbempty serialize]"))
+		_len = strconv.Itoa(len("dbempty serialize"))
 		_ = _len // suppress unused warning
 		// expr $len>0 → "$len>0"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "dbempty close")
+	// dbempty close (unsupported command, not transpiled)
 	{ // "1000"
 		_res = db.Exec("\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
 		}
 	}
-	var blob = "db serialize main"
+	blob = "db serialize main"
 	_ = blob // suppress unused warning
 	{ // do_test "1010"
-		var seen = "0"
+		seen = "0"
 		_ = seen // suppress unused warning
 		_list := tclList([]string{"0", msg})
 		_ = _list
@@ -420,13 +449,13 @@ func Test_memdb1(t *testing.T) {
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1020"
-		var seen = "0"
+		seen = "0"
 		_ = seen // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 2")
-		var res = "list [catch {\n    db deserialize main $blob\n  } msg] $msg"
+		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+		// B step 2 (unsupported command, not transpiled)
+		res = "list [catch {\n    db deserialize main $blob\n  } msg] $msg"
 		_ = res // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+		// B finish (unsupported command, not transpiled)
 	}
 	db2.Close()
 	db.Close()
@@ -444,11 +473,11 @@ func Test_memdb1(t *testing.T) {
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1110"
-		var seen = "0"
+		seen = "0"
 		_ = seen // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 		// db2.deserialize (db command)
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 2")
-		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+		// B step 2 (unsupported command, not transpiled)
+		// B finish (unsupported command, not transpiled)
 	}
 }

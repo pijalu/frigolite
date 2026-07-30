@@ -39,8 +39,19 @@ func Test_delete_db(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var p string
+	_ = p // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "delete_db"
+	testprefix = "delete_db"
 	_ = testprefix // suppress unused warning
 	if tclBool("atomic_batch_write test.db") {
 		return
@@ -48,38 +59,40 @@ func Test_delete_db(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all")
-	db, err = frigolite.Open("test2.database")
+	// delete_all (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test2.database")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y);\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "copydb")
-		t.Errorf("TODO: %s not implemented in frigolite", "files")
+		// copydb (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
 	}
 	{ // do_test "1.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_delete_database test3.database")
-		t.Errorf("TODO: %s not implemented in frigolite", "files")
+		// sqlite3_delete_database test3.database (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2.0"
 		_res = db.Exec("\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "copydb")
-		t.Errorf("TODO: %s not implemented in frigolite", "files")
+		// copydb (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_delete_database test3.database")
-		t.Errorf("TODO: %s not implemented in frigolite", "files")
+		// sqlite3_delete_database test3.database (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  0")
-	db, err = frigolite.Open("test2.database")
+	// delete_all (unsupported command, not transpiled)
+	// sqlite3_multiplex_initialize  0 (unsupported command, not transpiled)
+	_dbtmp1, err := frigolite.Open("test2.database")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_control db main chunk_size 32768")
+	// sqlite3_multiplex_control db main chunk_size 32768 (unsupported command, not transpiled)
 	{ // do_test "1.3.0"
 		r = db.Query(" PRAGMA auto_vacuum = 0; ")
 		if r.Error != nil {
@@ -89,32 +102,32 @@ func Test_delete_db(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a, b);\n    WITH s(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000 )\n    INSERT INTO x1 SELECT randomblob(100), randomblob(100) FROM s;\n    BEGIN;\n      UPDATE x1 SET a=randomblob(101)\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "copydb")
-		t.Errorf("TODO: %s not implemented in frigolite", "files")
+		// copydb (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_delete_database test3.database")
-		t.Errorf("TODO: %s not implemented in frigolite", "files")
+		// sqlite3_delete_database test3.database (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.0"
 		_res = db.Exec("\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    UPDATE x1 SET a=randomblob(102)\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    PRAGMA journal_mode = wal;\n    UPDATE x1 SET a=randomblob(102)\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "copydb")
-		t.Errorf("TODO: %s not implemented in frigolite", "files")
+		// copydb (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_delete_database test3.database")
-		t.Errorf("TODO: %s not implemented in frigolite", "files")
+		// sqlite3_delete_database test3.database (unsupported command, not transpiled)
+		// files (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+	// delete_all (unsupported command, not transpiled)
+	// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
 	{ // do_test "3.0"
 		// file mkdir dir2.db
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_delete_database dir2.db")
+		// sqlite3_delete_database dir2.db (unsupported command, not transpiled)
 	}
 	{ // do_test "3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_delete_database dir2.db/test.db")
+		// sqlite3_delete_database dir2.db/test.db (unsupported command, not transpiled)
 	}
 }

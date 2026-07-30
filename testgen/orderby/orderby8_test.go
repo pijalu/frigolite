@@ -40,27 +40,42 @@ func Test_orderby8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var result_set string
+	_ = result_set // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "orderby8" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "orderby8" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1),(5),(9),(7),(3),(2),(4),(6),(8);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1),(5),(9),(7),(3),(2),(4),(6),(8);\n  ")
 		}
-		var _result_set = "x" // TCL namespace variable
-		_ = _result_set // suppress unused warning
+		result_set = "x" // TCL namespace variable
+		_ = result_set // suppress unused warning
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 200 }() {
-		_result_set += ", x+" + i
+		result_set += ", x+" + i
 		{ // do_test "1." + i
-			var res = ""
+			res = ""
 			_ = res // suppress unused warning
-			_res = db.Exec("SELECT " + _result_set + " FROM t1 ORDER BY x LIMIT -1")
+			_res = db.Exec("SELECT " + result_set + " FROM t1 ORDER BY x LIMIT -1")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + _result_set + " FROM t1 ORDER BY x LIMIT -1")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + result_set + " FROM t1 ORDER BY x LIMIT -1")
 			}
 		}
 		// incr i 1

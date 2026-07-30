@@ -39,23 +39,32 @@ func Test_in6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "in6"
+	testprefix = "in6"
 	_ = testprefix // suppress unused warning
 	{ // do_test "in6-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n      INSERT INTO t1(a,b,c,d)\n        SELECT 100, 200+x/2, 300+x/5, x FROM c;\n    CREATE INDEX t1abc ON t1(a,b,c);\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='1000000 500000 500 50';\n    ANALYZE sqlite_master;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n      INSERT INTO t1(a,b,c,d)\n        SELECT 100, 200+x/2, 300+x/5, x FROM c;\n    CREATE INDEX t1abc ON t1(a,b,c);\n    ANALYZE;\n    UPDATE sqlite_stat1 SET stat='1000000 500000 500 50';\n    ANALYZE sqlite_master;\n  ")
 		}
-		var _sqlite_search_count = "0" // TCL namespace variable
-		_ = _sqlite_search_count // suppress unused warning
+		sqlite_search_count = "0" // TCL namespace variable
+		_ = sqlite_search_count // suppress unused warning
 		_res = db.Exec("\n    SELECT d FROM t1\n     WHERE a=99\n       AND b IN (200,205,201,204)\n       AND c IN (304,302,309,308);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT d FROM t1\n     WHERE a=99\n       AND b IN (200,205,201,204)\n       AND c IN (304,302,309,308);\n  ")
 		}
 	}
 	{ // do_test "in6-1.2"
-		_ = _sqlite_search_count // TCL namespace variable (query)
+		_ = sqlite_search_count // TCL namespace variable (query)
 	}
 	{ // do_test "in6-1.3"
 		_res = db.Exec("\n    EXPLAIN\n    SELECT d FROM t1\n      WHERE a IN (98,99,100,101)\n        AND b=200 AND c=300;\n  ")
@@ -63,7 +72,7 @@ func Test_in6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN\n    SELECT d FROM t1\n      WHERE a IN (98,99,100,101)\n        AND b=200 AND c=300;\n  ")
 		}
 	}
-	var sqlite_search_count = "0"
+	sqlite_search_count = "0"
 	_ = sqlite_search_count // suppress unused warning
 	{ // "in6-1.4"
 		r = db.Query("\n SELECT d FROM t1\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;\n")
@@ -78,7 +87,7 @@ func Test_in6(t *testing.T) {
 		}
 	}
 	{ // do_test "in6-1.5"
-		_ = _sqlite_search_count // TCL namespace variable (query)
+		_ = sqlite_search_count // TCL namespace variable (query)
 	}
 	{ // "in6-2.1"
 		r = db.Query("\n  CREATE TABLE t2(e INT UNIQUE, f TEXT);\n  SELECT d, f FROM t1 LEFT JOIN t2 ON (e=d)\n  WHERE a=100\n    AND b IN (200,201,202,204)\n    AND c IN (300,302,301,305)\n  ORDER BY +d;\n")

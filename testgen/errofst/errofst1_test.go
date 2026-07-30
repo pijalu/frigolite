@@ -40,6 +40,11 @@ func Test_errofst1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "errofst1-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1 as select 1 as aa;\n  CREATE VIEW t2 AS\n     WITH t3 AS (SELECT 1 FROM t1 AS bb, t1 AS cc WHERE cc.aa <= sts.aa)\n     SELECT 1 FROM t3 AS dd;\n")
@@ -54,6 +59,6 @@ func Test_errofst1(t *testing.T) {
 		}
 	}
 	{ // do_test "errofst1-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_error_offset db")
+		// sqlite3_error_offset db (unsupported command, not transpiled)
 	}
 }

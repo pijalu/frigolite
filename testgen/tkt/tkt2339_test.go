@@ -39,6 +39,13 @@ func Test_tkt2339(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2339.1"
 		r = db.Query("\n    create table t1(num int);\n    insert into t1 values (1);\n    insert into t1 values (2);\n    insert into t1 values (3);\n    insert into t1 values (4);\n    \n    create table t2(num int);\n    insert into t2 values (11);\n    insert into t2 values (12);\n    insert into t2 values (13);\n    insert into t2 values (14);\n    \n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC LIMIT 2)\n  ")
@@ -53,7 +60,7 @@ func Test_tkt2339(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt2339.3"
-		tclSort("-integer")
+		_ = tclSort("-integer") // lsort result
 	}
 	{ // do_test "tkt2339.4"
 		r = db.Query("\n    SELECT * FROM (SELECT * FROM t1 ORDER BY num DESC LIMIT 2)\n    UNION ALL\n    SELECT * FROM (SELECT * FROM t2 ORDER BY num DESC)\n  ")

@@ -40,8 +40,15 @@ func Test_json109(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "json109"
+	testprefix = "json109"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		r = db.Query("\n  SELECT json_array_insert('[1,2,3]','$[0]',999,'$[0]',888);\n")

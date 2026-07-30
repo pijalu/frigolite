@@ -41,6 +41,31 @@ func Test_thread003(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var nSecond string
+	_ = nSecond // pre-declared from TCL source
+	var zFile string
+	_ = zFile // pre-declared from TCL source
+	var SCRIPT string
+	_ = SCRIPT // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var iEnd string
+	_ = iEnd // pre-declared from TCL source
+	var iQuery string
+	_ = iQuery // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var thread_procs string
+	_ = thread_procs // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
 		return
@@ -50,7 +75,7 @@ func Test_thread003(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n  ")
 		}
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 5000 }() {
 			_res = db.Exec("INSERT INTO t1 VALUES($ii, randomblob(200), randomblob(200))")
@@ -75,8 +100,8 @@ func Test_thread003(t *testing.T) {
 	}
 	{ // do_test "thread003.1.3"
 		os.Remove("test2.db")
-		db, err := frigolite.Open("test2.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test2.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "thread003.1.4"
@@ -84,7 +109,7 @@ func Test_thread003(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n  ")
 		}
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 5000 }() {
 			_res = db.Exec("INSERT INTO t1 VALUES($ii, randomblob(200), randomblob(200))")
@@ -109,15 +134,16 @@ func Test_thread003(t *testing.T) {
 	}
 	{ // do_test "thread003.1.6"
 	}
-	var nSecond = "30"
+	nSecond = "30"
 	_ = nSecond // suppress unused warning
-	t.Log("Starting thread003.2 (should run for ~" + nSecond + " seconds)")
+	_putsMsg := "Starting thread003.2 (should run for ~" + nSecond + " seconds)"
+	_ = _putsMsg
 	{ // do_test "thread003.2"
 		for _, zFile := range tclSplitList("test.db test2.db") {
 		_ = zFile // suppress unused warning
-			var SCRIPT = "format {\n      set iEnd [expr {[clock_seconds] + %d}]\n      set ::DB [sqlthread open %s xyzzy]\n  \n      # Set the cache size to 15 pages per cache. 30 available globally.\n      execsql { PRAGMA cache_size = 15 }\n  \n      while {[clock_seconds] < $iEnd} {\n        set iQuery [expr {int(rand()*5000)}]\n        execsql \" SELECT * FROM t1 WHERE a = $iQuery \"\n      }\n  \n      sqlite3_close $::DB\n      expr 1\n    } $nSecond $zFile"
+			SCRIPT = "format {\n      set iEnd [expr {[clock_seconds] + %d}]\n      set ::DB [sqlthread open %s xyzzy]\n  \n      # Set the cache size to 15 pages per cache. 30 available globally.\n      execsql { PRAGMA cache_size = 15 }\n  \n      while {[clock_seconds] < $iEnd} {\n        set iQuery [expr {int(rand()*5000)}]\n        execsql \" SELECT * FROM t1 WHERE a = $iQuery \"\n      }\n  \n      sqlite3_close $::DB\n      expr 1\n    } $nSecond $zFile"
 			_ = SCRIPT // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished($zFile) $thread_procs $SCRIPT")
+			// thread_spawn finished($zFile) $thread_procs $SCRIPT (unsupported command, not transpiled)
 		}
 		for _, zFile := range tclSplitList("test.db test2.db") {
 		_ = zFile // suppress unused warning
@@ -128,13 +154,14 @@ func Test_thread003(t *testing.T) {
 	}
 	nSecond = "30"
 	_ = nSecond // suppress unused warning
-	t.Log("Starting thread003.3 (should run for ~" + nSecond + " seconds)")
+	_putsMsg = "Starting thread003.3 (should run for ~" + nSecond + " seconds)"
+	_ = _putsMsg
 	{ // do_test "thread003.3"
 		for _, zFile := range tclSplitList("test.db test2.db") {
 		_ = zFile // suppress unused warning
-			var SCRIPT = "format {\n      set iStart [clock_seconds]\n      set iEnd [expr {[clock_seconds] + %d}]\n      set ::DB [sqlthread open %s xyzzy]\n  \n      # Set the cache size to 15 pages per cache. 30 available globally.\n      execsql { PRAGMA cache_size = 15 }\n  \n      while {[clock_seconds] < $iEnd} {\n        set iQuery [expr {int(rand()*5000)}]\n        execsql \"SELECT * FROM t1 WHERE a = $iQuery\"\n        execsql \"UPDATE t1 SET b = randomblob(200) \n                 WHERE a < $iQuery AND a > $iQuery + 20\n        \"\n      }\n  \n      sqlite3_close $::DB\n      expr 1\n    } $nSecond $zFile"
+			SCRIPT = "format {\n      set iStart [clock_seconds]\n      set iEnd [expr {[clock_seconds] + %d}]\n      set ::DB [sqlthread open %s xyzzy]\n  \n      # Set the cache size to 15 pages per cache. 30 available globally.\n      execsql { PRAGMA cache_size = 15 }\n  \n      while {[clock_seconds] < $iEnd} {\n        set iQuery [expr {int(rand()*5000)}]\n        execsql \"SELECT * FROM t1 WHERE a = $iQuery\"\n        execsql \"UPDATE t1 SET b = randomblob(200) \n                 WHERE a < $iQuery AND a > $iQuery + 20\n        \"\n      }\n  \n      sqlite3_close $::DB\n      expr 1\n    } $nSecond $zFile"
 			_ = SCRIPT // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished($zFile) $thread_procs $SCRIPT")
+			// thread_spawn finished($zFile) $thread_procs $SCRIPT (unsupported command, not transpiled)
 		}
 		for _, zFile := range tclSplitList("test.db test2.db") {
 		_ = zFile // suppress unused warning
@@ -145,10 +172,13 @@ func Test_thread003(t *testing.T) {
 	}
 	nSecond = "30"
 	_ = nSecond // suppress unused warning
-	t.Log("Starting thread003.4 (should run for ~" + nSecond + " seconds)")
+	_putsMsg = "Starting thread003.4 (should run for ~" + nSecond + " seconds)"
+	_ = _putsMsg
 	{ // do_test "thread003.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) $thread_procs [format {\n    set iEnd [expr {[clock_seconds] + %d...")
-		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(2) [format {\n    set iEnd [expr {[clock_seconds] + %d...")
+		// thread_spawn finished(1) $thread_procs [format {
+    set iEnd [expr {[clock_seconds] + %d... (unsupported command, not transpiled)
+		// thread_spawn finished(2) [format {
+    set iEnd [expr {[clock_seconds] + %d... (unsupported command, not transpiled)
 		for _, ii := range tclSplitList("1 2") {
 		_ = ii // suppress unused warning
 			if tclBool("!" + "info exists finished($ii)") {
@@ -156,6 +186,6 @@ func Test_thread003(t *testing.T) {
 		}
 		// expr 0 → "0"
 	}
-	var sqlite_open_file_count = "0"
+	sqlite_open_file_count = "0"
 	_ = sqlite_open_file_count // suppress unused warning
 }

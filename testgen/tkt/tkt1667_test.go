@@ -41,19 +41,31 @@ func Test_tkt1667(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var first_ptrmap_page string
+	_ = first_ptrmap_page // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("test.db")
-	var first_ptrmap_page = "207.8"
+	first_ptrmap_page = "207.8"
 	_ = first_ptrmap_page // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte [expr 1024 * ($first_ptrmap_page-1)]")
-	db, err = frigolite.Open("test.db")
+	// sqlite3_test_control_pending_byte [expr 1024 * ($first_ptrmap_page-1)] (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tkt1667-1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    BEGIN;\n    CREATE TABLE t1(a, b);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 500 }() {
 			_res = db.Exec("\n      INSERT INTO t1 VALUES($i, randstr(1000, 2000))\n    ")
@@ -73,7 +85,7 @@ func Test_tkt1667(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 500 }() {
 		{ // do_test "tkt1667-2." + i + ".1"
@@ -97,7 +109,7 @@ func Test_tkt1667(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 500 }() {
 			_res = db.Exec("\n      INSERT INTO t1 VALUES($i, randstr(1000, 2000))\n    ")

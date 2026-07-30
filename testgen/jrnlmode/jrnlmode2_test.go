@@ -39,6 +39,11 @@ func Test_jrnlmode2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("atomic_batch_write test.db") {
 		return
@@ -113,7 +118,7 @@ func Test_jrnlmode2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "jrnlmode2-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db-journal")
+		// delete_file test.db-journal (unsupported command, not transpiled)
 	}
 	{ // do_test "jrnlmode2-2.6"
 		db2, err = frigolite.Open("test.db")

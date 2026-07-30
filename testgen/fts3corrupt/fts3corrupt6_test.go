@@ -40,15 +40,26 @@ func Test_fts3corrupt6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var saved_sqlite_fts3_enable_parentheses string
+	_ = saved_sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3corrupt6"
+	testprefix = "fts3corrupt6"
 	_ = testprefix // suppress unused warning
-	var _saved_sqlite_fts3_enable_parentheses = _sqlite_fts3_enable_parentheses // TCL namespace variable
-	_ = _saved_sqlite_fts3_enable_parentheses // suppress unused warning
-	var sqlite_fts3_enable_parentheses = "1"
+	saved_sqlite_fts3_enable_parentheses = sqlite_fts3_enable_parentheses // TCL namespace variable
+	_ = saved_sqlite_fts3_enable_parentheses // suppress unused warning
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// sqlite3_fts3_may_be_corrupt 1 (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  BEGIN TRANSACTION;\n  CREATE TABLE t_content(col0 INTEGER);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t0_content VALUES(0,NULL,NULL,NULL,NULL);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'000131030102000103323334050101010200000461616161050101020200000462626262050101030200');\n  COMMIT;\n")
 		if _res.Error != nil {

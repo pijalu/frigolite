@@ -40,8 +40,17 @@ func Test_index4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var soft_limit string
+	_ = soft_limit // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "index4"
+	testprefix = "index4"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(102));\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --    64\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   128\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   256\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --   512\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  1024\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  2048\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  4096\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     --  8192\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 16384\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 32768\n    INSERT INTO t1 SELECT randomblob(102) FROM t1;     -- 65536\n  COMMIT;\n")

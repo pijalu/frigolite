@@ -40,8 +40,23 @@ func Test_unhex(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var hex string
+	_ = hex // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "unhex"
+	testprefix = "unhex"
 	_ = testprefix // suppress unused warning
 	// foreach {tn hex} "\n  1  0000\n  2  FFFF\n  3  0123456789ABCDEF\n"
 	_items0 := tclSplitList("\n  1  0000\n  2  FFFF\n  3  0123456789ABCDEF\n")
@@ -131,7 +146,7 @@ func Test_unhex(t *testing.T) {
 				hex := _items2[_idx2+1]
 				_ = hex // suppress unused warning
 				_ = _idx2
-					var out = ""
+					out = ""
 					_ = out // suppress unused warning
 					for _, x := range tclSplitList("split $hex \"\"") {
 					_ = x // suppress unused warning

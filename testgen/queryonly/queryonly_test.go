@@ -39,6 +39,11 @@ func Test_queryonly(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "queryonly-1.1"
 		r = db.Query("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(123),(456);\n  SELECT a FROM t1 ORDER BY a;\n")

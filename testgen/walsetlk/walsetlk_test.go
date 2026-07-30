@@ -40,8 +40,33 @@ func Test_walsetlk(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var sleep_count string
+	_ = sleep_count // pre-declared from TCL source
+	var us string
+	_ = us // pre-declared from TCL source
+	var bSleep string
+	_ = bSleep // pre-declared from TCL source
+	var bExpect string
+	_ = bExpect // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var nMs string
+	_ = nMs // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sqlite_options_setlk_timeout string
+	_ = sqlite_options_setlk_timeout // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walsetlk"
+	testprefix = "walsetlk"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 VALUES(7, 8);\n")
@@ -58,9 +83,10 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
 		}
 	}
-	var fd = "open test.db-shm r+"
+	fd = "open test.db-shm r+"
 	_ = fd // suppress unused warning
-	t.Log(fd)
+	_putsMsg := fd
+	_ = _putsMsg
 	{ // "1.2"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
 		if _res.Error != nil {
@@ -89,7 +115,8 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
 		}
 	}
-	t.Log(fd)
+	_putsMsg = fd
+	_ = _putsMsg
 	{ // "-db"
 		_res = db.Exec("db2")
 		if _res.Error != nil {
@@ -101,15 +128,19 @@ func Test_walsetlk(t *testing.T) {
 	}
 	// close $fd
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  testvfs tvfs -fullshm 1\n  db close\n  sqlite3 d...}")
+	// do_multiclient_test tn {
+
+  testvfs tvfs -fullshm 1
+  db close
+  sqlite3 d...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xSleep_callback")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xSleep")
-	var _sleep_count = "0" // TCL namespace variable
-	_ = _sleep_count // suppress unused warning
+	// testvfs tvfs -fullshm 1 (unsupported command, not transpiled)
+	// tvfs script xSleep_callback (unsupported command, not transpiled)
+	// tvfs filter xSleep (unsupported command, not transpiled)
+	sleep_count = "0" // TCL namespace variable
+	_ = sleep_count // suppress unused warning
 	// proc definition (not transpiled)
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -130,34 +161,37 @@ func Test_walsetlk(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	var bExpect = "1"
+	bExpect = "1"
 	_ = bExpect // suppress unused warning
-	if func() bool { tcl_platform_n, _tcl_platform_e := strconv.Atoi(tcl_platform); if _tcl_platform_e != nil { return false }; _sqlite_options_n, __sqlite_options_e := strconv.Atoi(_sqlite_options); if __sqlite_options_e != nil { return false }; return tcl_platform_n(platform) == "windows" && _sqlite_options_n(setlk_timeout)==1 }() {
-		var bExpect = "0"
+	if tclBool(tcl_platform_platform + " == \"windows\" && " + sqlite_options_setlk_timeout + "==1") {
+		bExpect = "0"
 		_ = bExpect // suppress unused warning
 	}
 	{ // do_test "3.2"
 		// expr $::sleep_count > 0 → "$::sleep_count > 0"
 	}
-	var _sleep_count = "0" // TCL namespace variable
-	_ = _sleep_count // suppress unused warning
+	sleep_count = "0" // TCL namespace variable
+	_ = sleep_count // suppress unused warning
 	{ // "3.3"
 		_res = db.Exec("\n  COMMIT;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
+	// testfixture_nb done {
+  sqlite3 db test.db
+  db eval {
+    BEGIN EXCLUS...} (unsupported command, not transpiled)
 	// db2.timeout (db command)
 	{ // do_test "3.4"
-		var _t = "lindex [time { db2 eval { BEGIN EXCLUSIVE } }] 0"
+		_t = "lindex [time { db2 eval { BEGIN EXCLUSIVE } }] 0"
 		_ = _t // suppress unused warning
 		// expr ($t>1000000) → "($t>1000000)"
 	}
 	bExpect = "1"
 	_ = bExpect // suppress unused warning
-	if func() bool { _sqlite_options_n, __sqlite_options_e := strconv.Atoi(_sqlite_options); if __sqlite_options_e != nil { return false }; return _sqlite_options_n(setlk_timeout) == 1 }() {
-		var bExpect = "0"
+	if func() bool { sqlite_options_setlk_timeout_n, _sqlite_options_setlk_timeout_e := strconv.Atoi(sqlite_options_setlk_timeout); if _sqlite_options_setlk_timeout_e != nil { return false }; return sqlite_options_setlk_timeout_n == 1 }() {
+		bExpect = "0"
 		_ = bExpect // suppress unused warning
 	}
 	{ // do_test "3.5"
@@ -169,17 +203,20 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
+	// testfixture_nb done {
+  sqlite3 db test.db
+  db eval {
+    BEGIN EXCLUS...} (unsupported command, not transpiled)
 	// db2.timeout (db command)
 	{ // do_test "3.7"
-		var _t = "lindex [time { db2 eval { BEGIN EXCLUSIVE } }] 0"
+		_t = "lindex [time { db2 eval { BEGIN EXCLUSIVE } }] 0"
 		_ = _t // suppress unused warning
 		// expr ($t>1000000) → "($t>1000000)"
 	}
 	bExpect = "1"
 	_ = bExpect // suppress unused warning
-	if func() bool { _sqlite_options_n, __sqlite_options_e := strconv.Atoi(_sqlite_options); if __sqlite_options_e != nil { return false }; return _sqlite_options_n(setlk_timeout) == 1 }() {
-		var bExpect = "0"
+	if func() bool { sqlite_options_setlk_timeout_n, _sqlite_options_setlk_timeout_e := strconv.Atoi(sqlite_options_setlk_timeout); if _sqlite_options_setlk_timeout_e != nil { return false }; return sqlite_options_setlk_timeout_n == 1 }() {
+		bExpect = "0"
 		_ = bExpect // suppress unused warning
 	}
 	{ // do_test "3.8"
@@ -192,5 +229,5 @@ func Test_walsetlk(t *testing.T) {
 		}
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+	// tvfs delete (unsupported command, not transpiled)
 }

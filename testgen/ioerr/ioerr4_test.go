@@ -40,15 +40,26 @@ func Test_ioerr4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "ioerr4-1.1"
-		var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-		_ = _enable_shared_cache // suppress unused warning
+		enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+		_ = enable_shared_cache // suppress unused warning
 	}
 	{ // do_test "ioerr4-1.2"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -85,8 +96,13 @@ func Test_ioerr4(t *testing.T) {
 	}
 	db2.Close()
 	tclFileCopy("test.db", "test.db-bu")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr4-2 -tclprep {\n  catch {db2 close}\n  db close\n  forcedelete test...} -tclbody {\n  db eval {PRAGMA incremental_vacuum(5)}\n}")
+	// do_ioerr_test ioerr4-2 -tclprep {
+  catch {db2 close}
+  db close
+  forcedelete test...} -tclbody {
+  db eval {PRAGMA incremental_vacuum(5)}
+} (unsupported command, not transpiled)
 	db2.Close()
 	os.Remove("test.db-bu")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

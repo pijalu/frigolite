@@ -40,13 +40,28 @@ func Test_selectG(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var microsec string
+	_ = microsec // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "selectG"
+	testprefix = "selectG"
 	_ = testprefix // suppress unused warning
 	{ // do_test "100"
-		var sql = "CREATE TABLE t1(x);\\nINSERT INTO t1(x) VALUES"
+		sql = "CREATE TABLE t1(x);\\nINSERT INTO t1(x) VALUES"
 		_ = sql // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100000 }() {
 			sql += "(" + i + "),"
@@ -59,7 +74,7 @@ func Test_selectG(t *testing.T) {
 			}
 		}
 		sql += "(" + i + ");"
-		var microsec = "lindex [time {db eval $sql}] 0"
+		microsec = "lindex [time {db eval $sql}] 0"
 		_ = microsec // suppress unused warning
 		_res = db.Exec("\n    SELECT count(x), sum(x), avg(x), $microsec<10000000 FROM t1;\n  ")
 		if _res.Error != nil {
@@ -67,9 +82,9 @@ func Test_selectG(t *testing.T) {
 		}
 	}
 	{ // do_test "110"
-		var sql = "SELECT (VALUES"
+		sql = "SELECT (VALUES"
 		_ = sql // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100000 }() {
 			sql += "(" + i + "),"
@@ -88,7 +103,7 @@ func Test_selectG(t *testing.T) {
 		}
 	}
 	{ // do_test "120"
-		var n = "llength [split [db eval \"explain $sql\"] \\n]"
+		n = "llength [split [db eval \"explain $sql\"] \\n]"
 		_ = n // suppress unused warning
 		// expr $n<10 → "$n<10"
 	}

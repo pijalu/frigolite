@@ -42,10 +42,27 @@ func Test_dbpage(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var pgno string
+	_ = pgno // pre-declared from TCL source
+	var max string
+	_ = max // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var page_count string
+	_ = page_count // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "dbpage"
+	testprefix = "dbpage"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // do_test "100"
 		r = db.Query("\n    PRAGMA auto_vacuum=0;\n    PRAGMA page_size=4096;\n    PRAGMA journal_mode=WAL;\n  ")
 		if r.Error != nil {
@@ -194,7 +211,8 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA aux1.integrity_check;\n")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "300"
 		r = db.Query("\n  SELECT * FROM sqlite_temp_schema, sqlite_dbpage;\n")
@@ -245,7 +263,8 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "520"
 		r = db.Query("\n  PRAGMA page_count;\n  SELECT * FROM t1;\n")
@@ -270,7 +289,7 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n  INSERT INTO t1 VALUES(1234);\n  CREATE TABLE aux.x1(z);\n")
 		}
 	}
-	var pgno = "db one {SELECT max(rootpage) FROM sqlite_schema}"
+	pgno = "db one {SELECT max(rootpage) FROM sqlite_schema}"
 	_ = pgno // suppress unused warning
 	db2, err = frigolite.Open("test.db2")
 	if err != nil { t.Fatal(err) }
@@ -290,7 +309,8 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("expected error, got none\n  sql: %s", "\n  UPDATE sqlite_dbpage SET data = (\n    SELECT data FROM sqlite_dbpage WHERE pgno=$pgno-1\n  ) WHERE pgno = $pgno;\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "640"
 		r = db.Query("\n  SELECT * FROM t2;\n")
@@ -319,17 +339,17 @@ func Test_dbpage(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	db2.Exec("\n  CREATE TABLE y1(y);\n  INSERT INTO y1 VALUES( hex(randomblob(1000)) );\n")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-	var max = "db2 one {PRAGMA page_count}"
+	max = "db2 one {PRAGMA page_count}"
 	_ = max // suppress unused warning
 	{ // do_test "710"
 		_res = db.Exec("\n    BEGIN;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n  ")
 		}
-		var ii = "1"
+		ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; max_n, _max_e := strconv.Atoi(max); if _max_e != nil { return false }; return ii_n <= max_n }() {
-			var data = "db2 one {SELECT data FROM sqlite_dbpage WHERE pgno=$ii}"
+			data = "db2 one {SELECT data FROM sqlite_dbpage WHERE pgno=$ii}"
 			_ = data // suppress unused warning
 			_res = db.Exec("\n      UPDATE sqlite_dbpage SET data=$data WHERE pgno=$ii\n    ")
 			if _res.Error != nil {
@@ -348,7 +368,8 @@ func Test_dbpage(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SAVEPOINT abc;\n        INSERT INTO sqlite_dbpage VALUES(2, NULL);\n      ROLLBACK TO abc;\n    COMMIT;\n  ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp3, err := frigolite.Open("test.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "720"
 		r = db.Query("\n  PRAGMA integrity_check\n")

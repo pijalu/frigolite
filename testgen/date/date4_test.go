@@ -40,23 +40,34 @@ func Test_date4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var FMT string
+	_ = FMT // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var TS string
+	_ = TS // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tcl_platform_os == "Linux" {
 		if tclBool("\"\" == " + "strftime {%P} 1") {
-			var FMT = "%d,%e,%F,%H,%I,%j,%m,%M,%u,%w,%W,%Y,%%,%p,%U,%V,%G,%g"
+			FMT = "%d,%e,%F,%H,%I,%j,%m,%M,%u,%w,%W,%Y,%%,%p,%U,%V,%G,%g"
 			_ = FMT // suppress unused warning
 		} else {
-			var FMT = "%d,%e,%F,%H,%k,%I,%l,%j,%m,%M,%u,%w,%W,%Y,%%,%P,%p,%U,%V,%G,%g"
+			FMT = "%d,%e,%F,%H,%k,%I,%l,%j,%m,%M,%u,%w,%W,%Y,%%,%P,%p,%U,%V,%G,%g"
 			_ = FMT // suppress unused warning
 		}
 	} else {
-		var FMT = "%d,%e,%F,%H,%I,%j,%p,%R,%u,%w,%W,%%"
+		FMT = "%d,%e,%F,%H,%I,%j,%p,%R,%u,%w,%W,%%"
 		_ = FMT // suppress unused warning
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 24858 }() {
-		var TS = "$i*86390"
+		TS = "$i*86390"
 		_ = TS // suppress unused warning
 		{ // "date4-" + i
 			r = db.Query("\n    SELECT strftime($::FMT,$::TS,'unixepoch');\n  ")

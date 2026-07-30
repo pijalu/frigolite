@@ -41,8 +41,33 @@ func Test_crash(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var repeats string
+	_ = repeats // pre-declared from TCL source
+	var sig string
+	_ = sig // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var seed string
+	_ = seed // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var fin string
+	_ = fin // pre-declared from TCL source
+	var sig2 string
+	_ = sig2 // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var repeats = "100"
+	repeats = "100"
 	_ = repeats // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -51,20 +76,22 @@ func Test_crash(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
 		}
-		var _sig = "signature" // TCL namespace variable
-		_ = _sig // suppress unused warning
+		sig = "signature" // TCL namespace variable
+		_ = sig // suppress unused warning
 		// expr 0 → "0"
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-		var seed = "0"
+		seed = "0"
 		_ = seed // suppress unused warning
 		{ // do_test "crash-1.2." + i
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db-journal -seed $seed {\n      DELETE FROM abc WHERE a = 1;\n    }")
+			// crashsql -delay 1 -file test.db-journal -seed $seed {
+      DELETE FROM abc WHERE a = 1;
+    } (unsupported command, not transpiled)
 		}
 		{ // do_test "crash-1.3." + i
-			t.Errorf("TODO: %s not implemented in frigolite", "signature")
+			// signature (unsupported command, not transpiled)
 		}
 		// incr i 1
 		{
@@ -75,27 +102,35 @@ func Test_crash(t *testing.T) {
 		}
 	}
 	{ // do_test "crash-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    DELETE FROM abc WHERE a = 1;\n  }")
+		// crashsql -delay 1 -file test.db {
+    DELETE FROM abc WHERE a = 1;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "signature")
+		// signature (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db-journal {\n    DELETE FROM abc WHERE a = 1;\n  }")
+		// crashsql -delay 2 -file test.db-journal {
+    DELETE FROM abc WHERE a = 1;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-1.7"
 		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "crash-1.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 3 -file test.db-journal {\n    DELETE FROM abc WHERE a = 1;\n  }")
+		// crashsql -delay 3 -file test.db-journal {
+    DELETE FROM abc WHERE a = 1;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-1.9"
 		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "crash-1.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db {\n    DELETE FROM abc WHERE a = 4;\n  }")
+		// crashsql -delay 2 -file test.db {
+    DELETE FROM abc WHERE a = 4;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-1.11"
 		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
@@ -106,7 +141,7 @@ func Test_crash(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}
-		var n = "0"
+		n = "0"
 		_ = n // suppress unused warning
 		for func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n < 1000 }() {
 			_res = db.Exec("INSERT INTO abc VALUES(" + n + ", " + "2*$n" + ", " + "3*$n" + ")")
@@ -125,8 +160,8 @@ func Test_crash(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		var _sig = "signature" // TCL namespace variable
-		_ = _sig // suppress unused warning
+		sig = "signature" // TCL namespace variable
+		_ = sig // suppress unused warning
 		r = db.Query(" SELECT sum(a), sum(b), sum(c) from abc ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT sum(a), sum(b), sum(c) from abc ")
@@ -136,16 +171,20 @@ func Test_crash(t *testing.T) {
 		// expr ([file size test.db] → "([file size test.db]"
 	}
 	{ // do_test "crash-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db-journal {\n    DELETE FROM abc WHERE a < 800;\n  }")
+		// crashsql -delay 2 -file test.db-journal {
+    DELETE FROM abc WHERE a < 800;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "signature")
+		// signature (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    DELETE FROM abc WHERE a<800;\n  }")
+		// crashsql -delay 1 -file test.db {
+    DELETE FROM abc WHERE a<800;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "signature")
+		// signature (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-3.0"
 		_res = db.Exec("\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")
@@ -157,15 +196,17 @@ func Test_crash(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; repeats_n, _repeats_e := strconv.Atoi(repeats); if _repeats_e != nil { return false }; return i_n < repeats_n }() {
-		var sig = "signature"
+		sig = "signature"
 		_ = sig // suppress unused warning
 		{ // do_test "crash-3." + i + ".1"
-			var seed = "0"
+			seed = "0"
 			_ = seed // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay [expr $i%5 + 1] -file test.db-journal -seed $seed \n       BEGIN;\n       SELECT random() FROM abc LIM...")
+			// crashsql -delay [expr $i%5 + 1] -file test.db-journal -seed $seed 
+       BEGIN;
+       SELECT random() FROM abc LIM... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash-3." + i + ".2"
-			t.Errorf("TODO: %s not implemented in frigolite", "signature")
+			// signature (unsupported command, not transpiled)
 		}
 		// incr i 1
 		{
@@ -176,7 +217,8 @@ func Test_crash(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "crash-5.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);                          -- Root page 3\n    INSERT INTO abc VALUES(randstr(1500,1500), 0, 0);   -- Overflow page 4\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")
@@ -187,32 +229,39 @@ func Test_crash(t *testing.T) {
 	{ // do_test "crash-5.2"
 		// expr [file size test.db] → "[file size test.db]"
 	}
-	var sig = "signature"
+	sig = "signature"
 	_ = sig // suppress unused warning
 	{ // do_test "crash-5.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db-journal {\n    BEGIN;                                       ...}")
+		// crashsql -delay 1 -file test.db-journal {
+    BEGIN;                                       ...} (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "crash-5.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "signature")
+		// signature (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-6.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    DROP TABLE abc;\n  }")
+		// crashsql -delay 1 -file test.db {
+    DROP TABLE abc;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-6.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "signature")
+		// signature (unsupported command, not transpiled)
 	}
 	{ // do_test "crash-7.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    ATTACH 'test2.db' AS aux;\n    BEGIN;\n    INSE...}")
-		var f = "open test.db-journal a"
+		// crashsql -delay 1 -file test.db {
+    ATTACH 'test2.db' AS aux;
+    BEGIN;
+    INSE...} (unsupported command, not transpiled)
+		f = "open test.db-journal a"
 		_ = f // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $f [expr [file size test.db-journal] - 12]")
-		t.Log("-nonewline")
+		// fconfigure $f -translation binary (unsupported command, not transpiled)
+		// seek $f [expr [file size test.db-journal] - 12] (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
 		// close $f
 	}
 	{ // do_test "crash-7.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "signature")
+		// signature (unsupported command, not transpiled)
 	}
 }

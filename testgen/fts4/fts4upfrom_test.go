@@ -41,8 +41,21 @@ func Test_fts4upfrom(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var create_table string
+	_ = create_table // pre-declared from TCL source
+	var ROWID string
+	_ = ROWID // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts4upfrom"
+	testprefix = "fts4upfrom"
 	_ = testprefix // suppress unused warning
 	// foreach {tn create_table} "\n  0 { CREATE VIRTUAL TABLE ft USING fts5(a, b, c) }\n  1 { CREATE VIRTUAL TABLE ft USING fts3(a, b, c) }\n  2 { CREATE TABLE ft(a, b, c) }\n  3 { \n    CREATE TABLE real(a, b, c);\n    CREATE INDEX i1 ON real(a);\n    CREATE VIEW ft AS SELECT rowid, a, b, c FROM real;\n    CREATE TRIGGER tr1 INSTEAD OF INSERT ON ft BEGIN\n      INSERT INTO real(rowid, a, b, c) VALUES(new.rowid, new.a, new.b, new.c);\n    END;\n    CREATE TRIGGER tr2 INSTEAD OF UPDATE ON ft BEGIN\n      UPDATE real SET rowid=new.rowid, a=new.a, b=new.b, c=new.c \n      WHERE rowid=old.rowid;\n    END;\n  }\n"
 	_items0 := tclSplitList("\n  0 { CREATE VIRTUAL TABLE ft USING fts5(a, b, c) }\n  1 { CREATE VIRTUAL TABLE ft USING fts3(a, b, c) }\n  2 { CREATE TABLE ft(a, b, c) }\n  3 { \n    CREATE TABLE real(a, b, c);\n    CREATE INDEX i1 ON real(a);\n    CREATE VIEW ft AS SELECT rowid, a, b, c FROM real;\n    CREATE TRIGGER tr1 INSTEAD OF INSERT ON ft BEGIN\n      INSERT INTO real(rowid, a, b, c) VALUES(new.rowid, new.a, new.b, new.c);\n    END;\n    CREATE TRIGGER tr2 INSTEAD OF UPDATE ON ft BEGIN\n      UPDATE real SET rowid=new.rowid, a=new.a, b=new.b, c=new.c \n      WHERE rowid=old.rowid;\n    END;\n  }\n")
@@ -142,10 +155,10 @@ func Test_fts4upfrom(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			var ROWID = "rowid"
+			ROWID = "rowid"
 			_ = ROWID // suppress unused warning
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
-				var ROWID = "docid"
+				ROWID = "docid"
 				_ = ROWID // suppress unused warning
 			}
 			{ // "1." + tn + ".9"

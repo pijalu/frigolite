@@ -40,8 +40,21 @@ func Test_alterdropcol(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var wo string
+	_ = wo // pre-declared from TCL source
+	var vs string
+	_ = vs // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "alterdropcol"
+	testprefix = "alterdropcol"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE VIEW v1 AS SELECT * FROM t1;\n\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y, z UNIQUE);\n  CREATE INDEX t2y ON t2(y);\n\n  CREATE TABLE t3(q, r, s);\n  CREATE INDEX t3rs ON t3(r+s);\n")
@@ -147,9 +160,7 @@ func Test_alterdropcol(t *testing.T) {
 		wo := _items0[_idx0+1]
 		_ = wo // suppress unused warning
 		_ = _idx0
-			// eval [string map [list %TN% $tn %WO% $wo] {
-
-  reset_db...
+			// eval (dynamic, not transpiled)
 		}
 		db.Close()
 		db, err = frigolite.Open("")
@@ -411,7 +422,8 @@ func Test_alterdropcol(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_schema \n  SET sql = 'CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b)'\n")
 				}
 			}
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "8.1"
 				_res = db.Exec("\n  ALTER TABLE t1 DROP COLUMN b;                \n")
@@ -432,13 +444,13 @@ func Test_alterdropcol(t *testing.T) {
 				}
 			}
 			// foreach {tn wo} "\n  1 {}\n  2 {WITHOUT ROWID}\n"
-			_items2 := tclSplitList("\n  1 {}\n  2 {WITHOUT ROWID}\n")
-			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-				tn := _items2[_idx2+0]
+			_items3 := tclSplitList("\n  1 {}\n  2 {WITHOUT ROWID}\n")
+			for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+				tn := _items3[_idx3+0]
 				_ = tn // suppress unused warning
-				wo := _items2[_idx2+1]
+				wo := _items3[_idx3+1]
 				_ = wo // suppress unused warning
-				_ = _idx2
+				_ = _idx3
 					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }

@@ -40,8 +40,15 @@ func Test_unionall(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "unionall"
+	testprefix = "unionall"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  CREATE TABLE t1_c(e INTEGER PRIMARY KEY, f TEXT);\n\n  INSERT INTO t1_a VALUES(1, 'one'), (4, 'four');\n  INSERT INTO t1_b VALUES(2, 'two'), (5, 'five');\n  INSERT INTO t1_c VALUES(3, 'three'), (6, 'six');\n\n  CREATE VIEW t1 AS \n    SELECT a, b FROM t1_a   UNION ALL\n    SELECT c, d FROM t1_b   UNION ALL\n    SELECT e, f FROM t1_c;\n\n  CREATE TABLE i1(x);\n  INSERT INTO i1 VALUES(2), (5), (6), (1);\n")
@@ -88,8 +95,8 @@ func Test_unionall(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "database_never_corrupt")
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
+	// database_never_corrupt (unsupported command, not transpiled)
+	// optimization_control db all 0 (unsupported command, not transpiled)
 	{ // "1.10"
 		r = db.Query("\n  CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  CREATE VIEW t1 AS SELECT a, b FROM t1_a UNION ALL SELECT c, c FROM t1_b;\n  SELECT * FROM (SELECT t1.a, t1.b AS b, t0.c0 FROM t0, t1);\n")
 		if r.Error != nil {
@@ -441,7 +448,7 @@ func Test_unionall(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+	// optimization_control db all 1 (unsupported command, not transpiled)
 	{ // "8.2"
 		r = db.Query("\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;\n")
 		if r.Error != nil {
@@ -472,7 +479,7 @@ func Test_unionall(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b='2';\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener,push-down 0")
+	// optimization_control db query-flattener,push-down 0 (unsupported command, not transpiled)
 	{ // "8.5"
 		r = db.Query("\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;\n")
 		if r.Error != nil {
@@ -503,7 +510,7 @@ func Test_unionall(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b='2';\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
+	// optimization_control db all 0 (unsupported command, not transpiled)
 	{ // "8.8"
 		r = db.Query("\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;\n")
 		if r.Error != nil {

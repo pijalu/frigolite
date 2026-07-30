@@ -39,6 +39,11 @@ func Test_tkt_3998683a16(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-3998683a16.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y REAL);\n    INSERT INTO t1 VALUES(1, '1.0');\n    INSERT INTO t1 VALUES(2, '.125');\n    INSERT INTO t1 VALUES(3, '123.');\n    INSERT INTO t1 VALUES(4, '123.e+2');\n    INSERT INTO t1 VALUES(5, '.125e+3');\n    INSERT INTO t1 VALUES(6, '123e4');\n    INSERT INTO t1 VALUES(11, '  1.0');\n    INSERT INTO t1 VALUES(12, '  .125');\n    INSERT INTO t1 VALUES(13, '  123.');\n    INSERT INTO t1 VALUES(14, '  123.e+2');\n    INSERT INTO t1 VALUES(15, '  .125e+3');\n    INSERT INTO t1 VALUES(16, '  123e4');\n    INSERT INTO t1 VALUES(21, '1.0  ');\n    INSERT INTO t1 VALUES(22, '.125  ');\n    INSERT INTO t1 VALUES(23, '123.  ');\n    INSERT INTO t1 VALUES(24, '123.e+2  ');\n    INSERT INTO t1 VALUES(25, '.125e+3  ');\n    INSERT INTO t1 VALUES(26, '123e4  ');\n    SELECT x FROM t1 WHERE typeof(y)=='real' ORDER BY x;\n  ")

@@ -39,8 +39,19 @@ func Test_qrf02(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var result2 string
+	_ = result2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "qrf02"
+	testprefix = "qrf02"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n")
@@ -48,16 +59,16 @@ func Test_qrf02(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n")
 		}
 	}
-	var result = "db format {EXPLAIN SELECT * FROM t1}"
+	result = "db format {EXPLAIN SELECT * FROM t1}"
 	_ = result // suppress unused warning
 	{ // do_test "1.10"
 	}
-	N := tclRegsub("-all", "\\d+", result)
-	_ = N // suppress unused warning
+	result2 = tclRegsubAll("\\d+", result, "N")
+	_ = result2 // suppress unused warning
 	{ // do_test "1.11"
 	}
 	{ // do_test "1.20"
-		var result = "\\n" + "db format {EXPLAIN QUERY PLAN SELECT * FROM t1}"
+		result = "\\n" + "db format {EXPLAIN QUERY PLAN SELECT * FROM t1}"
 		_ = result // suppress unused warning
 	}
 }

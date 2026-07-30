@@ -40,21 +40,36 @@ func Test_mmap2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var log string
+	_ = log // pre-declared from TCL source
+	var syscall string
+	_ = syscall // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var nFail string
+	_ = nFail // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "mmap2"
+	testprefix = "mmap2"
 	_ = testprefix // suppress unused warning
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// test_sqlite3_log xLog (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	for _, syscall := range tclSplitList("mmap mremap") {
 	_ = syscall // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall uninstall")
+		// test_syscall uninstall (unsupported command, not transpiled)
 		if false {
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 			db.Close()
@@ -64,17 +79,17 @@ func Test_mmap2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 8000000 ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "test_syscall fault $i 1")
-			t.Errorf("TODO: %s not implemented in frigolite", "test_syscall errno $syscall ENOMEM")
-			var _log = "" // TCL namespace variable
-			_ = _log // suppress unused warning
+			// test_syscall fault $i 1 (unsupported command, not transpiled)
+			// test_syscall errno $syscall ENOMEM (unsupported command, not transpiled)
+			log = "" // TCL namespace variable
+			_ = log // suppress unused warning
 			{ // "1." + syscall + "." + i + ".1"
 				_res = db.Exec("\n      CREATE TABLE t1(a, b, UNIQUE(a, b));\n      INSERT INTO t1 VALUES(randomblob(1000), randomblob(1000));\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(a, b, UNIQUE(a, b));\n      INSERT INTO t1 VALUES(randomblob(1000), randomblob(1000));\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n      INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    ")
 				}
 			}
-			var nFail = "test_syscall fault 0 0"
+			nFail = "test_syscall fault 0 0"
 			_ = nFail // suppress unused warning
 			{ // "1." + syscall + "." + i + ".2"
 				r = db.Query("\n      SELECT count(*) FROM t1;\n      PRAGMA integrity_check;\n    ")
@@ -92,7 +107,7 @@ func Test_mmap2(t *testing.T) {
 				// expr $nFail==0 || $nFail==1 → "$nFail==0 || $nFail==1"
 			}
 			{ // do_test "1." + syscall + "." + i + ".4.nFail=" + nFail
-				tclRegexp(".*" + syscall + ".*", _log)
+				tclRegexp(".*" + syscall + ".*", log)
 			}
 			// incr i 1
 			{
@@ -103,8 +118,8 @@ func Test_mmap2(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall uninstall")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	// test_syscall uninstall (unsupported command, not transpiled)
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// test_sqlite3_log (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
 }

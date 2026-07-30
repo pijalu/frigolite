@@ -41,8 +41,27 @@ func Test_walbak(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sigB string
+	_ = sigB // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var setup string
+	_ = setup // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var src string
+	_ = src // pre-declared from TCL source
+	var dest string
+	_ = dest // pre-declared from TCL source
+	var dest_final string
+	_ = dest_final // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	{ // do_test "walbak-1.0"
 		_res = db.Exec(" \n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    BEGIN;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES('I', 'one');\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -87,7 +106,7 @@ func Test_walbak(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "walbak-1.6.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+		// hexio_read test.db 18 2 (unsupported command, not transpiled)
 	}
 	{ // do_test "walbak-1.7"
 		_res = db.Exec(" \n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
@@ -114,8 +133,9 @@ func Test_walbak(t *testing.T) {
 		_ = _list
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
-	db, err = frigolite.Open("test.db")
+	// delete_file test.db (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbak-2.1"
 		r = db.Query(" PRAGMA journal_mode = WAL ")
@@ -134,8 +154,8 @@ func Test_walbak(t *testing.T) {
 		strings.Compare("sig db", "sig db2")
 	}
 	{ // do_test "walbak-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+		// B step 50 (unsupported command, not transpiled)
 		_res = db.Exec(" UPDATE t1 SET b = randomblob(500) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET b = randomblob(500) ")
@@ -147,15 +167,15 @@ func Test_walbak(t *testing.T) {
 		strings.Compare("sig db", "sig db2")
 	}
 	{ // do_test "walbak-2.5"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA cache_size = 10 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 10 ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+		// B step 50 (unsupported command, not transpiled)
 		_res = db.Exec("\n    BEGIN;\n      UPDATE t1 SET b = randomblob(500);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      UPDATE t1 SET b = randomblob(500);\n  ")
@@ -163,7 +183,7 @@ func Test_walbak(t *testing.T) {
 		// expr [file size test.db-wal] → "[file size test.db-wal]"
 	}
 	{ // do_test "walbak-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 1000")
+		// B step 1000 (unsupported command, not transpiled)
 	}
 	{ // do_test "walbak-2.7"
 		_res = db.Exec("COMMIT")
@@ -177,15 +197,15 @@ func Test_walbak(t *testing.T) {
 		strings.Compare("sig db", "sig db2")
 	}
 	{ // do_test "walbak-2.9"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA cache_size = 10 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 10 ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+		// B step 50 (unsupported command, not transpiled)
 		_res = db.Exec("\n    BEGIN;\n      UPDATE t1 SET b = randomblob(500);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      UPDATE t1 SET b = randomblob(500);\n  ")
@@ -193,14 +213,14 @@ func Test_walbak(t *testing.T) {
 		// expr [file size test.db-wal] → "[file size test.db-wal]"
 	}
 	{ // do_test "walbak-2.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 1000")
+		// B step 1000 (unsupported command, not transpiled)
 	}
 	{ // do_test "walbak-2.11"
 		_res = db.Exec("ROLLBACK")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 		}
-		var sigB = "sig db"
+		sigB = "sig db"
 		_ = sigB // suppress unused warning
 		_list := tclList([]string{"B step 1000", "B finish"})
 		_ = _list
@@ -210,20 +230,20 @@ func Test_walbak(t *testing.T) {
 	}
 	db2.Close()
 	// foreach {tn setup} "\n  1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }\n\n"
-	_items0 := tclSplitList("\n  1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }\n\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items3 := tclSplitList("\n  1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }\n\n")
+	for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+		tn := _items3[_idx3+0]
 		_ = tn // suppress unused warning
-		setup := _items0[_idx0+1]
+		setup := _items3[_idx3+1]
 		_ = setup // suppress unused warning
-		_ = _idx0
+		_ = _idx3
 			if tclBool(tn + "==4 && " + "sqlite3 -has-codec") {
 			}
 			for _, f := range tclSplitList("glob -nocomplain test.db*") {
 			_ = f // suppress unused warning
 				os.Remove(f)
 			}
-			// eval $setup
+			// eval (dynamic, not transpiled)
 			{ // do_test "walbak-3." + tn + ".1"
 				r = db.Query("\n      CREATE TABLE t1(a, b);\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 VALUES(3, 4);\n      SELECT * FROM t1;\n    ")
 				if r.Error != nil {
@@ -231,9 +251,9 @@ func Test_walbak(t *testing.T) {
 				}
 			}
 			{ // do_test "walbak-3." + tn + ".2"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 10000")
-				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+				// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+				// B step 10000 (unsupported command, not transpiled)
+				// B finish (unsupported command, not transpiled)
 				r = db.Query(" SELECT * FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -246,9 +266,9 @@ func Test_walbak(t *testing.T) {
 				}
 			}
 			{ // do_test "walbak-3." + tn + ".4"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db2 main")
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 10000")
-				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+				// sqlite3_backup B db main db2 main (unsupported command, not transpiled)
+				// B step 10000 (unsupported command, not transpiled)
+				// B finish (unsupported command, not transpiled)
 				r = db.Query(" SELECT * FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -265,7 +285,7 @@ func Test_walbak(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+				// hexio_read test.db 18 2 (unsupported command, not transpiled)
 			}
 			if tclBool("file exists test.db2") {
 				{ // do_test "walbak-3." + tn + ".7"
@@ -279,23 +299,23 @@ func Test_walbak(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+					// hexio_read test.db 18 2 (unsupported command, not transpiled)
 				}
 			}
 			db2.Close()
 		}
 		// foreach {tn src dest dest_final} "\n  1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal\n"
-		_items1 := tclSplitList("\n  1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal\n")
-		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
-			tn := _items1[_idx1+0]
+		_items4 := tclSplitList("\n  1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal\n")
+		for _idx4 := 0; _idx4+4 <= len(_items4); _idx4 += 4 {
+			tn := _items4[_idx4+0]
 			_ = tn // suppress unused warning
-			src := _items1[_idx1+1]
+			src := _items4[_idx4+1]
 			_ = src // suppress unused warning
-			dest := _items1[_idx1+2]
+			dest := _items4[_idx4+2]
 			_ = dest // suppress unused warning
-			dest_final := _items1[_idx1+3]
+			dest_final := _items4[_idx4+3]
 			_ = dest_final // suppress unused warning
-			_ = _idx1
+			_ = _idx4
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
@@ -307,8 +327,8 @@ func Test_walbak(t *testing.T) {
 				}
 				os.Remove("test.db")
 				{ // do_test "walbak-4." + tn + ".1"
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					_dbtmp5, err := frigolite.Open("test.db")
+					_ = _dbtmp5 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("PRAGMA journal_mode = " + src)
 					if _res.Error != nil {

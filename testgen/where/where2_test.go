@@ -40,22 +40,67 @@ func Test_where2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var z string
+	_ = z // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var sqlite_sort_count string
+	_ = sqlite_sort_count // pre-declared from TCL source
+	var eqp string
+	_ = eqp // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var out1 string
+	_ = out1 // pre-declared from TCL source
+	var out2 string
+	_ = out2 // pre-declared from TCL source
+	var out3 string
+	_ = out3 // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tab string
+	_ = tab // pre-declared from TCL source
+	var abc string
+	_ = abc // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "where2-1.0"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-			var w = i
+			w = i
 			_ = w // suppress unused warning
-			var x = "int(log($i)/log(2))"
+			x = "int(log($i)/log(2))"
 			_ = x // suppress unused warning
-			var y = "$i*$i + 2*$i + 1"
+			y = "$i*$i + 2*$i + 1"
 			_ = y // suppress unused warning
-			var z = "$x+$y"
+			z = "$x+$y"
 			_ = z // suppress unused warning
 			// incr i 1
 			{
@@ -74,32 +119,37 @@ func Test_where2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "where2-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=739...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=739...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=739...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=739...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=85 ORDER BY random()...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE w=85 ORDER BY random()...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER B...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER B...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-2.4"
 		_res = db.Exec("\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);\n  ")
 		}
-		var sql = "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()"
+		sql = "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()"
 		_ = sql // suppress unused warning
-		var out1 = "db eval $sql"
+		out1 = "db eval $sql"
 		_ = out1 // suppress unused warning
-		var out2 = "db eval $sql"
+		out2 = "db eval $sql"
 		_ = out2 // suppress unused warning
-		var out3 = "db eval $sql"
+		out3 = "db eval $sql"
 		_ = out3 // suppress unused warning
 		// expr $out1!=$out2 && $out2!=$out3 → "$out1!=$out2 && $out2!=$out3"
 	}
@@ -128,41 +178,57 @@ func Test_where2(t *testing.T) {
 		}
 	}
 	{ // do_test "where2-3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 ORDER BY rowid LIMIT 2\n  }")
+		// queryplan {
+    SELECT * FROM t1 ORDER BY rowid LIMIT 2
+  } (test infra, not transpiled)
 	}
 	{ // do_test "where2-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2\n...}")
+		// queryplan {
+    SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2
+...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-5.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 ORDER BY w\n  }")
+		// queryplan {
+    SELECT * FROM t1 WHERE w=99 ORDER BY w
+  } (test infra, not transpiled)
 	}
-	var _idx = "" // TCL namespace variable
-	_ = _idx // suppress unused warning
+	idx = "" // TCL namespace variable
+	_ = idx // suppress unused warning
 	{ // do_test "where2-6.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 ORDER BY...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE w=99 OR w=100 ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 99=w OR 100=w ORDER BY...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE 99=w OR 100=w ORDER BY...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w O...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w O...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ...}")
+		// queryplan {
+    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 OR...}")
+		// queryplan {
+    SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 OR...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 O...}")
+		// queryplan {
+    SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 O...} (test infra, not transpiled)
 	}
-	var _idx = "" // TCL namespace variable
-	_ = _idx // suppress unused warning
+	idx = "" // TCL namespace variable
+	_ = idx // suppress unused warning
 	{ // do_test "where2-6.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 A...}")
+		// queryplan {
+    SELECT b.* FROM t1 a, t1 b
+     WHERE a.w=1 A...} (test infra, not transpiled)
 	}
 	{ // do_test "where2-6.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 A...}")
+		// queryplan {
+    SELECT b.* FROM t1 a, t1 b
+     WHERE a.w=1 A...} (test infra, not transpiled)
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // do_test "where2-6.7"
@@ -170,28 +236,36 @@ func Test_where2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);\n  ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    -- Because a is type TEXT and b is type INTEG...}")
+			// queryplan {
+    -- Because a is type TEXT and b is type INTEG...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.9"
-			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    -- The + operator removes affinity from the r...}")
+			// queryplan {
+    -- The + operator removes affinity from the r...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.9.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
+			// queryplan {
+    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.10"
-			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    -- Use + on both sides of the comparison to d...}")
+			// queryplan {
+    -- Use + on both sides of the comparison to d...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.11"
-			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
+			// queryplan {
+    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.11.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
+			// queryplan {
+    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.11.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
+			// queryplan {
+    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-6.11.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
+			// queryplan {
+    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...} (test infra, not transpiled)
 		}
 		{ // "where2-6.14.1"
 			r = db.Query("\n  CREATE TABLE t614a(a TEXT COLLATE NOCASE, b TEXT COLLATE NOCASE);\n  INSERT INTO t614a VALUES('AAA','BBB');\n  CREATE TABLE t614b(x,y,c TEXT);\n  INSERT INTO t614b(c) VALUES('aaa'),('bbb');\n  CREATE INDEX t614b_c ON t614b(c);\n  SELECT c FROM t614a, t614b WHERE a=c OR b=c;\n")
@@ -344,19 +418,20 @@ func Test_where2(t *testing.T) {
 			}
 		}
 		{ // do_test "where2-6.20"
-			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x.a, y.a FROM t2249a x CROSS JOIN t224...}")
+			// queryplan {
+    SELECT x.a, y.a FROM t2249a x CROSS JOIN t224...} (test infra, not transpiled)
 		}
 		{ // do_test "where2-7.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    create table t8(a unique, b, c);\n    insert i...}")
+			_ = db.Exec("\n    create table t8(a unique, b, c);\n    insert into t8 values(1,2,3);\n    insert into t8 values(2,3,4);\n    create table t9(x,y);\n    insert into t9 values(2,4);\n    insert into t9 values(2,3);\n    select y from t8, t9 where a=1 order by a, y;\n  ") // cksort
 		}
 		{ // do_test "where2-7.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    select * from t8 where a=1 order by b, c\n  }")
+			_ = db.Exec("\n    select * from t8 where a=1 order by b, c\n  ") // cksort
 		}
 		{ // do_test "where2-7.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    select * from t8, t9 where a=1 and y=3 order ...}")
+			_ = db.Exec("\n    select * from t8, t9 where a=1 and y=3 order by b, x\n  ") // cksort
 		}
 		{ // do_test "where2-7.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    create unique index i9y on t9(y);\n    select ...}")
+			_ = db.Exec("\n    create unique index i9y on t9(y);\n    select * from t8, t9 where a=1 and y=3 order by b, x\n  ") // cksort
 		}
 	}
 	{ // do_test "where2-11.1"

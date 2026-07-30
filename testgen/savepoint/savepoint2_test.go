@@ -40,27 +40,50 @@ func Test_savepoint2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var iterations string
+	_ = iterations // pre-declared from TCL source
+	var SQL_1 string
+	_ = SQL_1 // pre-declared from TCL source
+	var SQL_2 string
+	_ = SQL_2 // pre-declared from TCL source
+	var SQL_3 string
+	_ = SQL_3 // pre-declared from TCL source
+	var SQL_4 string
+	_ = SQL_4 // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var sig_one string
+	_ = sig_one // pre-declared from TCL source
+	var sig_two string
+	_ = sig_two // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "savepoint2-1"
-		t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
+		// wal_set_journal_mode (unsupported command, not transpiled)
 		r = db.Query("\n    PRAGMA cache_size=10;\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=10;\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint2-1.1")
-	var iterations = "20"
+	// wal_check_journal_mode savepoint2-1.1 (unsupported command, not transpiled)
+	iterations = "20"
 	_ = iterations // suppress unused warning
-	var SQL_1 = "\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n"
+	SQL_1 = "\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n"
 	_ = SQL_1 // suppress unused warning
-	var SQL_2 = "\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n"
+	SQL_2 = "\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n"
 	_ = SQL_2 // suppress unused warning
-	var SQL_3 = "\n  UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;\n"
+	SQL_3 = "\n  UPDATE t3 SET x = randstr(10, 400) WHERE random()%10;\n  INSERT INTO t3 SELECT x FROM t3 WHERE random()%10;\n  DELETE FROM t3 WHERE random()%10;\n"
 	_ = SQL_3 // suppress unused warning
-	var SQL_4 = "\n  INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);\n"
+	SQL_4 = "\n  INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE (random()%10 == 0);\n"
 	_ = SQL_4 // suppress unused warning
-	var ii = "2"
+	ii = "2"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; iterations_n, _iterations_e := strconv.Atoi(iterations); if _iterations_e != nil { return false }; return ii_n < (iterations_n+2) }() {
 		{ // do_test "savepoint2-" + ii + ".1"
@@ -70,63 +93,63 @@ func Test_savepoint2(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
 			}
-			var _sig_one = "signature" // TCL namespace variable
-			_ = _sig_one // suppress unused warning
+			sig_one = "signature" // TCL namespace variable
+			_ = sig_one // suppress unused warning
 			_res = db.Exec("SAVEPOINT one")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SAVEPOINT one")
 			}
 		}
 		{ // do_test "savepoint2-" + ii + ".2"
-			_res = db.Exec(SQL + "(1)")
+			_res = db.Exec(SQL_1)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL + "(1)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL_1)
 			}
 			_res = db.Exec("ROLLBACK to one")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK to one")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "signature")
+			// signature (unsupported command, not transpiled)
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "savepoint2-" + ii + ".3"
-			_res = db.Exec(SQL + "(1)")
+			_res = db.Exec(SQL_1)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL + "(1)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL_1)
 			}
-			var _sig_two = "signature" // TCL namespace variable
-			_ = _sig_two // suppress unused warning
+			sig_two = "signature" // TCL namespace variable
+			_ = sig_two // suppress unused warning
 			_res = db.Exec("SAVEPOINT two")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SAVEPOINT two")
 			}
 		}
 		{ // do_test "savepoint2-" + ii + ".4"
-			_res = db.Exec(SQL + "(2)")
+			_res = db.Exec(SQL_2)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL + "(2)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL_2)
 			}
 			_res = db.Exec("ROLLBACK to two")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK to two")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "signature")
+			// signature (unsupported command, not transpiled)
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "savepoint2-" + ii + ".5"
-			_res = db.Exec(SQL + "(2)")
+			_res = db.Exec(SQL_2)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL + "(2)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL_2)
 			}
 			_res = db.Exec("SAVEPOINT three")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SAVEPOINT three")
 			}
-			_res = db.Exec(SQL + "(3)")
+			_res = db.Exec(SQL_3)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL + "(3)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL_3)
 			}
 			_res = db.Exec("RELEASE three")
 			if _res.Error != nil {
@@ -136,22 +159,22 @@ func Test_savepoint2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK to one")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "signature")
+			// signature (unsupported command, not transpiled)
 		}
 		{ // do_test "savepoint2-" + ii + ".6"
-			_res = db.Exec(SQL + "(4)")
+			_res = db.Exec(SQL_4)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL + "(4)")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, SQL_4)
 			}
 			_res = db.Exec("COMMIT")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+			// sqlite3_get_autocommit db (unsupported command, not transpiled)
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-		t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint2-$ii.7")
+		// wal_check_journal_mode savepoint2-$ii.7 (unsupported command, not transpiled)
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)

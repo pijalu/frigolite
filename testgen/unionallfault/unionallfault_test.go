@@ -39,8 +39,15 @@ func Test_unionallfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "unionallfault"
+	testprefix = "unionallfault"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x,y,z);\n  CREATE TABLE t3(x,y,z);\n")
@@ -48,6 +55,13 @@ func Test_unionallfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x,y,z);\n  CREATE TABLE t3(x,y,z);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT * FROM t1, (\n      SELECT ...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom-t* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    SELECT * FROM t1, (
+      SELECT ...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 }

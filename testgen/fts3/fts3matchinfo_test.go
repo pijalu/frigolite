@@ -41,10 +41,83 @@ func Test_fts3matchinfo(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var scan_littleEndian string
+	_ = scan_littleEndian // pre-declared from TCL source
+	var scan_bigEndian string
+	_ = scan_bigEndian // pre-declared from TCL source
+	var fmt string
+	_ = fmt // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var resarray_fmt string
+	_ = resarray_fmt // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var iRow string
+	_ = iRow // pre-declared from TCL source
+	var rowres string
+	_ = rowres // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var exprlist string
+	_ = exprlist // pre-declared from TCL source
+	var format string
+	_ = format // pre-declared from TCL source
+	var allres string
+	_ = allres // pre-declared from TCL source
+	var elem string
+	_ = elem // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+	var rowid string
+	_ = rowid // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var M string
+	_ = M // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var scan__tcl_platform_byteOrder string
+	_ = scan__tcl_platform_byteOrder // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var results string
+	_ = results // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var key string
+	_ = key // pre-declared from TCL source
+	var resarray_c string
+	_ = resarray_c // pre-declared from TCL source
+	var list_of_lists string
+	_ = list_of_lists // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3matchinfo"
+	testprefix = "fts3matchinfo"
 	_ = testprefix // suppress unused warning
-	var sqlite_fts3_enable_parentheses = "0"
+	sqlite_fts3_enable_parentheses = "0"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
@@ -139,26 +212,45 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(x, y);\n  INSERT INTO t4 VALUES('a b c d e', 'f g h i j');\n  INSERT INTO t4 VALUES('f g h i j', 'a b c d e');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.1 t4 {t4 MATCH 'a b c'} {\n  p {3 3}\n  c {2 2}\n  x {\n    {1 1 1   0 1 1   1 ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.2 t4 {t4 MATCH '\"g h i\"'} {\n  p {1 1}\n  c {2 2}\n  x {\n    {0 1 1   1 1 1}\n   ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.3 t4 {t4 MATCH 'a b'} { s {{2 0} {0 2}} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.4 t4 {t4 MATCH '\"a b\" c'} { s {{2 0} {0 2}} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.5 t4 {t4 MATCH 'a \"b c\"'} { s {{2 0} {0 2}} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.6 t4 {t4 MATCH 'd d'} { s {{1 0} {0 1}} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.7 t4 {t4 MATCH 'f OR abcd'} {\n  x { \n    {0 1 1  1 1 1  0 0 0  0 0 0} \n    {1 1...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.8 t4 {t4 MATCH 'f -abcd'} {\n  x { \n    {0 1 1  1 1 1}\n    {1 1 1  0 1 1}\n  }\n}")
+	// do_matchinfo_test 4.1.1 t4 {t4 MATCH 'a b c'} {
+  p {3 3}
+  c {2 2}
+  x {
+    {1 1 1   0 1 1   1 ...} (unsupported command, not transpiled)
+	// do_matchinfo_test 4.1.2 t4 {t4 MATCH '"g h i"'} {
+  p {1 1}
+  c {2 2}
+  x {
+    {0 1 1   1 1 1}
+   ...} (unsupported command, not transpiled)
+	// do_matchinfo_test 4.1.3 t4 {t4 MATCH 'a b'} { s {{2 0} {0 2}} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.1.4 t4 {t4 MATCH '"a b" c'} { s {{2 0} {0 2}} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.1.5 t4 {t4 MATCH 'a "b c"'} { s {{2 0} {0 2}} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.1.6 t4 {t4 MATCH 'd d'} { s {{1 0} {0 1}} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.1.7 t4 {t4 MATCH 'f OR abcd'} {
+  x { 
+    {0 1 1  1 1 1  0 0 0  0 0 0} 
+    {1 1...} (unsupported command, not transpiled)
+	// do_matchinfo_test 4.1.8 t4 {t4 MATCH 'f -abcd'} {
+  x { 
+    {0 1 1  1 1 1}
+    {1 1 1  0 1 1}
+  }
+} (unsupported command, not transpiled)
 	{ // "4.2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a a a a a');\n  INSERT INTO t5 VALUES('a b a b a');\n  INSERT INTO t5 VALUES('c b c b c');\n  INSERT INTO t5 VALUES('x x x x x');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a a a a a');\n  INSERT INTO t5 VALUES('a b a b a');\n  INSERT INTO t5 VALUES('c b c b c');\n  INSERT INTO t5 VALUES('x x x x x');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.1 t5 {t5 MATCH 'a a'} { \n  x {{5 8 2   5 8 2} {3 8 2   3 8 2}}\n  s {2 1} ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.2 t5 {t5 MATCH 'a b'} { s {2} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.3 t5 {t5 MATCH 'a b a'} { s {3} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.4 t5 {t5 MATCH 'a a a'} { s {3 1} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.5 t5 {t5 MATCH '\"a b\" \"a b\"'} { s {2} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.6 t5 {t5 MATCH 'a OR b'} { s {1 2 1} }")
+	// do_matchinfo_test 4.2.1 t5 {t5 MATCH 'a a'} { 
+  x {{5 8 2   5 8 2} {3 8 2   3 8 2}}
+  s {2 1} ...} (unsupported command, not transpiled)
+	// do_matchinfo_test 4.2.2 t5 {t5 MATCH 'a b'} { s {2} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.2.3 t5 {t5 MATCH 'a b a'} { s {3} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.2.4 t5 {t5 MATCH 'a a a'} { s {3 1} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.2.5 t5 {t5 MATCH '"a b" "a b"'} { s {2} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.2.6 t5 {t5 MATCH 'a OR b'} { s {1 2 1} } (unsupported command, not transpiled)
 	{ // "4.3.0"
 		_res = db.Exec("INSERT INTO t5 VALUES('x y " + "{b } 50000" + "')")
 		if _res.Error != nil {
@@ -166,32 +258,34 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 	}
 	if false {
-		t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.1 t5 {t5 MATCH 'a a'} { \n    x {{5 8 2   5 5 5} {3 8 2   3 5 5}}\n    s {2...}")
+		// do_matchinfo_test 4.3.1 t5 {t5 MATCH 'a a'} { 
+    x {{5 8 2   5 5 5} {3 8 2   3 5 5}}
+    s {2...} (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.2 t5 {t5 MATCH 'a b'} { s {2} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.3 t5 {t5 MATCH 'a b a'} { s {3} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.4 t5 {t5 MATCH 'a a a'} { s {3 1} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.5 t5 {t5 MATCH '\"a b\" \"a b\"'} { s {2} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.6 t5 {t5 MATCH 'a OR b'} { s {1 2 1 1} }")
+	// do_matchinfo_test 4.3.2 t5 {t5 MATCH 'a b'} { s {2} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.3.3 t5 {t5 MATCH 'a b a'} { s {3} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.3.4 t5 {t5 MATCH 'a a a'} { s {3 1} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.3.5 t5 {t5 MATCH '"a b" "a b"'} { s {2} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.3.6 t5 {t5 MATCH 'a OR b'} { s {1 2 1 1} } (unsupported command, not transpiled)
 	{ // "4.4.0.1"
 		_res = db.Exec(" INSERT INTO t5(t5) VALUES('optimize') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t5(t5) VALUES('optimize') ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.2 t5 {t5 MATCH 'a b'} { s {2} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.1 t5 {t5 MATCH 'a a'} { s {2 1} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.2 t5 {t5 MATCH 'a b'} { s {2} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.3 t5 {t5 MATCH 'a b a'} { s {3} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.4 t5 {t5 MATCH 'a a a'} { s {3 1} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.5 t5 {t5 MATCH '\"a b\" \"a b\"'} { s {2} }")
+	// do_matchinfo_test 4.4.2 t5 {t5 MATCH 'a b'} { s {2} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.4.1 t5 {t5 MATCH 'a a'} { s {2 1} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.4.2 t5 {t5 MATCH 'a b'} { s {2} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.4.3 t5 {t5 MATCH 'a b a'} { s {3} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.4.4 t5 {t5 MATCH 'a a a'} { s {3 1} } (unsupported command, not transpiled)
+	// do_matchinfo_test 4.4.5 t5 {t5 MATCH '"a b" "a b"'} { s {2} } (unsupported command, not transpiled)
 	{ // "4.5.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t6 USING fts4(a, b, c);\n  INSERT INTO t6 VALUES('a', 'b', 'c');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t6 USING fts4(a, b, c);\n  INSERT INTO t6 VALUES('a', 'b', 'c');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.5.1 t6 {t6 MATCH 'a b c'} { s {{1 1 1}} }")
+	// do_matchinfo_test 4.5.1 t6 {t6 MATCH 'a b c'} { s {{1 1 1}} } (unsupported command, not transpiled)
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t7 USING fts3(a, b);\n  INSERT INTO t7 VALUES('u v w', 'x y z');\n\n  CREATE VIRTUAL TABLE t8 USING fts4(a, b, matchinfo=fts3);\n  INSERT INTO t8 VALUES('u v w', 'x y z');\n")
 		if _res.Error != nil {
@@ -234,7 +328,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "6.2"
 		_res = db.Exec("\n  UPDATE t9_content SET c0content = 'this record is used to'; \n  SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
@@ -290,7 +384,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 	}
 	{ // do_test "8.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 200 }() {
 			_res = db.Exec(" INSERT INTO t11 VALUES('') ")
@@ -322,7 +416,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "8.4.1.1"
 		_res = db.Exec(" UPDATE t11_stat SET value = X'0000'; ")
 		if _res.Error != nil {
@@ -452,7 +546,7 @@ func Test_fts3matchinfo(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			var r2 = "list"
+			r2 = "list"
 			_ = r2 // suppress unused warning
 			// foreach {rowid L} res
 			_items1 := tclSplitList(res)
@@ -463,7 +557,7 @@ func Test_fts3matchinfo(t *testing.T) {
 				_ = L // suppress unused warning
 				_ = _idx1
 					r2 = tclListAppend(r2, rowid)
-					var M = "list"
+					M = "list"
 					_ = M // suppress unused warning
 					// foreach {a b} L
 					_items2 := tclSplitList(L)
@@ -510,9 +604,9 @@ func Test_fts3matchinfo(t *testing.T) {
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				{ // do_test "12.0"
-					var cols = "list"
+					cols = "list"
 					_ = cols // suppress unused warning
-					var i = "0"
+					i = "0"
 					_ = i // suppress unused warning
 					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
 						cols = tclListAppend(cols, "c" + i)

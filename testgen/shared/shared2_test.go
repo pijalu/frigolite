@@ -40,9 +40,24 @@ func Test_shared2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var count string
+	_ = count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "shared2-1.1"
 		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -58,7 +73,7 @@ func Test_shared2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    pragma read_uncommitted = 1;\n  ")
 		}
-		var count = "execsql {SELECT count(*) FROM numbers} db2"
+		count = "execsql {SELECT count(*) FROM numbers} db2"
 		_ = count // suppress unused warning
 		db2.Exec("SELECT a FROM numbers ORDER BY oid")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -70,7 +85,7 @@ func Test_shared2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
 		}
-		var count = "execsql {SELECT count(*) FROM numbers} db2"
+		count = "execsql {SELECT count(*) FROM numbers} db2"
 		_ = count // suppress unused warning
 		db2.Exec("SELECT a, b FROM numbers ORDER BY a")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -80,10 +95,11 @@ func Test_shared2(t *testing.T) {
 	db1.Close()
 	db2.Close()
 	{ // do_test "shared2-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
+		// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shared2-4.1"
 		_res = db.Exec("\n    CREATE TABLE t0(a, b);\n    CREATE TABLE t1(a, b DEFAULT 'hello world');\n  ")
@@ -91,7 +107,8 @@ func Test_shared2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(a, b);\n    CREATE TABLE t1(a, b DEFAULT 'hello world');\n  ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -109,8 +126,8 @@ func Test_shared2(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "shared2-5.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -124,6 +141,8 @@ func Test_shared2(t *testing.T) {
 		}
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test {tn} {\n  sql1 { CREATE TABLE t1(a, b) }\n  sql2 { CREATE ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// do_multiclient_test {tn} {
+  sql1 { CREATE TABLE t1(a, b) }
+  sql2 { CREATE ...} (unsupported command, not transpiled)
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

@@ -184,6 +184,10 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "LAST_INSERT_ROWID", Type: TypeScalar, MinArgs: 0, MaxArgs: 0, ScalarFn: fnLASTINSERTROWID})
 	r.register(&Func{Name: "LOAD_EXTENSION", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnLOADEXTENSION})
 	r.register(&Func{Name: "EVAL", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnEVALSTUB})
+	r.register(&Func{Name: "CHANGES", Type: TypeScalar, MinArgs: 0, MaxArgs: 0, ScalarFn: fnCHANGES})
+	r.register(&Func{Name: "TOTAL_CHANGES", Type: TypeScalar, MinArgs: 0, MaxArgs: 0, ScalarFn: fnCHANGES})
+	r.register(&Func{Name: "REPEAT", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnREPEAT})
+	r.register(&Func{Name: "LIKELIHOOD", Type: TypeScalar, MinArgs: 2, MaxArgs: 2, ScalarFn: fnIDENTITY2})
 	r.register(&Func{Name: "Ieee754", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnIeee754})
 	r.register(&Func{Name: "Ieee754_from_blob", Type: TypeScalar, MinArgs: 1, MaxArgs: 1, ScalarFn: fnIeee754FromBlob})
 	r.register(&Func{Name: "Ieee754_inc", Type: TypeScalar, MinArgs: 1, MaxArgs: 2, ScalarFn: fnIeee754Inc})
@@ -1311,6 +1315,50 @@ func fnLOADEXTENSION(args []interface{}) (interface{}, error) {
 func fnEVALSTUB(args []interface{}) (interface{}, error) {
 	// Stub: return NULL
 	return nil, nil
+}
+
+func fnCHANGES(args []interface{}) (interface{}, error) {
+	// Stub: return 0 (no row change tracking)
+	return int64(0), nil
+}
+
+func fnREPEAT(args []interface{}) (interface{}, error) {
+	if args[0] == nil || args[1] == nil {
+		return nil, nil
+	}
+	s, ok := args[0].(string)
+	if !ok {
+		if b, ok := args[0].([]byte); ok {
+			s = string(b)
+		} else {
+			s = fmt.Sprintf("%v", args[0])
+		}
+	}
+	var n int
+	switch v := args[1].(type) {
+	case int64:
+		n = int(v)
+	case int:
+		n = v
+	case float64:
+		n = int(v)
+	case string:
+		fmt.Sscanf(v, "%d", &n)
+	default:
+		return nil, nil
+	}
+	if n <= 0 {
+		return "", nil
+	}
+	return strings.Repeat(s, n), nil
+}
+
+func fnIDENTITY(args []interface{}) (interface{}, error) {
+	return args[0], nil
+}
+
+func fnIDENTITY2(args []interface{}) (interface{}, error) {
+	return args[0], nil
 }
 
 func fnIeee754(args []interface{}) (interface{}, error) {

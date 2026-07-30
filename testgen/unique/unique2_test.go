@@ -40,6 +40,15 @@ func Test_unique2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// foreach {id sql} "\n   1 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL) WITHOUT ROWID}\n   2 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL)}\n   3 {CREATE TABLE t1(x TEXT PRIMARY KEY, y) WITHOUT ROWID}\n   4 {CREATE TABLE t1(x TEXT PRIMARY KEY, y)}\n"
 	_items0 := tclSplitList("\n   1 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL) WITHOUT ROWID}\n   2 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL)}\n   3 {CREATE TABLE t1(x TEXT PRIMARY KEY, y) WITHOUT ROWID}\n   4 {CREATE TABLE t1(x TEXT PRIMARY KEY, y)}\n")

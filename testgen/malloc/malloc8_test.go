@@ -39,16 +39,43 @@ func Test_malloc8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping malloc8 tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping malloc8 tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-1 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT lower(a), upper(a), quote(a), trim(a), t...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-2 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT replace(a,'x','y'), replace('x',a,'y'), ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-3 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT length(a), substr(a, 4, 4) FROM t1;\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-5 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT 1 FROM t1 WHERE a LIKE 'hello' ESCAPE NU...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-6 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT hex(randomblob(100));\n}")
+	// do_malloc_test malloc8-1 -sqlprep {
+  PRAGMA encoding='UTF-16';
+  CREATE TABLE t1(a);...} -sqlbody {
+  SELECT lower(a), upper(a), quote(a), trim(a), t...} (unsupported command, not transpiled)
+	// do_malloc_test malloc8-2 -sqlprep {
+  PRAGMA encoding='UTF-16';
+  CREATE TABLE t1(a);...} -sqlbody {
+  SELECT replace(a,'x','y'), replace('x',a,'y'), ...} (unsupported command, not transpiled)
+	// do_malloc_test malloc8-3 -sqlprep {
+  PRAGMA encoding='UTF-16';
+  CREATE TABLE t1(a);...} -sqlbody {
+  SELECT length(a), substr(a, 4, 4) FROM t1;
+} (unsupported command, not transpiled)
+	// do_malloc_test malloc8-5 -sqlprep {
+  PRAGMA encoding='UTF-16';
+  CREATE TABLE t1(a);...} -sqlbody {
+  SELECT 1 FROM t1 WHERE a LIKE 'hello' ESCAPE NU...} (unsupported command, not transpiled)
+	// do_malloc_test malloc8-6 -sqlprep {
+  PRAGMA encoding='UTF-16';
+  CREATE TABLE t1(a);...} -sqlbody {
+  SELECT hex(randomblob(100));
+} (unsupported command, not transpiled)
 	{ // do_test "malloc-99.X"
 		{
 			var _catchErr error

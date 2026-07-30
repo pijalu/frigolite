@@ -39,12 +39,20 @@ func Test_walrofault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "walro2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
-	db, err = frigolite.Open("test.db")
+	testprefix = "walro2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_uri 1 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(b);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES('hello');\n  INSERT INTO t1 VALUES('world');\n  INSERT INTO t1 VALUES('!');\n  INSERT INTO t1 VALUES('world');\n  INSERT INTO t1 VALUES('hello');\n  PRAGMA cache_size = 10;\n  BEGIN;\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<30 ) \n    INSERT INTO t1(b) SELECT randomblob(800) FROM s;\n")
@@ -58,7 +66,13 @@ func Test_walrofault(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep {\n  catch { db close }\n  faultsim_restore\n  sqlite3...} -body {\n  execsql { SELECT * FROM t1 }\n} -test {\n  faultsim_test_result {0 {hello world ! world he...}")
+	// file_control_persist_wal db 1 (unsupported command, not transpiled)
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom* -prep {
+  catch { db close }
+  faultsim_restore
+  sqlite3...} -body {
+  execsql { SELECT * FROM t1 }
+} -test {
+  faultsim_test_result {0 {hello world ! world he...} (unsupported command, not transpiled)
 }

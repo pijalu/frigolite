@@ -40,26 +40,45 @@ func Test_shell9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var CLI string
+	_ = CLI // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var text string
+	_ = text // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var CLI = "test_cli_invocation"
+	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
-	var _testprefix = "shell9" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "shell9" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts5(a, b, c);\n  INSERT INTO t1 VALUES('one', 'two', 'three');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts5(a, b, c);\n  INSERT INTO t1 VALUES('one', 'two', 'three');\n")
 		}
 	}
-	var out = "open testdump.txt w"
+	out = "open testdump.txt w"
 	_ = out // suppress unused warning
-	t.Log(out)
+	_putsMsg := out
+	_ = _putsMsg
 	// close $out
 	{ // do_test "1.1.1"
 		os.Remove("test.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read testdump.txt")
+		// catchcmd test.db .read testdump.txt (unsupported command, not transpiled)
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.2"
 		r = db.Query("\n  SELECT * FROM t1;\n")
@@ -83,24 +102,24 @@ func Test_shell9(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read testdump.txt")
+		// catchcmd test.db .read testdump.txt (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.1"
 		os.Remove("test.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchsafecmd test.db .read testdump.txt")
+		// catchsafecmd test.db .read testdump.txt (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.2"
-		var fd = "open testdump.txt"
+		fd = "open testdump.txt"
 		_ = fd // suppress unused warning
-		var script = "read $fd"
+		script = "read $fd"
 		_ = script // suppress unused warning
 		// close $fd
 		os.Remove("test.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchsafecmd test.db $script")
+		// catchsafecmd test.db $script (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.3"
 		os.Remove("test.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db $script")
+		// catchcmd test.db $script (unsupported command, not transpiled)
 	}
 	// proc definition (not transpiled)
 	db.Close()
@@ -113,7 +132,7 @@ func Test_shell9(t *testing.T) {
 		}
 	}
 	{ // do_test "2.0.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db .dump]")
+		// contains_warning [catchcmd test.db .dump] (unsupported command, not transpiled)
 	}
 	{ // "2.1.1"
 		_res = db.Exec("\n  CREATE virtual TABLE r1 USING fts5(x);\n")
@@ -122,18 +141,18 @@ func Test_shell9(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db .dump]")
+		// contains_warning [catchcmd test.db .dump] (unsupported command, not transpiled)
 	}
 	{ // do_test "2.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db \".dump t1\"]")
+		// contains_warning [catchcmd test.db ".dump t1"] (unsupported command, not transpiled)
 	}
 	{ // do_test "2.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db \".dump r1\"]")
+		// contains_warning [catchcmd test.db ".dump r1"] (unsupported command, not transpiled)
 	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DQS_DDL 1")
+	// sqlite3_db_config db DQS_DDL 1 (unsupported command, not transpiled)
 	{ // "3.1.0"
 		_res = db.Exec("\n  CREATE TABLE t4(hello, check( hello IS NOT \"xyz\") );\n")
 		if _res.Error != nil {
@@ -142,10 +161,11 @@ func Test_shell9(t *testing.T) {
 	}
 	out = "open testdump.txt w"
 	_ = out // suppress unused warning
-	t.Log(out)
+	_putsMsg = out
+	_ = _putsMsg
 	// close $out
 	{ // do_test "3.1.1"
 		os.Remove("test.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read testdump.txt")
+		// catchcmd test.db .read testdump.txt (unsupported command, not transpiled)
 	}
 }

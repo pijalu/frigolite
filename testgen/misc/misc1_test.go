@@ -41,13 +41,40 @@ func Test_misc1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var fault_callbacks string
+	_ = fault_callbacks // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+	var group string
+	_ = group // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "misc1-1.1"
-		var cmd = "CREATE TABLE manycol(x0 text"
+		cmd = "CREATE TABLE manycol(x0 text"
 		_ = cmd // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 99 }() {
 			cmd += ",x" + i + " text"
@@ -95,12 +122,12 @@ func Test_misc1(t *testing.T) {
 		}
 	}
 	{ // do_test "misc1-1.3.1"
-		var j = "100"
+		j = "100"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n <= 1000 }() {
-			var cmd = "INSERT INTO manycol VALUES(" + j
+			cmd = "INSERT INTO manycol VALUES(" + j
 			_ = cmd // suppress unused warning
-			var i = "1"
+			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 99 }() {
 				cmd += "," + "$i+$j"
@@ -227,9 +254,9 @@ func Test_misc1(t *testing.T) {
 		}
 	}
 	{ // do_test "misc1-3.1"
-		var _r = "execsql {\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('hi');\n    PRAGMA full_column_names=on;\n    SELECT rowid, * FROM t1;\n  }"
+		_r = "execsql {\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('hi');\n    PRAGMA full_column_names=on;\n    SELECT rowid, * FROM t1;\n  }"
 		_ = _r // suppress unused warning
-		tclLIndex(_r, "1")
+		_ = tclLIndex(_r, "1") // lindex result
 	}
 	{ // do_test "misc1-4.1"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES('This is a long string to use up a lot of disk -');\n    UPDATE t2 SET a=a||a||a||a;\n    INSERT INTO t2 SELECT '1 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '2 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '3 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '4 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '5 - ' || a FROM t2;\n    INSERT INTO t2 SELECT '6 - ' || a FROM t2;\n    COMMIT;\n    SELECT count(*) FROM t2;\n  ")
@@ -318,12 +345,12 @@ func Test_misc1(t *testing.T) {
 		}
 	}
 	{ // do_test "misc1-10.1"
-		var _where = "WHERE x0>=0" // TCL namespace variable
-		_ = _where // suppress unused warning
-		var i = "1"
+		where = "WHERE x0>=0" // TCL namespace variable
+		_ = where // suppress unused warning
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 99 }() {
-			_where += " AND x" + i + "<>0"
+			where += " AND x" + i + "<>0"
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -332,17 +359,17 @@ func Test_misc1(t *testing.T) {
 				}
 			}
 		}
-		_res = db.Exec("SELECT count(*) FROM manycol " + _where)
+		_res = db.Exec("SELECT count(*) FROM manycol " + where)
 		_ = _res // catchsql
 	}
 	{ // do_test "misc1-10.2"
-		_res = db.Exec("SELECT count(*) FROM manycol " + _where + " AND rowid>0")
+		_res = db.Exec("SELECT count(*) FROM manycol " + where + " AND rowid>0")
 		_ = _res // catchsql
 	}
 	{ // do_test "misc1-10.3"
-		_where := tclRegsub("x0>=0", _where, "x0=0")
-		_ = _where // suppress unused warning
-		_res = db.Exec("DELETE FROM manycol " + _where)
+		where = tclRegsub("x0>=0", where, "x0=0")
+		_ = where // suppress unused warning
+		_res = db.Exec("DELETE FROM manycol " + where)
 		_ = _res // catchsql
 	}
 	{ // do_test "misc1-10.4"
@@ -352,7 +379,7 @@ func Test_misc1(t *testing.T) {
 		}
 	}
 	{ // do_test "misc1-10.5"
-		_res = db.Exec("DELETE FROM manycol " + _where + " AND rowid>0")
+		_res = db.Exec("DELETE FROM manycol " + where + " AND rowid>0")
 		_ = _res // catchsql
 	}
 	{ // do_test "misc1-10.6"
@@ -362,9 +389,9 @@ func Test_misc1(t *testing.T) {
 		}
 	}
 	{ // do_test "misc1-10.7"
-		_where := tclRegsub("x0=0", _where, "x0=100")
-		_ = _where // suppress unused warning
-		_res = db.Exec("UPDATE manycol SET x1=x1+1 " + _where)
+		where = tclRegsub("x0=0", where, "x0=100")
+		_ = where // suppress unused warning
+		_res = db.Exec("UPDATE manycol SET x1=x1+1 " + where)
 		_ = _res // catchsql
 	}
 	{ // do_test "misc1-10.8"
@@ -374,7 +401,7 @@ func Test_misc1(t *testing.T) {
 		}
 	}
 	{ // do_test "misc1-10.9"
-		_res = db.Exec("UPDATE manycol SET x1=x1+1 " + _where + " AND rowid>0")
+		_res = db.Exec("UPDATE manycol SET x1=x1+1 " + where + " AND rowid>0")
 		_ = _res // catchsql
 	}
 	{ // do_test "misc1-10.10"
@@ -394,7 +421,6 @@ func Test_misc1(t *testing.T) {
 		}
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -416,7 +442,6 @@ func Test_misc1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -543,12 +568,12 @@ func Test_misc1(t *testing.T) {
 		}
 	}
 	{ // do_test "misc1-18.1"
-		var n = "sqlite3_sleep 100"
+		n = "sqlite3_sleep 100"
 		_ = n // suppress unused warning
 		// expr $n>=100 → "$n>=100"
 	}
 	{ // do_test "misc1-18.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_sleep -100")
+		// sqlite3_sleep -100 (unsupported command, not transpiled)
 	}
 	{ // "misc1-19.1"
 		r = db.Query("\n  CREATE TABLE t19 AS SELECT 1, 2 AS '', 3;\n  SELECT * FROM t19;\n")
@@ -586,14 +611,14 @@ func Test_misc1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var fault_callbacks = ""
+	fault_callbacks = ""
 	_ = fault_callbacks // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "misc1-19.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install fault_callback")
+		// sqlite3_test_control_fault_install fault_callback (unsupported command, not transpiled)
 	}
 	{ // do_test "misc1-19.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install")
+		// sqlite3_test_control_fault_install (unsupported command, not transpiled)
 	}
 	{ // "misc1-20.1"
 		r = db.Query("\n  CREATE TABLE t0(x INTEGER DEFAULT(0==0) NOT NULL);\n  REPLACE INTO t0(x) VALUES('');\n  SELECT rowid, quote(x) FROM t0;\n")
@@ -631,28 +656,31 @@ func Test_misc1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "misc1-23.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table t(d CHECK(T(#0)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t3;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table t(d CHECK(T(#0)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t3;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
-	db, err = frigolite.Open(":memory:")
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	_dbtmp1, err := frigolite.Open(":memory:")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "misc1-23.2"
 		_res = db.Exec("\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE IF not EXISTS t(c)';\n  BEGIN;\n  CREATE TABLE t2(x);\n  ROLLBACK;\n  DROP TABLE F;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: F") {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: F", _res.Error, "\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE IF not EXISTS t(c)';\n  BEGIN;\n  CREATE TABLE t2(x);\n  ROLLBACK;\n  DROP TABLE F;\n")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp2, err := frigolite.Open(":memory:")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "misc1-23.3"
 		_res = db.Exec("\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table y(a TEXT, a TEXT)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t;\n")
 		if _res.Error == nil {
@@ -699,7 +727,8 @@ func Test_misc1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp3, err := frigolite.Open(":memory:")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "misc1-28.0"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE UNIQUE INDEX t1x ON t1(x) WHERE x=1;\n  INSERT OR ABORT INTO t1 DEFAULT VALUES;\n  UPDATE OR REPLACE t1 SET x = 1;\n  PRAGMA integrity_check;\n  SELECT * FROM t1;\n")

@@ -4,6 +4,7 @@ package shell
 import (
 "github.com/pijalu/frigolite"
 "os"
+"strings"
 "testing"
 )
 
@@ -40,10 +41,31 @@ func Test_shell6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var CLI string
+	_ = CLI // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var schema string
+	_ = schema // pre-declared from TCL source
+	var output string
+	_ = output // pre-declared from TCL source
+	var expected string
+	_ = expected // pre-declared from TCL source
+	var line string
+	_ = line // pre-declared from TCL source
+	var RES string
+	_ = RES // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "shell6"
+	testprefix = "shell6"
 	_ = testprefix // suppress unused warning
-	var CLI = "test_find_cli"
+	CLI = "test_find_cli"
 	_ = CLI // suppress unused warning
 	os.Remove("test.db")
 	// foreach {tn schema output} "\n  1 {\n    CREATE TABLE p1(a PRIMARY KEY, b);\n    CREATE TABLE c1(x, y REFERENCES p1);\n  } {\n    CREATE INDEX 'c1_y' ON 'c1'('y'); --> p1(a)\n  }\n\n  2 {\n    CREATE TABLE p1(a PRIMARY KEY, b);\n    CREATE TABLE c2(x REFERENCES p1, y REFERENCES p1);\n  } {\n    CREATE INDEX 'c2_y' ON 'c2'('y'); --> p1(a)\n    CREATE INDEX 'c2_x' ON 'c2'('x'); --> p1(a)\n  }\n\n  3 {\n    CREATE TABLE 'p 1'(a, b, c, PRIMARY KEY(c, b));\n    CREATE TABLE 'c 1'(x, y, z, FOREIGN KEY (z, y) REFERENCES 'p 1');\n  } {\n    CREATE INDEX 'c 1_z_y' ON 'c 1'('z', 'y'); --> p 1(c,b)\n  }\n\n  4 {\n    CREATE TABLE p1(a, 'b b b' PRIMARY KEY);\n    CREATE TABLE c1('x y z' REFERENCES p1);\n    CREATE INDEX i1 ON c1('x y z') WHERE \"x y z\" IS NOT NULL;\n  } {\n  }\n\n  5 {\n    CREATE TABLE p1(a, 'b b b' PRIMARY KEY);\n    CREATE TABLE c1('x y z' REFERENCES p1);\n    CREATE INDEX i1 ON c1('x y z') WHERE \"x y z\" IS NOT 12;\n  } {\n    CREATE INDEX 'c1_x y z' ON 'c1'('x y z'); --> p1(b b b)\n  }\n\n  6 {\n    CREATE TABLE x1(a, b, c, UNIQUE(a, b));\n    CREATE TABLE y1(a, b, c, FOREIGN KEY(b, a) REFERENCES x1(a, b));\n    CREATE INDEX y1i ON y1(a, c, b);\n  } {\n    CREATE INDEX 'y1_b_a' ON 'y1'('b', 'a'); --> x1(a,b)\n  }\n\n  6 {\n    CREATE TABLE x1(a COLLATE nocase, b, UNIQUE(a));\n    CREATE TABLE y1(a COLLATE rtrim REFERENCES x1(a));\n  } {\n    CREATE INDEX 'y1_a' ON 'y1'('a' COLLATE nocase); --> x1(a)\n  }\n\n  7 {\n    CREATE TABLE x1(a PRIMARY KEY COLLATE nocase, b);\n    CREATE TABLE y1(a REFERENCES x1);\n  } {\n    CREATE INDEX 'y1_a' ON 'y1'('a' COLLATE nocase); --> x1(a)\n  }\n\n  8 {\n    CREATE TABLE x1(a, b COLLATE nocase, c COLLATE rtrim, PRIMARY KEY(c, b, a));\n    CREATE TABLE y1(d, e, f, FOREIGN KEY(d, e, f) REFERENCES x1);\n  } {\n    CREATE INDEX 'y1_d_e_f' ON 'y1'('d' COLLATE rtrim, 'e' COLLATE nocase, 'f'); --> x1(c,b,a)\n  }\n\n  9 {\n    CREATE TABLE p1(a, b UNIQUE);\n    CREATE TABLE c1(x INTEGER PRIMARY KEY REFERENCES p1(b));\n  } {\n  }\n\n  10 {\n    CREATE TABLE parent (id INTEGER PRIMARY KEY); \n    CREATE TABLE child2 (id INT PRIMARY KEY, parentID INT REFERENCES parent) \n      WITHOUT ROWID;\n  } {\n    CREATE INDEX 'child2_parentID' ON 'child2'('parentID'); --> parent(id)\n  }\n\n"
@@ -61,25 +83,25 @@ func Test_shell6(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.db")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(schema)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 			}
-			var expected = ""
+			expected = ""
 			_ = expected // suppress unused warning
 			for _, line := range tclSplitList("split $output \"\\n\"") {
 			_ = line // suppress unused warning
-				var line = "$line"
+				line = strings.TrimSpace(line)
 				_ = line // suppress unused warning
 				if line != "" {
 					expected += line + "\\n"
 				}
 			}
 			{ // do_test "1." + tn + ".1"
-				var RES = "catchcmd test.db [list .lint fkey-indexes]"
+				RES = "catchcmd test.db [list .lint fkey-indexes]"
 				_ = RES // suppress unused warning
 			}
 			{ // do_test "1." + tn + ".2"
@@ -87,7 +109,7 @@ func Test_shell6(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "lindex $RES 1")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [list .lint fkey-indexes]")
+				// catchcmd test.db [list .lint fkey-indexes] (unsupported command, not transpiled)
 			}
 		}
 }

@@ -39,8 +39,15 @@ func Test_autoindex5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "autoindex5"
+	testprefix = "autoindex5"
 	_ = testprefix // suppress unused warning
 	{ // "autoindex5-1.0"
 		_res = db.Exec("\n  CREATE TABLE source_package_status\n          (bug_name TEXT NOT NULL,\n           package INTEGER NOT NULL,\n           vulnerable INTEGER NOT NULL,\n           urgency TEXT NOT NULL,\n           PRIMARY KEY (bug_name, package));\n  CREATE INDEX source_package_status_package\n              ON source_package_status(package);\n  \n  CREATE TABLE source_packages\n              (name TEXT NOT NULL,\n              release TEXT NOT NULL,\n              subrelease TEXT NOT NULL,\n              archive TEXT NOT NULL,\n              version TEXT NOT NULL,\n              version_id INTEGER NOT NULL DEFAULT 0,\n              PRIMARY KEY (name, release, subrelease, archive));\n  \n  CREATE TABLE bugs\n          (name TEXT NOT NULL PRIMARY KEY,\n           cve_status TEXT NOT NULL\n               CHECK (cve_status IN\n                      ('', 'CANDIDATE', 'ASSIGNED', 'RESERVED', 'REJECTED')),\n           not_for_us INTEGER NOT NULL CHECK (not_for_us IN (0, 1)),\n           description TEXT NOT NULL,\n           release_date TEXT NOT NULL,\n           source_file TEXT NOT NULL,\n           source_line INTEGER NOT NULL);\n  \n  CREATE TABLE package_notes\n          (id INTEGER NOT NULL PRIMARY KEY,\n           bug_name TEXT NOT NULL,\n           package TEXT NOT NULL,\n           fixed_version TEXT\n               CHECK (fixed_version IS NULL OR fixed_version <> ''),\n           fixed_version_id INTEGER NOT NULL DEFAULT 0,\n           release TEXT NOT NULL,\n           package_kind TEXT NOT NULL DEFAULT 'unknown',\n           urgency TEXT NOT NULL,\n           bug_origin TEXT NOT NULL DEFAULT '');\n  CREATE INDEX package_notes_package\n              ON package_notes(package);\n  CREATE UNIQUE INDEX package_notes_bug\n              ON package_notes(bug_name, package, release);\n  \n  CREATE TABLE debian_bugs\n          (bug INTEGER NOT NULL,\n           note INTEGER NOT NULL,\n           PRIMARY KEY (bug, note));\n  \n  \n  CREATE VIEW debian_cve AS\n              SELECT DISTINCT debian_bugs.bug, st.bug_name\n              FROM package_notes, debian_bugs, source_package_status AS st\n              WHERE package_notes.bug_name = st.bug_name\n              AND debian_bugs.note = package_notes.id\n              ORDER BY debian_bugs.bug;\n")
@@ -72,7 +79,8 @@ func Test_autoindex5(t *testing.T) {
 			t.Errorf("expected error, got none\n  sql: %s", "\n  DROP TABLE t1;\n  CREATE TABLE t1(aaa);\n  INSERT INTO t1(aaa) VALUES(9);\n  SELECT (\n    SELECT aaa FROM t1 GROUP BY (\n      SELECT bbb FROM (\n        SELECT ccc AS bbb FROM (\n           SELECT 1 ccc\n        ) WHERE rowid IS NOT 1\n      ) WHERE bbb = 1\n    )\n  );\n")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "3.1"
 		r = db.Query("\n  CREATE TABLE t1 (a); INSERT INTO t1 (a) VALUES (104);\n  CREATE TABLE t2 (b); INSERT INTO t2 (b) VALUES (104);\n  CREATE TABLE t3 (c); INSERT INTO t3 (c) VALUES (104);\n  CREATE TABLE t4 (d); INSERT INTO t4 (d) VALUES (104);\n  SELECT *\n  FROM t1 CROSS JOIN t2 ON (t1.a = t2.b) WHERE t2.b IN (\n    SELECT t3.c\n    FROM t3\n    WHERE t3.c IN (\n      SELECT d FROM (SELECT DISTINCT d FROM t4) AS x WHERE x.d=104\n    )\n  );\n")
@@ -86,7 +94,8 @@ func Test_autoindex5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp1, err := frigolite.Open(":memory:")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "3.2"
 		r = db.Query("\n  CREATE TABLE t5(a, b, c, d);\n  CREATE INDEX t5a ON t5(a);\n  CREATE INDEX t5b ON t5(b);\n  CREATE TABLE t6(e);\n  INSERT INTO t6 VALUES(1);\n  INSERT INTO t5 VALUES(1,1,1,1), (2,2,2,2);\n  SELECT * FROM t5 WHERE (a=1 OR b=2) AND c IN (\n    SELECT e FROM (SELECT DISTINCT e FROM t6) WHERE e=1\n  );\n")
@@ -100,7 +109,8 @@ func Test_autoindex5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp2, err := frigolite.Open(":memory:")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "3.3"
 		r = db.Query("\n  CREATE TABLE t1(a1, a2, a3);\n  CREATE INDEX t1a2 ON t1(a2, a1);\n  CREATE INDEX t1a3 ON t1(a3, a1);\n  CREATE TABLE t2(d);\n  INSERT INTO t1 VALUES(3, 1, 1), (3, 2, 2);\n  INSERT INTO t2 VALUES(3);\n  SELECT *, 'x' FROM t1 WHERE (a2=1 OR a3=2) AND a1 = (\n    SELECT d FROM (SELECT DISTINCT d FROM t2) WHERE d=3\n  );\n")

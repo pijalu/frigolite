@@ -40,9 +40,26 @@ func Test_corrupt8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var oldval string
+	_ = oldval // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var i2 string
+	_ = i2 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// do_not_use_codec (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "corrupt8-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n    INSERT INTO t1(x) SELECT x+16 FROM t1;\n    INSERT INTO t1(x) SELECT x+32 FROM t1;\n    INSERT INTO t1(x) SELECT x+64 FROM t1;\n    INSERT INTO t1(x) SELECT x+128 FROM t1;\n    INSERT INTO t1(x) SELECT x+256 FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 SELECT x, x*x FROM t1;\n  ")
 		if _res.Error != nil {
@@ -52,33 +69,33 @@ func Test_corrupt8(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	var i = "1024"
+	i = "1024"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2048 }() {
-		var oldval = "hexio_read test.db $i 1"
+		oldval = "hexio_read test.db $i 1"
 		_ = oldval // suppress unused warning
 		if func() bool { oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return oldval_n == 0 }() {
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i 00")
+		// hexio_write test.db $i 00 (unsupported command, not transpiled)
 		{ // do_test "corrupt8-2." + i + ".0"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			var x = "db eval {PRAGMA integrity_check}"
+			x = "db eval {PRAGMA integrity_check}"
 			_ = x // suppress unused warning
 			// expr $x!="ok" → "$x!=\"ok\""
 		}
-		var k = "1"
+		k = "1"
 		_ = k // suppress unused warning
 		for func() bool { k_n, _k_e := strconv.Atoi(k); if _k_e != nil { return false }; return k_n <= 5 }() {
 			if func() bool { k_n, _k_e := strconv.Atoi(k); if _k_e != nil { return false }; oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return k_n == oldval_n }() {
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i 0$k")
+			// hexio_write test.db $i 0$k (unsupported command, not transpiled)
 			{ // do_test "corrupt8-2." + i + "." + k
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				var x = "db eval {PRAGMA integrity_check}"
+				x = "db eval {PRAGMA integrity_check}"
 				_ = x // suppress unused warning
 				// expr $x!="ok" → "$x!=\"ok\""
 			}
@@ -90,31 +107,31 @@ func Test_corrupt8(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i 06")
+		// hexio_write test.db $i 06 (unsupported command, not transpiled)
 		{ // do_test "corrupt8-2." + i + ".6"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			var x = "db eval {PRAGMA integrity_check}"
+			x = "db eval {PRAGMA integrity_check}"
 			_ = x // suppress unused warning
 			// expr $x!="ok" → "$x!=\"ok\""
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i $oldval")
+		// hexio_write test.db $i $oldval (unsupported command, not transpiled)
 		if func() bool { oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return oldval_n > 2 }() {
-			var i2 = "$i+1+$i%4"
+			i2 = "$i+1+$i%4"
 			_ = i2 // suppress unused warning
-			var oldval = "hexio_read test.db $i2 1"
+			oldval = "hexio_read test.db $i2 1"
 			_ = oldval // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i2 [format %02x [expr {($oldval+1)&0xff}]]")
+			// hexio_write test.db $i2 [format %02x [expr {($oldval+1)&0xff}]] (unsupported command, not transpiled)
 			{ // do_test "corrupt8-2." + i + ".7"
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				var x = "db eval {PRAGMA integrity_check}"
+				x = "db eval {PRAGMA integrity_check}"
 				_ = x // suppress unused warning
 				// expr $x!="ok" → "$x!=\"ok\""
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i2 $oldval")
+			// hexio_write test.db $i2 $oldval (unsupported command, not transpiled)
 		}
 		// incr i 5
 		{

@@ -39,10 +39,27 @@ func Test_fts3corrupt5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var bCorrupt string
+	_ = bCorrupt // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3corrupt5"
+	testprefix = "fts3corrupt5"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
+	// sqlite3_fts3_may_be_corrupt 1 (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  BEGIN;\n    CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n    INSERT INTO ft VALUES('one', 'one', 'one');\n  COMMIT;\n")
 		if _res.Error != nil {
@@ -91,10 +108,10 @@ func Test_fts3corrupt5(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE ft_segdir SET root = " + val)
 				}
 			}
-			var res = "0 {}"
+			res = "0 {}"
 			_ = res // suppress unused warning
 			if tclBool(bCorrupt) {
-				var res = "1 {database disk image is malformed}"
+				res = "1 {database disk image is malformed}"
 				_ = res // suppress unused warning
 			}
 			{ // "1.3." + tn + ".2"

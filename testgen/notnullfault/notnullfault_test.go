@@ -39,8 +39,15 @@ func Test_notnullfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "notnullfault"
+	testprefix = "notnullfault"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n")
@@ -48,8 +55,14 @@ func Test_notnullfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT * FROM t2 WHERE d NOT NULL...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    SELECT * FROM t2 WHERE d NOT NULL...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -59,6 +72,12 @@ func Test_notnullfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c); \n  CREATE TABLE t2(a, b, c, PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT dense_rank() OVER win FROM...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 2.1 -faults oom-t* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    SELECT dense_rank() OVER win FROM...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 }

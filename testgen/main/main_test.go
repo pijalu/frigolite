@@ -40,6 +40,25 @@ func Test_main(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var xyz string
+	_ = xyz // pre-declared from TCL source
+	var hi_u1234x string
+	_ = hi_u1234x // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var hi string
+	_ = hi // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "main-1.30"
 	}
@@ -68,17 +87,17 @@ func Test_main(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.db")
-			var fd = "open test.db w"
+			fd = "open test.db w"
 			_ = fd // suppress unused warning
-			t.Log(fd)
+			_putsMsg := fd
+			_ = _putsMsg
 			// close $fd
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				if _catchErr != nil {
 					v = "1"
@@ -104,10 +123,9 @@ func Test_main(t *testing.T) {
 			os.Remove(f)
 		}
 		os.Remove("testdb")
-		db, err := frigolite.Open("testdb")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("testdb")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -134,10 +152,9 @@ func Test_main(t *testing.T) {
 			os.Remove(f)
 		}
 		os.Remove("testdb")
-		db, err := frigolite.Open("testdb")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("testdb")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -190,7 +207,7 @@ func Test_main(t *testing.T) {
 		_res = db.Exec("select $abc(x")
 		_ = _res // catchsql
 	}
-	var xyz = "123"
+	xyz = "123"
 	_ = xyz // suppress unused warning
 	{ // do_test "main-3.2.11"
 		_res = db.Exec("select $::xyz")
@@ -205,8 +222,8 @@ func Test_main(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "main-3.2.14"
-		var hi\u1234x = "987"
-		_ = hi\u1234x // suppress unused warning
+		hi_u1234x = "987"
+		_ = hi_u1234x // suppress unused warning
 		_res = db.Exec("select \\$hi\\u1234x")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "select \\$hi\\u1234x")
@@ -310,8 +327,8 @@ func Test_main(t *testing.T) {
 			os.Remove(f)
 		}
 		os.Remove("testdb")
-		db, err := frigolite.Open("testdb")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("testdb")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    create table T1(X REAL);  /* C-style comments allowed */\n    insert into T1 values(0.5);\n    insert into T1 values(0.5e2);\n    insert into T1 values(0.5e-002);\n    insert into T1 values(5e-002);\n    insert into T1 values(-5.0e-2);\n    insert into T1 values(-5.1e-2);\n    insert into T1 values(0.5e2);\n    insert into T1 values(0.5E+02);\n    insert into T1 values(5E+02);\n    insert into T1 values(5.0E+03);\n    select x*10 from T1 order by x*5;\n  ")
 		if r.Error != nil {
@@ -319,7 +336,6 @@ func Test_main(t *testing.T) {
 		}
 	}
 	{ // do_test "main-3.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -337,7 +353,6 @@ func Test_main(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "main-3.5"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -358,5 +373,6 @@ func Test_main(t *testing.T) {
 		_res = db.Exec("SELECT 'abc' + #9")
 		_ = _res // catchsql
 	}
-	t.Log("db one {SELECT 'VERSION: ' ||\n                  sqlite_version() || ' ' ||\n                  sqlite_source_id();}")
+	_putsMsg := "db one {SELECT 'VERSION: ' ||\n                  sqlite_version() || ' ' ||\n                  sqlite_source_id();}"
+	_ = _putsMsg
 }

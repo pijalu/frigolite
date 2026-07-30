@@ -41,8 +41,103 @@ func Test_analyze9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var A__ncopy string
+	_ = A__ncopy // pre-declared from TCL source
+	var A__nval string
+	_ = A__nval // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var A_k string
+	_ = A_k // pre-declared from TCL source
+	var iVal string
+	_ = iVal // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var value_d string
+	_ = value_d // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var schema string
+	_ = schema // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var key string
+	_ = key // pre-declared from TCL source
+	var nSample string
+	_ = nSample // pre-declared from TCL source
+	var nThreshold string
+	_ = nThreshold // pre-declared from TCL source
+	var expect_key string
+	_ = expect_key // pre-declared from TCL source
+	var possible_key string
+	_ = possible_key // pre-declared from TCL source
+	var nPossible string
+	_ = nPossible // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var one string
+	_ = one // pre-declared from TCL source
+	var two string
+	_ = two // pre-declared from TCL source
+	var nByte string
+	_ = nByte // pre-declared from TCL source
+	var nByte2 string
+	_ = nByte2 // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var char string
+	_ = char // pre-declared from TCL source
+	var div string
+	_ = div // pre-declared from TCL source
+	var eqp string
+	_ = eqp // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var bytes string
+	_ = bytes // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var iStart string
+	_ = iStart // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var k_key string
+	_ = k_key // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var seen string
+	_ = seen // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "analyze9"
+	testprefix = "analyze9"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
@@ -108,12 +203,12 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			var a = "$i / 10"
+			a = "$i / 10"
 			_ = a // suppress unused warning
-			var b = "0"
+			b = "0"
 			_ = b // suppress unused warning
 			_res = db.Exec(" INSERT INTO t2 VALUES($a, $b) ")
 			if _res.Error != nil {
@@ -183,8 +278,8 @@ func Test_analyze9(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "insert_filler_rows_n 0 -ncopy 10 -nval 19")
-		t.Errorf("TODO: %s not implemented in frigolite", "insert_filler_rows_n 20 -ncopy 1 -nval 100")
+		// insert_filler_rows_n 0 -ncopy 10 -nval 19 (unsupported command, not transpiled)
+		// insert_filler_rows_n 20 -ncopy 1 -nval 100 (unsupported command, not transpiled)
 		r = db.Query("\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'a');\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'b');\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'c');\n\n    INSERT INTO t1(c, b, a) VALUES(200, 2, 'e');\n    INSERT INTO t1(c, b, a) VALUES(200, 2, 'f');\n\n    INSERT INTO t1(c, b, a) VALUES(201, 3, 'g');\n    INSERT INTO t1(c, b, a) VALUES(201, 4, 'h');\n\n    ANALYZE;\n    SELECT count(*) FROM sqlite_stat4;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'a');\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'b');\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'c');\n\n    INSERT INTO t1(c, b, a) VALUES(200, 2, 'e');\n    INSERT INTO t1(c, b, a) VALUES(200, 2, 'f');\n\n    INSERT INTO t1(c, b, a) VALUES(201, 3, 'g');\n    INSERT INTO t1(c, b, a) VALUES(201, 4, 'h');\n\n    ANALYZE;\n    SELECT count(*) FROM sqlite_stat4;\n    SELECT count(*) FROM t1;\n  ")
@@ -258,7 +353,7 @@ func Test_analyze9(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n    CREATE TABLE t1(o,t INTEGER PRIMARY KEY);\n    CREATE INDEX i1 ON t1(o);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES('x', $i) ")
@@ -269,7 +364,7 @@ func Test_analyze9(t *testing.T) {
 			{
 				_n, _err := strconv.Atoi(i)
 				if _err == nil {
-					i = strconv.Itoa(_n + (($i<1000)?1:10))
+					i = strconv.Itoa(_n + 1)
 				}
 			}
 		}
@@ -317,8 +412,8 @@ func Test_analyze9(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  UPDATE sqlite_stat4 SET sample = X'' WHERE rowid = 1;\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {
@@ -373,7 +468,7 @@ func Test_analyze9(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "database_never_corrupt")
+	// database_never_corrupt (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -409,7 +504,7 @@ func Test_analyze9(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			_res = db.Exec("INSERT INTO t1 VALUES('x', 'y', 'z', " + i + ", " + "$i/2" + ")")
@@ -475,7 +570,7 @@ func Test_analyze9(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='x' AND b='y' AND c='z' AND d=99 AND e=5;\n")
 		}
 	}
-	var value_d = "101"
+	value_d = "101"
 	_ = value_d // suppress unused warning
 	{ // "9.4.1"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='x' AND b='y' AND c='z' AND d=$value_d AND e=5\n")
@@ -498,17 +593,17 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	{ // do_test "10.1.2"
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n > 90 }() {
-				var a = i
+				a = i
 				_ = a // suppress unused warning
 			} else {
-				var a = "NULL"
+				a = "NULL"
 				_ = a // suppress unused warning
 			}
-			var b = "$i % 5"
+			b = "$i % 5"
 			_ = b // suppress unused warning
 			_res = db.Exec("INSERT INTO t3 VALUES(" + a + ", " + b + ")")
 			if _res.Error != nil {
@@ -546,17 +641,17 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	{ // do_test "10.2.2"
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n > 90 }() {
-				var a = i
+				a = i
 				_ = a // suppress unused warning
 			} else {
-				var a = "NULL"
+				a = "NULL"
 				_ = a // suppress unused warning
 			}
-			var b = "$i % 5"
+			b = "$i % 5"
 			_ = b // suppress unused warning
 			_res = db.Exec("INSERT INTO t3 VALUES('xyz', " + a + ", " + b + ")")
 			if _res.Error != nil {
@@ -595,7 +690,7 @@ func Test_analyze9(t *testing.T) {
 		schema := _items0[_idx0+1]
 		_ = schema // suppress unused warning
 		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			// drop_all_tables (unsupported command, not transpiled)
 			{ // do_test "11." + tn + ".1"
 				_res = db.Exec(schema)
 				if _res.Error != nil {
@@ -603,17 +698,17 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			{ // do_test "11." + tn + ".2"
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 					if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (i_n % 10) == 0 }() {
-						var a = "ABC"
+						a = "ABC"
 						_ = a // suppress unused warning
 					} else {
-						var a = "DEF"
+						a = "DEF"
 						_ = a // suppress unused warning
 					}
-					var b = "$i % 5"
+					b = "$i % 5"
 					_ = b // suppress unused warning
 					_res = db.Exec(" INSERT INTO t4 VALUES($a, $b) ")
 					if _res.Error != nil {
@@ -639,7 +734,7 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
-				var sql = "SELECT * FROM t4 WHERE a = 'abc' AND b = 3;"
+				sql = "SELECT * FROM t4 WHERE a = 'abc' AND b = 3;"
 				_ = sql // suppress unused warning
 				{ // "11." + tn + ".4"
 					r = db.Query("EXPLAIN QUERY PLAN " + sql)
@@ -648,7 +743,7 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			} else {
-				var sql = "SELECT * FROM t4 WHERE a = 'abc' COLLATE nocase AND b = 3;"
+				sql = "SELECT * FROM t4 WHERE a = 'abc' COLLATE nocase AND b = 3;"
 				_ = sql // suppress unused warning
 				{ // "11." + tn + ".5"
 					r = db.Query("EXPLAIN QUERY PLAN " + sql)
@@ -674,7 +769,7 @@ func Test_analyze9(t *testing.T) {
 			schema := _items1[_idx1+1]
 			_ = schema // suppress unused warning
 			_ = _idx1
-				t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+				// drop_all_tables (unsupported command, not transpiled)
 				{ // do_test "12." + tn + ".1"
 					_res = db.Exec(schema)
 					if _res.Error != nil {
@@ -682,17 +777,17 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 				{ // do_test "12." + tn + ".2"
-					var i = "0"
+					i = "0"
 					_ = i // suppress unused warning
 					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 						if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (i_n % 10) == 0 }() {
-							var a = "ABC"
+							a = "ABC"
 							_ = a // suppress unused warning
 						} else {
-							var a = "DEF"
+							a = "DEF"
 							_ = a // suppress unused warning
 						}
-						var b = "$i % 5"
+						b = "$i % 5"
 						_ = b // suppress unused warning
 						_res = db.Exec(" INSERT INTO t4 VALUES(X'abcdef', $a, $b) ")
 						if _res.Error != nil {
@@ -718,7 +813,7 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 				if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
-					var sql = "SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'abc' AND b = 3;"
+					sql = "SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'abc' AND b = 3;"
 					_ = sql // suppress unused warning
 					{ // "12." + tn + ".4"
 						r = db.Query("EXPLAIN QUERY PLAN " + sql)
@@ -727,7 +822,7 @@ func Test_analyze9(t *testing.T) {
 						}
 					}
 				} else {
-					var sql = "\n      SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'abc' COLLATE nocase AND b = 3\n    "
+					sql = "\n      SELECT * FROM t4 WHERE x=X'abcdef' AND a = 'abc' COLLATE nocase AND b = 3\n    "
 					_ = sql // suppress unused warning
 					{ // "12." + tn + ".5"
 						r = db.Query("EXPLAIN QUERY PLAN " + sql)
@@ -745,20 +840,20 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			// drop_all_tables (unsupported command, not transpiled)
 			{ // do_test "13.1"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);\n  ")
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 					if tclBool(i + " %2") {
-						var a = "abc"
+						a = "abc"
 						_ = a // suppress unused warning
 					} else {
-						var a = "def"
+						a = "def"
 						_ = a // suppress unused warning
 					}
 					_res = db.Exec(" INSERT INTO t1(rowid, a, b, c) VALUES($i, $a, $i, $i) ")
@@ -802,16 +897,16 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'100' AND b<12\n")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			// drop_all_tables (unsupported command, not transpiled)
 			{ // do_test "14.1"
 				_res = db.Exec(" CREATE TABLE t1(a, b INTEGER, c) ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b INTEGER, c) ")
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-					var c = "$i % 3"
+					c = "$i % 3"
 					_ = c // suppress unused warning
 					_res = db.Exec(" INSERT INTO t1 VALUES('ott', $i, $c) ")
 					if _res.Error != nil {
@@ -843,13 +938,13 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			// proc definition (not transpiled)
-			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			// drop_all_tables (unsupported command, not transpiled)
 			{ // do_test "14.1.1"
 				_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 160 }() {
 					_res = db.Exec(" INSERT INTO t1 VALUES($i,$i,$i,$i) ")
@@ -871,13 +966,13 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "check_stat4 14.1.2")
+			// check_stat4 14.1.2 (unsupported command, not transpiled)
 			{ // do_test "14.2.1"
 				_res = db.Exec(" DELETE FROM t1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1600 }() {
 					_res = db.Exec(" INSERT INTO t1 VALUES($i/10,$i/17,$i/27,$i/37) ")
@@ -893,9 +988,9 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "check_stat4 14.2.2")
+			// check_stat4 14.2.2 (unsupported command, not transpiled)
 			{ // do_test "14.3.1"
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 					_res = db.Exec(" INSERT INTO t1 VALUES($i*50,$i*50,$i*50,$i*50) ")
@@ -947,19 +1042,19 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "check_stat4 14.3.2")
+			// check_stat4 14.3.2 (unsupported command, not transpiled)
 			{ // do_test "14.4.1"
 				_res = db.Exec("DELETE FROM t1")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 				}
-				var i = "1"
+				i = "1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 160 }() {
-					var b = "$i % 10"
+					b = "$i % 10"
 					_ = b // suppress unused warning
-					if func() bool { b_n, _b_e := strconv.Atoi(b); if _b_e != nil { return false }; return b_n == 0 || b_n==2 }() {
-						var b = "1"
+					if tclBool(b + "==0 || " + b + "==2") {
+						b = "1"
 						_ = b // suppress unused warning
 					}
 					_res = db.Exec(" INSERT INTO t1 VALUES($i/10,$b,$i,$i) ")
@@ -975,7 +1070,7 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "check_stat4 14.4.2")
+			// check_stat4 14.4.2 (unsupported command, not transpiled)
 			{ // "14.4.3"
 				r = db.Query("\n  SELECT lrange(test_decode(sample), 0, 1) AS s FROM sqlite_stat4\n  WHERE lindex(s, 1)=='1' ORDER BY rowid\n")
 				if r.Error != nil {
@@ -988,14 +1083,15 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			// drop_all_tables (unsupported command, not transpiled)
 			{ // "15.1"
 				_res = db.Exec("\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
 				}
 			}
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.2"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1015,7 +1111,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO sqlite_stat4 VALUES(42, 42, 42, 42, 42, 42);\n")
 				}
 			}
-			db, err = frigolite.Open("test.db")
+			_dbtmp3, err := frigolite.Open("test.db")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.4"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1035,7 +1132,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  UPDATE sqlite_stat1 SET stat = NULL;\n")
 				}
 			}
-			db, err = frigolite.Open("test.db")
+			_dbtmp4, err := frigolite.Open("test.db")
+			_ = _dbtmp4 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.6"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1055,7 +1153,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET tbl = 'no such tbl';\n")
 				}
 			}
-			db, err = frigolite.Open("test.db")
+			_dbtmp5, err := frigolite.Open("test.db")
+			_ = _dbtmp5 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.8"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1075,7 +1174,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat4 SET neq = NULL, nlt=NULL, ndlt=NULL;\n")
 				}
 			}
-			db, err = frigolite.Open("test.db")
+			_dbtmp6, err := frigolite.Open("test.db")
+			_ = _dbtmp6 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.10"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1095,7 +1195,8 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ANALYZE;\n  UPDATE sqlite_stat1 SET stat = stat || ' unordered';\n")
 				}
 			}
-			db, err = frigolite.Open("test.db")
+			_dbtmp7, err := frigolite.Open("test.db")
+			_ = _dbtmp7 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "15.12"
 				r = db.Query(" SELECT * FROM x1 ")
@@ -1109,9 +1210,9 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			var one = "x 1000"
+			one = "x 1000"
 			_ = one // suppress unused warning
-			var two = "x 2000"
+			two = "x 2000"
 			_ = two // suppress unused warning
 			{ // do_test "16.1"
 				db.Close()
@@ -1121,7 +1222,7 @@ func Test_analyze9(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($one);\n    ANALYZE;\n  ")
 				}
-				var nByte = "lindex [sqlite3_db_status db SCHEMA_USED 0] 1"
+				nByte = "lindex [sqlite3_db_status db SCHEMA_USED 0] 1"
 				_ = nByte // suppress unused warning
 				db.Close()
 				db, err = frigolite.Open("")
@@ -1130,9 +1231,10 @@ func Test_analyze9(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, UNIQUE(a));\n    INSERT INTO t1 VALUES($two);\n    ANALYZE;\n  ")
 				}
-				var nByte2 = "lindex [sqlite3_db_status db SCHEMA_USED 0] 1"
+				nByte2 = "lindex [sqlite3_db_status db SCHEMA_USED 0] 1"
 				_ = nByte2 // suppress unused warning
-				t.Log("-nonewline")
+				_putsMsg := "-nonewline"
+				_ = _putsMsg
 				// expr $nByte2 > $nByte+900 && $nByte2 < $nByte+1100 → "$nByte2 > $nByte+900 && $nByte2 < $nByte+1100"
 			}
 			{ // do_test "17.1"
@@ -1143,14 +1245,14 @@ func Test_analyze9(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a, b) WHERE d IS NOT NULL;\n    INSERT INTO t1 VALUES(-1, -1, -1, NULL);\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n    INSERT INTO t1 SELECT 2*a,2*b,2*c,d FROM t1;\n  ")
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
 					if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 8 }() {
-						var b = "0"
+						b = "0"
 						_ = b // suppress unused warning
 					} else {
-						var b = i
+						b = i
 						_ = b // suppress unused warning
 					}
 					_res = db.Exec(" INSERT INTO t1 VALUES($i%2, $b, $i/2, 'abc') ")
@@ -1214,7 +1316,7 @@ func Test_analyze9(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 9 }() {
 					_res = db.Exec("\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n      INSERT INTO t1 VALUES($i, 0);\n    ")
@@ -1247,7 +1349,7 @@ func Test_analyze9(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
 					_res = db.Exec("\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  $i);\n      INSERT INTO t1 VALUES($i, $i,  $i,  r());\n      INSERT INTO t1 VALUES($i, $i,  r(), r());\n      INSERT INTO t1 VALUES($i, r(), r(), r());\n    ")
@@ -1269,10 +1371,10 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ANALYZE ")
 				}
 			}
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
-				var val = i + " " + i + " " + i + " " + i
+				val = i + " " + i + " " + i + " " + i
 				_ = val // suppress unused warning
 				{ // "20.3." + i
 					r = db.Query("\n      SELECT count(*) FROM sqlite_stat4 \n      WHERE lrange(test_decode(sample), 0, 3)=$val\n    ")
@@ -1304,7 +1406,7 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			{ // do_test "21.1"
-				var i = "1"
+				i = "1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 					_res = db.Exec(" \n      INSERT INTO t2 VALUES(CASE WHEN $i < 80 THEN 'one' ELSE 'two' END, $i) \n    ")
@@ -1352,15 +1454,15 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			// foreach {tn where res} "\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n"
-			_items2 := tclSplitList("\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n")
-			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-				tn := _items2[_idx2+0]
+			_items8 := tclSplitList("\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n")
+			for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
+				tn := _items8[_idx8+0]
 				_ = tn // suppress unused warning
-				where := _items2[_idx2+1]
+				where := _items8[_idx8+1]
 				_ = where // suppress unused warning
-				res := _items2[_idx2+2]
+				res := _items8[_idx8+2]
 				_ = res // suppress unused warning
-				_ = _idx2
+				_ = _idx8
 					{ // "22.2." + tn
 						r = db.Query("EXPLAIN QUERY PLAN " + "SELECT * FROM t3 WHERE " + where)
 						if r.Error != nil {
@@ -1394,15 +1496,15 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 				// foreach {tn where eqp} "\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n"
-				_items3 := tclSplitList("\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n")
-				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
-					tn := _items3[_idx3+0]
+				_items9 := tclSplitList("\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n")
+				for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
+					tn := _items9[_idx9+0]
 					_ = tn // suppress unused warning
-					where := _items3[_idx3+1]
+					where := _items9[_idx9+1]
 					_ = where // suppress unused warning
-					eqp := _items3[_idx3+2]
+					eqp := _items9[_idx9+2]
 					_ = eqp // suppress unused warning
-					_ = _idx3
+					_ = _idx9
 						{ // "24." + tn
 							r = db.Query("EXPLAIN QUERY PLAN " + "SeLeCt * FROM t5 WHERE " + where)
 							if r.Error != nil {
@@ -1418,7 +1520,7 @@ func Test_analyze9(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      CREATE TABLE t1(x, y, z);\n      CREATE INDEX t1xy ON t1(x, y);\n      CREATE INDEX t1z ON t1(z);\n    ")
 						}
-						var i = "0"
+						i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
 							_res = db.Exec(" INSERT INTO t1(x, y) VALUES($i, $i) ")

@@ -39,8 +39,15 @@ func Test_tkt_3a77c9714e(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tkt-3a77c9714e"
+	testprefix = "tkt-3a77c9714e"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(t1_id INTEGER PRIMARY KEY, t1_title TEXT);\n  CREATE TABLE t2(t2_id INTEGER PRIMARY KEY, t2_title TEXT);\n  CREATE TABLE t3(t3_id INTEGER PRIMARY KEY, t3_title TEXT);\n\n  INSERT INTO t1 (t1_id, t1_title) VALUES (888, 'ABCDEF');\n  INSERT INTO t2 (t2_id, t2_title) VALUES (999, 'ABCDEF');\n  INSERT INTO t3 (t3_id, t3_title) VALUES (999, 'ABCDEF');\n")

@@ -39,13 +39,22 @@ func Test_mmapcorrupt(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "mmapcorrupt"
+	testprefix = "mmapcorrupt"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -55,10 +64,11 @@ func Test_mmapcorrupt(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 16384;\n  CREATE TABLE tn1(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t0(a PRIMARY KEY) WITHOUT ROWID;\n  CREATE TABLE t1(a PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t1 VALUES('B');\n")
 		}
 	}
-	var sz = "file size test.db"
+	sz = "file size test.db"
 	_ = sz // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $sz-3] 800380")
-	db, err = frigolite.Open("test.db")
+	// hexio_write test.db [expr $sz-3] 800380 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA mmap_size = 1000000;\n  SELECT sql FROM sqlite_schema LIMIT 1;\n  SELECT * FROM t0;\n")

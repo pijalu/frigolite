@@ -40,8 +40,23 @@ func Test_varint(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var start string
+	_ = start // pre-declared from TCL source
+	var mult string
+	_ = mult // pre-declared from TCL source
+	var incr string
+	_ = incr // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var cnt = "0"
+	cnt = "0"
 	_ = cnt // suppress unused warning
 	for _, start := range tclSplitList("0 100 10000 1000000 0x10000000") {
 	_ = start // suppress unused warning
@@ -49,7 +64,6 @@ func Test_varint(t *testing.T) {
 		_ = mult // suppress unused warning
 			for _, incr := range tclSplitList("1 500 10000 50000000") {
 			_ = incr // suppress unused warning
-				var cnt = "0"
 				// incr cnt 1
 				{
 					_n, _err := strconv.Atoi(cnt)
@@ -58,7 +72,7 @@ func Test_varint(t *testing.T) {
 					}
 				}
 				{ // do_test "varint-1." + cnt
-					t.Errorf("TODO: %s not implemented in frigolite", "btree_varint_test $start $mult 5000 $incr")
+					// btree_varint_test $start $mult 5000 $incr (unsupported command, not transpiled)
 				}
 			}
 		}

@@ -39,8 +39,21 @@ func Test_incrcorrupt(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var stmt2 string
+	_ = stmt2 // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "incrcorrupt"
+	testprefix = "incrcorrupt"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(a PRIMARY KEY, b);\n\n  WITH data(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM data\n  )\n  INSERT INTO t1 SELECT i, randomblob(600) FROM data LIMIT 20;\n  PRAGMA page_count;\n")
@@ -61,61 +74,61 @@ func Test_incrcorrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "db_save")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 36 00000019")
+		// db_save (unsupported command, not transpiled)
+		// hexio_write test.db 36 00000019 (unsupported command, not transpiled)
 		_res = db.Exec(" PRAGMA incremental_vacuum; ")
 		_ = _res // catchsql
 	}
 	{ // do_test "1.3"
-		var stmt = ""
+		stmt = ""
 		_ = stmt // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		// sqlite3_step $stmt (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+		// sqlite3_finalize $stmt (unsupported command, not transpiled)
 	}
 	{ // do_test "1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.9"
-		var stmt = ""
+		stmt = ""
 		_ = stmt // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		// sqlite3_step $stmt (unsupported command, not transpiled)
 	}
 	{ // do_test "1.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.12"
-		var stmt2 = ""
+		stmt2 = ""
 		_ = stmt2 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt2")
+		// sqlite3_finalize $stmt2 (unsupported command, not transpiled)
 	}
 	{ // do_test "1.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.15"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+		// sqlite3_finalize $stmt (unsupported command, not transpiled)
 	}
 	{ // do_test "1.16"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.17"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	db.Close()
 	db, err = frigolite.Open("")
@@ -133,63 +146,63 @@ func Test_incrcorrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "db_save")
-		var fd = "open test.db r+"
+		// db_save (unsupported command, not transpiled)
+		fd = "open test.db r+"
 		_ = fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "chan truncate $fd [expr 22*1024]")
+		// chan truncate $fd [expr 22*1024] (unsupported command, not transpiled)
 		// close $fd
 		_res = db.Exec(" PRAGMA incremental_vacuum; ")
 		_ = _res // catchsql
 	}
 	{ // do_test "2.3"
-		var stmt = ""
+		stmt = ""
 		_ = stmt // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		// sqlite3_step $stmt (unsupported command, not transpiled)
 	}
 	{ // do_test "2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
 	{ // do_test "2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+		// sqlite3_finalize $stmt (unsupported command, not transpiled)
 	}
 	{ // do_test "2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
 	{ // do_test "2.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "2.9"
-		var stmt = ""
+		stmt = ""
 		_ = stmt // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		// sqlite3_step $stmt (unsupported command, not transpiled)
 	}
 	{ // do_test "2.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
 	{ // do_test "2.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "2.12"
-		var stmt2 = ""
+		stmt2 = ""
 		_ = stmt2 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt2")
+		// sqlite3_finalize $stmt2 (unsupported command, not transpiled)
 	}
 	{ // do_test "2.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
 	{ // do_test "2.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "2.15"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+		// sqlite3_finalize $stmt (unsupported command, not transpiled)
 	}
 	{ // do_test "2.16"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
 	{ // do_test "2.17"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 }

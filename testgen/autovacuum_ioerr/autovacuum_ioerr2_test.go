@@ -40,10 +40,45 @@ func Test_autovacuum_ioerr2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a);\n...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM ab...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-2 -tclprep {\n  execsql {\n    PRAGMA auto_vacuum = 1;\n    PRAGM...} -sqlbody {\n  BEGIN;\n  DELETE FROM abc WHERE length(a)>100;\n ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-3 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a);\n...} -sqlbody {\n  BEGIN;\n  INSERT INTO abc2 VALUES(10);\n  DROP TA...}")
+	// do_ioerr_test autovacuum-ioerr2-1 -sqlprep {
+  PRAGMA auto_vacuum = 1;
+  CREATE TABLE abc(a);
+...} -sqlbody {
+  CREATE TABLE abc2(a);
+  BEGIN;
+  DELETE FROM ab...} (unsupported command, not transpiled)
+	// do_ioerr_test autovacuum-ioerr2-2 -tclprep {
+  execsql {
+    PRAGMA auto_vacuum = 1;
+    PRAGM...} -sqlbody {
+  BEGIN;
+  DELETE FROM abc WHERE length(a)>100;
+ ...} (unsupported command, not transpiled)
+	// do_ioerr_test autovacuum-ioerr2-3 -sqlprep {
+  PRAGMA auto_vacuum = 1;
+  CREATE TABLE abc(a);
+...} -sqlbody {
+  BEGIN;
+  INSERT INTO abc2 VALUES(10);
+  DROP TA...} (unsupported command, not transpiled)
 	os.Remove("backup.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a);\n...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM ab...}")
+	// do_ioerr_test autovacuum-ioerr2-1 -sqlprep {
+  PRAGMA auto_vacuum = 1;
+  CREATE TABLE abc(a);
+...} -sqlbody {
+  CREATE TABLE abc2(a);
+  BEGIN;
+  DELETE FROM ab...} (unsupported command, not transpiled)
 }

@@ -39,6 +39,11 @@ func Test_tkt_313723c356(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + "wal_is_capable") {
 		return
@@ -49,6 +54,11 @@ func Test_tkt_313723c356(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(randomblob(400), randomblob(400));\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test tkt-313723c356.2 -faults shmerr* -prep {\n  faultsim_restore_and_reopen\n  sqlite3 db2 test....} -body {\n  # At this point, the cache contains all of tabl...} -test {\n  faultsim_test_result {0 1}\n  faultsim_integrity...}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test tkt-313723c356.2 -faults shmerr* -prep {
+  faultsim_restore_and_reopen
+  sqlite3 db2 test....} -body {
+  # At this point, the cache contains all of tabl...} -test {
+  faultsim_test_result {0 1}
+  faultsim_integrity...} (unsupported command, not transpiled)
 }

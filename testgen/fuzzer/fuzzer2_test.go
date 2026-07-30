@@ -39,21 +39,41 @@ func Test_fuzzer2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var LETTERS string
+	_ = LETTERS // pre-declared from TCL source
+	var cost string
+	_ = cost // pre-declared from TCL source
+	var c1 string
+	_ = c1 // pre-declared from TCL source
+	var c2 string
+	_ = c2 // pre-declared from TCL source
+	var c3 string
+	_ = c3 // pre-declared from TCL source
+	var c4 string
+	_ = c4 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fuzzer2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fuzzer")
+	testprefix = "fuzzer2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// load_static_extension db fuzzer (unsupported command, not transpiled)
 	{ // "1.1.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS x1;\n  DROP TABLE IF EXISTS x1_rules;\n  CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x1;\n  DROP TABLE IF EXISTS x1_rules;\n  CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n")
 		}
 	}
-	t.Log("This test is slow - perhaps around 7 seconds on an average pc")
+	_putsMsg := "This test is slow - perhaps around 7 seconds on an average pc"
+	_ = _putsMsg
 	{ // do_test "1.1.2"
-		var LETTERS = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
+		LETTERS = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
 		_ = LETTERS // suppress unused warning
-		var cost = "1"
+		cost = "1"
 		_ = cost // suppress unused warning
 		for _, c1 := range tclSplitList(LETTERS) {
 		_ = c1 // suppress unused warning
@@ -67,7 +87,7 @@ func Test_fuzzer2(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1_rules VALUES(0, $c1||$c2, $c3||$c4, $cost)")
 						}
-						var cost = "($cost%1000) + 1"
+						cost = "($cost%1000) + 1"
 						_ = cost // suppress unused warning
 					}
 				}

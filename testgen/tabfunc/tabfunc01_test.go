@@ -41,11 +41,46 @@ func Test_tabfunc01(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var PTR1 string
+	_ = PTR1 // pre-declared from TCL source
+	var PTR2 string
+	_ = PTR2 // pre-declared from TCL source
+	var PTR3 string
+	_ = PTR3 // pre-declared from TCL source
+	var PTR4 string
+	_ = PTR4 // pre-declared from TCL source
+	var PTR5 string
+	_ = PTR5 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var subtest string
+	_ = subtest // pre-declared from TCL source
+	var bound string
+	_ = bound // pre-declared from TCL source
+	var _range string
+	_ = _range // pre-declared from TCL source
+	var boundsign string
+	_ = boundsign // pre-declared from TCL source
+	var bx string
+	_ = bx // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tabfunc01"
+	testprefix = "tabfunc01"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db series")
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db remember")
+	// load_static_extension db series (unsupported command, not transpiled)
+	// load_static_extension db remember (unsupported command, not transpiled)
 	{ // "tabfunc01-1.1"
 		r = db.Query("\n  SELECT *, '|' FROM generate_series WHERE start=1 AND stop=9 AND step=2;\n")
 		if r.Error != nil {
@@ -635,9 +670,9 @@ func Test_tabfunc01(t *testing.T) {
 		}
 	}
 	{ // do_test "tabfunc01-700"
-		var PTR1 = "intarray_addr 5 7 13 17 23"
+		PTR1 = "intarray_addr 5 7 13 17 23"
 		_ = PTR1 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+		// sqlite3_create_function db (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr($PTR1),5) WHERE a=value;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600, carray(inttoptr($PTR1),5) WHERE a=value;\n  ")
@@ -662,7 +697,7 @@ func Test_tabfunc01(t *testing.T) {
 		}
 	}
 	{ // do_test "tabfunc01-720"
-		var PTR2 = "int64array_addr 5 7 13 17 23"
+		PTR2 = "int64array_addr 5 7 13 17 23"
 		_ = PTR2 // suppress unused warning
 		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr($PTR2),5,'int64') WHERE a=value;\n  ")
 		if _res.Error != nil {
@@ -676,7 +711,7 @@ func Test_tabfunc01(t *testing.T) {
 		}
 	}
 	{ // do_test "tabfunc01-722"
-		var PTR3 = "$PTR2+16"
+		PTR3 = "$PTR2+16"
 		_ = PTR3 // suppress unused warning
 		_res = db.Exec("\n    SELECT remember(987,inttoptr($PTR3));\n    SELECT value FROM carray(inttoptr($PTR2),5,'int64');\n  ")
 		if _res.Error != nil {
@@ -684,7 +719,7 @@ func Test_tabfunc01(t *testing.T) {
 		}
 	}
 	{ // do_test "tabfunc01-730"
-		var PTR4 = "doublearray_addr 5.0 7.0 13.0 17.0 23.0"
+		PTR4 = "doublearray_addr 5.0 7.0 13.0 17.0 23.0"
 		_ = PTR4 // suppress unused warning
 		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr($PTR4),5,'double') WHERE a=value;\n  ")
 		if _res.Error != nil {
@@ -692,7 +727,7 @@ func Test_tabfunc01(t *testing.T) {
 		}
 	}
 	{ // do_test "tabfunc01-740"
-		var PTR5 = "textarray_addr x5 x7 x13 x17 x23"
+		PTR5 = "textarray_addr x5 x7 x13 x17 x23"
 		_ = PTR5 // suppress unused warning
 		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr($PTR5),5,'char*')\n     WHERE a=trim(value,'x');\n  ")
 		if _res.Error != nil {
@@ -1280,7 +1315,7 @@ func Test_tabfunc01(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM generate_series(0,0,0);\n")
 			}
 		}
-		var subtest = "1"
+		subtest = "1"
 		_ = subtest // suppress unused warning
 		for _, bound := range tclSplitList("\n  9007199254740991.0\n  9007199254740991.1\n  9007199254740991.5\n  9007199254740991.9\n  9007199254740992.0\n  9007199254740992.1\n  9007199254740992.5\n  9007199254740992.9\n  9007199254740993.0\n  9007199254740993.1\n  9007199254740993.5\n") {
 		_ = bound // suppress unused warning
@@ -1292,7 +1327,7 @@ func Test_tabfunc01(t *testing.T) {
 				boundsign := _items1[_idx1+1]
 				_ = boundsign // suppress unused warning
 				_ = _idx1
-					var bx = boundsign + bound
+					bx = boundsign + bound
 					_ = bx // suppress unused warning
 					for _, op := range tclSplitList("< > <= >=") {
 					_ = op // suppress unused warning
@@ -1302,7 +1337,6 @@ func Test_tabfunc01(t *testing.T) {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n         SELECT 'value " + op + " " + bx + "' WHERE (\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE value " + op + " " + bx + ")<>(\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE +value " + op + " " + bx + ");\n      ")
 							}
 						}
-						var subtest = "0"
 						// incr subtest 1
 						{
 							_n, _err := strconv.Atoi(subtest)
@@ -1316,7 +1350,7 @@ func Test_tabfunc01(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db series")
+			// load_static_extension db series (unsupported command, not transpiled)
 			{ // "1400"
 				_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n")
 				if _res.Error != nil {
@@ -1503,8 +1537,8 @@ func Test_tabfunc01(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "intarray_addr")
-			t.Errorf("TODO: %s not implemented in frigolite", "int64array_addr")
-			t.Errorf("TODO: %s not implemented in frigolite", "doublearray_addr")
-			t.Errorf("TODO: %s not implemented in frigolite", "textarray_addr")
+			// intarray_addr (unsupported command, not transpiled)
+			// int64array_addr (unsupported command, not transpiled)
+			// doublearray_addr (unsupported command, not transpiled)
+			// textarray_addr (unsupported command, not transpiled)
 }

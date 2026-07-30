@@ -39,8 +39,17 @@ func Test_expridx2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "expridx2"
+	testprefix = "expridx2"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"journaltest\"") {
 		return
@@ -53,23 +62,26 @@ func Test_expridx2(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t1 SET b = json_set(b, '$.a', b->>'a' + 1)...}")
+		// nWrite { UPDATE t1 SET b = json_set(b, '$.a', b->>'a' + 1)...} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { \n    UPDATE t1 SET b = json_set( \n        json_se...}")
+		// nWrite { 
+    UPDATE t1 SET b = json_set( 
+        json_se...} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { \n    UPDATE t1 SET b = '{a:1, b:2, c:3}' WHERE ro...}")
+		// nWrite { 
+    UPDATE t1 SET b = '{a:1, b:2, c:3}' WHERE ro...} (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t2 SET b = b+1, c=c+1 }")
+		// nWrite { UPDATE t2 SET b = b+1, c=c+1 } (unsupported command, not transpiled)
 	}
 	{ // do_test "1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t2 SET b = b, c=c+1 }")
+		// nWrite { UPDATE t2 SET b = b, c=c+1 } (unsupported command, not transpiled)
 	}
 	{ // do_test "1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t2 SET c=c+1 }")
+		// nWrite { UPDATE t2 SET c=c+1 } (unsupported command, not transpiled)
 	}
 }

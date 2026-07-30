@@ -39,9 +39,32 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn1 string
+	_ = tn1 // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var inexpr string
+	_ = inexpr // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var idxdir string
+	_ = idxdir // pre-declared from TCL source
+	var sortdir string
+	_ = sortdir // pre-declared from TCL source
+	var sortdata string
+	_ = sortdata // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "tkt-4dd95f6943" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "tkt-4dd95f6943" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES (3), (4), (2), (1), (5), (6);\n")
 		if _res.Error != nil {

@@ -39,19 +39,36 @@ func Test_vtabE(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var vtabE_vtabE1 string
+	_ = vtabE_vtabE1 // pre-declared from TCL source
+	var vtabE_vtabE2 string
+	_ = vtabE_vtabE2 // pre-declared from TCL source
+	var vtabE1_w string
+	_ = vtabE1_w // pre-declared from TCL source
+	var vtabE1_y string
+	_ = vtabE1_y // pre-declared from TCL source
+	var vtabE2_a string
+	_ = vtabE2_a // pre-declared from TCL source
+	var vtabE2_c string
+	_ = vtabE2_c // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tclvar_module [sqlite3_connection_pointer db]")
-	var vtabE_vtabE1 = "11"
+	// register_tclvar_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	vtabE_vtabE1 = "11"
 	_ = vtabE_vtabE1 // suppress unused warning
-	var vtabE_vtabE2 = "22"
+	vtabE_vtabE2 = "22"
 	_ = vtabE_vtabE2 // suppress unused warning
-	var vtabE1_w = "x"
+	vtabE1_w = "x"
 	_ = vtabE1_w // suppress unused warning
-	var vtabE1_y = "z"
+	vtabE1_y = "z"
 	_ = vtabE1_y // suppress unused warning
-	var vtabE2_a = "b"
+	vtabE2_a = "b"
 	_ = vtabE2_a // suppress unused warning
-	var vtabE2_c = "d"
+	vtabE2_c = "d"
 	_ = vtabE2_c // suppress unused warning
 	{ // do_test "vtabE-1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING tclvar;\n    CREATE VIRTUAL TABLE t2 USING tclvar;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    SELECT t1.name, t1.arrayname, t1.value,\n           t2.name, t2.arrayname, t2.value,\n           abs(t3.b + abs(t2.value + abs(t1.value)))\n      FROM t1 LEFT JOIN t2 ON t2.name = t1.arrayname\n           LEFT JOIN t3 ON t3.a=t2.value\n     WHERE t1.name = 'vtabE'\n     ORDER BY t1.value, t2.value;\n  ")

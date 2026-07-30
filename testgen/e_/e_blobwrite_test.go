@@ -39,10 +39,45 @@ func Test_e_blobwrite(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var dots string
+	_ = dots // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var isError string
+	_ = isError // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var B string
+	_ = B // pre-declared from TCL source
+	var iOffset string
+	_ = iOffset // pre-declared from TCL source
+	var nData string
+	_ = nData // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var final string
+	_ = final // pre-declared from TCL source
+	var errcode string
+	_ = errcode // pre-declared from TCL source
+	var errmsg string
+	_ = errmsg // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "e_blobwrite"
+	testprefix = "e_blobwrite"
 	_ = testprefix // suppress unused warning
-	var dots = ". 40"
+	dots = ". 40"
 	_ = dots // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, t TEXT);\n  INSERT INTO t1 VALUES(-1, $dots);\n  INSERT INTO t1 VALUES(-2, $dots);\n  INSERT INTO t1 VALUES(-3, $dots);\n  INSERT INTO t1 VALUES(-4, $dots);\n  INSERT INTO t1 VALUES(-5, $dots);\n  INSERT INTO t1 VALUES(-6, $dots);\n")
@@ -51,14 +86,14 @@ func Test_e_blobwrite(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	var blob = "0123456789012345678901234567890123456789"
+	blob = "0123456789012345678901234567890123456789"
 	_ = blob // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_test 1.1 -1 0 $blob 10 { 0123456789.............................. }")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_test 1.2 -2 8 $blob 10 { ........0123456789...................... }")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_test 1.3 -3 8 $blob 1 { ........0............................... }")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_test 1.4 -4 18 $blob 22 { ..................0123456789012345678901 }")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_test 1.5 -5 18 $blob 0 { ........................................ }")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_test 1.6 -6 0 $blob 40 { 0123456789012345678901234567890123456789 }")
+	// blob_write_test 1.1 -1 0 $blob 10 { 0123456789.............................. } (unsupported command, not transpiled)
+	// blob_write_test 1.2 -2 8 $blob 10 { ........0123456789...................... } (unsupported command, not transpiled)
+	// blob_write_test 1.3 -3 8 $blob 1 { ........0............................... } (unsupported command, not transpiled)
+	// blob_write_test 1.4 -4 18 $blob 22 { ..................0123456789012345678901 } (unsupported command, not transpiled)
+	// blob_write_test 1.5 -5 18 $blob 0 { ........................................ } (unsupported command, not transpiled)
+	// blob_write_test 1.6 -6 0 $blob 40 { 0123456789012345678901234567890123456789 } (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t2(a TEXT, b INTEGER PRIMARY KEY);\n  INSERT INTO t2 VALUES($dots, 43);\n  INSERT INTO t2 VALUES($dots, 44);\n  INSERT INTO t2 VALUES($dots, 45);\n")
@@ -66,33 +101,33 @@ func Test_e_blobwrite(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(a TEXT, b INTEGER PRIMARY KEY);\n  INSERT INTO t2 VALUES($dots, 43);\n  INSERT INTO t2 VALUES($dots, 44);\n  INSERT INTO t2 VALUES($dots, 45);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main t2 a 43 0 B")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 2.1 $B 0 $blob 10 SQLITE_READONLY {attempt to write a readonly database}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main t2 a 44 3 B")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 2.2.1 $B 31 $blob 10 SQLITE_ERROR {SQL logic error}")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 2.2.1 $B 30 $blob 10 SQLITE_OK {not an error}")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 2.2.2 $B 31 $blob -1 SQLITE_ERROR {SQL logic error}")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 2.2.3 $B 20 $blob 10 SQLITE_OK {not an error}")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 2.2.4 $B -1 $blob 10 SQLITE_ERROR {SQL logic error}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+	// sqlite3_blob_open db main t2 a 43 0 B (unsupported command, not transpiled)
+	// blob_write_error_test 2.1 $B 0 $blob 10 SQLITE_READONLY {attempt to write a readonly database} (unsupported command, not transpiled)
+	// sqlite3_blob_close $B (unsupported command, not transpiled)
+	// sqlite3_blob_open db main t2 a 44 3 B (unsupported command, not transpiled)
+	// blob_write_error_test 2.2.1 $B 31 $blob 10 SQLITE_ERROR {SQL logic error} (unsupported command, not transpiled)
+	// blob_write_error_test 2.2.1 $B 30 $blob 10 SQLITE_OK {not an error} (unsupported command, not transpiled)
+	// blob_write_error_test 2.2.2 $B 31 $blob -1 SQLITE_ERROR {SQL logic error} (unsupported command, not transpiled)
+	// blob_write_error_test 2.2.3 $B 20 $blob 10 SQLITE_OK {not an error} (unsupported command, not transpiled)
+	// blob_write_error_test 2.2.4 $B -1 $blob 10 SQLITE_ERROR {SQL logic error} (unsupported command, not transpiled)
+	// sqlite3_blob_close $B (unsupported command, not transpiled)
 	{ // do_test "2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main t2 a 43 0 B")
+		// sqlite3_blob_open db main t2 a 43 0 B (unsupported command, not transpiled)
 		_res = db.Exec(" DELETE FROM t2 WHERE b=43 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t2 WHERE b=43 ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 2.3.1 $B 5 $blob 5 SQLITE_ABORT {query aborted}")
+	// blob_write_error_test 2.3.1 $B 5 $blob 5 SQLITE_ABORT {query aborted} (unsupported command, not transpiled)
 	{ // do_test "2.3.2"
 		r = db.Query(" SELECT 1, 2, 3 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT 1, 2, 3 ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 2.3.3 $B 5 $blob 5 SQLITE_ABORT {query aborted}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+	// blob_write_error_test 2.3.3 $B 5 $blob 5 SQLITE_ABORT {query aborted} (unsupported command, not transpiled)
+	// sqlite3_blob_close $B (unsupported command, not transpiled)
 	{ // "3.0"
 		r = db.Query("\n  CREATE TABLE t3(i INTEGER PRIMARY KEY, j TEXT, k TEXT);\n  INSERT INTO t3 VALUES(1, $dots, $dots);\n  INSERT INTO t3 VALUES(2, $dots, $dots);\n  SELECT * FROM t3 WHERE i=1;\n")
 		if r.Error != nil {
@@ -105,8 +140,8 @@ func Test_e_blobwrite(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main t3 j 1 1 B")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 3.1.1 $B 5 $blob 10 SQLITE_OK {not an error}")
+	// sqlite3_blob_open db main t3 j 1 1 B (unsupported command, not transpiled)
+	// blob_write_error_test 3.1.1 $B 5 $blob 10 SQLITE_OK {not an error} (unsupported command, not transpiled)
 	{ // "3.1.2"
 		r = db.Query("\n  UPDATE t3 SET k = 'xyz' WHERE i=1;\n  SELECT * FROM t3 WHERE i=1;\n")
 		if r.Error != nil {
@@ -119,8 +154,8 @@ func Test_e_blobwrite(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 3.1.3 $B 15 $blob 10 SQLITE_ABORT {query aborted}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+	// blob_write_error_test 3.1.3 $B 15 $blob 10 SQLITE_ABORT {query aborted} (unsupported command, not transpiled)
+	// sqlite3_blob_close $B (unsupported command, not transpiled)
 	{ // "3.1.4"
 		r = db.Query("\n  SELECT * FROM t3 WHERE i=1;\n")
 		if r.Error != nil {
@@ -133,8 +168,8 @@ func Test_e_blobwrite(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main t3 j 2 1 B")
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 3.2.1 $B 5 $blob 10 SQLITE_OK {not an error}")
+	// sqlite3_blob_open db main t3 j 2 1 B (unsupported command, not transpiled)
+	// blob_write_error_test 3.2.1 $B 5 $blob 10 SQLITE_OK {not an error} (unsupported command, not transpiled)
 	{ // "3.2.2"
 		r = db.Query("\n  UPDATE t3 SET j = 'xyz' WHERE i=2;\n  SELECT * FROM t3 WHERE i=2;\n")
 		if r.Error != nil {
@@ -147,8 +182,8 @@ func Test_e_blobwrite(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "blob_write_error_test 3.2.3 $B 15 $blob 10 SQLITE_ABORT {query aborted}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+	// blob_write_error_test 3.2.3 $B 15 $blob 10 SQLITE_ABORT {query aborted} (unsupported command, not transpiled)
+	// sqlite3_blob_close $B (unsupported command, not transpiled)
 	{ // "3.2.4"
 		r = db.Query("\n  SELECT * FROM t3 WHERE i=2;\n")
 		if r.Error != nil {

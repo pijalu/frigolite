@@ -39,10 +39,27 @@ func Test_update2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nrow string
+	_ = nrow // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var A_NotExists string
+	_ = A_NotExists // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var opcode string
+	_ = opcode // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "update2"
+	testprefix = "update2"
 	_ = testprefix // suppress unused warning
-	var nrow = "10"
+	nrow = "10"
 	_ = nrow // suppress unused warning
 	{ // "1.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<$nrow )\n  INSERT INTO t1(b) SELECT char((i % 26) + 65) FROM s;\n  INSERT INTO t2 SELECT * FROM t1;\n")

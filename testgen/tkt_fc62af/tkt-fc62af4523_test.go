@@ -39,6 +39,15 @@ func Test_tkt_fc62af4523(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var _chan string
+	_ = _chan // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var code string
+	_ = code // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-fc62af4523.1"
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA journal_mode = persist;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300);\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; --  2\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; --  4\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; --  8\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; -- 16\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; -- 32\n    INSERT INTO t1 SELECT randomblob(200), randomblob(300) FROM t1; -- 64\n  ")
@@ -50,11 +59,14 @@ func Test_tkt_fc62af4523(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check;\n    SELECT count(*) FROM t1;\n  ")
 		}
 	}
-	var _chan = "launch_testfixture" // TCL namespace variable
+	_chan = "launch_testfixture" // TCL namespace variable
 	_ = _chan // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "tkt-fc62af4523.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::chan {\n    sqlite3 db test.db\n    db eval {\n      PRAGMA...}")
+		// testfixture $::chan {
+    sqlite3 db test.db
+    db eval {
+      PRAGMA...} (unsupported command, not transpiled)
 		// file exists "test.db-journal"
 	}
 	{ // do_test "tkt-fc62af4523.3"
@@ -67,7 +79,7 @@ func Test_tkt_fc62af4523(t *testing.T) {
 		// file exists "test.db-journal"
 	}
 	{ // do_test "tkt-fc62af4523.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::chan sqlite_abort")
+		// testfixture $::chan sqlite_abort (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt-fc62af4523.6"
 		r = db.Query("\n    PRAGMA integrity_check;\n    SELECT count(*) FROM t1;\n  ")

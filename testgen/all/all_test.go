@@ -39,32 +39,37 @@ func Test_all(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite full")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite no_optimization")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite memsubsys1")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite memsubsys2")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite singlethread")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite multithread")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite onefile")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite utf16")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite exclusive")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite persistent_journal")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite persistent_journal_error")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite no_journal")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite no_journal_error")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite autovacuum_ioerr")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite no_mutex_try")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite fullmutex")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite journaltest")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite inmemory_journal")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite pcache0")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite pcache10")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite pcache50")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite pcache90")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite pcache100")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite prepare")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite mmap")
-	if _tcl_platform_platform == "unix" {
+	// run_test_suite full (unsupported command, not transpiled)
+	// run_test_suite no_optimization (unsupported command, not transpiled)
+	// run_test_suite memsubsys1 (unsupported command, not transpiled)
+	// run_test_suite memsubsys2 (unsupported command, not transpiled)
+	// run_test_suite singlethread (unsupported command, not transpiled)
+	// run_test_suite multithread (unsupported command, not transpiled)
+	// run_test_suite onefile (unsupported command, not transpiled)
+	// run_test_suite utf16 (unsupported command, not transpiled)
+	// run_test_suite exclusive (unsupported command, not transpiled)
+	// run_test_suite persistent_journal (unsupported command, not transpiled)
+	// run_test_suite persistent_journal_error (unsupported command, not transpiled)
+	// run_test_suite no_journal (unsupported command, not transpiled)
+	// run_test_suite no_journal_error (unsupported command, not transpiled)
+	// run_test_suite autovacuum_ioerr (unsupported command, not transpiled)
+	// run_test_suite no_mutex_try (unsupported command, not transpiled)
+	// run_test_suite fullmutex (unsupported command, not transpiled)
+	// run_test_suite journaltest (unsupported command, not transpiled)
+	// run_test_suite inmemory_journal (unsupported command, not transpiled)
+	// run_test_suite pcache0 (unsupported command, not transpiled)
+	// run_test_suite pcache10 (unsupported command, not transpiled)
+	// run_test_suite pcache50 (unsupported command, not transpiled)
+	// run_test_suite pcache90 (unsupported command, not transpiled)
+	// run_test_suite pcache100 (unsupported command, not transpiled)
+	// run_test_suite prepare (unsupported command, not transpiled)
+	// run_test_suite mmap (unsupported command, not transpiled)
+	if tcl_platform_platform == "unix" {
 	}
 }

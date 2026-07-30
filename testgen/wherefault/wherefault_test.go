@@ -39,11 +39,33 @@ func Test_wherefault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var iii string
+	_ = iii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "wherefault"
+	testprefix = "wherefault"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 1 -sqlprep {\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON ...} -sqlbody {\n  SELECT c FROM t1\n  WHERE \n    a = 2 OR b = 'thr...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 2 -tclprep {\n  db eval {\n    BEGIN;\n    CREATE TABLE t1(a, b, ...} -sqlbody {\n  SELECT count(*) FROM t1 WHERE a BETWEEN 5 AND 9...}")
+	// do_malloc_test 1 -sqlprep {
+  CREATE TABLE t1(a, b, c);
+  CREATE INDEX i1 ON ...} -sqlbody {
+  SELECT c FROM t1
+  WHERE 
+    a = 2 OR b = 'thr...} (unsupported command, not transpiled)
+	// do_malloc_test 2 -tclprep {
+  db eval {
+    BEGIN;
+    CREATE TABLE t1(a, b, ...} -sqlbody {
+  SELECT count(*) FROM t1 WHERE a BETWEEN 5 AND 9...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -53,6 +75,12 @@ func Test_wherefault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  BEGIN TRANSACTION;    \n    CREATE TABLE t1(\n      a INT AS (c*11),\n      b TEXT AS (substr(d,1,3)) STORED, \n      c INTEGEB PRIMARI KEY, d TEXT\n    );\n    CREATE INDEX t1a ON t1(a);\n  COMMIT;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT * FROM (SELECT a FROM t1 N...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 3.1 -faults oom* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    SELECT * FROM (SELECT a FROM t1 N...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 }

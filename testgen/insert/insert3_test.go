@@ -40,6 +40,19 @@ func Test_insert3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tab string
+	_ = tab // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "insert3-3.5"
 		r = db.Query("\n    CREATE TABLE t5(\n      a INTEGER PRIMARY KEY,\n      b DEFAULT 'xyz'\n    );\n    INSERT INTO t5 DEFAULT VALUES;\n    SELECT * FROM t5;\n  ")
@@ -54,16 +67,17 @@ func Test_insert3(t *testing.T) {
 		}
 	}
 	// skip: foreach over unresolved TCL command
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "insert3-4.1"
 		_res = db.Exec(" \n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(randstr(10,400),randstr(10,400),randstr(10,400));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(a, b);\n    BEGIN;\n    INSERT INTO t1 VALUES(randstr(10,400),randstr(10,400),randstr(10,400));\n  ")
 		}
-		var _r = "randstr(10,400)"
+		_r = "randstr(10,400)"
 		_ = _r // suppress unused warning
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
 			_res = db.Exec("INSERT INTO t1 SELECT " + _r + ", " + _r + ", " + _r + " FROM t1")

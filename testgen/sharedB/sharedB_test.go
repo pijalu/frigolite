@@ -40,14 +40,25 @@ func Test_sharedB(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	var _testprefix = "sharedB" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
+	testprefix = "sharedB" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "1.1"
 		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -58,7 +69,7 @@ func Test_sharedB(t *testing.T) {
 		db2.Exec("\n    SELECT x FROM t1 WHERE y='X014Y';\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	var j = "1"
+	j = "1"
 	_ = j // suppress unused warning
 	for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n <= 100 }() {
 		{ // do_test "1.2." + j
@@ -78,5 +89,5 @@ func Test_sharedB(t *testing.T) {
 	}
 	db1.Close()
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

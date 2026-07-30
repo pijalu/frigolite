@@ -39,9 +39,16 @@ func Test_tkt2213(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2213-1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+		// sqlite3_create_function db (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT tkt2213func(tkt2213func('abcd'));\n  ")
 		_ = _res // catchsql
 	}

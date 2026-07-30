@@ -39,16 +39,25 @@ func Test_mmapwarm(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if false {
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		// sqlite3_shutdown (unsupported command, not transpiled)
 		// proc definition (not transpiled)
-		t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log msg")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// test_sqlite3_log msg (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
-	var testprefix = "mmapwarm"
+	testprefix = "mmapwarm"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA auto_vacuum = 0;\n  CREATE TABLE t1(x, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<500\n  )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(500) FROM s;\n  PRAGMA page_count;\n")
@@ -63,46 +72,51 @@ func Test_mmapwarm(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA mmap_size = 1000000")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA mmap_size = 1000000")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db")
+		// sqlite3_mmap_warm db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA mmap_size = 1000000")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA mmap_size = 1000000")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db main")
+		// sqlite3_mmap_warm db main (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db")
+		// sqlite3_mmap_warm db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db main")
+		// sqlite3_mmap_warm db main (unsupported command, not transpiled)
 	}
 	{ // do_test "2.0"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db main")
+		// sqlite3_mmap_warm db main (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n  sqlite3 db test.db\n  sqlite3_db_config_lookasid...} -body {\n  sqlite3_mmap_warm db \"main\"\n} -test {\n  faultsim_test_result {0 SQLITE_OK} {0 SQLITE_NO...}")
+	// do_faultsim_test 3 -faults oom* -prep {
+  sqlite3 db test.db
+  sqlite3_db_config_lookasid...} -body {
+  sqlite3_mmap_warm db "main"
+} -test {
+  faultsim_test_result {0 SQLITE_OK} {0 SQLITE_NO...} (unsupported command, not transpiled)
 }

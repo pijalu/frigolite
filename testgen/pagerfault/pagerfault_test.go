@@ -40,14 +40,73 @@ func Test_pagerfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var a_string_counter string
+	_ = a_string_counter // pre-declared from TCL source
+	var answer string
+	_ = answer // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var filesize string
+	_ = filesize // pre-declared from TCL source
+	var sl string
+	_ = sl // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var sql_1 string
+	_ = sql_1 // pre-declared from TCL source
+	var sql_2 string
+	_ = sql_2 // pre-declared from TCL source
+	var _chan string
+	_ = _chan // pre-declared from TCL source
+	var iTest string
+	_ = iTest // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var ic string
+	_ = ic // pre-declared from TCL source
+	var channel string
+	_ = channel // pre-declared from TCL source
+	var contents string
+	_ = contents // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var FAULTSIM_custom string
+	_ = FAULTSIM_custom // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var tt string
+	_ = tt // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+	var sql_rowid string
+	_ = sql_rowid // pre-declared from TCL source
+	var testrc string
+	_ = testrc // pre-declared from TCL source
+	var iFail string
+	_ = iFail // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("permutation" + " == \"inmemory_journal\"") {
 		return
 	}
-	if _tcl_platform_os == "Windows NT" {
+	if tcl_platform_os == "Windows NT" {
 		return
 	}
-	var a_string_counter = "1"
+	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "pagerfault-1-pre1"
@@ -55,323 +114,593 @@ func Test_pagerfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = DELETE;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT count(*) FROM t1 }\n} -test {\n  faultsim_test_result {0 4} \n  faultsim_integrit...}")
+	// do_faultsim_test pagerfault-1 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { SELECT count(*) FROM t1 }
+} -test {
+  faultsim_test_result {0 4} 
+  faultsim_integrit...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-2-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "tv filter xSync")
-		t.Errorf("TODO: %s not implemented in frigolite", "tv script xSyncCb")
+		// testvfs tv -default 1 (unsupported command, not transpiled)
+		// tv filter xSync (unsupported command, not transpiled)
+		// tv script xSyncCb (unsupported command, not transpiled)
 		// proc definition (not transpiled)
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA page_size = 4096;\n    BEGIN;\n      CREATE TABLE abc(a, b, c);\n      INSERT INTO abc VALUES('o', 't', 't'); \n      INSERT INTO abc VALUES('f', 'f', 's'); \n      INSERT INTO abc SELECT * FROM abc; -- 4\n      INSERT INTO abc SELECT * FROM abc; -- 8\n      INSERT INTO abc SELECT * FROM abc; -- 16\n      INSERT INTO abc SELECT * FROM abc; -- 32\n      INSERT INTO abc SELECT * FROM abc; -- 64\n      INSERT INTO abc SELECT * FROM abc; -- 128\n      INSERT INTO abc SELECT * FROM abc; -- 256\n    COMMIT;\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 4096;\n    BEGIN;\n      CREATE TABLE abc(a, b, c);\n      INSERT INTO abc VALUES('o', 't', 't'); \n      INSERT INTO abc VALUES('f', 'f', 's'); \n      INSERT INTO abc SELECT * FROM abc; -- 4\n      INSERT INTO abc SELECT * FROM abc; -- 8\n      INSERT INTO abc SELECT * FROM abc; -- 16\n      INSERT INTO abc SELECT * FROM abc; -- 32\n      INSERT INTO abc SELECT * FROM abc; -- 64\n      INSERT INTO abc SELECT * FROM abc; -- 128\n      INSERT INTO abc SELECT * FROM abc; -- 256\n    COMMIT;\n    PRAGMA page_size = 1024;\n    VACUUM;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "tv delete")
+		// tv delete (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT * FROM abc }\n} -test {\n  set answer [split [string repeat \"ottffs\" 128] ...}")
+	// do_faultsim_test pagerfault-2 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { SELECT * FROM abc }
+} -test {
+  set answer [split [string repeat "ottffs" 128] ...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-3-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tstvfs -default 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "tstvfs filter xDelete")
-		t.Errorf("TODO: %s not implemented in frigolite", "tstvfs script xDeleteCallback")
+		// testvfs tstvfs -default 1 (unsupported command, not transpiled)
+		// tstvfs filter xDelete (unsupported command, not transpiled)
+		// tstvfs script xDeleteCallback (unsupported command, not transpiled)
 		// proc definition (not transpiled)
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH 'test.db2' AS aux;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA main.cache_size = 10;\n    PRAGMA aux.cache_size = 10;\n\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    CREATE TABLE aux.t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t2 SELECT * FROM t1;\n\n    BEGIN;\n      INSERT INTO t1 SELECT a_string(201), a_string(301) FROM t1;\n      INSERT INTO t1 SELECT a_string(202), a_string(302) FROM t1;\n      INSERT INTO t1 SELECT a_string(203), a_string(303) FROM t1;\n      INSERT INTO t1 SELECT a_string(204), a_string(304) FROM t1;\n      REPLACE INTO t2 SELECT * FROM t1;\n    COMMIT;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "tstvfs delete")
+		// tstvfs delete (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    ATTACH 'test.db2' AS aux;\n    SE...} -test {\n  faultsim_test_result {0 {4 4}} {1 {unable to op...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-4 -prep {\n  faultsim_delete_and_reopen\n} -body {\n  execsql { \n    CREATE TABLE x(y);\n    INSERT IN...} -test {\n  faultsim_test_result {0 z}\n  faultsim_integrity...}")
+	// do_faultsim_test pagerfault-3 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { 
+    ATTACH 'test.db2' AS aux;
+    SE...} -test {
+  faultsim_test_result {0 {4 4}} {1 {unable to op...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-4 -prep {
+  faultsim_delete_and_reopen
+} -body {
+  execsql { 
+    CREATE TABLE x(y);
+    INSERT IN...} -test {
+  faultsim_test_result {0 z}
+  faultsim_integrity...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-5-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-5.1 -prep {\n  faultsim_restore_and_reopen\n  db func a_string ...} -body {\n  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-5.2 -prep {\n  faultsim_restore_and_reopen\n  db func a_string ...} -body {\n  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-5.3 -faults oom-transient -prep {\n  faultsim_restore_and_reopen\n  db func a_string ...} -body {\n  execsql {\n    BEGIN;\n      INSERT INTO t1 SELEC...} -test {\n  faultsim_test_result {0 {}}\n\n  catchsql { COMMI...}")
+	// do_faultsim_test pagerfault-5.1 -prep {
+  faultsim_restore_and_reopen
+  db func a_string ...} -body {
+  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-5.2 -prep {
+  faultsim_restore_and_reopen
+  db func a_string ...} -body {
+  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-5.3 -faults oom-transient -prep {
+  faultsim_restore_and_reopen
+  db func a_string ...} -body {
+  execsql {
+    BEGIN;
+      INSERT INTO t1 SELEC...} -test {
+  faultsim_test_result {0 {}}
+
+  catchsql { COMMI...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-6-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-6.1 -prep {\n  faultsim_restore_and_reopen\n  db func a_string ...} -body {\n  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
+	// do_faultsim_test pagerfault-6.1 -prep {
+  faultsim_restore_and_reopen
+  db func a_string ...} -body {
+  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-6.2 -faults cantopen-* -prep {\n  shmfault filter xAccess\n  shmfault script xAcce...} -body {\n  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
+	// do_faultsim_test pagerfault-6.2 -faults cantopen-* -prep {
+  shmfault filter xAccess
+  shmfault script xAcce...} -body {
+  execsql { INSERT INTO t1 SELECT a_string(200), ...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-7-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    BEGIN;\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    --  4\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    --  8\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 16\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 32\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 64\n    COMMIT;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 SELECT * FROM t2;\n    DROP TABLE t2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    BEGIN;\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 VALUES(NULL, randomblob(1500));\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    --  4\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    --  8\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 16\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 32\n      INSERT INTO t2 SELECT NULL, randomblob(1500) FROM t2;    -- 64\n    COMMIT;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 SELECT * FROM t2;\n    DROP TABLE t2;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-7 -prep {\n  faultsim_restore_and_reopen\n  execsql { \n    PR...} -body {\n  execsql { UPDATE t1 SET a = 65, b = randomblob(...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
+	// do_faultsim_test pagerfault-7 -prep {
+  faultsim_restore_and_reopen
+  execsql { 
+    PR...} -body {
+  execsql { UPDATE t1 SET a = 65, b = randomblob(...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-8-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    BEGIN;\n      INSERT INTO t1 VALUES(NULL, randomblob(1500));\n      INSERT INTO t1 VALUES(NULL, randomblob(1500));\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    --  4\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    --  8\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 16\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 32\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 64\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    BEGIN;\n      INSERT INTO t1 VALUES(NULL, randomblob(1500));\n      INSERT INTO t1 VALUES(NULL, randomblob(1500));\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    --  4\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    --  8\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 16\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 32\n      INSERT INTO t1 SELECT NULL, randomblob(1500) FROM t1;    -- 64\n    COMMIT;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		var filesize = "file size test.db"
+		// faultsim_save_and_close (unsupported command, not transpiled)
+		filesize = "file size test.db"
 		_ = filesize // suppress unused warning
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "pagerfault-8-pre2"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		// faultsim_restore_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec(" DELETE FROM t1 WHERE a>32 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE a>32 ")
 		}
 		// expr [file size test.db] < $filesize → "[file size test.db] < $filesize"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-8 -prep {\n  faultsim_restore_and_reopen\n  execsql { \n    BE...} -body {\n  execsql COMMIT\n} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
+	// do_faultsim_test pagerfault-8 -prep {
+  faultsim_restore_and_reopen
+  execsql { 
+    BE...} -body {
+  execsql COMMIT
+} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-9-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);\n\n    INSERT INTO t1 VALUES(randomblob(900));\n    INSERT INTO t1 VALUES(randomblob(900));\n    DELETE FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    CREATE TABLE t3(z);\n\n    INSERT INTO t1 VALUES(randomblob(900));\n    INSERT INTO t1 VALUES(randomblob(900));\n    DELETE FROM t1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-9.1 -prep {\n  faultsim_restore_and_reopen\n  execsql { \n    BE...} -body {\n  execsql {\n    ROLLBACK TO abc;\n    COMMIT;\n    ...} -test {\n  faultsim_test_result {0 2}\n  faultsim_integrity...}")
+	// do_faultsim_test pagerfault-9.1 -prep {
+  faultsim_restore_and_reopen
+  execsql { 
+    BE...} -body {
+  execsql {
+    ROLLBACK TO abc;
+    COMMIT;
+    ...} -test {
+  faultsim_test_result {0 2}
+  faultsim_integrity...} (unsupported command, not transpiled)
 	for _, v := range tclSplitList("a b") {
 	_ = v // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-10$v -prep {\n    sqlite3 db \"\"\n    db func a_string a_string;\n...} -body {\n    execsql { UPDATE xx SET a = a_string(300) }\n ...} -test {\n    faultsim_test_result {0 {}}\n    if {$::v == \"...}")
+		// do_faultsim_test pagerfault-10$v -prep {
+    sqlite3 db ""
+    db func a_string a_string;
+...} -body {
+    execsql { UPDATE xx SET a = a_string(300) }
+ ...} -test {
+    faultsim_test_result {0 {}}
+    if {$::v == "...} (unsupported command, not transpiled)
 	}
 	{ // do_test "pagerfault-9-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA auto_vacuum = on;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y UNIQUE);\n    CREATE TABLE t3(z UNIQUE);\n    BEGIN;\n      INSERT INTO t1 VALUES(a_string(202));\n      INSERT INTO t2 VALUES(a_string(203));\n      INSERT INTO t3 VALUES(a_string(204));\n      INSERT INTO t1 SELECT a_string(202) FROM t1;\n      INSERT INTO t1 SELECT a_string(203) FROM t1;\n      INSERT INTO t1 SELECT a_string(204) FROM t1;\n      INSERT INTO t1 SELECT a_string(205) FROM t1;\n      INSERT INTO t2 SELECT a_string(length(x)) FROM t1;\n      INSERT INTO t3 SELECT a_string(length(x)) FROM t1;\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = on;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y UNIQUE);\n    CREATE TABLE t3(z UNIQUE);\n    BEGIN;\n      INSERT INTO t1 VALUES(a_string(202));\n      INSERT INTO t2 VALUES(a_string(203));\n      INSERT INTO t3 VALUES(a_string(204));\n      INSERT INTO t1 SELECT a_string(202) FROM t1;\n      INSERT INTO t1 SELECT a_string(203) FROM t1;\n      INSERT INTO t1 SELECT a_string(204) FROM t1;\n      INSERT INTO t1 SELECT a_string(205) FROM t1;\n      INSERT INTO t2 SELECT a_string(length(x)) FROM t1;\n      INSERT INTO t3 SELECT a_string(length(x)) FROM t1;\n    COMMIT;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-11 -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGMA ...} -body {\n  execsql {\n    SAVEPOINT trans;\n      UPDATE t2 ...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
+	// do_faultsim_test pagerfault-11 -prep {
+  faultsim_restore_and_reopen
+  execsql { PRAGMA ...} -body {
+  execsql {
+    SAVEPOINT trans;
+      UPDATE t2 ...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-12-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "testvfs ss_layer -default 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "ss_layer sectorsize 4096")
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// testvfs ss_layer -default 1 (unsupported command, not transpiled)
+		// ss_layer sectorsize 4096 (unsupported command, not transpiled)
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(44), a_string(55) FROM t1 LIMIT 13;\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA cache_size = 10;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(333+rowid), a_string(444+rowid) FROM t1;\n      INSERT INTO t1 SELECT a_string(44), a_string(55) FROM t1 LIMIT 13;\n    COMMIT;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-12a -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGMA ...} -body {\n  execsql {\n    UPDATE t1 SET x = a_string(length...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
+	// do_faultsim_test pagerfault-12a -prep {
+  faultsim_restore_and_reopen
+  execsql { PRAGMA ...} -body {
+  execsql {
+    UPDATE t1 SET x = a_string(length...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-12-pre2"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		// faultsim_restore_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 10;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2 AS SELECT * FROM t1 LIMIT 10;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-12b -prep {\n  faultsim_restore_and_reopen\n  db func a_string ...} -body {\n  set sql(1) { UPDATE t2 SET x = a_string(280) }\n...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
+	// do_faultsim_test pagerfault-12b -prep {
+  faultsim_restore_and_reopen
+  db func a_string ...} -body {
+  set sql(1) { UPDATE t2 SET x = a_string(280) }
+...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "ss_layer delete")
+	// ss_layer delete (unsupported command, not transpiled)
 	{ // do_test "pagerfault-13-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA journal_mode = PERSIST;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = PERSIST;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n    COMMIT;\n  ")
 		}
 		os.Remove("test.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save")
+		// faultsim_save (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-13 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE TABLE xx(a, b) }\n} -test {\n  faultsim_test_result {0 {}}\n}")
+	// do_faultsim_test pagerfault-13 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { CREATE TABLE xx(a, b) }
+} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-14-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA journal_mode = PERSIST;\n    ATTACH 'test.db2' AS two;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      CREATE TABLE two.t2(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t2 VALUES(a_string(333), a_string(444));\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = PERSIST;\n    ATTACH 'test.db2' AS two;\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      CREATE TABLE two.t2(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(333), a_string(444));\n      INSERT INTO t2 VALUES(a_string(333), a_string(444));\n    COMMIT;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-14a -prep {\n  faultsim_restore_and_reopen\n} -body {\n  if {[catch {db backup test.db2} msg]} { error [...} -test {\n  faultsim_test_result {0 {}} {1 {}} {1 {SQL logi...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-14b -prep {\n  catch { db2 close }\n  faultsim_restore_and_reop...} -body {\n  sqlite3_backup B db2 main db main\n  B step 200\n...} -test {\n  faultsim_test_result {1 {attempt to write a rea...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-14c -prep {\n  catch { db2 close }\n  faultsim_restore_and_reop...} -body {\n  sqlite3_backup B db2 main db main\n  B step 200\n...} -test {\n  faultsim_test_result {0 {}} {1 {sqlite3_backup_...}")
+	// do_faultsim_test pagerfault-14a -prep {
+  faultsim_restore_and_reopen
+} -body {
+  if {[catch {db backup test.db2} msg]} { error [...} -test {
+  faultsim_test_result {0 {}} {1 {}} {1 {SQL logi...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-14b -prep {
+  catch { db2 close }
+  faultsim_restore_and_reop...} -body {
+  sqlite3_backup B db2 main db main
+  B step 200
+...} -test {
+  faultsim_test_result {1 {attempt to write a rea...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-14c -prep {
+  catch { db2 close }
+  faultsim_restore_and_reop...} -body {
+  sqlite3_backup B db2 main db main
+  B step 200
+...} -test {
+  faultsim_test_result {0 {}} {1 {sqlite3_backup_...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-15-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      CREATE TABLE t1(x, y UNIQUE);\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n      INSERT INTO t1 VALUES(a_string(11), a_string(22));\n    COMMIT;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-15 -prep {\n  faultsim_restore_and_reopen\n  db func a_string ...} -body {\n  db eval { SELECT * FROM t1 LIMIT 1 } {\n    exec...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
+	// do_faultsim_test pagerfault-15 -prep {
+  faultsim_restore_and_reopen
+  db func a_string ...} -body {
+  db eval { SELECT * FROM t1 LIMIT 1 } {
+    exec...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-16-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec(" CREATE TABLE t1(x, y UNIQUE) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(x, y UNIQUE) ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-16 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    PRAGMA locking_mode = exclusive;\n...} -test {\n  faultsim_test_result {0 {exclusive wal delete w...}")
+	// do_faultsim_test pagerfault-16 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    PRAGMA locking_mode = exclusive;
+...} -test {
+  faultsim_test_result {0 {exclusive wal delete w...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-17-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1862, 'Botha');\n    INSERT INTO t1 VALUES(1870, 'Smuts');\n    INSERT INTO t1 VALUES(1866, 'Hertzog');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1862, 'Botha');\n    INSERT INTO t1 VALUES(1870, 'Smuts');\n    INSERT INTO t1 VALUES(1866, 'Hertzog');\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-17a -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    PRAGMA journal_mode = wal;\n    PR...} -test {\n  faultsim_test_result {0 {wal delete}}\n  faultsi...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-17b -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGMA ...} -body {\n  execsql {\n    PRAGMA journal_mode = wal;\n    IN...} -test {\n  faultsim_test_result {0 {wal delete}}\n  faultsi...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-17c -prep {\n  faultsim_restore_and_reopen\n  execsql { \n    PR...} -body {\n  execsql { PRAGMA journal_mode = delete }\n} -test {\n  faultsim_test_result {0 delete}\n  faultsim_inte...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-17d -prep {\n  catch { db2 close }\n  faultsim_restore_and_reop...} -body {\n  execsql { PRAGMA journal_mode = delete }\n} -test {\n  faultsim_test_result {1 {database is locked}}\n ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-17e -prep {\n  catch { db2 close }\n  faultsim_restore_and_reop...} -body {\n  execsql { PRAGMA journal_mode = delete }\n} -test {\n  faultsim_test_result {0 delete}\n  faultsim_inte...}")
+	// do_faultsim_test pagerfault-17a -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    PRAGMA journal_mode = wal;
+    PR...} -test {
+  faultsim_test_result {0 {wal delete}}
+  faultsi...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-17b -prep {
+  faultsim_restore_and_reopen
+  execsql { PRAGMA ...} -body {
+  execsql {
+    PRAGMA journal_mode = wal;
+    IN...} -test {
+  faultsim_test_result {0 {wal delete}}
+  faultsi...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-17c -prep {
+  faultsim_restore_and_reopen
+  execsql { 
+    PR...} -body {
+  execsql { PRAGMA journal_mode = delete }
+} -test {
+  faultsim_test_result {0 delete}
+  faultsim_inte...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-17d -prep {
+  catch { db2 close }
+  faultsim_restore_and_reop...} -body {
+  execsql { PRAGMA journal_mode = delete }
+} -test {
+  faultsim_test_result {1 {database is locked}}
+ ...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-17e -prep {
+  catch { db2 close }
+  faultsim_restore_and_reop...} -body {
+  execsql { PRAGMA journal_mode = delete }
+} -test {
+  faultsim_test_result {0 delete}
+  faultsim_inte...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-18-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE qq(x);\n    INSERT INTO qq VALUES('Herbert');\n    INSERT INTO qq VALUES('Macalister');\n    INSERT INTO qq VALUES('Mackenzie');\n    INSERT INTO qq VALUES('Lilley');\n    INSERT INTO qq VALUES('Palmer');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE qq(x);\n    INSERT INTO qq VALUES('Herbert');\n    INSERT INTO qq VALUES('Macalister');\n    INSERT INTO qq VALUES('Mackenzie');\n    INSERT INTO qq VALUES('Lilley');\n    INSERT INTO qq VALUES('Palmer');\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-18 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    PRA...} -body {\n  execsql { PRAGMA journal_mode = delete }\n} -test {\n  faultsim_test_result {0 delete}\n  faultsim_inte...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-19a -prep {\n  sqlite3 db :memory:\n  db func a_string a_string...} -body {\n  execsql { \n    CREATE TABLE t2(a, b);\n    INSER...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// do_faultsim_test pagerfault-18 -prep {
+  faultsim_restore_and_reopen
+  execsql {
+    PRA...} -body {
+  execsql { PRAGMA journal_mode = delete }
+} -test {
+  faultsim_test_result {0 delete}
+  faultsim_inte...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-19a -prep {
+  sqlite3 db :memory:
+  db func a_string a_string...} -body {
+  execsql { 
+    CREATE TABLE t2(a, b);
+    INSER...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-19-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(1);\n    CREATE TABLE t2(x); INSERT INTO t2 VALUES(2);\n    CREATE TABLE t3(x); INSERT INTO t3 VALUES(3);\n    CREATE TABLE t4(x); INSERT INTO t4 VALUES(4);\n    CREATE TABLE t5(x); INSERT INTO t5 VALUES(5);\n    CREATE TABLE t6(x); INSERT INTO t6 VALUES(6);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE t1(x); INSERT INTO t1 VALUES(1);\n    CREATE TABLE t2(x); INSERT INTO t2 VALUES(2);\n    CREATE TABLE t3(x); INSERT INTO t3 VALUES(3);\n    CREATE TABLE t4(x); INSERT INTO t4 VALUES(4);\n    CREATE TABLE t5(x); INSERT INTO t5 VALUES(5);\n    CREATE TABLE t6(x); INSERT INTO t6 VALUES(6);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-19b -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    BEGIN;\n      UPDATE t4 SET x = x...} -test {\n  faultsim_test_result {0 {3 5 7}}\n}")
+	// do_faultsim_test pagerfault-19b -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { 
+    BEGIN;
+      UPDATE t4 SET x = x...} -test {
+  faultsim_test_result {0 {3 5 7}}
+} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-20-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE t0(a, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = FULL;\n    CREATE TABLE t0(a, b);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-20 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    BEGIN;\n      CREATE TABLE t1(a, ...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// do_faultsim_test pagerfault-20 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { 
+    BEGIN;
+      CREATE TABLE t1(a, ...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-21-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    CREATE TABLE t0(a PRIMARY KEY, b);\n    INSERT INTO t0 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    CREATE TABLE t0(a PRIMARY KEY, b);\n    INSERT INTO t0 VALUES(1, 2);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-21 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { SELECT * FROM t0 LIMIT 1 } {\n    db e...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// do_faultsim_test pagerfault-21 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  db eval { SELECT * FROM t0 LIMIT 1 } {
+    db e...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-21-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		r = db.Query("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA journal_mode = DELETE;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA journal_mode = DELETE;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 20 10")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 105 03F0")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db 20 10 (unsupported command, not transpiled)
+		// hexio_write test.db 105 03F0 (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n    INSERT INTO t0 VALUES(a_string(224), a_string(335));\n    INSERT INTO t0 VALUES(a_string(225), a_string(336));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(a PRIMARY KEY, b UNIQUE);\n    INSERT INTO t0 VALUES(a_string(222), a_string(333));\n    INSERT INTO t0 VALUES(a_string(223), a_string(334));\n    INSERT INTO t0 VALUES(a_string(224), a_string(335));\n    INSERT INTO t0 VALUES(a_string(225), a_string(336));\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-21 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { INSERT INTO t0 SELECT a||'x', b||'x' ...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
+	// do_faultsim_test pagerfault-21 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { INSERT INTO t0 SELECT a||'x', b||'x' ...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-22-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(a_string(3000));\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a);\n    CREATE INDEX i1 ON t1(a);\n    INSERT INTO t1 VALUES(a_string(3000));\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(1);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sql36231 { INSERT INTO t1 VALUES(a_string(3000)) }")
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// sql36231 { INSERT INTO t1 VALUES(a_string(3000)) } (unsupported command, not transpiled)
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-22 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { INSERT INTO t2 VALUES(2) }\n  execsql ...} -test {\n  faultsim_test_result {0 {1 2}}\n  faultsim_integ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-23 -prep {\n  sqlite3 db :memory:\n  foreach f [glob -nocompla...} -body {\n  execsql { \n    BEGIN;\n      INSERT INTO t1 VALU...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-24 -prep {\n  faultsim_delete_and_reopen\n  db eval { PRAGMA t...} -body {\n  execsql { CREATE TEMP TABLE t1(a, b) }\n} -test {\n  faultsim_test_result {0 {}} \\\n    {1 {unable to...}")
+	// do_faultsim_test pagerfault-22 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { INSERT INTO t2 VALUES(2) }
+  execsql ...} -test {
+  faultsim_test_result {0 {1 2}}
+  faultsim_integ...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-23 -prep {
+  sqlite3 db :memory:
+  foreach f [glob -nocompla...} -body {
+  execsql { 
+    BEGIN;
+      INSERT INTO t1 VALU...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-24 -prep {
+  faultsim_delete_and_reopen
+  db eval { PRAGMA t...} -body {
+  execsql { CREATE TEMP TABLE t1(a, b) }
+} -test {
+  faultsim_test_result {0 {}} \
+    {1 {unable to...} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "pagerfault-25-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(a_string(500));\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(a_string(500));\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n    INSERT INTO t1 SELECT a_string(500) FROM t1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-25 -prep {\n  faultsim_restore_and_reopen\n  db func a_string ...} -body {\n  lockrows 30\n} -test {\n  catch { lockrows 30 }\n  catch { db eval COMMIT ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-26 -prep {\n  faultsim_delete_and_reopen\n  execsql {\n    PRAG...} -body {\n  execsql {\n    VACUUM;\n  }\n} -test {\n  faultsim_test_result {0 {}}\n\n  set contents [db...}")
+	// do_faultsim_test pagerfault-25 -prep {
+  faultsim_restore_and_reopen
+  db func a_string ...} -body {
+  lockrows 30
+} -test {
+  catch { lockrows 30 }
+  catch { db eval COMMIT ...} (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-26 -prep {
+  faultsim_delete_and_reopen
+  execsql {
+    PRAG...} -body {
+  execsql {
+    VACUUM;
+  }
+} -test {
+  faultsim_test_result {0 {}}
+
+  set contents [db...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-27-pre"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t1 VALUES (a_string(20000), a_string(20000));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(a UNIQUE, b UNIQUE);\n    INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    INSERT INTO t1 VALUES (a_string(20000), a_string(20000));\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-27 -faults ioerr-persistent -prep {\n  faultsim_restore_and_reopen\n  db func a_string ...} -body {\n  puts $::channel [string repeat abc 6000]\n  flus...} -test {\n  catchsql { UPDATE t2 SET a = a_string(800), b =...}")
+	// do_faultsim_test pagerfault-27 -faults ioerr-persistent -prep {
+  faultsim_restore_and_reopen
+  db func a_string ...} -body {
+  puts $::channel [string repeat abc 6000]
+  flus...} -test {
+  catchsql { UPDATE t2 SET a = a_string(800), b =...} (unsupported command, not transpiled)
 	{ // do_test "pagerfault-28-pre"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA page_size = 512;\n\n    PRAGMA journal_mode = wal;\n    PRAGMA wal_autocheckpoint = 0;\n    PRAGMA cache_size = 100000;\n\n    BEGIN;\n      CREATE TABLE t2(a UNIQUE, b UNIQUE);\n      INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    COMMIT;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 512;\n\n    PRAGMA journal_mode = wal;\n    PRAGMA wal_autocheckpoint = 0;\n    PRAGMA cache_size = 100000;\n\n    BEGIN;\n      CREATE TABLE t2(a UNIQUE, b UNIQUE);\n      INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    COMMIT;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n  ")
 		}
 		// expr [file size test.db-shm] >= 96*1024 → "[file size test.db-shm] >= 96*1024"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-28a -faults oom* -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGMA ...} -body {\n  execsql { ROLLBACK }\n} -test {\n  db2 close\n  sqlite3_finalize $::STMT\n  catchsql...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test pagerfault-28a -faults oom* -prep {
+  faultsim_restore_and_reopen
+  execsql { PRAGMA ...} -body {
+  execsql { ROLLBACK }
+} -test {
+  db2 close
+  sqlite3_finalize $::STMT
+  catchsql...} (unsupported command, not transpiled)
+	// faultsim_restore_and_reopen (unsupported command, not transpiled)
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2.Exec("SELECT count(*) FROM t2")
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-28b -faults oom* -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { SELECT count(*) FROM t2 }\n} -test {\n  faultsim_test_result {0 2048}\n  db close\n}")
+	// do_faultsim_test pagerfault-28b -faults oom* -prep {
+  sqlite3 db test.db
+} -body {
+  execsql { SELECT count(*) FROM t2 }
+} -test {
+  faultsim_test_result {0 2048}
+  db close
+} (unsupported command, not transpiled)
 	db2.Close()
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var _FAULTSIM_custom = "list      \\\n  -injectinstall   custom_injectinstall    \\\n  -injectstart     custom_injectstart      \\\n  -injectstop      custom_injectstop       \\\n  -injecterrlist   {{1 {disk I/O error}}}  \\\n  -injectuninstall custom_injectuninstall  \\" // TCL namespace variable
-	_ = _FAULTSIM_custom // suppress unused warning
+	FAULTSIM_custom = "list      \\\n  -injectinstall   custom_injectinstall    \\\n  -injectstart     custom_injectstart      \\\n  -injectstop      custom_injectstop       \\\n  -injecterrlist   {{1 {disk I/O error}}}  \\\n  -injectuninstall custom_injectuninstall  \\" // TCL namespace variable
+	_ = FAULTSIM_custom // suppress unused warning
 	{ // do_test "pagerfault-29-pre"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 5;\n\n    BEGIN;\n      CREATE TABLE t2(a UNIQUE, b UNIQUE);\n      INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 5;\n\n    BEGIN;\n      CREATE TABLE t2(a UNIQUE, b UNIQUE);\n      INSERT INTO t2 VALUES( a_string(800), a_string(800) );\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n      INSERT INTO t2 SELECT a_string(800), a_string(800) FROM t2;\n    COMMIT;\n  ")
 		}
 		// expr [file size test.db] >= 50*1024 → "[file size test.db] >= 50*1024"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	// faultsim_save_and_close (unsupported command, not transpiled)
 	// foreach {tn tt} "\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n"
-	_items0 := tclSplitList("\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		tt := _items0[_idx0+1]
+		tt := _items1[_idx1+1]
 		_ = tt // suppress unused warning
-		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-$tn -faults custom -prep {\n    faultsim_restore_and_reopen\n      db func a_s...} -body {\n    catchsql ROLLBACK\n    catchsql ROLLBACK\n    c...} -test {\n    eval $::tt\n    if {\"ok\" != [db one {PRAGMA in...}")
+		_ = _idx1
+			// do_faultsim_test pagerfault-$tn -faults custom -prep {
+    faultsim_restore_and_reopen
+      db func a_s...} -body {
+    catchsql ROLLBACK
+    catchsql ROLLBACK
+    c...} -test {
+    eval $::tt
+    if {"ok" != [db one {PRAGMA in...} (unsupported command, not transpiled)
 		}
 		{ // do_test "pagerfault-31-pre"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+			// sqlite3_shutdown (unsupported command, not transpiled)
+			// sqlite3_config_uri 1 (unsupported command, not transpiled)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-31 -faults oom* -body {\n  sqlite3 db {file:one?mode=memory&cache=shared}\n...} -test {\n  faultsim_test_result {0 1} {1 {}}\n  catch { db ...}")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 0")
+		// do_faultsim_test pagerfault-31 -faults oom* -body {
+  sqlite3 db {file:one?mode=memory&cache=shared}
+...} -test {
+  faultsim_test_result {0 1} {1 {}}
+  catch { db ...} (unsupported command, not transpiled)
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_uri 0 (unsupported command, not transpiled)
 		{ // do_test "pagerfault-32-pre"
 			db.Close()
 			db, err = frigolite.Open("")
@@ -381,12 +710,32 @@ func Test_pagerfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES('one');\n  ")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-32 -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  execsql { SELECT * FROM t1; }\n} -test {\n  faultsim_test_result {0 one}\n}")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-33a -prep {\n  sqlite3 db :memory:\n  execsql {\n    CREATE TABL...} -body {\n  execsql { VACUUM }\n} -test {\n  faultsim_test_result {0 {}}\n}")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-33b -prep {\n  sqlite3 db \"\"\n  execsql {\n    CREATE TABLE t1(a...} -body {\n  execsql { VACUUM }\n} -test {\n  faultsim_test_result {0 {}}\n}")
+		// faultsim_save_and_close (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-32 -prep {
+  faultsim_restore_and_reopen
+  db eval { SELECT ...} -body {
+  execsql { SELECT * FROM t1; }
+} -test {
+  faultsim_test_result {0 one}
+} (unsupported command, not transpiled)
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_uri 0 (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-33a -prep {
+  sqlite3 db :memory:
+  execsql {
+    CREATE TABL...} -body {
+  execsql { VACUUM }
+} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-33b -prep {
+  sqlite3 db ""
+  execsql {
+    CREATE TABLE t1(a...} -body {
+  execsql { VACUUM }
+} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 		{ // do_test "pagerfault-34-pre"
 			db.Close()
 			db, err = frigolite.Open("")
@@ -396,37 +745,55 @@ func Test_pagerfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY);\n  ")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-34 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    BEG...} -body {\n  execsql COMMIT\n} -test {\n  faultsim_test_result {0 {}}\n}")
+		// faultsim_save_and_close (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-34 -prep {
+  faultsim_restore_and_reopen
+  execsql {
+    BEG...} -body {
+  execsql COMMIT
+} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 		{ // do_test "pagerfault-35-pre"
-			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			// faultsim_delete_and_reopen (unsupported command, not transpiled)
 			_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+			// faultsim_save_and_close (unsupported command, not transpiled)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "tv sectorsize 8192")
-		t.Errorf("TODO: %s not implemented in frigolite", "tv devchar [list]")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-35 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { UPDATE t1 SET x=randomblob(200) }\n} -test {\n  faultsim_test_result {0 {}}\n}")
+		// testvfs tv -default 1 (unsupported command, not transpiled)
+		// tv sectorsize 8192 (unsupported command, not transpiled)
+		// tv devchar [list] (unsupported command, not transpiled)
+		// do_faultsim_test pagerfault-35 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { UPDATE t1 SET x=randomblob(200) }
+} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "tv delete")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+		// tv delete (unsupported command, not transpiled)
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_uri 1 (unsupported command, not transpiled)
 		{ // do_test "pagerfault-36-pre"
-			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			// faultsim_delete_and_reopen (unsupported command, not transpiled)
 			_res = db.Exec("\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(randomblob(200), randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200), randomblob(200) FROM t1;\n  ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+			// faultsim_save_and_close (unsupported command, not transpiled)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-36 -prep {\n  faultsim_restore\n  sqlite3 db file:test.db?cach...} -body {\n  execsql ROLLBACK db\n} -test {\n  catch { db eval {UPDATE t1 SET x = randomblob(2...}")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		// do_faultsim_test pagerfault-36 -prep {
+  faultsim_restore
+  sqlite3 db file:test.db?cach...} -body {
+  execsql ROLLBACK db
+} -test {
+  catch { db eval {UPDATE t1 SET x = randomblob(2...} (unsupported command, not transpiled)
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_uri 0 (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
 }

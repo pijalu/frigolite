@@ -40,9 +40,20 @@ func Test_analyzeD(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "analyzeD" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "analyzeD" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n")
 		if _res.Error != nil {
@@ -50,10 +61,10 @@ func Test_analyzeD(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			var c = "$i % 200"
+			c = "$i % 200"
 			_ = c // suppress unused warning
 			_res = db.Exec(" INSERT INTO t1(a, b, c) VALUES( 2*($i/100), $i%10, $c ) ")
 			if _res.Error != nil {
@@ -83,8 +94,8 @@ func Test_analyzeD(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM sqlite_stat1 ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "1.4"
@@ -110,8 +121,8 @@ func Test_analyzeD(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM sqlite_stat1 ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "1.8"

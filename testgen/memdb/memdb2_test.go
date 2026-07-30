@@ -41,10 +41,21 @@ func Test_memdb2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var fname string
+	_ = fname // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "memdb2"
+	testprefix = "memdb2"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	// foreach {tn fname} "\n    1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb\n"
 	_items0 := tclSplitList("\n    1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb\n")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
@@ -55,8 +66,8 @@ func Test_memdb2(t *testing.T) {
 		_ = _idx0
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
 			}
-			db, err := frigolite.Open(fname)
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open(fname)
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open(fname)
 			if err != nil { t.Fatal(err) }

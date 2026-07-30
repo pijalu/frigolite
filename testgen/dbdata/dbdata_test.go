@@ -39,8 +39,17 @@ func Test_dbdata(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var big string
+	_ = big // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "dbdata"
+	testprefix = "dbdata"
 	_ = testprefix // suppress unused warning
 	if tclBool("0" + "\n  || " + "0") {
 		return
@@ -75,7 +84,7 @@ func Test_dbdata(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var big = "big 2000"
+	big = "big 2000"
 	_ = big // suppress unused warning
 	{ // "1.3"
 		r = db.Query("\n  INSERT INTO t1 VALUES(NULL, $big);\n  SELECT value FROM sqlite_dbdata WHERE pgno=2 AND cell=2 AND field=1;\n")

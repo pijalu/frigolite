@@ -39,6 +39,13 @@ func Test_tkt2192(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2192-1.1"
 		_res = db.Exec("\n    -- Raw data (RBS) --------\n    \n    create table records (\n      date          real,\n      type          text,\n      description   text,\n      value         integer,\n      acc_name      text,\n      acc_no        text\n    );\n    \n    -- Direct Debits ----------------\n    create view direct_debits as\n      select * from records where type = 'D/D';\n    \n    create view monthly_direct_debits as\n      select strftime('%Y-%m', date) as date, (-1 * sum(value)) as value\n        from direct_debits\n       group by strftime('%Y-%m', date);\n    \n    -- Expense Categories ---------------\n    create view energy as\n      select strftime('%Y-%m', date) as date, (-1 * sum(value)) as value\n        from direct_debits\n       where description like '%NPOWER%'\n       group by strftime('%Y-%m', date);\n    \n    create view phone_internet as\n      select strftime('%Y-%m', date) as date, (-1 * sum(value)) as value\n        from direct_debits\n       where description like '%BT DIRECT%'\n          or description like '%SUPANET%'\n          or description like '%ORANGE%'\n       group by strftime('%Y-%m', date);\n    \n    create view credit_cards as\n      select strftime('%Y-%m', date) as date, (-1 * sum(value)) as value\n        from direct_debits where description like '%VISA%'\n       group by strftime('%Y-%m', date);\n    \n    -- Overview ---------------------\n    \n    create view expense_overview as\n      select 'Energy' as expense, date, value from energy\n      union\n      select 'Phone/Internet' as expense, date, value from phone_internet\n      union\n      select 'Credit Card' as expense, date, value from credit_cards;\n    \n    create view jan as\n      select 'jan', expense, value from expense_overview\n       where date like '%-01';\n    \n    create view nov as\n      select 'nov', expense, value from expense_overview\n       where date like '%-11';\n    \n    create view summary as\n      select * from jan join nov on (jan.expense = nov.expense);\n  ")

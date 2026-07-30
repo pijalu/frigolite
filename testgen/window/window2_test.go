@@ -39,8 +39,23 @@ func Test_window2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var myres string
+	_ = myres // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "window2"
+	testprefix = "window2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c TEXT, d INTEGER);\n  INSERT INTO t1 VALUES(1, 'odd',  'one',   1);\n  INSERT INTO t1 VALUES(2, 'even', 'two',   2);\n  INSERT INTO t1 VALUES(3, 'odd',  'three', 3);\n  INSERT INTO t1 VALUES(4, 'even', 'four',  4);\n  INSERT INTO t1 VALUES(5, 'odd',  'five',  5);\n  INSERT INTO t1 VALUES(6, 'even', 'six',   6);\n")
@@ -691,16 +706,15 @@ func Test_window2(t *testing.T) {
 		}
 	}
 	{ // do_test "4.9"
-		var myres = ""
+		myres = ""
 		_ = myres // suppress unused warning
 		// skip: foreach over unresolved TCL command
-		var res2 = "1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000"
+		res2 = "1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000 1.0000"
 		_ = res2 // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // "4.10"
 		r = db.Query("\n  SELECT count(*) OVER (ORDER BY b) FROM t1\n")
@@ -733,16 +747,15 @@ func Test_window2(t *testing.T) {
 		}
 	}
 	{ // do_test "5.1"
-		var myres = ""
+		myres = ""
 		_ = myres // suppress unused warning
 		// skip: foreach over unresolved TCL command
-		var res2 = "7.2000 8.7500 10.0000 11.0000 15.0000"
+		res2 = "7.2000 8.7500 10.0000 11.0000 15.0000"
 		_ = res2 // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // "6.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);\n")

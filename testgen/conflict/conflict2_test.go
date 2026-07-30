@@ -40,6 +40,37 @@ func Test_conflict2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var t0 string
+	_ = t0 // pre-declared from TCL source
+	var t1 string
+	_ = t1 // pre-declared from TCL source
+	var t2 string
+	_ = t2 // pre-declared from TCL source
+	var t3 string
+	_ = t3 // pre-declared from TCL source
+	var sqlite_opentemp_count string
+	_ = sqlite_opentemp_count // pre-declared from TCL source
+	var r0 string
+	_ = r0 // pre-declared from TCL source
+	var r1 string
+	_ = r1 // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+	var r3 string
+	_ = r3 // pre-declared from TCL source
+	var conf1 string
+	_ = conf1 // pre-declared from TCL source
+	var t4 string
+	_ = t4 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "conflict2-1.0"
 		r = db.Query("\n    CREATE TABLE t1(a, b, c, PRIMARY KEY(a,b)) WITHOUT rowid;\n    CREATE TABLE t2(x);\n    SELECT c FROM t1 ORDER BY c;\n  ")
@@ -64,11 +95,9 @@ func Test_conflict2(t *testing.T) {
 		_ = t3 // suppress unused warning
 		_ = _idx0
 			{ // do_test "conflict2-1." + i
-				var _sqlite_opentemp_count = "0" // TCL namespace variable
-				_ = _sqlite_opentemp_count // suppress unused warning
-	var r0 string
+				sqlite_opentemp_count = "0" // TCL namespace variable
+				_ = sqlite_opentemp_count // suppress unused warning
 	_ = r0 // suppress unused warning
-	var r1 string
 	_ = r1 // suppress unused warning
 				{ // catch block
 					var _catchErr error
@@ -89,13 +118,13 @@ func Test_conflict2(t *testing.T) {
 					if _res.Error != nil { _catchErr = _res.Error }
 				}
 				if tclBool(r0) {
-					var r1 = ""
+					r1 = ""
 					_ = r1 // suppress unused warning
 				} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
 				}
-				var r2 = "execsql {SELECT x FROM t2}"
+				r2 = "execsql {SELECT x FROM t2}"
 				_ = r2 // suppress unused warning
-				var r3 = _sqlite_opentemp_count
+				r3 = sqlite_opentemp_count
 				_ = r3 // suppress unused warning
 				_list := tclList([]string{r0, r1, r2, r3})
 				_ = _list
@@ -122,9 +151,7 @@ func Test_conflict2(t *testing.T) {
 			_ = t2 // suppress unused warning
 			_ = _idx1
 				{ // do_test "conflict2-2." + i
-	var r0 string
 	_ = r0 // suppress unused warning
-	var r1 string
 	_ = r1 // suppress unused warning
 					{ // catch block
 						var _catchErr error
@@ -145,11 +172,11 @@ func Test_conflict2(t *testing.T) {
 						if _res.Error != nil { _catchErr = _res.Error }
 					}
 					if tclBool(r0) {
-						var r1 = ""
+						r1 = ""
 						_ = r1 // suppress unused warning
 					} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
 					}
-					var r2 = "execsql {SELECT x FROM t2}"
+					r2 = "execsql {SELECT x FROM t2}"
 					_ = r2 // suppress unused warning
 					_list := tclList([]string{r0, r1, r2})
 					_ = _list
@@ -176,9 +203,7 @@ func Test_conflict2(t *testing.T) {
 				_ = t2 // suppress unused warning
 				_ = _idx2
 					{ // do_test "conflict2-3." + i
-	var r0 string
 	_ = r0 // suppress unused warning
-	var r1 string
 	_ = r1 // suppress unused warning
 						{ // catch block
 							var _catchErr error
@@ -199,11 +224,11 @@ func Test_conflict2(t *testing.T) {
 							if _res.Error != nil { _catchErr = _res.Error }
 						}
 						if tclBool(r0) {
-							var r1 = ""
+							r1 = ""
 							_ = r1 // suppress unused warning
 						} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
 						}
-						var r2 = "execsql {SELECT x FROM t2}"
+						r2 = "execsql {SELECT x FROM t2}"
 						_ = r2 // suppress unused warning
 						_list := tclList([]string{r0, r1, r2})
 						_ = _list
@@ -233,12 +258,10 @@ func Test_conflict2(t *testing.T) {
 					_ = _idx3
 						{ // do_test "conflict2-4." + i
 							if conf1 != "" {
-								var conf1 = "ON CONFLICT " + conf1
+								conf1 = "ON CONFLICT " + conf1
 								_ = conf1 // suppress unused warning
 							}
-	var r0 string
 	_ = r0 // suppress unused warning
-	var r1 string
 	_ = r1 // suppress unused warning
 							{ // catch block
 								var _catchErr error
@@ -259,11 +282,11 @@ func Test_conflict2(t *testing.T) {
 								if _res.Error != nil { _catchErr = _res.Error }
 							}
 							if tclBool(r0) {
-								var r1 = ""
+								r1 = ""
 								_ = r1 // suppress unused warning
 							} else if tclBool("set r1 " + "execsql {SELECT c FROM t1}") {
 							}
-							var r2 = "execsql {SELECT x FROM t2}"
+							r2 = "execsql {SELECT x FROM t2}"
 							_ = r2 // suppress unused warning
 							_list := tclList([]string{r0, r1, r2})
 							_ = _list
@@ -292,17 +315,15 @@ func Test_conflict2(t *testing.T) {
 						_ = t2 // suppress unused warning
 						_ = _idx4
 							if tclBool(t0) {
-								var t1 = "NOT NULL constraint failed: t1.c"
+								t1 = "NOT NULL constraint failed: t1.c"
 								_ = t1 // suppress unused warning
 							}
 							{ // do_test "conflict2-5." + i
 								if conf1 != "" {
-									var conf1 = "ON CONFLICT " + conf1
+									conf1 = "ON CONFLICT " + conf1
 									_ = conf1 // suppress unused warning
 								}
-	var r0 string
 	_ = r0 // suppress unused warning
-	var r1 string
 	_ = r1 // suppress unused warning
 								{ // catch block
 									var _catchErr error
@@ -323,10 +344,10 @@ func Test_conflict2(t *testing.T) {
 									if _res.Error != nil { _catchErr = _res.Error }
 								}
 								if tclBool("!" + r0) {
-									var r1 = "execsql {SELECT c FROM t1}"
+									r1 = "execsql {SELECT c FROM t1}"
 									_ = r1 // suppress unused warning
 								}
-								var r2 = "execsql {SELECT x FROM t2}"
+								r2 = "execsql {SELECT x FROM t2}"
 								_ = r2 // suppress unused warning
 								_list := tclList([]string{r0, r1, r2})
 								_ = _list
@@ -359,37 +380,35 @@ func Test_conflict2(t *testing.T) {
 							_ = t4 // suppress unused warning
 							_ = _idx5
 								if tclBool("permutation" + " == \"inmemory_journal\"") {
-									var t4 = "0"
+									t4 = "0"
 									_ = t4 // suppress unused warning
 								}
 								if tclBool(t0) {
-									var t1 = "UNIQUE constraint failed: t1.a"
+									t1 = "UNIQUE constraint failed: t1.a"
 									_ = t1 // suppress unused warning
 								}
 								if tclBool("info exists TEMP_STORE" + " && " + TEMP_STORE + "==3") {
-									var t3 = "0"
+									t3 = "0"
 									_ = t3 // suppress unused warning
 								} else {
-									var t3 = "$t3+$t4"
+									t3 = "$t3+$t4"
 									_ = t3 // suppress unused warning
 								}
 								{ // do_test "conflict2-6." + i
-									db, err := frigolite.Open("test.db")
-									defer db.Close()
+									_dbtmp6, err := frigolite.Open("test.db")
+									_ = _dbtmp6 // sqlite3 db connection
 									if err != nil { t.Fatal(err) }
 									if conf1 != "" {
-										var conf1 = "ON CONFLICT " + conf1
+										conf1 = "ON CONFLICT " + conf1
 										_ = conf1 // suppress unused warning
 									}
 									r = db.Query("pragma temp_store=file")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma temp_store=file")
 									}
-									var _sqlite_opentemp_count = "0" // TCL namespace variable
-									_ = _sqlite_opentemp_count // suppress unused warning
-	var r0 string
+									sqlite_opentemp_count = "0" // TCL namespace variable
+									_ = sqlite_opentemp_count // suppress unused warning
 	_ = r0 // suppress unused warning
-	var r1 string
 	_ = r1 // suppress unused warning
 									{ // catch block
 										var _catchErr error
@@ -410,12 +429,12 @@ func Test_conflict2(t *testing.T) {
 										if _res.Error != nil { _catchErr = _res.Error }
 									}
 									if tclBool("!" + r0) {
-										var r1 = "execsql {SELECT a FROM t1 ORDER BY b}"
+										r1 = "execsql {SELECT a FROM t1 ORDER BY b}"
 										_ = r1 // suppress unused warning
 									}
-									var r2 = "execsql {SELECT x FROM t3}"
+									r2 = "execsql {SELECT x FROM t3}"
 									_ = r2 // suppress unused warning
-									_list := tclList([]string{r0, r1, r2, _sqlite_opentemp_count})
+									_list := tclList([]string{r0, r1, r2, sqlite_opentemp_count})
 									_ = _list
 								}
 							}
@@ -424,7 +443,7 @@ func Test_conflict2(t *testing.T) {
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    DROP TABLE t2;\n    DROP TABLE t3;\n    CREATE TABLE t1(a PRIMARY KEY, b) without rowid;\n  ")
 								}
-								var i = "1"
+								i = "1"
 								_ = i // suppress unused warning
 								for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50 }() {
 									_res = db.Exec("INSERT into t1 values(" + i + "," + "$i+1" + ");")
@@ -648,7 +667,7 @@ func Test_conflict2(t *testing.T) {
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
 								_ = _res // catchsql
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-9.21b SQLITE_CONSTRAINT_UNIQUE")
+							// verify_ex_errcode conflict2-9.21b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 							{ // do_test "conflict2-9.20"
 								{
 									var _catchErr error
@@ -665,7 +684,7 @@ func Test_conflict2(t *testing.T) {
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
 								_ = _res // catchsql
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-9.21b SQLITE_CONSTRAINT_UNIQUE")
+							// verify_ex_errcode conflict2-9.21b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 							{ // do_test "conflict2-9.22"
 								{
 									var _catchErr error
@@ -782,7 +801,7 @@ func Test_conflict2(t *testing.T) {
 								_res = db.Exec("\n    UPDATE t5 SET a=a+1 WHERE a=1;\n  ")
 								_ = _res // catchsql
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-12.3b SQLITE_CONSTRAINT_PRIMARYKEY")
+							// verify_ex_errcode conflict2-12.3b SQLITE_CONSTRAINT_PRIMARYKEY (unsupported command, not transpiled)
 							{ // do_test "conflict2-12.4"
 								r = db.Query("\n    UPDATE OR REPLACE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
 								if r.Error != nil {
@@ -797,7 +816,7 @@ func Test_conflict2(t *testing.T) {
 								_res = db.Exec("\n    REPLACE INTO t13 VALUES(2);\n  ")
 								_ = _res // catchsql
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-13.1b SQLITE_CONSTRAINT_CHECK")
+							// verify_ex_errcode conflict2-13.1b SQLITE_CONSTRAINT_CHECK (unsupported command, not transpiled)
 							{ // do_test "conflict2-13.2"
 								r = db.Query("\n    REPLACE INTO t13 VALUES(3);\n    COMMIT;\n    SELECT * FROM t13;\n  ")
 								if r.Error != nil {

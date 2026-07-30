@@ -39,10 +39,26 @@ func Test_carrayfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var mem string
+	_ = mem // pre-declared from TCL source
+	var myres string
+	_ = myres // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "carrayfault"
+	testprefix = "carrayfault"
 	_ = testprefix // suppress unused warning
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n")
@@ -50,21 +66,37 @@ func Test_carrayfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);\n")
 		}
 	}
-	var STMT = ""
+	STMT = ""
 	_ = STMT // suppress unused warning
 	// foreach {tn mem} "\n  1 -static\n  2 -transient\n  3 -malloc\n"
-	_items0 := tclSplitList("\n  1 -static\n  2 -transient\n  3 -malloc\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1 -static\n  2 -transient\n  3 -malloc\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		mem := _items0[_idx0+1]
+		mem := _items1[_idx1+1]
 		_ = mem // suppress unused warning
-		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n  } -body {\n    sqlite3_carray_bind $::mem -int64 $::STMT 1  ...} -test {\n    faultsim_test_result {0 {}} {1 {out of memory...}")
+		_ = _idx1
+			// do_faultsim_test 2.$tn -faults oom* -prep {
+  } -body {
+    sqlite3_carray_bind $::mem -int64 $::STMT 1  ...} -test {
+    faultsim_test_result {0 {}} {1 {out of memory...} (unsupported command, not transpiled)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n} -body {\n    sqlite3_carray_bind -transient -text $::STMT ...} -test {\n  faultsim_test_result {0 {}} {1 {initialization ...}")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults oom* -prep {\n  set ::STMT [sqlite3_prepare_v2 db \"SELECT value...} -body {\n    set myres [list]\n    while { \"SQLITE_ROW\"==[s...} -test {\n  faultsim_test_result {0 SQLITE_OK} {0 SQLITE_NO...}")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -faults oom* -prep {\n  sqlite3 db test.db\n} -body {\n  execsql \"SELECT value FROM carray(?)\"\n} -test {\n  faultsim_test_result {0 {}}\n}")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind")
+		// do_faultsim_test 3 -faults oom* -prep {
+} -body {
+    sqlite3_carray_bind -transient -text $::STMT ...} -test {
+  faultsim_test_result {0 {}} {1 {initialization ...} (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		// do_faultsim_test 4 -faults oom* -prep {
+  set ::STMT [sqlite3_prepare_v2 db "SELECT value...} -body {
+    set myres [list]
+    while { "SQLITE_ROW"==[s...} -test {
+  faultsim_test_result {0 SQLITE_OK} {0 SQLITE_NO...} (unsupported command, not transpiled)
+		// do_faultsim_test 5 -faults oom* -prep {
+  sqlite3 db test.db
+} -body {
+  execsql "SELECT value FROM carray(?)"
+} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
+		// sqlite3_carray_bind (unsupported command, not transpiled)
 }

@@ -39,6 +39,13 @@ func Test_savepoint5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "savepoint5-1.1"
 		_res = db.Exec("\n    SAVEPOINT sp1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT count(*) FROM sqlite_master;\n    SELECT * FROM t1;\n  ")

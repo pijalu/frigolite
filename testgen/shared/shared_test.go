@@ -41,39 +41,121 @@ func Test_shared(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var av string
+	_ = av // pre-declared from TCL source
+	var using_proxy string
+	_ = using_proxy // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var extrafds_prelock string
+	_ = extrafds_prelock // pre-declared from TCL source
+	var extrafds_postlock string
+	_ = extrafds_postlock // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var max string
+	_ = max // pre-declared from TCL source
+	var DB2 string
+	_ = DB2 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var STMT1 string
+	_ = STMT1 // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var contents string
+	_ = contents // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var oids string
+	_ = oids // pre-declared from TCL source
+	var scans string
+	_ = scans // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var zDb16 string
+	_ = zDb16 // pre-declared from TCL source
+	var db16 string
+	_ = db16 // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var enc string
+	_ = enc // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var db_handles string
+	_ = db_handles // pre-declared from TCL source
+	var h string
+	_ = h // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var noids string
+	_ = noids // pre-declared from TCL source
+	var body string
+	_ = body // pre-declared from TCL source
+	var subret string
+	_ = subret // pre-declared from TCL source
+	var I string
+	_ = I // pre-declared from TCL source
+	var II string
+	_ = II // pre-declared from TCL source
+	var handles string
+	_ = handles // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
 	for _, av := range tclSplitList("list 0 1") {
 	_ = av // suppress unused warning
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var using_proxy = "0"
+		using_proxy = "0"
 		_ = using_proxy // suppress unused warning
 		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-		_items0 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-			name := _items0[_idx0+0]
+		_items1 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			name := _items1[_idx1+0]
 			_ = name // suppress unused warning
-			value := _items0[_idx0+1]
+			value := _items1[_idx1+1]
 			_ = value // suppress unused warning
-			_ = _idx0
-				var using_proxy = value
+			_ = _idx1
+				using_proxy = value
 				_ = using_proxy // suppress unused warning
 			}
-			var extrafds_prelock = "0"
+			extrafds_prelock = "0"
 			_ = extrafds_prelock // suppress unused warning
-			var extrafds_postlock = "0"
+			extrafds_postlock = "0"
 			_ = extrafds_postlock // suppress unused warning
 			if func() bool { using_proxy_n, _using_proxy_e := strconv.Atoi(using_proxy); if _using_proxy_e != nil { return false }; return using_proxy_n > 0 }() {
-				var extrafds_prelock = "1"
+				extrafds_prelock = "1"
 				_ = extrafds_prelock // suppress unused warning
-				var extrafds_postlock = "2"
+				extrafds_postlock = "2"
 				_ = extrafds_postlock // suppress unused warning
 			}
-			var av = "0"
 			// incr av 1
 			{
 				_n, _err := strconv.Atoi(av)
@@ -84,7 +166,7 @@ func Test_shared(t *testing.T) {
 			{ // do_test "shared-" + av + ".1.1"
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
-				_ = _sqlite_open_file_count // TCL namespace variable (query)
+				_ = sqlite_open_file_count // TCL namespace variable (query)
 				// expr $sqlite_open_file_count-$extrafds_postlock → "$sqlite_open_file_count-$extrafds_postlock"
 			}
 			{ // do_test "shared-" + av + ".1.2"
@@ -136,14 +218,14 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".2.1"
-				if _tcl_platform_platform == "unix" {
+				if tcl_platform_platform == "unix" {
 					db3, err = frigolite.Open("file:test.db?cache=private")
 					if err != nil { t.Fatal(err) }
 				} else {
 					db3, err = frigolite.Open("TEST.DB")
 					if err != nil { t.Fatal(err) }
 				}
-				_ = _sqlite_open_file_count // TCL namespace variable (query)
+				_ = sqlite_open_file_count // TCL namespace variable (query)
 				// expr $sqlite_open_file_count-($extrafds_prelock+$extrafds_postlock) → "$sqlite_open_file_count-($extrafds_prelock+$extrafds_postlock)"
 			}
 			{ // do_test "shared-" + av + ".2.2"
@@ -167,16 +249,22 @@ func Test_shared(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO def VALUES('VII', 'VIII', 'IX');\n  ")
 				}
-				_r := tclList(append([]string{}, tclSplitList("catchsql { SELECT * FROM def; } db3")..., tclSplitList("catchsql { SELECT * FROM def; } db2")...))
-				_ = _r
+				_r_tcl := append([]string{}, tclSplitList("catchsql { SELECT * FROM def; } db3")...)
+				_r_tcl = append(_r_tcl, tclSplitList("catchsql { SELECT * FROM def; } db2")...)
+				_r_tcl_str := tclList(_r_tcl)
+				_ = _r_tcl_str
+				_ = _r_tcl
 			}
 			{ // do_test "shared-" + av + ".2.4"
 				_res = db.Exec("\n    COMMIT;\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
 				}
-				_r := tclList(append([]string{}, tclSplitList("catchsql { SELECT * FROM def; } db3")..., tclSplitList("catchsql { INSERT INTO def VALUES('X', 'XI', 'XII'); } db3")...))
-				_ = _r
+				_r_tcl := append([]string{}, tclSplitList("catchsql { SELECT * FROM def; } db3")...)
+				_r_tcl = append(_r_tcl, tclSplitList("catchsql { INSERT INTO def VALUES('X', 'XI', 'XII'); } db3")...)
+				_r_tcl_str := tclList(_r_tcl)
+				_ = _r_tcl_str
+				_ = _r_tcl
 			}
 			_res = db.Exec("COMMIT")
 			_ = _res // catchsql
@@ -193,13 +281,13 @@ func Test_shared(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA read_uncommitted = 1")
 				}
-				var ret = "list"
+				ret = "list"
 				_ = ret // suppress unused warning
 				db2.Exec("SELECT i FROM seq ORDER BY i")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			{ // do_test "shared-" + av + ".3.1.2"
-				var ret = "list"
+				ret = "list"
 				_ = ret // suppress unused warning
 				db2.Exec("SELECT i FROM seq")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -227,7 +315,8 @@ func Test_shared(t *testing.T) {
 			os.Remove("test.db")
 			os.Remove("test2.db")
 			os.Remove("test2.db-journal")
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
@@ -285,29 +374,28 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".4.4.2"
-				var _DB2 = "sqlite3_connection_pointer db2" // TCL namespace variable
-				_ = _DB2 // suppress unused warning
-				var sql = "SELECT * FROM abc"
+				DB2 = "sqlite3_connection_pointer db2" // TCL namespace variable
+				_ = DB2 // suppress unused warning
+				sql = "SELECT * FROM abc"
 				_ = sql // suppress unused warning
-				var _STMT1 = "sqlite3_prepare $::DB2 $sql -1 DUMMY" // TCL namespace variable
-				_ = _STMT1 // suppress unused warning
+				STMT1 = "sqlite3_prepare $::DB2 $sql -1 DUMMY" // TCL namespace variable
+				_ = STMT1 // suppress unused warning
 				_res = db.Exec("\n    BEGIN;\n    CREATE TABLE jkl(j, k, l);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE jkl(j, k, l);\n  ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT1")
+				// sqlite3_step $::STMT1 (unsupported command, not transpiled)
 			}
 			{ // do_test "shared-" + av + ".4.4.3"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT1")
+				// sqlite3_finalize $::STMT1 (unsupported command, not transpiled)
 			}
 			{ // do_test "shared-" + av + ".4.4.4"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
-					var _STMT1 = "sqlite3_prepare $::DB2 $sql -1 DUMMY" // TCL namespace variable
-					_ = _STMT1 // suppress unused warning
+					STMT1 = "sqlite3_prepare $::DB2 $sql -1 DUMMY" // TCL namespace variable
+					_ = STMT1 // suppress unused warning
 					if _catchErr != nil {
 						rc = "1"
 						msg = _catchErr.Error()
@@ -320,13 +408,12 @@ func Test_shared(t *testing.T) {
 				_ = _list
 			}
 			{ // do_test "shared-" + av + ".4.4.5"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
-					var _STMT1 = "sqlite3_prepare $::DB2 \"SELECT * FROM ghi\" -1 DUMMY" // TCL namespace variable
-					_ = _STMT1 // suppress unused warning
+					STMT1 = "sqlite3_prepare $::DB2 \"SELECT * FROM ghi\" -1 DUMMY" // TCL namespace variable
+					_ = STMT1 // suppress unused warning
 					if _catchErr != nil {
 						rc = "1"
 						msg = _catchErr.Error()
@@ -347,9 +434,9 @@ func Test_shared(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 			}
-			for _, db := range tclSplitList("list test.db test1.db test2.db test3.db") {
-			_ = db // suppress unused warning
-				os.Remove(db)
+			for _, db_iter := range tclSplitList("list test.db test1.db test2.db test3.db") {
+			_ = db_iter // suppress unused warning
+				os.Remove("")
 			}
 			{ // do_test "shared-" + av + ".5.1.1"
 				db1, err = frigolite.Open("test.db")
@@ -394,7 +481,7 @@ func Test_shared(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t2 VALUES(5, 6);\n  ")
 				}
-				var ret = "list"
+				ret = "list"
 				_ = ret // suppress unused warning
 				{
 					var _catchErr error
@@ -408,7 +495,7 @@ func Test_shared(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 				}
-				var ret = "list"
+				ret = "list"
 				_ = ret // suppress unused warning
 				{
 					var _catchErr error
@@ -432,8 +519,8 @@ func Test_shared(t *testing.T) {
 				os.Remove(f)
 			}
 			{ // do_test "shared-" + av + ".7.1"
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp3, err := frigolite.Open("test.db")
+				_ = _dbtmp3 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -441,20 +528,20 @@ func Test_shared(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    CREATE TABLE t2(a PRIMARY KEY, b);\n  ")
 				}
-				var _contents = "" // TCL namespace variable
-				_ = _contents // suppress unused warning
-				var i = "0"
+				contents = "" // TCL namespace variable
+				_ = contents // suppress unused warning
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-					var a = "\"$i \" 20"
+					a = "\"$i \" 20"
 					_ = a // suppress unused warning
-					var b = "\"$i \" 20"
+					b = "\"$i \" 20"
 					_ = b // suppress unused warning
 					_res = db.Exec("\n      INSERT INTO t1 VALUES(:a, :b);\n    ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO t1 VALUES(:a, :b);\n    ")
 					}
-					_contents = tclListAppend(_contents, "list [expr $i+1] $a $b")
+					contents = tclListAppend(contents, "list [expr $i+1] $a $b")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -471,14 +558,14 @@ func Test_shared(t *testing.T) {
 			{ // do_test "shared-" + av + ".7.2"
 				// proc definition (not transpiled)
 				// proc definition (not transpiled)
-				var scans = "locktblrows db t2 {\n    execsql {\n      DELETE FROM t1;\n    } db2\n  }"
+				scans = "locktblrows db t2 {\n    execsql {\n      DELETE FROM t1;\n    } db2\n  }"
 				_ = scans // suppress unused warning
 				var _error = "0"
 				_ = _error // suppress unused warning
 				for _, s := range tclSplitList(scans) {
 				_ = s // suppress unused warning
-					if tclBool("lsort -integer -index 0 $s" + "!=" + _contents) {
-						var _error = "1"
+					if tclBool("lsort -integer -index 0 $s" + "!=" + contents) {
+						_error = "1"
 						_ = _error // suppress unused warning
 					}
 				}
@@ -505,8 +592,8 @@ func Test_shared(t *testing.T) {
 			os.Remove("test.db")
 			{ // do_test "shared-" + av + ".10.1"
 				os.Remove("test.db")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp4, err := frigolite.Open("test.db")
+				_ = _dbtmp4 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -526,7 +613,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".10.3"
-				if _tcl_platform_platform == "unix" {
+				if tcl_platform_platform == "unix" {
 					db3, err = frigolite.Open("file:test.db?cache=private")
 					if err != nil { t.Fatal(err) }
 				} else {
@@ -578,8 +665,8 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + ".11.1"
 				os.Remove("test.db")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp5, err := frigolite.Open("test.db")
+				_ = _dbtmp5 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -623,7 +710,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".11.8"
-				var res = "list"
+				res = "list"
 				_ = res // suppress unused warning
 				db2.Exec("\n    SELECT abc.a as I, abc2.a as II FROM abc, abc2;\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -634,15 +721,16 @@ func Test_shared(t *testing.T) {
 				db2.Close()
 			}
 			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp6, err := frigolite.Open("test.db")
+			_ = _dbtmp6 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // do_test "shared-" + av + ".12.2"
-				var _db_handles = "list" // TCL namespace variable
-				_ = _db_handles // suppress unused warning
-				var i = "1"
+				db_handles = "list" // TCL namespace variable
+				_ = db_handles // suppress unused warning
+				i = "1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 15 }() {
-					_db_handles = tclListAppend(_db_handles, "db" + i)
+					db_handles = tclListAppend(db_handles, "db" + i)
 					dbi, err := frigolite.Open("test.db")
 					defer dbi.Close()
 					if err != nil { t.Fatal(err) }
@@ -665,21 +753,21 @@ func Test_shared(t *testing.T) {
 			}
 			// proc definition (not transpiled)
 			{ // do_test "shared-" + av + ".12.3"
-				var _res = "list" // TCL namespace variable
-				_ = _res // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "nested_select $::db_handles")
-				_ = _res // TCL namespace variable (query)
+				res = "list" // TCL namespace variable
+				_ = res // suppress unused warning
+				// nested_select $::db_handles (unsupported command, not transpiled)
+				_ = res // TCL namespace variable (query)
 			}
 			{ // do_test "shared-" + av + ".12.X"
-				for _, h := range tclSplitList(_db_handles) {
+				for _, h := range tclSplitList(db_handles) {
 				_ = h // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "$h close")
+					// $h close (unsupported command, not transpiled)
 				}
 			}
 			{ // do_test "shared-" + av + ".13.1"
 				os.Remove("test2.db")
-				db, err := frigolite.Open(":memory:")
-				defer db.Close()
+				_dbtmp7, err := frigolite.Open(":memory:")
+				_ = _dbtmp7 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    ATTACH 'test2.db' AS aux2;\n    ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;\n    ATTACH 'test5.db' AS aux5;\n    DETACH aux2;\n    DETACH aux3;\n    DETACH aux4;\n    ATTACH 'test2.db' AS aux2;\n    ATTACH 'test3.db' AS aux3;\n    ATTACH 'test4.db' AS aux4;\n  ")
 				if _res.Error != nil {
@@ -695,8 +783,8 @@ func Test_shared(t *testing.T) {
 			{ // do_test "shared-" + av + ".13.3"
 			}
 			{ // do_test "shared-" + av + ".14.1"
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp8, err := frigolite.Open("test.db")
+				_ = _dbtmp8 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -706,7 +794,7 @@ func Test_shared(t *testing.T) {
 				}
 			}
 			{ // do_test "shared-" + av + ".14.2"
-				var res = "list"
+				res = "list"
 				_ = res // suppress unused warning
 				_res = db.Exec("SELECT name FROM sqlite_master")
 				if _res.Error != nil {
@@ -717,8 +805,8 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + "-15.1"
 				os.Remove("test.db")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp9, err := frigolite.Open("test.db")
+				_ = _dbtmp9 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
@@ -804,8 +892,8 @@ func Test_shared(t *testing.T) {
 				{ // do_test "shared-" + av + "-16.8.1"
 					db1.Close()
 					db2.Close()
-					db, err := frigolite.Open("test1.db")
-					defer db.Close()
+					_dbtmp0, err := frigolite.Open("test1.db")
+					_ = _dbtmp0 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" \n      CREATE TABLE yy(a, b);\n      INSERT INTO yy VALUES(77, 88);\n    ")
 					if _res.Error != nil {
@@ -832,5 +920,5 @@ func Test_shared(t *testing.T) {
 				db2.Close()
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+		// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

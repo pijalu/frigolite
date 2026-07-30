@@ -39,8 +39,39 @@ func Test_distinctagg(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var use_eph string
+	_ = use_eph // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var prg string
+	_ = prg // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var t3root string
+	_ = t3root // pre-declared from TCL source
+	var use_t3 string
+	_ = use_t3 // pre-declared from TCL source
+	var bUse string
+	_ = bUse // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a_opcode string
+	_ = a_opcode // pre-declared from TCL source
+	var a_p2 string
+	_ = a_p2 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "distinctagg"
+	testprefix = "distinctagg"
 	_ = testprefix // suppress unused warning
 	{ // do_test "distinctagg-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(1,3,4);\n    INSERT INTO t1 VALUES(1,3,5);\n    SELECT count(distinct a),\n           count(distinct b),\n           count(distinct c),\n           count(all a) FROM t1;\n  ")
@@ -96,9 +127,9 @@ func Test_distinctagg(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			{ // do_test "3." + tn + ".1"
-				var prg = "db eval \"EXPLAIN $sql\""
+				prg = "db eval \"EXPLAIN $sql\""
 				_ = prg // suppress unused warning
-				var idx = "lsearch $prg OpenEphemeral"
+				idx = "lsearch $prg OpenEphemeral"
 				_ = idx // suppress unused warning
 				// expr $idx>=0 → "$idx>=0"
 			}
@@ -143,9 +174,9 @@ func Test_distinctagg(t *testing.T) {
 			_ = res // suppress unused warning
 			_ = _idx1
 				{ // do_test "4." + tn + ".1"
-					var prg = "db eval \"EXPLAIN $sql\""
+					prg = "db eval \"EXPLAIN $sql\""
 					_ = prg // suppress unused warning
-					var idx = "lsearch $prg OpenEphemeral"
+					idx = "lsearch $prg OpenEphemeral"
 					_ = idx // suppress unused warning
 					// expr $idx>=0 → "$idx>=0"
 				}
@@ -156,7 +187,7 @@ func Test_distinctagg(t *testing.T) {
 					}
 				}
 			}
-			var t3root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='t3'}"
+			t3root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='t3'}"
 			_ = t3root // suppress unused warning
 			// foreach {tn use_t3 sql res} "\n  1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0\n\n"
 			_items2 := tclSplitList("\n  1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0\n\n")
@@ -171,7 +202,7 @@ func Test_distinctagg(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _idx2
 					{ // do_test "5." + tn + ".1"
-						var bUse = "0"
+						bUse = "0"
 						_ = bUse // suppress unused warning
 						_res = db.Exec("EXPLAIN " + sql)
 						if _res.Error != nil {

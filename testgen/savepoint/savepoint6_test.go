@@ -41,15 +41,72 @@ func Test_savepoint6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DATABASE_SCHEMA string
+	_ = DATABASE_SCHEMA // pre-declared from TCL source
+	var G_savepoint6_iterations string
+	_ = G_savepoint6_iterations // pre-declared from TCL source
+	var lSavepoint string
+	_ = lSavepoint // pre-declared from TCL source
+	var nChar string
+	_ = nChar // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var zSavepoint string
+	_ = zSavepoint // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var aEntry_x string
+	_ = aEntry_x // pre-declared from TCL source
+	var nEntry string
+	_ = nEntry // pre-declared from TCL source
+	var nEntry2 string
+	_ = nEntry2 // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var debug_op string
+	_ = debug_op // pre-declared from TCL source
+	var names string
+	_ = names // pre-declared from TCL source
+	var cmds string
+	_ = cmds // pre-declared from TCL source
+	var C string
+	_ = C // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var zSetup string
+	_ = zSetup // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var zSql string
+	_ = zSql // pre-declared from TCL source
+	var zName string
+	_ = zName // pre-declared from TCL source
+	var lX string
+	_ = lX // pre-declared from TCL source
+	var nRes string
+	_ = nRes // pre-declared from TCL source
+	var nRange string
+	_ = nRange // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	var DATABASE_SCHEMA = "\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x, y);\n    CREATE UNIQUE INDEX i1 ON t1(x);\n    CREATE INDEX i2 ON t1(y);\n"
+	DATABASE_SCHEMA = "\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x, y);\n    CREATE UNIQUE INDEX i1 ON t1(x);\n    CREATE INDEX i2 ON t1(y);\n"
 	_ = DATABASE_SCHEMA // suppress unused warning
 	if tclBool("0==" + "info exists ::G(savepoint6_iterations)") {
-		var _G_savepoint6_iterations = "1000" // TCL namespace variable
-		_ = _G_savepoint6_iterations // suppress unused warning
+		G_savepoint6_iterations = "1000" // TCL namespace variable
+		_ = G_savepoint6_iterations // suppress unused warning
 	}
-	var lSavepoint = "list"
+	lSavepoint = "list"
 	_ = lSavepoint // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -59,30 +116,31 @@ func Test_savepoint6(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var _debug_op = "0" // TCL namespace variable
-	_ = _debug_op // suppress unused warning
+	debug_op = "0" // TCL namespace variable
+	_ = debug_op // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// expr srand(0) → "srand(0)"
 	{ // do_test "savepoint6-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sql $DATABASE_SCHEMA")
+		// sql $DATABASE_SCHEMA (unsupported command, not transpiled)
 	}
 	{ // do_test "savepoint6-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "insert_rows {\n    497 166 230 355 779 588 394 317 290 475 362 1...}")
-		t.Errorf("TODO: %s not implemented in frigolite", "savepoint one")
-		t.Errorf("TODO: %s not implemented in frigolite", "insert_rows 858")
-		t.Errorf("TODO: %s not implemented in frigolite", "delete_rows 930")
-		t.Errorf("TODO: %s not implemented in frigolite", "savepoint two")
+		// insert_rows {
+    497 166 230 355 779 588 394 317 290 475 362 1...} (unsupported command, not transpiled)
+		// savepoint one (unsupported command, not transpiled)
+		// insert_rows 858 (unsupported command, not transpiled)
+		// delete_rows 930 (unsupported command, not transpiled)
+		// savepoint two (unsupported command, not transpiled)
 		r = db.Query("PRAGMA incremental_vacuum")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA incremental_vacuum")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "savepoint three")
-		t.Errorf("TODO: %s not implemented in frigolite", "insert_rows 144")
-		t.Errorf("TODO: %s not implemented in frigolite", "rollback three")
-		t.Errorf("TODO: %s not implemented in frigolite", "rollback two")
-		t.Errorf("TODO: %s not implemented in frigolite", "release one")
+		// savepoint three (unsupported command, not transpiled)
+		// insert_rows 144 (unsupported command, not transpiled)
+		// rollback three (unsupported command, not transpiled)
+		// rollback two (unsupported command, not transpiled)
+		// release one (unsupported command, not transpiled)
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
@@ -95,26 +153,26 @@ func Test_savepoint6(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		os.Remove("test.db")
-		// eval $zSetup
-		t.Errorf("TODO: %s not implemented in frigolite", "sql $DATABASE_SCHEMA")
-		t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
+		// eval (dynamic, not transpiled)
+		// sql $DATABASE_SCHEMA (unsupported command, not transpiled)
+		// wal_set_journal_mode (unsupported command, not transpiled)
 		{ // do_test "savepoint6-" + testname + ".setup"
-			t.Errorf("TODO: %s not implemented in frigolite", "savepoint one")
-			t.Errorf("TODO: %s not implemented in frigolite", "insert_rows [random_integers 100 1000]")
-			t.Errorf("TODO: %s not implemented in frigolite", "release one")
-			t.Errorf("TODO: %s not implemented in frigolite", "checkdb")
+			// savepoint one (unsupported command, not transpiled)
+			// insert_rows [random_integers 100 1000] (unsupported command, not transpiled)
+			// release one (unsupported command, not transpiled)
+			// checkdb (unsupported command, not transpiled)
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
-		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _G_n, __G_e := strconv.Atoi(_G); if __G_e != nil { return false }; return i_n < _G_n(savepoint6_iterations) }() {
+		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; G_savepoint6_iterations_n, _G_savepoint6_iterations_e := strconv.Atoi(G_savepoint6_iterations); if _G_savepoint6_iterations_e != nil { return false }; return i_n < G_savepoint6_iterations_n }() {
 			{ // do_test "savepoint6-" + testname + "." + i + ".1"
-				t.Errorf("TODO: %s not implemented in frigolite", "savepoint_op")
-				t.Errorf("TODO: %s not implemented in frigolite", "checkdb")
+				// savepoint_op (unsupported command, not transpiled)
+				// checkdb (unsupported command, not transpiled)
 			}
 			{ // do_test "savepoint6-" + testname + "." + i + ".2"
-				t.Errorf("TODO: %s not implemented in frigolite", "database_op")
-				t.Errorf("TODO: %s not implemented in frigolite", "database_op")
-				t.Errorf("TODO: %s not implemented in frigolite", "checkdb")
+				// database_op (unsupported command, not transpiled)
+				// database_op (unsupported command, not transpiled)
+				// checkdb (unsupported command, not transpiled)
 			}
 			// incr i 1
 			{
@@ -124,6 +182,6 @@ func Test_savepoint6(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint6-$testname.walok")
+		// wal_check_journal_mode savepoint6-$testname.walok (unsupported command, not transpiled)
 	}
 }

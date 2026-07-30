@@ -40,6 +40,11 @@ func Test_triggerD(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "triggerD-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(rowid, oid, _rowid_, x);\n    CREATE TABLE log(a,b,c,d,e);\n    CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('r1', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r2 AFTER INSERT ON t1 BEGIN\n      INSERT INTO log VALUES('r2', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r3 BEFORE UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('r3.old', old.rowid, old.oid, old._rowid_, old.x);\n      INSERT INTO log VALUES('r3.new', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r4 AFTER UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES('r4.old', old.rowid, old.oid, old._rowid_, old.x);\n      INSERT INTO log VALUES('r4.new', new.rowid, new.oid, new._rowid_, new.x);\n    END;\n    CREATE TRIGGER r5 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('r5', old.rowid, old.oid, old._rowid_, old.x);\n    END;\n    CREATE TRIGGER r6 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES('r6', old.rowid, old.oid, old._rowid_, old.x);\n    END;\n  ")
@@ -103,8 +108,8 @@ func Test_triggerD(t *testing.T) {
 	}
 	{ // do_test "triggerD-4.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    ATTACH 'test2.db' AS db2;\n    CREATE TABLE db2.t2(y);\n    CREATE TABLE db2.log(z);\n    CREATE TRIGGER db2.trig AFTER INSERT ON db2.t2 BEGIN\n      INSERT INTO log(z) VALUES(new.y);\n    END;\n    INSERT INTO t2 VALUES(123);\n    SELECT * FROM log;\n  ")
 		if _res.Error != nil {

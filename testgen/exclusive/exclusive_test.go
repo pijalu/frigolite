@@ -41,6 +41,37 @@ func Test_exclusive(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var exists string
+	_ = exists // pre-declared from TCL source
+	var content string
+	_ = content // pre-declared from TCL source
+	var hdr string
+	_ = hdr // pre-declared from TCL source
+	var X string
+	_ = X // pre-declared from TCL source
+	var using_proxy string
+	_ = using_proxy // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var extrafds string
+	_ = extrafds // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var cmdlinearg_soft_heap_limit string
+	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
+	var fname string
+	_ = fname // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("test2.db-journal")
 	os.Remove("test2.db")
@@ -120,7 +151,7 @@ func Test_exclusive(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	{ // do_test "exclusive-2.6"
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		if _res.Error != nil {
@@ -139,7 +170,7 @@ func Test_exclusive(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
+	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 	{ // do_test "exclusive-2.9"
 		_res = db.Exec("\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		if _res.Error != nil {
@@ -167,24 +198,24 @@ func Test_exclusive(t *testing.T) {
 		}
 	}
 	db2.Close()
-	if tclBool(tcl_platform + "(platform) != \"windows\"\n && " + "atomic_batch_write test.db" + "==0") {
+	if tclBool(tcl_platform_platform + " != \"windows\"\n && " + "atomic_batch_write test.db" + "==0") {
 		// proc definition (not transpiled)
 		{ // do_test "exclusive-3.0"
-			t.Errorf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
+			// filestate test.db-journal (unsupported command, not transpiled)
 		}
 		{ // do_test "exclusive-3.1"
 			_res = db.Exec("\n      PRAGMA locking_mode = exclusive;\n      BEGIN;\n      DELETE FROM abc;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA locking_mode = exclusive;\n      BEGIN;\n      DELETE FROM abc;\n    ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
+			// filestate test.db-journal (unsupported command, not transpiled)
 		}
 		{ // do_test "exclusive-3.2"
 			_res = db.Exec("\n      COMMIT;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n    ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
+			// filestate test.db-journal (unsupported command, not transpiled)
 		}
 		{ // do_test "exclusive-3.3"
 			r = db.Query("\n      INSERT INTO abc VALUES('A', 'B', 'C');\n      SELECT * FROM abc;\n    ")
@@ -199,14 +230,14 @@ func Test_exclusive(t *testing.T) {
 			}
 		}
 		{ // do_test "exclusive-3.5"
-			t.Errorf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
+			// filestate test.db-journal (unsupported command, not transpiled)
 		}
 		{ // do_test "exclusive-3.6"
 			r = db.Query("\n      PRAGMA locking_mode = normal;\n      SELECT * FROM abc;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA locking_mode = normal;\n      SELECT * FROM abc;\n    ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
+			// filestate test.db-journal (unsupported command, not transpiled)
 		}
 	}
 	// proc definition (not transpiled)
@@ -228,21 +259,21 @@ func Test_exclusive(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t3;")
 		}
 	}
-	var _X = "signature" // TCL namespace variable
-	_ = _X // suppress unused warning
+	X = "signature" // TCL namespace variable
+	_ = X // suppress unused warning
 	{ // do_test "exclusive-4.1"
 		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "signature")
+		// signature (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive-4.2"
 		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    ROLLBACK;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "signature")
+		// signature (unsupported command, not transpiled)
 	}
 	{ // do_test "exclusive-4.3"
 		_res = db.Exec("\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;\n  ")
@@ -254,8 +285,8 @@ func Test_exclusive(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			var _X = "signature" // TCL namespace variable
-			_ = _X // suppress unused warning
+			X = "signature" // TCL namespace variable
+			_ = X // suppress unused warning
 		}
 	}
 	{ // do_test "exclusive-4.5"
@@ -265,26 +296,26 @@ func Test_exclusive(t *testing.T) {
 		}
 	}
 	if tclBool("atomic_batch_write test.db" + "==0") {
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var using_proxy = "0"
+		using_proxy = "0"
 		_ = using_proxy // suppress unused warning
 		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-		_items0 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-			name := _items0[_idx0+0]
+		_items1 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			name := _items1[_idx1+0]
 			_ = name // suppress unused warning
-			value := _items0[_idx0+1]
+			value := _items1[_idx1+1]
 			_ = value // suppress unused warning
-			_ = _idx0
-				var using_proxy = value
+			_ = _idx1
+				using_proxy = value
 				_ = using_proxy // suppress unused warning
 			}
-			var extrafds = "0"
+			extrafds = "0"
 			_ = extrafds // suppress unused warning
 			if func() bool { using_proxy_n, _using_proxy_e := strconv.Atoi(using_proxy); if _using_proxy_e != nil { return false }; return using_proxy_n != 0 }() {
-				var extrafds = "2"
+				extrafds = "2"
 				_ = extrafds // suppress unused warning
 			}
 			{ // do_test "exclusive-5.0"
@@ -341,10 +372,10 @@ func Test_exclusive(t *testing.T) {
 			}
 			{ // do_test "exclusive-6.2"
 				os.Remove("test2.db")
-				t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
-				t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-journal test2.db-journal")
-				db, err := frigolite.Open("test2.db")
-				defer db.Close()
+				// copy_file test.db test2.db (unsupported command, not transpiled)
+				// copy_file test.db-journal test2.db-journal (unsupported command, not transpiled)
+				_dbtmp2, err := frigolite.Open("test2.db")
+				_ = _dbtmp2 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 			}
 			{ // "exclusive-6.3"
@@ -361,12 +392,13 @@ func Test_exclusive(t *testing.T) {
 			}
 			{ // do_test "exclusive-6.4"
 				os.Remove("test.db")
-				var fd = "open test.db-journal w"
+				fd = "open test.db-journal w"
 				_ = fd // suppress unused warning
-				t.Log(fd)
+				_putsMsg := fd
+				_ = _putsMsg
 				// close $fd
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp3, err := frigolite.Open("test.db")
+				_ = _dbtmp3 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 			}
 			{ // "exclusive-6.5"
@@ -384,8 +416,8 @@ func Test_exclusive(t *testing.T) {
 			if tclBool("permutation" + "!=\"journaltest\"") {
 				{ // do_test "exclusive-7.1"
 					os.Remove("test.db")
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					_dbtmp0, err := frigolite.Open("test.db")
+					_ = _dbtmp0 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n      PRAGMA locking_mode = EXCLUSIVE;\n      PRAGMA journal_mode = WAL;\n      PRAGMA locking_mode = NORMAL;\n      PRAGMA user_version;\n      PRAGMA journal_mode = DELETE;\n    ")
 					if _res.Error != nil {

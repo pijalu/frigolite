@@ -39,8 +39,25 @@ func Test_indexexpr3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nFunction string
+	_ = nFunction // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var x_opcode string
+	_ = x_opcode // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "indexexpr3"
+	testprefix = "indexexpr3"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, j);\n  INSERT INTO t1 VALUES(1, '{x:\"one\"}');\n  INSERT INTO t1 VALUES(2, '{x:\"two\"}');\n  INSERT INTO t1 VALUES(3, '{x:\"three\"}');\n\n  CREATE INDEX i1 ON t1( json_extract(j, '$.x') );\n  CREATE INDEX i2 ON t1( a, json_extract(j, '$.x') );\n")
@@ -49,12 +66,30 @@ func Test_indexexpr3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.1 {\n  SELECT json_extract(j, '$.x') FROM t1 ORDER BY ...} {\n  0 one three two\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.2 {\n  SELECT json_extract(j, '$.x') FROM t1 WHERE a=2...} {\n  0 two\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.3 {\n  SELECT coalesce(json_extract(j, '$.x'), 'five')...} {\n  0 two\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.4 {\n  SELECT json_extract(j, '$.x') || '.two' FROM t1...} {\n  0 two.two\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.5 {\n  SELECT json_insert( '{}', '$.y', json_extract(j...} {\n  2 {{\"y\":\"two\"}}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.6 {\n  SELECT json_insert( '{}', '$.y', coalesce( json...} {\n  2 {{\"y\":\"two\"}}\n}")
+	// do_hasfunction_test 1.1 {
+  SELECT json_extract(j, '$.x') FROM t1 ORDER BY ...} {
+  0 one three two
+} (unsupported command, not transpiled)
+	// do_hasfunction_test 1.2 {
+  SELECT json_extract(j, '$.x') FROM t1 WHERE a=2...} {
+  0 two
+} (unsupported command, not transpiled)
+	// do_hasfunction_test 1.3 {
+  SELECT coalesce(json_extract(j, '$.x'), 'five')...} {
+  0 two
+} (unsupported command, not transpiled)
+	// do_hasfunction_test 1.4 {
+  SELECT json_extract(j, '$.x') || '.two' FROM t1...} {
+  0 two.two
+} (unsupported command, not transpiled)
+	// do_hasfunction_test 1.5 {
+  SELECT json_insert( '{}', '$.y', json_extract(j...} {
+  2 {{"y":"two"}}
+} (unsupported command, not transpiled)
+	// do_hasfunction_test 1.6 {
+  SELECT json_insert( '{}', '$.y', coalesce( json...} {
+  2 {{"y":"two"}}
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

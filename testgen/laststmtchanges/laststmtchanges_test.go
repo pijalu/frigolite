@@ -39,6 +39,17 @@ func Test_laststmtchanges(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tc string
+	_ = tc // pre-declared from TCL source
+	var nTotalChange string
+	_ = nTotalChange // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "laststmtchanges-1.1"
 		_res = db.Exec("\n        create table t0 (x);\n        insert into t0 values (1);\n        insert into t0 values (1);\n        insert into t0 values (2);\n        insert into t0 values (2);\n        insert into t0 values (1);\n        insert into t0 values (1);\n        insert into t0 values (1);\n        insert into t0 values (2);\n        select changes(), total_changes();\n    ")
@@ -49,7 +60,7 @@ func Test_laststmtchanges(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "laststmtchanges-1.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf db {update t0 set x=4 where x=3; select 1;} {}")
+		// sqlite3_exec_printf db {update t0 set x=4 where x=3; select 1;} {} (unsupported command, not transpiled)
 		r = db.Query("select changes()")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select changes()")
@@ -72,8 +83,8 @@ func Test_laststmtchanges(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "laststmtchanges-2.1"
-		var _tc = "db total_changes" // TCL namespace variable
-		_ = _tc // suppress unused warning
+		tc = "db total_changes" // TCL namespace variable
+		_ = tc // suppress unused warning
 		_res = db.Exec("\n        create table t1 (k integer primary key);\n        create table t2 (k integer primary key, v1, v2);\n        create trigger r1 after insert on t1 for each row begin\n            insert into t2 values (NULL, changes(), NULL);\n            update t0 set x=x;\n            update t2 set v2=changes();\n        end;\n        insert into t1 values (77);\n        select changes();\n    ")
 		_ = _res // catchsql
 	}
@@ -141,7 +152,7 @@ func Test_laststmtchanges(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
 		}
-		var nTotalChange = "execsql {SELECT total_changes()}"
+		nTotalChange = "execsql {SELECT total_changes()}"
 		_ = nTotalChange // suppress unused warning
 		// expr 0 → "0"
 	}

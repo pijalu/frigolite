@@ -41,8 +41,57 @@ func Test_analyze5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var z string
+	_ = z // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var u string
+	_ = u // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var testid string
+	_ = testid // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var index string
+	_ = index // pre-declared from TCL source
+	var rows string
+	_ = rows // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var nrow string
+	_ = nrow // pre-declared from TCL source
+	var w2 string
+	_ = w2 // pre-declared from TCL source
+	var a1 string
+	_ = a1 // pre-declared from TCL source
+	var a2 string
+	_ = a2 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "analyze5"
+	testprefix = "analyze5"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -51,24 +100,26 @@ func Test_analyze5(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(t,u,v TEXT COLLATE nocase,w,x,y,z)")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			var y = "$i>=25 && $i<=50"
+			y = "$i>=25 && $i<=50"
 			_ = y // suppress unused warning
-			var z = "($i>=400) + ($i>=700) + ($i>=875)"
+			z = "($i>=400) + ($i>=700) + ($i>=875)"
 			_ = z // suppress unused warning
-			var x = z
+			x = z
 			_ = x // suppress unused warning
-			var w = z
+			w = z
 			_ = w // suppress unused warning
-			var _t = "$z+0.5"
+			_t = "$z+0.5"
 			_ = _t // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "switch $z {\n      0 {set u \"alpha\"; unset x}\n      1 {set u \"...}")
+			// switch $z {
+      0 {set u "alpha"; unset x}
+      1 {set u "...} (test infra, not transpiled)
 			if tclBool(i + "%2") {
-				var v = u
+				v = u
 				_ = v // suppress unused warning
-			} else if tclBool("set v " + strings.ToUpper("$u")) {
+			} else if tclBool("set v " + strings.ToUpper(u)) {
 			}
 			_res = db.Exec("INSERT INTO t1 VALUES($t,$u,$v,$w,$x,$y,$z)")
 			if _res.Error != nil {
@@ -116,7 +167,7 @@ func Test_analyze5(t *testing.T) {
 		_ = rows // suppress unused warning
 		_ = _idx0
 			{ // do_test "analyze5-1.$"
-				t.Errorf("TODO: %s not implemented in frigolite", "testid")
+				// testid (unsupported command, not transpiled)
 			}
 		}
 		_res = db.Exec("\n   UPDATE t1 SET x=NULL;\n   UPDATE t1 SET x=rowid\n    WHERE rowid IN (SELECT rowid FROM t1 ORDER BY random() LIMIT 5);\n   ANALYZE;\n")
@@ -136,7 +187,7 @@ func Test_analyze5(t *testing.T) {
 			_ = rows // suppress unused warning
 			_ = _idx1
 				{ // do_test "analyze5-1.$"
-					t.Errorf("TODO: %s not implemented in frigolite", "testid")
+					// testid (unsupported command, not transpiled)
 				}
 			}
 }

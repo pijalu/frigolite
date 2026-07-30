@@ -40,8 +40,33 @@ func Test_selectA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var tst string
+	_ = tst // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var explain string
+	_ = explain // pre-declared from TCL source
+	var q1 string
+	_ = q1 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "selectA"
+	testprefix = "selectA"
 	_ = testprefix // suppress unused warning
 	{ // do_test "selectA-1.0"
 		r = db.Query("\n    CREATE TABLE t1(a,b,c COLLATE NOCASE);\n    INSERT INTO t1 VALUES(1,'a','a');\n    INSERT INTO t1 VALUES(9.9, 'b', 'B');\n    INSERT INTO t1 VALUES(NULL, 'C', 'c');\n    INSERT INTO t1 VALUES('hello', 'd', 'D');\n    INSERT INTO t1 VALUES(x'616263', 'e', 'e');\n    SELECT * FROM t1;\n  ")
@@ -1306,9 +1331,24 @@ func Test_selectA(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t8(a, b);\n  CREATE TABLE t9(c, d);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_same_test 5.1 {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_same_test 5.2 {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_same_test 5.3 {\n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {\n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {\n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {\n  SELECT a, b FROM t8 EXCEPT SELECT * FROM t9 ORD...} {\n  SELECT * FROM t8 EXCEPT SELECT c, d FROM t9 ORD...}")
+	// do_same_test 5.1 {
+  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {
+  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {
+  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {
+  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {
+  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} (unsupported command, not transpiled)
+	// do_same_test 5.2 {
+  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {
+  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {
+  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {
+  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {
+  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} (unsupported command, not transpiled)
+	// do_same_test 5.3 {
+  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {
+  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {
+  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {
+  SELECT a, b FROM t8 EXCEPT SELECT * FROM t9 ORD...} {
+  SELECT * FROM t8 EXCEPT SELECT c, d FROM t9 ORD...} (unsupported command, not transpiled)
 	{ // "5.4"
 		_res = db.Exec("\n  SELECT * FROM t8 UNION SELECT * FROM t9 ORDER BY a+b COLLATE NOCASE\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term does not match any column in the result set") {

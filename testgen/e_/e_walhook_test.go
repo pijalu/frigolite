@@ -41,25 +41,44 @@ func Test_e_walhook(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var wal_hook_count string
+	_ = wal_hook_count // pre-declared from TCL source
+	var read_ok string
+	_ = read_ok // pre-declared from TCL source
+	var wal_hook_args string
+	_ = wal_hook_args // pre-declared from TCL source
+	var old_wal_hook string
+	_ = old_wal_hook // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var dbname string
+	_ = dbname // pre-declared from TCL source
+	var nEntry string
+	_ = nEntry // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "e_walhook"
+	testprefix = "e_walhook"
 	_ = testprefix // suppress unused warning
-	var _wal_hook_count = "0" // TCL namespace variable
-	_ = _wal_hook_count // suppress unused warning
+	wal_hook_count = "0" // TCL namespace variable
+	_ = wal_hook_count // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "1.1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n  ")
 		}
-		_ = _wal_hook_count // TCL namespace variable (query)
+		_ = wal_hook_count // TCL namespace variable (query)
 	}
 	{ // do_test "1.1.2"
 		r = db.Query(" PRAGMA journal_mode = wal ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = wal ")
 		}
-		_ = _wal_hook_count // TCL namespace variable (query)
+		_ = wal_hook_count // TCL namespace variable (query)
 	}
 	{ // do_test "1.3"
 		_res = db.Exec(" INSERT INTO t1 VALUES(2) ")
@@ -73,18 +92,18 @@ func Test_e_walhook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO t1 VALUES(3);\n      INSERT INTO t1 VALUES(4);\n    COMMIT;\n  ")
 		}
 	}
-	var _read_ok = "0" // TCL namespace variable
-	_ = _read_ok // suppress unused warning
+	read_ok = "0" // TCL namespace variable
+	_ = read_ok // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "2.1"
 		_res = db.Exec(" INSERT INTO t1 VALUES(5) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(5) ")
 		}
-		_ = _read_ok // TCL namespace variable (query)
+		_ = read_ok // TCL namespace variable (query)
 	}
-	var _wal_hook_args = "list" // TCL namespace variable
-	_ = _wal_hook_args // suppress unused warning
+	wal_hook_args = "list" // TCL namespace variable
+	_ = wal_hook_args // suppress unused warning
 	// proc definition (not transpiled)
 	os.Remove("test.db2")
 	{ // do_test "3.0"
@@ -94,7 +113,7 @@ func Test_e_walhook(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1.1"
-		var wal_hook_args = "list"
+		wal_hook_args = "list"
 		_ = wal_hook_args // suppress unused warning
 		_res = db.Exec(" INSERT INTO t2 VALUES('a') ")
 		if _res.Error != nil {
@@ -104,7 +123,7 @@ func Test_e_walhook(t *testing.T) {
 	{ // do_test "3.1.2"
 	}
 	{ // do_test "3.2.1"
-		var wal_hook_args = "list"
+		wal_hook_args = "list"
 		_ = wal_hook_args // suppress unused warning
 		_res = db.Exec(" INSERT INTO t1 VALUES(6) ")
 		if _res.Error != nil {
@@ -146,15 +165,15 @@ func Test_e_walhook(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var _old_wal_hook = "0" // TCL namespace variable
-	_ = _old_wal_hook // suppress unused warning
+	old_wal_hook = "0" // TCL namespace variable
+	_ = old_wal_hook // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "5.1"
 		_res = db.Exec(" INSERT INTO t1 VALUES(10) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(10) ")
 		}
-		_ = _old_wal_hook // TCL namespace variable (query)
+		_ = old_wal_hook // TCL namespace variable (query)
 	}
 	// proc definition (not transpiled)
 	{ // do_test "5.2"
@@ -162,17 +181,17 @@ func Test_e_walhook(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(11) ")
 		}
-		_ = _old_wal_hook // TCL namespace variable (query)
+		_ = old_wal_hook // TCL namespace variable (query)
 	}
-	var _old_wal_hook = "0" // TCL namespace variable
-	_ = _old_wal_hook // suppress unused warning
+	old_wal_hook = "0" // TCL namespace variable
+	_ = old_wal_hook // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "6.1.1"
 		_res = db.Exec(" INSERT INTO t1 VALUES(12) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(12) ")
 		}
-		_ = _old_wal_hook // TCL namespace variable (query)
+		_ = old_wal_hook // TCL namespace variable (query)
 	}
 	{ // do_test "6.1.2"
 		r = db.Query(" PRAGMA wal_autocheckpoint = 1000 ")
@@ -183,6 +202,6 @@ func Test_e_walhook(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(12) ")
 		}
-		_ = _old_wal_hook // TCL namespace variable (query)
+		_ = old_wal_hook // TCL namespace variable (query)
 	}
 }

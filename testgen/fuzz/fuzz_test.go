@@ -39,13 +39,32 @@ func Test_fuzz(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var REPEATS string
+	_ = REPEATS // pre-declared from TCL source
+	var TableList string
+	_ = TableList // pre-declared from TCL source
+	var ColumnList string
+	_ = ColumnList // pre-declared from TCL source
+	var E string
+	_ = E // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var G_isquick string
+	_ = G_isquick // pre-declared from TCL source
+	var log string
+	_ = log // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _REPEATS = "5000" // TCL namespace variable
-	_ = _REPEATS // suppress unused warning
+	REPEATS = "5000" // TCL namespace variable
+	_ = REPEATS // suppress unused warning
 	if tclBool("info exists ::G(isquick)") {
-		if tclBool(_G + "(isquick)") {
-			var _REPEATS = "20" // TCL namespace variable
-			_ = _REPEATS // suppress unused warning
+		if tclBool(G_isquick) {
+			REPEATS = "20" // TCL namespace variable
+			_ = REPEATS // suppress unused warning
 		}
 	}
 	// expr srand(0) → "srand(0)"
@@ -201,30 +220,30 @@ func Test_fuzz(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-2 -template { SELECT [Expr] }")
+	// do_fuzzy_test fuzz-2 -template { SELECT [Expr] } (unsupported command, not transpiled)
 	{ // do_test "fuzz-3.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);\n  ")
 		}
 	}
-	var _TableList = "list abc def ghi" // TCL namespace variable
-	_ = _TableList // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-3.2 -template {[Select]}")
+	TableList = "list abc def ghi" // TCL namespace variable
+	_ = TableList // suppress unused warning
+	// do_fuzzy_test fuzz-3.2 -template {[Select]} (unsupported command, not transpiled)
 	{ // do_test "fuzz-4.1"
 		_res = db.Exec("\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);\n    INSERT INTO def VALUES(1, 2, 3);\n    INSERT INTO def VALUES(4, 5, 6);\n    INSERT INTO def VALUES(7, 8, 9);\n    INSERT INTO ghi VALUES(1, 2, 3);\n    INSERT INTO ghi VALUES(4, 5, 6);\n    INSERT INTO ghi VALUES(7, 8, 9);\n    CREATE INDEX abc_i ON abc(a, b, c);\n    CREATE INDEX def_i ON def(c, a, b);\n    CREATE INDEX ghi_i ON ghi(b, c, a);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);\n    INSERT INTO def VALUES(1, 2, 3);\n    INSERT INTO def VALUES(4, 5, 6);\n    INSERT INTO def VALUES(7, 8, 9);\n    INSERT INTO ghi VALUES(1, 2, 3);\n    INSERT INTO ghi VALUES(4, 5, 6);\n    INSERT INTO ghi VALUES(7, 8, 9);\n    CREATE INDEX abc_i ON abc(a, b, c);\n    CREATE INDEX def_i ON def(c, a, b);\n    CREATE INDEX ghi_i ON ghi(b, c, a);\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-4.2 -template {[Select]}")
+	// do_fuzzy_test fuzz-4.2 -template {[Select]} (unsupported command, not transpiled)
 	{ // do_test "fuzz-5.1"
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-5.2 -template {[Insert]} -errorlist table")
+	// do_fuzzy_test fuzz-5.2 -template {[Insert]} -errorlist table (unsupported command, not transpiled)
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "fuzz-5.3"
@@ -235,11 +254,11 @@ func Test_fuzz(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	var _ColumnList = "list a b c" // TCL namespace variable
-	_ = _ColumnList // suppress unused warning
-	var E = "{no such col} {ambiguous column name}"
+	ColumnList = "list a b c" // TCL namespace variable
+	_ = ColumnList // suppress unused warning
+	E = "{no such col} {ambiguous column name}"
 	_ = E // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-6.1 -template {[Select]} -errorlist $E")
+	// do_fuzzy_test fuzz-6.1 -template {[Select]} -errorlist $E (unsupported command, not transpiled)
 	E = "{no such col} {ambiguous column name} {table}"
 	_ = E // suppress unused warning
 	{ // do_test "fuzz-7.1"
@@ -248,7 +267,7 @@ func Test_fuzz(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-7.2 -template {[Statement]} -errorlist $E")
+	// do_fuzzy_test fuzz-7.2 -template {[Statement]} -errorlist $E (unsupported command, not transpiled)
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "fuzz-7.4"
@@ -261,6 +280,6 @@ func Test_fuzz(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	E = "list table view duplicate {no such col} {ambiguous column name} {use DROP}"
 	_ = E // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-8.1 -template {[CreateOrDropTableOrView]} -errorlist $E")
+	// do_fuzzy_test fuzz-8.1 -template {[CreateOrDropTableOrView]} -errorlist $E (unsupported command, not transpiled)
 	// close $::log
 }

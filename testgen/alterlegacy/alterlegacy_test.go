@@ -41,8 +41,23 @@ func Test_alterlegacy(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var trigger string
+	_ = trigger // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "alterlegacy"
+	testprefix = "alterlegacy"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA legacy_alter_table = 1;\n  CREATE TABLE t1(a, b, CHECK(t1.a != t1.b));\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t2expr ON t2(a) WHERE t2.b>0;\n")
@@ -390,8 +405,8 @@ func Test_alterlegacy(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
-	var _trigger = "list" // TCL namespace variable
-	_ = _trigger // suppress unused warning
+	trigger = "list" // TCL namespace variable
+	_ = trigger // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "11.0"
 		_res = db.Exec("\n  PRAGMA legacy_alter_table = 1;\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t1(a, b, c);\n  CREATE TABLE main.t1(a, b, c);\n  CREATE TEMP TRIGGER tr AFTER INSERT ON aux.t1 BEGIN\n    SELECT trigger(new.a, new.b, new.c);\n  END;\n")
@@ -406,7 +421,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 	}
 	{ // do_test "11.2"
-		_ = _trigger // TCL namespace variable (query)
+		_ = trigger // TCL namespace variable (query)
 	}
 	{ // "11.3"
 		r = db.Query("\n  SELECT name, tbl_name FROM sqlite_temp_master;\n")
@@ -451,7 +466,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 	}
 	{ // do_test "11.7"
-		_ = _trigger // TCL namespace variable (query)
+		_ = trigger // TCL namespace variable (query)
 	}
 	db.Close()
 	db, err = frigolite.Open("")

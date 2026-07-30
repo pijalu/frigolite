@@ -39,10 +39,19 @@ func Test_tkt1443(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt1443-1.0"
-		db, err := frigolite.Open(":memory:")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open(":memory:")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE Items(\n    \titemId integer primary key,\n    \t item str unique\n    );\n    INSERT INTO \"Items\" VALUES(0, 'ALL');\n    INSERT INTO \"Items\" VALUES(1, 'double:source');\n    INSERT INTO \"Items\" VALUES(2, 'double');\n    INSERT INTO \"Items\" VALUES(3, 'double:runtime');\n    INSERT INTO \"Items\" VALUES(4, '.*:runtime');\n    \n    CREATE TABLE Labels(\n    \tlabelId INTEGER PRIMARY KEY,\n    \tlabel STR UNIQUE\n    );\n    INSERT INTO \"Labels\" VALUES(0, 'ALL');\n    INSERT INTO \"Labels\" VALUES(1, 'localhost@rpl:linux');\n    INSERT INTO \"Labels\" VALUES(2, 'localhost@rpl:branch');\n    \n    CREATE TABLE LabelMap(\n    \titemId INTEGER,\n    \tlabelId INTEGER,\n    \tbranchId integer\n    );\n    INSERT INTO \"LabelMap\" VALUES(1, 1, 1);\n    INSERT INTO \"LabelMap\" VALUES(2, 1, 1);\n    INSERT INTO \"LabelMap\" VALUES(3, 1, 1);\n    INSERT INTO \"LabelMap\" VALUES(1, 2, 2);\n    INSERT INTO \"LabelMap\" VALUES(2, 2, 3);\n    INSERT INTO \"LabelMap\" VALUES(3, 2, 3);\n    \n    CREATE TABLE Users (\n    \tuserId INTEGER PRIMARY KEY,\n    \tuser STRING UNIQUE,\n    \tsalt BINARY,\n    \tpassword STRING\n    );\n    INSERT INTO \"Users\" VALUES(1, 'test', '\u008aæ$d',\n               '43ba0f45014306bd6df529551ffdb3df');\n    INSERT INTO \"Users\" VALUES(2, 'limited', 'ª\u009a>S',\n               'cf07c8348fdf675cc1f7696b7d45191b');\n    CREATE TABLE UserGroups (\n    \tuserGroupId INTEGER PRIMARY KEY,\n    \tuserGroup STRING UNIQUE\n    );\n    INSERT INTO \"UserGroups\" VALUES(1, 'test');\n    INSERT INTO \"UserGroups\" VALUES(2, 'limited');\n    \n    CREATE TABLE UserGroupMembers (\n    \tuserGroupId INTEGER,\n    \tuserId INTEGER\n    );\n    INSERT INTO \"UserGroupMembers\" VALUES(1, 1);\n    INSERT INTO \"UserGroupMembers\" VALUES(2, 2);\n    \n    CREATE TABLE Permissions (\n    \tuserGroupId INTEGER,\n    \tlabelId INTEGER NOT NULL,\n    \titemId INTEGER NOT NULL,\n    \twrite INTEGER,\n    \tcapped INTEGER,\n    \tadmin INTEGER\n    );\n    INSERT INTO \"Permissions\" VALUES(1, 0, 0, 1, 0, 1);\n    INSERT INTO \"Permissions\" VALUES(2, 2, 4, 0, 0, 0);\n  ")
 		if _res.Error != nil {

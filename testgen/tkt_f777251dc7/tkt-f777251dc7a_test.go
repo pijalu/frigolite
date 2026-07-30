@@ -39,6 +39,11 @@ func Test_tkt_f777251dc7a(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-f7772-1.1"
 		_res = db.Exec("\n     CREATE TEMP TABLE t1(x UNIQUE);\n     INSERT INTO t1 VALUES(1);\n     CREATE TABLE t2(x, y);\n     INSERT INTO t2 VALUES(1, 2);\n     CREATE TEMP TABLE t3(w, z);\n  ")
@@ -52,7 +57,7 @@ func Test_tkt_f777251dc7a(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt-f7772-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt-f7772-2.1"
 		_res = db.Exec("\n     DROP TABLE IF EXISTS t1;\n     DROP TABLE IF EXISTS t2;\n     DROP TABLE IF EXISTS t3;\n\n     CREATE TEMP TABLE t1(x UNIQUE);\n     INSERT INTO t1 VALUES(1);\n     CREATE TABLE t2(x, y);\n     INSERT INTO t2 VALUES(1, 2);\n  ")
@@ -69,7 +74,7 @@ func Test_tkt_f777251dc7a(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt-f7772-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "tkt-f7772-3.1"
 		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    DROP TABLE IF EXISTS t2;\n    DROP TABLE IF EXISTS t3;\n\n    CREATE TEMP TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n  \n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n  ")

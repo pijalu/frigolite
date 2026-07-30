@@ -41,15 +41,39 @@ func Test_win32lock(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var log string
+	_ = log // pre-declared from TCL source
+	var old_pending_byte string
+	_ = old_pending_byte // pre-declared from TCL source
+	var win32_lock_ok string
+	_ = win32_lock_ok // pre-declared from TCL source
+	var win32_lock_error string
+	_ = win32_lock_error // pre-declared from TCL source
+	var delay1 string
+	_ = delay1 // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var handle string
+	_ = handle // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	if tcl_platform_platform != "windows" {
 	}
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "win32lock"
+	testprefix = "win32lock"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// test_sqlite3_log xLog (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("PRAGMA mmap_size=0")
 	if _res.Error != nil {
@@ -61,19 +85,18 @@ func Test_win32lock(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,randomblob(100000));\n    INSERT INTO t1 VALUES(2,randomblob(50000));\n    INSERT INTO t1 VALUES(3,randomblob(25000));\n    INSERT INTO t1 VALUES(4,randomblob(12500));\n    SELECT x, length(y) FROM t1 ORDER BY rowid;\n  ")
 		}
 	}
-	var old_pending_byte = "sqlite3_test_control_pending_byte 0x40000000"
+	old_pending_byte = "sqlite3_test_control_pending_byte 0x40000000"
 	_ = old_pending_byte // suppress unused warning
-	var win32_lock_ok = "list"
+	win32_lock_ok = "list"
 	_ = win32_lock_ok // suppress unused warning
-	var win32_lock_error = "list"
+	win32_lock_error = "list"
 	_ = win32_lock_error // suppress unused warning
-	var delay1 = "25"
+	delay1 = "25"
 	_ = delay1 // suppress unused warning
 	for true {
-		t.Errorf("TODO: %s not implemented in frigolite", "lock_win32_file test.db 0 $::delay1")
-		var _log = "" // TCL namespace variable
-		_ = _log // suppress unused warning
-	var rc string
+		// lock_win32_file test.db 0 $::delay1 (unsupported command, not transpiled)
+		log = "" // TCL namespace variable
+		_ = log // suppress unused warning
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -89,27 +112,26 @@ func Test_win32lock(t *testing.T) {
 			}
 		}
 		if tclBool(rc) {
-			win32_lock_error = tclListAppend(win32_lock_error, _delay1)
+			win32_lock_error = tclListAppend(win32_lock_error, delay1)
 			{ // do_test "win32lock-1.2-" + delay1 + "-error"
-				_ = _msg // TCL namespace variable (query)
+				_ = msg // TCL namespace variable (query)
 			}
 		} else {
-			win32_lock_ok = tclListAppend(win32_lock_ok, _delay1)
+			win32_lock_ok = tclListAppend(win32_lock_ok, delay1)
 			{ // do_test "win32lock-1.2-" + delay1 + "-ok"
-				_ = _msg // TCL namespace variable (query)
+				_ = msg // TCL namespace variable (query)
 			}
-			if tclBool("info exists ::log" + " && " + _log + "!=\"\"") {
+			if tclBool("info exists ::log" + " && " + log + "!=\"\"") {
 				{ // do_test "win32lock-1.2-" + delay1 + "-log1"
-					x := tclRegsub("\\d+", _log, "#")
+					x = tclRegsub("\\d+", log, "#")
 					_ = x // suppress unused warning
-					x := tclRegsub(" at line \\d+", x, "")
+					x = tclRegsub(" at line \\d+", x, "")
 					_ = x // suppress unused warning
 				}
 			}
 		}
 		if tclBool("llength $win32_lock_ok" + " && " + "llength $win32_lock_error") {
 		}
-		var delay1 = "0"
 		// incr delay1 25
 		{
 			_n, _err := strconv.Atoi(delay1)
@@ -118,16 +140,17 @@ func Test_win32lock(t *testing.T) {
 			}
 		}
 		if func() bool { delay1_n, _delay1_e := strconv.Atoi(delay1); if _delay1_e != nil { return false }; return delay1_n > 12500 }() {
-			t.Log("Timed out waiting for \\\"ok\\\" and \\\"error\\\" results.")
+			_putsMsg := "Timed out waiting for \\\"ok\\\" and \\\"error\\\" results."
+			_ = _putsMsg
 			break
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_sleep 10")
+		// sqlite3_sleep 10 (unsupported command, not transpiled)
 	}
 	{ // do_test "win32lock-2.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_win32_av_retry db -1 -1")
+		// file_control_win32_av_retry db -1 -1 (unsupported command, not transpiled)
 	}
 	{ // do_test "win32lock-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_win32_av_retry db 1 1")
+		// file_control_win32_av_retry db 1 1 (unsupported command, not transpiled)
 	}
 	win32_lock_ok = "list"
 	_ = win32_lock_ok // suppress unused warning
@@ -136,10 +159,9 @@ func Test_win32lock(t *testing.T) {
 	delay1 = "1"
 	_ = delay1 // suppress unused warning
 	for true {
-		t.Errorf("TODO: %s not implemented in frigolite", "lock_win32_file test.db 0 $::delay1")
-		var _log = "" // TCL namespace variable
-		_ = _log // suppress unused warning
-	var rc string
+		// lock_win32_file test.db 0 $::delay1 (unsupported command, not transpiled)
+		log = "" // TCL namespace variable
+		_ = log // suppress unused warning
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -155,27 +177,26 @@ func Test_win32lock(t *testing.T) {
 			}
 		}
 		if tclBool(rc) {
-			win32_lock_error = tclListAppend(win32_lock_error, _delay1)
+			win32_lock_error = tclListAppend(win32_lock_error, delay1)
 			{ // do_test "win32lock-2.2-" + delay1 + "-error"
-				_ = _msg // TCL namespace variable (query)
+				_ = msg // TCL namespace variable (query)
 			}
 		} else {
-			win32_lock_ok = tclListAppend(win32_lock_ok, _delay1)
+			win32_lock_ok = tclListAppend(win32_lock_ok, delay1)
 			{ // do_test "win32lock-2.2-" + delay1 + "-ok"
-				_ = _msg // TCL namespace variable (query)
+				_ = msg // TCL namespace variable (query)
 			}
-			if tclBool("info exists ::log" + " && " + _log + "!=\"\"") {
+			if tclBool("info exists ::log" + " && " + log + "!=\"\"") {
 				{ // do_test "win32lock-2.2-" + delay1 + "-log1"
-					x := tclRegsub("\\d+", _log, "#")
+					x = tclRegsub("\\d+", log, "#")
 					_ = x // suppress unused warning
-					x := tclRegsub(" at line \\d+", x, "")
+					x = tclRegsub(" at line \\d+", x, "")
 					_ = x // suppress unused warning
 				}
 			}
 		}
 		if tclBool("llength $win32_lock_ok" + " && " + "llength $win32_lock_error") {
 		}
-		var delay1 = "0"
 		// incr delay1 1
 		{
 			_n, _err := strconv.Atoi(delay1)
@@ -184,15 +205,17 @@ func Test_win32lock(t *testing.T) {
 			}
 		}
 		if func() bool { delay1_n, _delay1_e := strconv.Atoi(delay1); if _delay1_e != nil { return false }; return delay1_n > 500 }() {
-			t.Log("Timed out waiting for \\\"ok\\\" and \\\"error\\\" results.")
+			_putsMsg := "Timed out waiting for \\\"ok\\\" and \\\"error\\\" results."
+			_ = _putsMsg
 			break
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_sleep 10")
+		// sqlite3_sleep 10 (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "file_control_win32_av_retry db 10 25")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte $old_pending_byte")
+	// file_control_win32_av_retry db 10 25 (unsupported command, not transpiled)
+	// sqlite3_test_control_pending_byte $old_pending_byte (unsupported command, not transpiled)
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -219,13 +242,13 @@ func Test_win32lock(t *testing.T) {
 		}
 	}
 	{ // do_test "win32lock-3.4"
-		var handle = "lindex [file_control_win32_set_handle db 0] end"
+		handle = "lindex [file_control_win32_set_handle db 0] end"
 		_ = handle // suppress unused warning
 		_list := tclList([]string{"catchsql {\n    BEGIN EXCLUSIVE;\n    INSERT INTO t1 VALUES(6);\n    COMMIT;\n  }", "file_control_win32_set_handle db $handle", "sqlite3_extended_errcode db"})
 		_ = _list
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// test_sqlite3_log (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
 }

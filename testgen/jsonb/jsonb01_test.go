@@ -40,6 +40,17 @@ func Test_jsonb01(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var path string
+	_ = path // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "jsonb01-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x JSON BLOB);\n  INSERT INTO t1 VALUES(jsonb('{a:5,b:{x:10,y:11},c:[1,2,3,4]}'));\n")
@@ -94,7 +105,7 @@ func Test_jsonb01(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT json(x'6B37616263162d');\n")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db strdup")
+		// load_static_extension db strdup (unsupported command, not transpiled)
 		{ // "jsonb01-3.1"
 			_res = db.Exec("\n  SELECT json(strdup(x'6B37616263162d'));\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {

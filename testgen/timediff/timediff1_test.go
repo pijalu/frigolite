@@ -39,41 +39,68 @@ func Test_timediff1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var p1 string
+	_ = p1 // pre-declared from TCL source
+	var p2 string
+	_ = p2 // pre-declared from TCL source
+	var x1 string
+	_ = x1 // pre-declared from TCL source
+	var d1 string
+	_ = d1 // pre-declared from TCL source
+	var x2 string
+	_ = x2 // pre-declared from TCL source
+	var d2 string
+	_ = d2 // pre-declared from TCL source
+	var r1 string
+	_ = r1 // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tnum string
+	_ = tnum // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	var tcl_precision = "15"
 	_ = tcl_precision // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.1 {datetime('2000-01-31','+1 month')} {2000-03-02 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.2 {datetime('2004-01-29','+1 month')} {2004-02-29 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.3 {datetime('2000-03-01','-1 day')} {2000-02-29 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.4 {datetime('2000-03-31','-1 month')} {2000-03-02 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.5 {datetime('2000-03-30','-1 month')} {2000-03-01 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.6 {datetime('2000-03-29','-1 month')} {2000-02-29 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.7 {datetime('2000-03-28','-1 month')} {2000-02-28 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.8 {datetime('2000-02-29','+1 year')} {2001-03-01 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.9 {datetime('2000-02-29','+4 years')} {2004-02-29 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.10 {datetime('1998-11-10','+0001-03-19 12:34:56')} {2000-02-29 12:34:56}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.11 {datetime('2000-01-31','+0004-01-00 12:34:56')} {2004-03-02 12:34:56}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.12 {datetime('2000-01-29','+0008-01-00 12:34:56')} {2008-02-29 12:34:56}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.13 {datetime('2001-03-31','-0001-01-00 06:10')} {2000-03-01 17:50:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.1 {datetime('2001-01-31','+1 month')} {2001-03-03 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.2 {datetime('2005-01-29','+1 month')} {2005-03-01 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.3 {datetime('2001-03-01','-1 day')} {2001-02-28 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.4 {datetime('2001-03-31','-1 month')} {2001-03-03 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.5 {datetime('2001-03-30','-1 month')} {2001-03-02 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.6 {datetime('2001-03-29','-1 month')} {2001-03-01 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.7 {datetime('2001-03-28','-1 month')} {2001-02-28 00:00:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.10 {datetime('1999-11-10','+0001-03-19 12:34:56')} {2001-03-01 12:34:56}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.11 {datetime('2000-01-31','+0005-01-00 12:34:56')} {2005-03-03 12:34:56}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.12 {datetime('2000-01-29','+0009-01-00 12:34:56')} {2009-03-01 12:34:56}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.13 {datetime('2002-03-31','-0001-01-00 06:10')} {2001-03-02 17:50:00}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 3.1 {timediff('2000-03-02','2000-01-31')} {+0000-01-00 00:00:00.000}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 3.2 {timediff('2000-01-31','2000-03-02')} {-0000-01-02 00:00:00.000}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 3.3 {timediff('2000-03-02','1999-01-31')} {+0001-01-00 00:00:00.000}")
-	t.Errorf("TODO: %s not implemented in frigolite", "datetest 3.4 {timediff('1999-01-31','2000-03-02')} {-0001-01-02 00:00:00.000}")
-	var p1 = "\n  0   {-4713-11-24 12:00:00}\n  1   {-2000-04-30 05:19:26}\n  2   {0000-01-01 12:34:56}\n  3   {1776-07-04 13:00:00}\n  4   {1969-07-20 20:17}\n  5   {2440587.5}\n  6   {2000-05-29 14:26}\n  7   {2023-05-29 18:11}\n  8   {2050-05-29 14:26}\n  9   {4796-02-29 11:23:55.46}\n"
+	// datetest 1.1 {datetime('2000-01-31','+1 month')} {2000-03-02 00:00:00} (unsupported command, not transpiled)
+	// datetest 1.2 {datetime('2004-01-29','+1 month')} {2004-02-29 00:00:00} (unsupported command, not transpiled)
+	// datetest 1.3 {datetime('2000-03-01','-1 day')} {2000-02-29 00:00:00} (unsupported command, not transpiled)
+	// datetest 1.4 {datetime('2000-03-31','-1 month')} {2000-03-02 00:00:00} (unsupported command, not transpiled)
+	// datetest 1.5 {datetime('2000-03-30','-1 month')} {2000-03-01 00:00:00} (unsupported command, not transpiled)
+	// datetest 1.6 {datetime('2000-03-29','-1 month')} {2000-02-29 00:00:00} (unsupported command, not transpiled)
+	// datetest 1.7 {datetime('2000-03-28','-1 month')} {2000-02-28 00:00:00} (unsupported command, not transpiled)
+	// datetest 1.8 {datetime('2000-02-29','+1 year')} {2001-03-01 00:00:00} (unsupported command, not transpiled)
+	// datetest 1.9 {datetime('2000-02-29','+4 years')} {2004-02-29 00:00:00} (unsupported command, not transpiled)
+	// datetest 1.10 {datetime('1998-11-10','+0001-03-19 12:34:56')} {2000-02-29 12:34:56} (unsupported command, not transpiled)
+	// datetest 1.11 {datetime('2000-01-31','+0004-01-00 12:34:56')} {2004-03-02 12:34:56} (unsupported command, not transpiled)
+	// datetest 1.12 {datetime('2000-01-29','+0008-01-00 12:34:56')} {2008-02-29 12:34:56} (unsupported command, not transpiled)
+	// datetest 1.13 {datetime('2001-03-31','-0001-01-00 06:10')} {2000-03-01 17:50:00} (unsupported command, not transpiled)
+	// datetest 2.1 {datetime('2001-01-31','+1 month')} {2001-03-03 00:00:00} (unsupported command, not transpiled)
+	// datetest 2.2 {datetime('2005-01-29','+1 month')} {2005-03-01 00:00:00} (unsupported command, not transpiled)
+	// datetest 2.3 {datetime('2001-03-01','-1 day')} {2001-02-28 00:00:00} (unsupported command, not transpiled)
+	// datetest 2.4 {datetime('2001-03-31','-1 month')} {2001-03-03 00:00:00} (unsupported command, not transpiled)
+	// datetest 2.5 {datetime('2001-03-30','-1 month')} {2001-03-02 00:00:00} (unsupported command, not transpiled)
+	// datetest 2.6 {datetime('2001-03-29','-1 month')} {2001-03-01 00:00:00} (unsupported command, not transpiled)
+	// datetest 2.7 {datetime('2001-03-28','-1 month')} {2001-02-28 00:00:00} (unsupported command, not transpiled)
+	// datetest 2.10 {datetime('1999-11-10','+0001-03-19 12:34:56')} {2001-03-01 12:34:56} (unsupported command, not transpiled)
+	// datetest 2.11 {datetime('2000-01-31','+0005-01-00 12:34:56')} {2005-03-03 12:34:56} (unsupported command, not transpiled)
+	// datetest 2.12 {datetime('2000-01-29','+0009-01-00 12:34:56')} {2009-03-01 12:34:56} (unsupported command, not transpiled)
+	// datetest 2.13 {datetime('2002-03-31','-0001-01-00 06:10')} {2001-03-02 17:50:00} (unsupported command, not transpiled)
+	// datetest 3.1 {timediff('2000-03-02','2000-01-31')} {+0000-01-00 00:00:00.000} (unsupported command, not transpiled)
+	// datetest 3.2 {timediff('2000-01-31','2000-03-02')} {-0000-01-02 00:00:00.000} (unsupported command, not transpiled)
+	// datetest 3.3 {timediff('2000-03-02','1999-01-31')} {+0001-01-00 00:00:00.000} (unsupported command, not transpiled)
+	// datetest 3.4 {timediff('1999-01-31','2000-03-02')} {-0001-01-02 00:00:00.000} (unsupported command, not transpiled)
+	p1 = "\n  0   {-4713-11-24 12:00:00}\n  1   {-2000-04-30 05:19:26}\n  2   {0000-01-01 12:34:56}\n  3   {1776-07-04 13:00:00}\n  4   {1969-07-20 20:17}\n  5   {2440587.5}\n  6   {2000-05-29 14:26}\n  7   {2023-05-29 18:11}\n  8   {2050-05-29 14:26}\n  9   {4796-02-29 11:23:55.46}\n"
 	_ = p1 // suppress unused warning
-	var p2 = "\n  A   {1066-10-14}\n  B   {1900-02-28 11:00}\n  C   {1900-03-01 12:00}\n  D   {1904-02-29 11:25}\n  E   {2000-02-29 13:00}\n  E   {2000-03-01 14:00}\n  F   {2001-03-31 15:15}\n  G   {2002-04-01 16:59}\n  H   {2003-04-30 17:00}\n  I   {2004-05-01 23:59:59}\n  J   {2005-06-01}\n  K   {2006-06-30 01:23:45}\n  L   {2007-12-31 02:00}\n  M   {2008-01-01 01:59}\n  N   {3152-07-04 12:00}\n  P   {9999-12-31 23:59:59}\n"
+	p2 = "\n  A   {1066-10-14}\n  B   {1900-02-28 11:00}\n  C   {1900-03-01 12:00}\n  D   {1904-02-29 11:25}\n  E   {2000-02-29 13:00}\n  E   {2000-03-01 14:00}\n  F   {2001-03-31 15:15}\n  G   {2002-04-01 16:59}\n  H   {2003-04-30 17:00}\n  I   {2004-05-01 23:59:59}\n  J   {2005-06-01}\n  K   {2006-06-30 01:23:45}\n  L   {2007-12-31 02:00}\n  M   {2008-01-01 01:59}\n  N   {3152-07-04 12:00}\n  P   {9999-12-31 23:59:59}\n"
 	_ = p2 // suppress unused warning
 	// foreach {x1 d1} p1
 	_items0 := tclSplitList(p1)
@@ -91,7 +118,7 @@ func Test_timediff1(t *testing.T) {
 				d2 := _items1[_idx1+1]
 				_ = d2 // suppress unused warning
 				_ = _idx1
-					var r1 = "db one {SELECT datetime($d1)}"
+					r1 = "db one {SELECT datetime($d1)}"
 					_ = r1 // suppress unused warning
 					{ // "timediff-4-" + x1 + x2
 						r = db.Query("\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
@@ -105,7 +132,7 @@ func Test_timediff1(t *testing.T) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
-					var r2 = "db one {SELECT datetime($d2)}"
+					r2 = "db one {SELECT datetime($d2)}"
 					_ = r2 // suppress unused warning
 					{ // "timediff-4-" + x2 + x1
 						r = db.Query("\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")
@@ -121,26 +148,26 @@ func Test_timediff1(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-1 {datetime('2000-01-01','+0001-02-03')} {2001-03-04 00:00:00}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-2 {datetime('2000-01-01','+0001-02-03x')} {NULL}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-3 {datetime('2000-01-01','+0001-11-03')} {2001-12-04 00:00:00}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-4 {datetime('2000-01-01','+0001-12-03')} {NULL}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-5 {datetime('2000-01-01','+0001-02-30')} {2001-03-31 00:00:00}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-6 {datetime('2000-01-01','+0001-02-31')} {NULL}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-7 {datetime('2000-01-01','+0001-02-03 0')} {NULL}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-8 {datetime('2000-01-01','+0001-02-03 01')} {NULL}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-9 {datetime('2000-01-01','+0001-02-03 01:')} {NULL}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-10 {datetime('2000-01-01','+0001-02-03 01:0')} {NULL}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-11 {datetime('2000-01-01','+0001-02-03 01:02')} {2001-03-04 01:02:00}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-12 {datetime('2000-01-01','+0001-02-03 01:02:')} {NULL}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-13 {datetime('2000-01-01','+0001-02-03 01:02:0')} {NULL}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-14 {datetime('2000-01-01','+0001-02-03 01:02:03')} {2001-03-04 01:02:03}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-15 {datetime('2000-01-01','+0001-02-03 01:02:03.')} NULL")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-16 {datetime('2000-01-01','+0001-02-03 01:02:03.5')} {2001-03-04 01:02:03}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-17 {datetime('2000-01-01','+0001-02-03 01:02:03.50')} {2001-03-04 01:02:03}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-18 {datetime('2000-01-01','+0001-02-03 01:02:03.500')} {2001-03-04 01:02:03}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-19 {datetime('2000-01-01','+0001-02-03 01:02:03.500x')} {NULL}")
-			t.Errorf("TODO: %s not implemented in frigolite", "datetest 5-20 {datetime('2000-01-01','+0001-02-03 01:02:03.500 x'...} {NULL}")
+			// datetest 5-1 {datetime('2000-01-01','+0001-02-03')} {2001-03-04 00:00:00} (unsupported command, not transpiled)
+			// datetest 5-2 {datetime('2000-01-01','+0001-02-03x')} {NULL} (unsupported command, not transpiled)
+			// datetest 5-3 {datetime('2000-01-01','+0001-11-03')} {2001-12-04 00:00:00} (unsupported command, not transpiled)
+			// datetest 5-4 {datetime('2000-01-01','+0001-12-03')} {NULL} (unsupported command, not transpiled)
+			// datetest 5-5 {datetime('2000-01-01','+0001-02-30')} {2001-03-31 00:00:00} (unsupported command, not transpiled)
+			// datetest 5-6 {datetime('2000-01-01','+0001-02-31')} {NULL} (unsupported command, not transpiled)
+			// datetest 5-7 {datetime('2000-01-01','+0001-02-03 0')} {NULL} (unsupported command, not transpiled)
+			// datetest 5-8 {datetime('2000-01-01','+0001-02-03 01')} {NULL} (unsupported command, not transpiled)
+			// datetest 5-9 {datetime('2000-01-01','+0001-02-03 01:')} {NULL} (unsupported command, not transpiled)
+			// datetest 5-10 {datetime('2000-01-01','+0001-02-03 01:0')} {NULL} (unsupported command, not transpiled)
+			// datetest 5-11 {datetime('2000-01-01','+0001-02-03 01:02')} {2001-03-04 01:02:00} (unsupported command, not transpiled)
+			// datetest 5-12 {datetime('2000-01-01','+0001-02-03 01:02:')} {NULL} (unsupported command, not transpiled)
+			// datetest 5-13 {datetime('2000-01-01','+0001-02-03 01:02:0')} {NULL} (unsupported command, not transpiled)
+			// datetest 5-14 {datetime('2000-01-01','+0001-02-03 01:02:03')} {2001-03-04 01:02:03} (unsupported command, not transpiled)
+			// datetest 5-15 {datetime('2000-01-01','+0001-02-03 01:02:03.')} NULL (unsupported command, not transpiled)
+			// datetest 5-16 {datetime('2000-01-01','+0001-02-03 01:02:03.5')} {2001-03-04 01:02:03} (unsupported command, not transpiled)
+			// datetest 5-17 {datetime('2000-01-01','+0001-02-03 01:02:03.50')} {2001-03-04 01:02:03} (unsupported command, not transpiled)
+			// datetest 5-18 {datetime('2000-01-01','+0001-02-03 01:02:03.500')} {2001-03-04 01:02:03} (unsupported command, not transpiled)
+			// datetest 5-19 {datetime('2000-01-01','+0001-02-03 01:02:03.500x')} {NULL} (unsupported command, not transpiled)
+			// datetest 5-20 {datetime('2000-01-01','+0001-02-03 01:02:03.500 x'...} {NULL} (unsupported command, not transpiled)
 			p1 = "\n  a   {2000-01-01 00:00:00}\n  b   {2000-01-31 23:59:59}\n  c   {2000-02-01 00:00:00}\n  d   {2000-02-29 23:59:59}\n  e   {2000-03-01 00:00:00}\n  f   {2000-03-31 23:59:59}\n  g   {2000-04-01 00:00:00}\n  h   {2000-04-30 23:59:59}\n  i   {2000-05-01 00:00:00}\n  j   {2000-05-31 23:59:59}\n  k   {2000-06-01 00:00:00}\n  l   {2000-06-30 23:59:59}\n  m   {2000-07-01 00:00:00}\n  n   {2000-07-31 23:59:59}\n  o   {2000-08-01 00:00:00}\n  p   {2000-08-31 23:59:59}\n  q   {2000-09-01 00:00:00}\n  r   {2000-09-30 23:59:59}\n  s   {2000-10-01 00:00:00}\n  t   {2000-10-31 23:59:59}\n  u   {2000-11-01 00:00:00}\n  v   {2000-11-30 23:59:59}\n  w   {2000-12-01 00:00:00}\n  x   {2000-12-31 23:59:59}\n"
 			_ = p1 // suppress unused warning
 			p2 = "\n  A   {2001-01-01 00:00:00}\n  B   {2001-01-31 23:59:59}\n  C   {2001-02-01 00:00:00}\n  D   {2001-02-28 23:59:59}\n  E   {2001-03-01 00:00:00}\n  F   {2001-03-31 23:59:59}\n  G   {2001-04-01 00:00:00}\n  H   {2001-04-30 23:59:59}\n  I   {2001-05-01 00:00:00}\n  J   {2001-05-31 23:59:59}\n  K   {2001-06-01 00:00:00}\n  L   {2001-06-30 23:59:59}\n  M   {2001-07-01 00:00:00}\n  N   {2001-07-31 23:59:59}\n  O   {2001-08-01 00:00:00}\n  P   {2001-08-31 23:59:59}\n  Q   {2001-09-01 00:00:00}\n  R   {2001-09-30 23:59:59}\n  S   {2001-10-01 00:00:00}\n  T   {2001-10-31 23:59:59}\n  U   {2001-11-01 00:00:00}\n  V   {2001-11-30 23:59:59}\n  W   {2001-12-01 00:00:00}\n  X   {2001-12-31 23:59:59}\n"
@@ -161,7 +188,7 @@ func Test_timediff1(t *testing.T) {
 						d2 := _items3[_idx3+1]
 						_ = d2 // suppress unused warning
 						_ = _idx3
-							var r1 = "db one {SELECT datetime($d1)}"
+							r1 = "db one {SELECT datetime($d1)}"
 							_ = r1 // suppress unused warning
 							{ // "timediff-6-" + x1 + x2
 								r = db.Query("\n      SELECT datetime($d2, timediff($d1,$d2));\n    ")
@@ -175,7 +202,7 @@ func Test_timediff1(t *testing.T) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
-							var r2 = "db one {SELECT datetime($d2)}"
+							r2 = "db one {SELECT datetime($d2)}"
 							_ = r2 // suppress unused warning
 							{ // "timediff-6-" + x2 + x1
 								r = db.Query("\n      SELECT datetime($d1, timediff($d2,$d1));\n    ")

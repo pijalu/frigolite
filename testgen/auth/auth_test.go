@@ -40,14 +40,63 @@ func Test_auth(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var authargs string
+	_ = authargs // pre-declared from TCL source
+	var attachfilename string
+	_ = attachfilename // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var stat4 string
+	_ = stat4 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var arguments string
+	_ = arguments // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var code string
+	_ = code // pre-declared from TCL source
+	var arg1 string
+	_ = arg1 // pre-declared from TCL source
+	var arg2 string
+	_ = arg2 // pre-declared from TCL source
+	var arg3 string
+	_ = arg3 // pre-declared from TCL source
+	var arg4 string
+	_ = arg4 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if false {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "proc_real proc {name arguments script} {\n  proc_real $name $arguments $script\n  if {$name=...}")
+	// proc_real proc {name arguments script} {
+  proc_real $name $arguments $script
+  if {$name=...} (unsupported command, not transpiled)
 	{ // do_test "auth-1.1.1"
-		var _DB = "sqlite3 db test.db" // TCL namespace variable
-		_ = _DB // suppress unused warning
+		DB = "sqlite3 db test.db" // TCL namespace variable
+		_ = DB // suppress unused warning
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
 		_res = db.Exec("CREATE TABLE t1(a,b,c)")
@@ -75,7 +124,7 @@ func Test_auth(t *testing.T) {
 	{ // do_test "auth-1.3.2"
 	}
 	{ // do_test "auth-1.3.3"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.4"
 		r = db.Query("SELECT name FROM sqlite_master")
@@ -106,14 +155,14 @@ func Test_auth(t *testing.T) {
 		}
 	}
 	{ // do_test "auth-1.19.1"
-		var _authargs = "" // TCL namespace variable
-		_ = _authargs // suppress unused warning
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
 		// proc definition (not transpiled)
 		_res = db.Exec("CREATE TABLE t2(a,b,c)")
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.19.2"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.20"
 		r = db.Query("SELECT name FROM sqlite_master")
@@ -127,7 +176,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.21.2"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.22"
 		r = db.Query("SELECT name FROM sqlite_master")
@@ -141,7 +190,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.23.2"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.24"
 		r = db.Query("SELECT name FROM sqlite_master")
@@ -350,7 +399,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.178"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.179"
 		r = db.Query("SELECT name FROM sqlite_master")
@@ -375,7 +424,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.183"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.184"
 		r = db.Query("SELECT name FROM sqlite_master")
@@ -400,7 +449,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.188"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.189"
 		r = db.Query("SELECT name FROM sqlite_master")
@@ -425,7 +474,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.205a"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	_res = db.Exec("\n  ATTACH ':memory:' as di205;\n  CREATE TABLE di205.t1(x);\n  CREATE INDEX di205.t1x ON t1(x);\n")
 	if _res.Error != nil {
@@ -442,7 +491,7 @@ func Test_auth(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DETACH di205;\n")
 	}
 	{ // do_test "auth-1.206"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.207"
 		r = db.Query("SELECT name FROM sqlite_master")
@@ -467,7 +516,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.211"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.212"
 		r = db.Query("SELECT name FROM sqlite_master")
@@ -481,7 +530,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.214"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.215"
 		r = db.Query("SELECT name FROM sqlite_master")
@@ -495,7 +544,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.230"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.231"
 		r = db.Query("SELECT a FROM t2")
@@ -509,7 +558,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.233"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.234"
 		r = db.Query("SELECT a FROM t2")
@@ -534,7 +583,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.238"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.239"
 		r = db.Query("SELECT a FROM t2")
@@ -548,7 +597,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.241"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.242"
 		// proc definition (not transpiled)
@@ -556,7 +605,7 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.243"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.244"
 		r = db.Query("SELECT * FROM t2")
@@ -569,14 +618,14 @@ func Test_auth(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.246"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.247"
 		_res = db.Exec("END TRANSACTION")
 		_ = _res // catchsql
 	}
 	{ // do_test "auth-1.248"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-1.249"
 		_res = db.Exec("ROLLBACK")
@@ -671,15 +720,15 @@ func Test_auth(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t6(a,b,c,d,e,f,g,h);\n    INSERT INTO t6 VALUES(1,2,3,4,5,6,7,8);\n  ")
 		}
 	}
-	var _authargs = "list" // TCL namespace variable
-	_ = _authargs // suppress unused warning
+	authargs = "list" // TCL namespace variable
+	_ = authargs // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "auth-6.2"
 		_res = db.Exec("UPDATE t6 SET rowID=rowID+100")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t6 SET rowID=rowID+100")
 		}
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth-6.3"
 		r = db.Query("SELECT rowid, * FROM t6")
@@ -693,57 +742,57 @@ func Test_auth(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7(a, b, c);\n  CREATE VIEW v7 AS SELECT * FROM t7;\n")
 		}
 	}
-	var _authargs = "list" // TCL namespace variable
-	_ = _authargs // suppress unused warning
+	authargs = "list" // TCL namespace variable
+	_ = authargs // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "auth-7.2"
 		r = db.Query("SELECT a, c FROM v7")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a, c FROM v7")
 		}
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
-	var _authargs = "list" // TCL namespace variable
-	_ = _authargs // suppress unused warning
+	authargs = "list" // TCL namespace variable
+	_ = authargs // suppress unused warning
 	{ // do_test "auth-7.3"
 		r = db.Query("SELECT a, c FROM t7")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a, c FROM t7")
 		}
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
-	var _authargs = "list" // TCL namespace variable
-	_ = _authargs // suppress unused warning
+	authargs = "list" // TCL namespace variable
+	_ = authargs // suppress unused warning
 	{ // do_test "auth-7.4"
 		r = db.Query("SELECT a, c FROM t7 AS v7")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a, c FROM t7 AS v7")
 		}
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
-	var _authargs = "list" // TCL namespace variable
-	_ = _authargs // suppress unused warning
+	authargs = "list" // TCL namespace variable
+	_ = authargs // suppress unused warning
 	{ // do_test "auth-8.1"
 		r = db.Query("SELECT count(*) FROM t7")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t7")
 		}
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
-	var _authargs = "list" // TCL namespace variable
-	_ = _authargs // suppress unused warning
+	authargs = "list" // TCL namespace variable
+	_ = authargs // suppress unused warning
 	{ // do_test "auth-8.2"
 		r = db.Query("SELECT t6.a FROM t6, t7")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT t6.a FROM t6, t7")
 		}
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
-	var _authargs = "list" // TCL namespace variable
-	_ = _authargs // suppress unused warning
+	authargs = "list" // TCL namespace variable
+	_ = authargs // suppress unused warning
 	// proc definition (not transpiled)
-	var _authargs = "list" // TCL namespace variable
-	_ = _authargs // suppress unused warning
+	authargs = "list" // TCL namespace variable
+	_ = authargs // suppress unused warning
 	{ // "auth-8.3"
 		_res = db.Exec("\n  SELECT count(*) FROM t7\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "not authorized") {
@@ -751,7 +800,7 @@ func Test_auth(t *testing.T) {
 		}
 	}
 	{ // do_test "auth-8.4"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	// proc definition (not transpiled)
 	{ // "auth-9.1"
@@ -760,8 +809,8 @@ func Test_auth(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(x,y1); INSERT INTO t1 VALUES(1,'a');\n  CREATE TABLE t2(x,y2); INSERT INTO t2 VALUES(99,'z');\n")
 		}
 	}
-	var _authargs = "list" // TCL namespace variable
-	_ = _authargs // suppress unused warning
+	authargs = "list" // TCL namespace variable
+	_ = authargs // suppress unused warning
 	{ // "auth-9.2"
 		r = db.Query("\n  SELECT x,y2 FROM t1 FULL JOIN t2 USING(x);\n")
 		if r.Error != nil {
@@ -775,6 +824,6 @@ func Test_auth(t *testing.T) {
 		}
 	}
 	{ // do_test "auth-9.3"
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 }

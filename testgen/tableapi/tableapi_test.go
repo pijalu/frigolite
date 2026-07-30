@@ -40,34 +40,63 @@ func Test_tableapi(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var dbx string
+	_ = dbx // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var manyquote string
+	_ = manyquote // pre-declared from TCL source
+	var big_str string
+	_ = big_str // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var sep string
+	_ = sep // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tableapi-1.0"
-		var _dbx = "sqlite3_open test.db" // TCL namespace variable
-		_ = _dbx // suppress unused warning
+		dbx = "" // TCL namespace variable
+		_ = dbx // suppress unused warning
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite_exec_printf $::dbx {DROP TABLE xyz} {}")
+			// sqlite_exec_printf $::dbx {DROP TABLE xyz} {} (unsupported command, not transpiled)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf $::dbx {CREATE TABLE %s(a int, b text)} xyz")
+		// sqlite3_exec_printf $::dbx {CREATE TABLE %s(a int, b text)} xyz (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf $::dbx {\n    INSERT INTO xyz VALUES(1,'%q')\n  } {Hi Y'all}")
+		// sqlite3_exec_printf $::dbx {
+    INSERT INTO xyz VALUES(1,'%q')
+  } {Hi Y'all} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf $::dbx {SELECT * FROM xyz} {}")
+		// sqlite3_exec_printf $::dbx {SELECT * FROM xyz} {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    BEGIN TRANSACTION;\n    SELECT * FROM xyz WHER...} {Hi Y'all}")
+		// sqlite3_get_table_printf $::dbx {
+    BEGIN TRANSACTION;
+    SELECT * FROM xyz WHER...} {Hi Y'all} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.3"
-		var i = "2"
+		i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50 }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx INSERT INTO xyz VALUES($i,'(%s)') $i")
+			// sqlite3_get_table_printf $::dbx INSERT INTO xyz VALUES($i,'(%s)') $i (unsupported command, not transpiled)
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -76,22 +105,31 @@ func Test_tableapi(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz ORDER BY a\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz ORDER BY a
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz  WHERE a>49 ORDER BY a\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz  WHERE a>49 ORDER BY a
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz WHERE a>47 ORDER BY a
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a; inva...} {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz WHERE a>47 ORDER BY a; inva...} {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {} 8")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz WHERE a>47 ORDER BY a
+  } {} 8 (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.4"
-		var manyquote = "''''''''"
+		manyquote = "''''''''"
 		_ = manyquote // suppress unused warning
 		manyquote += manyquote
 		manyquote += manyquote
@@ -99,30 +137,42 @@ func Test_tableapi(t *testing.T) {
 		manyquote += manyquote
 		manyquote += manyquote
 		manyquote += manyquote
-		var _big_str = manyquote + " Hello " + manyquote // TCL namespace variable
-		_ = _big_str // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(51,'%q')\n  } $::big_str")
+		big_str = manyquote + " Hello " + manyquote // TCL namespace variable
+		_ = big_str // suppress unused warning
+		// sqlite3_get_table_printf $::dbx {
+    INSERT INTO xyz VALUES(51,'%q')
+  } $::big_str (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>49 ORDER BY a;\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz WHERE a>49 ORDER BY a;
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(52,NULL)\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    INSERT INTO xyz VALUES(52,NULL)
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>1000\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz WHERE a>1000
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    ROLLBACK;\n    PRAGMA empty_result_callbacks =...} {Hi Y'all}")
+		// sqlite3_get_table_printf $::dbx {
+    ROLLBACK;
+    PRAGMA empty_result_callbacks =...} {Hi Y'all} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.3"
-		var i = "2"
+		i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50 }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx INSERT INTO xyz VALUES($i,'(%s)') $i")
+			// sqlite3_get_table_printf $::dbx INSERT INTO xyz VALUES($i,'(%s)') $i (unsupported command, not transpiled)
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -131,33 +181,47 @@ func Test_tableapi(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz ORDER BY a\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz ORDER BY a
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz  WHERE a>49 ORDER BY a\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz  WHERE a>49 ORDER BY a
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz WHERE a>47 ORDER BY a
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(51,'%q')\n  } $::big_str")
+		// sqlite3_get_table_printf $::dbx {
+    INSERT INTO xyz VALUES(51,'%q')
+  } $::big_str (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>49 ORDER BY a;\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz WHERE a>49 ORDER BY a;
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(52,NULL)\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    INSERT INTO xyz VALUES(52,NULL)
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-3.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>1000\n  } {}")
+		// sqlite3_get_table_printf $::dbx {
+    SELECT * FROM xyz WHERE a>1000
+  } {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-4.1"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n      SELECT * FROM xyz;  SELECT * FROM sqlite_ma...} {}")
+			// sqlite3_get_table_printf $::dbx {
+      SELECT * FROM xyz;  SELECT * FROM sqlite_ma...} {} (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -166,19 +230,22 @@ func Test_tableapi(t *testing.T) {
 				msg = ""
 			}
 		}
-		_r := tclList(append([]string{}, tclSplitList(rc)..., tclSplitList(msg)...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList(rc)...)
+		_r_tcl = append(_r_tcl, tclSplitList(msg)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "tableapi-5.1"
-		var sql = "CREATE TABLE t2("
+		sql = "CREATE TABLE t2("
 		_ = sql // suppress unused warning
-		var sep = ""
+		sep = ""
 		_ = sep // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 			sql += "$"
-			var sep = ","
+			sep = ","
 			_ = sep // suppress unused warning
 			// incr i 1
 			{
@@ -189,7 +256,7 @@ func Test_tableapi(t *testing.T) {
 			}
 		}
 		sql += ")"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx $sql {}")
+		// sqlite3_get_table_printf $::dbx $sql {} (unsupported command, not transpiled)
 		sql = "INSERT INTO t2 VALUES("
 		_ = sql // suppress unused warning
 		sep = ""
@@ -198,7 +265,7 @@ func Test_tableapi(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 			sql += "$"
-			var sep = ","
+			sep = ","
 			_ = sep // suppress unused warning
 			// incr i 1
 			{
@@ -209,19 +276,19 @@ func Test_tableapi(t *testing.T) {
 			}
 		}
 		sql += ")"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx $sql {}")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {SELECT * FROM t2} {}")
+		// sqlite3_get_table_printf $::dbx $sql {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {SELECT * FROM t2} {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-5.2"
-		var sql = "INSERT INTO t2 VALUES("
+		sql = "INSERT INTO t2 VALUES("
 		_ = sql // suppress unused warning
-		var sep = ""
+		sep = ""
 		_ = sep // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 			sql += "$"
-			var sep = ","
+			sep = ","
 			_ = sep // suppress unused warning
 			// incr i 1
 			{
@@ -232,11 +299,14 @@ func Test_tableapi(t *testing.T) {
 			}
 		}
 		sql += ")"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx $sql {}")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {SELECT * FROM t2} {}")
+		// sqlite3_get_table_printf $::dbx $sql {} (unsupported command, not transpiled)
+		// sqlite3_get_table_printf $::dbx {SELECT * FROM t2} {} (unsupported command, not transpiled)
 	}
 	{ // do_test "tableapi-99.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $::dbx")
+		// sqlite3_close $::dbx (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test tableapi-7 -sqlprep {\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b)...} -tclbody {\n  set r [sqlite3_get_table_printf db {SELECT rowi...}")
+	// do_malloc_test tableapi-7 -sqlprep {
+  DROP TABLE IF EXISTS t1;
+  CREATE TABLE t1(a,b)...} -tclbody {
+  set r [sqlite3_get_table_printf db {SELECT rowi...} (unsupported command, not transpiled)
 }

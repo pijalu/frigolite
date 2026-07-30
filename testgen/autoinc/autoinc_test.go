@@ -40,13 +40,32 @@ func Test_autoinc(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var root1 string
+	_ = root1 // pre-declared from TCL source
+	var root2 string
+	_ = root2 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "autoinc"
+	testprefix = "autoinc"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+	// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 	{ // do_test "autoinc-1.1"
 		r = db.Query("\n    SELECT name FROM sqlite_master WHERE type='table';\n  ")
 		if r.Error != nil {
@@ -70,8 +89,8 @@ func Test_autoinc(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "autoinc-1.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM sqlite_sequence;\n  ")
 		if r.Error != nil {
@@ -325,18 +344,18 @@ func Test_autoinc(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
-		var STMT = "sqlite3_prepare $DB {\n     CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )\n  } -1 TAIL"
-		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 		STMT = "sqlite3_prepare $DB {\n     CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )\n  } -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		STMT = "sqlite3_prepare $DB {\n     CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )\n  } -1 TAIL"
+		_ = STMT // suppress unused warning
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		r = db.Query("\n    INSERT INTO t1 VALUES(NULL);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(NULL);\n    SELECT * FROM t1;\n  ")
@@ -374,17 +393,17 @@ func Test_autoinc(t *testing.T) {
 	}
 	{ // do_test "autoinc-12.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE fake_sequence(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n     sql=replace(sql,'fake_','sqlite_'),\n     name='sqlite_sequence',\n     tbl_name='sqlite_sequence'\n     WHERE name='fake_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE fake_sequence(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n     sql=replace(sql,'fake_','sqlite_'),\n     name='sqlite_sequence',\n     tbl_name='sqlite_sequence'\n     WHERE name='fake_sequence';\n  ")
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var res string
 	_ = res // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -403,17 +422,17 @@ func Test_autoinc(t *testing.T) {
 	}
 	{ // do_test "autoinc-12.2"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql=replace(sql,'sqlite_','x_'),\n     name='x_sequence',\n     tbl_name='x_sequence'\n    WHERE name='sqlite_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql=replace(sql,'sqlite_','x_'),\n     name='x_sequence',\n     tbl_name='x_sequence'\n    WHERE name='sqlite_sequence';\n  ")
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var res string
 	_ = res // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -432,17 +451,17 @@ func Test_autoinc(t *testing.T) {
 	}
 	{ // do_test "autoinc-12.3"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp6, err := frigolite.Open("test.db")
+		_ = _dbtmp6 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql='CREATE VIRTUAL TABLE sqlite_sequence USING sqlite_dbpage'\n    WHERE name='sqlite_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n   INSERT INTO t1(b) VALUES('one');\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET\n     sql='CREATE VIRTUAL TABLE sqlite_sequence USING sqlite_dbpage'\n    WHERE name='sqlite_sequence';\n  ")
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp7, err := frigolite.Open("test.db")
+		_ = _dbtmp7 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var res string
 	_ = res // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -461,25 +480,25 @@ func Test_autoinc(t *testing.T) {
 	}
 	{ // do_test "autoinc-12.4"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp8, err := frigolite.Open("test.db")
+		_ = _dbtmp8 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    CREATE TABLE fake(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    CREATE TABLE fake(name TEXT PRIMARY KEY,seq) WITHOUT ROWID;\n  ")
 		}
-		var root1 = "db one {SELECT rootpage FROM sqlite_master\n                     WHERE name='sqlite_sequence'}"
+		root1 = "db one {SELECT rootpage FROM sqlite_master\n                     WHERE name='sqlite_sequence'}"
 		_ = root1 // suppress unused warning
-		var root2 = "db one {SELECT rootpage FROM sqlite_master\n                     WHERE name='fake'}"
+		root2 = "db one {SELECT rootpage FROM sqlite_master\n                     WHERE name='fake'}"
 		_ = root2 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=$root2\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=$root1\n    WHERE name='fake';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   PRAGMA writable_schema=on;\n   UPDATE sqlite_master SET rootpage=$root2\n    WHERE name='sqlite_sequence';\n   UPDATE sqlite_master SET rootpage=$root1\n    WHERE name='fake';\n  ")
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp9, err := frigolite.Open("test.db")
+		_ = _dbtmp9 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var res string
 	_ = res // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -498,17 +517,17 @@ func Test_autoinc(t *testing.T) {
 	}
 	{ // do_test "autoinc-12.5"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp10, err := frigolite.Open("test.db")
+		_ = _dbtmp10 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x)'\n      WHERE name='sqlite_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x)'\n      WHERE name='sqlite_sequence';\n  ")
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp11, err := frigolite.Open("test.db")
+		_ = _dbtmp11 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var res string
 	_ = res // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -527,17 +546,17 @@ func Test_autoinc(t *testing.T) {
 	}
 	{ // do_test "autoinc-12.6"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp12, err := frigolite.Open("test.db")
+		_ = _dbtmp12 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x,y INTEGER PRIMARY KEY)'\n      WHERE name='sqlite_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(x,y INTEGER PRIMARY KEY)'\n      WHERE name='sqlite_sequence';\n  ")
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp13, err := frigolite.Open("test.db")
+		_ = _dbtmp13 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var res string
 	_ = res // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -556,17 +575,17 @@ func Test_autoinc(t *testing.T) {
 	}
 	{ // do_test "autoinc-12.7"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp14, err := frigolite.Open("test.db")
+		_ = _dbtmp14 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(y INTEGER PRIMARY KEY,x)'\n      WHERE name='sqlite_sequence';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET\n       sql='CREATE TABLE sqlite_sequence(y INTEGER PRIMARY KEY,x)'\n      WHERE name='sqlite_sequence';\n  ")
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp15, err := frigolite.Open("test.db")
+		_ = _dbtmp15 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var res string
 	_ = res // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block

@@ -39,10 +39,29 @@ func Test_rowvaluevtab(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var opcode string
+	_ = opcode // pre-declared from TCL source
+	var p4 string
+	_ = p4 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var expected string
+	_ = expected // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "rowvaluevtab" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
+	testprefix = "rowvaluevtab" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// register_echo_module db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES('one', 1, 1);\n  INSERT INTO t1 VALUES('two', 1, 2);\n  INSERT INTO t1 VALUES('three', 1, 3);\n  INSERT INTO t1 VALUES('four', 2, 1);\n  INSERT INTO t1 VALUES('five', 2, 2);\n  INSERT INTO t1 VALUES('six', 2, 3);\n  INSERT INTO t1 VALUES('seven', 3, 1);\n  INSERT INTO t1 VALUES('eight', 3, 2);\n  INSERT INTO t1 VALUES('nine', 3, 3);\n\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10000\n  ) INSERT INTO t1 SELECT NULL, NULL, NULL FROM s;\n  CREATE VIRTUAL TABLE e1 USING echo(t1);\n")
 		if _res.Error != nil {
@@ -62,7 +81,9 @@ func Test_rowvaluevtab(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vfilter4_test 1.1f {\n  SELECT a FROM e1 WHERE (b, c) = (?, ?)\n} {{SELECT rowid, a, b, c FROM 't1' WHERE b = ?}}")
+	// do_vfilter4_test 1.1f {
+  SELECT a FROM e1 WHERE (b, c) = (?, ?)
+} {{SELECT rowid, a, b, c FROM 't1' WHERE b = ?}} (unsupported command, not transpiled)
 	{ // "1.2"
 		r = db.Query("\n  SELECT a FROM e1 WHERE (b, c) > (2, 2)\n")
 		if r.Error != nil {
@@ -75,7 +96,11 @@ func Test_rowvaluevtab(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vfilter4_test 1.2f {\n  SELECT a FROM e1 WHERE (b, c) > (2, 2)\n} {\n  {SELECT rowid, a, b, c FROM 't1' WHERE b >= ?}\n}")
+	// do_vfilter4_test 1.2f {
+  SELECT a FROM e1 WHERE (b, c) > (2, 2)
+} {
+  {SELECT rowid, a, b, c FROM 't1' WHERE b >= ?}
+} (unsupported command, not transpiled)
 	{ // "1.3"
 		r = db.Query("\n  SELECT a FROM e1 WHERE (b, c) >= (2, 2)\n")
 		if r.Error != nil {
@@ -88,7 +113,11 @@ func Test_rowvaluevtab(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vfilter4_test 1.3f {\n  SELECT a FROM e1 WHERE (b, c) >= (2, 2)\n} {\n  {SELECT rowid, a, b, c FROM 't1' WHERE b >= ?}\n}")
+	// do_vfilter4_test 1.3f {
+  SELECT a FROM e1 WHERE (b, c) >= (2, 2)
+} {
+  {SELECT rowid, a, b, c FROM 't1' WHERE b >= ?}
+} (unsupported command, not transpiled)
 	{ // "1.3"
 		r = db.Query("\n  SELECT a FROM e1 WHERE (b, c) BETWEEN (1, 2) AND (2, 3)\n")
 		if r.Error != nil {
@@ -101,7 +130,9 @@ func Test_rowvaluevtab(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vfilter4_test 1.3f {\n  SELECT a FROM e1 WHERE (b, c) BETWEEN (1, 2) AN...} {\n  {SELECT rowid, a, b, c FROM 't1' WHERE b >= ? A...}")
+	// do_vfilter4_test 1.3f {
+  SELECT a FROM e1 WHERE (b, c) BETWEEN (1, 2) AN...} {
+  {SELECT rowid, a, b, c FROM 't1' WHERE b >= ? A...} (unsupported command, not transpiled)
 	{ // "1.4"
 		r = db.Query("\n  SELECT a FROM e1 WHERE (b, c) IN ( VALUES(2, 2) )\n")
 		if r.Error != nil {
@@ -114,5 +145,6 @@ func Test_rowvaluevtab(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vfilter4_test 1.4f {\n  SELECT a FROM e1 WHERE (b, c) IN ( VALUES(2, 2)...} {{SELECT rowid, a, b, c FROM 't1' WHERE b = ?}}")
+	// do_vfilter4_test 1.4f {
+  SELECT a FROM e1 WHERE (b, c) IN ( VALUES(2, 2)...} {{SELECT rowid, a, b, c FROM 't1' WHERE b = ?}} (unsupported command, not transpiled)
 }

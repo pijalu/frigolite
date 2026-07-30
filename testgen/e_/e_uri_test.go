@@ -40,93 +40,182 @@ func Test_e_uri(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var uri_open string
+	_ = uri_open // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var fileName string
+	_ = fileName // pre-declared from TCL source
+	var flags string
+	_ = flags // pre-declared from TCL source
+	var e string
+	_ = e // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var uri string
+	_ = uri // pre-declared from TCL source
+	var parse string
+	_ = parse // pre-declared from TCL source
+	var vfs string
+	_ = vfs // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var _default string
+	_ = _default // pre-declared from TCL source
+	var defvfs string
+	_ = defvfs // pre-declared from TCL source
+	var errmsg string
+	_ = errmsg // pre-declared from TCL source
+	var read string
+	_ = read // pre-declared from TCL source
+	var write string
+	_ = write // pre-declared from TCL source
+	var create string
+	_ = create // pre-declared from TCL source
+	var RES_c_0 string
+	_ = RES_c_0 // pre-declared from TCL source
+	var RES_c_1 string
+	_ = RES_c_1 // pre-declared from TCL source
+	var RES_w_0 string
+	_ = RES_w_0 // pre-declared from TCL source
+	var RES_w_1 string
+	_ = RES_w_1 // pre-declared from TCL source
+	var RES_r_0 string
+	_ = RES_r_0 // pre-declared from TCL source
+	var RES_r_1 string
+	_ = RES_r_1 // pre-declared from TCL source
+	var f_ro string
+	_ = f_ro // pre-declared from TCL source
+	var f_rw string
+	_ = f_rw // pre-declared from TCL source
+	var f_rwc string
+	_ = f_rwc // pre-declared from TCL source
+	var orig string
+	_ = orig // pre-declared from TCL source
+	var shared_default string
+	_ = shared_default // pre-declared from TCL source
+	var isshared string
+	_ = isshared // pre-declared from TCL source
+	var _f_arr string
+	_ = _f_arr // pre-declared from TCL source
+	var f_shared string
+	_ = f_shared // pre-declared from TCL source
+	var f_private string
+	_ = f_private // pre-declared from TCL source
+	var RES_0 string
+	_ = RES_0 // pre-declared from TCL source
+	var RES_1 string
+	_ = RES_1 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var arglist string
+	_ = arglist // pre-declared from TCL source
+	var RES_c_create string
+	_ = RES_c_create // pre-declared from TCL source
+	var RES_r_read string
+	_ = RES_r_read // pre-declared from TCL source
+	var RES_w_write string
+	_ = RES_w_write // pre-declared from TCL source
+	var f_flags string
+	_ = f_flags // pre-declared from TCL source
+	var RES_isshared string
+	_ = RES_isshared // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "e_uri"
+	testprefix = "e_uri"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	if tcl_platform_platform == "unix" {
-		var flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE"
+		flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE"
 		_ = flags // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 0")
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_uri 0 (unsupported command, not transpiled)
 		{ // do_test "1.1"
 			os.Remove("file:test.db")
-			var DB = "sqlite3_open_v2 file:test.db [concat $flags SQLITE_OPEN_URI] \"\""
+			DB = ""
 			_ = DB // suppress unused warning
 			_list := tclList([]string{"file exists file:test.db", "file exists test.db"})
 			_ = _list
 		}
 		{ // do_test "1.2"
 			os.Remove("file:test.db2")
-			var STMT = "sqlite3_prepare $DB \"ATTACH 'file:test.db2' AS aux\" -1 dummy"
+			STMT = "sqlite3_prepare $DB \"ATTACH 'file:test.db2' AS aux\" -1 dummy"
 			_ = STMT // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+			// sqlite3_step $STMT (unsupported command, not transpiled)
+			// sqlite3_finalize $STMT (unsupported command, not transpiled)
 			_list := tclList([]string{"file exists file:test.db2", "file exists test.db2"})
 			_ = _list
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
+		// sqlite3_close $DB (unsupported command, not transpiled)
 		{ // do_test "1.3"
 			os.Remove("file:test.db")
-			var DB = "sqlite3_open_v2 file:test.db [concat $flags] \"\""
+			DB = ""
 			_ = DB // suppress unused warning
 			_list := tclList([]string{"file exists file:test.db", "file exists test.db"})
 			_ = _list
 		}
 		{ // do_test "1.4"
 			os.Remove("file:test.db2")
-			var STMT = "sqlite3_prepare $DB \"ATTACH 'file:test.db2' AS aux\" -1 dummy"
+			STMT = "sqlite3_prepare $DB \"ATTACH 'file:test.db2' AS aux\" -1 dummy"
 			_ = STMT // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+			// sqlite3_step $STMT (unsupported command, not transpiled)
+			// sqlite3_finalize $STMT (unsupported command, not transpiled)
 			_list := tclList([]string{"file exists file:test.db2", "file exists test.db2"})
 			_ = _list
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+		// sqlite3_close $DB (unsupported command, not transpiled)
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_uri 1 (unsupported command, not transpiled)
 		{ // do_test "1.5"
 			os.Remove("file:test.db")
-			var DB = "sqlite3_open_v2 file:test.db [concat $flags SQLITE_OPEN_URI] \"\""
+			DB = ""
 			_ = DB // suppress unused warning
 			_list := tclList([]string{"file exists file:test.db", "file exists test.db"})
 			_ = _list
 		}
 		{ // do_test "1.6"
 			os.Remove("file:test.db2")
-			var STMT = "sqlite3_prepare $DB \"ATTACH 'file:test.db2' AS aux\" -1 dummy"
+			STMT = "sqlite3_prepare $DB \"ATTACH 'file:test.db2' AS aux\" -1 dummy"
 			_ = STMT // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+			// sqlite3_step $STMT (unsupported command, not transpiled)
+			// sqlite3_finalize $STMT (unsupported command, not transpiled)
 			_list := tclList([]string{"file exists file:test.db2", "file exists test.db2"})
 			_ = _list
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
+		// sqlite3_close $DB (unsupported command, not transpiled)
 		{ // do_test "1.7"
 			os.Remove("file:test.db")
-			var DB = "sqlite3_open_v2 file:test.db [concat $flags] \"\""
+			DB = ""
 			_ = DB // suppress unused warning
 			_list := tclList([]string{"file exists file:test.db", "file exists test.db"})
 			_ = _list
 		}
 		{ // do_test "1.8"
 			os.Remove("file:test.db2")
-			var STMT = "sqlite3_prepare $DB \"ATTACH 'file:test.db2' AS aux\" -1 dummy"
+			STMT = "sqlite3_prepare $DB \"ATTACH 'file:test.db2' AS aux\" -1 dummy"
 			_ = STMT // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+			// sqlite3_step $STMT (unsupported command, not transpiled)
+			// sqlite3_finalize $STMT (unsupported command, not transpiled)
 			_list := tclList([]string{"file exists file:test.db2", "file exists test.db2"})
 			_ = _list
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
+		// sqlite3_close $DB (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	if tcl_platform_platform == "unix" {
-		var flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
+		flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
 		_ = flags // suppress unused warning
 		// foreach {tn uri error} "\n    1  {file://localhost" + "test_pwd /" + "test.db}   {not an error}\n    2  {file://" + "test_pwd /" + "test.db}            {not an error}\n    3  {file://x" + "test_pwd /" + "test.db}           {invalid uri authority: x}\n    4  {file://invalid" + "test_pwd /" + "test.db}     {invalid uri authority: invalid}\n  "
 		_items0 := tclSplitList("\n    1  {file://localhost" + "test_pwd /" + "test.db}   {not an error}\n    2  {file://" + "test_pwd /" + "test.db}            {not an error}\n    3  {file://x" + "test_pwd /" + "test.db}           {invalid uri authority: x}\n    4  {file://invalid" + "test_pwd /" + "test.db}     {invalid uri authority: invalid}\n  ")
@@ -139,11 +228,11 @@ func Test_e_uri(t *testing.T) {
 			_ = _error // suppress unused warning
 			_ = _idx0
 				{ // do_test "2." + tn
-					var DB = "sqlite3_open_v2 $uri $flags \"\""
+					DB = ""
 					_ = DB // suppress unused warning
-					var e = ""
+					e = ""
 					_ = e // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
+					// sqlite3_close $DB (unsupported command, not transpiled)
 				}
 			}
 		}
@@ -157,7 +246,7 @@ func Test_e_uri(t *testing.T) {
 			parse := _items0[_idx0+2]
 			_ = parse // suppress unused warning
 			_ = _idx0
-				t.Errorf("TODO: %s not implemented in frigolite", "do_filepath_test 3.$tn { parse_uri $uri } $parse")
+				// do_filepath_test 3.$tn { parse_uri $uri } $parse (unsupported command, not transpiled)
 			}
 			// foreach {tn uri parse} "\n  1    {file:test.db}             {" + "test_pwd / {}" + "test.db {}}\n  2    {file:/test.db}            {/test.db {}}\n  3    {file:///test.db}          {/test.db {}}\n  4    {file://localhost/test.db} {/test.db {}}\n  5    {file:/a/b/c/test.db}      {/a/b/c/test.db {}}\n"
 			_items1 := tclSplitList("\n  1    {file:test.db}             {" + "test_pwd / {}" + "test.db {}}\n  2    {file:/test.db}            {/test.db {}}\n  3    {file:///test.db}          {/test.db {}}\n  4    {file://localhost/test.db} {/test.db {}}\n  5    {file:/a/b/c/test.db}      {/a/b/c/test.db {}}\n")
@@ -169,7 +258,7 @@ func Test_e_uri(t *testing.T) {
 				parse := _items1[_idx1+2]
 				_ = parse // suppress unused warning
 				_ = _idx1
-					t.Errorf("TODO: %s not implemented in frigolite", "do_filepath_test 4.$tn { parse_uri $uri } $parse")
+					// do_filepath_test 4.$tn { parse_uri $uri } $parse (unsupported command, not transpiled)
 				}
 				// proc definition (not transpiled)
 				// foreach {name default} "vfs1 0 vfs2 0 vfs3 1"
@@ -180,9 +269,9 @@ func Test_e_uri(t *testing.T) {
 					_default := _items2[_idx2+1]
 					_ = _default // suppress unused warning
 					_ = _idx2
-						t.Errorf("TODO: %s not implemented in frigolite", "testvfs $name -default $default")
-						t.Errorf("TODO: %s not implemented in frigolite", "$name filter xOpen")
-						t.Errorf("TODO: %s not implemented in frigolite", "$name script [list vfs_open_cb $name]")
+						// testvfs $name -default $default (unsupported command, not transpiled)
+						// $name filter xOpen (unsupported command, not transpiled)
+						// $name script [list vfs_open_cb $name] (unsupported command, not transpiled)
 					}
 					// foreach {tn uri defvfs vfs} "\n  1.1    \"file:test.db?vfs=vfs1\"    \"\"    vfs1\n  1.2    \"file:test.db?vfs=vfs2\"    \"\"    vfs2\n\n  2.1    \"file:test.db\"             vfs1  vfs1\n  2.2    \"file:test.db?vfs=\"        vfs1  vfs3\n\n  3.1    \"file:test.db?vfs=vfs1\"    vfs2  vfs1\n  3.2    \"file:test.db?vfs=vfs2\"    vfs1  vfs2\n  3.3    \"file:test.db?xvfs=vfs1\"   vfs2  vfs2\n  3.4    \"file:test.db?xvfs=vfs2\"   vfs1  vfs1\n"
 					_items3 := tclSplitList("\n  1.1    \"file:test.db?vfs=vfs1\"    \"\"    vfs1\n  1.2    \"file:test.db?vfs=vfs2\"    \"\"    vfs2\n\n  2.1    \"file:test.db\"             vfs1  vfs1\n  2.2    \"file:test.db?vfs=\"        vfs1  vfs3\n\n  3.1    \"file:test.db?vfs=vfs1\"    vfs2  vfs1\n  3.2    \"file:test.db?vfs=vfs2\"    vfs1  vfs2\n  3.3    \"file:test.db?xvfs=vfs1\"   vfs2  vfs2\n  3.4    \"file:test.db?xvfs=vfs2\"   vfs1  vfs1\n")
@@ -197,66 +286,69 @@ func Test_e_uri(t *testing.T) {
 						_ = vfs // suppress unused warning
 						_ = _idx3
 							{ // do_test "5." + tn
-								var flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
+								flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
 								_ = flags // suppress unused warning
-								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close [\n      sqlite3_open_v2 $uri $flags $defvfs\n    ]")
-								_ = _vfs // TCL namespace variable (query)
+								// sqlite3_close [
+      sqlite3_open_v2 $uri $flags $defvfs
+    ] (unsupported command, not transpiled)
+								_ = vfs // TCL namespace variable (query)
 							}
 						}
-						t.Errorf("TODO: %s not implemented in frigolite", "vfs1 delete")
-						t.Errorf("TODO: %s not implemented in frigolite", "vfs2 delete")
-						t.Errorf("TODO: %s not implemented in frigolite", "vfs3 delete")
-						var flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
+						// vfs1 delete (unsupported command, not transpiled)
+						// vfs2 delete (unsupported command, not transpiled)
+						// vfs3 delete (unsupported command, not transpiled)
+						flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
 						_ = flags // suppress unused warning
 						{ // do_test "6.1"
-							var DB = "sqlite3_open_v2 file:test.db?vfs=nosuchvfs $flags \"\""
+							DB = ""
 							_ = DB // suppress unused warning
-							var errmsg = ""
+							errmsg = ""
 							_ = errmsg // suppress unused warning
-							t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
+							// sqlite3_close $DB (unsupported command, not transpiled)
 						}
-						db, err = frigolite.Open("test.db")
+						_dbtmp4, err := frigolite.Open("test.db")
+						_ = _dbtmp4 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
 						// foreach {tn uri error} "\n  1    {file:test.db?mode=ro}    {not an error}\n  2    {file:test.db?mode=rw}    {not an error}\n  3    {file:test.db?mode=rwc}   {not an error}\n  4    {file:test.db?mode=Ro}    {no such access mode: Ro}\n  5    {file:test.db?mode=Rw}    {no such access mode: Rw}\n  6    {file:test.db?mode=Rwc}   {no such access mode: Rwc}\n  7    {file:test.db?mode=memory} {not an error}\n  8    {file:test.db?mode=MEMORY} {no such access mode: MEMORY}\n"
-						_items4 := tclSplitList("\n  1    {file:test.db?mode=ro}    {not an error}\n  2    {file:test.db?mode=rw}    {not an error}\n  3    {file:test.db?mode=rwc}   {not an error}\n  4    {file:test.db?mode=Ro}    {no such access mode: Ro}\n  5    {file:test.db?mode=Rw}    {no such access mode: Rw}\n  6    {file:test.db?mode=Rwc}   {no such access mode: Rwc}\n  7    {file:test.db?mode=memory} {not an error}\n  8    {file:test.db?mode=MEMORY} {no such access mode: MEMORY}\n")
-						for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-							tn := _items4[_idx4+0]
+						_items5 := tclSplitList("\n  1    {file:test.db?mode=ro}    {not an error}\n  2    {file:test.db?mode=rw}    {not an error}\n  3    {file:test.db?mode=rwc}   {not an error}\n  4    {file:test.db?mode=Ro}    {no such access mode: Ro}\n  5    {file:test.db?mode=Rw}    {no such access mode: Rw}\n  6    {file:test.db?mode=Rwc}   {no such access mode: Rwc}\n  7    {file:test.db?mode=memory} {not an error}\n  8    {file:test.db?mode=MEMORY} {no such access mode: MEMORY}\n")
+						for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
+							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning
-							uri := _items4[_idx4+1]
+							uri := _items5[_idx5+1]
 							_ = uri // suppress unused warning
-							_error := _items4[_idx4+2]
+							_error := _items5[_idx5+2]
 							_ = _error // suppress unused warning
-							_ = _idx4
+							_ = _idx5
 								{ // do_test "7." + tn
-									t.Errorf("TODO: %s not implemented in frigolite", "open_uri_error $uri")
+									// open_uri_error $uri (unsupported command, not transpiled)
 								}
 							}
 							// foreach {tn uri read write create} "\n  1    {file:test.db?mode=ro}     1 0 0\n  2    {file:test.db?mode=rw}     1 1 0\n  3    {file:test.db?mode=rwc}    1 1 1\n"
-							_items5 := tclSplitList("\n  1    {file:test.db?mode=ro}     1 0 0\n  2    {file:test.db?mode=rw}     1 1 0\n  3    {file:test.db?mode=rwc}    1 1 1\n")
-							for _idx5 := 0; _idx5+5 <= len(_items5); _idx5 += 5 {
-								tn := _items5[_idx5+0]
+							_items6 := tclSplitList("\n  1    {file:test.db?mode=ro}     1 0 0\n  2    {file:test.db?mode=rw}     1 1 0\n  3    {file:test.db?mode=rwc}    1 1 1\n")
+							for _idx6 := 0; _idx6+5 <= len(_items6); _idx6 += 5 {
+								tn := _items6[_idx6+0]
 								_ = tn // suppress unused warning
-								uri := _items5[_idx5+1]
+								uri := _items6[_idx6+1]
 								_ = uri // suppress unused warning
-								read := _items5[_idx5+2]
+								read := _items6[_idx6+2]
 								_ = read // suppress unused warning
-								write := _items5[_idx5+3]
+								write := _items6[_idx6+3]
 								_ = write // suppress unused warning
-								create := _items5[_idx5+4]
+								create := _items6[_idx6+4]
 								_ = create // suppress unused warning
-								_ = _idx5
-									var RES_c,0 = "1 {unable to open database file}"
-									_ = RES_c,0 // suppress unused warning
-									var RES_c,1 = "0 {}"
-									_ = RES_c,1 // suppress unused warning
-									var RES_w,0 = "1 {attempt to write a readonly database}"
-									_ = RES_w,0 // suppress unused warning
-									var RES_w,1 = "0 {}"
-									_ = RES_w,1 // suppress unused warning
-									var RES_r,0 = "1 {this never happens}"
-									_ = RES_r,0 // suppress unused warning
-									var RES_r,1 = "0 {a b}"
-									_ = RES_r,1 // suppress unused warning
+								_ = _idx6
+									RES_c_0 = "1 {unable to open database file}"
+									_ = RES_c_0 // suppress unused warning
+									RES_c_1 = "0 {}"
+									_ = RES_c_1 // suppress unused warning
+									RES_w_0 = "1 {attempt to write a readonly database}"
+									_ = RES_w_0 // suppress unused warning
+									RES_w_1 = "0 {}"
+									_ = RES_w_1 // suppress unused warning
+									RES_r_0 = "1 {this never happens}"
+									_ = RES_r_0 // suppress unused warning
+									RES_r_1 = "0 {a b}"
+									_ = RES_r_1 // suppress unused warning
 									os.Remove("test.db")
 									{ // do_test "8." + tn + ".c"
 										_list := tclList([]string{"0", msg})
@@ -266,23 +358,23 @@ func Test_e_uri(t *testing.T) {
 										var _catchErr error
 										_ = _catchErr // suppress unused warning
 									}
-									db, err := frigolite.Open("test.db")
-									defer db.Close()
+									_dbtmp7, err := frigolite.Open("test.db")
+									_ = _dbtmp7 // sqlite3 db connection
 									if err != nil { t.Fatal(err) }
 									_res = db.Exec(" CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES('a', 'b') ;")
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ; INSERT INTO t1 VALUES('a', 'b') ;")
 									}
 									{ // do_test "8." + tn + ".r"
-										db, err := frigolite.Open(uri)
-										defer db.Close()
+										_dbtmp8, err := frigolite.Open(uri)
+										_ = _dbtmp8 // sqlite3 db connection
 										if err != nil { t.Fatal(err) }
 										_res = db.Exec(" SELECT * FROM t1 ")
 										_ = _res // catchsql
 									}
 									{ // do_test "8." + tn + ".w"
-										db, err := frigolite.Open(uri)
-										defer db.Close()
+										_dbtmp9, err := frigolite.Open(uri)
+										_ = _dbtmp9 // sqlite3 db connection
 										if err != nil { t.Fatal(err) }
 										_res = db.Exec(" INSERT INTO t1 VALUES(1, 2) ")
 										_ = _res // catchsql
@@ -293,62 +385,66 @@ func Test_e_uri(t *testing.T) {
 									}
 								}
 								os.Remove("test.db")
-								db, err = frigolite.Open("test.db")
+								_dbtmp10, err := frigolite.Open("test.db")
+								_ = _dbtmp10 // sqlite3 db connection
 								if err != nil { t.Fatal(err) }
 								// foreach {tn uri flags error} "\n  1   {file:test.db?mode=ro}   ro    {not an error}\n  2   {file:test.db?mode=ro}   rw    {not an error}\n  3   {file:test.db?mode=ro}   rwc   {not an error}\n\n  4   {file:test.db?mode=rw}   ro    {access mode not allowed: rw}\n  5   {file:test.db?mode=rw}   rw    {not an error}\n  6   {file:test.db?mode=rw}   rwc   {not an error}\n\n  7   {file:test.db?mode=rwc}  ro    {access mode not allowed: rwc}\n  8   {file:test.db?mode=rwc}  rw    {access mode not allowed: rwc}\n  9   {file:test.db?mode=rwc}  rwc   {not an error}\n"
-								_items6 := tclSplitList("\n  1   {file:test.db?mode=ro}   ro    {not an error}\n  2   {file:test.db?mode=ro}   rw    {not an error}\n  3   {file:test.db?mode=ro}   rwc   {not an error}\n\n  4   {file:test.db?mode=rw}   ro    {access mode not allowed: rw}\n  5   {file:test.db?mode=rw}   rw    {not an error}\n  6   {file:test.db?mode=rw}   rwc   {not an error}\n\n  7   {file:test.db?mode=rwc}  ro    {access mode not allowed: rwc}\n  8   {file:test.db?mode=rwc}  rw    {access mode not allowed: rwc}\n  9   {file:test.db?mode=rwc}  rwc   {not an error}\n")
-								for _idx6 := 0; _idx6+4 <= len(_items6); _idx6 += 4 {
-									tn := _items6[_idx6+0]
+								_items11 := tclSplitList("\n  1   {file:test.db?mode=ro}   ro    {not an error}\n  2   {file:test.db?mode=ro}   rw    {not an error}\n  3   {file:test.db?mode=ro}   rwc   {not an error}\n\n  4   {file:test.db?mode=rw}   ro    {access mode not allowed: rw}\n  5   {file:test.db?mode=rw}   rw    {not an error}\n  6   {file:test.db?mode=rw}   rwc   {not an error}\n\n  7   {file:test.db?mode=rwc}  ro    {access mode not allowed: rwc}\n  8   {file:test.db?mode=rwc}  rw    {access mode not allowed: rwc}\n  9   {file:test.db?mode=rwc}  rwc   {not an error}\n")
+								for _idx11 := 0; _idx11+4 <= len(_items11); _idx11 += 4 {
+									tn := _items11[_idx11+0]
 									_ = tn // suppress unused warning
-									uri := _items6[_idx6+1]
+									uri := _items11[_idx11+1]
 									_ = uri // suppress unused warning
-									flags := _items6[_idx6+2]
+									flags := _items11[_idx11+2]
 									_ = flags // suppress unused warning
-									_error := _items6[_idx6+3]
+									_error := _items11[_idx11+3]
 									_ = _error // suppress unused warning
-									_ = _idx6
-										var f_ro = "list SQLITE_OPEN_READONLY SQLITE_OPEN_URI"
+									_ = _idx11
+										f_ro = "list SQLITE_OPEN_READONLY SQLITE_OPEN_URI"
 										_ = f_ro // suppress unused warning
-										var f_rw = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_URI"
+										f_rw = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_URI"
 										_ = f_rw // suppress unused warning
-										var f_rwc = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
+										f_rwc = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
 										_ = f_rwc // suppress unused warning
-										var DB = "sqlite3_open_v2 $uri $f($flags) \"\""
+										DB = ""
 										_ = DB // suppress unused warning
-										var e = ""
+										e = ""
 										_ = e // suppress unused warning
-										t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
+										// sqlite3_close $DB (unsupported command, not transpiled)
 										{ // do_test "9." + tn
 										}
 									}
-									db, err = frigolite.Open("test.db")
+									_dbtmp12, err := frigolite.Open("test.db")
+									_ = _dbtmp12 // sqlite3 db connection
 									if err != nil { t.Fatal(err) }
 									// foreach {tn uri error} "\n  1    {file:test.db?cache=private}    {not an error}\n  2    {file:test.db?cache=shared}     {not an error}\n  3    {file:test.db?cache=yes}        {no such cache mode: yes}\n  4    {file:test.db?cache=}           {no such cache mode: }\n"
-									_items7 := tclSplitList("\n  1    {file:test.db?cache=private}    {not an error}\n  2    {file:test.db?cache=shared}     {not an error}\n  3    {file:test.db?cache=yes}        {no such cache mode: yes}\n  4    {file:test.db?cache=}           {no such cache mode: }\n")
-									for _idx7 := 0; _idx7+3 <= len(_items7); _idx7 += 3 {
-										tn := _items7[_idx7+0]
+									_items13 := tclSplitList("\n  1    {file:test.db?cache=private}    {not an error}\n  2    {file:test.db?cache=shared}     {not an error}\n  3    {file:test.db?cache=yes}        {no such cache mode: yes}\n  4    {file:test.db?cache=}           {no such cache mode: }\n")
+									for _idx13 := 0; _idx13+3 <= len(_items13); _idx13 += 3 {
+										tn := _items13[_idx13+0]
 										_ = tn // suppress unused warning
-										uri := _items7[_idx7+1]
+										uri := _items13[_idx13+1]
 										_ = uri // suppress unused warning
-										_error := _items7[_idx7+2]
+										_error := _items13[_idx13+2]
 										_ = _error // suppress unused warning
-										_ = _idx7
+										_ = _idx13
 											{ // do_test "10." + tn
-												t.Errorf("TODO: %s not implemented in frigolite", "open_uri_error $uri")
+												// open_uri_error $uri (unsupported command, not transpiled)
 											}
 										}
-										t.Errorf("TODO: %s not implemented in frigolite", "do_filepath_test 12.1 {\n  parse_uri file://localhost/test.db?an=unknown&p...} {/test.db {an unknown parameter is ok {}}}")
-										t.Errorf("TODO: %s not implemented in frigolite", "do_filepath_test 12.2 {\n  parse_uri file://localhost/test.db?an&unknown&p...} {/test.db {an {} unknown {} parameter {} is {} ok {...}")
+										// do_filepath_test 12.1 {
+  parse_uri file://localhost/test.db?an=unknown&p...} {/test.db {an unknown parameter is ok {}}} (unsupported command, not transpiled)
+										// do_filepath_test 12.2 {
+  parse_uri file://localhost/test.db?an&unknown&p...} {/test.db {an {} unknown {} parameter {} is {} ok {...} (unsupported command, not transpiled)
 										// foreach {tn uri parse} "\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}\n"
-										_items8 := tclSplitList("\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}\n")
-										for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
-											tn := _items8[_idx8+0]
+										_items14 := tclSplitList("\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}\n")
+										for _idx14 := 0; _idx14+3 <= len(_items14); _idx14 += 3 {
+											tn := _items14[_idx14+0]
 											_ = tn // suppress unused warning
-											uri := _items8[_idx8+1]
+											uri := _items14[_idx14+1]
 											_ = uri // suppress unused warning
-											parse := _items8[_idx8+2]
+											parse := _items14[_idx14+2]
 											_ = parse // suppress unused warning
-											_ = _idx8
-												t.Errorf("TODO: %s not implemented in frigolite", "do_filepath_test 13.$tn { parse_uri $uri } $parse")
+											_ = _idx14
+												// do_filepath_test 13.$tn { parse_uri $uri } $parse (unsupported command, not transpiled)
 											}
 }

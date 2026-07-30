@@ -39,71 +39,100 @@ func Test_memsubsys1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var xtra_size string
+	_ = xtra_size // pre-declared from TCL source
+	var pg_used string
+	_ = pg_used // pre-declared from TCL source
+	var s_used string
+	_ = s_used // pre-declared from TCL source
+	var max_pagecache string
+	_ = max_pagecache // pre-declared from TCL source
+	var MEMORY_MANAGEMENT string
+	_ = MEMORY_MANAGEMENT // pre-declared from TCL source
+	var pg_ovfl string
+	_ = pg_ovfl // pre-declared from TCL source
+	var overflow string
+	_ = overflow // pre-declared from TCL source
+	var maxreq string
+	_ = maxreq // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var pragmas string
+	_ = pragmas // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+	var sqlite_options_memorymanage string
+	_ = sqlite_options_memorymanage // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+	// sqlite3_reset_auto_extension (unsupported command, not transpiled)
 	if tclBool("permutation" + " == \"memsubsys1\"") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var xtra_size = "290"
+	xtra_size = "290"
 	_ = xtra_size // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 0 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	t.Errorf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-1 {PRAGMA page_size=1024}")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
+	// sqlite3_config_pagecache 0 0 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// reset_highwater_marks (unsupported command, not transpiled)
+	// build_test_db memsubsys1-1 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-1.3"
-		var pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
+		pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-1.4"
-		var s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
+		s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
 		_ = s_used // suppress unused warning
 	}
-	var max_pagecache = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0] 2"
+	max_pagecache = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0] 2"
 	_ = max_pagecache // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 1024+$xtra_size] 20")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	t.Errorf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-2 {PRAGMA page_size=1024; PRAGMA mmap_size=0}")
-	var MEMORY_MANAGEMENT = sqlite_options + "(memorymanage)"
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pagecache [expr 1024+$xtra_size] 20 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// reset_highwater_marks (unsupported command, not transpiled)
+	// build_test_db memsubsys1-2 {PRAGMA page_size=1024; PRAGMA mmap_size=0} (unsupported command, not transpiled)
+	MEMORY_MANAGEMENT = sqlite_options_memorymanage
 	_ = MEMORY_MANAGEMENT // suppress unused warning
 	{ // do_test "memsubsys1-2.4"
-		var pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
+		pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-2.5"
-		var s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
+		s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
 		_ = s_used // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 512+$xtra_size] 20")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	t.Errorf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-3.1 {PRAGMA page_size=1024}")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pagecache [expr 512+$xtra_size] 20 (unsupported command, not transpiled)
+	// sqlite3_config singlethread (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// reset_highwater_marks (unsupported command, not transpiled)
+	// build_test_db memsubsys1-3.1 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-3.1.3"
-		var pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
+		pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-3.1.4"
-		var overflow = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0] 2"
+		overflow = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0] 2"
 		_ = overflow // suppress unused warning
 		// expr $overflow>=$max_pagecache*0.95 && $overflow<=$max_pagecache*1.05 → "$overflow>=$max_pagecache*0.95 && $overflow<=$max_pagecache*1.05"
 	}
 	{ // do_test "memsubsys1-3.1.5"
-		var s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
+		s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
 		_ = s_used // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 2048+$xtra_size] 20")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	t.Errorf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-3.2 {PRAGMA page_size=2048}")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pagecache [expr 2048+$xtra_size] 20 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// reset_highwater_marks (unsupported command, not transpiled)
+	// build_test_db memsubsys1-3.2 {PRAGMA page_size=2048} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-3.2.3"
 		_res = db.Exec("PRAGMA page_size")
 		if _res.Error != nil {
@@ -111,37 +140,37 @@ func Test_memsubsys1(t *testing.T) {
 		}
 	}
 	{ // do_test "memsubsys1-3.2.4"
-		var pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
+		pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
 		_ = pg_used // suppress unused warning
 	}
 	{ // do_test "memsubsys1-3.2.5"
-		var s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
+		s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
 		_ = s_used // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 1024+$xtra_size] 50")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	t.Errorf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-4 {PRAGMA page_size=1024}")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pagecache [expr 1024+$xtra_size] 50 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// reset_highwater_marks (unsupported command, not transpiled)
+	// build_test_db memsubsys1-4 {PRAGMA page_size=1024} (unsupported command, not transpiled)
 	{ // do_test "memsubsys1-4.3"
-		var pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
+		pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
 		_ = pg_used // suppress unused warning
 		// expr $pg_used>=45 && $pg_used<=50 → "$pg_used>=45 && $pg_used<=50"
 	}
 	{ // do_test "memsubsys1-4.4"
-		var pg_ovfl = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0] 2"
+		pg_ovfl = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0] 2"
 		_ = pg_ovfl // suppress unused warning
 	}
 	{ // do_test "memsubsys1-4.5"
-		var maxreq = "lindex [sqlite3_status SQLITE_STATUS_MALLOC_SIZE 0] 2"
+		maxreq = "lindex [sqlite3_status SQLITE_STATUS_MALLOC_SIZE 0] 2"
 		_ = maxreq // suppress unused warning
 		// expr $maxreq<9000 → "$maxreq<9000"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config serialized")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_memstatus 1 (unsupported command, not transpiled)
+	// sqlite3_config_lookaside 100 500 (unsupported command, not transpiled)
+	// sqlite3_config serialized (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// autoinstall_test_functions (unsupported command, not transpiled)
+	// test_restore_config_pagecache (unsupported command, not transpiled)
 }

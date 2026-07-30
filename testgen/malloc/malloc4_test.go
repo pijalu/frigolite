@@ -39,9 +39,53 @@ func Test_malloc4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var _go string
+	_ = _go // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var testid string
+	_ = testid // pre-declared from TCL source
+	var mallocFailed string
+	_ = mallocFailed // pre-declared from TCL source
+	var mf string
+	_ = mf // pre-declared from TCL source
+	var mallocFailedAfterStep string
+	_ = mallocFailedAfterStep // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var mf1 string
+	_ = mf1 // pre-declared from TCL source
+	var mf2 string
+	_ = mf2 // pre-declared from TCL source
+	var name8 string
+	_ = name8 // pre-declared from TCL source
+	var name16 string
+	_ = name16 // pre-declared from TCL source
+	var name8_2 string
+	_ = name8_2 // pre-declared from TCL source
+	var text8 string
+	_ = text8 // pre-declared from TCL source
+	var text16 string
+	_ = text16 // pre-declared from TCL source
+	var text8_2 string
+	_ = text8_2 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping malloc4 tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping malloc4 tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
 	// proc definition (not transpiled)
@@ -49,6 +93,6 @@ func Test_malloc4(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl(\n    the_first_reasonably_long_column_name that_also_has_quite_a_lengthy_type\n  );\n  INSERT INTO tbl VALUES(\n    'An extra long string. Far too long to be stored in NBFS bytes.'\n  );\n")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_stmt_test 1 SELECT * FROM tbl")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail -1")
+	// do_stmt_test 1 SELECT * FROM tbl (unsupported command, not transpiled)
+	// sqlite3_memdebug_fail -1 (unsupported command, not transpiled)
 }

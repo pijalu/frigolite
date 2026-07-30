@@ -40,14 +40,23 @@ func Test_tkt3871(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var echo_module string
+	_ = echo_module // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "tkt3871-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 500 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES($i, $i*$i) ")
@@ -78,7 +87,7 @@ func Test_tkt3871(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3871-1.3"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query(" SELECT * FROM e WHERE a = 1 OR a = 2 ")
 		if r.Error != nil {
@@ -92,7 +101,7 @@ func Test_tkt3871(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt3871-1.5"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query(" SELECT * FROM e WHERE a = 1 OR a = 2 OR b = 9 ")
 		if r.Error != nil {

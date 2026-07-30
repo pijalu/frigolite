@@ -39,6 +39,11 @@ func Test_null(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "null-1.0"
 		r = db.Query("\n    begin;\n    create table t1(a,b,c);\n    insert into t1 values(1,0,0);\n    insert into t1 values(2,0,1);\n    insert into t1 values(3,1,0);\n    insert into t1 values(4,1,1);\n    insert into t1 values(5,null,0);\n    insert into t1 values(6,null,1);\n    insert into t1 values(7,null,null);\n    commit;\n    select * from t1;\n  ")

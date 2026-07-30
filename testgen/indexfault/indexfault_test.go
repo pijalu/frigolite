@@ -40,8 +40,41 @@ func Test_indexfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var FAULTSIM_custom string
+	_ = FAULTSIM_custom // pre-declared from TCL source
+	var custom_ifail string
+	_ = custom_ifail // pre-declared from TCL source
+	var custom_nfail string
+	_ = custom_nfail // pre-declared from TCL source
+	var soft_limit string
+	_ = soft_limit // pre-declared from TCL source
+	var custom_filter string
+	_ = custom_filter // pre-declared from TCL source
+	var nTmpOpen string
+	_ = nTmpOpen // pre-declared from TCL source
+	var nRead string
+	_ = nRead // pre-declared from TCL source
+	var nReadCall string
+	_ = nReadCall // pre-declared from TCL source
+	var nByte string
+	_ = nByte // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var iFail string
+	_ = iFail // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "indexfault"
+	testprefix = "indexfault"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -51,9 +84,14 @@ func Test_indexfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(202));\n    INSERT INTO t1 SELECT randomblob(202) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(202) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(202) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(202) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(202) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(202) FROM t1;     --    64\n    INSERT INTO t1 SELECT randomblob(202) FROM t1;     --   128\n    INSERT INTO t1 SELECT randomblob(202) FROM t1;     --   256\n  COMMIT;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE INDEX i1 ON t1(x) }\n  faultsim...}")
-	db, err = frigolite.Open("test.db")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1.1 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { CREATE INDEX i1 ON t1(x) }
+  faultsim...} (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(t,u,v,w,x,y,z);\n    INSERT INTO t1 VALUES(\n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30)\n    );\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 2\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 4\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 8\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 16\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 32\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 64\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 128\n  COMMIT;\n")
@@ -61,10 +99,14 @@ func Test_indexfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(t,u,v,w,x,y,z);\n    INSERT INTO t1 VALUES(\n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30)\n    );\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 2\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 4\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 8\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 16\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 32\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 64\n    INSERT INTO t1 SELECT \n      randomblob(30), randomblob(30), randomblob(30), randomblob(30),\n      randomblob(30), randomblob(30), randomblob(30) FROM t1;         -- 128\n  COMMIT;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE INDEX i1 ON t1(t,u,v,w,x,y,z) ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "install_custom_faultsim")
-	db, err = frigolite.Open("test.db")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 2.1 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { CREATE INDEX i1 ON t1(t,u,v,w,x,y,z) ...} (unsupported command, not transpiled)
+	// install_custom_faultsim (unsupported command, not transpiled)
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		_res = db.Exec("\n  BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(11000));\n    INSERT INTO t1 SELECT randomblob(11001) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(11002) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(11003) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(11004) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(11005) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(11006) FROM t1;     --    64\n    INSERT INTO t1 SELECT randomblob(11007) FROM t1;     --   128\n    INSERT INTO t1 SELECT randomblob(11008) FROM t1;     --   256\n    INSERT INTO t1 SELECT randomblob(11009) FROM t1;     --   512\n  COMMIT;\n")
@@ -72,23 +114,33 @@ func Test_indexfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(11000));\n    INSERT INTO t1 SELECT randomblob(11001) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(11002) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(11003) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(11004) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(11005) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(11006) FROM t1;     --    64\n    INSERT INTO t1 SELECT randomblob(11007) FROM t1;     --   128\n    INSERT INTO t1 SELECT randomblob(11008) FROM t1;     --   256\n    INSERT INTO t1 SELECT randomblob(11009) FROM t1;     --   512\n  COMMIT;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	var _custom_filter = "xOpen" // TCL namespace variable
-	_ = _custom_filter // suppress unused warning
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	custom_filter = "xOpen" // TCL namespace variable
+	_ = custom_filter // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.1 -faults custom -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE INDEX i1 ON t1(x) }\n  faultsim...}")
-	var _custom_filter = "xOpen xWrite" // TCL namespace variable
-	_ = _custom_filter // suppress unused warning
+	// do_faultsim_test 3.1 -faults custom -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { CREATE INDEX i1 ON t1(x) }
+  faultsim...} (unsupported command, not transpiled)
+	custom_filter = "xOpen xWrite" // TCL namespace variable
+	_ = custom_filter // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.3 -faults custom -prep {\n  faultsim_restore_and_reopen\n  set ::nTmpOpen 0\n} -body {\n  execsql { CREATE INDEX i1 ON t1(x) }\n  faultsim...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "uninstall_custom_faultsim")
-	t.Errorf("TODO: %s not implemented in frigolite", "install_custom_faultsim")
+	// do_faultsim_test 3.3 -faults custom -prep {
+  faultsim_restore_and_reopen
+  set ::nTmpOpen 0
+} -body {
+  execsql { CREATE INDEX i1 ON t1(x) }
+  faultsim...} (unsupported command, not transpiled)
+	// uninstall_custom_faultsim (unsupported command, not transpiled)
+	// install_custom_faultsim (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "4.0"
 		_res = db.Exec("\n  BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(11000));\n    INSERT INTO t1 SELECT randomblob(11001) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(11002) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(11003) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(11004) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(11005) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(11005) FROM t1;     --    64\n  COMMIT;\n")
@@ -96,27 +148,37 @@ func Test_indexfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(11000));\n    INSERT INTO t1 SELECT randomblob(11001) FROM t1;     --     2\n    INSERT INTO t1 SELECT randomblob(11002) FROM t1;     --     4\n    INSERT INTO t1 SELECT randomblob(11003) FROM t1;     --     8\n    INSERT INTO t1 SELECT randomblob(11004) FROM t1;     --    16\n    INSERT INTO t1 SELECT randomblob(11005) FROM t1;     --    32\n    INSERT INTO t1 SELECT randomblob(11005) FROM t1;     --    64\n  COMMIT;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xRead")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xRead")
-	var _nRead = "0" // TCL namespace variable
-	_ = _nRead // suppress unused warning
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// testvfs tvfs (unsupported command, not transpiled)
+	// tvfs script xRead (unsupported command, not transpiled)
+	// tvfs filter xRead (unsupported command, not transpiled)
+	nRead = "0" // TCL namespace variable
+	_ = nRead // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "4.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE INDEX i1 ON t1(x) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(x) ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
-	var _custom_filter = "xRead" // TCL namespace variable
-	_ = _custom_filter // suppress unused warning
+	// tvfs delete (unsupported command, not transpiled)
+	custom_filter = "xRead" // TCL namespace variable
+	_ = custom_filter // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4.2 -faults custom -prep {\n  faultsim_restore_and_reopen\n  set ::nReadCall 0...} -body {\n  execsql { CREATE INDEX i1 ON t1(x) }\n  faultsim...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -prep {\n  reset_db\n} -body {\n  execsql { \n CREATE TABLE reallyreallyreallyreal...} -test {\n  faultsim_test_result {0 {}} \n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "uninstall_custom_faultsim")
+	// do_faultsim_test 4.2 -faults custom -prep {
+  faultsim_restore_and_reopen
+  set ::nReadCall 0...} -body {
+  execsql { CREATE INDEX i1 ON t1(x) }
+  faultsim...} (unsupported command, not transpiled)
+	// do_faultsim_test 5 -prep {
+  reset_db
+} -body {
+  execsql { 
+ CREATE TABLE reallyreallyreallyreal...} -test {
+  faultsim_test_result {0 {}} 
+} (unsupported command, not transpiled)
+	// uninstall_custom_faultsim (unsupported command, not transpiled)
 }

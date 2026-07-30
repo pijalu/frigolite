@@ -39,6 +39,15 @@ func Test_subselect(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "subselect-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a int, b int);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);\n  ")
@@ -51,7 +60,6 @@ func Test_subselect(t *testing.T) {
 		}
 	}
 	{ // do_test "subselect-1.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block

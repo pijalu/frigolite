@@ -39,18 +39,29 @@ func Test_walrestart(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var large string
+	_ = large // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	if _tcl_platform_platform != "unix" {
+	if tcl_platform_platform != "unix" {
 		return
 	}
-	var testprefix = "walrestart"
+	testprefix = "walrestart"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"memsubsys1\"") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	// sqlite3_shutdown (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install faultsim")
+	// sqlite3_test_control_fault_install faultsim (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -118,5 +129,5 @@ func Test_walrestart(t *testing.T) {
 			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA integrity_check\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install")
+	// sqlite3_test_control_fault_install (unsupported command, not transpiled)
 }

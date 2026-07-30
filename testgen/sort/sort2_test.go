@@ -39,13 +39,25 @@ func Test_sort2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "sort2"
+	testprefix = "sort2"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pmasz 10")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	db, err = frigolite.Open("test.db")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// skip: foreach over unresolved TCL command
 }

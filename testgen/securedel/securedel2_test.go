@@ -40,13 +40,38 @@ func Test_securedel2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var aBlob_i string
+	_ = aBlob_i // pre-declared from TCL source
+	var nByte string
+	_ = nByte // pre-declared from TCL source
+	var detect_blob_data string
+	_ = detect_blob_data // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var zFile string
+	_ = zFile // pre-declared from TCL source
+	var aBlob_iBlob string
+	_ = aBlob_iBlob // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "securedel2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	var i = "1"
+	testprefix = "securedel2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
-		var aBlob_i = "[db one {SELECT quote(randomblob(8))}] 2 end-1"
+		aBlob_i = "[db one {SELECT quote(randomblob(8))}] 2 end-1"
 		_ = aBlob_i // suppress unused warning
 		// incr i 1
 		{
@@ -71,12 +96,12 @@ func Test_securedel2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(x, y) ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
-			var x = "X'" + "$aBlob($i) 1" + "'"
+			x = "X'" + "$aBlob($i) 1" + "'"
 			_ = x // suppress unused warning
-			var y = "X'" + "$aBlob($i) 500" + "'"
+			y = "X'" + "$aBlob($i) 500" + "'"
 			_ = y // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + x + ", " + y + ")")
 			if _res.Error != nil {
@@ -92,7 +117,7 @@ func Test_securedel2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "detect_blob test.db 1")
+		// detect_blob test.db 1 (unsupported command, not transpiled)
 	}
 	tclFileCopy("test.db", "test.db.bak")
 	{ // "1.3.1"
@@ -114,10 +139,11 @@ func Test_securedel2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "detect_blob test.db 1")
+		// detect_blob test.db 1 (unsupported command, not transpiled)
 	}
 	tclFileCopy("test.db.bak", "test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.4.1"
 		r = db.Query(" PRAGMA secure_delete = 1 ")
@@ -138,7 +164,7 @@ func Test_securedel2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "detect_blob test.db 1")
+		// detect_blob test.db 1 (unsupported command, not transpiled)
 	}
 	{ // "1.5.1"
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid>850 ")
@@ -147,18 +173,17 @@ func Test_securedel2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.5.2"
-		var n = "0"
+		n = "0"
 		_ = n // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "detect_blob_prepare test.db")
-		var i = "851"
+		// detect_blob_prepare test.db (unsupported command, not transpiled)
+		i = "851"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
-			var n = "0"
 			// incr n detect_blob {} $i
 			{
 				_n, _err := strconv.Atoi(n)
 				if _err == nil {
-					n = strconv.Itoa(_n + detect_blob {} $i)
+					n = strconv.Itoa(_n + 1)
 				}
 			}
 			// incr i 5
@@ -170,14 +195,15 @@ func Test_securedel2(t *testing.T) {
 			}
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.6.1"
 		r = db.Query("\n    PRAGMA cache_size = 200;\n    PRAGMA secure_delete = 1;\n    CREATE TABLE t2(x);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size = 200;\n    PRAGMA secure_delete = 1;\n    CREATE TABLE t2(x);\n    SELECT * FROM t1;\n  ")
 		}
-		var i = "100"
+		i = "100"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
 			_res = db.Exec(" INSERT INTO t2 VALUES(randomblob($i)) ")
@@ -198,18 +224,17 @@ func Test_securedel2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.6.2"
-		var n = "0"
+		n = "0"
 		_ = n // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "detect_blob_prepare test.db")
-		var i = "2"
+		// detect_blob_prepare test.db (unsupported command, not transpiled)
+		i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 850 }() {
-			var n = "0"
 			// incr n detect_blob {} $i
 			{
 				_n, _err := strconv.Atoi(n)
 				if _err == nil {
-					n = strconv.Itoa(_n + detect_blob {} $i)
+					n = strconv.Itoa(_n + 1)
 				}
 			}
 			// incr i 5

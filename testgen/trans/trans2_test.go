@@ -40,18 +40,71 @@ func Test_trans2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var outlist string
+	_ = outlist // pre-declared from TCL source
+	var u string
+	_ = u // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var rec string
+	_ = rec // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var max_rowid string
+	_ = max_rowid // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var u1 string
+	_ = u1 // pre-declared from TCL source
+	var z string
+	_ = z // pre-declared from TCL source
+	var u2 string
+	_ = u2 // pre-declared from TCL source
+	var todel string
+	_ = todel // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var max1 string
+	_ = max1 // pre-declared from TCL source
+	var origres string
+	_ = origres // pre-declared from TCL source
+	var newdata string
+	_ = newdata // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var modsql string
+	_ = modsql // pre-declared from TCL source
+	var inssql string
+	_ = inssql // pre-declared from TCL source
+	var newres string
+	_ = newres // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var inlist string
+	_ = inlist // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// expr srand(1) → "srand(1)"
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var data = ""
+	data = ""
 	_ = data // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 400 }() {
-		var rec = "list $i [random_uuid] [expr {int(rand()*5000)+1000}] [random_uuid]"
+		rec = "list $i [random_uuid] [expr {int(rand()*5000)+1000}] [random_uuid]"
 		_ = rec // suppress unused warning
 		data = tclListAppend(data, rec)
 		// incr i 1
@@ -62,7 +115,7 @@ func Test_trans2(t *testing.T) {
 			}
 		}
 	}
-	var max_rowid = "$i-1"
+	max_rowid = "$i-1"
 	_ = max_rowid // suppress unused warning
 	{ // do_test "trans2-1.1"
 		_res = db.Exec("\n    PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );\n  ")
@@ -85,11 +138,11 @@ func Test_trans2(t *testing.T) {
 	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
-		var todel = ""
+		todel = ""
 		_ = todel // suppress unused warning
-		var n = "[llength $data]/10"
+		n = "[llength $data]/10"
 		_ = n // suppress unused warning
-		var data = "scramble $data"
+		data = "scramble $data"
 		_ = data // suppress unused warning
 		for _, rec := range tclSplitList("lrange $data 0 $n") {
 		_ = rec // suppress unused warning
@@ -97,18 +150,18 @@ func Test_trans2(t *testing.T) {
 		}
 		data = "lrange $data [expr {$n+1}] end"
 		_ = data // suppress unused warning
-		var max1 = "lindex [lindex $data 0] 0"
+		max1 = "lindex [lindex $data 0] 0"
 		_ = max1 // suppress unused warning
 		for _, rec := range tclSplitList(data) {
 		_ = rec // suppress unused warning
-			var id = "lindex $rec 0"
+			id = "lindex $rec 0"
 			_ = id // suppress unused warning
 			if func() bool { id_n, _id_e := strconv.Atoi(id); if _id_e != nil { return false }; max1_n, _max1_e := strconv.Atoi(max1); if _max1_e != nil { return false }; return id_n > max1_n }() {
-				var max1 = id
+				max1 = id
 				_ = max1 // suppress unused warning
 			}
 		}
-		var origres = "list [hash1] [hash2]"
+		origres = "list [hash1] [hash2]"
 		_ = origres // suppress unused warning
 		{ // do_test "trans2-" + i + ".1"
 			_res = db.Exec("DELETE FROM t1 WHERE id IN (" + "join $todel ," + ")")
@@ -122,22 +175,22 @@ func Test_trans2(t *testing.T) {
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-		var newdata = ""
+		newdata = ""
 		_ = newdata // suppress unused warning
 		for _, id := range tclSplitList(todel) {
 		_ = id // suppress unused warning
-			var rec = "list $id [random_uuid] \\\n                      [expr {int(rand()*5000)+1000}] [random_uuid]"
+			rec = "list $id [random_uuid] \\\n                      [expr {int(rand()*5000)+1000}] [random_uuid]"
 			_ = rec // suppress unused warning
 			newdata = tclListAppend(newdata, rec)
 			data = tclListAppend(data, rec)
 		}
-		var j = "1"
+		j = "1"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n < 50 }() {
-			var id = "$max_rowid+$j"
+			id = "$max_rowid+$j"
 			_ = id // suppress unused warning
 			todel = tclListAppend(todel, id)
-			var rec = "list $id [random_uuid] \\\n                      [expr {int(rand()*5000)+1000}] [random_uuid]"
+			rec = "list $id [random_uuid] \\\n                      [expr {int(rand()*5000)+1000}] [random_uuid]"
 			_ = rec // suppress unused warning
 			newdata = tclListAppend(newdata, rec)
 			data = tclListAppend(data, rec)
@@ -149,13 +202,13 @@ func Test_trans2(t *testing.T) {
 				}
 			}
 		}
-		var max_rowid = "$max_rowid+$j-1"
+		max_rowid = "$max_rowid+$j-1"
 		_ = max_rowid // suppress unused warning
-		var modsql = ""
+		modsql = ""
 		_ = modsql // suppress unused warning
-		var inssql = ""
+		inssql = ""
 		_ = inssql // suppress unused warning
-		var newres = "list [hash1] [hash2]"
+		newres = "list [hash1] [hash2]"
 		_ = newres // suppress unused warning
 		{ // do_test "trans2-" + i + ".3"
 			_res = db.Exec("BEGIN")
@@ -165,7 +218,7 @@ func Test_trans2(t *testing.T) {
 			for _, rec := range tclSplitList("scramble $newdata") {
 			_ = rec // suppress unused warning
 				// foreach id,u1,z,u2 rec (no body)
-				var s = "INSERT INTO t1 VALUES(" + id + ",'" + u1 + "',zeroblob(" + z + "),'" + u2 + "');"
+				s = "INSERT INTO t1 VALUES(" + id + ",'" + u1 + "',zeroblob(" + z + "),'" + u2 + "');"
 				_ = s // suppress unused warning
 				modsql += s + "\\n"
 				inssql += s + "\\n"
@@ -192,7 +245,7 @@ func Test_trans2(t *testing.T) {
 			}
 		}
 		{ // do_test "trans2-" + i + ".20"
-			var s = "DELETE FROM t1 WHERE id IN (" + "join $todel ," + ");"
+			s = "DELETE FROM t1 WHERE id IN (" + "join $todel ," + ");"
 			_ = s // suppress unused warning
 			modsql += s + "\\n"
 			_res = db.Exec(s)

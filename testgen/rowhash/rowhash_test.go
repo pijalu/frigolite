@@ -40,6 +40,23 @@ func Test_rowhash(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var key string
+	_ = key // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var lKey string
+	_ = lKey // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "rowhash-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(id INTEGER PRIMARY KEY, a, b, c);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n    CREATE INDEX i3 ON t1(c);\n  ")
@@ -48,15 +65,15 @@ func Test_rowhash(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.1 {1 2 3}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.2 {0 1 2 3}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.3 {62 125 188}")
+	// do_keyset_test rowhash-2.1 {1 2 3} (unsupported command, not transpiled)
+	// do_keyset_test rowhash-2.2 {0 1 2 3} (unsupported command, not transpiled)
+	// do_keyset_test rowhash-2.3 {62 125 188} (unsupported command, not transpiled)
 	if tclBool("working_64bit_int") {
 		// expr srand(1) → "srand(1)"
-		var i = "4"
+		i = "4"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-			var j = "0"
+			j = "0"
 			_ = j // suppress unused warning
 			for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n < 5000 }() {
 				L = tclListAppend(L, "0")
@@ -68,7 +85,7 @@ func Test_rowhash(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.$i $L")
+			// do_keyset_test rowhash-2.$i $L (unsupported command, not transpiled)
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

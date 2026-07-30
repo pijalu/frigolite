@@ -39,11 +39,24 @@ func Test_alterauth(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var auth string
+	_ = auth // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _type string
+	_ = _type // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "alterauth"
+	testprefix = "alterauth"
 	_ = testprefix // suppress unused warning
-	var _auth = "list" // TCL namespace variable
-	_ = _auth // suppress unused warning
+	auth = "list" // TCL namespace variable
+	_ = auth // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec(" CREATE TABLE t1(a, b, c); ")
@@ -52,31 +65,31 @@ func Test_alterauth(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		var _auth = "list" // TCL namespace variable
-		_ = _auth // suppress unused warning
+		auth = "list" // TCL namespace variable
+		_ = auth // suppress unused warning
 		_res = db.Exec(" ALTER TABLE t1 RENAME TO t2 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t1 RENAME TO t2 ")
 		}
-		_ = _auth // TCL namespace variable (query)
+		_ = auth // TCL namespace variable (query)
 	}
 	{ // do_test "1.2"
-		var _auth = "list" // TCL namespace variable
-		_ = _auth // suppress unused warning
+		auth = "list" // TCL namespace variable
+		_ = auth // suppress unused warning
 		_res = db.Exec(" ALTER TABLE t2 RENAME c TO ccc ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t2 RENAME c TO ccc ")
 		}
-		_ = _auth // TCL namespace variable (query)
+		_ = auth // TCL namespace variable (query)
 	}
 	{ // do_test "1.3"
-		var _auth = "list" // TCL namespace variable
-		_ = _auth // suppress unused warning
+		auth = "list" // TCL namespace variable
+		_ = auth // suppress unused warning
 		_res = db.Exec(" ALTER TABLE t2 ADD COLUMN d ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ALTER TABLE t2 ADD COLUMN d ")
 		}
-		_ = _auth // TCL namespace variable (query)
+		_ = auth // TCL namespace variable (query)
 	}
 	// proc definition (not transpiled)
 	{ // do_test "2.1"

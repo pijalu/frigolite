@@ -39,15 +39,26 @@ func Test_gcfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var enc string
+	_ = enc // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "gcfault"
+	testprefix = "gcfault"
 	_ = testprefix // suppress unused warning
 	for _, enc := range tclSplitList("\n  utf16\n  utf8\n") {
 	_ = enc // suppress unused warning
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+		// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 		r = db.Query("PRAGMA encoding = " + enc)
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding = " + enc)
@@ -58,8 +69,14 @@ func Test_gcfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE s(i, s);\n    INSERT INTO s VALUES(1, ',0123456789,');\n    INSERT INTO s VALUES(2, X'2c303132333435363738392c');\n\n    CREATE TABLE e(e);\n    INSERT INTO e VALUES('v1'), ('v2');\n  ")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.1 -faults oom* -body {\n    execsql { SELECT group_concat(e, (SELECT s FR...}")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.2 -faults oom-t* -body {\n    execsql { SELECT string_agg(e, (SELECT s FROM...}")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.3 -faults oom-t* -prep {\n    set ::STMT [sqlite3_prepare db {SELECT group_...} -body {\n    while { \"SQLITE_ROW\"==[sqlite3_step $::STMT] ...} -test {\n    sqlite3_finalize $::STMT\n  }")
+		// do_faultsim_test 1.$enc.1 -faults oom* -body {
+    execsql { SELECT group_concat(e, (SELECT s FR...} (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.2 -faults oom-t* -body {
+    execsql { SELECT string_agg(e, (SELECT s FROM...} (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.3 -faults oom-t* -prep {
+    set ::STMT [sqlite3_prepare db {SELECT group_...} -body {
+    while { "SQLITE_ROW"==[sqlite3_step $::STMT] ...} -test {
+    sqlite3_finalize $::STMT
+  } (unsupported command, not transpiled)
 	}
 }

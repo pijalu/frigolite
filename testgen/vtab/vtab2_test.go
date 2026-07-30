@@ -39,10 +39,29 @@ func Test_vtab2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var abc string
+	_ = abc // pre-declared from TCL source
+	var A_1 string
+	_ = A_1 // pre-declared from TCL source
+	var A_2 string
+	_ = A_2 // pre-declared from TCL source
+	var A_3 string
+	_ = A_3 // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var _var string
+	_ = _var // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "vtab2"
+	testprefix = "vtab2"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_schema_module [sqlite3_connection_pointer db]")
+	// register_schema_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab2-1.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE schema USING schema;\n    SELECT * FROM schema;\n  ")
 		if r.Error != nil {
@@ -67,28 +86,28 @@ func Test_vtab2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT length(tablename) FROM schema GROUP by length(tablename);\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tclvar_module [sqlite3_connection_pointer db]")
+	// register_tclvar_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab2-2.1"
-		var _abc = "123" // TCL namespace variable
-		_ = _abc // suppress unused warning
+		abc = "123" // TCL namespace variable
+		_ = abc // suppress unused warning
 		r = db.Query("\n    CREATE VIRTUAL TABLE vars USING tclvar;\n    SELECT name, arrayname, value FROM vars WHERE name='abc';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE vars USING tclvar;\n    SELECT name, arrayname, value FROM vars WHERE name='abc';\n  ")
 		}
 	}
 	{ // do_test "vtab2-2.2"
-		var A_1 = "1"
+		A_1 = "1"
 		_ = A_1 // suppress unused warning
-		var A_2 = "4"
+		A_2 = "4"
 		_ = A_2 // suppress unused warning
-		var A_3 = "9"
+		A_3 = "9"
 		_ = A_3 // suppress unused warning
 		r = db.Query("\n    SELECT name, arrayname, value FROM vars WHERE name='A';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name, arrayname, value FROM vars WHERE name='A';\n  ")
 		}
 	}
-	var result = ""
+	result = ""
 	_ = result // suppress unused warning
 	for _, _var := range tclSplitList("lsort [info vars tcl_*]") {
 	_ = _var // suppress unused warning

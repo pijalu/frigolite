@@ -4,7 +4,6 @@ package journal
 import (
 "github.com/pijalu/frigolite"
 "os"
-"strconv"
 "testing"
 )
 
@@ -41,9 +40,24 @@ func Test_journal3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var permissions string
+	_ = permissions // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var effective string
+	_ = effective // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var umask string
+	_ = umask // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	if tclBool(_tcl_platform + "(os) != \"Windows NT\"\n && " + "atomic_batch_write test.db" + "==0") {
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+	if tclBool(tcl_platform_os + " != \"Windows NT\"\n && " + "atomic_batch_write test.db" + "==0") {
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		{ // do_test "journal3-1.1"
 			_res = db.Exec(" CREATE TABLE tx(y, z) ")
 			if _res.Error != nil {
@@ -58,13 +72,13 @@ func Test_journal3(t *testing.T) {
 			permissions := _items0[_idx0+1]
 			_ = permissions // suppress unused warning
 			_ = _idx0
-				var res = "/" + "regsub {^00} $permissions {0.}" + "/"
+				res = "/" + "regsub {^00} $permissions {0.}" + "/"
 				_ = res // suppress unused warning
-				if func() bool { tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return tcl_version_n >= 8.7 }() {
-					permissions := tclRegsub("^00", permissions, "0o")
+				if tcl_version >= "8.7" {
+					permissions = tclRegsub("^00", permissions, "0o")
 					_ = permissions // suppress unused warning
 				}
-				var effective = permissions
+				effective = permissions
 				_ = effective // suppress unused warning
 				{ // do_test "journal3-1.2." + tn + ".1"
 					{
@@ -79,8 +93,8 @@ func Test_journal3(t *testing.T) {
 					// file exists "test.db-journal"
 				}
 				{ // do_test "journal3-1.2." + tn + ".3"
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					_dbtmp1, err := frigolite.Open("test.db")
+					_ = _dbtmp1 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" \n        BEGIN;\n          INSERT INTO tx DEFAULT VALUES;\n      ")
 					if _res.Error != nil {

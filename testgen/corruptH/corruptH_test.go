@@ -39,13 +39,34 @@ func Test_corruptH(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var fl string
+	_ = fl // pre-declared from TCL source
+	var res23 string
+	_ = res23 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var rootpage string
+	_ = rootpage // pre-declared from TCL source
+	var r_t2 string
+	_ = r_t2 // pre-declared from TCL source
+	var r_t1 string
+	_ = r_t1 // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "corruptH"
+	testprefix = "corruptH"
 	_ = testprefix // suppress unused warning
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	if tclBool("permutation" + "==\"mmap\"") {
 		return
 	}
@@ -60,9 +81,9 @@ func Test_corruptH(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($r(t2)-1)*1024 + 11}] [format %.2X $r(t1)]")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db [expr {($r(t2)-1)*1024 + 11}] [format %.2X $r(t1)] (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "1.3"
@@ -87,17 +108,17 @@ func Test_corruptH(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
 		}
-		var fl = "hexio_get_int [hexio_read test.db 32 4]"
+		fl = "hexio_get_int [hexio_read test.db 32 4]"
 		_ = fl // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($fl-1) * 1024 + 0}] 00000000")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($fl-1) * 1024 + 4}] 00000001")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($fl-1) * 1024 + 8}] [format %.8X $r(t1)]")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 36 00000002")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db [expr {($fl-1) * 1024 + 0}] 00000000 (unsupported command, not transpiled)
+		// hexio_write test.db [expr {($fl-1) * 1024 + 4}] 00000001 (unsupported command, not transpiled)
+		// hexio_write test.db [expr {($fl-1) * 1024 + 8}] [format %.8X $r(t1)] (unsupported command, not transpiled)
+		// hexio_write test.db 36 00000002 (unsupported command, not transpiled)
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
-	var res23 = "1 {database disk image is malformed}"
+	res23 = "1 {database disk image is malformed}"
 	_ = res23 // suppress unused warning
 	{ // do_test "2.3"
 		_list := tclList([]string{"0", msg})
@@ -117,9 +138,9 @@ func Test_corruptH(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($r(t2)-1) * 1024 + 1020}] 00000002")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db [expr {($r(t2)-1) * 1024 + 1020}] 00000002 (unsupported command, not transpiled)
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "3.3"

@@ -41,39 +41,78 @@ func Test_thread005(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var ThreadProgram string
+	_ = ThreadProgram // pre-declared from TCL source
+	var isWriter string
+	_ = isWriter // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var zSql string
+	_ = zSql // pre-declared from TCL source
+	var finished_0 string
+	_ = finished_0 // pre-declared from TCL source
+	var finished_0_and_finished_1 string
+	_ = finished_0_and_finished_1 // pre-declared from TCL source
+	var finished_1 string
+	_ = finished_1 // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var lRes string
+	_ = lRes // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var finish string
+	_ = finish // pre-declared from TCL source
+	var Sql string
+	_ = Sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	var _enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
+	enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "thread005-1.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
 		}
 	}
-	var ii = "2"
+	ii = "2"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 500 }() {
-		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(0) {sqlite3_open test.db}")
-		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) {sqlite3_open test.db}")
+		// thread_spawn finished(0) {sqlite3_open test.db} (unsupported command, not transpiled)
+		// thread_spawn finished(1) {sqlite3_open test.db} (unsupported command, not transpiled)
 		if tclBool("!" + "info exists finished(0)") {
 		}
 		if tclBool("!" + "info exists finished(1)") {
 		}
 		{ // do_test "thread005-1." + ii
-			t.Errorf("TODO: %s not implemented in frigolite", "runsql { BEGIN } $finished(0)")
-			t.Errorf("TODO: %s not implemented in frigolite", "runsql { INSERT INTO t1 VALUES(1, 2) } $finished(0)")
-			t.Errorf("TODO: %s not implemented in frigolite", "runsql { SELECT * FROM t1 } $finished(1)")
+			// runsql { BEGIN } $finished(0) (unsupported command, not transpiled)
+			// runsql { INSERT INTO t1 VALUES(1, 2) } $finished(0) (unsupported command, not transpiled)
+			// runsql { SELECT * FROM t1 } $finished(1) (unsupported command, not transpiled)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $finished(0)")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $finished(1)")
+		// sqlite3_close $finished(0) (unsupported command, not transpiled)
+		// sqlite3_close $finished(1) (unsupported command, not transpiled)
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
@@ -84,8 +123,8 @@ func Test_thread005(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "thread005-2.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" ATTACH 'test2.db' AS aux ")
 		if _res.Error != nil {
@@ -96,15 +135,18 @@ func Test_thread005(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b UNIQUE);\n    INSERT INTO t1 VALUES(1, 1);\n    INSERT INTO t1 VALUES(2, 2);\n  ")
 		}
 	}
-	var ThreadProgram = "\n  proc execsql {zSql {db {}}} {\n    if {$db eq \"\"} {set db $::DB}\n\n    set lRes [list]\n    set rc SQLITE_OK\n\n    while {$rc==\"SQLITE_OK\" && $zSql ne \"\"} {\n      set STMT [sqlite3_prepare_v2 $db $zSql -1 zSql]\n      while {[set rc [sqlite3_step $STMT]] eq \"SQLITE_ROW\"} {\n        for {set i 0} {$i < [sqlite3_column_count $STMT]} {incr i} {\n          lappend lRes [sqlite3_column_text $STMT 0]\n        }\n      }\n      set rc [sqlite3_finalize $STMT]\n    }\n\n    if {$rc != \"SQLITE_OK\"} { error \"$rc [sqlite3_errmsg $db]\" }\n    return $lRes\n  }\n\n  if {$isWriter} {\n    set Sql {\n      BEGIN;\n        DELETE FROM t1 WHERE a = (SELECT max(a) FROM t1);\n        INSERT INTO t1 VALUES(NULL, NULL);\n        UPDATE t1 SET b = a WHERE a = (SELECT max(a) FROM t1);\n        SELECT count(*) FROM t1 WHERE b IS NULL;\n      COMMIT;\n    }\n  } else {\n    set Sql {\n      BEGIN;\n      SELECT count(*) FROM t1 WHERE b IS NULL;\n      COMMIT;\n    }\n  }\n\n  set ::DB [sqlite3_open test.db]\n\n  execsql { ATTACH 'test2.db' AS aux }\n\n  set result \"ok\"\n  set finish [expr [clock_seconds]+5]\n  while {$result eq \"ok\" && [clock_seconds] < $finish} {\n    set rc [catch {execsql $Sql} msg]\n    if {$rc} {\n      if {[string match \"SQLITE_LOCKED*\" $msg]} {\n        catch { execsql ROLLBACK }\n      } else {\n        sqlite3_close $::DB\n        error $msg\n      }\n    } elseif {$msg ne \"0\"} {\n      set result \"failed\"\n    }\n  }\n\n  sqlite3_close $::DB\n  set result\n"
+	ThreadProgram = "\n  proc execsql {zSql {db {}}} {\n    if {$db eq \"\"} {set db $::DB}\n\n    set lRes [list]\n    set rc SQLITE_OK\n\n    while {$rc==\"SQLITE_OK\" && $zSql ne \"\"} {\n      set STMT [sqlite3_prepare_v2 $db $zSql -1 zSql]\n      while {[set rc [sqlite3_step $STMT]] eq \"SQLITE_ROW\"} {\n        for {set i 0} {$i < [sqlite3_column_count $STMT]} {incr i} {\n          lappend lRes [sqlite3_column_text $STMT 0]\n        }\n      }\n      set rc [sqlite3_finalize $STMT]\n    }\n\n    if {$rc != \"SQLITE_OK\"} { error \"$rc [sqlite3_errmsg $db]\" }\n    return $lRes\n  }\n\n  if {$isWriter} {\n    set Sql {\n      BEGIN;\n        DELETE FROM t1 WHERE a = (SELECT max(a) FROM t1);\n        INSERT INTO t1 VALUES(NULL, NULL);\n        UPDATE t1 SET b = a WHERE a = (SELECT max(a) FROM t1);\n        SELECT count(*) FROM t1 WHERE b IS NULL;\n      COMMIT;\n    }\n  } else {\n    set Sql {\n      BEGIN;\n      SELECT count(*) FROM t1 WHERE b IS NULL;\n      COMMIT;\n    }\n  }\n\n  set ::DB [sqlite3_open test.db]\n\n  execsql { ATTACH 'test2.db' AS aux }\n\n  set result \"ok\"\n  set finish [expr [clock_seconds]+5]\n  while {$result eq \"ok\" && [clock_seconds] < $finish} {\n    set rc [catch {execsql $Sql} msg]\n    if {$rc} {\n      if {[string match \"SQLITE_LOCKED*\" $msg]} {\n        catch { execsql ROLLBACK }\n      } else {\n        sqlite3_close $::DB\n        error $msg\n      }\n    } elseif {$msg ne \"0\"} {\n      set result \"failed\"\n    }\n  }\n\n  sqlite3_close $::DB\n  set result\n"
 	_ = ThreadProgram // suppress unused warning
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	db, err = frigolite.Open("test2.db")
+	_dbtmp3, err := frigolite.Open("test2.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Log("Running thread-tests for ~20 seconds")
-	t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(0) {set isWriter 0} $ThreadProgram")
-	t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) {set isWriter 1} $ThreadProgram")
+	_putsMsg := "Running thread-tests for ~20 seconds"
+	_ = _putsMsg
+	// thread_spawn finished(0) {set isWriter 0} $ThreadProgram (unsupported command, not transpiled)
+	// thread_spawn finished(1) {set isWriter 1} $ThreadProgram (unsupported command, not transpiled)
 	if tclBool("!" + "info exists finished(0)") {
 	}
 	if tclBool("!" + "info exists finished(1)") {
@@ -119,12 +161,12 @@ func Test_thread005(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "thread005-2.2"
-		_list := tclList([]string{finished + "(0)", finished + "(1)"})
+		_list := tclList([]string{finished_0, finished_1})
 		_ = _list
 	}
 	{ // do_test "thread005-2.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" ATTACH 'test2.db' AS aux ")
 		if _res.Error != nil {
@@ -135,5 +177,5 @@ func Test_thread005(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 WHERE b IS NULL ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

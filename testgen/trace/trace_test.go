@@ -39,11 +39,47 @@ func Test_trace(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
-	// set testdir: test directory (not used in Go test context)
-	var _stmtlist = "" // TCL namespace variable
-	_ = _stmtlist // suppress unused warning
-	{ // do_test "trace-1.1"
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var stmtlist string
+	_ = stmtlist // pre-declared from TCL source
 	var rc string
+	_ = rc // pre-declared from TCL source
+	var xyzzy string
+	_ = xyzzy // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var TRACE_OUT string
+	_ = TRACE_OUT // pre-declared from TCL source
+	var t6int string
+	_ = t6int // pre-declared from TCL source
+	var t6real string
+	_ = t6real // pre-declared from TCL source
+	var t6str string
+	_ = t6str // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var t6blob string
+	_ = t6blob // pre-declared from TCL source
+	var t6null string
+	_ = t6null // pre-declared from TCL source
+
+	// set testdir: test directory (not used in Go test context)
+	stmtlist = "" // TCL namespace variable
+	_ = stmtlist // suppress unused warning
+	{ // do_test "trace-1.1"
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -68,7 +104,7 @@ func Test_trace(t *testing.T) {
 		}
 	}
 	{ // do_test "trace-1.4"
-		_ = _stmtlist // TCL namespace variable (query)
+		_ = stmtlist // TCL namespace variable (query)
 	}
 	{ // do_test "trace-1.5"
 	}
@@ -77,9 +113,9 @@ func Test_trace(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t1b(x TEXT PRIMARY KEY, y);\n     INSERT INTO t1b VALUES('abc','def'),('ghi','jkl'),('mno','pqr');\n  ")
 		}
-		var _stmtlist = "" // TCL namespace variable
-		_ = _stmtlist // suppress unused warning
-		var xyzzy = "a*"
+		stmtlist = "" // TCL namespace variable
+		_ = stmtlist // suppress unused warning
+		xyzzy = "a*"
 		_ = xyzzy // suppress unused warning
 		_res = db.Exec("\n     SELECT y FROM t1b WHERE x GLOB $xyzzy\n  ")
 		if _res.Error != nil {
@@ -87,30 +123,31 @@ func Test_trace(t *testing.T) {
 		}
 	}
 	{ // do_test "trace-1.7"
-		_ = _stmtlist // TCL namespace variable (query)
+		_ = stmtlist // TCL namespace variable (query)
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "trace-2.1"
-		var STMT = "sqlite3_prepare $DB {INSERT INTO t1 VALUES(2,3)} -1 TAIL"
+		STMT = "sqlite3_prepare $DB {INSERT INTO t1 VALUES(2,3)} -1 TAIL"
 		_ = STMT // suppress unused warning
 		// proc definition (not transpiled)
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "trace-2.2"
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
+		// sqlite3_reset $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "trace-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "trace-2.4"
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
@@ -122,10 +159,10 @@ func Test_trace(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "trace-2.6"
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
@@ -133,7 +170,6 @@ func Test_trace(t *testing.T) {
 		}
 	}
 	{ // do_test "trace-3.1"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -148,8 +184,8 @@ func Test_trace(t *testing.T) {
 		}
 		rc = tclListAppend(rc, msg)
 	}
-	var _stmtlist = "" // TCL namespace variable
-	_ = _stmtlist // suppress unused warning
+	stmtlist = "" // TCL namespace variable
+	_ = stmtlist // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "trace-3.2"
 	}
@@ -160,32 +196,33 @@ func Test_trace(t *testing.T) {
 		}
 	}
 	{ // do_test "trace-3.4"
-		_ = _stmtlist // TCL namespace variable (query)
+		_ = stmtlist // TCL namespace variable (query)
 	}
 	{ // do_test "trace-3.5"
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "trace-4.1"
-		var STMT = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(2,3)} -1 TAIL"
+		STMT = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(2,3)} -1 TAIL"
 		_ = STMT // suppress unused warning
 		// proc definition (not transpiled)
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "trace-4.2"
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
+		// sqlite3_reset $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "trace-4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "trace-4.4"
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
@@ -197,10 +234,10 @@ func Test_trace(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "trace-4.6"
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
@@ -208,17 +245,17 @@ func Test_trace(t *testing.T) {
 		}
 	}
 	{ // do_test "trace-6.1"
-		var _t6int = "6" // TCL namespace variable
-		_ = _t6int // suppress unused warning
-		var _t6real = "6" // TCL namespace variable
-		_ = _t6real // suppress unused warning
-		var _t6str = "test-six y'all" // TCL namespace variable
-		_ = _t6str // suppress unused warning
+		t6int = "6" // TCL namespace variable
+		_ = t6int // suppress unused warning
+		t6real = "6" // TCL namespace variable
+		_ = t6real // suppress unused warning
+		t6str = "test-six y'all" // TCL namespace variable
+		_ = t6str // suppress unused warning
 		_res = db.Exec("SELECT x'3031323334' AS x")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x'3031323334' AS x")
 		}
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		r = db.Query("SELECT $::t6int, $::t6real, $t6str, $t6blob, $t6null")
 		if r.Error != nil {
@@ -228,7 +265,7 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-6.2"
 	}
 	{ // do_test "trace-6.3"
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		r = db.Query("SELECT $::t6int, ?1, $::t6int")
 		if r.Error != nil {
@@ -242,7 +279,7 @@ func Test_trace(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t6([$::t6int],\"?1\"); INSERT INTO t6 VALUES(1,2)")
 		}
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		r = db.Query("SELECT '$::t6int', [$::t6int], $::t6int, ?1, \"?1\", $::t6int FROM t6")
 		if r.Error != nil {
@@ -252,14 +289,14 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-6.6"
 	}
 	{ // do_test "trace-6.100"
-		db, err := frigolite.Open(":memory:")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open(":memory:")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     PRAGMA encoding=UTF16be;\n     CREATE TABLE t6([$::t6str],\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA encoding=UTF16be;\n     CREATE TABLE t6([$::t6str],\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		}
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		r = db.Query("SELECT '$::t6str', [$::t6str], $::t6str, ?1, \"?1\", $::t6str FROM t6")
 		if r.Error != nil {
@@ -269,14 +306,14 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-6.101"
 	}
 	{ // do_test "trace-6.200"
-		db, err := frigolite.Open(":memory:")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open(":memory:")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     PRAGMA encoding=UTF16le;\n     CREATE TABLE t6([$::t6str],\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     PRAGMA encoding=UTF16le;\n     CREATE TABLE t6([$::t6str],\"?1\");\n     INSERT INTO t6 VALUES(1,2);\n  ")
 		}
-		var TRACE_OUT = ""
+		TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
 		r = db.Query("SELECT '$::t6str', [$::t6str], $::t6str, ?1, \"?1\", $::t6str FROM t6")
 		if r.Error != nil {

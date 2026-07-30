@@ -39,8 +39,17 @@ func Test_wherelimit3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "wherelimit3"
+	testprefix = "wherelimit3"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<1000)\n    INSERT INTO t1 SELECT n, n FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  ANALYZE;\n")
@@ -54,7 +63,7 @@ func Test_wherelimit3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a>=100 AND a<300 ORDER BY b LIMIT 5;\n")
 		}
 	}
-	var N = "5"
+	N = "5"
 	_ = N // suppress unused warning
 	{ // "1.3"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a>=100 AND a<300 ORDER BY b LIMIT $::N;\n")

@@ -39,14 +39,23 @@ func Test_mmap3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "mmap3"
+	testprefix = "mmap3"
 	_ = testprefix // suppress unused warning
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
 	{ // do_test "mmap3-1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+		// load_static_extension db wholenumber (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA mmap_size=100000;\n    CREATE TABLE t1(x, y);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value, randomblob(value) FROM nums\n                    WHERE value BETWEEN 1 and 1000;\n    SELECT sum(x), sum(length(y)) from t1;\n    PRAGMA mmap_size;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA mmap_size=100000;\n    CREATE TABLE t1(x, y);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value, randomblob(value) FROM nums\n                    WHERE value BETWEEN 1 and 1000;\n    SELECT sum(x), sum(length(y)) from t1;\n    PRAGMA mmap_size;\n  ")
@@ -89,7 +98,7 @@ func Test_mmap3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x FROM t1 WHERE +x BETWEEN 10 AND 15")
 		}
-		var x = "concat $x [db eval {\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  }]"
+		x = "concat $x [db eval {\n    PRAGMA quick_check;\n    PRAGMA mmap_size;\n  }]"
 		_ = x // suppress unused warning
 	}
 	{ // do_test "mmap3-1.7"

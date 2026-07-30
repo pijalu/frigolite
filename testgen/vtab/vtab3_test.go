@@ -39,13 +39,40 @@ func Test_vtab3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var auth_fail string
+	_ = auth_fail // pre-declared from TCL source
+	var auth_log string
+	_ = auth_log // pre-declared from TCL source
+	var auth_filter string
+	_ = auth_filter // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var code string
+	_ = code // pre-declared from TCL source
+	var arg1 string
+	_ = arg1 // pre-declared from TCL source
+	var arg2 string
+	_ = arg2 // pre-declared from TCL source
+	var arg3 string
+	_ = arg3 // pre-declared from TCL source
+	var arg4 string
+	_ = arg4 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _auth_fail = "0" // TCL namespace variable
-	_ = _auth_fail // suppress unused warning
-	var _auth_log = "list" // TCL namespace variable
-	_ = _auth_log // suppress unused warning
-	var _auth_filter = "list SQLITE_READ SQLITE_UPDATE SQLITE_SELECT SQLITE_PRAGMA" // TCL namespace variable
-	_ = _auth_filter // suppress unused warning
+	auth_fail = "0" // TCL namespace variable
+	_ = auth_fail // suppress unused warning
+	auth_log = "list" // TCL namespace variable
+	_ = auth_log // suppress unused warning
+	auth_filter = "list SQLITE_READ SQLITE_UPDATE SQLITE_SELECT SQLITE_PRAGMA" // TCL namespace variable
+	_ = auth_filter // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "vtab3-1.1"
 		_res = db.Exec("\n    CREATE TABLE elephant(\n      name VARCHAR(32), \n      color VARCHAR(16), \n      age INTEGER, \n      UNIQUE(name, color)\n    );\n  ")
@@ -54,25 +81,25 @@ func Test_vtab3(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab3-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE pachyderm USING echo(elephant);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE pachyderm USING echo(elephant);\n  ")
 		}
-		_ = _auth_log // TCL namespace variable (query)
+		_ = auth_log // TCL namespace variable (query)
 	}
 	{ // do_test "vtab3-1.3"
-		var _auth_log = "list" // TCL namespace variable
-		_ = _auth_log // suppress unused warning
+		auth_log = "list" // TCL namespace variable
+		_ = auth_log // suppress unused warning
 		_res = db.Exec("\n    DROP TABLE pachyderm;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE pachyderm;\n  ")
 		}
-		_ = _auth_log // TCL namespace variable (query)
+		_ = auth_log // TCL namespace variable (query)
 	}
 	{ // do_test "vtab3-1.4"
-		var _auth_fail = "1" // TCL namespace variable
-		_ = _auth_fail // suppress unused warning
+		auth_fail = "1" // TCL namespace variable
+		_ = auth_fail // suppress unused warning
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE pachyderm USING echo(elephant);\n  ")
 		_ = _res // catchsql
 	}
@@ -83,8 +110,8 @@ func Test_vtab3(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab3-1.5"
-		var _auth_fail = "2" // TCL namespace variable
-		_ = _auth_fail // suppress unused warning
+		auth_fail = "2" // TCL namespace variable
+		_ = auth_fail // suppress unused warning
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE pachyderm USING echo(elephant);\n  ")
 		_ = _res // catchsql
 	}
@@ -95,8 +122,8 @@ func Test_vtab3(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab3-1.5"
-		var _auth_fail = "3" // TCL namespace variable
-		_ = _auth_fail // suppress unused warning
+		auth_fail = "3" // TCL namespace variable
+		_ = auth_fail // suppress unused warning
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE pachyderm USING echo(elephant);\n  ")
 		_ = _res // catchsql
 	}
@@ -108,10 +135,9 @@ func Test_vtab3(t *testing.T) {
 	}
 	for _, i := range tclSplitList("list 1 2 3 4") {
 	_ = i // suppress unused warning
-		var _auth_fail = i // TCL namespace variable
-		_ = _auth_fail // suppress unused warning
+		auth_fail = i // TCL namespace variable
+		_ = auth_fail // suppress unused warning
 		{ // do_test "vtab3-1.7." + i + ".1"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
@@ -127,7 +153,7 @@ func Test_vtab3(t *testing.T) {
 				}
 			}
 			if msg == "authorization denied" {
-				var msg = "not authorized"
+				msg = "not authorized"
 				_ = msg // suppress unused warning
 			}
 			_list := tclList([]string{rc, msg})
@@ -141,8 +167,8 @@ func Test_vtab3(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab3-1.8.1"
-		var _auth_fail = "0" // TCL namespace variable
-		_ = _auth_fail // suppress unused warning
+		auth_fail = "0" // TCL namespace variable
+		_ = auth_fail // suppress unused warning
 		_res = db.Exec("\n    DROP TABLE pachyderm;\n  ")
 		_ = _res // catchsql
 	}

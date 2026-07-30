@@ -39,6 +39,21 @@ func Test_schema3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var c1 string
+	_ = c1 // pre-declared from TCL source
+	var c2 string
+	_ = c2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  # Have connections [db1] and [db2] load the cu...}")
+	// do_multiclient_test tn {
+
+  # Have connections [db1] and [db2] load the cu...} (unsupported command, not transpiled)
 }

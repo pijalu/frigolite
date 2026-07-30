@@ -39,8 +39,15 @@ func Test_collateB(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "collateB"
+	testprefix = "collateB"
 	_ = testprefix // suppress unused warning
 	{ // "collateB-1.1"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  CREATE TABLE t2(b INTEGER PRIMARY KEY, x1 INT COLLATE NOCASE);\n  CREATE TABLE t3(x2 INT);\n  SELECT * FROM t3, t2, t1 WHERE x2=b AND x1=a AND a=1;\n")

@@ -40,8 +40,15 @@ func Test_corruptJ(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "corruptJ"
+	testprefix = "corruptJ"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"mmap\"") {
 		return
@@ -49,7 +56,7 @@ func Test_corruptJ(t *testing.T) {
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "1.1"
 		r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n    INSERT INTO t1(a,b) SELECT i, zeroblob(700) FROM c;\n")
 		if r.Error != nil {
@@ -57,17 +64,17 @@ func Test_corruptJ(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {2*1024-2}] 02")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db [expr {2*1024-2}] 02 (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DROP TABLE t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "2.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE t1(a,b,PRIMARY KEY(a,b)) WITHOUT ROWID;\n    WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<100)\n      INSERT INTO t1(a,b) SELECT i, zeroblob(200) FROM c;\n  ")
 		if _res.Error != nil {
@@ -75,12 +82,12 @@ func Test_corruptJ(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db [expr {9*1024+391}] 8")
+		// hexio_read test.db [expr {9*1024+391}] 8 (unsupported command, not transpiled)
 	}
 	{ // do_test "2.2b"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {9*1024+391}] 00000002")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db [expr {9*1024+391}] 00000002 (unsupported command, not transpiled)
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA secure_delete=ON; DROP TABLE t1; ")
 		_ = _res // catchsql

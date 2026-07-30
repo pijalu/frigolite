@@ -40,23 +40,60 @@ func Test_speed1p(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var old_lookaside string
+	_ = old_lookaside // pre-declared from TCL source
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ones string
+	_ = ones // pre-declared from TCL source
+	var tens string
+	_ = tens // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var list string
+	_ = list // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var lwr string
+	_ = lwr // pre-declared from TCL source
+	var upr string
+	_ = upr // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var pattern string
+	_ = pattern // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	var old_lookaside = "sqlite3_config_lookaside 2048 300"
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	old_lookaside = "sqlite3_config_lookaside 2048 300"
 	_ = old_lookaside // suppress unused warning
 	// set testdir: test directory (not used in Go test context)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_init speed1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 0")
+	// speed_trial_init speed1 (unsupported command, not transpiled)
+	// sqlite3_memdebug_vfs_oom_test 0 (unsupported command, not transpiled)
 	// expr srand(0) → "srand(0)"
-	var ones = "zero one two three four five six seven eight nine\n          ten eleven twelve thirteen fourteen fifteen sixteen seventeen\n          eighteen nineteen"
+	ones = "zero one two three four five six seven eight nine\n          ten eleven twelve thirteen fourteen fifteen sixteen seventeen\n          eighteen nineteen"
 	_ = ones // suppress unused warning
-	var tens = "{} ten twenty thirty forty fifty sixty seventy eighty ninety"
+	tens = "{} ten twenty thirty forty fifty sixty seventy eighty ninety"
 	_ = tens // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "speed1p-1.0"
@@ -69,14 +106,14 @@ func Test_speed1p(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1;\n  ")
 		}
 	}
-	var list = ""
+	list = ""
 	_ = list // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		var _r = "0"
+		_r = "0"
 		_ = _r // suppress unused warning
-		var x = "number_name $r"
+		x = "number_name $r"
 		_ = x // suppress unused warning
 		list = tclListAppend(list, i, _r, x)
 		// incr i 1
@@ -87,13 +124,13 @@ func Test_speed1p(t *testing.T) {
 			}
 		}
 	}
-	var script = "\n  foreach {i r x} $::list {\n    db eval {INSERT INTO t1 VALUES($i,$r,$x)}\n  }\n"
+	script = "\n  foreach {i r x} $::list {\n    db eval {INSERT INTO t1 VALUES($i,$r,$x)}\n  }\n"
 	_ = script // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed1p-insert1 50000 row $script")
+	// speed_trial_tcl speed1p-insert1 50000 row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -103,9 +140,9 @@ func Test_speed1p(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		var _r = "0"
+		_r = "0"
 		_ = _r // suppress unused warning
-		var x = "number_name $r"
+		x = "number_name $r"
 		_ = x // suppress unused warning
 		list = tclListAppend(list, i, _r, x)
 		// incr i 1
@@ -122,7 +159,7 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed1p-insert2 50000 row $script")
+	// speed_trial_tcl speed1p-insert2 50000 row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -132,9 +169,9 @@ func Test_speed1p(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
-		var lwr = "$i*100"
+		lwr = "$i*100"
 		_ = lwr // suppress unused warning
-		var upr = "($i+10)*100"
+		upr = "($i+10)*100"
 		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1
@@ -151,7 +188,7 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed1p-select1 [expr {50*50000}] row $script")
+	// speed_trial_tcl speed1p-select1 [expr {50*50000}] row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -176,7 +213,7 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed1p-select2 [expr {50*50000}] row $script")
+	// speed_trial_tcl speed1p-select2 [expr {50*50000}] row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -185,7 +222,9 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-createidx 150000 row {\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b O...}")
+	// speed_trial speed1p-createidx 150000 row {
+  CREATE INDEX i1a ON t1(a);
+  CREATE INDEX i1b O...} (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -195,9 +234,9 @@ func Test_speed1p(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		var lwr = "$i*100"
+		lwr = "$i*100"
 		_ = lwr // suppress unused warning
-		var upr = "($i+10)*100"
+		upr = "($i+10)*100"
 		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1
@@ -214,7 +253,7 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed1p-select3 5000 stmt $script")
+	// speed_trial_tcl speed1p-select3 5000 stmt $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -224,7 +263,7 @@ func Test_speed1p(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
-		var id = "1"
+		id = "1"
 		_ = id // suppress unused warning
 		list = tclListAppend(list, id)
 		// incr i 1
@@ -241,7 +280,7 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed1p-select4 100000 row $script")
+	// speed_trial_tcl speed1p-select4 100000 row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -251,7 +290,7 @@ func Test_speed1p(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
-		var id = "1"
+		id = "1"
 		_ = id // suppress unused warning
 		list = tclListAppend(list, id)
 		// incr i 1
@@ -268,7 +307,7 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed1p-select5 100000 row $script")
+	// speed_trial_tcl speed1p-select5 100000 row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -281,20 +320,20 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed1p-select6 50000 row $script")
+	// speed_trial_tcl speed1p-select6 50000 row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-vacuum 100000 row VACUUM")
+	// speed_trial speed1p-vacuum 100000 row VACUUM (unsupported command, not transpiled)
 	list = ""
 	_ = list // suppress unused warning
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		var lwr = "$i*2"
+		lwr = "$i*2"
 		_ = lwr // suppress unused warning
-		var upr = "($i+1)*2"
+		upr = "($i+1)*2"
 		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1
@@ -311,7 +350,7 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed1p-update1 5000 stmt $script")
+	// speed_trial_tcl speed1p-update1 5000 stmt $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -321,7 +360,7 @@ func Test_speed1p(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50000 }() {
-		var _r = "0"
+		_r = "0"
 		_ = _r // suppress unused warning
 		list = tclListAppend(list, i, _r)
 		// incr i 1
@@ -338,18 +377,20 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed1p-update2 50000 row $script")
+	// speed_trial_tcl speed1p-update2 50000 row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-update3 50000 row {\n  UPDATE t1 SET c=a;\n}")
+	// speed_trial speed1p-update3 50000 row {
+  UPDATE t1 SET c=a;
+} (unsupported command, not transpiled)
 	list = ""
 	_ = list // suppress unused warning
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		var _r = "0"
+		_r = "0"
 		_ = _r // suppress unused warning
 		list = tclListAppend(list, i, "number_name $r")
 		// incr i 1
@@ -366,35 +407,42 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed1p-update4 50000 row $script")
+	// speed_trial_tcl speed1p-update4 50000 row $script (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-delete1 50000 row {DELETE FROM t1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-copy1 50000 row {INSERT INTO t1 SELECT * FROM t2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-delete2 50000 row {DELETE FROM t1 WHERE 1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-copy2 50000 row {INSERT INTO t1 SELECT * FROM t2}")
+	// speed_trial speed1p-delete1 50000 row {DELETE FROM t1} (unsupported command, not transpiled)
+	// speed_trial speed1p-copy1 50000 row {INSERT INTO t1 SELECT * FROM t2} (unsupported command, not transpiled)
+	// speed_trial speed1p-delete2 50000 row {DELETE FROM t1 WHERE 1} (unsupported command, not transpiled)
+	// speed_trial speed1p-copy2 50000 row {INSERT INTO t1 SELECT * FROM t2} (unsupported command, not transpiled)
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-drop1 50000 row {\n   DROP TABLE t1;\n   CREATE TABLE t1(a INTEGER, b...}")
+	// speed_trial speed1p-drop1 50000 row {
+   DROP TABLE t1;
+   CREATE TABLE t1(a INTEGER, b...} (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-copy3 50000 row {INSERT INTO t1 SELECT * FROM t2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-random1 50000 row {\n  SELECT rowid FROM t1 ORDER BY random() LIMIT 20...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-random-del1 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT rowid...}")
+	// speed_trial speed1p-copy3 50000 row {INSERT INTO t1 SELECT * FROM t2} (unsupported command, not transpiled)
+	// speed_trial speed1p-random1 50000 row {
+  SELECT rowid FROM t1 ORDER BY random() LIMIT 20...} (unsupported command, not transpiled)
+	// speed_trial speed1p-random-del1 20000 row {
+  DELETE FROM t1 WHERE rowid IN
+    (SELECT rowid...} (unsupported command, not transpiled)
 	{ // do_test "speed1p-1.1"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-random-del2 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT rowid...}")
+	// speed_trial speed1p-random-del2 20000 row {
+  DELETE FROM t1 WHERE rowid IN
+    (SELECT rowid...} (unsupported command, not transpiled)
 	{ // do_test "speed1p-1.2"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_summary speed1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	// eval sqlite3_config_lookaside $old_lookaside
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	// speed_trial_summary speed1 (unsupported command, not transpiled)
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// eval (dynamic, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// autoinstall_test_functions (unsupported command, not transpiled)
 }

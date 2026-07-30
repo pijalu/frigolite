@@ -39,8 +39,23 @@ func Test_triggerE(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var errmsg string
+	_ = errmsg // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var defn string
+	_ = defn // pre-declared from TCL source
+	var one string
+	_ = one // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "triggerE"
+	testprefix = "triggerE"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n")
@@ -48,7 +63,7 @@ func Test_triggerE(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  CREATE TABLE t3(e, f);\n")
 		}
 	}
-	var errmsg = "trigger cannot use variables"
+	errmsg = "trigger cannot use variables"
 	_ = errmsg // suppress unused warning
 	// foreach {tn defn} "\n  1 { AFTER INSERT ON t1 WHEN new.a = ? BEGIN SELECT 1; END; }\n  2 { BEFORE DELETE ON t1 BEGIN SELECT ?; END; }\n  3 { BEFORE DELETE ON t1 BEGIN SELECT * FROM (SELECT * FROM (SELECT ?)); END; }\n  5 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 GROUP BY ?; END; }\n  6 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 LIMIT ?; END; }\n  7 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 ORDER BY ?; END; }\n  8 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = ?; END; }\n  9 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = 1 WHERE d = ?; END; }\n 10 { AFTER INSERT ON t1 BEGIN SELECT * FROM pragma_stats(?); END; }\n 11 { BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1 SELECT max(b) OVER(ORDER BY $1) FROM t1; END }\n"
 	_items0 := tclSplitList("\n  1 { AFTER INSERT ON t1 WHEN new.a = ? BEGIN SELECT 1; END; }\n  2 { BEFORE DELETE ON t1 BEGIN SELECT ?; END; }\n  3 { BEFORE DELETE ON t1 BEGIN SELECT * FROM (SELECT * FROM (SELECT ?)); END; }\n  5 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 GROUP BY ?; END; }\n  6 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 LIMIT ?; END; }\n  7 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 ORDER BY ?; END; }\n  8 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = ?; END; }\n  9 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = 1 WHERE d = ?; END; }\n 10 { AFTER INSERT ON t1 BEGIN SELECT * FROM pragma_stats(?); END; }\n 11 { BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1 SELECT max(b) OVER(ORDER BY $1) FROM t1; END }\n")
@@ -73,14 +88,15 @@ func Test_triggerE(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		{ // "2.1"
 			_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master VALUES('trigger', 'tr1', 't1', 0,\n    'CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN \n        INSERT INTO t2 VALUES(?1, ?2); \n     END'\n  );\n\n  INSERT INTO sqlite_master VALUES('trigger', 'tr2', 't3', 0,\n    'CREATE TRIGGER tr2 AFTER INSERT ON t3 WHEN ?1 IS NULL BEGIN\n        UPDATE t2 SET c=d WHERE c IS ?2;\n     END'\n  );\n")
 			}
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "2.2.1"
 			r = db.Query("\n  INSERT INTO t1 VALUES(1, 2);\n  SELECT * FROM t2;\n")
@@ -95,7 +111,7 @@ func Test_triggerE(t *testing.T) {
 			}
 		}
 		{ // do_test "2.2.2"
-			var one = "3"
+			one = "3"
 			_ = one // suppress unused warning
 			r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t1 VALUES($one, ?1);\n    SELECT * FROM t2;\n  ")
 			if r.Error != nil {

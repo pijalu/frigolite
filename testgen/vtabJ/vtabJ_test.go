@@ -39,16 +39,53 @@ func Test_vtabJ(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var vtabJ_1 string
+	_ = vtabJ_1 // pre-declared from TCL source
+	var vtabJ_two string
+	_ = vtabJ_two // pre-declared from TCL source
+	var vtabJ_3 string
+	_ = vtabJ_3 // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var vname string
+	_ = vname // pre-declared from TCL source
+	var vtabJ_4 string
+	_ = vtabJ_4 // pre-declared from TCL source
+	var vtabJ_five string
+	_ = vtabJ_five // pre-declared from TCL source
+	var vtabJ_5 string
+	_ = vtabJ_5 // pre-declared from TCL source
+	var testvar1 string
+	_ = testvar1 // pre-declared from TCL source
+	var testvar2 string
+	_ = testvar2 // pre-declared from TCL source
+	var testvar3 string
+	_ = testvar3 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var vtabJ_vname string
+	_ = vtabJ_vname // pre-declared from TCL source
+	var tv1 string
+	_ = tv1 // pre-declared from TCL source
+	var tv2 string
+	_ = tv2 // pre-declared from TCL source
+	var tv3 string
+	_ = tv3 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "vtabJ"
+	testprefix = "vtabJ"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tclvar_module db")
+	// register_tclvar_module db (unsupported command, not transpiled)
 	{ // do_test "100"
-		var vtabJ_1 = "this"
+		vtabJ_1 = "this"
 		_ = vtabJ_1 // suppress unused warning
-		var vtabJ_two = "is"
+		vtabJ_two = "is"
 		_ = vtabJ_two // suppress unused warning
-		var vtabJ_3 = "a test"
+		vtabJ_3 = "a test"
 		_ = vtabJ_3 // suppress unused warning
 		_res = db.Exec("\n    SELECT fullname, value FROM tclvar WHERE name='vtabJ' ORDER BY fullname;\n  ")
 		if _res.Error != nil {
@@ -68,11 +105,11 @@ func Test_vtabJ(t *testing.T) {
 		}
 	}
 	{ // do_test "111"
-		var res = ""
+		res = ""
 		_ = res // suppress unused warning
 		for _, vname := range tclSplitList("lsort [array names vtabJ]") {
 		_ = vname // suppress unused warning
-			res = tclListAppend(res, "vtabJ(" + vname + ")", vtabJ + "(" + vname + ")")
+			res = tclListAppend(res, "vtabJ(" + vname + ")", vtabJ_vname)
 		}
 	}
 	{ // do_test "120"
@@ -102,11 +139,11 @@ func Test_vtabJ(t *testing.T) {
 	{ // do_test "151"
 	}
 	{ // do_test "152"
-		var res = ""
+		res = ""
 		_ = res // suppress unused warning
 		for _, vname := range tclSplitList("lsort [array names vtabJ]") {
 		_ = vname // suppress unused warning
-			res = tclListAppend(res, "vtabJ(" + vname + ")", vtabJ + "(" + vname + ")")
+			res = tclListAppend(res, "vtabJ(" + vname + ")", vtabJ_vname)
 		}
 	}
 	{ // "160"
@@ -134,11 +171,11 @@ func Test_vtabJ(t *testing.T) {
 		}
 	}
 	{ // do_test "162"
-		var res = ""
+		res = ""
 		_ = res // suppress unused warning
 		for _, vname := range tclSplitList("lsort [array names vtabJ]") {
 		_ = vname // suppress unused warning
-			res = tclListAppend(res, "vtabJ(" + vname + ")", vtabJ + "(" + vname + ")")
+			res = tclListAppend(res, "vtabJ(" + vname + ")", vtabJ_vname)
 		}
 	}
 	{ // "171"

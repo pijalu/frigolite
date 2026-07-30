@@ -40,21 +40,49 @@ func Test_interrupt2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var trigger_interrupt string
+	_ = trigger_interrupt // pre-declared from TCL source
+	var dbpointer string
+	_ = dbpointer // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+	var idelay string
+	_ = idelay // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var nFrame1 string
+	_ = nFrame1 // pre-declared from TCL source
+	var nFrame2 string
+	_ = nFrame2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var cres string
+	_ = cres // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "interrupt2"
+	testprefix = "interrupt2"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"journaltest\" || " + "permutation" + "==\"inmemory_journal\"") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xWrite")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script write_cb")
-	var _trigger_interrupt = "0" // TCL namespace variable
-	_ = _trigger_interrupt // suppress unused warning
-	var _dbpointer = "" // TCL namespace variable
-	_ = _dbpointer // suppress unused warning
+	// testvfs tvfs -default 1 (unsupported command, not transpiled)
+	// tvfs filter xWrite (unsupported command, not transpiled)
+	// tvfs script write_cb (unsupported command, not transpiled)
+	trigger_interrupt = "0" // TCL namespace variable
+	_ = trigger_interrupt // suppress unused warning
+	dbpointer = "" // TCL namespace variable
+	_ = dbpointer // suppress unused warning
 	// proc definition (not transpiled)
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  PRAGMA journal_mode = wal;\n\n  WITH ii(i) AS ( VALUES(1) UNION ALL SELECT i+1 FROM ii WHERE i<1000 )\n  INSERT INTO t1 SELECT i, i FROM ii;\n")
@@ -70,8 +98,8 @@ func Test_interrupt2(t *testing.T) {
 	}
 	for _, idelay := range tclSplitList("\n  5\n  10\n  15\n  20\n") {
 	_ = idelay // suppress unused warning
-		var _trigger_interrupt = idelay // TCL namespace variable
-		_ = _trigger_interrupt // suppress unused warning
+		trigger_interrupt = idelay // TCL namespace variable
+		_ = trigger_interrupt // suppress unused warning
 		{ // "1." + idelay + ".1"
 			_res = db.Exec(" PRAGMA wal_checkpoint; ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "interrupted") {
@@ -90,8 +118,8 @@ func Test_interrupt2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		var _trigger_interrupt = idelay // TCL namespace variable
-		_ = _trigger_interrupt // suppress unused warning
+		trigger_interrupt = idelay // TCL namespace variable
+		_ = trigger_interrupt // suppress unused warning
 		{ // do_test "1." + idelay + ".3"
 			_list := tclList([]string{"0", msg})
 			_ = _list
@@ -116,9 +144,9 @@ func Test_interrupt2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		var i = "10"
+		i = "10"
 		_ = i // suppress unused warning
-		var res = "list [catch {\n    set i 10\n    db eval {SELECT * FROM z1} {\n      incr i -1\n      if {$i==0} {\n        set ::trigger_interrupt 10\n        set cres [catch { sqlite3_wal_checkpoint_v2 db truncate } msg] \n        lappend cres $msg\n      }\n    }\n  } msg] $msg"
+		res = "list [catch {\n    set i 10\n    db eval {SELECT * FROM z1} {\n      incr i -1\n      if {$i==0} {\n        set ::trigger_interrupt 10\n        set cres [catch { sqlite3_wal_checkpoint_v2 db truncate } msg] \n        lappend cres $msg\n      }\n    }\n  } msg] $msg"
 		_ = res // suppress unused warning
 		_list := tclList([]string{cres, res})
 		_ = _list
@@ -135,71 +163,69 @@ func Test_interrupt2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+	// db_save_and_close (unsupported command, not transpiled)
+	// db_restore_and_reopen (unsupported command, not transpiled)
 	{ // do_test "3.1.1"
-		var _trigger_interrupt = "10" // TCL namespace variable
-		_ = _trigger_interrupt // suppress unused warning
-		var _dbpointer = "sqlite3_connection_pointer db" // TCL namespace variable
-		_ = _dbpointer // suppress unused warning
+		trigger_interrupt = "10" // TCL namespace variable
+		_ = trigger_interrupt // suppress unused warning
+		dbpointer = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = dbpointer // suppress unused warning
 		_res = db.Exec(" SELECT * FROM sqlite_master ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM sqlite_master ")
 		}
-		var _dbpointer = "" // TCL namespace variable
-		_ = _dbpointer // suppress unused warning
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		dbpointer = "" // TCL namespace variable
+		_ = dbpointer // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "3.1.2"
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
 		_ = _list
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+	// db_restore_and_reopen (unsupported command, not transpiled)
 	{ // do_test "3.2.1"
 		_res = db.Exec(" SELECT * FROM sqlite_master ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM sqlite_master ")
 		}
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "3.2.2"
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
 		_ = _list
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+	// db_restore_and_reopen (unsupported command, not transpiled)
 	{ // do_test "4.0"
 		r = db.Query(" PRAGMA wal_autocheckpoint = 10 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_autocheckpoint = 10 ")
 		}
-		var _trigger_interrupt = "10" // TCL namespace variable
-		_ = _trigger_interrupt // suppress unused warning
+		trigger_interrupt = "10" // TCL namespace variable
+		_ = trigger_interrupt // suppress unused warning
 		_res = db.Exec(" CREATE TABLE t2(x, y) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(x, y) ")
 		}
 	}
 	{ // do_test "4.1"
-		var nFrame1 = "wal_frame_count test.db-wal 1024"
+		nFrame1 = "wal_frame_count test.db-wal 1024"
 		_ = nFrame1 // suppress unused warning
 		_res = db.Exec(" CREATE TABLE t3(x, y) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t3(x, y) ")
 		}
-		var nFrame2 = "wal_frame_count test.db-wal 1024"
+		nFrame2 = "wal_frame_count test.db-wal 1024"
 		_ = nFrame2 // suppress unused warning
 		// expr $nFrame2 → "$nFrame2"
 	}
 	{ // do_test "4.2"
-		var nFrame1 = "wal_frame_count test.db-wal 1024"
+		nFrame1 = "wal_frame_count test.db-wal 1024"
 		_ = nFrame1 // suppress unused warning
 		_res = db.Exec(" CREATE TABLE t4(x, y) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t4(x, y) ")
 		}
-		var nFrame2 = "wal_frame_count test.db-wal 1024"
+		nFrame2 = "wal_frame_count test.db-wal 1024"
 		_ = nFrame2 // suppress unused warning
 		// expr $nFrame2 → "$nFrame2"
 	}

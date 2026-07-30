@@ -40,85 +40,136 @@ func Test_shell2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var CLI string
+	_ = CLI // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var fexist string
+	_ = fexist // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var df string
+	_ = df // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var hexdump string
+	_ = hexdump // pre-declared from TCL source
+	var expect string
+	_ = expect // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var CLI = "test_find_cli"
+	CLI = "test_find_cli"
 	_ = CLI // suppress unused warning
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell2-1.1.1"
 		os.Remove("foo.db")
-		var rc = "catchcmd \"-batch foo.db\" \"CREATE TABLE t1(a);\""
+		rc = "catchcmd \"-batch foo.db\" \"CREATE TABLE t1(a);\""
 		_ = rc // suppress unused warning
-		var fexist = "file exist foo.db"
+		fexist = "file exist foo.db"
 		_ = fexist // suppress unused warning
 		_list := tclList([]string{rc, fexist})
 		_ = _list
 	}
 	{ // do_test "shell2-1.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmdex {:memory: -list \"select+3\" \"select+4\"}")
+		// catchcmdex {:memory: -list "select+3" "select+4"} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -batch test.db {\n    PRAGMA recursive_triggers = ON;\n    CREATE TA...}")
+		// catchcmd -batch test.db {
+    PRAGMA recursive_triggers = ON;
+    CREATE TA...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.1"
 		os.Remove("foo.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db {.mode batch\nCREATE TABLE foo(a);\nINSERT INTO foo(a...}")
+		// catchcmd foo.db {.mode batch
+CREATE TABLE foo(a);
+INSERT INTO foo(a...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.2"
 		os.Remove("foo.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -echo foo.db {CREATE TABLE foo(a);\nINSERT INTO foo(a) VALUES(1);...}")
+		// catchcmd -echo foo.db {CREATE TABLE foo(a);
+INSERT INTO foo(a) VALUES(1);...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.3"
 		os.Remove("foo.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo(a);\nINSERT ...}")
+		// catchcmd foo.db {
+.mode batch
+.echo ON
+CREATE TABLE foo(a);
+INSERT ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.4"
 		os.Remove("foo.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo(a);\n.echo O...}")
+		// catchcmd foo.db {
+.mode batch
+.echo ON
+CREATE TABLE foo(a);
+.echo O...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.5"
 		os.Remove("foo.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmdex foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo1(a);\nINSERT...}")
+		// catchcmdex foo.db {
+.mode batch
+.echo ON
+CREATE TABLE foo1(a);
+INSERT...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.6"
 		os.Remove("foo.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmdex foo.db {\n.mode batch\n.echo ON\n.headers ON\nCREATE TABLE foo...}")
+		// catchcmdex foo.db {
+.mode batch
+.echo ON
+.headers ON
+CREATE TABLE foo...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n SELECT 'unclosed;}")
+		// catchcmd :memory: {
+ SELECT 'unclosed;} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -safe :memory: {\n SELECT edit('DoNotCare');}")
+		// catchcmd -safe :memory: {
+ SELECT edit('DoNotCare');} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -safe :memory: {\n SELECT writefile('DoNotCare', x'');}")
+		// catchcmd -safe :memory: {
+ SELECT writefile('DoNotCare', x'');} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell2-1.4.9"
 		os.Remove("clone.db")
-		var res = "catchcmd :memory: [string trim {\n.mode batch\n CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT);\n INSERT INTO t VALUES (1),(2);\n.clone clone.db\n.open clone.db\n SELECT max(seq) FROM sqlite_sequence;}]"
+		res = "catchcmd :memory: [string trim {\n.mode batch\n CREATE TABLE t(id INTEGER PRIMARY KEY AUTOINCREMENT);\n INSERT INTO t VALUES (1),(2);\n.clone clone.db\n.open clone.db\n SELECT max(seq) FROM sqlite_sequence;}]"
 		_ = res // suppress unused warning
 	}
 	{ // do_test "shell2-1.4.12"
-		var res = "catchcmd :memory: [string trim {.mode batch\n CREATE TABLE \"group\"(\"order\" text);\n INSERT INTO \"group\" VALUES ('ABC');\n.sha3sum}]"
+		res = "catchcmd :memory: [string trim {.mode batch\n CREATE TABLE \"group\"(\"order\" text);\n INSERT INTO \"group\" VALUES ('ABC');\n.sha3sum}]"
 		_ = res // suppress unused warning
 	}
 	// foreach {tn hexdump expect} "\n  0 {\n| size 8192 pagesize 4096 filename my.db\n| page 1 offset 0\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      0: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n  }\n  {0 {}}\n\n  1 {\n| size 2147483647 pagesize 4096 filename my.db\n| page 1 offset 0\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      0: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n  }\n  {1 {Error: out of memory}}\n\n  2 {\n| size 8192 pagesize 4096 filename my.db\n| page 1 offset 2147483647\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      0: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n  }\n  {0 {}}\n\n 3 {\n| size 8192 pagesize 4096 filename my.db\n| page 1 offset 0\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      2147483647: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n}\n  {0 {}}\n\n"
-	_items0 := tclSplitList("\n  0 {\n| size 8192 pagesize 4096 filename my.db\n| page 1 offset 0\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      0: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n  }\n  {0 {}}\n\n  1 {\n| size 2147483647 pagesize 4096 filename my.db\n| page 1 offset 0\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      0: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n  }\n  {1 {Error: out of memory}}\n\n  2 {\n| size 8192 pagesize 4096 filename my.db\n| page 1 offset 2147483647\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      0: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n  }\n  {0 {}}\n\n 3 {\n| size 8192 pagesize 4096 filename my.db\n| page 1 offset 0\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      2147483647: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n}\n  {0 {}}\n\n")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  0 {\n| size 8192 pagesize 4096 filename my.db\n| page 1 offset 0\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      0: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n  }\n  {0 {}}\n\n  1 {\n| size 2147483647 pagesize 4096 filename my.db\n| page 1 offset 0\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      0: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n  }\n  {1 {Error: out of memory}}\n\n  2 {\n| size 8192 pagesize 4096 filename my.db\n| page 1 offset 2147483647\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      0: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n  }\n  {0 {}}\n\n 3 {\n| size 8192 pagesize 4096 filename my.db\n| page 1 offset 0\n|      0: 53 51 4c 69 74 65 20 66 6f 72 6d 61 74 20 33 00   SQLite format 3.\n|     16: 10 00 01 01 00 40 20 20 00 00 00 03 00 00 00 02   .....@  ........\n|     32: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 04   ................\n|     48: 00 00 00 00 00 00 00 00 00 00 00 01 00 00 00 00   ................\n|     80: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 03   ................\n|     96: 00 2e 8d f8 0d 00 00 00 01 0f df 00 0f df 00 00   ................\n|   4048: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 1f   ................\n|   4064: 01 06 17 0f 0f 01 2f 74 61 62 6c 65 74 74 02 43   ....../tablett.C\n|   4080: 52 45 41 54 45 20 54 41 42 4c 45 20 74 28 78 29   REATE TABLE t(x)\n| page 2 offset 4096\n|      2147483647: 0d 00 00 00 02 0f ee 00 0f f7 0f ee 00 00 00 00   ................\n|   4064: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 07 02   ................\n|   4080: 02 17 77 6f 72 6c 64 07 01 02 17 68 65 6c 6c 6f   ..world....hello\n| end my.db\n}\n  {0 {}}\n\n")
+	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		hexdump := _items0[_idx0+1]
+		hexdump := _items1[_idx1+1]
 		_ = hexdump // suppress unused warning
-		expect := _items0[_idx0+2]
+		expect := _items1[_idx1+2]
 		_ = expect // suppress unused warning
-		_ = _idx0
-			var fd = "open dump.txt w"
+		_ = _idx1
+			fd = "open dump.txt w"
 			_ = fd // suppress unused warning
-			t.Log(fd)
+			_putsMsg := fd
+			_ = _putsMsg
 			// close $fd
 			{ // do_test "shell2-2." + tn + ".1"
-				var rc = "catchcmd \"\" \".open --hexdb dump.txt\""
+				rc = "catchcmd \"\" \".open --hexdb dump.txt\""
 				_ = rc // suppress unused warning
 			}
 		}

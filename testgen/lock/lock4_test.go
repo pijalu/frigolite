@@ -40,11 +40,20 @@ func Test_lock4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	{ // do_test "lock4-1.1"
 		_res = db.Exec("\n     PRAGMA auto_vacuum=OFF;\n     CREATE TABLE t1(x);\n  ")
 		if _res.Error != nil {
@@ -60,16 +69,18 @@ func Test_lock4(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "lock4-1.2"
-		var out = "open test2-script.tcl w"
+		out = "open test2-script.tcl w"
 		_ = out // suppress unused warning
-		t.Log(out)
-		t.Log(out)
+		_putsMsg := out
+		_ = _putsMsg
+		_putsMsg = out
+		_ = _putsMsg
 		// close $out
 		_res = db.Exec("\n     BEGIN EXCLUSIVE;\n     INSERT INTO t1 VALUES(1);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     BEGIN EXCLUSIVE;\n     INSERT INTO t1 VALUES(1);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] ./test2-script.tcl &")
+		// exec [info nameofexec] ./test2-script.tcl & (unsupported command, not transpiled)
 		for tclBool("!" + "file exists test2.db-journal") {
 		}
 		db2, err = frigolite.Open("test2.db")

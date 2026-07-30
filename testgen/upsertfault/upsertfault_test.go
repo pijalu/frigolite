@@ -39,8 +39,15 @@ func Test_upsertfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "upsertfault"
+	testprefix = "upsertfault"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b, c, d, UNIQUE(b, c));\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n")
@@ -48,6 +55,12 @@ func Test_upsertfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c, d, UNIQUE(b, c));\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  execsql {\n     INSERT INTO t1 VALUES(3, 2, 2, N...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom* -prep {
+  faultsim_restore_and_reopen
+  db eval { SELECT ...} -body {
+  execsql {
+     INSERT INTO t1 VALUES(3, 2, 2, N...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 }

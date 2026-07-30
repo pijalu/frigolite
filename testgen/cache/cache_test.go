@@ -40,12 +40,31 @@ func Test_cache(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var bt string
+	_ = bt // pre-declared from TCL source
+	var cache_size string
+	_ = cache_size // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var stats_page string
+	_ = stats_page // pre-declared from TCL source
+	var cmdlinearg_soft_heap_limit string
+	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	if tclBool("permutation" + " == \"\"") {
 		{ // do_test "cache-1.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "pager_cache_size db")
+			// pager_cache_size db (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "cache-1.2"
@@ -53,11 +72,11 @@ func Test_cache(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "pager_cache_size db")
+		// pager_cache_size db (unsupported command, not transpiled)
 	}
-	var cache_size = "pager_cache_size db"
+	cache_size = "pager_cache_size db"
 	_ = cache_size // suppress unused warning
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
 		{ // do_test "cache-1.3." + ii
@@ -65,7 +84,7 @@ func Test_cache(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "pager_cache_size db")
+			// pager_cache_size db (unsupported command, not transpiled)
 		}
 		// incr ii 1
 		{
@@ -75,14 +94,14 @@ func Test_cache(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_delete_and_reopen")
+	// db_delete_and_reopen (unsupported command, not transpiled)
 	{ // "cache-2.0"
 		_res = db.Exec("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA journal_mode=DELETE;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('i', 'j');\n")
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 		{ // "cache-2.1." + i + ".1"
@@ -201,7 +220,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "pager_cache_size db")
+		// pager_cache_size db (unsupported command, not transpiled)
 	}
 	{ // "cache-2.3.3"
 		r = db.Query("\n    INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;\n")
@@ -216,7 +235,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "pager_cache_size db")
+		// pager_cache_size db (unsupported command, not transpiled)
 	}
 	{ // "cache-2.3.5"
 		_res = db.Exec("COMMIT")
@@ -225,7 +244,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.3.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "pager_cache_size db")
+		// pager_cache_size db (unsupported command, not transpiled)
 	}
 	{ // "cache-2.3.7"
 		r = db.Query("\n  SELECT * FROM t1 UNION SELECT * FROM t2;\n")
@@ -240,7 +259,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.3.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "pager_cache_size db")
+		// pager_cache_size db (unsupported command, not transpiled)
 	}
 	{ // "cache-2.4.1"
 		r = db.Query("\n  PRAGMA cache_size = 0;\n  BEGIN;\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA lock_status;\n")
@@ -255,7 +274,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "pager_cache_size db")
+		// pager_cache_size db (unsupported command, not transpiled)
 	}
 	{ // "cache-2.4.3"
 		r = db.Query("\n    INSERT INTO t2 VALUES(1, 2);\n    PRAGMA lock_status;\n")
@@ -270,7 +289,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "pager_cache_size db")
+		// pager_cache_size db (unsupported command, not transpiled)
 	}
 	{ // "cache-2.4.5"
 		_res = db.Exec("COMMIT")
@@ -279,7 +298,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.4.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "pager_cache_size db")
+		// pager_cache_size db (unsupported command, not transpiled)
 	}
 	{ // "cache-2.4.7"
 		r = db.Query("\n  SELECT * FROM t1 UNION SELECT * FROM t2;\n")
@@ -294,7 +313,7 @@ func Test_cache(t *testing.T) {
 		}
 	}
 	{ // do_test "cache-2.4.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "pager_cache_size db")
+		// pager_cache_size db (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
+	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 }

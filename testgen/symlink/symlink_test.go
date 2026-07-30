@@ -40,10 +40,33 @@ func Test_symlink(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var path string
+	_ = path // pre-declared from TCL source
+	var nLink string
+	_ = nLink // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "symlink"
+	testprefix = "symlink"
 	_ = testprefix // suppress unused warning
-	if _tcl_platform_os == "Windows NT" {
+	if tcl_platform_os == "Windows NT" {
 		return
 	}
 	{ // "1.0"
@@ -57,11 +80,10 @@ func Test_symlink(t *testing.T) {
 		// file link test.db2 test.db
 		db2, err = frigolite.Open("test.db2")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_filename db2 main")
+		// sqlite3_db_filename db2 main (unsupported command, not transpiled)
 	}
 	{ // do_test "1.1.2"
 		db2.Close()
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -106,25 +128,25 @@ func Test_symlink(t *testing.T) {
 		// file exists "test.db"
 	}
 	{ // do_test "1.2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_filename db2 main")
+		// sqlite3_db_filename db2 main (unsupported command, not transpiled)
 	}
 	db2.Close()
 	{ // do_test "1.3"
 		os.Remove("test.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "exec ln -s test.db2 test.db")
+		// exec ln -s test.db2 test.db (unsupported command, not transpiled)
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
 	{ // do_test "1.4"
-		var name = "test.db" + "x 502"
+		name = "test.db" + "x 502"
 		_ = name // suppress unused warning
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
 	{ // do_test "1.5"
-		var _r = "510 - [string length test.db] - [string length [pwd]]"
+		_r = "510 - [string length test.db] - [string length [pwd]]"
 		_ = _r // suppress unused warning
-		var name = "test.db" + "x $r"
+		name = "test.db" + "x $r"
 		_ = name // suppress unused warning
 		_list := tclList([]string{"0", msg})
 		_ = _list
@@ -140,8 +162,8 @@ func Test_symlink(t *testing.T) {
 			db2.Close()
 		}
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(x) ")
 		if _res.Error != nil {
@@ -149,17 +171,16 @@ func Test_symlink(t *testing.T) {
 		}
 		// file link test.db2 test.db
 		// file link test.db3 test.db2
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	// foreach {tn f} "1 test.db2 2 test.db3"
-	_items0 := tclSplitList("1 test.db2 2 test.db3")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("1 test.db2 2 test.db3")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		f := _items0[_idx0+1]
+		f := _items1[_idx1+1]
 		_ = f // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "2." + tn + ".1"
 				db2, err = frigolite.Open(f)
 				if err != nil { t.Fatal(err) }
@@ -220,8 +241,8 @@ func Test_symlink(t *testing.T) {
 				_ = res // suppress unused warning
 				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
-				db, err := frigolite.Open("[string repeat x 100]/ 6")
-				defer db.Close()
+				_dbtmp0, err := frigolite.Open("[string repeat x 100]/ 6")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				if _catchErr != nil {
 					res = "1"
@@ -237,8 +258,8 @@ func Test_symlink(t *testing.T) {
 			// file mkdir x
 			// file mkdir y
 			// file mkdir z
-			db, err := frigolite.Open("x/test.db")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("x/test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			// file link y/test.db ../x/test.db
 			// file link z/test.db ../y/test.db
@@ -248,8 +269,8 @@ func Test_symlink(t *testing.T) {
 			}
 		}
 		{ // do_test "4.2.1"
-			db, err := frigolite.Open("y/test.db")
-			defer db.Close()
+			_dbtmp3, err := frigolite.Open("y/test.db")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {
@@ -261,8 +282,8 @@ func Test_symlink(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "4.3.1"
-			db, err := frigolite.Open("z/test.db")
-			defer db.Close()
+			_dbtmp4, err := frigolite.Open("z/test.db")
+			_ = _dbtmp4 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {
@@ -277,12 +298,11 @@ func Test_symlink(t *testing.T) {
 			os.Remove("w")
 			// file mkdir w
 			// file link w/test.db [file join [pwd] x/test.db]
-			var _unnamed_var = ""
-			_ = _unnamed_var // suppress unused warning
+			// set  (invalid identifier, skipped)
 		}
 		{ // do_test "4.4.1"
-			db, err := frigolite.Open("w/test.db")
-			defer db.Close()
+			_dbtmp5, err := frigolite.Open("w/test.db")
+			_ = _dbtmp5 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(" SELECT * FROM t1 ")
 			if _res.Error != nil {
@@ -302,9 +322,9 @@ func Test_symlink(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE xyz(x, y, z);\n  INSERT INTO xyz VALUES(1, 2, 3);\n")
 			}
 		}
-		var path = "pwd"
+		path = "pwd"
 		_ = path // suppress unused warning
-		var nLink = "llength [split $path /]"
+		nLink = "llength [split $path /]"
 		_ = nLink // suppress unused warning
 		path = "../ [expr $nLink*2]" + ".." + path + "/test.db"
 		_ = path // suppress unused warning

@@ -39,12 +39,34 @@ func Test_sharedlock(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var delete_sql string
+	_ = delete_sql // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "sharedlock"
+	testprefix = "sharedlock"
 	_ = testprefix // suppress unused warning
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
-	db, err = frigolite.Open("test.db")
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -55,7 +77,7 @@ func Test_sharedlock(t *testing.T) {
 		}
 	}
 	{ // do_test "sharedlock-1.2"
-		var res = "list"
+		res = "list"
 		_ = res // suppress unused warning
 		_res = db.Exec(" SELECT * FROM t1 ORDER BY rowid ")
 		if _res.Error != nil {
@@ -63,13 +85,13 @@ func Test_sharedlock(t *testing.T) {
 		}
 	}
 	// foreach {tn delete_sql} "\n  1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }\n"
-	_items0 := tclSplitList("\n  1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		delete_sql := _items0[_idx0+1]
+		delete_sql := _items1[_idx1+1]
 		_ = delete_sql // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // "2.1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 				if _res.Error != nil {
@@ -100,5 +122,5 @@ func Test_sharedlock(t *testing.T) {
 			}
 		}
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+		// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

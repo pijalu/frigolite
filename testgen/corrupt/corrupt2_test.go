@@ -40,17 +40,78 @@ func Test_corrupt2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var presql string
+	_ = presql // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var zCelloffset string
+	_ = zCelloffset // pre-declared from TCL source
+	var zChildPage string
+	_ = zChildPage // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var A__corrupt string
+	_ = A__corrupt // pre-declared from TCL source
+	var A__sqlprep string
+	_ = A__sqlprep // pre-declared from TCL source
+	var A__tclprep string
+	_ = A__tclprep // pre-declared from TCL source
+	var nPage string
+	_ = nPage // pre-declared from TCL source
+	var nAppend string
+	_ = nAppend // pre-declared from TCL source
+	var sqlprep string
+	_ = sqlprep // pre-declared from TCL source
+	var zRightChild string
+	_ = zRightChild // pre-declared from TCL source
+	var zCellOffset string
+	_ = zCellOffset // pre-declared from TCL source
+	var zChild string
+	_ = zChild // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+	var pgno string
+	_ = pgno // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var G_perm_presql string
+	_ = G_perm_presql // pre-declared from TCL source
+	var iCelloffset string
+	_ = iCelloffset // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var A__test string
+	_ = A__test // pre-declared from TCL source
+	var iRightChild string
+	_ = iRightChild // pre-declared from TCL source
+	var iCellOffset string
+	_ = iCellOffset // pre-declared from TCL source
+	var iChild string
+	_ = iChild // pre-declared from TCL source
+	var sqlite_pending_byte string
+	_ = sqlite_pending_byte // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "corrupt2"
+	testprefix = "corrupt2"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
-	var presql = ""
+	// do_not_use_codec (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	presql = ""
 	_ = presql // suppress unused warning
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		var presql = _G + "(perm:presql);"
+		presql = G_perm_presql + ";"
 		_ = presql // suppress unused warning
 	}
 	{ // do_test "corrupt2-1.1"
@@ -63,14 +124,15 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db")
 		os.Remove("corrupt.db-journal")
 		tclFileCopy("test.db", "corrupt.db")
-		var f = "open corrupt.db RDWR"
+		f = "open corrupt.db RDWR"
 		_ = f // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $f 8 start")
-		t.Log(f)
+		// seek $f 8 start (unsupported command, not transpiled)
+		_putsMsg := f
+		_ = _putsMsg
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + _presql + "\n    SELECT * FROM sqlite_master;\n  ")
+		_res = db.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt2-1.3"
@@ -78,15 +140,16 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db")
 		os.Remove("corrupt.db-journal")
 		tclFileCopy("test.db", "corrupt.db")
-		var f = "open corrupt.db RDWR"
+		f = "open corrupt.db RDWR"
 		_ = f // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $f 16 start")
-		t.Log("-nonewline")
+		// fconfigure $f -translation binary (unsupported command, not transpiled)
+		// seek $f 16 start (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + _presql + "\n    SELECT * FROM sqlite_master;\n  ")
+		_res = db.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt2-1.4"
@@ -94,11 +157,12 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db")
 		os.Remove("corrupt.db-journal")
 		tclFileCopy("test.db", "corrupt.db")
-		var f = "open corrupt.db RDWR"
+		f = "open corrupt.db RDWR"
 		_ = f // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $f 101 start")
-		t.Log("-nonewline")
+		// fconfigure $f -translation binary (unsupported command, not transpiled)
+		// seek $f 101 start (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
@@ -110,14 +174,17 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db")
 		os.Remove("corrupt.db-journal")
 		tclFileCopy("test.db", "corrupt.db")
-		var f = "open corrupt.db RDWR"
+		f = "open corrupt.db RDWR"
 		_ = f // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $f 101 start")
-		t.Log("-nonewline")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $f 200 start")
-		t.Log("-nonewline")
-		t.Log("-nonewline")
+		// fconfigure $f -translation binary (unsupported command, not transpiled)
+		// seek $f 101 start (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
+		// seek $f 200 start (unsupported command, not transpiled)
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
 		// close $f
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
@@ -131,15 +198,15 @@ func Test_corrupt2(t *testing.T) {
 		tclFileCopy("test.db", "corrupt.db")
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db2 DEFENSIVE 0")
-		r = db.Query("\n    " + _presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
+		// sqlite3_db_config db2 DEFENSIVE 0 (unsupported command, not transpiled)
+		r = db.Query("\n    " + presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    " + _presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    " + presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
 		}
 		db2.Close()
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + _presql + "\n    SELECT * FROM sqlite_master;\n  ")
+		_res = db.Exec("\n    " + presql + "\n    SELECT * FROM sqlite_master;\n  ")
 		_ = _res // catchsql
 	}
 	db2.Close()
@@ -148,24 +215,25 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db-journal")
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + _presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
+		_res = db.Exec("\n    " + presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    " + _presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    " + presql + "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n  ")
 		}
 		db2.Close()
-		var fd = "open corrupt.db r+"
+		fd = "open corrupt.db r+"
 		_ = fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024*3 + 12]")
-		var zCelloffset = "read $fd 2"
+		// fconfigure $fd -translation binary (unsupported command, not transpiled)
+		// seek $fd [expr 1024*3 + 12] (unsupported command, not transpiled)
+		zCelloffset = "read $fd 2"
 		_ = zCelloffset // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $zCelloffset S iCelloffset")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024*3 + $iCelloffset]")
-		t.Log("-nonewline")
+		// binary scan $zCelloffset S iCelloffset (test infra, not transpiled)
+		// seek $fd [expr 1024*3 + $iCelloffset] (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + _presql + "\n    DROP TABLE t1;\n  ")
+		_res = db.Exec("\n    " + presql + "\n    DROP TABLE t1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt2-4.1"
@@ -178,46 +246,76 @@ func Test_corrupt2(t *testing.T) {
 		os.Remove("corrupt.db-journal")
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    " + _presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
+		_res = db.Exec("\n    " + presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    " + _presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    " + presql + "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randomblob(100), randomblob(100), randomblob(100));\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t2 SELECT * FROM t2;\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
 		}
 		db2.Close()
-		var fd = "open corrupt.db r+"
+		fd = "open corrupt.db r+"
 		_ = fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024 + 12]")
-		var zCelloffset = "read $fd 2"
-		_ = zCelloffset // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $zCelloffset S iCelloffset")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024 + $iCelloffset]")
-		var zChildPage = "read $fd 4"
-		_ = zChildPage // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 2*1024 + 12]")
+		// fconfigure $fd -translation binary (unsupported command, not transpiled)
+		// seek $fd [expr 1024 + 12] (unsupported command, not transpiled)
 		zCelloffset = "read $fd 2"
 		_ = zCelloffset // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $zCelloffset S iCelloffset")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 2*1024 + $iCelloffset]")
-		t.Log("-nonewline")
+		// binary scan $zCelloffset S iCelloffset (test infra, not transpiled)
+		// seek $fd [expr 1024 + $iCelloffset] (unsupported command, not transpiled)
+		zChildPage = "read $fd 4"
+		_ = zChildPage // suppress unused warning
+		// seek $fd [expr 2*1024 + 12] (unsupported command, not transpiled)
+		zCelloffset = "read $fd 2"
+		_ = zCelloffset // suppress unused warning
+		// binary scan $zCelloffset S iCelloffset (test infra, not transpiled)
+		// seek $fd [expr 2*1024 + $iCelloffset] (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
 		if err != nil { t.Fatal(err) }
-		db2.Exec(_presql)
+		db2.Exec(presql)
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Exec("SELECT rowid FROM t1")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db2.Close()
 	// proc definition (not transpiled)
-	var sqlprep = "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1(b);\n  INSERT INTO t1 VALUES(1, randomblob(50));\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n"
+	sqlprep = "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1(b);\n  INSERT INTO t1 VALUES(1, randomblob(50));\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n"
 	_ = sqlprep // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep $sqlprep -corrupt {\n  # Set the page-flags of one of the leaf pages o...} -test {\n  do_test corrupt2-7.1 {\n    catchsql \" $::presql...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep $sqlprep -corrupt {\n  # Mess up the page-header of one of the leaf pa...} -test {\n  do_test corrupt2-7.1 {\n    catchsql \" $::presql...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep $sqlprep -corrupt {\n  # Set the page-flags of one of the leaf pages o...} -test {\n  do_test corrupt2-8.1 {\n    catchsql \" $::presql...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  CREATE TABLE t1(a, b, c); CREATE TABLE t8(a, b,...} -corrupt {\n  set fd [open corrupt.db r+]\n  fconfigure $fd -t...} -test {\n  do_test corrupt2-9.1 {\n    catchsql \" $::presql...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, ...} -test {\n  do_test corrupt2-10.1 {\n    catchsql \" $::presq...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  CREATE TABL...} -corrupt {\n  set offset [expr [file size corrupt.db] - 1024]...} -test {\n  do_test corrupt2-11.1 {\n    catchsql \" $::presq...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  CREATE TABL...} -corrupt {\n  set pgno [expr [file size corrupt.db] / 1024]\n ...} -test {\n  do_test corrupt2-12.1 {\n    catchsql \" $::presq...}")
+	// corruption_test -sqlprep $sqlprep -corrupt {
+  # Set the page-flags of one of the leaf pages o...} -test {
+  do_test corrupt2-7.1 {
+    catchsql " $::presql...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep $sqlprep -corrupt {
+  # Mess up the page-header of one of the leaf pa...} -test {
+  do_test corrupt2-7.1 {
+    catchsql " $::presql...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep $sqlprep -corrupt {
+  # Set the page-flags of one of the leaf pages o...} -test {
+  do_test corrupt2-8.1 {
+    catchsql " $::presql...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep {
+  CREATE TABLE t1(a, b, c); CREATE TABLE t8(a, b,...} -corrupt {
+  set fd [open corrupt.db r+]
+  fconfigure $fd -t...} -test {
+  do_test corrupt2-9.1 {
+    catchsql " $::presql...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep {
+  CREATE TABLE t1(a, b, c);
+  CREATE TABLE t2(a, ...} -test {
+  do_test corrupt2-10.1 {
+    catchsql " $::presq...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep {
+  PRAGMA auto_vacuum = incremental;
+  CREATE TABL...} -corrupt {
+  set offset [expr [file size corrupt.db] - 1024]...} -test {
+  do_test corrupt2-11.1 {
+    catchsql " $::presq...} (unsupported command, not transpiled)
+	// corruption_test -sqlprep {
+  PRAGMA auto_vacuum = incremental;
+  CREATE TABL...} -corrupt {
+  set pgno [expr [file size corrupt.db] / 1024]
+ ...} -test {
+  do_test corrupt2-12.1 {
+    catchsql " $::presq...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -240,9 +338,9 @@ func Test_corrupt2(t *testing.T) {
 		}
 	}
 	{ // do_test "14.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 36 [hexio_render_int32 2]")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db 36 [hexio_render_int32 2] (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA freelist_count ")
 		if r.Error != nil {

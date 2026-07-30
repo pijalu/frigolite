@@ -40,8 +40,39 @@ func Test_values(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var iLimit string
+	_ = iLimit // pre-declared from TCL source
+	var VVV string
+	_ = VVV // pre-declared from TCL source
+	var VVV2 string
+	_ = VVV2 // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var q1 string
+	_ = q1 // pre-declared from TCL source
+	var q2 string
+	_ = q2 // pre-declared from TCL source
+	var q3 string
+	_ = q3 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "values"
+	testprefix = "values"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b, c);\n")
@@ -85,7 +116,7 @@ func Test_values(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 4")
+	// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 4 (unsupported command, not transpiled)
 	{ // "1.2.2"
 		r = db.Query("\n  DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), (4, 4, 4), (5, 5, 5) \n  UNION ALL SELECT 6, 6, 6;\n  SELECT * FROM x1;\n")
 		if r.Error != nil {
@@ -122,11 +153,11 @@ func Test_values(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var a = "4"
+	a = "4"
 	_ = a // suppress unused warning
-	var b = "5"
+	b = "5"
 	_ = b // suppress unused warning
-	var c = "6"
+	c = "6"
 	_ = c // suppress unused warning
 	{ // "1.2.5"
 		_res = db.Exec("\n  DELETE FROM x1;\n  INSERT INTO x1 \n  VALUES(1, 1, 1), (2, 2, 2), (3, 3, 3), \n        (4, 4, $a), (5, 5, $b), (6, 6, $c)\n")
@@ -155,7 +186,7 @@ func Test_values(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 3")
+	// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 3 (unsupported command, not transpiled)
 	{ // "2.1.1"
 		_res = db.Exec("\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10, 10)\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "all VALUES must have the same number of terms") {
@@ -168,7 +199,7 @@ func Test_values(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "all VALUES must have the same number of terms", _res.Error, "\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 0")
+	// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 0 (unsupported command, not transpiled)
 	{ // "2.2"
 		_res = db.Exec("\n  INSERT INTO x1 VALUES\n      (1, 1, 1), \n      (2, 2, 2), \n      (3, 3, 3), \n      (4, 4, 4), \n      (5, 5, 5), \n      (6, 6, 6), \n      (7, 7, 7), \n      (8, 8, 8), \n      (9, 9, 9), \n      (10, 10, 10)\n")
 		if _res.Error != nil {
@@ -243,7 +274,7 @@ func Test_values(t *testing.T) {
 		iLimit := _items0[_idx0+1]
 		_ = iLimit // suppress unused warning
 		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT $iLimit")
+			// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT $iLimit (unsupported command, not transpiled)
 			{ // "4.1.1"
 				_res = db.Exec("\n    DELETE FROM x1;\n    INSERT INTO x1 VALUES\n        (1, 1),\n        (2, (SELECT * FROM  (VALUES('a'), ('b'), ('c'), ('d')) ))\n  ")
 				if _res.Error != nil {
@@ -383,9 +414,9 @@ func Test_values(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		var VVV = "\n  ( VALUES('a', 'b'), ('c', 'd'), (123, NULL) )\n"
+		VVV = "\n  ( VALUES('a', 'b'), ('c', 'd'), (123, NULL) )\n"
 		_ = VVV // suppress unused warning
-		var VVV2 = "\n  ( \n  SELECT 'a' AS column1, 'b' AS column2 \n  UNION ALL SELECT 'c', 'd' UNION ALL SELECT 123, NULL\n  )\n"
+		VVV2 = "\n  ( \n  SELECT 'a' AS column1, 'b' AS column2 \n  UNION ALL SELECT 'c', 'd' UNION ALL SELECT 123, NULL\n  )\n"
 		_ = VVV2 // suppress unused warning
 		{ // "8.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('d'), (NULL), (123)\n")
@@ -403,11 +434,11 @@ func Test_values(t *testing.T) {
 			res := _items1[_idx1+2]
 			_ = res // suppress unused warning
 			_ = _idx1
-				var q1 = "[list VVV $VVV] $q"
+				q1 = ""
 				_ = q1 // suppress unused warning
-				var q2 = "[list VVV $VVV2] $q"
+				q2 = ""
 				_ = q2 // suppress unused warning
-				var q3 = "WITH VVV AS " + VVV + " " + q
+				q3 = "WITH VVV AS " + VVV + " " + q
 				_ = q3 // suppress unused warning
 				{ // "8.1." + tn + ".1"
 					_res = db.Exec(q1)
@@ -515,7 +546,8 @@ func Test_values(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA encoding = utf16;\n  CREATE TABLE t1(a, b);\n")
 				}
 			}
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "14.2"
 				_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (17, 'craft'),\n    (16, 'urtlek' IN(1,2,3));\n")

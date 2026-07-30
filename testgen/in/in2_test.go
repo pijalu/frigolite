@@ -40,6 +40,19 @@ func Test_in2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "in2-1"
 		_res = db.Exec("\n    CREATE TABLE a(i INTEGER PRIMARY KEY, a);\n  ")
@@ -47,22 +60,21 @@ func Test_in2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE a(i INTEGER PRIMARY KEY, a);\n  ")
 		}
 	}
-	var _N = "2000" // TCL namespace variable
-	_ = _N // suppress unused warning
+	N = "2000" // TCL namespace variable
+	_ = N // suppress unused warning
 	{ // do_test "in2-2"
-		var _ii = "0" // TCL namespace variable
-		_ = _ii // suppress unused warning
-		for func() bool { _ii_n, __ii_e := strconv.Atoi(_ii); if __ii_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return _ii_n < _N_n }() {
+		ii = "0" // TCL namespace variable
+		_ = ii // suppress unused warning
+		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return ii_n < N_n }() {
 			_res = db.Exec("INSERT INTO a VALUES($::ii, $::ii)")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a VALUES($::ii, $::ii)")
 			}
-			var _ii = "0"
-			// incr _ii 1
+			// incr ii 1
 			{
-				_n, _err := strconv.Atoi(_ii)
+				_n, _err := strconv.Atoi(ii)
 				if _err == nil {
-					_ii = strconv.Itoa(_n + 1)
+					ii = strconv.Itoa(_n + 1)
 				}
 			}
 		}
@@ -70,39 +82,38 @@ func Test_in2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a VALUES(4000, '')")
 		}
-		var _ii = "0" // TCL namespace variable
-		_ = _ii // suppress unused warning
-		for func() bool { _ii_n, __ii_e := strconv.Atoi(_ii); if __ii_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return _ii_n < _N_n }() {
-			var _t = "format \"x%04d\" $ii" // TCL namespace variable
+		ii = "0" // TCL namespace variable
+		_ = ii // suppress unused warning
+		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return ii_n < N_n }() {
+			_t = "format \"x%04d\" $ii" // TCL namespace variable
 			_ = _t // suppress unused warning
 			_res = db.Exec("INSERT INTO a VALUES(NULL, $::t)")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a VALUES(NULL, $::t)")
 			}
-			// incr _ii 1
+			// incr ii 1
 			{
-				_n, _err := strconv.Atoi(_ii)
+				_n, _err := strconv.Atoi(ii)
 				if _err == nil {
-					_ii = strconv.Itoa(_n + 1)
+					ii = strconv.Itoa(_n + 1)
 				}
 			}
 		}
 	}
-	var _ii = "3" // TCL namespace variable
-	_ = _ii // suppress unused warning
-	for func() bool { _ii_n, __ii_e := strconv.Atoi(_ii); if __ii_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return _ii_n < _N_n }() {
-		{ // do_test "in2-" + _ii
+	ii = "3" // TCL namespace variable
+	_ = ii // suppress unused warning
+	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return ii_n < N_n }() {
+		{ // do_test "in2-" + ii
 			r = db.Query("\n      SELECT 1 IN (SELECT a FROM a WHERE (i < $::ii) OR (i >= $::N))\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1 IN (SELECT a FROM a WHERE (i < $::ii) OR (i >= $::N))\n    ")
 			}
 		}
-		var _ii = "0"
-		// incr _ii 1
+		// incr ii 1
 		{
-			_n, _err := strconv.Atoi(_ii)
+			_n, _err := strconv.Atoi(ii)
 			if _err == nil {
-				_ii = strconv.Itoa(_n + 1)
+				ii = strconv.Itoa(_n + 1)
 			}
 		}
 	}

@@ -41,8 +41,25 @@ func Test_waloverwrite(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var xtra string
+	_ = xtra // pre-declared from TCL source
+	var nPg string
+	_ = nPg // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "waloverwrite"
+	testprefix = "waloverwrite"
 	_ = testprefix // suppress unused warning
 	// foreach {tn xtra} "\n  1 {}\n  2 { UPDATE t1 SET y = randomblob(799) WHERE x=4 }\n"
 	_items0 := tclSplitList("\n  1 {}\n  2 { UPDATE t1 SET y = randomblob(799) WHERE x=4 }\n")
@@ -62,13 +79,13 @@ func Test_waloverwrite(t *testing.T) {
 				}
 			}
 			{ // do_test "1." + tn + ".1"
-				var nPg = "db one { PRAGMA page_count }"
+				nPg = "db one { PRAGMA page_count }"
 				_ = nPg // suppress unused warning
 				// expr $nPg>40 → "$nPg>40"
 			}
 			{ // do_test "1." + tn + ".2"
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				r = db.Query("PRAGMA journal_mode = wal")
 				if r.Error != nil {
@@ -82,7 +99,7 @@ func Test_waloverwrite(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, xtra)
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5 }() {
 					// skip: foreach over unresolved TCL command
@@ -94,7 +111,7 @@ func Test_waloverwrite(t *testing.T) {
 						}
 					}
 				}
-				var nPg = "wal_frame_count test.db-wal 1024"
+				nPg = "wal_frame_count test.db-wal 1024"
 				_ = nPg // suppress unused warning
 				// expr $nPg>40 → "$nPg>40"
 			}
@@ -143,7 +160,7 @@ func Test_waloverwrite(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1 }() {
 					// skip: foreach over unresolved TCL command
@@ -179,7 +196,7 @@ func Test_waloverwrite(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK TO abc")
 				}
-				var nPg = "wal_frame_count test.db-wal 1024"
+				nPg = "wal_frame_count test.db-wal 1024"
 				_ = nPg // suppress unused warning
 				// expr $nPg>55 → "$nPg>55"
 			}

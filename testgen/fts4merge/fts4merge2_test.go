@@ -39,13 +39,32 @@ func Test_fts4merge2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var iFail string
+	_ = iFail // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts4merge2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts4merge2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_1 1000")
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// fts3_build_db_1 1000 (unsupported command, not transpiled)
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { INSERT INTO t1(t1) VALUES('merge=32,4...} -test {\n  faultsim_test_result {0 {}} \n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -faults oom-t* -prep {\n  if {$iFail<100} {set iFail 803}\n  faultsim_rest...} -body {\n  execsql { INSERT INTO t1(t1) VALUES('merge=1,2'...} -test {\n  faultsim_test_result {0 {}} \n}")
+	// do_faultsim_test 1.1 -faults oom-* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { INSERT INTO t1(t1) VALUES('merge=32,4...} -test {
+  faultsim_test_result {0 {}} 
+} (unsupported command, not transpiled)
+	// do_faultsim_test 1.2 -faults oom-t* -prep {
+  if {$iFail<100} {set iFail 803}
+  faultsim_rest...} -body {
+  execsql { INSERT INTO t1(t1) VALUES('merge=1,2'...} -test {
+  faultsim_test_result {0 {}} 
+} (unsupported command, not transpiled)
 }

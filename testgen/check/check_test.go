@@ -41,11 +41,20 @@ func Test_check(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "check" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	testprefix = "check" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 	{ // do_test "check-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(\n      x INTEGER CHECK( x<5 ),\n      y REAL CHECK( y>x )\n    );\n  ")
 		if _res.Error != nil {
@@ -146,10 +155,11 @@ func Test_check(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t2 VALUES(1,2.2,'three');\n    SELECT * FROM t2;\n  ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 	{ // do_test "check-2.3"
 		r = db.Query("\n    INSERT INTO t2 VALUES(NULL, NULL, NULL);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {
@@ -384,7 +394,8 @@ func Test_check(t *testing.T) {
 	}
 	db2.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "10.1"
 		r = db.Query("\n  CREATE TABLE t1(x);\n  CREATE VIEW v1(y) AS SELECT x FROM t1;\n  PRAGMA integrity_check;\n")

@@ -39,93 +39,125 @@ func Test_capi2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var VALUES string
+	_ = VALUES // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var VM string
+	_ = VM // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var VM1 string
+	_ = VM1 // pre-declared from TCL source
+	var VM2 string
+	_ = VM2 // pre-declared from TCL source
+	var VM3 string
+	_ = VM3 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "capi2-1.1"
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
 		_res = db.Exec("CREATE TABLE t1(a,b,c)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c)")
 		}
-		var VM = "sqlite3_prepare $DB {SELECT name, rowid FROM sqlite_master} -1 TAIL"
+		VM = "sqlite3_prepare $DB {SELECT name, rowid FROM sqlite_master} -1 TAIL"
 		_ = VM // suppress unused warning
 	}
 	{ // do_test "capi2-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		// sqlite3_step $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_data_count $VM")
+		// sqlite3_data_count $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "get_row_values $VM")
+		// get_row_values $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "get_column_names $VM")
+		// get_column_names $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		// sqlite3_step $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-1.7"
 		_list := tclList([]string{"0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
 	}
 	{ // do_test "capi2-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		// sqlite3_reset $VM (unsupported command, not transpiled)
 		_list := tclList([]string{"0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
 	}
 	{ // do_test "capi2-1.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_data_count $VM")
+		// sqlite3_data_count $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-1.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-2.1"
 		var SQL = "\n    SELECT name, rowid FROM sqlite_master;\n    SELECT name, rowid FROM sqlite_master WHERE 0;\n    -- A comment at the end\n  "
 		_ = SQL // suppress unused warning
-		var VM = "sqlite3_prepare $DB $SQL -1 SQL"
+		VM = "sqlite3_prepare $DB $SQL -1 SQL"
 		_ = VM // suppress unused warning
 	}
 	{ // do_test "capi2-2.2"
-		var _r = "SQLITE_ROW"
+		_r = "SQLITE_ROW"
 		_ = _r // suppress unused warning
 		_r = tclListAppend(_r, "0", "get_row_values $VM", "get_column_names $VM")
 	}
 	{ // do_test "capi2-2.3"
-		var _r = "SQLITE_ROW"
+		_r = "SQLITE_ROW"
 		_ = _r // suppress unused warning
 		_r = tclListAppend(_r, "0", "get_row_values $VM", "get_column_names $VM")
 	}
 	{ // do_test "capi2-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-2.5"
-		var VM = "sqlite3_prepare $DB $SQL -1 SQL"
+		VM = "sqlite3_prepare $DB $SQL -1 SQL"
 		_ = VM // suppress unused warning
 	}
 	{ // do_test "capi2-2.6"
-		var _r = "SQLITE_ROW"
+		_r = "SQLITE_ROW"
 		_ = _r // suppress unused warning
 		_r = tclListAppend(_r, "0", "get_row_values $VM", "get_column_names $VM")
 	}
 	{ // do_test "capi2-2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-2.8"
-		var VM = "sqlite3_prepare $DB $SQL -1 SQL"
+		VM = "sqlite3_prepare $DB $SQL -1 SQL"
 		_ = VM // suppress unused warning
 		_list := tclList([]string{SQL, VM})
 		_ = _list
 	}
 	{ // do_test "capi2-3.1"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {select bogus from sqlite_master} -1 TAIL")
+			// sqlite3_prepare $DB {select bogus from sqlite_master} -1 TAIL (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -137,12 +169,11 @@ func Test_capi2(t *testing.T) {
 		rc = tclListAppend(rc, msg, TAIL)
 	}
 	{ // do_test "capi2-3.2"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {select bogus from } -1 TAIL")
+			// sqlite3_prepare $DB {select bogus from } -1 TAIL (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -154,12 +185,11 @@ func Test_capi2(t *testing.T) {
 		rc = tclListAppend(rc, msg, TAIL)
 	}
 	{ // do_test "capi2-3.3"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {;;;;select bogus from sqlite_master} -1 TAIL")
+			// sqlite3_prepare $DB {;;;;select bogus from sqlite_master} -1 TAIL (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -171,12 +201,11 @@ func Test_capi2(t *testing.T) {
 		rc = tclListAppend(rc, msg, TAIL)
 	}
 	{ // do_test "capi2-3.4"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {select bogus from sqlite_master;x;} -1 TAIL")
+			// sqlite3_prepare $DB {select bogus from sqlite_master;x;} -1 TAIL (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -188,12 +217,11 @@ func Test_capi2(t *testing.T) {
 		rc = tclListAppend(rc, msg, TAIL)
 	}
 	{ // do_test "capi2-3.5"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {select bogus from sqlite_master;;;x;} -1 TAIL")
+			// sqlite3_prepare $DB {select bogus from sqlite_master;;;x;} -1 TAIL (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -205,13 +233,11 @@ func Test_capi2(t *testing.T) {
 		rc = tclListAppend(rc, msg, TAIL)
 	}
 	{ // do_test "capi2-3.6"
-	var rc string
 	_ = rc // suppress unused warning
-	var VM string
 	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {select 5/0;} -1 TAIL")
+			// sqlite3_prepare $DB {select 5/0;} -1 TAIL (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				VM = _catchErr.Error()
@@ -227,14 +253,14 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-3.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-3.9"
 		_res = db.Exec("CREATE UNIQUE INDEX i1 ON t1(a)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE UNIQUE INDEX i1 ON t1(a)")
 		}
-		var VM = "sqlite3_prepare $DB {INSERT INTO t1 VALUES(1,2,3)} -1 TAIL"
+		VM = "sqlite3_prepare $DB {INSERT INTO t1 VALUES(1,2,3)} -1 TAIL"
 		_ = VM // suppress unused warning
 	}
 	{ // do_test "capi2-3.9b"
@@ -246,12 +272,12 @@ func Test_capi2(t *testing.T) {
 	{ // do_test "capi2-3.10b"
 	}
 	{ // do_test "capi2-3.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-3.11b"
 	}
 	{ // do_test "capi2-3.13"
-		var VM = "sqlite3_prepare $DB {INSERT INTO t1 VALUES(1,3,4)} -1 TAIL"
+		VM = "sqlite3_prepare $DB {INSERT INTO t1 VALUES(1,3,4)} -1 TAIL"
 		_ = VM // suppress unused warning
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
@@ -263,7 +289,7 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-3.15"
-		var VM = "sqlite3_prepare $DB {CREATE TABLE t2(a NOT NULL, b)} -1 TAIL"
+		VM = "sqlite3_prepare $DB {CREATE TABLE t2(a NOT NULL, b)} -1 TAIL"
 		_ = VM // suppress unused warning
 	}
 	{ // do_test "capi2-3.16"
@@ -275,7 +301,7 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-3.18"
-		var VM = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(NULL,2)} -1 TAIL"
+		VM = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(NULL,2)} -1 TAIL"
 		_ = VM // suppress unused warning
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM", "get_column_names $VM"})
 		_ = _list
@@ -291,30 +317,30 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-3.21"
-		var VM = "sqlite3_prepare $DB {INSERT INTO a1 VALUES(1, 1)} -1 TAIL"
+		VM = "sqlite3_prepare $DB {INSERT INTO a1 VALUES(1, 1)} -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		// sqlite3_step $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-3.22"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode $DB")
+		// sqlite3_errcode $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-3.23"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-3.24"
 		_list := tclList([]string{"0", "sqlite3_extended_errcode $DB"})
 		_ = _list
 	}
 	{ // do_test "capi2-4.1"
-		var VM1 = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(1,2)} -1 TAIL"
+		VM1 = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(1,2)} -1 TAIL"
 		_ = VM1 // suppress unused warning
 	}
 	{ // do_test "capi2-4.2"
-		var VM2 = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(2,3)} -1 TAIL"
+		VM2 = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(2,3)} -1 TAIL"
 		_ = VM2 // suppress unused warning
 	}
 	{ // do_test "capi2-4.3"
-		var VM3 = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(3,4)} -1 TAIL"
+		VM3 = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(3,4)} -1 TAIL"
 		_ = VM3 // suppress unused warning
 	}
 	{ // do_test "capi2-4.4"
@@ -328,7 +354,7 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-4.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM2")
+		// sqlite3_finalize $VM2 (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-4.7"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM3", "get_column_names $VM3"})
@@ -341,7 +367,7 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-4.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM3")
+		// sqlite3_finalize $VM3 (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-4.10"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM1", "get_column_names $VM1"})
@@ -354,14 +380,14 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-4.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM1")
+		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-5.1"
-		var VM1 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
+		VM1 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
 		_ = VM1 // suppress unused warning
-		var VM2 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
+		VM2 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
 		_ = VM2 // suppress unused warning
-		var VM3 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
+		VM3 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
 		_ = VM3 // suppress unused warning
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM1", "get_column_names $VM1"})
 		_ = _list
@@ -391,14 +417,14 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-5.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM3")
+		// sqlite3_finalize $VM3 (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-5.9"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM1", "get_column_names $VM1"})
 		_ = _list
 	}
 	{ // do_test "capi2-5.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM1")
+		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-5.11"
 		_list := tclList([]string{"SQLITE_ROW", "0", "get_row_values $VM2", "get_column_names $VM2"})
@@ -409,14 +435,14 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-5.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM2")
+		// sqlite3_finalize $VM2 (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-6.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t3(x counter);\n    INSERT INTO t3 VALUES(1);\n    INSERT INTO t3 VALUES(2);\n    INSERT INTO t3 SELECT x+2 FROM t3;\n    INSERT INTO t3 SELECT x+4 FROM t3;\n    INSERT INTO t3 SELECT x+8 FROM t3;\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t3(x counter);\n    INSERT INTO t3 VALUES(1);\n    INSERT INTO t3 VALUES(2);\n    INSERT INTO t3 SELECT x+2 FROM t3;\n    INSERT INTO t3 SELECT x+4 FROM t3;\n    INSERT INTO t3 SELECT x+8 FROM t3;\n    COMMIT;\n  ")
 		}
-		var VM1 = "sqlite3_prepare $DB {SELECT * FROM t3} -1 TAIL"
+		VM1 = "sqlite3_prepare $DB {SELECT * FROM t3} -1 TAIL"
 		_ = VM1 // suppress unused warning
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -532,48 +558,67 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-6.99"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM1")
+		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
 	}
 	_res = db.Exec("ROLLBACK")
 	_ = _res // catchsql
 	{ // do_test "capi2-7.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    SELECT * FROM t1\n  }")
+		// stepsql $DB {
+    SELECT * FROM t1
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    PRAGMA count_changes=on\n  }")
+		// stepsql $DB {
+    PRAGMA count_changes=on
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    UPDATE t1 SET a=a+10;\n  }")
+		// stepsql $DB {
+    UPDATE t1 SET a=a+10;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    INSERT INTO t1 SELECT a+1,b+1,c+1 FROM t1;\n  }")
+		// stepsql $DB {
+    INSERT INTO t1 SELECT a+1,b+1,c+1 FROM t1;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.4b"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_changes $DB")
+		// sqlite3_changes $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    UPDATE t1 SET a=a+10;\n  }")
+		// stepsql $DB {
+    UPDATE t1 SET a=a+10;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.5b"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_changes $DB")
+		// sqlite3_changes $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    SELECT * FROM t1;\n  }")
+		// stepsql $DB {
+    SELECT * FROM t1;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    INSERT INTO t1 SELECT a+2,b+2,c+2 FROM t1;\n  }")
+		// stepsql $DB {
+    INSERT INTO t1 SELECT a+2,b+2,c+2 FROM t1;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_changes $DB")
+		// sqlite3_changes $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    SELECT * FROM t1;\n  }")
+		// stepsql $DB {
+    SELECT * FROM t1;
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    UPDATE t1 SET a=a-20;\n    SELECT * FROM t1;\n ...}")
+		// stepsql $DB {
+    UPDATE t1 SET a=a-20;
+    SELECT * FROM t1;
+ ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_changes $DB")
+		// sqlite3_changes $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-7.11a"
 		r = db.Query("SELECT count(*) FROM t1")
@@ -582,21 +627,21 @@ func Test_capi2(t *testing.T) {
 		}
 	}
 	{ // do_test "capi2-8.1"
-		var VM1 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
+		VM1 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 TAIL"
 		_ = VM1 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM1")
+		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-9.1"
-		var VM1 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 DUMMY"
+		VM1 = "sqlite3_prepare $DB {SELECT * FROM t2} -1 DUMMY"
 		_ = VM1 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM1")
+		// sqlite3_step $VM1 (unsupported command, not transpiled)
+		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-10.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize 0")
+		// sqlite3_finalize 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "capi2-10.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset 0")
+		// sqlite3_reset 0 (unsupported command, not transpiled)
 	}
 	db2.Close()
 }

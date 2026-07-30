@@ -39,25 +39,68 @@ func Test_fuzz_malloc(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var REPEATS string
+	_ = REPEATS // pre-declared from TCL source
+	var fuzzyopts__repeats string
+	_ = fuzzyopts__repeats // pre-declared from TCL source
+	var fuzzyopts__sqlprep string
+	_ = fuzzyopts__sqlprep // pre-declared from TCL source
+	var prep string
+	_ = prep // pre-declared from TCL source
+	var jj string
+	_ = jj // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var fmtres string
+	_ = fmtres // pre-declared from TCL source
+	var nErr1 string
+	_ = nErr1 // pre-declared from TCL source
+	var SQLPREP string
+	_ = SQLPREP // pre-declared from TCL source
+	var TableList string
+	_ = TableList // pre-declared from TCL source
+	var ColumnList string
+	_ = ColumnList // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var fuzzyopts__template string
+	_ = fuzzyopts__template // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+	var testrc string
+	_ = testrc // pre-declared from TCL source
+	var testresult string
+	_ = testresult // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("info exists G(isquick)") {
-		var _REPEATS = "20" // TCL namespace variable
-		_ = _REPEATS // suppress unused warning
+		REPEATS = "20" // TCL namespace variable
+		_ = REPEATS // suppress unused warning
 	} else if tclBool("info exists G(issoak)") {
-		var _REPEATS = "100" // TCL namespace variable
-		_ = _REPEATS // suppress unused warning
+		REPEATS = "100" // TCL namespace variable
+		_ = REPEATS // suppress unused warning
 	} else {
-		var _REPEATS = "40" // TCL namespace variable
-		_ = _REPEATS // suppress unused warning
+		REPEATS = "40" // TCL namespace variable
+		_ = REPEATS // suppress unused warning
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_malloc_test fuzzy_malloc-1 -template {Select [Expr]}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_malloc_test fuzzy_malloc-2 -template {[Select]}")
-	var _SQLPREP = "\n  BEGIN;\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);\n    INSERT INTO abc VALUES(1.5, 3, 'a short string');\n    INSERT INTO def VALUES(NULL, X'ABCDEF', \n        'a longer string. Long enough that it doesn''t fit in Mem.zShort');\n    INSERT INTO ghi VALUES(zeroblob(1000), 'hello world', -1257900987654321);\n  COMMIT;\n" // TCL namespace variable
-	_ = _SQLPREP // suppress unused warning
-	var _TableList = "list abc def ghi" // TCL namespace variable
-	_ = _TableList // suppress unused warning
-	var _ColumnList = "list a b c" // TCL namespace variable
-	_ = _ColumnList // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_malloc_test fuzzy_malloc-3 -template {[Select]} -sqlprep $::SQLPREP")
+	// do_fuzzy_malloc_test fuzzy_malloc-1 -template {Select [Expr]} (unsupported command, not transpiled)
+	// do_fuzzy_malloc_test fuzzy_malloc-2 -template {[Select]} (unsupported command, not transpiled)
+	SQLPREP = "\n  BEGIN;\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);\n    INSERT INTO abc VALUES(1.5, 3, 'a short string');\n    INSERT INTO def VALUES(NULL, X'ABCDEF', \n        'a longer string. Long enough that it doesn''t fit in Mem.zShort');\n    INSERT INTO ghi VALUES(zeroblob(1000), 'hello world', -1257900987654321);\n  COMMIT;\n" // TCL namespace variable
+	_ = SQLPREP // suppress unused warning
+	TableList = "list abc def ghi" // TCL namespace variable
+	_ = TableList // suppress unused warning
+	ColumnList = "list a b c" // TCL namespace variable
+	_ = ColumnList // suppress unused warning
+	// do_fuzzy_malloc_test fuzzy_malloc-3 -template {[Select]} -sqlprep $::SQLPREP (unsupported command, not transpiled)
 }

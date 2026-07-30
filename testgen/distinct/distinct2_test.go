@@ -39,8 +39,15 @@ func Test_distinct2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "distinct2"
+	testprefix = "distinct2"
 	_ = testprefix // suppress unused warning
 	{ // "100"
 		r = db.Query("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n  INSERT INTO t1 VALUES(0),(1),(2);\n  CREATE TABLE t2 AS\n     SELECT DISTINCT a.x AS aa, b.x AS bb\n      FROM t1 a, t1 b;\n  SELECT *, '|' FROM t2 ORDER BY aa, bb;\n")
@@ -276,7 +283,8 @@ func Test_distinct2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1000"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER);\n  CREATE INDEX t2y ON t2(y);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<49)\n    INSERT INTO t1(b) SELECT x/10 - 1 FROM c;\n  WITH RECURSIVE c(x) AS (VALUES(-1) UNION ALL SELECT x+1 FROM c WHERE x<19)\n    INSERT INTO t2(x,y) SELECT x, 1 FROM c;\n  SELECT DISTINCT y FROM t1, t2 WHERE b=x AND b<>-1;\n  ANALYZE;\n  SELECT DISTINCT y FROM t1, t2 WHERE b=x AND b<>-1;\n")
@@ -290,7 +298,8 @@ func Test_distinct2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp1, err := frigolite.Open(":memory:")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1010"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b INTEGER);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INTEGER);\n  CREATE INDEX t2y ON t2(y);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<49)\n    INSERT INTO t1(b) SELECT -(x/10 - 1) FROM c;\n  WITH RECURSIVE c(x) AS (VALUES(-1) UNION ALL SELECT x+1 FROM c WHERE x<19)\n    INSERT INTO t2(x,y) SELECT -x, 1 FROM c;\n  SELECT DISTINCT y FROM t1, t2 WHERE b=x AND b<>1 ORDER BY y DESC;\n  ANALYZE;\n  SELECT DISTINCT y FROM t1, t2 WHERE b=x AND b<>1 ORDER BY y DESC;\n")
@@ -304,7 +313,8 @@ func Test_distinct2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp2, err := frigolite.Open(":memory:")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1020"
 		r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX t1a ON t1(a, b);\n  -- Lots of rows of (1, 'no'), followed by a single (1, 'yes').\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a, b) SELECT 1, 'no' FROM c;\n  INSERT INTO t1(a, b) VALUES(1, 'yes');\n  CREATE TABLE t2(x PRIMARY KEY);\n  INSERT INTO t2 VALUES('yes');\n  SELECT DISTINCT a FROM t1, t2 WHERE x=b;\n  ANALYZE;\n  SELECT DISTINCT a FROM t1, t2 WHERE x=b;\n")

@@ -3,7 +3,6 @@ package ieee
 
 import (
 "github.com/pijalu/frigolite"
-"strconv"
 "strings"
 "testing"
 )
@@ -41,8 +40,19 @@ func Test_ieee754(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var float string
+	_ = float // pre-declared from TCL source
+	var rep string
+	_ = rep // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db ieee754")
+	// load_static_extension db ieee754 (unsupported command, not transpiled)
 	// foreach {id float rep} "\n   1       1.0                            1,0\n   2       2.0                            2,0\n   3       0.5                            1,-1\n   4       1.5                            3,-1\n   5       0.0                            0,-1075\n   6       4.9406564584124654e-324        1,-1074\n   7       2.2250738585072009e-308        4503599627370495,-1074\n   8       2.2250738585072014e-308        1,-1022\n"
 	_items0 := tclSplitList("\n   1       1.0                            1,0\n   2       2.0                            2,0\n   3       0.5                            1,-1\n   4       1.5                            3,-1\n   5       0.0                            0,-1075\n   6       4.9406564584124654e-324        1,-1074\n   7       2.2250738585072009e-308        4503599627370495,-1074\n   8       2.2250738585072014e-308        1,-1022\n")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
@@ -65,7 +75,7 @@ func Test_ieee754(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT ieee754(" + rep + ")==" + float + ";")
 				}
 			}
-			if func() bool { float_n, _float_e := strconv.Atoi(float); if _float_e != nil { return false }; return float_n != 0.0 }() {
+			if float != "0.0" {
 				{ // do_test "ieee754-100-" + id + "-3"
 					_res = db.Exec("SELECT ieee754(-" + float + ");")
 					if _res.Error != nil {

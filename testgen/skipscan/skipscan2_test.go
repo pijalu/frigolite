@@ -40,6 +40,13 @@ func Test_skipscan2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "skipscan2-1.1"
 		_res = db.Exec("\n  CREATE TABLE people(\n    name TEXT PRIMARY KEY,\n    role TEXT NOT NULL,\n    height INT NOT NULL, -- in cm\n    CHECK( role IN ('student','teacher') )\n  );\n  CREATE INDEX people_idx1 ON people(role, height);\n")
@@ -276,7 +283,7 @@ func Test_skipscan2(t *testing.T) {
 		}
 	}
 	{ // do_test "skipscan2-3.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			_res = db.Exec(" INSERT INTO t3 VALUES($i%2, $i, 'xyz') ")

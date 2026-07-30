@@ -40,8 +40,15 @@ func Test_vtabK(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "vtabK"
+	testprefix = "vtabK"
 	_ = testprefix // suppress unused warning
 	{ // "100"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(123);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE sqlite_stat1 USING fts5(a);\n  PRAGMA writable_schema=OFF;\n  CREATE VIRTUAL TABLE t3 USING fts5(b);\n  INSERT INTO t3 VALUES('this is a test');\n")

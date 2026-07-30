@@ -39,8 +39,25 @@ func Test_tkt_f67b41381a(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var tbls string
+	_ = tbls // pre-declared from TCL source
+	var xfer string
+	_ = xfer // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var opcode string
+	_ = opcode // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tkt-f67b41381a"
+	testprefix = "tkt-f67b41381a"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  ALTER TABLE t1 ADD COLUMN b DEFAULT 2;\n  CREATE TABLE t2(a, b);\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT * FROM t2;\n")
@@ -72,7 +89,7 @@ func Test_tkt_f67b41381a(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, tbls)
 			}
-			var res = "1"
+			res = "1"
 			_ = res // suppress unused warning
 			_res = db.Exec(" EXPLAIN INSERT INTO t1 SELECT * FROM t2 ")
 			if _res.Error != nil {

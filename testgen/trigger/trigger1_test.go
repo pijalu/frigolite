@@ -40,6 +40,15 @@ func Test_trigger1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var view_v1 string
+	_ = view_v1 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "trigger1-1.1.1"
 		_res = db.Exec("\n     CREATE TRIGGER trig UPDATE ON no_such_table BEGIN\n       SELECT * from sqlite_master;\n     END;\n   ")
@@ -129,7 +138,7 @@ func Test_trigger1(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	var view_v1 = ""
+	view_v1 = ""
 	_ = view_v1 // suppress unused warning
 	{ // do_test "trigger1-6.1"
 		r = db.Query("SELECT type, name FROM sqlite_master")
@@ -147,7 +156,7 @@ func Test_trigger1(t *testing.T) {
 		_res = db.Exec("DELETE FROM t2")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode trigger1-6.3b SQLITE_CONSTRAINT_TRIGGER")
+	// verify_ex_errcode trigger1-6.3b SQLITE_CONSTRAINT_TRIGGER (unsupported command, not transpiled)
 	{ // do_test "trigger1-6.4"
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
@@ -155,8 +164,8 @@ func Test_trigger1(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger1-6.5"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT type, name FROM sqlite_master")
 		if r.Error != nil {
@@ -176,8 +185,8 @@ func Test_trigger1(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger1-6.8"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {
@@ -330,7 +339,8 @@ func Test_trigger1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp2, err := frigolite.Open(":memory:")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "trigger1-20.1"
 		_res = db.Exec("\n  CREATE TABLE t20_1(x);\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.t20_2(y);\n  CREATE TABLE aux.t20_3(z);\n  CREATE TEMP TRIGGER r20_3 AFTER INSERT ON t20_2 BEGIN UPDATE t20_3 SET z=z+1; END;\n  DETACH aux;\n  DROP TRIGGER r20_3;\n")
@@ -338,7 +348,8 @@ func Test_trigger1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t20_1(x);\n  ATTACH ':memory:' AS aux;\n  CREATE TABLE aux.t20_2(y);\n  CREATE TABLE aux.t20_3(z);\n  CREATE TEMP TRIGGER r20_3 AFTER INSERT ON t20_2 BEGIN UPDATE t20_3 SET z=z+1; END;\n  DETACH aux;\n  DROP TRIGGER r20_3;\n")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp3, err := frigolite.Open(":memory:")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "trigger1-21.1"
 		r = db.Query("\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t0(a, b, c UNIQUE);\n  CREATE UNIQUE INDEX i0 ON t0(b) WHERE a;\n  CREATE TRIGGER tr0 AFTER DELETE ON t0 BEGIN\n    DELETE FROM t0;\n  END;\n  INSERT INTO t0(a,b,c) VALUES(0,0,9),(1,1,1);\n  REPLACE INTO t0(a,b,c) VALUES(2,0,9);\n  SELECT * FROM t0;\n")

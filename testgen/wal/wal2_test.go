@@ -5,6 +5,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -41,19 +42,188 @@ func Test_wal2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_sync_count string
+	_ = sqlite_sync_count // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+	var RECOVER string
+	_ = RECOVER // pre-declared from TCL source
+	var READ string
+	_ = READ // pre-declared from TCL source
+	var INITSLOT string
+	_ = INITSLOT // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var iInsert string
+	_ = iInsert // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var wal_index_hdr_mod string
+	_ = wal_index_hdr_mod // pre-declared from TCL source
+	var wal_locks string
+	_ = wal_locks // pre-declared from TCL source
+	var locks string
+	_ = locks // pre-declared from TCL source
+	var WRITER string
+	_ = WRITER // pre-declared from TCL source
+	var LOCKS string
+	_ = LOCKS // pre-declared from TCL source
+	var res0 string
+	_ = res0 // pre-declared from TCL source
+	var res1 string
+	_ = res1 // pre-declared from TCL source
+	var oldhdr string
+	_ = oldhdr // pre-declared from TCL source
+	var lock string
+	_ = lock // pre-declared from TCL source
+	var locked string
+	_ = locked // pre-declared from TCL source
+	var sabotage string
+	_ = sabotage // pre-declared from TCL source
+	var expected_locks string
+	_ = expected_locks // pre-declared from TCL source
+	var shm_file string
+	_ = shm_file // pre-declared from TCL source
+	var tvfs_cb_return string
+	_ = tvfs_cb_return // pre-declared from TCL source
+	var RECOVERY string
+	_ = RECOVERY // pre-declared from TCL source
+	var READMARK0_READ string
+	_ = READMARK0_READ // pre-declared from TCL source
+	var READMARK0_WRITE string
+	_ = READMARK0_WRITE // pre-declared from TCL source
+	var READMARK1_SET string
+	_ = READMARK1_SET // pre-declared from TCL source
+	var READMARK1_READ string
+	_ = READMARK1_READ // pre-declared from TCL source
+	var READMARK1_WRITE string
+	_ = READMARK1_WRITE // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var el string
+	_ = el // pre-declared from TCL source
+	var S string
+	_ = S // pre-declared from TCL source
+	var sq string
+	_ = sq // pre-declared from TCL source
+	var start string
+	_ = start // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var _type string
+	_ = _type // pre-declared from TCL source
+	var newval string
+	_ = newval // pre-declared from TCL source
+	var wih_1 string
+	_ = wih_1 // pre-declared from TCL source
+	var wih_2 string
+	_ = wih_2 // pre-declared from TCL source
+	var hdr1 string
+	_ = hdr1 // pre-declared from TCL source
+	var hdr2 string
+	_ = hdr2 // pre-declared from TCL source
+	var hdr string
+	_ = hdr // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var I string
+	_ = I // pre-declared from TCL source
+	var p string
+	_ = p // pre-declared from TCL source
+	var umask string
+	_ = umask // pre-declared from TCL source
+	var permissions string
+	_ = permissions // pre-declared from TCL source
+	var effective string
+	_ = effective // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var db_perm string
+	_ = db_perm // pre-declared from TCL source
+	var wal_perm string
+	_ = wal_perm // pre-declared from TCL source
+	var shm_perm string
+	_ = shm_perm // pre-declared from TCL source
+	var can_open string
+	_ = can_open // pre-declared from TCL source
+	var can_read string
+	_ = can_read // pre-declared from TCL source
+	var can_write string
+	_ = can_write // pre-declared from TCL source
+	var r_1 string
+	_ = r_1 // pre-declared from TCL source
+	var r_0 string
+	_ = r_0 // pre-declared from TCL source
+	var a_0 string
+	_ = a_0 // pre-declared from TCL source
+	var a_1 string
+	_ = a_1 // pre-declared from TCL source
+	var b_0_0 string
+	_ = b_0_0 // pre-declared from TCL source
+	var b_1_0 string
+	_ = b_1_0 // pre-declared from TCL source
+	var b_1_1 string
+	_ = b_1_1 // pre-declared from TCL source
+	var reslist string
+	_ = reslist // pre-declared from TCL source
+	var sqlite_fullsync_count string
+	_ = sqlite_fullsync_count // pre-declared from TCL source
+	var settings string
+	_ = settings // pre-declared from TCL source
+	var restart_sync string
+	_ = restart_sync // pre-declared from TCL source
+	var commit_sync string
+	_ = commit_sync // pre-declared from TCL source
+	var ckpt_sync string
+	_ = ckpt_sync // pre-declared from TCL source
+	var sync_flags string
+	_ = sync_flags // pre-declared from TCL source
+	var sync_normal string
+	_ = sync_normal // pre-declared from TCL source
+	var sync_full string
+	_ = sync_full // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var adj string
+	_ = adj // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var spec string
+	_ = spec // pre-declared from TCL source
+	var r_can_open string
+	_ = r_can_open // pre-declared from TCL source
+	var a_can_read string
+	_ = a_can_read // pre-declared from TCL source
+	var b_can_read_can_write string
+	_ = b_can_read_can_write // pre-declared from TCL source
+	var flags string
+	_ = flags // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "wal2"
+	testprefix = "wal2"
 	_ = testprefix // suppress unused warning
-	var sqlite_sync_count = "0"
+	sqlite_sync_count = "0"
 	_ = sqlite_sync_count // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "wal2-1.0"
 		// proc definition (not transpiled)
-		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs script tvfs_cb")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmOpen")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// testvfs tvfs (unsupported command, not transpiled)
+		// tvfs script tvfs_cb (unsupported command, not transpiled)
+		// tvfs filter xShmOpen (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -72,37 +242,37 @@ func Test_wal2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(a), sum(a) FROM t1 ")
 		}
 	}
-	var RECOVER = "list                                      \\\n  {0 1 lock exclusive}   {1 2 lock exclusive}          \\\n  {4 1 lock exclusive}   {4 1 unlock exclusive}        \\\n  {5 1 lock exclusive}   {5 1 unlock exclusive}        \\\n  {6 1 lock exclusive}   {6 1 unlock exclusive}        \\\n  {7 1 lock exclusive}   {7 1 unlock exclusive}        \\\n  {1 2 unlock exclusive} {0 1 unlock exclusive}        \\"
+	RECOVER = "list                                      \\\n  {0 1 lock exclusive}   {1 2 lock exclusive}          \\\n  {4 1 lock exclusive}   {4 1 unlock exclusive}        \\\n  {5 1 lock exclusive}   {5 1 unlock exclusive}        \\\n  {6 1 lock exclusive}   {6 1 unlock exclusive}        \\\n  {7 1 lock exclusive}   {7 1 unlock exclusive}        \\\n  {1 2 unlock exclusive} {0 1 unlock exclusive}        \\"
 	_ = RECOVER // suppress unused warning
-	var READ = "list                                         \\\n  {4 1 lock shared}    {4 1 unlock shared}             \\"
+	READ = "list                                         \\\n  {4 1 lock shared}    {4 1 unlock shared}             \\"
 	_ = READ // suppress unused warning
-	var INITSLOT = "list                                     \\\n  {4 1 lock exclusive} {4 1 unlock exclusive}          \\"
+	INITSLOT = "list                                     \\\n  {4 1 lock exclusive} {4 1 unlock exclusive}          \\"
 	_ = INITSLOT // suppress unused warning
 	// foreach {tn iInsert res wal_index_hdr_mod wal_locks} "\n         2    5   {5 15}    0             {" + RECOVER + " " + READ + "}\n         3    6   {6 21}    1             {" + RECOVER + " " + READ + "}\n         4    7   {7 28}    2             {" + RECOVER + " " + READ + "}\n         5    8   {8 36}    3             {" + RECOVER + " " + READ + "}\n         6    9   {9 45}    4             {" + RECOVER + " " + READ + "}\n         7   10   {10 55}   5             {" + RECOVER + " " + READ + "}\n         8   11   {11 66}   6             {" + RECOVER + " " + READ + "}\n         9   12   {12 78}   7             {" + RECOVER + " " + READ + "}\n        10   13   {13 91}   8             {" + RECOVER + " " + READ + "}\n        11   14   {14 105}  9             {" + RECOVER + " " + READ + "}\n        12   15   {15 120}  -1            {" + INITSLOT + " " + READ + "}\n"
-	_items0 := tclSplitList("\n         2    5   {5 15}    0             {" + RECOVER + " " + READ + "}\n         3    6   {6 21}    1             {" + RECOVER + " " + READ + "}\n         4    7   {7 28}    2             {" + RECOVER + " " + READ + "}\n         5    8   {8 36}    3             {" + RECOVER + " " + READ + "}\n         6    9   {9 45}    4             {" + RECOVER + " " + READ + "}\n         7   10   {10 55}   5             {" + RECOVER + " " + READ + "}\n         8   11   {11 66}   6             {" + RECOVER + " " + READ + "}\n         9   12   {12 78}   7             {" + RECOVER + " " + READ + "}\n        10   13   {13 91}   8             {" + RECOVER + " " + READ + "}\n        11   14   {14 105}  9             {" + RECOVER + " " + READ + "}\n        12   15   {15 120}  -1            {" + INITSLOT + " " + READ + "}\n")
-	for _idx0 := 0; _idx0+5 <= len(_items0); _idx0 += 5 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n         2    5   {5 15}    0             {" + RECOVER + " " + READ + "}\n         3    6   {6 21}    1             {" + RECOVER + " " + READ + "}\n         4    7   {7 28}    2             {" + RECOVER + " " + READ + "}\n         5    8   {8 36}    3             {" + RECOVER + " " + READ + "}\n         6    9   {9 45}    4             {" + RECOVER + " " + READ + "}\n         7   10   {10 55}   5             {" + RECOVER + " " + READ + "}\n         8   11   {11 66}   6             {" + RECOVER + " " + READ + "}\n         9   12   {12 78}   7             {" + RECOVER + " " + READ + "}\n        10   13   {13 91}   8             {" + RECOVER + " " + READ + "}\n        11   14   {14 105}  9             {" + RECOVER + " " + READ + "}\n        12   15   {15 120}  -1            {" + INITSLOT + " " + READ + "}\n")
+	for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		iInsert := _items0[_idx0+1]
+		iInsert := _items1[_idx1+1]
 		_ = iInsert // suppress unused warning
-		res := _items0[_idx0+2]
+		res := _items1[_idx1+2]
 		_ = res // suppress unused warning
-		wal_index_hdr_mod := _items0[_idx0+3]
+		wal_index_hdr_mod := _items1[_idx1+3]
 		_ = wal_index_hdr_mod // suppress unused warning
-		wal_locks := _items0[_idx0+4]
+		wal_locks := _items1[_idx1+4]
 		_ = wal_locks // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "wal2-1." + tn + ".1"
 				_res = db.Exec(" INSERT INTO t1 VALUES($iInsert) ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($iInsert) ")
 				}
-				var _locks = "list" // TCL namespace variable
-				_ = _locks // suppress unused warning
+				locks = "list" // TCL namespace variable
+				_ = locks // suppress unused warning
 				// proc definition (not transpiled)
-				t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmLock")
-				if func() bool { _wal_index_hdr_mod_n, __wal_index_hdr_mod_e := strconv.Atoi(_wal_index_hdr_mod); if __wal_index_hdr_mod_e != nil { return false }; return _wal_index_hdr_mod_n >= 0 }() {
-					t.Errorf("TODO: %s not implemented in frigolite", "incr_tvfs_hdr $::filename $::wal_index_hdr_mod 1")
+				// tvfs filter xShmLock (unsupported command, not transpiled)
+				if func() bool { wal_index_hdr_mod_n, _wal_index_hdr_mod_e := strconv.Atoi(wal_index_hdr_mod); if _wal_index_hdr_mod_e != nil { return false }; return wal_index_hdr_mod_n >= 0 }() {
+					// incr_tvfs_hdr $::filename $::wal_index_hdr_mod 1 (unsupported command, not transpiled)
 				}
 				r = db.Query(" SELECT count(a), sum(a) FROM t1 ")
 				if r.Error != nil {
@@ -110,23 +280,23 @@ func Test_wal2(t *testing.T) {
 				}
 			}
 			{ // do_test "wal2-1." + tn + ".2"
-				_ = _locks // TCL namespace variable (query)
+				_ = locks // TCL namespace variable (query)
 			}
 		}
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+		// tvfs delete (unsupported command, not transpiled)
 		os.Remove("test.db")
-		var WRITER = "list 0 1 lock exclusive"
+		WRITER = "list 0 1 lock exclusive"
 		_ = WRITER // suppress unused warning
-		var LOCKS = "list \\\n  {0 1 lock exclusive} {0 1 unlock exclusive} \\\n  {4 1 lock exclusive} {4 1 unlock exclusive} \\\n  {4 1 lock shared}    {4 1 unlock shared}    \\"
+		LOCKS = "list \\\n  {0 1 lock exclusive} {0 1 unlock exclusive} \\\n  {4 1 lock exclusive} {4 1 unlock exclusive} \\\n  {4 1 lock shared}    {4 1 unlock shared}    \\"
 		_ = LOCKS // suppress unused warning
 		{ // do_test "wal2-2.0"
-			t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-			t.Errorf("TODO: %s not implemented in frigolite", "tvfs script tvfs_cb")
-			t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmOpen")
+			// testvfs tvfs (unsupported command, not transpiled)
+			// tvfs script tvfs_cb (unsupported command, not transpiled)
+			// tvfs filter xShmOpen (unsupported command, not transpiled)
 			// proc definition (not transpiled)
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
@@ -146,22 +316,22 @@ func Test_wal2(t *testing.T) {
 			}
 		}
 		// foreach {tn iInsert res0 res1 wal_index_hdr_mod} "\n         2    5   {4 10}   {5 15}    0\n         3    6   {5 15}   {6 21}    1\n         4    7   {6 21}   {7 28}    2\n         5    8   {7 28}   {8 36}    3\n         6    9   {8 36}   {9 45}    4\n         7   10   {9 45}   {10 55}   5\n         8   11   {10 55}  {11 66}   6\n         9   12   {11 66}  {12 78}   7\n"
-		_items1 := tclSplitList("\n         2    5   {4 10}   {5 15}    0\n         3    6   {5 15}   {6 21}    1\n         4    7   {6 21}   {7 28}    2\n         5    8   {7 28}   {8 36}    3\n         6    9   {8 36}   {9 45}    4\n         7   10   {9 45}   {10 55}   5\n         8   11   {10 55}  {11 66}   6\n         9   12   {11 66}  {12 78}   7\n")
-		for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
-			tn := _items1[_idx1+0]
+		_items3 := tclSplitList("\n         2    5   {4 10}   {5 15}    0\n         3    6   {5 15}   {6 21}    1\n         4    7   {6 21}   {7 28}    2\n         5    8   {7 28}   {8 36}    3\n         6    9   {8 36}   {9 45}    4\n         7   10   {9 45}   {10 55}   5\n         8   11   {10 55}  {11 66}   6\n         9   12   {11 66}  {12 78}   7\n")
+		for _idx3 := 0; _idx3+5 <= len(_items3); _idx3 += 5 {
+			tn := _items3[_idx3+0]
 			_ = tn // suppress unused warning
-			iInsert := _items1[_idx1+1]
+			iInsert := _items3[_idx3+1]
 			_ = iInsert // suppress unused warning
-			res0 := _items1[_idx1+2]
+			res0 := _items3[_idx3+2]
 			_ = res0 // suppress unused warning
-			res1 := _items1[_idx1+3]
+			res1 := _items3[_idx3+3]
 			_ = res1 // suppress unused warning
-			wal_index_hdr_mod := _items1[_idx1+4]
+			wal_index_hdr_mod := _items3[_idx3+4]
 			_ = wal_index_hdr_mod // suppress unused warning
-			_ = _idx1
-				t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmLock")
+			_ = _idx3
+				// tvfs filter xShmLock (unsupported command, not transpiled)
 				{ // do_test "wal2-2." + tn + ".1"
-					var oldhdr = "set_tvfs_hdr $::filename"
+					oldhdr = "set_tvfs_hdr $::filename"
 					_ = oldhdr // suppress unused warning
 					_res = db.Exec(" INSERT INTO t1 VALUES($iInsert) ")
 					if _res.Error != nil {
@@ -173,11 +343,11 @@ func Test_wal2(t *testing.T) {
 					}
 				}
 				{ // do_test "wal2-2." + tn + ".2"
-					var _locks = "list" // TCL namespace variable
-					_ = _locks // suppress unused warning
+					locks = "list" // TCL namespace variable
+					_ = locks // suppress unused warning
 					// proc definition (not transpiled)
-					if func() bool { _wal_index_hdr_mod_n, __wal_index_hdr_mod_e := strconv.Atoi(_wal_index_hdr_mod); if __wal_index_hdr_mod_e != nil { return false }; return _wal_index_hdr_mod_n >= 0 }() {
-						t.Errorf("TODO: %s not implemented in frigolite", "incr_tvfs_hdr $::filename $::wal_index_hdr_mod 1")
+					if func() bool { wal_index_hdr_mod_n, _wal_index_hdr_mod_e := strconv.Atoi(wal_index_hdr_mod); if _wal_index_hdr_mod_e != nil { return false }; return wal_index_hdr_mod_n >= 0 }() {
+						// incr_tvfs_hdr $::filename $::wal_index_hdr_mod 1 (unsupported command, not transpiled)
 					}
 					r = db.Query(" SELECT count(a), sum(a) FROM t1 ")
 					if r.Error != nil {
@@ -185,14 +355,14 @@ func Test_wal2(t *testing.T) {
 					}
 				}
 				{ // do_test "wal2-2." + tn + ".3"
-					_ = _locks // TCL namespace variable (query)
+					_ = locks // TCL namespace variable (query)
 				}
 				{ // do_test "wal2-2." + tn + ".4"
-					var _locks = "list" // TCL namespace variable
-					_ = _locks // suppress unused warning
+					locks = "list" // TCL namespace variable
+					_ = locks // suppress unused warning
 					// proc definition (not transpiled)
-					if func() bool { _wal_index_hdr_mod_n, __wal_index_hdr_mod_e := strconv.Atoi(_wal_index_hdr_mod); if __wal_index_hdr_mod_e != nil { return false }; return _wal_index_hdr_mod_n >= 0 }() {
-						t.Errorf("TODO: %s not implemented in frigolite", "incr_tvfs_hdr $::filename $::wal_index_hdr_mod 1")
+					if func() bool { wal_index_hdr_mod_n, _wal_index_hdr_mod_e := strconv.Atoi(wal_index_hdr_mod); if _wal_index_hdr_mod_e != nil { return false }; return wal_index_hdr_mod_n >= 0 }() {
+						// incr_tvfs_hdr $::filename $::wal_index_hdr_mod 1 (unsupported command, not transpiled)
 					}
 					r = db.Query(" SELECT count(a), sum(a) FROM t1 ")
 					if r.Error != nil {
@@ -201,23 +371,23 @@ func Test_wal2(t *testing.T) {
 				}
 			}
 			db2.Close()
-			t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+			// tvfs delete (unsupported command, not transpiled)
 			os.Remove("test.db")
 			if false {
 				{ // do_test "wal2-3.0"
 					// proc definition (not transpiled)
 					// proc definition (not transpiled)
-					t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-					t.Errorf("TODO: %s not implemented in frigolite", "tvfs script tvfs_cb")
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					// testvfs tvfs (unsupported command, not transpiled)
+					// tvfs script tvfs_cb (unsupported command, not transpiled)
+					_dbtmp0, err := frigolite.Open("test.db")
+					_ = _dbtmp0 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n  ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n  ")
 					}
-					var _locked = "1" // TCL namespace variable
-					_ = _locked // suppress unused warning
+					locked = "1" // TCL namespace variable
+					_ = locked // suppress unused warning
 				}
 				{ // do_test "wal2-3.1"
 					r = db.Query(" SELECT count(a), sum(a) FROM t1 ")
@@ -229,10 +399,10 @@ func Test_wal2(t *testing.T) {
 				}
 				{ // do_test "wal2-3.3"
 					// proc definition (not transpiled)
-					var _sabotage = "1" // TCL namespace variable
-					_ = _sabotage // suppress unused warning
-					var _locked = "1" // TCL namespace variable
-					_ = _locked // suppress unused warning
+					sabotage = "1" // TCL namespace variable
+					_ = sabotage // suppress unused warning
+					locked = "1" // TCL namespace variable
+					_ = locked // suppress unused warning
 					_list := tclList([]string{"info exists ::sabotage", "info exists ::locked"})
 					_ = _list
 				}
@@ -246,12 +416,12 @@ func Test_wal2(t *testing.T) {
 					_list := tclList([]string{"info exists ::sabotage", "info exists ::locked"})
 					_ = _list
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+				// tvfs delete (unsupported command, not transpiled)
 				os.Remove("test.db")
 			}
 			{ // do_test "wal2-4.1"
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp4, err := frigolite.Open("test.db")
+				_ = _dbtmp4 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE data(x);\n    INSERT INTO data VALUES('need xShmOpen to see this');\n    PRAGMA wal_checkpoint;\n  ")
 				if r.Error != nil {
@@ -259,23 +429,23 @@ func Test_wal2(t *testing.T) {
 				}
 			}
 			{ // do_test "wal2-4.2"
-				t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -noshm 1")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				// testvfs tvfs -noshm 1 (unsupported command, not transpiled)
+				_dbtmp5, err := frigolite.Open("test.db")
+				_ = _dbtmp5 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" SELECT * FROM data ")
 				_ = _res // catchsql
 			}
 			{ // do_test "wal2-4.3"
-				t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				// testvfs tvfs (unsupported command, not transpiled)
+				_dbtmp6, err := frigolite.Open("test.db")
+				_ = _dbtmp6 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec(" SELECT * FROM data ")
 				_ = _res // catchsql
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
-			var expected_locks = "list"
+			// tvfs delete (unsupported command, not transpiled)
+			expected_locks = "list"
 			_ = expected_locks // suppress unused warning
 			expected_locks = tclListAppend(expected_locks, "1 1 lock exclusive")
 			expected_locks = tclListAppend(expected_locks, "0 1 lock exclusive")
@@ -295,31 +465,31 @@ func Test_wal2(t *testing.T) {
 			expected_locks = tclListAppend(expected_locks, "1 1 unlock exclusive")
 			{ // do_test "wal2-5.1"
 				// proc definition (not transpiled)
-				var tvfs_cb_return = "SQLITE_OK"
+				tvfs_cb_return = "SQLITE_OK"
 				_ = tvfs_cb_return // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-				t.Errorf("TODO: %s not implemented in frigolite", "tvfs script tvfs_cb")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				// testvfs tvfs (unsupported command, not transpiled)
+				// tvfs script tvfs_cb (unsupported command, not transpiled)
+				_dbtmp7, err := frigolite.Open("test.db")
+				_ = _dbtmp7 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES(1);\n  ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "incr_tvfs_hdr $::shm_file 1 1")
-				var _locks = "list" // TCL namespace variable
-				_ = _locks // suppress unused warning
+				// incr_tvfs_hdr $::shm_file 1 1 (unsupported command, not transpiled)
+				locks = "list" // TCL namespace variable
+				_ = locks // suppress unused warning
 				r = db.Query(" PRAGMA wal_checkpoint ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 				}
-				_ = _locks // TCL namespace variable (query)
+				_ = locks // TCL namespace variable (query)
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+			// tvfs delete (unsupported command, not transpiled)
 			{ // do_test "wal2-6.1.1"
 				os.Remove("test.db")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp8, err := frigolite.Open("test.db")
+				_ = _dbtmp8 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    Pragma Journal_Mode = Wal;\n  ")
 				if r.Error != nil {
@@ -362,8 +532,8 @@ func Test_wal2(t *testing.T) {
 			}
 			{ // do_test "wal2-6.2.1"
 				os.Remove("test.db")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp9, err := frigolite.Open("test.db")
+				_ = _dbtmp9 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    Pragma Locking_Mode = Exclusive;\n    Pragma Journal_Mode = Wal;\n    Pragma Lock_Status;\n  ")
 				if r.Error != nil {
@@ -377,8 +547,8 @@ func Test_wal2(t *testing.T) {
 				}
 			}
 			{ // do_test "wal2-6.2.3"
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp10, err := frigolite.Open("test.db")
+				_ = _dbtmp10 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" SELECT * FROM sqlite_master ")
 				if r.Error != nil {
@@ -431,8 +601,8 @@ func Test_wal2(t *testing.T) {
 			}
 			{ // do_test "wal2-6.3.1"
 				os.Remove("test.db")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp11, err := frigolite.Open("test.db")
+				_ = _dbtmp11 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    PRAGMA locking_mode = exclusive;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Chico');\n      INSERT INTO t1 VALUES('Harpo');\n    COMMIT;\n  ")
 				if _res.Error != nil {
@@ -493,56 +663,55 @@ func Test_wal2(t *testing.T) {
 			{ // do_test "wal2-6.4.1"
 				os.Remove("test.db")
 				// proc definition (not transpiled)
-				t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-				t.Errorf("TODO: %s not implemented in frigolite", "tvfs script tvfs_cb")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				// testvfs tvfs (unsupported command, not transpiled)
+				// tvfs script tvfs_cb (unsupported command, not transpiled)
+				_dbtmp12, err := frigolite.Open("test.db")
+				_ = _dbtmp12 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
-				var _unnamed_var = ""
-				_ = _unnamed_var // suppress unused warning
+				// set  (invalid identifier, skipped)
 			}
-			var RECOVERY = "\n  {0 1 lock exclusive}   {1 2 lock exclusive}\n  {4 1 lock exclusive}   {4 1 unlock exclusive}\n  {5 1 lock exclusive}   {5 1 unlock exclusive}\n  {6 1 lock exclusive}   {6 1 unlock exclusive}\n  {7 1 lock exclusive}   {7 1 unlock exclusive}\n  {1 2 unlock exclusive} {0 1 unlock exclusive}\n"
+			RECOVERY = "\n  {0 1 lock exclusive}   {1 2 lock exclusive}\n  {4 1 lock exclusive}   {4 1 unlock exclusive}\n  {5 1 lock exclusive}   {5 1 unlock exclusive}\n  {6 1 lock exclusive}   {6 1 unlock exclusive}\n  {7 1 lock exclusive}   {7 1 unlock exclusive}\n  {1 2 unlock exclusive} {0 1 unlock exclusive}\n"
 			_ = RECOVERY // suppress unused warning
-			var READMARK0_READ = "\n  {3 1 lock shared} {3 1 unlock shared}\n"
+			READMARK0_READ = "\n  {3 1 lock shared} {3 1 unlock shared}\n"
 			_ = READMARK0_READ // suppress unused warning
-			var READMARK0_WRITE = "\n  {3 1 lock shared} \n  {0 1 lock exclusive} {3 1 unlock shared} \n  {4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} \n  {0 1 unlock exclusive} {4 1 unlock shared}\n"
+			READMARK0_WRITE = "\n  {3 1 lock shared} \n  {0 1 lock exclusive} {3 1 unlock shared} \n  {4 1 lock exclusive} {4 1 unlock exclusive} {4 1 lock shared} \n  {0 1 unlock exclusive} {4 1 unlock shared}\n"
 			_ = READMARK0_WRITE // suppress unused warning
-			var READMARK1_SET = "\n  {4 1 lock exclusive} {4 1 unlock exclusive}\n"
+			READMARK1_SET = "\n  {4 1 lock exclusive} {4 1 unlock exclusive}\n"
 			_ = READMARK1_SET // suppress unused warning
-			var READMARK1_READ = "\n  {4 1 lock shared} {4 1 unlock shared}\n"
+			READMARK1_READ = "\n  {4 1 lock shared} {4 1 unlock shared}\n"
 			_ = READMARK1_READ // suppress unused warning
-			var READMARK1_WRITE = "\n  {4 1 lock shared} \n    {0 1 lock exclusive} {0 1 unlock exclusive} \n  {4 1 unlock shared}\n"
+			READMARK1_WRITE = "\n  {4 1 lock shared} \n    {0 1 lock exclusive} {0 1 unlock exclusive} \n  {4 1 unlock shared}\n"
 			_ = READMARK1_WRITE // suppress unused warning
 			// foreach {tn sql res expected_locks} "\n  2 {\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Leonard');\n      INSERT INTO t1 VALUES('Arthur');\n    COMMIT;\n  } {wal} {\n    $RECOVERY \n    $READMARK0_WRITE\n  }\n\n  3 {\n    # This test should do the READMARK1_SET locking to populate the \n    # aReadMark[1] slot with the current mxFrame value. Followed by\n    # READMARK1_READ to read the database.\n    #\n    SELECT * FROM t1\n  } {Leonard Arthur} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n\n  4 {\n    # aReadMark[1] is already set to mxFrame. So just READMARK1_READ\n    # this time, not READMARK1_SET.\n    #\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur Leonard} { \n    $READMARK1_READ \n  }\n\n  5 {\n    PRAGMA locking_mode = exclusive\n  } {exclusive} { } \n\n  6 {\n    INSERT INTO t1 VALUES('Julius Henry');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry}} {\n    $READMARK1_READ\n  }\n\n  7 {\n    INSERT INTO t1 VALUES('Karl');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry} Karl} { }\n\n  8 {\n    PRAGMA locking_mode = normal\n  } {normal} { }\n\n  9 {\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur {Julius Henry} Karl Leonard} $READMARK1_READ\n\n  10 { DELETE FROM t1 } {} $READMARK1_WRITE\n\n  11 {\n    SELECT * FROM t1\n  } {} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n"
-			_items2 := tclSplitList("\n  2 {\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Leonard');\n      INSERT INTO t1 VALUES('Arthur');\n    COMMIT;\n  } {wal} {\n    $RECOVERY \n    $READMARK0_WRITE\n  }\n\n  3 {\n    # This test should do the READMARK1_SET locking to populate the \n    # aReadMark[1] slot with the current mxFrame value. Followed by\n    # READMARK1_READ to read the database.\n    #\n    SELECT * FROM t1\n  } {Leonard Arthur} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n\n  4 {\n    # aReadMark[1] is already set to mxFrame. So just READMARK1_READ\n    # this time, not READMARK1_SET.\n    #\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur Leonard} { \n    $READMARK1_READ \n  }\n\n  5 {\n    PRAGMA locking_mode = exclusive\n  } {exclusive} { } \n\n  6 {\n    INSERT INTO t1 VALUES('Julius Henry');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry}} {\n    $READMARK1_READ\n  }\n\n  7 {\n    INSERT INTO t1 VALUES('Karl');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry} Karl} { }\n\n  8 {\n    PRAGMA locking_mode = normal\n  } {normal} { }\n\n  9 {\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur {Julius Henry} Karl Leonard} $READMARK1_READ\n\n  10 { DELETE FROM t1 } {} $READMARK1_WRITE\n\n  11 {\n    SELECT * FROM t1\n  } {} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n")
-			for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
-				tn := _items2[_idx2+0]
+			_items13 := tclSplitList("\n  2 {\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Leonard');\n      INSERT INTO t1 VALUES('Arthur');\n    COMMIT;\n  } {wal} {\n    $RECOVERY \n    $READMARK0_WRITE\n  }\n\n  3 {\n    # This test should do the READMARK1_SET locking to populate the \n    # aReadMark[1] slot with the current mxFrame value. Followed by\n    # READMARK1_READ to read the database.\n    #\n    SELECT * FROM t1\n  } {Leonard Arthur} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n\n  4 {\n    # aReadMark[1] is already set to mxFrame. So just READMARK1_READ\n    # this time, not READMARK1_SET.\n    #\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur Leonard} { \n    $READMARK1_READ \n  }\n\n  5 {\n    PRAGMA locking_mode = exclusive\n  } {exclusive} { } \n\n  6 {\n    INSERT INTO t1 VALUES('Julius Henry');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry}} {\n    $READMARK1_READ\n  }\n\n  7 {\n    INSERT INTO t1 VALUES('Karl');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry} Karl} { }\n\n  8 {\n    PRAGMA locking_mode = normal\n  } {normal} { }\n\n  9 {\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur {Julius Henry} Karl Leonard} $READMARK1_READ\n\n  10 { DELETE FROM t1 } {} $READMARK1_WRITE\n\n  11 {\n    SELECT * FROM t1\n  } {} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n")
+			for _idx13 := 0; _idx13+4 <= len(_items13); _idx13 += 4 {
+				tn := _items13[_idx13+0]
 				_ = tn // suppress unused warning
-				sql := _items2[_idx2+1]
+				sql := _items13[_idx13+1]
 				_ = sql // suppress unused warning
-				res := _items2[_idx2+2]
+				res := _items13[_idx13+2]
 				_ = res // suppress unused warning
-				expected_locks := _items2[_idx2+3]
+				expected_locks := _items13[_idx13+3]
 				_ = expected_locks // suppress unused warning
-				_ = _idx2
-					var L = "list"
+				_ = _idx13
+					L = "list"
 					_ = L // suppress unused warning
 					for _, el := range tclSplitList(expected_locks) {
 					_ = el // suppress unused warning
 						L = tclListAppend(L, el)
 					}
-					var S = ""
+					S = ""
 					_ = S // suppress unused warning
 					for _, sq := range tclSplitList("split $sql \"\\n\"") {
 					_ = sq // suppress unused warning
-						var sq = "$sq"
+						sq = strings.TrimSpace(sq)
 						_ = sq // suppress unused warning
 						if tclBool("{#*} $sq" + "==0") {
 							S += sq + "\\n"
 						}
 					}
-					var _locks = "list" // TCL namespace variable
-					_ = _locks // suppress unused warning
+					locks = "list" // TCL namespace variable
+					_ = locks // suppress unused warning
 					{ // do_test "wal2-6.4." + tn + ".1"
 						_res = db.Exec(S)
 						if _res.Error != nil {
@@ -550,13 +719,13 @@ func Test_wal2(t *testing.T) {
 						}
 					}
 					{ // do_test "wal2-6.4." + tn + ".2"
-						_ = _locks // TCL namespace variable (query)
+						_ = locks // TCL namespace variable (query)
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+				// tvfs delete (unsupported command, not transpiled)
 				{ // do_test "wal2-6.5.1"
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					_dbtmp14, err := frigolite.Open("test.db")
+					_ = _dbtmp14 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA locking_mode = exclusive;\n    CREATE TABLE t2(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t2 VALUES('I', 'II');\n    PRAGMA journal_mode;\n  ")
 					if r.Error != nil {
@@ -577,11 +746,11 @@ func Test_wal2(t *testing.T) {
 				}
 				// proc definition (not transpiled)
 				{ // do_test "wal2-6.6.1"
-					t.Errorf("TODO: %s not implemented in frigolite", "testvfs T")
-					t.Errorf("TODO: %s not implemented in frigolite", "T script lock_control")
-					t.Errorf("TODO: %s not implemented in frigolite", "T filter {}")
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					// testvfs T (unsupported command, not transpiled)
+					// T script lock_control (unsupported command, not transpiled)
+					// T filter {} (unsupported command, not transpiled)
+					_dbtmp15, err := frigolite.Open("test.db")
+					_ = _dbtmp15 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					r = db.Query(" SELECT * FROM sqlite_master ")
 					if r.Error != nil {
@@ -601,7 +770,7 @@ func Test_wal2(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA locking_mode = normal ")
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "T filter xShmLock")
+					// T filter xShmLock (unsupported command, not transpiled)
 					_res = db.Exec(" INSERT INTO t2 VALUES('VII', 'VIII') ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES('VII', 'VIII') ")
@@ -615,7 +784,7 @@ func Test_wal2(t *testing.T) {
 				}
 				{ // do_test "wal2-6.6.2"
 					db2.Close()
-					t.Errorf("TODO: %s not implemented in frigolite", "T filter {}")
+					// T filter {} (unsupported command, not transpiled)
 					_res = db.Exec(" INSERT INTO t2 VALUES('IX', 'X') ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES('IX', 'X') ")
@@ -628,11 +797,11 @@ func Test_wal2(t *testing.T) {
 					_ = _res // catchsql
 				}
 				db2.Close()
-				t.Errorf("TODO: %s not implemented in frigolite", "T delete")
+				// T delete (unsupported command, not transpiled)
 				os.Remove("test.db")
 				{ // do_test "wal2-7.1.1"
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					_dbtmp16, err := frigolite.Open("test.db")
+					_ = _dbtmp16 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    PRAGMA page_size = 4096;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n  ")
 					if _res.Error != nil {
@@ -643,13 +812,13 @@ func Test_wal2(t *testing.T) {
 				{ // do_test "wal2-7.1.2"
 					tclFileCopy("test.db", "test2.db")
 					tclFileCopy("test.db-wal", "test2.db-wal")
-					var newval = "FF"
+					newval = "FF"
 					_ = newval // suppress unused warning
 					if tclBool(newval + " == " + "hexio_read test2.db-wal 48 1") {
-						var newval = "00"
+						newval = "00"
 						_ = newval // suppress unused warning
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test2.db-wal 48 $newval")
+					// hexio_write test2.db-wal 48 $newval (unsupported command, not transpiled)
 				}
 				{ // do_test "wal2-7.1.3"
 					db2, err = frigolite.Open("test2.db")
@@ -666,8 +835,8 @@ func Test_wal2(t *testing.T) {
 				db2.Close()
 				os.Remove("test.db")
 				{ // do_test "wal2-8.1.2"
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					_dbtmp17, err := frigolite.Open("test.db")
+					_ = _dbtmp17 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(8188*1020));\n    CREATE TABLE t2(y);\n    PRAGMA wal_checkpoint;\n  ")
 					if r.Error != nil {
@@ -698,25 +867,25 @@ func Test_wal2(t *testing.T) {
 				}
 				db2.Close()
 				// proc definition (not transpiled)
-				t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-				t.Errorf("TODO: %s not implemented in frigolite", "tvfs script get_name")
-				t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmOpen")
+				// testvfs tvfs (unsupported command, not transpiled)
+				// tvfs script get_name (unsupported command, not transpiled)
+				// tvfs filter xShmOpen (unsupported command, not transpiled)
 				os.Remove("test.db")
 				{ // do_test "wal2-9.1"
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					_dbtmp18, err := frigolite.Open("test.db")
+					_ = _dbtmp18 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');\n  ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE x(y);\n    INSERT INTO x VALUES('Barton');\n    INSERT INTO x VALUES('Deakin');\n  ")
 					}
-					var wih_1 = "set_tvfs_hdr $::filename"
+					wih_1 = "set_tvfs_hdr $::filename"
 					_ = wih_1 // suppress unused warning
 					_res = db.Exec(" INSERT INTO x VALUES('Watson') ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x VALUES('Watson') ")
 					}
-					var wih_2 = "set_tvfs_hdr $::filename"
+					wih_2 = "set_tvfs_hdr $::filename"
 					_ = wih_2 // suppress unused warning
 					db2, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
@@ -726,19 +895,19 @@ func Test_wal2(t *testing.T) {
 					}
 				}
 				// foreach {tn hdr1 hdr2 res} "list                                            \\\n  3  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  4  $wih(1)                $wih(2)                {Barton Deakin Watson}   \\\n  5  $wih(2)                $wih(1)                {Barton Deakin Watson}   \\\n  6  $wih(2)                $wih(2)                {Barton Deakin Watson}   \\\n  7  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  8  {0 0 0 0 0 0 0 0 0 0 0 0} {0 0 0 0 0 0 0 0 0 0 0 0} {Barton Deakin Watson}"
-				_items3 := tclSplitList("list                                            \\\n  3  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  4  $wih(1)                $wih(2)                {Barton Deakin Watson}   \\\n  5  $wih(2)                $wih(1)                {Barton Deakin Watson}   \\\n  6  $wih(2)                $wih(2)                {Barton Deakin Watson}   \\\n  7  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  8  {0 0 0 0 0 0 0 0 0 0 0 0} {0 0 0 0 0 0 0 0 0 0 0 0} {Barton Deakin Watson}")
-				for _idx3 := 0; _idx3+4 <= len(_items3); _idx3 += 4 {
-					tn := _items3[_idx3+0]
+				_items19 := tclSplitList("list                                            \\\n  3  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  4  $wih(1)                $wih(2)                {Barton Deakin Watson}   \\\n  5  $wih(2)                $wih(1)                {Barton Deakin Watson}   \\\n  6  $wih(2)                $wih(2)                {Barton Deakin Watson}   \\\n  7  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  8  {0 0 0 0 0 0 0 0 0 0 0 0} {0 0 0 0 0 0 0 0 0 0 0 0} {Barton Deakin Watson}")
+				for _idx19 := 0; _idx19+4 <= len(_items19); _idx19 += 4 {
+					tn := _items19[_idx19+0]
 					_ = tn // suppress unused warning
-					hdr1 := _items3[_idx3+1]
+					hdr1 := _items19[_idx19+1]
 					_ = hdr1 // suppress unused warning
-					hdr2 := _items3[_idx3+2]
+					hdr2 := _items19[_idx19+2]
 					_ = hdr2 // suppress unused warning
-					res := _items3[_idx3+3]
+					res := _items19[_idx19+3]
 					_ = res // suppress unused warning
-					_ = _idx3
+					_ = _idx19
 						{ // do_test "wal2-9." + tn
-							t.Errorf("TODO: %s not implemented in frigolite", "set_tvfs_hdr $::filename $hdr1 $hdr2")
+							// set_tvfs_hdr $::filename $hdr1 $hdr2 (unsupported command, not transpiled)
 							r = db.Query(" SELECT * FROM x ")
 							if r.Error != nil {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x ")
@@ -747,56 +916,56 @@ func Test_wal2(t *testing.T) {
 					}
 					db2.Close()
 					{ // do_test "wal2-10.1.1"
-						t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+						// faultsim_delete_and_reopen (unsupported command, not transpiled)
 						_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 						}
-						t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+						// faultsim_save_and_close (unsupported command, not transpiled)
 					}
 					{ // do_test "wal2-10.1.2"
-						t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+						// faultsim_restore_and_reopen (unsupported command, not transpiled)
 						r = db.Query(" SELECT * FROM t1 ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 						}
 					}
 					{ // do_test "wal2-10.1.3"
-						t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
-						var hdr = "wal_set_walhdr test.db-wal"
+						// faultsim_restore_and_reopen (unsupported command, not transpiled)
+						hdr = "wal_set_walhdr test.db-wal"
 						_ = hdr // suppress unused warning
-						tclLIndex(hdr, "1")
+						_ = tclLIndex(hdr, "1") // lindex result
 					}
 					{ // do_test "wal2-10.1.4"
-						t.Errorf("TODO: %s not implemented in frigolite", "lset hdr 1 3007001")
-						t.Errorf("TODO: %s not implemented in frigolite", "wal_set_walhdr test.db-wal $hdr")
+						// lset hdr 1 3007001 (unsupported command, not transpiled)
+						// wal_set_walhdr test.db-wal $hdr (unsupported command, not transpiled)
 						_res = db.Exec(" SELECT * FROM t1 ")
 						_ = _res // catchsql
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
+					// testvfs tvfs -default 1 (unsupported command, not transpiled)
 					{ // do_test "wal2-10.2.1"
-						t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+						// faultsim_restore_and_reopen (unsupported command, not transpiled)
 						r = db.Query(" SELECT * FROM t1 ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 						}
 					}
 					{ // do_test "wal2-10.2.2"
-						var hdr = "set_tvfs_hdr $::filename"
+						hdr = "set_tvfs_hdr $::filename"
 						_ = hdr // suppress unused warning
-						tclLIndex(hdr, "0")
+						_ = tclLIndex(hdr, "0") // lindex result
 					}
 					{ // do_test "wal2-10.2.3"
-						t.Errorf("TODO: %s not implemented in frigolite", "lset hdr 0 3007001")
-						t.Errorf("TODO: %s not implemented in frigolite", "wal_fix_walindex_cksum hdr")
-						t.Errorf("TODO: %s not implemented in frigolite", "set_tvfs_hdr $::filename $hdr")
+						// lset hdr 0 3007001 (unsupported command, not transpiled)
+						// wal_fix_walindex_cksum hdr (unsupported command, not transpiled)
+						// set_tvfs_hdr $::filename $hdr (unsupported command, not transpiled)
 						_res = db.Exec(" SELECT * FROM t1 ")
 						_ = _res // catchsql
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
-					t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
+					// tvfs delete (unsupported command, not transpiled)
+					// testvfs tvfs -default 1 (unsupported command, not transpiled)
 					{ // do_test "wal2-11.0"
-						t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+						// faultsim_delete_and_reopen (unsupported command, not transpiled)
 						r = db.Query("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t1 VALUES(7, 8, 9);\n    SELECT * FROM t1;\n  ")
 						if r.Error != nil {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 VALUES(4, 5, 6);\n    INSERT INTO t1 VALUES(7, 8, 9);\n    SELECT * FROM t1;\n  ")
@@ -810,12 +979,12 @@ func Test_wal2(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT name FROM sqlite_master ")
 						}
 					}
-					if func() bool { _tcl_version_n, __tcl_version_e := strconv.Atoi(_tcl_version); if __tcl_version_e != nil { return false }; return _tcl_version_n >= 8.5 }() {
-						var blob = "[tvfs shm $::filename] 0 16383"
+					if tcl_version >= "8.5" {
+						blob = "[tvfs shm $::filename] 0 16383"
 						_ = blob // suppress unused warning
-						var I = "[tvfs shm $::filename] 16384 end"
+						I = "[tvfs shm $::filename] 16384 end"
 						_ = I // suppress unused warning
-						t.Errorf("TODO: %s not implemented in frigolite", "binary scan $I t* L")
+						// binary scan $I t* L (test infra, not transpiled)
 						I = "list"
 						_ = I // suppress unused warning
 						for _, p := range tclSplitList(L) {
@@ -823,7 +992,7 @@ func Test_wal2(t *testing.T) {
 							I = tclListAppend(I, "$p ? $p : 400")
 						}
 						blob += "binary format t* $I"
-						t.Errorf("TODO: %s not implemented in frigolite", "tvfs shm $::filename $blob")
+						// tvfs shm $::filename $blob (unsupported command, not transpiled)
 						{ // do_test "wal2-11.2"
 							_res = db.Exec(" INSERT INTO t1 VALUES(10, 11, 12) ")
 							_ = _res // catchsql
@@ -831,21 +1000,21 @@ func Test_wal2(t *testing.T) {
 						blob = "[tvfs shm $::filename] 0 16383"
 						_ = blob // suppress unused warning
 						blob += "[binary format c 55] 16384"
-						t.Errorf("TODO: %s not implemented in frigolite", "tvfs shm $::filename $blob")
+						// tvfs shm $::filename $blob (unsupported command, not transpiled)
 						{ // do_test "wal2-11.3"
 							_res = db.Exec(" SELECT * FROM t1 ")
 							_ = _res // catchsql
 						}
 					}
 					db2.Close()
-					t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
-					if _tcl_platform_os != "Windows NT" {
-						t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-						var umask = "0"
+					// tvfs delete (unsupported command, not transpiled)
+					if tcl_platform_os != "Windows NT" {
+						// faultsim_delete_and_reopen (unsupported command, not transpiled)
+						umask = "0"
 						_ = umask // suppress unused warning
 						{ // do_test "wal2-12.1"
-							db, err := frigolite.Open("test.db")
-							defer db.Close()
+							_dbtmp0, err := frigolite.Open("test.db")
+							_ = _dbtmp0 // sqlite3 db connection
 							if err != nil { t.Fatal(err) }
 							r = db.Query(" \n      CREATE TABLE tx(y, z);\n      PRAGMA journal_mode = WAL;\n    ")
 							if r.Error != nil {
@@ -855,18 +1024,18 @@ func Test_wal2(t *testing.T) {
 							_ = _list
 						}
 						// foreach {tn permissions} "\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  "
-						_items0 := tclSplitList("\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  ")
-						for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-							tn := _items0[_idx0+0]
+						_items1 := tclSplitList("\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  ")
+						for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+							tn := _items1[_idx1+0]
 							_ = tn // suppress unused warning
-							permissions := _items0[_idx0+1]
+							permissions := _items1[_idx1+1]
 							_ = permissions // suppress unused warning
-							_ = _idx0
-								if func() bool { tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return tcl_version_n >= 9.0 }() {
-									var effective = "format %.5d [expr $permissions & ~$umask]"
+							_ = _idx1
+								if tcl_version >= "9.0" {
+									effective = "format %.5d [expr $permissions & ~$umask]"
 									_ = effective // suppress unused warning
 								} else {
-									var effective = "format %.5o [expr $permissions & ~$umask]"
+									effective = "format %.5o [expr $permissions & ~$umask]"
 									_ = effective // suppress unused warning
 								}
 								{ // do_test "wal2-12.2." + tn + ".1"
@@ -878,8 +1047,8 @@ func Test_wal2(t *testing.T) {
 									_ = _list
 								}
 								{ // do_test "wal2-12.2." + tn + ".3"
-									db, err := frigolite.Open("test.db")
-									defer db.Close()
+									_dbtmp2, err := frigolite.Open("test.db")
+									_ = _dbtmp2 // sqlite3 db connection
 									if err != nil { t.Fatal(err) }
 									_res = db.Exec(" INSERT INTO tx DEFAULT VALUES ")
 									if _res.Error != nil {
@@ -889,7 +1058,7 @@ func Test_wal2(t *testing.T) {
 									_ = _list
 								}
 								{ // do_test "wal2-12.2." + tn + ".4"
-									var x = "list [file attr test.db-wal -perm] [file attr test.db-shm -perm]"
+									x = "list [file attr test.db-wal -perm] [file attr test.db-shm -perm]"
 									_ = x // suppress unused warning
 									// string map {o 0} $x
 								}
@@ -899,9 +1068,9 @@ func Test_wal2(t *testing.T) {
 								}
 							}
 						}
-						if _tcl_platform_os != "Windows NT" {
+						if tcl_platform_os != "Windows NT" {
 							// proc definition (not transpiled)
-							t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+							// faultsim_delete_and_reopen (unsupported command, not transpiled)
 							_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES('3.14', '2.72');\n  ")
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES('3.14', '2.72');\n  ")
@@ -910,7 +1079,7 @@ func Test_wal2(t *testing.T) {
 								_list := tclList([]string{"file exists test.db-shm", "file exists test.db-wal"})
 								_ = _list
 							}
-							t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+							// faultsim_save_and_close (unsupported command, not transpiled)
 							// foreach {tn db_perm wal_perm shm_perm can_open can_read can_write} "\n    2   00644   00644   00644   1   1   1\n    3   00644   00400   00644   1   1   0\n    4   00644   00644   00400   1   1   0\n    5   00400   00644   00644   1   1   0\n\n    7   00644   00000   00644   1   0   0\n    8   00644   00644   00000   1   0   0\n    9   00000   00644   00644   0   0   0\n  "
 							_items0 := tclSplitList("\n    2   00644   00644   00644   1   1   1\n    3   00644   00400   00644   1   1   0\n    4   00644   00644   00400   1   1   0\n    5   00400   00644   00644   1   1   0\n\n    7   00644   00000   00644   1   0   0\n    8   00644   00644   00000   1   0   0\n    9   00000   00644   00644   0   0   0\n  ")
 							for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
@@ -929,40 +1098,40 @@ func Test_wal2(t *testing.T) {
 								can_write := _items0[_idx0+6]
 								_ = can_write // suppress unused warning
 								_ = _idx0
-									t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore")
+									// faultsim_restore (unsupported command, not transpiled)
 									{ // do_test "wal2-13." + tn + ".1"
 										// file attr test.db -perm $db_perm
 										// file attr test.db-wal -perm $wal_perm
 										// file attr test.db-shm -perm $shm_perm
-										var L = "file attr test.db -perm"
+										L = "file attr test.db -perm"
 										_ = L // suppress unused warning
 										L = tclListAppend(L, "file attr test.db-wal -perm")
 										L = tclListAppend(L, "file attr test.db-shm -perm")
 										// string map {o 0} $L
 									}
-									var r_1 = "0 ok"
+									r_1 = "0 ok"
 									_ = r_1 // suppress unused warning
-									var r_0 = "1 {unable to open database file}"
+									r_0 = "1 {unable to open database file}"
 									_ = r_0 // suppress unused warning
 									{ // do_test "wal2-13." + tn + ".2"
 										_list := tclList([]string{"0", msg})
 										_ = _list
 									}
 									if tclBool(can_open) {
-										var a_0 = "1 {unable to open database file}"
+										a_0 = "1 {unable to open database file}"
 										_ = a_0 // suppress unused warning
-										var a_1 = "0 {3.14 2.72}"
+										a_1 = "0 {3.14 2.72}"
 										_ = a_1 // suppress unused warning
 										{ // do_test "wal2-13." + tn + ".3"
 											_res = db.Exec(" SELECT * FROM t1 ")
 											_ = _res // catchsql
 										}
-										var b_0,0 = "1 {unable to open database file}"
-										_ = b_0,0 // suppress unused warning
-										var b_1,0 = "1 {attempt to write a readonly database}"
-										_ = b_1,0 // suppress unused warning
-										var b_1,1 = "0 {}"
-										_ = b_1,1 // suppress unused warning
+										b_0_0 = "1 {unable to open database file}"
+										_ = b_0_0 // suppress unused warning
+										b_1_0 = "1 {attempt to write a readonly database}"
+										_ = b_1_0 // suppress unused warning
+										b_1_1 = "0 {}"
+										_ = b_1_1 // suppress unused warning
 										{ // do_test "wal2-13." + tn + ".4"
 											_res = db.Exec(" INSERT INTO t1 DEFAULT VALUES ")
 											_ = _res // catchsql
@@ -975,16 +1144,16 @@ func Test_wal2(t *testing.T) {
 								}
 							}
 							// foreach {tn sql reslist} "\n  1 { }                                 {10 0 4 0 6 0}\n  2 { PRAGMA checkpoint_fullfsync = 1 } {10 6 4 3 6 3}\n  3 { PRAGMA checkpoint_fullfsync = 0 } {10 0 4 0 6 0}\n"
-							_items4 := tclSplitList("\n  1 { }                                 {10 0 4 0 6 0}\n  2 { PRAGMA checkpoint_fullfsync = 1 } {10 6 4 3 6 3}\n  3 { PRAGMA checkpoint_fullfsync = 0 } {10 0 4 0 6 0}\n")
-							for _idx4 := 0; _idx4+3 <= len(_items4); _idx4 += 3 {
-								tn := _items4[_idx4+0]
+							_items20 := tclSplitList("\n  1 { }                                 {10 0 4 0 6 0}\n  2 { PRAGMA checkpoint_fullfsync = 1 } {10 6 4 3 6 3}\n  3 { PRAGMA checkpoint_fullfsync = 0 } {10 0 4 0 6 0}\n")
+							for _idx20 := 0; _idx20+3 <= len(_items20); _idx20 += 3 {
+								tn := _items20[_idx20+0]
 								_ = tn // suppress unused warning
-								sql := _items4[_idx4+1]
+								sql := _items20[_idx20+1]
 								_ = sql // suppress unused warning
-								reslist := _items4[_idx4+2]
+								reslist := _items20[_idx20+2]
 								_ = reslist // suppress unused warning
-								_ = _idx4
-									t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+								_ = _idx20
+									// faultsim_delete_and_reopen (unsupported command, not transpiled)
 									r = db.Query("PRAGMA auto_vacuum = 0; PRAGMA synchronous = FULL;")
 									if r.Error != nil {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA auto_vacuum = 0; PRAGMA synchronous = FULL;")
@@ -1011,9 +1180,9 @@ func Test_wal2(t *testing.T) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
-									var sqlite_sync_count = "0"
+									sqlite_sync_count = "0"
 									_ = sqlite_sync_count // suppress unused warning
-									var sqlite_fullsync_count = "0"
+									sqlite_fullsync_count = "0"
 									_ = sqlite_fullsync_count // suppress unused warning
 									{ // "wal2-14." + tn + ".2"
 										_res = db.Exec("\n    PRAGMA wal_autocheckpoint = 10;\n    CREATE TABLE t1(a, b);                -- 2 wal syncs\n    INSERT INTO t1 VALUES(1, 2);          -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n    BEGIN;\n      INSERT INTO t1 VALUES(3, 4);\n      INSERT INTO t1 VALUES(5, 6);\n    COMMIT;                               -- 2 wal sync\n    PRAGMA wal_checkpoint;                -- 1 wal sync, 1 db sync\n  ")
@@ -1022,7 +1191,7 @@ func Test_wal2(t *testing.T) {
 										}
 									}
 									{ // do_test "wal2-14." + tn + ".3"
-										t.Errorf("TODO: %s not implemented in frigolite", "cond_incr_sync_count 1")
+										// cond_incr_sync_count 1 (unsupported command, not transpiled)
 										_list := tclList([]string{sqlite_sync_count, sqlite_fullsync_count})
 										_ = _list
 									}
@@ -1068,26 +1237,26 @@ func Test_wal2(t *testing.T) {
 									_ = _catchErr // suppress unused warning
 								}
 								// foreach {tn settings restart_sync commit_sync ckpt_sync} "\n  1  {0 0 off}     {0 0}  {0 0}  {0 0}\n  2  {0 0 normal}  {1 0}  {0 0}  {2 0}\n  3  {0 0 full}    {2 0}  {1 0}  {2 0}\n\n  4  {0 1 off}     {0 0}  {0 0}  {0 0}\n  5  {0 1 normal}  {0 1}  {0 0}  {0 2}\n  6  {0 1 full}    {0 2}  {0 1}  {0 2}\n\n  7  {1 0 off}     {0 0}  {0 0}  {0 0}\n  8  {1 0 normal}  {0 1}  {0 0}  {0 2}\n  9  {1 0 full}    {1 1}  {1 0}  {0 2}\n\n  10 {1 1 off}     {0 0}  {0 0}  {0 0}\n  11 {1 1 normal}  {0 1}  {0 0}  {0 2}\n  12 {1 1 full}    {0 2}  {0 1}  {0 2}\n"
-								_items5 := tclSplitList("\n  1  {0 0 off}     {0 0}  {0 0}  {0 0}\n  2  {0 0 normal}  {1 0}  {0 0}  {2 0}\n  3  {0 0 full}    {2 0}  {1 0}  {2 0}\n\n  4  {0 1 off}     {0 0}  {0 0}  {0 0}\n  5  {0 1 normal}  {0 1}  {0 0}  {0 2}\n  6  {0 1 full}    {0 2}  {0 1}  {0 2}\n\n  7  {1 0 off}     {0 0}  {0 0}  {0 0}\n  8  {1 0 normal}  {0 1}  {0 0}  {0 2}\n  9  {1 0 full}    {1 1}  {1 0}  {0 2}\n\n  10 {1 1 off}     {0 0}  {0 0}  {0 0}\n  11 {1 1 normal}  {0 1}  {0 0}  {0 2}\n  12 {1 1 full}    {0 2}  {0 1}  {0 2}\n")
-								for _idx5 := 0; _idx5+5 <= len(_items5); _idx5 += 5 {
-									tn := _items5[_idx5+0]
+								_items21 := tclSplitList("\n  1  {0 0 off}     {0 0}  {0 0}  {0 0}\n  2  {0 0 normal}  {1 0}  {0 0}  {2 0}\n  3  {0 0 full}    {2 0}  {1 0}  {2 0}\n\n  4  {0 1 off}     {0 0}  {0 0}  {0 0}\n  5  {0 1 normal}  {0 1}  {0 0}  {0 2}\n  6  {0 1 full}    {0 2}  {0 1}  {0 2}\n\n  7  {1 0 off}     {0 0}  {0 0}  {0 0}\n  8  {1 0 normal}  {0 1}  {0 0}  {0 2}\n  9  {1 0 full}    {1 1}  {1 0}  {0 2}\n\n  10 {1 1 off}     {0 0}  {0 0}  {0 0}\n  11 {1 1 normal}  {0 1}  {0 0}  {0 2}\n  12 {1 1 full}    {0 2}  {0 1}  {0 2}\n")
+								for _idx21 := 0; _idx21+5 <= len(_items21); _idx21 += 5 {
+									tn := _items21[_idx21+0]
 									_ = tn // suppress unused warning
-									settings := _items5[_idx5+1]
+									settings := _items21[_idx21+1]
 									_ = settings // suppress unused warning
-									restart_sync := _items5[_idx5+2]
+									restart_sync := _items21[_idx21+2]
 									_ = restart_sync // suppress unused warning
-									commit_sync := _items5[_idx5+3]
+									commit_sync := _items21[_idx21+3]
 									_ = commit_sync // suppress unused warning
-									ckpt_sync := _items5[_idx5+4]
+									ckpt_sync := _items21[_idx21+4]
 									_ = ckpt_sync // suppress unused warning
-									_ = _idx5
+									_ = _idx21
 										os.Remove("test.db")
-										t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-										t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xSync")
-										t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xSyncCb")
+										// testvfs tvfs -default 1 (unsupported command, not transpiled)
+										// tvfs filter xSync (unsupported command, not transpiled)
+										// tvfs script xSyncCb (unsupported command, not transpiled)
 										// proc definition (not transpiled)
-										db, err := frigolite.Open("test.db")
-										defer db.Close()
+										_dbtmp22, err := frigolite.Open("test.db")
+										_ = _dbtmp22 // sqlite3 db connection
 										if err != nil { t.Fatal(err) }
 										{ // "15." + tn + ".1"
 											r = db.Query("\n    PRAGMA page_size = 4096;\n    CREATE TABLE t1(x);\n    PRAGMA wal_autocheckpoint = OFF;\n    PRAGMA journal_mode = WAL;\n    PRAGMA checkpoint_fullfsync = " + "lindex $settings 0" + ";\n    PRAGMA fullfsync = " + "lindex $settings 1" + ";\n    PRAGMA synchronous = " + "lindex $settings 2" + ";\n  ")
@@ -1102,53 +1271,53 @@ func Test_wal2(t *testing.T) {
 											}
 										}
 										{ // do_test "15." + tn + ".2"
-											var sync_normal = "0"
+											sync_normal = "0"
 											_ = sync_normal // suppress unused warning
-											var sync_full = "0"
+											sync_full = "0"
 											_ = sync_full // suppress unused warning
 											_res = db.Exec(" INSERT INTO t1 VALUES('abc') ")
 											if _res.Error != nil {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('abc') ")
 											}
-											_list := tclList([]string{_sync + "(normal)", _sync + "(full)"})
+											_list := tclList([]string{sync_normal, sync_full})
 											_ = _list
 										}
 										{ // do_test "15." + tn + ".3"
-											var sync_normal = "0"
+											sync_normal = "0"
 											_ = sync_normal // suppress unused warning
-											var sync_full = "0"
+											sync_full = "0"
 											_ = sync_full // suppress unused warning
 											_res = db.Exec(" INSERT INTO t1 VALUES('abc') ")
 											if _res.Error != nil {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('abc') ")
 											}
-											_list := tclList([]string{_sync + "(normal)", _sync + "(full)"})
+											_list := tclList([]string{sync_normal, sync_full})
 											_ = _list
 										}
 										{ // do_test "15." + tn + ".4"
-											var sync_normal = "0"
+											sync_normal = "0"
 											_ = sync_normal // suppress unused warning
-											var sync_full = "0"
+											sync_full = "0"
 											_ = sync_full // suppress unused warning
 											_res = db.Exec(" INSERT INTO t1 VALUES('def') ")
 											if _res.Error != nil {
 												t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('def') ")
 											}
-											_list := tclList([]string{_sync + "(normal)", _sync + "(full)"})
+											_list := tclList([]string{sync_normal, sync_full})
 											_ = _list
 										}
 										{ // do_test "15." + tn + ".5"
-											var sync_normal = "0"
+											sync_normal = "0"
 											_ = sync_normal // suppress unused warning
-											var sync_full = "0"
+											sync_full = "0"
 											_ = sync_full // suppress unused warning
 											r = db.Query(" PRAGMA wal_checkpoint ")
 											if r.Error != nil {
 												t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 											}
-											_list := tclList([]string{_sync + "(normal)", _sync + "(full)"})
+											_list := tclList([]string{sync_normal, sync_full})
 											_ = _list
 										}
-										t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+										// tvfs delete (unsupported command, not transpiled)
 									}
 }

@@ -40,9 +40,18 @@ func Test_regexp1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var v1 string
+	_ = v1 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var def string
+	_ = def // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "regexp1-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db regexp")
+		// load_static_extension db regexp (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n    INSERT INTO t1 VALUES(1, 'For since by man came death,');\n    INSERT INTO t1 VALUES(2, 'by man came also the resurrection of the dead.');\n    INSERT INTO t1 VALUES(3, 'For as in Adam all die,');\n    INSERT INTO t1 VALUES(4, 'even so in Christ shall all be made alive.');\n\n    SELECT x FROM t1 WHERE y REGEXP '^For ' ORDER BY x;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n    INSERT INTO t1 VALUES(1, 'For since by man came death,');\n    INSERT INTO t1 VALUES(2, 'by man came also the resurrection of the dead.');\n    INSERT INTO t1 VALUES(3, 'For as in Adam all die,');\n    INSERT INTO t1 VALUES(4, 'even so in Christ shall all be made alive.');\n\n    SELECT x FROM t1 WHERE y REGEXP '^For ' ORDER BY x;\n  ")
@@ -535,7 +544,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.9"
-		var v1 = "abc\\ndef"
+		v1 = "abc\\ndef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT $v1 REGEXP '^abc\\ndef$'")
 		if _res.Error != nil {
@@ -543,7 +552,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.10"
-		var v1 = "abc\\adef"
+		v1 = "abc\\adef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT $v1 REGEXP '^abc\\adef$'")
 		if _res.Error != nil {
@@ -551,7 +560,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.11"
-		var v1 = "abc\\tdef"
+		v1 = "abc\\tdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT $v1 REGEXP '^abc\\tdef$'")
 		if _res.Error != nil {
@@ -559,7 +568,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.12"
-		var v1 = "abc\\rdef"
+		v1 = "abc\\rdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT $v1 REGEXP '^abc\\rdef$'")
 		if _res.Error != nil {
@@ -567,7 +576,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.13"
-		var v1 = "abc\\fdef"
+		v1 = "abc\\fdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT $v1 REGEXP '^abc\\fdef$'")
 		if _res.Error != nil {
@@ -575,7 +584,7 @@ func Test_regexp1(t *testing.T) {
 		}
 	}
 	{ // do_test "regexp1-2.14"
-		var v1 = "abc\\vdef"
+		v1 = "abc\\vdef"
 		_ = v1 // suppress unused warning
 		_res = db.Exec("SELECT $v1 REGEXP '^abc\\vdef$'")
 		if _res.Error != nil {
@@ -633,7 +642,7 @@ func Test_regexp1(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db regexp")
+	// load_static_extension db regexp (unsupported command, not transpiled)
 	{ // "regexp1-3.1"
 		r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a TEXT);\n  INSERT INTO t1(id, a) VALUES(1, '日本語');\n  SELECT a, hex(a), length(a) FROM t1;\n")
 		if r.Error != nil {

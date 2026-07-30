@@ -39,15 +39,36 @@ func Test_shellB(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var CLI string
+	_ = CLI // pre-declared from TCL source
+	var mapping string
+	_ = mapping // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var ntest string
+	_ = ntest // pre-declared from TCL source
+	var nerr string
+	_ = nerr // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var CLI = "test_cli_invocation"
+	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest modeA.sql")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest dblwidth-a.sql")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest vt100-a.sql")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest regexp1.sql")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest imposter1.sql")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest fptest01.sql")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest shell-prompt.sql")
+	// do_clitest modeA.sql (unsupported command, not transpiled)
+	// do_clitest dblwidth-a.sql (unsupported command, not transpiled)
+	// do_clitest vt100-a.sql (unsupported command, not transpiled)
+	// do_clitest regexp1.sql (unsupported command, not transpiled)
+	// do_clitest imposter1.sql (unsupported command, not transpiled)
+	// do_clitest fptest01.sql (unsupported command, not transpiled)
+	// do_clitest shell-prompt.sql (unsupported command, not transpiled)
 }

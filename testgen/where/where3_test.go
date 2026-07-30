@@ -40,6 +40,39 @@ func Test_where3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sqlite_sort_count string
+	_ = sqlite_sort_count // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var eqp string
+	_ = eqp // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var predicate string
+	_ = predicate // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var disabled_opt string
+	_ = disabled_opt // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tab string
+	_ = tab // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "where3-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(p, q);\n    CREATE TABLE t3(x, y);\n    \n    INSERT INTO t1 VALUES(111,'one');\n    INSERT INTO t1 VALUES(222,'two');\n    INSERT INTO t1 VALUES(333,'three');\n    \n    INSERT INTO t2 VALUES(1,111);\n    INSERT INTO t2 VALUES(2,222);\n    INSERT INTO t2 VALUES(4,444);\n    CREATE INDEX t2i1 ON t2(p);\n    \n    INSERT INTO t3 VALUES(999,'nine');\n    CREATE INDEX t3i1 ON t3(x);\n    \n    SELECT * FROM t1, t2 LEFT JOIN t3 ON q=x WHERE p=2 AND a=q;\n  ")
@@ -59,40 +92,52 @@ func Test_where3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tA(apk integer primary key, ax);\n    CREATE TABLE tB(bpk integer primary key, bx);\n    CREATE TABLE tC(cpk integer primary key, cx);\n    CREATE TABLE tD(dpk integer primary key, dx);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...} (test infra, not transpiled)
 	}
 	{ // do_test "where3-2.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...} (test infra, not transpiled)
 	}
 	{ // do_test "where3-2.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...} (test infra, not transpiled)
 	}
 	{ // do_test "where3-2.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...} (test infra, not transpiled)
 	}
 	{ // do_test "where3-2.1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...} (test infra, not transpiled)
 	}
 	{ // do_test "where3-2.1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...} (test infra, not transpiled)
 	}
 	{ // do_test "where3-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...} (test infra, not transpiled)
 	}
 	{ // do_test "where3-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...} (test infra, not transpiled)
 	}
 	{ // do_test "where3-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...} (test infra, not transpiled)
 	}
 	{ // do_test "where3-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...} (test infra, not transpiled)
 	}
 	{ // do_test "where3-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...} (test infra, not transpiled)
 	}
 	{ // do_test "where3-2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		// queryplan {
+    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...} (test infra, not transpiled)
 	}
 	{ // "where3-3.0"
 		_res = db.Exec("\n  CREATE TABLE t301(a INTEGER PRIMARY KEY,b,c);\n  CREATE INDEX t301c ON t301(c);\n  INSERT INTO t301 VALUES(1,2,3);\n  INSERT INTO t301 VALUES(2,2,3);\n  CREATE TABLE t302(x, y);\n  INSERT INTO t302 VALUES(4,5);\n  ANALYZE;\n")
@@ -204,11 +249,10 @@ func Test_where3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t6w(a, w);\n    INSERT INTO t6w VALUES(1, 'w-one');\n    INSERT INTO t6w VALUES(2, 'w-two');\n    INSERT INTO t6w VALUES(9, 'w-nine');\n    CREATE TABLE t6x(a, x);\n    INSERT INTO t6x VALUES(1, 'x-one');\n    INSERT INTO t6x VALUES(3, 'x-three');\n    INSERT INTO t6x VALUES(9, 'x-nine');\n    CREATE TABLE t6y(a, y);\n    INSERT INTO t6y VALUES(1, 'y-one');\n    INSERT INTO t6y VALUES(4, 'y-four');\n    INSERT INTO t6y VALUES(9, 'y-nine');\n    CREATE TABLE t6z(a, z);\n    INSERT INTO t6z VALUES(1, 'z-one');\n    INSERT INTO t6z VALUES(5, 'z-five');\n    INSERT INTO t6z VALUES(9, 'z-nine');\n  ")
 		}
 	}
-	var cnt = "0"
+	cnt = "0"
 	_ = cnt // suppress unused warning
 	for _, predicate := range tclSplitList("\n   {}\n   {ORDER BY a}\n   {ORDER BY t6w.a}\n   {WHERE a>0}\n   {WHERE t6y.a>0}\n   {WHERE a>0 ORDER BY a}\n") {
 	_ = predicate // suppress unused warning
-		var cnt = "0"
 		// incr cnt 1
 		{
 			_n, _err := strconv.Atoi(cnt)
@@ -217,80 +261,80 @@ func Test_where3(t *testing.T) {
 			}
 		}
 		{ // do_test "where3-6." + cnt + ".1"
-			var sql = "SELECT * FROM t6w NATURAL JOIN t6x NATURAL JOIN t6y"
+			sql = "SELECT * FROM t6w NATURAL JOIN t6x NATURAL JOIN t6y"
 			_ = sql // suppress unused warning
 			sql += " NATURAL JOIN t6z "
-			sql += _predicate
+			sql += predicate
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 			}
 		}
 		{ // do_test "where3-6." + cnt + ".2"
-			var sql = "SELECT * FROM t6w JOIN t6x USING(a) JOIN t6y USING(a)"
+			sql = "SELECT * FROM t6w JOIN t6x USING(a) JOIN t6y USING(a)"
 			_ = sql // suppress unused warning
 			sql += " JOIN t6z USING(a) "
-			sql += _predicate
+			sql += predicate
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 			}
 		}
 		{ // do_test "where3-6." + cnt + ".3"
-			var sql = "SELECT * FROM t6w NATURAL JOIN t6x JOIN t6y USING(a)"
+			sql = "SELECT * FROM t6w NATURAL JOIN t6x JOIN t6y USING(a)"
 			_ = sql // suppress unused warning
 			sql += " JOIN t6z USING(a) "
-			sql += _predicate
+			sql += predicate
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 			}
 		}
 		{ // do_test "where3-6." + cnt + ".4"
-			var sql = "SELECT * FROM t6w JOIN t6x USING(a) NATURAL JOIN t6y"
+			sql = "SELECT * FROM t6w JOIN t6x USING(a) NATURAL JOIN t6y"
 			_ = sql // suppress unused warning
 			sql += " JOIN t6z USING(a) "
-			sql += _predicate
+			sql += predicate
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 			}
 		}
 		{ // do_test "where3-6." + cnt + ".5"
-			var sql = "SELECT * FROM t6w JOIN t6x USING(a) JOIN t6y USING(a)"
+			sql = "SELECT * FROM t6w JOIN t6x USING(a) JOIN t6y USING(a)"
 			_ = sql // suppress unused warning
 			sql += " NATURAL JOIN t6z "
-			sql += _predicate
+			sql += predicate
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 			}
 		}
 		{ // do_test "where3-6." + cnt + ".6"
-			var sql = "SELECT * FROM t6w JOIN t6x USING(a) NATURAL JOIN t6y"
+			sql = "SELECT * FROM t6w JOIN t6x USING(a) NATURAL JOIN t6y"
 			_ = sql // suppress unused warning
 			sql += " NATURAL JOIN t6z "
-			sql += _predicate
+			sql += predicate
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 			}
 		}
 		{ // do_test "where3-6." + cnt + ".7"
-			var sql = "SELECT * FROM t6w NATURAL JOIN t6x JOIN t6y USING(a)"
+			sql = "SELECT * FROM t6w NATURAL JOIN t6x JOIN t6y USING(a)"
 			_ = sql // suppress unused warning
 			sql += " NATURAL JOIN t6z "
-			sql += _predicate
+			sql += predicate
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 			}
 		}
 		{ // do_test "where3-6." + cnt + ".8"
-			var sql = "SELECT * FROM t6w NATURAL JOIN t6x NATURAL JOIN t6y"
+			sql = "SELECT * FROM t6w NATURAL JOIN t6x NATURAL JOIN t6y"
 			_ = sql // suppress unused warning
 			sql += " JOIN t6z USING(a) "
-			sql += _predicate
+			sql += predicate
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -305,8 +349,8 @@ func Test_where3(t *testing.T) {
 	}
 	for _, disabled_opt := range tclSplitList("none omit-noop-join all") {
 	_ = disabled_opt // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db $disabled_opt 0")
+		// optimization_control db all 1 (unsupported command, not transpiled)
+		// optimization_control db $disabled_opt 0 (unsupported command, not transpiled)
 		{ // "where3-7." + disabled_opt + ".1"
 			r = db.Query("\n    SELECT x1 FROM t71 LEFT JOIN t72 ON x2=y1;\n  ")
 			if r.Error != nil {

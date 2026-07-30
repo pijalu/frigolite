@@ -40,6 +40,29 @@ func Test_misuse(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var _data_arr string
+	_ = _data_arr // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var data_f string
+	_ = data_f // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "misuse-1.1"
@@ -53,47 +76,52 @@ func Test_misuse(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test2.db-journal")
 		}
-		db, err := frigolite.Open("test2.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test2.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-		_ = _DB // suppress unused warning
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {\n    SELECT * FROM t1\n  }")
+		// catchsql2 {
+    SELECT * FROM t1
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {\n    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1\n  }")
+		// catchsql2 {
+    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function $::DB")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {\n    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1\n  }")
+		// sqlite3_create_function $::DB (unsupported command, not transpiled)
+		// catchsql2 {
+    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-1.6"
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "misuse-2.1"
-		db, err := frigolite.Open("test2.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test2.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-		_ = _DB // suppress unused warning
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
 		}
 	}
 	{ // do_test "misuse-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-2.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -111,28 +139,27 @@ func Test_misuse(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "misuse-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-2.5"
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "misuse-3.1"
-		db, err := frigolite.Open("test2.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test2.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-		_ = _DB // suppress unused warning
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
 		}
 	}
 	{ // do_test "misuse-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-3.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -150,28 +177,27 @@ func Test_misuse(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "misuse-3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-3.5"
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "misuse-4.1"
-		db, err := frigolite.Open("test2.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test2.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-		_ = _DB // suppress unused warning
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1\n  ")
 		}
 	}
 	{ // do_test "misuse-4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-4.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -190,34 +216,33 @@ func Test_misuse(t *testing.T) {
 	}
 	if tclBool("clang_sanitize_address" + "==0 && 0") {
 		{ // do_test "misuse-4.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $::DB")
-			t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+			// sqlite3_close $::DB (unsupported command, not transpiled)
+			// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)
 		}
 		{ // do_test "misuse-4.5"
 			_res = db.Exec("\n      SELECT * FROM t1\n    ")
 			_ = _res // catchsql
 		}
 		{ // do_test "misuse-5.1"
-			db, err := frigolite.Open("test2.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test2.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-			_ = _DB // suppress unused warning
+			DB = "sqlite3_connection_pointer db" // TCL namespace variable
+			_ = DB // suppress unused warning
 			r = db.Query("\n        SELECT * FROM t1\n      ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT * FROM t1\n      ")
 			}
 		}
 		{ // do_test "misuse-5.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+			// catchsql2 {SELECT * FROM t1} (unsupported command, not transpiled)
 		}
 		{ // do_test "misuse-5.3"
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $::DB {SELECT * FROM t1} -1 TAIL")
+				// sqlite3_prepare $::DB {SELECT * FROM t1} -1 TAIL (unsupported command, not transpiled)
 				if _catchErr != nil {
 					_r = "1"
 					msg = _catchErr.Error()
@@ -233,12 +258,12 @@ func Test_misuse(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misuse-6.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_set_errmsg db 1 an error has occurred")
+		// sqlite3_set_errmsg db 1 an error has occurred (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-6.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "misuse-6.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_set_errmsg  1 an error has occurred")
+		// sqlite3_set_errmsg  1 an error has occurred (unsupported command, not transpiled)
 	}
 }

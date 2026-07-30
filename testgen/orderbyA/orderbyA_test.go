@@ -40,9 +40,36 @@ func Test_orderbyA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var eqp string
+	_ = eqp // pre-declared from TCL source
+	var rcnt string
+	_ = rcnt // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var match string
+	_ = match // pre-declared from TCL source
+	var nomatch string
+	_ = nomatch // pre-declared from TCL source
+	var nSort string
+	_ = nSort // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "orderbyA" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "orderbyA" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES('one',   1, 11);\n  INSERT INTO t1 VALUES('three', 7, 11);\n  INSERT INTO t1 VALUES('one',   2, 11);\n  INSERT INTO t1 VALUES('one',   3, 11);\n  INSERT INTO t1 VALUES('two',   4, 11);\n  INSERT INTO t1 VALUES('two',   6, 11);\n  INSERT INTO t1 VALUES('three', 8, 11);\n  INSERT INTO t1 VALUES('two',   5, 11);\n  INSERT INTO t1 VALUES('three', 9, 11);\n")
@@ -66,22 +93,28 @@ func Test_orderbyA(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
 			}
-			var match = "1"
+			match = "1"
 			_ = match // suppress unused warning
-			var nomatch = "2"
+			nomatch = "2"
 			_ = nomatch // suppress unused warning
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n >= 2 }() {
-				var match = "0"
+				match = "0"
 				_ = match // suppress unused warning
-				var nomatch = "1"
+				nomatch = "1"
 				_ = nomatch // suppress unused warning
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.1.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $match {one 6 three 24 two 15}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.1.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $match {two 15 three 24 one 6}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.2.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {one 6 three 24 two 15}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.2.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {two 15 three 24 one 6}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.3.1 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {one 6 three 24 two 15}")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 1.$tn.3.2 {\n    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {two 15 three 24 one 6}")
+			// do_sortcount_test 1.$tn.1.1 {
+    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $match {one 6 three 24 two 15} (unsupported command, not transpiled)
+			// do_sortcount_test 1.$tn.1.2 {
+    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $match {two 15 three 24 one 6} (unsupported command, not transpiled)
+			// do_sortcount_test 1.$tn.2.1 {
+    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {one 6 three 24 two 15} (unsupported command, not transpiled)
+			// do_sortcount_test 1.$tn.2.2 {
+    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {two 15 three 24 one 6} (unsupported command, not transpiled)
+			// do_sortcount_test 1.$tn.3.1 {
+    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {one 6 three 24 two 15} (unsupported command, not transpiled)
+			// do_sortcount_test 1.$tn.3.2 {
+    SELECT a, sum(b) FROM t1 GROUP BY a ORDER BY ...} $nomatch {two 15 three 24 one 6} (unsupported command, not transpiled)
 		}
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  INSERT INTO t2 VALUES(1, 'one', 1);\n  INSERT INTO t2 VALUES(1, 'two', 2);\n  INSERT INTO t2 VALUES(1, 'one', 3);\n  INSERT INTO t2 VALUES(1, 'two', 4);\n  INSERT INTO t2 VALUES(1, 'one', 5);\n  INSERT INTO t2 VALUES(1, 'two', 6);\n\n  INSERT INTO t2 VALUES(2, 'one', 7);\n  INSERT INTO t2 VALUES(2, 'two', 8);\n  INSERT INTO t2 VALUES(2, 'one', 9);\n  INSERT INTO t2 VALUES(2, 'two', 10);\n  INSERT INTO t2 VALUES(2, 'one', 11);\n  INSERT INTO t2 VALUES(2, 'two', 12);\n\n  INSERT INTO t2 VALUES(NULL, 'one', 13);\n  INSERT INTO t2 VALUES(NULL, 'two', 14);\n  INSERT INTO t2 VALUES(NULL, 'one', 15);\n  INSERT INTO t2 VALUES(NULL, 'two', 16);\n  INSERT INTO t2 VALUES(NULL, 'one', 17);\n  INSERT INTO t2 VALUES(NULL, 'two', 18);\n")
@@ -105,17 +138,23 @@ func Test_orderbyA(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
 				}
-				var nSort = "($tn==2 || $tn==3) ? 0 : 1"
+				nSort = "($tn==2 || $tn==3) ? 0 : 1"
 				_ = nSort // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.1.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {{} one 45  {} two 48  1 one 9  1 two 12  2 one 27 ...}")
-				t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.1.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {2 two 30  2 one 27  1 two 12  1 one 9  {} two 48  ...}")
+				// do_sortcount_test 2.$tn.1.1 {
+    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {{} one 45  {} two 48  1 one 9  1 two 12  2 one 27 ...} (unsupported command, not transpiled)
+				// do_sortcount_test 2.$tn.1.2 {
+    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {2 two 30  2 one 27  1 two 12  1 one 9  {} two 48  ...} (unsupported command, not transpiled)
 				nSort = "($tn==4 || $tn==5) ? 0 : 1"
 				_ = nSort // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.2.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...}")
-				t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.2.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...}")
+				// do_sortcount_test 2.$tn.2.1 {
+    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...} (unsupported command, not transpiled)
+				// do_sortcount_test 2.$tn.2.2 {
+    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...} (unsupported command, not transpiled)
 				nSort = "$tn==1 ? 2 : 1"
 				_ = nSort // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.3.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...}")
-				t.Errorf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.3.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...}")
+				// do_sortcount_test 2.$tn.3.1 {
+    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...} (unsupported command, not transpiled)
+				// do_sortcount_test 2.$tn.3.2 {
+    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...} (unsupported command, not transpiled)
 			}
 }

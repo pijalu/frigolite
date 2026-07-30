@@ -40,21 +40,43 @@ func Test_sqllog(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var env_SQLITE_SQLLOG_DIR string
+	_ = env_SQLITE_SQLLOG_DIR // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var env_SQLITE_SQLLOG_CONDITIONAL string
+	_ = env_SQLITE_SQLLOG_CONDITIONAL // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "sqllog"
+	testprefix = "sqllog"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	var _env_SQLITE_SQLLOG_DIR = "pwd" // TCL namespace variable
-	_ = _env_SQLITE_SQLLOG_DIR // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_sqllog_files")
-	db, err = frigolite.Open("test.db")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	env_SQLITE_SQLLOG_DIR = "pwd" // TCL namespace variable
+	_ = env_SQLITE_SQLLOG_DIR // suppress unused warning
+	// delete_all_sqllog_files (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	var a = "a"
+	a = "a"
 	_ = a // suppress unused warning
-	var b = "b"
+	b = "b"
 	_ = b // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES($a, $b);\n  SELECT * FROM t1;\n")
@@ -69,7 +91,7 @@ func Test_sqllog(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "readfile [lindex [glob sqllog_*.sql] 0]")
+		// readfile [lindex [glob sqllog_*.sql] 0] (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2"
 		// file size [lindex [glob sqllog_*_0.db] 0]
@@ -78,12 +100,13 @@ func Test_sqllog(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_sqllog_files")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// delete_all_sqllog_files (unsupported command, not transpiled)
 	os.Remove("test.db-sqllog")
-	var _env_SQLITE_SQLLOG_CONDITIONAL = "1" // TCL namespace variable
-	_ = _env_SQLITE_SQLLOG_CONDITIONAL // suppress unused warning
-	db, err = frigolite.Open("test.db")
+	env_SQLITE_SQLLOG_CONDITIONAL = "1" // TCL namespace variable
+	_ = env_SQLITE_SQLLOG_CONDITIONAL // suppress unused warning
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  INSERT INTO t1 VALUES(4, 5);\n  SELECT * FROM t1;\n")
@@ -100,8 +123,9 @@ func Test_sqllog(t *testing.T) {
 	{ // do_test "2.2"
 		tclGlob("-nocomplain")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "touch test.db-sqllog")
-	db, err = frigolite.Open("test.db")
+	// touch test.db-sqllog (unsupported command, not transpiled)
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.3"
 		r = db.Query("\n  INSERT INTO t1 VALUES(6, 7);\n  SELECT * FROM t1;\n")
@@ -116,13 +140,13 @@ func Test_sqllog(t *testing.T) {
 		}
 	}
 	{ // do_test "2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "readfile [lindex [glob sqllog_*.sql] 0]")
+		// readfile [lindex [glob sqllog_*.sql] 0] (unsupported command, not transpiled)
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_sqllog")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_sqllog (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
 }

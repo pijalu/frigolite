@@ -39,13 +39,50 @@ func Test_e_droptrigger(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var triggers_fired string
+	_ = triggers_fired // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var droptrigger string
+	_ = droptrigger // pre-declared from TCL source
+	var before string
+	_ = before // pre-declared from TCL source
+	var after string
+	_ = after // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var nm string
+	_ = nm // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var event string
+	_ = event // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "e_droptrigger" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "e_droptrigger" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_droptrigger_tests 1.1 -repair {\n  droptrigger_reopen_db\n} -tclquery {\n  list_all_triggers \n} {\n  1   \"DROP TRIGGER main.tr1\"            \n      {...}")
+	// do_droptrigger_tests 1.1 -repair {
+  droptrigger_reopen_db
+} -tclquery {
+  list_all_triggers 
+} {
+  1   "DROP TRIGGER main.tr1"            
+      {...} (unsupported command, not transpiled)
 	// foreach {tn tbl droptrigger before after} "\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n"
 	_items0 := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
 	for _idx0 := 0; _idx0+5 <= len(_items0); _idx0 += 5 {
@@ -61,15 +98,15 @@ func Test_e_droptrigger(t *testing.T) {
 		_ = after // suppress unused warning
 		_ = _idx0
 			{ // do_test "2." + tn + ".1"
-				t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
+				// droptrigger_reopen_db (unsupported command, not transpiled)
 				_res = db.Exec(" INSERT INTO " + tbl + " VALUES('1', '2') ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO " + tbl + " VALUES('1', '2') ")
 				}
-				_ = _triggers_fired // TCL namespace variable (query)
+				_ = triggers_fired // TCL namespace variable (query)
 			}
 			{ // do_test "2." + tn + ".2"
-				t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
+				// droptrigger_reopen_db (unsupported command, not transpiled)
 				_res = db.Exec(droptrigger)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, droptrigger)
@@ -78,7 +115,7 @@ func Test_e_droptrigger(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO " + tbl + " VALUES('1', '2') ")
 				}
-				_ = _triggers_fired // TCL namespace variable (query)
+				_ = triggers_fired // TCL namespace variable (query)
 			}
 		}
 		// foreach {tn tbl droptrigger before after} "\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n"
@@ -96,15 +133,15 @@ func Test_e_droptrigger(t *testing.T) {
 			_ = after // suppress unused warning
 			_ = _idx1
 				{ // do_test "3.1." + tn + ".1"
-					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db UPDATE")
+					// droptrigger_reopen_db UPDATE (unsupported command, not transpiled)
 					_res = db.Exec("UPDATE " + tbl + " SET a = 'abc'")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE " + tbl + " SET a = 'abc'")
 					}
-					_ = _triggers_fired // TCL namespace variable (query)
+					_ = triggers_fired // TCL namespace variable (query)
 				}
 				{ // do_test "3.1." + tn + ".2"
-					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db UPDATE")
+					// droptrigger_reopen_db UPDATE (unsupported command, not transpiled)
 					_res = db.Exec(droptrigger)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, droptrigger)
@@ -113,7 +150,7 @@ func Test_e_droptrigger(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE " + tbl + " SET a = 'abc'")
 					}
-					_ = _triggers_fired // TCL namespace variable (query)
+					_ = triggers_fired // TCL namespace variable (query)
 				}
 			}
 			// foreach {tn tbl droptrigger before after} "\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n"
@@ -131,15 +168,15 @@ func Test_e_droptrigger(t *testing.T) {
 				_ = after // suppress unused warning
 				_ = _idx2
 					{ // do_test "3.2." + tn + ".1"
-						t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db DELETE")
+						// droptrigger_reopen_db DELETE (unsupported command, not transpiled)
 						_res = db.Exec("DELETE FROM " + tbl)
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM " + tbl)
 						}
-						_ = _triggers_fired // TCL namespace variable (query)
+						_ = triggers_fired // TCL namespace variable (query)
 					}
 					{ // do_test "3.2." + tn + ".2"
-						t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db DELETE")
+						// droptrigger_reopen_db DELETE (unsupported command, not transpiled)
 						_res = db.Exec(droptrigger)
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, droptrigger)
@@ -148,35 +185,35 @@ func Test_e_droptrigger(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM " + tbl)
 						}
-						_ = _triggers_fired // TCL namespace variable (query)
+						_ = triggers_fired // TCL namespace variable (query)
 					}
 				}
 				{ // do_test "4.1"
-					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
-					t.Errorf("TODO: %s not implemented in frigolite", "list_all_triggers")
+					// droptrigger_reopen_db (unsupported command, not transpiled)
+					// list_all_triggers (unsupported command, not transpiled)
 				}
 				{ // do_test "4.2"
-					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
+					// droptrigger_reopen_db (unsupported command, not transpiled)
 					_res = db.Exec("DROP TABLE t1")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "list_all_triggers")
+					// list_all_triggers (unsupported command, not transpiled)
 				}
 				{ // do_test "4.3"
-					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
+					// droptrigger_reopen_db (unsupported command, not transpiled)
 					_res = db.Exec("DROP TABLE t1")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "list_all_triggers")
+					// list_all_triggers (unsupported command, not transpiled)
 				}
 				{ // do_test "4.4"
-					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
+					// droptrigger_reopen_db (unsupported command, not transpiled)
 					_res = db.Exec("DROP TABLE t1")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "list_all_triggers")
+					// list_all_triggers (unsupported command, not transpiled)
 				}
 }

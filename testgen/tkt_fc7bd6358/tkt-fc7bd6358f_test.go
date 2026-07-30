@@ -39,6 +39,19 @@ func Test_tkt_fc7bd6358f(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var from string
+	_ = from // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-fc7bd6358f.100"
 		_res = db.Exec("\n    CREATE TABLE t(textid TEXT);\n    INSERT INTO t VALUES('12');\n    INSERT INTO t VALUES('34');\n    CREATE TABLE i(intid INTEGER PRIMARY KEY);\n    INSERT INTO i VALUES(12);\n    INSERT INTO i VALUES(34);\n  ")

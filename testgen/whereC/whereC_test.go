@@ -39,8 +39,21 @@ func Test_whereC(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "whereC"
+	testprefix = "whereC"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(i INTEGER PRIMARY KEY, a, b INTEGER);\n\n  INSERT INTO t1 VALUES(1, 1, 1);\n  INSERT INTO t1 VALUES(2, 1, 1);\n  INSERT INTO t1 VALUES(3, 1, 2);\n  INSERT INTO t1 VALUES(4, 1, 2);\n  INSERT INTO t1 VALUES(5, 1, 2);\n  INSERT INTO t1 VALUES(6, 1, 3);\n  INSERT INTO t1 VALUES(7, 1, 3);\n\n  INSERT INTO t1 VALUES(8, 2, 1);\n  INSERT INTO t1 VALUES(9, 2, 1);\n  INSERT INTO t1 VALUES(10, 2, 2);\n  INSERT INTO t1 VALUES(11, 2, 2);\n  INSERT INTO t1 VALUES(12, 2, 2);\n  INSERT INTO t1 VALUES(13, 2, 3);\n  INSERT INTO t1 VALUES(14, 2, 3);\n\n  INSERT INTO t1 VALUES(15, 2, 1);\n  INSERT INTO t1 VALUES(16, 2, 1);\n  INSERT INTO t1 VALUES(17, 2, 2);\n  INSERT INTO t1 VALUES(18, 2, 2);\n  INSERT INTO t1 VALUES(19, 2, 2);\n  INSERT INTO t1 VALUES(20, 2, 3);\n  INSERT INTO t1 VALUES(21, 2, 3);\n\n  CREATE INDEX i1 ON t1(a, b);\n")

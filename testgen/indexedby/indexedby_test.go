@@ -40,9 +40,18 @@ func Test_indexedby(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "indexedby" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "indexedby" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "indexedby-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b);\n\n    CREATE TABLE t2(c, d);\n    CREATE INDEX i3 ON t2(c);\n    CREATE INDEX i4 ON t2(d);\n\n    CREATE TABLE t3(e PRIMARY KEY, f);\n\n    CREATE VIEW v1 AS SELECT * FROM t1;\n  ")
 		if _res.Error != nil {

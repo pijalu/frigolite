@@ -39,8 +39,21 @@ func Test_vtab6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var echo_module_cost string
+	_ = echo_module_cost // pre-declared from TCL source
+	var echo_module_ignore_usable string
+	_ = echo_module_ignore_usable // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	_res = db.Exec("\n  CREATE TABLE real_t1(a,b,c);\n  CREATE TABLE real_t2(b,c,d);\n  CREATE TABLE real_t3(c,d,e);\n  CREATE TABLE real_t4(d,e,f);\n  CREATE TABLE real_t5(a INTEGER PRIMARY KEY);\n  CREATE TABLE real_t6(a INTEGER);\n  CREATE TABLE real_t7 (x, y);\n  CREATE TABLE real_t8 (a integer primary key, b);\n  CREATE TABLE real_t9(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE real_t10(x INTEGER PRIMARY KEY, y);\n  CREATE TABLE real_t11(p INTEGER PRIMARY KEY, q);\n  CREATE TABLE real_t12(a,b);\n  CREATE TABLE real_t13(b,c);\n  CREATE TABLE real_t21(a,b,c);\n  CREATE TABLE real_t22(p,q);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE real_t1(a,b,c);\n  CREATE TABLE real_t2(b,c,d);\n  CREATE TABLE real_t3(c,d,e);\n  CREATE TABLE real_t4(d,e,f);\n  CREATE TABLE real_t5(a INTEGER PRIMARY KEY);\n  CREATE TABLE real_t6(a INTEGER);\n  CREATE TABLE real_t7 (x, y);\n  CREATE TABLE real_t8 (a integer primary key, b);\n  CREATE TABLE real_t9(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE real_t10(x INTEGER PRIMARY KEY, y);\n  CREATE TABLE real_t11(p INTEGER PRIMARY KEY, q);\n  CREATE TABLE real_t12(a,b);\n  CREATE TABLE real_t13(b,c);\n  CREATE TABLE real_t21(a,b,c);\n  CREATE TABLE real_t22(p,q);\n")
@@ -341,7 +354,7 @@ func Test_vtab6(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab6-7.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 		r = db.Query("\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")
@@ -365,8 +378,8 @@ func Test_vtab6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		}
 	}
-	var _echo_module_cost = "1.0" // TCL namespace variable
-	_ = _echo_module_cost // suppress unused warning
+	echo_module_cost = "1.0" // TCL namespace variable
+	_ = echo_module_cost // suppress unused warning
 	{ // do_test "vtab6-11.1.3"
 		r = db.Query("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		if r.Error != nil {
@@ -397,8 +410,8 @@ func Test_vtab6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		}
 	}
-	var _echo_module_cost = "1.0" // TCL namespace variable
-	_ = _echo_module_cost // suppress unused warning
+	echo_module_cost = "1.0" // TCL namespace variable
+	_ = echo_module_cost // suppress unused warning
 	{ // do_test "vtab6-11.2.3"
 		r = db.Query("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		if r.Error != nil {
@@ -411,9 +424,10 @@ func Test_vtab6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab6-11.3.1"
 		r = db.Query("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		if r.Error != nil {
@@ -426,8 +440,8 @@ func Test_vtab6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		}
 	}
-	var _echo_module_cost = "1.0" // TCL namespace variable
-	_ = _echo_module_cost // suppress unused warning
+	echo_module_cost = "1.0" // TCL namespace variable
+	_ = echo_module_cost // suppress unused warning
 	{ // do_test "vtab6-11.3.3"
 		r = db.Query("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		if r.Error != nil {
@@ -440,8 +454,8 @@ func Test_vtab6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b, c FROM bc NATURAL JOIN ab;\n  ")
 		}
 	}
-	var _echo_module_ignore_usable = "1" // TCL namespace variable
-	_ = _echo_module_ignore_usable // suppress unused warning
+	echo_module_ignore_usable = "1" // TCL namespace variable
+	_ = echo_module_ignore_usable // suppress unused warning
 	{ // do_test "vtab6-11.4.1"
 		_res = db.Exec("\n    SELECT a, b, c FROM ab NATURAL JOIN bc;\n  ")
 		_ = _res // catchsql

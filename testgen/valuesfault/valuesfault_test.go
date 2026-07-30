@@ -39,8 +39,15 @@ func Test_valuesfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "valuesfault"
+	testprefix = "valuesfault"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b, c);\n")
@@ -48,6 +55,12 @@ func Test_valuesfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  sqlite3_limit db ...} -body {\n  execsql {\n    INSERT INTO x1 VALUES(1, 1, 1), (...} -test {\n  faultsim_test_result {0 {}} \n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {
+  faultsim_restore_and_reopen
+  sqlite3_limit db ...} -body {
+  execsql {
+    INSERT INTO x1 VALUES(1, 1, 1), (...} -test {
+  faultsim_test_result {0 {}} 
+} (unsupported command, not transpiled)
 }

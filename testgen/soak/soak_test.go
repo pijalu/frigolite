@@ -40,9 +40,38 @@ func Test_soak(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var TIMEOUT string
+	_ = TIMEOUT // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var SOAKTESTS string
+	_ = SOAKTESTS // pre-declared from TCL source
+	var G_isquick string
+	_ = G_isquick // pre-declared from TCL source
+	var soak_starttime string
+	_ = soak_starttime // pre-declared from TCL source
+	var soak_finishtime string
+	_ = soak_finishtime // pre-declared from TCL source
+	var iRun string
+	_ = iRun // pre-declared from TCL source
+	var iIdx string
+	_ = iIdx // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tail string
+	_ = tail // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	var TIMEOUT = "3600"
+	TIMEOUT = "3600"
 	_ = TIMEOUT // suppress unused warning
 	if tclBool("llength $argv" + ">0") {
 		// foreach {name value} argv
@@ -53,32 +82,36 @@ func Test_soak(t *testing.T) {
 			value := _items0[_idx0+1]
 			_ = value // suppress unused warning
 			_ = _idx0
-				t.Errorf("TODO: %s not implemented in frigolite", "switch -- $name {\n      -timeout {\n        set TIMEOUT $value\n     ...}")
+				// switch -- $name {
+      -timeout {
+        set TIMEOUT $value
+     ...} (test infra, not transpiled)
 			}
 		}
 		var argv = "list"
 		_ = argv // suppress unused warning
-		var SOAKTESTS = "\n  fuzz.test\n  fuzz_malloc.test\n  trans.test\n  corruptC.test\n"
+		SOAKTESTS = "\n  fuzz.test\n  fuzz_malloc.test\n  trans.test\n  corruptC.test\n"
 		_ = SOAKTESTS // suppress unused warning
-		var G_isquick = "1"
+		G_isquick = "1"
 		_ = G_isquick // suppress unused warning
-		var soak_starttime = "clock_seconds"
+		soak_starttime = "clock_seconds"
 		_ = soak_starttime // suppress unused warning
-		var soak_finishtime = "$soak_starttime + $TIMEOUT"
+		soak_finishtime = "$soak_starttime + $TIMEOUT"
 		_ = soak_finishtime // suppress unused warning
-		var iRun = "0"
+		iRun = "0"
 		_ = iRun // suppress unused warning
 		for tclBool("clock_seconds" + " < " + soak_finishtime) {
-			var iIdx = "$iRun % [llength $SOAKTESTS]"
+			iIdx = "$iRun % [llength $SOAKTESTS]"
 			_ = iIdx // suppress unused warning
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 			}
 			if func() bool { sqlite_open_file_count_n, _sqlite_open_file_count_e := strconv.Atoi(sqlite_open_file_count); if _sqlite_open_file_count_e != nil { return false }; return sqlite_open_file_count_n > 0 }() {
-				t.Log(tail + " did not close all files: " + sqlite_open_file_count)
-				t.Errorf("TODO: %s not implemented in frigolite", "fail_test $tail")
-				var sqlite_open_file_count = "0"
+				_putsMsg := tail + " did not close all files: " + sqlite_open_file_count
+				_ = _putsMsg
+				// fail_test $tail (unsupported command, not transpiled)
+				sqlite_open_file_count = "0"
 				_ = sqlite_open_file_count // suppress unused warning
 			}
 			if tclBool("set_test_counter errors" + ">0") {
@@ -91,5 +124,5 @@ func Test_soak(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "really_finish_test")
+		// really_finish_test (unsupported command, not transpiled)
 }

@@ -40,8 +40,17 @@ func Test_in4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "in4"
+	testprefix = "in4"
 	_ = testprefix // suppress unused warning
 	{ // do_test "in4-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a);\n  ")
@@ -647,7 +656,8 @@ func Test_in4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  CREATE UNIQUE INDEX t1y ON t1(y);\n  INSERT INTO t1 VALUES(111, 'AAA'),(222, 'BBB'),(333, 'CCC');\n  CREATE TABLE t2(z);\n  INSERT INTO t2 VALUES('BBB'),('AAA');\n  ANALYZE sqlite_schema;\n  INSERT INTO sqlite_stat1 VALUES('t1', 't1y','100 1');\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "8.1"
 		r = db.Query("\n  SELECT t1.x FROM t2 CROSS JOIN t1 WHERE t2.z = t1.y;\n")

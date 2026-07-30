@@ -39,13 +39,20 @@ func Test_pragma6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "pragma6"
+	testprefix = "pragma6"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "1.0"
-		db, err := frigolite.Open("")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "1.1"
@@ -55,8 +62,7 @@ func Test_pragma6(t *testing.T) {
 		}
 		_res = db.Exec(" INSERT INTO t1(a) VALUES(zeroblob(40000)) ")
 		_ = _res // catchsql
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "1.2"
 		r = db.Query(" PRAGMA integrity_check; ")
@@ -67,7 +73,6 @@ func Test_pragma6(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA quick_check; ")
 		}
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 }

@@ -39,8 +39,15 @@ func Test_strict2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "strict2"
+	testprefix = "strict2"
 	_ = testprefix // suppress unused warning
 	{ // "strict2-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c TEXT,\n    d REAL,\n    e BLOB\n  ) STRICT;\n  CREATE TABLE t1nn(\n    a INT NOT NULL,\n    b INTEGER NOT NULL,\n    c TEXT NOT NULL,\n    d REAL NOT NULL,\n    e BLOB NOT NULL\n  ) STRICT;\n  CREATE TABLE t2(a,b,c,d,e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,1,'one',1.0,x'b1'),(2,2,'two',2.25,x'b2b2b2');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_schema SET rootpage=(SELECT rootpage FROM sqlite_schema WHERE name='t1');\n")
@@ -48,7 +55,8 @@ func Test_strict2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(\n    a INT,\n    b INTEGER,\n    c TEXT,\n    d REAL,\n    e BLOB\n  ) STRICT;\n  CREATE TABLE t1nn(\n    a INT NOT NULL,\n    b INTEGER NOT NULL,\n    c TEXT NOT NULL,\n    d REAL NOT NULL,\n    e BLOB NOT NULL\n  ) STRICT;\n  CREATE TABLE t2(a,b,c,d,e);\n  INSERT INTO t1(a,b,c,d,e) VALUES(1,1,'one',1.0,x'b1'),(2,2,'two',2.25,x'b2b2b2');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_schema SET rootpage=(SELECT rootpage FROM sqlite_schema WHERE name='t1');\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "strict2-1.2"
 		r = db.Query("\n  PRAGMA quick_check('t1');\n")

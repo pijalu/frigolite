@@ -40,9 +40,24 @@ func Test_whereJ(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "whereJ" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "whereJ" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "whereJ-1.0"
 		_res = db.Exec("\n  CREATE TABLE tx1 (\n    est,\n    cid,\n    sid,\t\n    fid,\n    aid,\n    edate,\n    rstat,\n    ftype,\n    cx,\n    fyear,\n    fp,\n    acode,\n    a1,\n    curx,\n    tdate,\n    gstat,\n    trgtpx,\n    effdate,\n    adate,\n    ytime,\n    mstat\n  );\n  CREATE INDEX ix0 on tx1(a1,curx,aid,cid,sid,ftype,fp,fyear DESC,edate DESC,fid);\n  CREATE INDEX ix1 on tx1(a1,curx,aid,ftype,fp,fyear DESC,fid,edate DESC,cid,sid);\n  CREATE INDEX ix2 on tx1(a1,curx,cid,sid,ftype,fp,fyear DESC,edate DESC,aid,fid);\n  CREATE INDEX ix3 on tx1(a1,curx,fid,ftype,fp,fyear DESC,cid,sid,aid,edate DESC);\n  CREATE INDEX ix4 on tx1(a1,curx,ftype,cid,sid,aid,edate DESC,fid,fp,fyear DESC);\n  CREATE INDEX ix5 on tx1(a1,curx,ftype,aid,fid,cid,sid,edate DESC,fp,fyear DESC);\n  CREATE INDEX ix6 on tx1(ftype,fp,fyear DESC,cid,sid,edate DESC,a1,fid,aid,curx,est,rstat,cx,acode,tdate,gstat,trgtpx,effdate,adate,ytime,mstat);\n  CREATE INDEX ix7 on tx1(cid,a1,curx,sid,ftype,est,fid,aid,edate,rstat,cx,fyear,fp,acode,tdate,gstat,trgtpx,effdate,adate,ytime,mstat);\n  CREATE INDEX ix8 on tx1(cid,sid,edate DESC,aid,est);\n  CREATE INDEX ix9 on tx1(aid,edate DESC,a1,curx);\n")
 		if _res.Error != nil {
@@ -103,17 +118,16 @@ func Test_whereJ(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b, c) ")
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
-		var x = "0"
+		x = "0"
 		_ = x // suppress unused warning
 		for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 100 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES($i, $x, $c) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i, $x, $c) ")
 			}
-			var c = "0"
 			// incr c 1
 			{
 				_n, _err := strconv.Atoi(c)
@@ -133,7 +147,6 @@ func Test_whereJ(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i+1, 5, $c) ")
 		}
-		var c = "0"
 		// incr c 1
 		{
 			_n, _err := strconv.Atoi(c)
@@ -179,7 +192,8 @@ func Test_whereJ(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE \n    a = 5 AND b BETWEEN 20 AND 80           -- Matches 1 row\n      AND\n    c BETWEEN 150 AND 160                   -- Matches 10 rows\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE le(\n    le_id largeint,\n    xid char(31),\n    type smallint,\n    name char(255) DEFAULT '',\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE TABLE cx(\n    cx_id largeint,\n    code char(31),\n    type smallint,\n    name char(31),\n    description varchar,\n    role smallint,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0,\n    le_id largeint DEFAULT 0,\n    imco smallint DEFAULT 0\n  );\n  CREATE TABLE px(\n    px_id largeint,\n    cx_id largeint,\n    px_tid largeint,\n    name char(31),\n    description varchar DEFAULT '',\n    ia smallint,\n    sl smallint,\n    le_id largeint DEFAULT 0,\n    mtime largeint DEFAULT 0,\n    muuid int DEFAULT 0\n  );\n  CREATE INDEX le_id on le (le_id);\n  CREATE INDEX c_id on cx (cx_id);\n  CREATE INDEX c_leid on cx (le_id);\n  CREATE INDEX p_id on px (px_id);\n  CREATE INDEX p_cid0 on px (cx_id);\n  CREATE INDEX p_pt on px (px_tid);\n  CREATE INDEX p_leid on px (le_id);\n")
@@ -206,7 +220,7 @@ func Test_whereJ(t *testing.T) {
 		}
 	}
 	{ // do_test "5.1"
-		var res = "db eval {\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a,b,c,d,e,f,g,h);\n    CREATE INDEX t1abc ON t1(a,b,c);\n    CREATE INDEX t1abe ON t1(a,b,e);\n    CREATE INDEX t1abf ON t1(a,b,f);\n    ANALYZE;\n    DROP TABLE IF EXISTS sqlite_stat4;\n    DROP TABLE IF EXISTS sqlite_stat3;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1(tbl,idx,stat)\n      VALUES('t1','t1abc','2000000 8000 1600 800'),\n            ('t1','t1abe','2000000 8000 1600 150'),\n            ('t1','t1abf','2000000 8000 1600 150');\n    ANALYZE sqlite_master;\n  \n    EXPLAIN QUERY PLAN\n    SELECT * FROM t1\n     WHERE (a=1 OR a=2)\n       AND (b=3 OR b=4)\n       AND (d>=5 AND d<=5)\n       AND ((e>=7 AND e<=7) OR (f>=8 AND f<=8))\n       AND g>0;\n  }"
+		res = "db eval {\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a,b,c,d,e,f,g,h);\n    CREATE INDEX t1abc ON t1(a,b,c);\n    CREATE INDEX t1abe ON t1(a,b,e);\n    CREATE INDEX t1abf ON t1(a,b,f);\n    ANALYZE;\n    DROP TABLE IF EXISTS sqlite_stat4;\n    DROP TABLE IF EXISTS sqlite_stat3;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1(tbl,idx,stat)\n      VALUES('t1','t1abc','2000000 8000 1600 800'),\n            ('t1','t1abe','2000000 8000 1600 150'),\n            ('t1','t1abf','2000000 8000 1600 150');\n    ANALYZE sqlite_master;\n  \n    EXPLAIN QUERY PLAN\n    SELECT * FROM t1\n     WHERE (a=1 OR a=2)\n       AND (b=3 OR b=4)\n       AND (d>=5 AND d<=5)\n       AND ((e>=7 AND e<=7) OR (f>=8 AND f<=8))\n       AND g>0;\n  }"
 		_ = res // suppress unused warning
 	}
 	{ // do_test "5.2"

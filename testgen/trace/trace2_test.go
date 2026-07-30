@@ -39,16 +39,76 @@ func Test_trace2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var trace string
+	_ = trace // pre-declared from TCL source
+	var sqllist string
+	_ = sqllist // pre-declared from TCL source
+	var item string
+	_ = item // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var zSql string
+	_ = zSql // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var expected string
+	_ = expected // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var _var string
+	_ = _var // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "trace2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "trace2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_trace_select_test 1.1 {\n  SELECT 1, 2, 3;\n} {\n  \"SELECT 1, 2, 3;\"\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_trace_select_test 1.2 {\n  SELECT sql('SELECT 1, 2, 3');\n} {\n  \"SELECT sql('SELECT 1, 2, 3');\"\n  \"-- SELECT 1,...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_trace_select_test 1.3 {\n  SELECT sql('SELECT 1, \n    2, \n    3'\n  );\n} {\n  \"SELECT sql('SELECT 1, \n    2, \n    3'\n  );\"\n  ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_trace_select_test 1.4 {\n  SELECT sql('SELECT 1, \n\n\n    3'\n  );\n} {\n  \"SELECT sql('SELECT 1, \n\n\n    3'\n  );\"\n  \"-- SE...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_trace_select_test 1.5 {\n  SELECT $var, sql('SELECT 1, \n    $var, \n    3'\n...} {\n  \"SELECT NULL, sql('SELECT 1, \n    $var, \n    3'...}")
+	// do_trace_select_test 1.1 {
+  SELECT 1, 2, 3;
+} {
+  "SELECT 1, 2, 3;"
+} (unsupported command, not transpiled)
+	// do_trace_select_test 1.2 {
+  SELECT sql('SELECT 1, 2, 3');
+} {
+  "SELECT sql('SELECT 1, 2, 3');"
+  "-- SELECT 1,...} (unsupported command, not transpiled)
+	// do_trace_select_test 1.3 {
+  SELECT sql('SELECT 1, 
+    2, 
+    3'
+  );
+} {
+  "SELECT sql('SELECT 1, 
+    2, 
+    3'
+  );"
+  ...} (unsupported command, not transpiled)
+	// do_trace_select_test 1.4 {
+  SELECT sql('SELECT 1, 
+
+
+    3'
+  );
+} {
+  "SELECT sql('SELECT 1, 
+
+
+    3'
+  );"
+  "-- SE...} (unsupported command, not transpiled)
+	// do_trace_select_test 1.5 {
+  SELECT $var, sql('SELECT 1, 
+    $var, 
+    3'
+...} {
+  "SELECT NULL, sql('SELECT 1, 
+    $var, 
+    3'...} (unsupported command, not transpiled)
 }

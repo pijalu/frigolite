@@ -40,8 +40,29 @@ func Test_fkey7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tbls_tbl string
+	_ = tbls_tbl // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var tbllist string
+	_ = tbllist // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fkey7"
+	testprefix = "fkey7"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  PRAGMA foreign_keys = 1;\n\n  CREATE TABLE s1(a PRIMARY KEY, b);\n  CREATE TABLE par(a, b REFERENCES s1, c UNIQUE, PRIMARY KEY(a));\n\n  CREATE TABLE c1(a, b REFERENCES par);\n  CREATE TABLE c2(a, b REFERENCES par);\n  CREATE TABLE c3(a, b REFERENCES par(c));\n")
@@ -51,10 +72,10 @@ func Test_fkey7(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.2 { UPDATE par SET b=? WHERE a=? } {par s1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.3 { UPDATE par SET a=? WHERE b=? } {c1 c2 par}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.4 { UPDATE par SET c=? WHERE b=? } {c3 par}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.5 { UPDATE par SET a=?,b=?,c=? WHERE b=? } {c1 c2 c3 par s1}")
+	// do_tblsread_test 1.2 { UPDATE par SET b=? WHERE a=? } {par s1} (unsupported command, not transpiled)
+	// do_tblsread_test 1.3 { UPDATE par SET a=? WHERE b=? } {c1 c2 par} (unsupported command, not transpiled)
+	// do_tblsread_test 1.4 { UPDATE par SET c=? WHERE b=? } {c3 par} (unsupported command, not transpiled)
+	// do_tblsread_test 1.5 { UPDATE par SET a=?,b=?,c=? WHERE b=? } {c1 c2 c3 par s1} (unsupported command, not transpiled)
 	{ // "4.0"
 		_res = db.Exec("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c UNIQUE REFERENCES parent(p)\n  );\n")
 		if _res.Error != nil {

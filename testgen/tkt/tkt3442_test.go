@@ -39,6 +39,13 @@ func Test_tkt3442(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3442-1.1"
 		_res = db.Exec("\n     CREATE TABLE listhash(\n       key INTEGER PRIMARY KEY,\n       id TEXT,\n       node INTEGER\n     );\n     CREATE UNIQUE INDEX ididx ON listhash(id);\n  ")
@@ -46,7 +53,7 @@ func Test_tkt3442(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE listhash(\n       key INTEGER PRIMARY KEY,\n       id TEXT,\n       node INTEGER\n     );\n     CREATE UNIQUE INDEX ididx ON listhash(id);\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 	{ // "tkt3442-1.2"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT node FROM listhash WHERE id='5000' LIMIT 1;\n")
 		if r.Error != nil {

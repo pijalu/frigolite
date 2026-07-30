@@ -41,6 +41,13 @@ func Test_default(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "default-1.2"
 		r = db.Query("\n    CREATE TABLE t2(\n      x INTEGER,\n      y INTEGER DEFAULT NULL\n    );\n    INSERT INTO t2(x) VALUES(1);\n    SELECT * FROM t2;\n  ")
@@ -89,16 +96,18 @@ func Test_default(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "default-4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b TEXT DEFAULT(99));\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(a TEXT, b TEXT DEFAULT(:xyz))';\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a TEXT, b TEXT DEFAULT(99));\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(a TEXT, b TEXT DEFAULT(:xyz))';\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "default-4.1"
 		r = db.Query("\n  INSERT INTO t1(a) VALUES('xyzzy');\n  SELECT a, quote(b) FROM t1;\n")

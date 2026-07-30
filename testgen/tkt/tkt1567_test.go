@@ -40,20 +40,33 @@ func Test_tkt1567(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var bigstr string
+	_ = bigstr // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt1567-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a TEXT PRIMARY KEY);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a TEXT PRIMARY KEY);\n  ")
 		}
-		var bigstr = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		bigstr = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		_ = bigstr // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			var x = "format %5d [expr $i*2]"
+			x = "format %5d [expr $i*2]"
 			_ = x // suppress unused warning
-			var sql = "INSERT INTO t1 VALUES('" + x + "-" + bigstr + "')"
+			sql = "INSERT INTO t1 VALUES('" + x + "-" + bigstr + "')"
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -93,14 +106,14 @@ func Test_tkt1567(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a TEXT PRIMARY KEY, rowid INT) WITHOUT rowid;\n  ")
 		}
-		var bigstr = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+		bigstr = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		_ = bigstr // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			var x = "format %5d [expr $i*2]"
+			x = "format %5d [expr $i*2]"
 			_ = x // suppress unused warning
-			var sql = "INSERT INTO t2 VALUES('" + x + "-" + bigstr + "', " + i + "+1)"
+			sql = "INSERT INTO t2 VALUES('" + x + "-" + bigstr + "', " + i + "+1)"
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {

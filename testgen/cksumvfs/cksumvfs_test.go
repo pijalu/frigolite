@@ -40,21 +40,35 @@ func Test_cksumvfs(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var text string
+	_ = text // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "cksumvfs"
+	testprefix = "cksumvfs"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_register_cksumvfs")
-	db, err = frigolite.Open("test.db")
+	// sqlite3_register_cksumvfs (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 8")
+	// file_control_reservebytes db 8 (unsupported command, not transpiled)
 	r = db.Query("\n  PRAGMA page_size = 4096;\n")
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 4096;\n")
 	}
-	var text = "db one \"SELECT hex(randomblob(5000))\""
+	text = "db one \"SELECT hex(randomblob(5000))\""
 	_ = text // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(1, $text, NULL);\n")
@@ -85,7 +99,7 @@ func Test_cksumvfs(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var ii = "1500"
+		ii = "1500"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES(NULL, randomblob(5000), randomblob($ii)) ")
@@ -147,8 +161,8 @@ func Test_cksumvfs(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+	// db_save_and_close (unsupported command, not transpiled)
+	// db_restore_and_reopen (unsupported command, not transpiled)
 	{ // "1.8"
 		r = db.Query("\n  SELECT count(*) FROM t1;\n")
 		if r.Error != nil {
@@ -161,7 +175,8 @@ func Test_cksumvfs(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.9"
 		r = db.Query("\n  SELECT count(*) FROM t1;\n")

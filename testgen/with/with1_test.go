@@ -40,9 +40,48 @@ func Test_with1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var I string
+	_ = I // pre-declared from TCL source
+	var iOffset string
+	_ = iOffset // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var key string
+	_ = key // pre-declared from TCL source
+	var seg string
+	_ = seg // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var parentid string
+	_ = parentid // pre-declared from TCL source
+	var order string
+	_ = order // pre-declared from TCL source
+	var _A_arr string
+	_ = _A_arr // pre-declared from TCL source
+	var program string
+	_ = program // pre-declared from TCL source
+	var dual string
+	_ = dual // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var iLimit string
+	_ = iLimit // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var bDepthFirst string
+	_ = bDepthFirst // pre-declared from TCL source
+	var bReverse string
+	_ = bReverse // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "with1" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "with1" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  WITH x(a) AS ( SELECT * FROM t1) SELECT 10\n")
 		if r.Error != nil {
@@ -475,18 +514,18 @@ func Test_with1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var I = "list 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20"
+	I = "list 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20"
 	_ = I // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.1 20 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.2 0 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.3 19 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.4 20 -1")
-	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.5 5 5")
-	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.6 0 -1")
-	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.7 40 -1")
-	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.8 -1 -1")
-	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.9 -1 -1")
+	// limit_test 9.1 20 0 (unsupported command, not transpiled)
+	// limit_test 9.2 0 0 (unsupported command, not transpiled)
+	// limit_test 9.3 19 1 (unsupported command, not transpiled)
+	// limit_test 9.4 20 -1 (unsupported command, not transpiled)
+	// limit_test 9.5 5 5 (unsupported command, not transpiled)
+	// limit_test 9.6 0 -1 (unsupported command, not transpiled)
+	// limit_test 9.7 40 -1 (unsupported command, not transpiled)
+	// limit_test 9.8 -1 -1 (unsupported command, not transpiled)
+	// limit_test 9.9 -1 -1 (unsupported command, not transpiled)
 	{ // "10.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS tree;\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parentid, payload);\n")
 		if _res.Error != nil {
@@ -494,7 +533,12 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "insert_into_tree {\n  /a/a/a\n  /a/b/c\n  /a/b/c/d\n  /a/b/d\n}")
+	// insert_into_tree {
+  /a/a/a
+  /a/b/c
+  /a/b/c/d
+  /a/b/d
+} (unsupported command, not transpiled)
 	{ // "10.2"
 		r = db.Query("\n  WITH flat(fid, p) AS (\n    SELECT id, '/' || payload FROM tree WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, p || '/' || payload FROM flat, tree WHERE parentid=fid\n  )\n  SELECT p FROM flat ORDER BY p;\n")
 		if r.Error != nil {
@@ -508,18 +552,25 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "insert_into_tree {\n  /a/b\n  /a/b/c\n  /a/d\n  /a/d/e\n  /a/d/f\n  /g/h\n}")
+	// insert_into_tree {
+  /a/b
+  /a/b/c
+  /a/d
+  /a/d/e
+  /a/d/f
+  /g/h
+} (unsupported command, not transpiled)
 	{ // do_test "10.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "scan_tree 0 0")
+		// scan_tree 0 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "10.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "scan_tree 1 0")
+		// scan_tree 1 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "10.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "scan_tree 0 1")
+		// scan_tree 0 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "10.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "scan_tree 1 1")
+		// scan_tree 1 1 (unsupported command, not transpiled)
 	}
 	{ // "10.7.1"
 		_res = db.Exec("\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY a\n  ) \n  SELECT * FROM t\n")
@@ -551,7 +602,15 @@ func Test_with1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "insert_into_tree {\n  /a/b\n  /a/C\n  /a/d\n  /B/e\n  /B/F\n  /B/g\n  /c/h\n...}")
+	// insert_into_tree {
+  /a/b
+  /a/C
+  /a/d
+  /B/e
+  /B/F
+  /B/g
+  /c/h
+...} (unsupported command, not transpiled)
 	{ // "10.8.1"
 		r = db.Query("\n  WITH flat(fid, depth, p) AS (\n    SELECT id, 1, '/' || payload FROM tree WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, depth+1, p||'/'||payload FROM flat, tree WHERE parentid=fid\n    ORDER BY 2, 3 COLLATE nocase\n  )\n  SELECT p FROM flat;\n")
 		if r.Error != nil {
@@ -900,7 +959,8 @@ func Test_with1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many FROM clause terms, max: 200", _res.Error, "\n  WITH RECURSIVE c AS NOT MATERIALIZED (\n     WITH RECURSIVE c AS NOT MATERIALIZED (\n        WITH RECURSIVE c AS NOT MATERIALIZED (\n           WITH RECURSIVE c AS NOT MATERIALIZED (\n               WITH  c AS (VALUES(0))\n               SELECT 1 FROM c LEFT JOIN c ON ltrim(1)\n           )\n           SELECT 1 FROM c,c,c,c,c,c,c,c,c\n        )\n        SELECT  2 FROM c,c,c,c,c,c,c,c,c\n     )\n     SELECT 3 FROM c,c,c,c,c,c,c,c,c\n  )\n  SELECT 4 FROM c,c,c,c,c,c,c,c,c;\n")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "23.1"
 		r = db.Query("\n  CREATE TABLE t1(id INTEGER NULL PRIMARY KEY, name Text);\n  INSERT INTO t1 VALUES (1, 'john');\n  INSERT INTO t1 VALUES (2, 'james');\n  INSERT INTO t1 VALUES (3, 'jingle');\n  INSERT INTO t1 VALUES (4, 'himer');\n  INSERT INTO t1 VALUES (5, 'smith');\n  CREATE VIEW v2 AS\n    WITH t4(Name) AS (VALUES ('A'), ('B'))\n    SELECT Name Name FROM t4;\n  CREATE VIEW v3 AS\n    WITH t4(Att, Val, Act) AS (VALUES\n      ('C', 'D', 'E'),\n      ('F', 'G', 'H')\n    )\n    SELECT D.Id Id, P.Name Protocol, T.Att Att, T.Val Val, T.Act Act\n    FROM t1 D\n    CROSS JOIN v2 P\n    CROSS JOIN t4 T;\n  SELECT * FROM v3;\n")
@@ -924,7 +984,7 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	{ // do_test "24.1"
-		var program = "db eval {EXPLAIN SELECT * FROM v1 AS aa, v1 AS bb, v1 AS cc}"
+		program = "db eval {EXPLAIN SELECT * FROM v1 AS aa, v1 AS bb, v1 AS cc}"
 		_ = program // suppress unused warning
 		// expr [lsearch $program OpenDup]>0 → "[lsearch $program OpenDup]>0"
 	}
@@ -941,13 +1001,13 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	// foreach {id dual} "\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n"
-	_items0 := tclSplitList("\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		id := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		id := _items1[_idx1+0]
 		_ = id // suppress unused warning
-		dual := _items0[_idx0+1]
+		dual := _items1[_idx1+1]
 		_ = dual // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

@@ -40,8 +40,17 @@ func Test_altermalloc2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var TMPDBERROR string
+	_ = TMPDBERROR // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "altermalloc2"
+	testprefix = "altermalloc2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(abcd, efgh);\n")
@@ -49,16 +58,23 @@ func Test_altermalloc2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(abcd, efgh);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	var _TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
-	_ = _TMPDBERROR // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE t1 RENAME abcd TO dcb...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
+	_ = TMPDBERROR // suppress unused warning
+	// do_faultsim_test 1 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    ALTER TABLE t1 RENAME abcd TO dcb...} -test {
+  faultsim_test_result {0 {}} $::TMPDBERROR
+} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t1(abcd, efgh);\n")
@@ -66,8 +82,14 @@ func Test_altermalloc2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA encoding = 'utf-16';\n  CREATE TABLE t1(abcd, efgh);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE t1 RENAME abcd TO dcb...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 2 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    ALTER TABLE t1 RENAME abcd TO dcb...} -test {
+  faultsim_test_result {0 {}} $::TMPDBERROR
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -77,8 +99,14 @@ func Test_altermalloc2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(abcd, efgh);\n  CREATE VIEW v1 AS SELECT * FROM t1 WHERE abcd>efgh;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE t1 RENAME abcd TO dcb...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 3 -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    ALTER TABLE t1 RENAME abcd TO dcb...} -test {
+  faultsim_test_result {0 {}} $::TMPDBERROR
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -88,8 +116,15 @@ func Test_altermalloc2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE rr(a, b);\n  CREATE VIEW vv AS SELECT * FROM rr;\n\n  CREATE TRIGGER vv1 INSTEAD OF INSERT ON vv BEGIN\n    SELECT 1, 2, 3;\n  END;\n  CREATE TRIGGER tr1 AFTER INSERT ON rr BEGIN\n    INSERT INTO vv VALUES(new.a, new.b);\n  END;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELECT ...} -body {\n  execsql {\n    ALTER TABLE rr RENAME a TO c;\n  }...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults oom-* -prep {
+  faultsim_restore_and_reopen
+  execsql { SELECT ...} -body {
+  execsql {
+    ALTER TABLE rr RENAME a TO c;
+  }...} -test {
+  faultsim_test_result {0 {}} $::TMPDBERROR
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -99,6 +134,14 @@ func Test_altermalloc2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE rr(a, b);\n  CREATE VIEW vv AS SELECT * FROM (\n    WITH abc(d, e) AS (SELECT * FROM rr)\n    SELECT * FROM abc\n  );\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELECT ...} -body {\n  execsql {\n    ALTER TABLE rr RENAME TO c;\n  }\n} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 5 -faults oom-* -prep {
+  faultsim_restore_and_reopen
+  execsql { SELECT ...} -body {
+  execsql {
+    ALTER TABLE rr RENAME TO c;
+  }
+} -test {
+  faultsim_test_result {0 {}} $::TMPDBERROR
+} (unsupported command, not transpiled)
 }

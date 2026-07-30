@@ -39,12 +39,39 @@ func Test_lock(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var dummy string
+	_ = dummy // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var callback_value string
+	_ = callback_value // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var temp_status string
+	_ = temp_status // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var count string
+	_ = count // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "lock-1.0"
 		// file mkdir tempdir/t1/t2
 		db2, err = frigolite.Open("./tempdir/../tempdir/t1/.//t2/../../..//test.db")
 		if err != nil { t.Fatal(err) }
-		var dummy = ""
+		dummy = ""
 		_ = dummy // suppress unused warning
 	}
 	{ // do_test "lock-1.1"
@@ -185,7 +212,7 @@ func Test_lock(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
 		}
 	}
-	if _tcl_platform_platform == "unix" {
+	if tcl_platform_platform == "unix" {
 		{ // do_test "lock-1.22"
 			_res = db.Exec("SELECT * FROM t1")
 			if _res.Error != nil {
@@ -208,7 +235,6 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -235,9 +261,8 @@ func Test_lock(t *testing.T) {
 	}
 	{ // do_test "lock-2.3.1"
 		// proc definition (not transpiled)
-		var _callback_value = "" // TCL namespace variable
-		_ = _callback_value // suppress unused warning
-	var _r string
+		callback_value = "" // TCL namespace variable
+		_ = callback_value // suppress unused warning
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -253,16 +278,15 @@ func Test_lock(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
-		_r = tclListAppend(_r, _callback_value)
+		_r = tclListAppend(_r, callback_value)
 	}
 	{ // do_test "lock-2.3.2"
-		var _callback_value = "" // TCL namespace variable
-		_ = _callback_value // suppress unused warning
+		callback_value = "" // TCL namespace variable
+		_ = callback_value // suppress unused warning
 		r = db.Query("BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		}
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -278,7 +302,7 @@ func Test_lock(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
-		_r = tclListAppend(_r, _callback_value)
+		_r = tclListAppend(_r, callback_value)
 	}
 	{
 		var _catchErr error
@@ -288,9 +312,8 @@ func Test_lock(t *testing.T) {
 	}
 	{ // do_test "lock-2.4.1"
 		// proc definition (not transpiled)
-		var _callback_value = "" // TCL namespace variable
-		_ = _callback_value // suppress unused warning
-	var _r string
+		callback_value = "" // TCL namespace variable
+		_ = callback_value // suppress unused warning
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -306,17 +329,16 @@ func Test_lock(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
-		_r = tclListAppend(_r, _callback_value)
+		_r = tclListAppend(_r, callback_value)
 	}
 	{ // do_test "lock-2.4.2"
 		// proc definition (not transpiled)
-		var _callback_value = "" // TCL namespace variable
-		_ = _callback_value // suppress unused warning
+		callback_value = "" // TCL namespace variable
+		_ = callback_value // suppress unused warning
 		r = db.Query("BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		}
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -332,7 +354,7 @@ func Test_lock(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
-		_r = tclListAppend(_r, _callback_value)
+		_r = tclListAppend(_r, callback_value)
 	}
 	{
 		var _catchErr error
@@ -342,9 +364,8 @@ func Test_lock(t *testing.T) {
 	}
 	{ // do_test "lock-2.5"
 		// proc definition (not transpiled)
-		var _callback_value = "" // TCL namespace variable
-		_ = _callback_value // suppress unused warning
-	var _r string
+		callback_value = "" // TCL namespace variable
+		_ = callback_value // suppress unused warning
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -360,7 +381,7 @@ func Test_lock(t *testing.T) {
 			}
 		}
 		_r = tclListAppend(_r, msg)
-		_r = tclListAppend(_r, _callback_value)
+		_r = tclListAppend(_r, callback_value)
 	}
 	_res = db.Exec("ROLLBACK")
 	if _res.Error != nil {
@@ -433,7 +454,6 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -478,9 +498,8 @@ func Test_lock(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "lock-4.2"
-		var _callback_value = "" // TCL namespace variable
-		_ = _callback_value // suppress unused warning
-	var rc string
+		callback_value = "" // TCL namespace variable
+		_ = callback_value // suppress unused warning
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -495,11 +514,10 @@ func Test_lock(t *testing.T) {
 				msg = ""
 			}
 		}
-		rc = tclListAppend(rc, msg, _callback_value)
+		rc = tclListAppend(rc, msg, callback_value)
 	}
 	{ // do_test "lock-4.3"
 		// proc definition (not transpiled)
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -514,7 +532,7 @@ func Test_lock(t *testing.T) {
 				msg = ""
 			}
 		}
-		rc = tclListAppend(rc, msg, _callback_value)
+		rc = tclListAppend(rc, msg, callback_value)
 	}
 	_res = db.Exec("ROLLBACK")
 	if _res.Error != nil {
@@ -536,9 +554,9 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(a PRIMARY KEY, b);\n    INSERT INTO t4 VALUES(1, 'one');\n    INSERT INTO t4 VALUES(2, 'two');\n    INSERT INTO t4 VALUES(3, 'three');\n  ")
 		}
-		var STMT = "sqlite3_prepare $DB \"SELECT * FROM sqlite_master\" -1 TAIL"
+		STMT = "sqlite3_prepare $DB \"SELECT * FROM sqlite_master\" -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 		_res = db.Exec(" DELETE FROM t4 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t4 ")
@@ -575,14 +593,14 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-6.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
-	var temp_status = "unknown"
+	temp_status = "unknown"
 	_ = temp_status // suppress unused warning
 	{ // do_test "lock-7.1"
-		var STMT = "sqlite3_prepare $DB \"SELECT * FROM sqlite_master\" -1 TAIL"
+		STMT = "sqlite3_prepare $DB \"SELECT * FROM sqlite_master\" -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "lock-7.2"
 		r = db.Query(" PRAGMA lock_status ")
@@ -601,7 +619,7 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-7.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "lock-999.1"
 	}

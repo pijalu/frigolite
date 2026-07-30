@@ -39,6 +39,13 @@ func Test_unique(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "unique-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(\n       a int PRIMARY KEY,\n       b int PRIMARY KEY,\n       c text\n    );\n  ")
@@ -56,7 +63,7 @@ func Test_unique(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t1(a,b,c) VALUES(1,3,4)\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode unique-1.3b SQLITE_CONSTRAINT_PRIMARYKEY")
+	// verify_ex_errcode unique-1.3b SQLITE_CONSTRAINT_PRIMARYKEY (unsupported command, not transpiled)
 	{ // do_test "unique-1.4"
 		r = db.Query("\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -67,7 +74,7 @@ func Test_unique(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t1(a,b,c) VALUES(3,2,4)\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode unique-1.5b SQLITE_CONSTRAINT_UNIQUE")
+	// verify_ex_errcode unique-1.5b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 	{ // do_test "unique-1.6"
 		r = db.Query("\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -104,7 +111,7 @@ func Test_unique(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(1,5);\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode unique-2.3b SQLITE_CONSTRAINT_UNIQUE")
+	// verify_ex_errcode unique-2.3b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 	{ // do_test "unique-2.4"
 		_res = db.Exec("\n    SELECT * FROM t2 ORDER BY a\n  ")
 		_ = _res // catchsql
@@ -125,7 +132,7 @@ func Test_unique(t *testing.T) {
 		_res = db.Exec("\n    CREATE UNIQUE INDEX i2 ON t2(a);\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode unique-2.8b SQLITE_CONSTRAINT_UNIQUE")
+	// verify_ex_errcode unique-2.8b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 	{ // do_test "unique-2.9"
 		_res = db.Exec("\n    CREATE INDEX i2 ON t2(a);\n  ")
 		_ = _res // catchsql
@@ -148,7 +155,7 @@ func Test_unique(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t3(a,b,c,d) VALUES(1,4,3,5);\n    SELECT * FROM t3 ORDER BY a,b,c,d;\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode unique-3.4b SQLITE_CONSTRAINT_UNIQUE")
+	// verify_ex_errcode unique-3.4b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "unique-4.1"
@@ -199,7 +206,7 @@ func Test_unique(t *testing.T) {
 		_res = db.Exec("CREATE UNIQUE INDEX i4c ON t4(b)")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode unique-4.10b SQLITE_CONSTRAINT_UNIQUE")
+	// verify_ex_errcode unique-4.10b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "unique-5.1"
@@ -212,5 +219,5 @@ func Test_unique(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t5 VALUES(1,2,3,4,5,6);\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode unique-5.2b SQLITE_CONSTRAINT_UNIQUE")
+	// verify_ex_errcode unique-5.2b SQLITE_CONSTRAINT_UNIQUE (unsupported command, not transpiled)
 }

@@ -39,6 +39,13 @@ func Test_where6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "where6-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c);\n    INSERT INTO t1 VALUES(1,3,1);\n    INSERT INTO t1 VALUES(2,4,2);\n    CREATE TABLE t2(x INTEGER PRIMARY KEY);\n    INSERT INTO t2 VALUES(3);\n\n    SELECT * FROM t1 LEFT JOIN t2 ON b=x AND c=1;\n  ")

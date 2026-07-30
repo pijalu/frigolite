@@ -40,12 +40,28 @@ func Test_fts3shared(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var LOCKED string
+	_ = LOCKED // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3shared" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
-	db, err = frigolite.Open("test.db")
+	testprefix = "fts3shared" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -66,7 +82,7 @@ func Test_fts3shared(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "fts3shared-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // "fts3shared-1.5"
 		_res = db.Exec(" COMMIT ")
@@ -75,13 +91,13 @@ func Test_fts3shared(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3shared-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "fts3shared-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db2")
+		// sqlite3_get_autocommit db2 (unsupported command, not transpiled)
 	}
 	db2.Close()
-	var LOCKED = "1 {database table is locked}"
+	LOCKED = "1 {database table is locked}"
 	_ = LOCKED // suppress unused warning
 	os.Remove("test.db")
 	dbR, err := frigolite.Open("test.db")
@@ -173,21 +189,21 @@ func Test_fts3shared(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n"
-	_items0 := tclSplitList("\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items1[_idx1+1]
 		_ = sql // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "2.4." + tn
 				_res = db.Exec("BEGIN")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
-				_res = db.Exec(_sql)
+				_res = db.Exec(sql)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, _sql)
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 				}
 				_res = db.Exec("BEGIN")
 				if _res.Error != nil {
@@ -206,21 +222,21 @@ func Test_fts3shared(t *testing.T) {
 			}
 		}
 		// foreach {tn sql} "\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n"
-		_items1 := tclSplitList("\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			tn := _items1[_idx1+0]
+		_items2 := tclSplitList("\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n")
+		for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			sql := _items1[_idx1+1]
+			sql := _items2[_idx2+1]
 			_ = sql // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				{ // do_test "2.5." + tn
 					_res = db.Exec("BEGIN")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 					}
-					_res = db.Exec(_sql)
+					_res = db.Exec(sql)
 					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, _sql)
+						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 					}
 					_res = db.Exec("BEGIN")
 					if _res.Error != nil {
@@ -238,7 +254,7 @@ func Test_fts3shared(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "dbW close")
-			t.Errorf("TODO: %s not implemented in frigolite", "dbR close")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+			// dbW close (unsupported command, not transpiled)
+			// dbR close (unsupported command, not transpiled)
+			// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

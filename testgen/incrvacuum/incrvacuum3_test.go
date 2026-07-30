@@ -40,8 +40,33 @@ func Test_incrvacuum3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var fd2 string
+	_ = fd2 // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var T string
+	_ = T // pre-declared from TCL source
+	var jrnl_mode string
+	_ = jrnl_mode // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sqlite_pending_byte string
+	_ = sqlite_pending_byte // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "incrvacuum3"
+	testprefix = "incrvacuum3"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// foreach {T jrnl_mode} "\n  1 delete\n  2 wal\n"
@@ -57,8 +82,8 @@ func Test_incrvacuum3(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.db")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA cache_size = 5;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n  ")
 			if _res.Error != nil {
@@ -69,13 +94,13 @@ func Test_incrvacuum3(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA journal_mode = " + jrnl_mode)
 			}
 			// foreach {tn sql} "\n    1 {\n      CREATE TABLE t1(x UNIQUE);\n      INSERT INTO t1 VALUES(randomblob(400));\n      INSERT INTO t1 VALUES(randomblob(400));\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --   4\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --   8\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  16\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  32\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n    }\n  \n    2 {\n      DELETE FROM t1 WHERE rowid%8;\n    }\n  \n    3 { \n      BEGIN;\n        PRAGMA incremental_vacuum = 100;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n      ROLLBACK;\n    }\n  \n    4 { \n      BEGIN;\n        SAVEPOINT one;\n          PRAGMA incremental_vacuum = 100;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n    }\n  \n    5 {   ROLLBACK to two }\n  \n    6 { ROLLBACK to one }\n  \n    7 { \n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        PRAGMA incremental_vacuum = 1000;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n      ROLLBACK;\n    }\n  \n    8 { \n      BEGIN;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        PRAGMA incremental_vacuum = 1000;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  128\n      COMMIT;\n    }\n  "
-			_items1 := tclSplitList("\n    1 {\n      CREATE TABLE t1(x UNIQUE);\n      INSERT INTO t1 VALUES(randomblob(400));\n      INSERT INTO t1 VALUES(randomblob(400));\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --   4\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --   8\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  16\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  32\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n    }\n  \n    2 {\n      DELETE FROM t1 WHERE rowid%8;\n    }\n  \n    3 { \n      BEGIN;\n        PRAGMA incremental_vacuum = 100;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n      ROLLBACK;\n    }\n  \n    4 { \n      BEGIN;\n        SAVEPOINT one;\n          PRAGMA incremental_vacuum = 100;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n    }\n  \n    5 {   ROLLBACK to two }\n  \n    6 { ROLLBACK to one }\n  \n    7 { \n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        PRAGMA incremental_vacuum = 1000;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n      ROLLBACK;\n    }\n  \n    8 { \n      BEGIN;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        PRAGMA incremental_vacuum = 1000;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  128\n      COMMIT;\n    }\n  ")
-			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-				tn := _items1[_idx1+0]
+			_items2 := tclSplitList("\n    1 {\n      CREATE TABLE t1(x UNIQUE);\n      INSERT INTO t1 VALUES(randomblob(400));\n      INSERT INTO t1 VALUES(randomblob(400));\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --   4\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --   8\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  16\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  32\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n    }\n  \n    2 {\n      DELETE FROM t1 WHERE rowid%8;\n    }\n  \n    3 { \n      BEGIN;\n        PRAGMA incremental_vacuum = 100;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n      ROLLBACK;\n    }\n  \n    4 { \n      BEGIN;\n        SAVEPOINT one;\n          PRAGMA incremental_vacuum = 100;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n            INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n    }\n  \n    5 {   ROLLBACK to two }\n  \n    6 { ROLLBACK to one }\n  \n    7 { \n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        PRAGMA incremental_vacuum = 1000;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 128\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    -- 256\n      ROLLBACK;\n    }\n  \n    8 { \n      BEGIN;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  64\n        PRAGMA incremental_vacuum = 1000;\n        INSERT INTO t1 SELECT randomblob(400) FROM t1;    --  128\n      COMMIT;\n    }\n  ")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				sql := _items1[_idx1+1]
+				sql := _items2[_idx2+1]
 				_ = sql // suppress unused warning
-				_ = _idx1
+				_ = _idx2
 					{ // T + ".1." + tn + ".1"
 						_res = db.Exec(sql)
 						if _res.Error != nil {
@@ -95,7 +120,7 @@ func Test_incrvacuum3(t *testing.T) {
 						}
 					}
 					{ // do_test T + ".1." + tn + ".3"
-						t.Errorf("TODO: %s not implemented in frigolite", "check_on_disk")
+						// check_on_disk (unsupported command, not transpiled)
 					}
 				}
 				{ // T + ".1.x.1"

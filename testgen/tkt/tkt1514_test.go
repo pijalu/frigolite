@@ -39,6 +39,11 @@ func Test_tkt1514(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt1514-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    SELECT a FROM t1 WHERE max(b)<10 GROUP BY a;\n  ")

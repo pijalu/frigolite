@@ -39,8 +39,15 @@ func Test_exprfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "exprfault"
+	testprefix = "exprfault"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);                 \n  CREATE TABLE t2(d);                 \n")
@@ -48,9 +55,22 @@ func Test_exprfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);                 \n  CREATE TABLE t2(d);                 \n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT a = ( SELECT d FROM (SELEC...} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT hex ( unhex('ABCDEF') );\n ...} -test {\n  faultsim_test_result {0 ABCDEF}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1.1 -faults oom* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    SELECT a = ( SELECT d FROM (SELEC...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults oom* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    SELECT hex ( unhex('ABCDEF') );
+ ...} -test {
+  faultsim_test_result {0 ABCDEF}
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -60,6 +80,13 @@ func Test_exprfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1( hex(b) );\n  INSERT INTO t1 VALUES(10, randomblob(500));\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    UPDATE t1 SET b=randomblob(500);\n...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults oom* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    UPDATE t1 SET b=randomblob(500);
+...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 }

@@ -40,8 +40,19 @@ func Test_tkt_d11f09d36e(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var a_string_counter string
+	_ = a_string_counter // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var a_string_counter = "1"
+	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "tkt-d11f09d36e.1"
@@ -49,7 +60,7 @@ func Test_tkt_d11f09d36e(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA synchronous = NORMAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x, y, UNIQUE(x, y));\n    BEGIN;\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES($i, $i) ")

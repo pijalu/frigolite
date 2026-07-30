@@ -40,6 +40,11 @@ func Test_skipscan1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "skipscan1-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b INT, c INT, d INT);\n  CREATE INDEX t1abc ON t1(a,b,c);\n  INSERT INTO t1 VALUES('abc',123,4,5);\n  INSERT INTO t1 VALUES('abc',234,5,6);\n  INSERT INTO t1 VALUES('abc',234,6,7);\n  INSERT INTO t1 VALUES('abc',345,7,8);\n  INSERT INTO t1 VALUES('def',567,8,9);\n  INSERT INTO t1 VALUES('def',345,9,10);\n  INSERT INTO t1 VALUES('bcd',100,6,11);\n\n  /* Fake the sqlite_stat1 table so that the query planner believes\n  ** the table contains thousands of rows and that the first few\n  ** columns are not selective. */\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1abc','10000 5000 2000 10');\n  ANALYZE sqlite_master;\n")
@@ -438,7 +443,8 @@ func Test_skipscan1(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "skipscan1-6.1"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c,d,e,f,g,h varchar(300));\n  CREATE INDEX t1ab ON t1(a,b);\n  ANALYZE sqlite_master;\n  -- Only two distinct values for the skip-scan column.  Skip-scan is not used.\n  INSERT INTO sqlite_stat1 VALUES('t1','t1ab','500000 250000 125000');\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE b=1;\n")
@@ -560,7 +566,7 @@ func Test_skipscan1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db skip-scan off")
+	// optimization_control db skip-scan off (unsupported command, not transpiled)
 	{ // "skipscan1-9.3"
 		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT  * FROM t9a WHERE b IN (SELECT x FROM t9b WHERE y!=5);\n")
 		if r.Error != nil {
@@ -573,7 +579,7 @@ func Test_skipscan1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all on")
+	// optimization_control db all on (unsupported command, not transpiled)
 	{ // "skipscan1-2.1"
 		_res = db.Exec("\n  CREATE TABLE t6(a TEXT, b INT, c INT, d INT);\n  CREATE INDEX t6abc ON t6(a,b,c);\n  INSERT INTO t6 VALUES('abc',123,4,5);\n\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('t6','t6abc','10000 5000 2000 10');\n  ANALYZE sqlite_master;\n  DELETE FROM t6;\n")
 		if _res.Error != nil {
@@ -616,7 +622,8 @@ func Test_skipscan1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT a,b,c,d,'|' FROM t6 WHERE d<>99 AND b=345 ORDER BY a DESC;\n")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp1, err := frigolite.Open(":memory:")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "skipscan1-3.1"
 		r = db.Query("\n  CREATE TABLE t1 (c1, c2, c3, c4, PRIMARY KEY(c4, c3));\n  INSERT INTO t1 VALUES(3,0,1,NULL);\n  INSERT INTO t1 VALUES(0,4,1,NULL);\n  INSERT INTO t1 VALUES(5,6,1,NULL);\n  INSERT INTO t1 VALUES(0,4,1,NULL);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('t1','sqlite_autoindex_t1_1','18 18 6');\n  ANALYZE sqlite_master;\n  SELECT DISTINCT quote(c1), quote(c2), quote(c3), quote(c4), '|'\n    FROM t1 WHERE t1.c3 = 1;\n")

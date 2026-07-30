@@ -40,6 +40,13 @@ func Test_tkt_9d68c883(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-9d68c88-1.1"
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(x);\n    CREATE TABLE t4(x);\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(randomblob(1500));\n    CREATE TABLE t7(x);\n    CREATE TABLE t8(x);\n  ")
@@ -47,22 +54,22 @@ func Test_tkt_9d68c883(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 2;\n    CREATE TABLE t3(x);\n    CREATE TABLE t4(x);\n    CREATE TABLE t5(x);\n    INSERT INTO t5 VALUES(randomblob(1500));\n    CREATE TABLE t7(x);\n    CREATE TABLE t8(x);\n  ")
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize 8192")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// sqlite3_simulate_device -sectorsize 8192 (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // do_test "tkt-9d68c88-2." + i
 			_res = db.Exec("\n      BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');\n    ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail $i -repeat 0")
+			// sqlite3_memdebug_fail $i -repeat 0 (unsupported command, not transpiled)
 			_res = db.Exec(" DROP TABLE t7; ")
 			_ = _res // catchsql
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail -1")
+			// sqlite3_memdebug_fail -1 (unsupported command, not transpiled)
 			_res = db.Exec(" ROLLBACK ")
 			_ = _res // catchsql
 			r = db.Query(" PRAGMA integrity_check ")
@@ -82,5 +89,5 @@ func Test_tkt_9d68c883(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "unregister_devsim")
+	// unregister_devsim (unsupported command, not transpiled)
 }

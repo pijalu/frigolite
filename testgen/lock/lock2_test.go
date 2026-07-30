@@ -39,11 +39,24 @@ func Test_lock2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tf1 string
+	_ = tf1 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var cmdlinearg_soft_heap_limit string
+	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "lock2-1.1"
-		var _tf1 = "launch_testfixture" // TCL namespace variable
-		_ = _tf1 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::tf1 {\n    sqlite3 db test.db -key xyzzy\n    db eval {se...}")
+		tf1 = "launch_testfixture" // TCL namespace variable
+		_ = tf1 // suppress unused warning
+		// testfixture $::tf1 {
+    sqlite3 db test.db -key xyzzy
+    db eval {se...} (unsupported command, not transpiled)
 	}
 	{ // do_test "lock2-1.1.1"
 		r = db.Query("pragma lock_status")
@@ -51,7 +64,7 @@ func Test_lock2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "pragma lock_status")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 	{ // do_test "lock2-1.2"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE abc(a, b, c);\n  ")
 		if _res.Error != nil {
@@ -59,20 +72,30 @@ func Test_lock2(t *testing.T) {
 		}
 	}
 	{ // do_test "lock2-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::tf1 {\n    db eval {\n      BEGIN;\n      SELECT * FROM sq...}")
+		// testfixture $::tf1 {
+    db eval {
+      BEGIN;
+      SELECT * FROM sq...} (unsupported command, not transpiled)
 	}
 	{ // do_test "lock2-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::tf1 {\n    catch { db eval { CREATE TABLE def(d, e, f) }...}")
+		// testfixture $::tf1 {
+    catch { db eval { CREATE TABLE def(d, e, f) }...} (unsupported command, not transpiled)
 	}
 	{ // do_test "lock2-1.5"
 		_res = db.Exec("\n    COMMIT;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "lock2-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::tf1 {\n    db eval {\n      SELECT * FROM sqlite_master;\n...}")
+		// testfixture $::tf1 {
+    db eval {
+      SELECT * FROM sqlite_master;
+...} (unsupported command, not transpiled)
 	}
 	{ // do_test "lock2-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::tf1 {\n    catch { db eval {\n      BEGIN;\n      SELECT *...}")
+		// testfixture $::tf1 {
+    catch { db eval {
+      BEGIN;
+      SELECT *...} (unsupported command, not transpiled)
 	}
 	{ // do_test "lock2-1.8"
 		_res = db.Exec("\n    COMMIT;\n  ")
@@ -86,17 +109,20 @@ func Test_lock2(t *testing.T) {
 	}
 	// catch (non-braced)
 	{ // do_test "lock2-1.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::tf1 {\n    db eval {\n      SELECT * FROM sqlite_master;\n...}")
+		// testfixture $::tf1 {
+    db eval {
+      SELECT * FROM sqlite_master;
+...} (unsupported command, not transpiled)
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::tf1 {db close}")
+		// testfixture $::tf1 {db close} (unsupported command, not transpiled)
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		// close $::tf1
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
+	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
 }

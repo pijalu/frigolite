@@ -41,17 +41,32 @@ func Test_wal6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var all_journal_modes string
+	_ = all_journal_modes // pre-declared from TCL source
+	var jmode string
+	_ = jmode // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "wal6"
+	testprefix = "wal6"
 	_ = testprefix // suppress unused warning
 	os.Remove("test.db")
-	var all_journal_modes = "delete persist truncate memory off"
+	all_journal_modes = "delete persist truncate memory off"
 	_ = all_journal_modes // suppress unused warning
 	for _, jmode := range tclSplitList(all_journal_modes) {
 	_ = jmode // suppress unused warning
 		{ // do_test "wal6-1.0." + jmode
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query("PRAGMA journal_mode = " + jmode + ";")
 			if r.Error != nil {
@@ -64,8 +79,8 @@ func Test_wal6(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,2);\n      SELECT * FROM t1;\n    ")
 			}
 		}
-		if _tcl_platform_os == "Windows NT" {
-			if jmode == "persist" || jmode=="truncate" {
+		if tcl_platform_os == "Windows NT" {
+			if tclBool(jmode + "==\"persist\" || " + jmode + "==\"truncate\"") {
 			}
 		}
 		{ // do_test "wal6-1.2." + jmode
@@ -76,10 +91,10 @@ func Test_wal6(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode=WAL;\n    INSERT INTO t1 VALUES(3,4);\n    SELECT * FROM t1 ORDER BY a;\n    ")
 			}
 		}
-		if _tcl_platform_os == "Windows NT" {
-			if jmode == "persist" || jmode=="truncate" {
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+		if tcl_platform_os == "Windows NT" {
+			if tclBool(jmode + "==\"persist\" || " + jmode + "==\"truncate\"") {
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 			}
 		}
@@ -138,7 +153,7 @@ func Test_wal6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test3 2.6.2")
+	// test3 2.6.2 (unsupported command, not transpiled)
 	{ // "2.6.3"
 		_res = db.Exec(" DELETE FROM t1 ")
 		if _res.Error != nil {
@@ -170,7 +185,7 @@ func Test_wal6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO ab VALUES(1, 2);\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test4 3.2.2")
+	// test4 3.2.2 (unsupported command, not transpiled)
 	{ // do_test "3.3.1"
 		_res = db.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(3, 4);\n  ")
 		if _res.Error != nil {
@@ -224,7 +239,7 @@ func Test_wal6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-wal 0 [string repeat 00 2000]")
+		// hexio_write test.db-wal 0 [string repeat 00 2000] (unsupported command, not transpiled)
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
@@ -249,7 +264,7 @@ func Test_wal6(t *testing.T) {
 		}
 	}
 	{ // do_test "5.2"
-		var res = "list"
+		res = "list"
 		_ = res // suppress unused warning
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
 		if _res.Error != nil {

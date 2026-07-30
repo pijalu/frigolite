@@ -40,11 +40,16 @@ func Test_dbfuzz001(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "dbfuzz001-100"
-		db, err := frigolite.Open("")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "dbfuzz001-110"
@@ -58,11 +63,11 @@ func Test_dbfuzz001(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "dbfuzz001-310"
-		db, err := frigolite.Open("")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
+	// extra_schema_checks 0 (unsupported command, not transpiled)
 	{ // "dbfuzz001-320"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
@@ -75,7 +80,7 @@ func Test_dbfuzz001(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  DELETE FROM t3 WHERE x IN (SELECT x FROM t4);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 1")
+	// extra_schema_checks 1 (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

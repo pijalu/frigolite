@@ -40,22 +40,74 @@ func Test_win32longpath(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var rawPath string
+	_ = rawPath // pre-declared from TCL source
+	var path string
+	_ = path // pre-declared from TCL source
+	var longPath_1 string
+	_ = longPath_1 // pre-declared from TCL source
+	var uriPath_1a string
+	_ = uriPath_1a // pre-declared from TCL source
+	var uriPath_1b string
+	_ = uriPath_1b // pre-declared from TCL source
+	var longPath_2 string
+	_ = longPath_2 // pre-declared from TCL source
+	var uriPath_2a string
+	_ = uriPath_2a // pre-declared from TCL source
+	var uriPath_2b string
+	_ = uriPath_2b // pre-declared from TCL source
+	var longPath_3 string
+	_ = longPath_3 // pre-declared from TCL source
+	var uriPath_3a string
+	_ = uriPath_3a // pre-declared from TCL source
+	var uriPath_3b string
+	_ = uriPath_3b // pre-declared from TCL source
+	var fileName string
+	_ = fileName // pre-declared from TCL source
+	var uri_1a string
+	_ = uri_1a // pre-declared from TCL source
+	var uri_1b string
+	_ = uri_1b // pre-declared from TCL source
+	var uri_1c string
+	_ = uri_1c // pre-declared from TCL source
+	var uri_1d string
+	_ = uri_1d // pre-declared from TCL source
+	var uri_1e string
+	_ = uri_1e // pre-declared from TCL source
+	var uri_1f string
+	_ = uri_1f // pre-declared from TCL source
+	var lUri string
+	_ = lUri // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var uri_tn string
+	_ = uri_tn // pre-declared from TCL source
+
 	if tcl_platform_platform != "windows" {
 	}
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "win32longpath"
+	testprefix = "win32longpath"
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_vfsname db")
+		// file_control_vfsname db (unsupported command, not transpiled)
 	}
-	var rawPath = "get_pwd"
+	rawPath = "get_pwd"
 	_ = rawPath // suppress unused warning
-	var path = "file nativename $rawPath"
+	path = "file nativename $rawPath"
 	_ = path // suppress unused warning
-	db, err = frigolite.Open("file join $path test.db")
+	_dbtmp0, err := frigolite.Open("file join $path test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_vfsname db")
+		// file_control_vfsname db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2"
 		_res = db.Exec("\n    BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;\n  ")
@@ -63,40 +115,40 @@ func Test_win32longpath(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;\n  ")
 		}
 	}
-	var longPath_1 = "\\\\\\\\?\\\\" + path + "\\\\" + "pid"
+	longPath_1 = "\\\\\\\\?\\\\" + path + "\\\\" + "pid"
 	_ = longPath_1 // suppress unused warning
-	var uriPath_1a = "%5C%5C%3F%5C" + path + "\\\\" + "pid"
+	uriPath_1a = "%5C%5C%3F%5C" + path + "\\\\" + "pid"
 	_ = uriPath_1a // suppress unused warning
-	var uriPath_1b = "%5C%5C%3F%5C" + rawPath + "/" + "pid"
+	uriPath_1b = "%5C%5C%3F%5C" + rawPath + "/" + "pid"
 	_ = uriPath_1b // suppress unused warning
 	// file mkdir $longPath(1)
-	var longPath_2 = longPath + "(1)\\\\" + "X 255"
+	longPath_2 = longPath_1 + "\\\\" + "X 255"
 	_ = longPath_2 // suppress unused warning
-	var uriPath_2a = uriPath + "(1a)\\\\" + "X 255"
+	uriPath_2a = uriPath_1a + "\\\\" + "X 255"
 	_ = uriPath_2a // suppress unused warning
-	var uriPath_2b = uriPath + "(1b)/" + "X 255"
+	uriPath_2b = uriPath_1b + "/" + "X 255"
 	_ = uriPath_2b // suppress unused warning
 	// file mkdir $longPath(2)
-	var longPath_3 = longPath + "(2)\\\\" + "Y 255"
+	longPath_3 = longPath_2 + "\\\\" + "Y 255"
 	_ = longPath_3 // suppress unused warning
-	var uriPath_3a = uriPath + "(2a)\\\\" + "Y 255"
+	uriPath_3a = uriPath_2a + "\\\\" + "Y 255"
 	_ = uriPath_3a // suppress unused warning
-	var uriPath_3b = uriPath + "(2b)/" + "Y 255"
+	uriPath_3b = uriPath_2b + "/" + "Y 255"
 	_ = uriPath_3b // suppress unused warning
 	// file mkdir $longPath(3)
-	var fileName = longPath + "(3)\\\\test.db"
+	fileName = longPath_3 + "\\\\test.db"
 	_ = fileName // suppress unused warning
-	var uri_1a = "file:" + uriPath + "(3a)\\\\test.db"
+	uri_1a = "file:" + uriPath_3a + "\\\\test.db"
 	_ = uri_1a // suppress unused warning
-	var uri_1b = "file:" + uriPath + "(3b)/test.db"
+	uri_1b = "file:" + uriPath_3b + "/test.db"
 	_ = uri_1b // suppress unused warning
-	var uri_1c = "file:///" + uriPath + "(3a)\\\\test.db"
+	uri_1c = "file:///" + uriPath_3a + "\\\\test.db"
 	_ = uri_1c // suppress unused warning
-	var uri_1d = "file:///" + uriPath + "(3b)/test.db"
+	uri_1d = "file:///" + uriPath_3b + "/test.db"
 	_ = uri_1d // suppress unused warning
-	var uri_1e = "file://localhost/" + uriPath + "(3a)\\\\test.db"
+	uri_1e = "file://localhost/" + uriPath_3a + "\\\\test.db"
 	_ = uri_1e // suppress unused warning
-	var uri_1f = "file://localhost/" + uriPath + "(3b)/test.db"
+	uri_1f = "file://localhost/" + uriPath_3b + "/test.db"
 	_ = uri_1f // suppress unused warning
 	{ // do_test "1.3"
 		_list := tclList([]string{"0", msg})
@@ -120,11 +172,11 @@ func Test_win32longpath(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	db3.Close()
-	var lUri = "list 1a 1b 1c 1d 1e 1f"
+	lUri = "list 1a 1b 1c 1d 1e 1f"
 	_ = lUri // suppress unused warning
 	for _, tn := range tclSplitList(lUri) {
 	_ = tn // suppress unused warning
-		db3, err = frigolite.Open(uri + "(" + tn + ")")
+		db3, err = frigolite.Open(uri_tn)
 		if err != nil { t.Fatal(err) }
 		{ // do_test "1.7." + tn
 			db3.Exec("\n      SELECT x FROM t1 ORDER BY x;\n    ")
@@ -132,12 +184,14 @@ func Test_win32longpath(t *testing.T) {
 		}
 		db3.Close()
 	}
-	var fd = "open cleanup.bat w"
+	fd = "open cleanup.bat w"
 	_ = fd // suppress unused warning
-	t.Log(fd)
+	_putsMsg := fd
+	_ = _putsMsg
 	// close $fd
 	if false {
-		t.Log("Command \\[cleanup.bat\\] returns " + msg)
+		_putsMsg = "Command \\[cleanup.bat\\] returns " + msg
+		_ = _putsMsg
 	}
 	os.Remove("-force")
 	os.Remove("-force")

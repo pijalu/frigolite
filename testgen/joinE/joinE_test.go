@@ -39,6 +39,21 @@ func Test_joinE(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var j1 string
+	_ = j1 // pre-declared from TCL source
+	var on1 string
+	_ = on1 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var q1 string
+	_ = q1 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(1),(NULL);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t2 VALUES(2),(NULL);\n")
 	if _res.Error != nil {

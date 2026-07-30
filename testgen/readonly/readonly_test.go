@@ -41,12 +41,21 @@ func Test_readonly(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tcl_platform_platform == "windows" {
 		return
 	}
-	var _testprefix = "readonly" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "readonly" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4), (5, 6);\n")
 		if _res.Error != nil {
@@ -54,7 +63,8 @@ func Test_readonly(t *testing.T) {
 		}
 	}
 	// file attributes test.db -permissions r--r--r--
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 8);\n")
@@ -75,7 +85,7 @@ func Test_readonly(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3"
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
 			db2, err = frigolite.Open("test.db")
@@ -89,7 +99,6 @@ func Test_readonly(t *testing.T) {
 				}
 			}
 		}
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 }

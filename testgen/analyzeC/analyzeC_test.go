@@ -39,8 +39,15 @@ func Test_analyzeC(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "analyzeC"
+	testprefix = "analyzeC"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(a,b,c)\n    VALUES(1,2,3),(7,8,9),(4,5,6),(10,11,12),(4,8,12),(1,11,111);\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1(tbl,idx,stat)\n    VALUES('t1','t1a','12345 2'),('t1','t1b','12345 4');\n  ANALYZE sqlite_master;\n  SELECT *, '#' FROM t1 WHERE a BETWEEN 3 AND 8 ORDER BY c;\n")

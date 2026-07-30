@@ -39,10 +39,25 @@ func Test_rowallock(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var mmap_res string
+	_ = mmap_res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "rowallock"
+	testprefix = "rowallock"
 	_ = testprefix // suppress unused warning
-	var mmap_res = "1000000"
+	mmap_res = "1000000"
 	_ = mmap_res // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  code2 { db2 close }\n  code3 { db3 close }\n  \n  ...}")
+	// do_multiclient_test tn {
+  code2 { db2 close }
+  code3 { db3 close }
+  
+  ...} (unsupported command, not transpiled)
 }

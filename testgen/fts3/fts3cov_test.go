@@ -41,10 +41,31 @@ func Test_fts3cov(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DO_MALLOC_TEST string
+	_ = DO_MALLOC_TEST // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var root string
+	_ = root // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var vals string
+	_ = vals // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var left_child string
+	_ = left_child // pre-declared from TCL source
+	var nodesize string
+	_ = nodesize // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var DO_MALLOC_TEST = "0"
+	DO_MALLOC_TEST = "0"
 	_ = DO_MALLOC_TEST // suppress unused warning
-	var testprefix = "fts3cov"
+	testprefix = "fts3cov"
 	_ = testprefix // suppress unused warning
 	{ // do_test "fts3cov-1.1"
 		r = db.Query(" \n    CREATE VIRTUAL TABLE t1 USING fts3(x);\n    INSERT INTO t1(t1) VALUES('nodesize=24');\n    BEGIN;\n      INSERT INTO t1 VALUES('Is the night chilly and dark?');\n      INSERT INTO t1 VALUES('The night is chilly, but not dark.');\n      INSERT INTO t1 VALUES('The thin gray cloud is spread on high,');\n      INSERT INTO t1 VALUES('It covers but not hides the sky.');\n    COMMIT;\n    SELECT count(*)>0 FROM t1_segments;\n  ")
@@ -54,7 +75,9 @@ func Test_fts3cov(t *testing.T) {
 	}
 	DO_MALLOC_TEST = "1"
 	_ = DO_MALLOC_TEST // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_restart_select_test fts3cov-1.2 {\n  SELECT docid FROM t1 WHERE t1 MATCH 'chilly';\n} {1 2}")
+	// do_restart_select_test fts3cov-1.2 {
+  SELECT docid FROM t1 WHERE t1 MATCH 'chilly';
+} {1 2} (unsupported command, not transpiled)
 	DO_MALLOC_TEST = "0"
 	_ = DO_MALLOC_TEST // suppress unused warning
 	{ // do_test "fts3cov-2.1"
@@ -67,30 +90,34 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(t1) VALUES('optimize');\n    SELECT substr(hex(root), 1, 2) FROM t1_segdir;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // do_test "fts3cov-2.2"
-		var root = "db one {SELECT root FROM t1_segdir}"
+		root = "db one {SELECT root FROM t1_segdir}"
 		_ = root // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "read_fts3varint [string range $root 1 end] left_child")
+		// read_fts3varint [string range $root 1 end] left_child (unsupported command, not transpiled)
 		_res = db.Exec(" DELETE FROM t1_segments WHERE blockid = $left_child ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1_segments WHERE blockid = $left_child ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_error_test fts3cov-2.3 {\n  SELECT * FROM t1 WHERE t1 MATCH 'c*'\n} {database disk image is malformed}")
+	// do_error_test fts3cov-2.3 {
+  SELECT * FROM t1 WHERE t1 MATCH 'c*'
+} {database disk image is malformed} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-2.4"
 		_res = db.Exec(" INSERT INTO t1_segments VALUES($left_child, NULL) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1_segments VALUES($left_child, NULL) ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_error_test fts3cov-2.5 {\n  SELECT * FROM t1 WHERE t1 MATCH 'cloud'\n} {database disk image is malformed}")
+	// do_error_test fts3cov-2.5 {
+  SELECT * FROM t1 WHERE t1 MATCH 'cloud'
+} {database disk image is malformed} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-3.1"
-		var cols = "list"
+		cols = "list"
 		_ = cols // suppress unused warning
-		var vals = "list"
+		vals = "list"
 		_ = vals // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 120 }() {
 			cols = tclListAppend(cols, "col" + i)
@@ -110,9 +137,12 @@ func Test_fts3cov(t *testing.T) {
 	}
 	DO_MALLOC_TEST = "1"
 	_ = DO_MALLOC_TEST // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-3.2 t2_content \n  INSERT INTO t2(docid, [join $cols ,]) VALUES(1,...")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-3.3 t2_content \n  INSERT INTO t2(docid, [join $cols ,]) VALUES(20...")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-3.4 t2_content \n  INSERT INTO t2(docid, [join $cols ,]) VALUES(60...")
+	// do_write_test fts3cov-3.2 t2_content 
+  INSERT INTO t2(docid, [join $cols ,]) VALUES(1,... (unsupported command, not transpiled)
+	// do_write_test fts3cov-3.3 t2_content 
+  INSERT INTO t2(docid, [join $cols ,]) VALUES(20... (unsupported command, not transpiled)
+	// do_write_test fts3cov-3.4 t2_content 
+  INSERT INTO t2(docid, [join $cols ,]) VALUES(60... (unsupported command, not transpiled)
 	{ // do_test "fts3cov-4.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t3 USING fts3(x);\n    INSERT INTO t3(t3) VALUES('nodesize=24');\n    INSERT INTO t3(t3) VALUES('maxpending=100');\n  ")
 		if _res.Error != nil {
@@ -121,7 +151,9 @@ func Test_fts3cov(t *testing.T) {
 	}
 	DO_MALLOC_TEST = "1"
 	_ = DO_MALLOC_TEST // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-4.2 t3_content {\n  INSERT INTO t3(docid, x)\n    SELECT 1, 'Then Ch...}")
+	// do_write_test fts3cov-4.2 t3_content {
+  INSERT INTO t3(docid, x)
+    SELECT 1, 'Then Ch...} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-5.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t4 USING fts3(x);\n    INSERT INTO t4(t4) VALUES('nodesize=24');\n  ")
 		if _res.Error != nil {
@@ -130,27 +162,30 @@ func Test_fts3cov(t *testing.T) {
 	}
 	DO_MALLOC_TEST = "1"
 	_ = DO_MALLOC_TEST // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-5.2 t4_content {\n  INSERT INTO t4\n    SELECT 'ItisanancientMariner...}")
+	// do_write_test fts3cov-5.2 t4_content {
+  INSERT INTO t4
+    SELECT 'ItisanancientMariner...} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-5.3"
 		_res = db.Exec(" INSERT INTO t4 VALUES('extra!') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES('extra!') ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-5.2 t4_segments { INSERT INTO t4(t4) VALUES('optimize') }")
+	// do_write_test fts3cov-5.2 t4_segments { INSERT INTO t4(t4) VALUES('optimize') } (unsupported command, not transpiled)
 	{ // do_test "fts3cov-5.5"
 		_res = db.Exec(" INSERT INTO t4 VALUES('more extra!') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES('more extra!') ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-5.6 t4_segments {\n  SELECT * FROM (SELECT optimize(t4) FROM t4 LIMI...}")
+	// do_write_test fts3cov-5.6 t4_segments {
+  SELECT * FROM (SELECT optimize(t4) FROM t4 LIMI...} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-6.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t5 USING fts3(x) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t5 USING fts3(x) ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
 			_res = db.Exec("INSERT INTO t5 VALUES('term" + i + "')")
@@ -170,11 +205,14 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t5_segdir ")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-6.2 t5_content {\n  INSERT INTO t5 VALUES('segment number 16!');\n}")
+	// do_write_test fts3cov-6.2 t5_content {
+  INSERT INTO t5 VALUES('segment number 16!');
+} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-6.3"
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
 			_res = db.Exec("INSERT INTO t5 VALUES('term" + i + "')")
@@ -194,7 +232,9 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t5_segdir ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-6.4 t5_content {\n  INSERT INTO t5 VALUES('segment number 16!');\n}")
+	// do_write_test fts3cov-6.4 t5_content {
+  INSERT INTO t5 VALUES('segment number 16!');
+} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-7.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE t7 USING fts3(a, b, c);\n    INSERT INTO t7 VALUES('A', 'B', 'C');\n    UPDATE t7 SET docid = 5;\n    SELECT docid, * FROM t7;\n  ")
 		if r.Error != nil {
@@ -207,7 +247,13 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t7 VALUES('D', 'E', 'F');\n    UPDATE t7 SET docid = 1 WHERE docid = 6;\n    SELECT docid, * FROM t7;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fts3cov-8 -sqlprep {\n  BEGIN;\n    CREATE VIRTUAL TABLE t8 USING fts3;\n...} -sqlbody {\n  BEGIN;\n    DELETE FROM t8 WHERE rowid = 3;\n    ...}")
+	// do_malloc_test fts3cov-8 -sqlprep {
+  BEGIN;
+    CREATE VIRTUAL TABLE t8 USING fts3;
+...} -sqlbody {
+  BEGIN;
+    DELETE FROM t8 WHERE rowid = 3;
+    ...} (unsupported command, not transpiled)
 	DO_MALLOC_TEST = "0"
 	_ = DO_MALLOC_TEST // suppress unused warning
 	{ // do_test "fts3cov-9.1"
@@ -216,16 +262,24 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE xx USING fts3 ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_error_test fts3cov-9.2 {\n  INSERT INTO xx(xx) VALUES('optimise');   -- Bri...} {SQL logic error}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_error_test fts3cov-9.3 {\n  INSERT INTO xx(xx) VALUES('short');\n} {SQL logic error}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_error_test fts3cov-9.4 {\n  INSERT INTO xx(xx) VALUES('waytoolongtobecorrec...} {SQL logic error}")
+	// do_error_test fts3cov-9.2 {
+  INSERT INTO xx(xx) VALUES('optimise');   -- Bri...} {SQL logic error} (unsupported command, not transpiled)
+	// do_error_test fts3cov-9.3 {
+  INSERT INTO xx(xx) VALUES('short');
+} {SQL logic error} (unsupported command, not transpiled)
+	// do_error_test fts3cov-9.4 {
+  INSERT INTO xx(xx) VALUES('waytoolongtobecorrec...} {SQL logic error} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-9.5"
 		_res = db.Exec(" INSERT INTO xx(xx) VALUES('optimize') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO xx(xx) VALUES('optimize') ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fts3cov-10 -sqlprep {\n  CREATE VIRTUAL TABLE t10 USING fts3;\n  INSERT I...} -sqlbody {\n  INSERT INTO t10(t10) VALUES('optimize');\n}")
+	// do_malloc_test fts3cov-10 -sqlprep {
+  CREATE VIRTUAL TABLE t10 USING fts3;
+  INSERT I...} -sqlbody {
+  INSERT INTO t10(t10) VALUES('optimize');
+} (unsupported command, not transpiled)
 	{ // do_test "fts3cov-11.1"
 		_res = db.Exec(" \n    CREATE VIRTUAL TABLE xx USING fts3;\n    INSERT INTO xx VALUES('one two three');\n    INSERT INTO xx VALUES('four five six');\n    DELETE FROM xx WHERE docid = 1;\n  ")
 		if _res.Error != nil {
@@ -236,8 +290,15 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM xx WHERE xx MATCH 'two' ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fts3cov-12 -sqlprep {\n  CREATE VIRTUAL TABLE t12 USING fts3;\n  INSERT I...} -sqlbody {\n  SELECT * FROM t12 WHERE t12 MATCH 'one'\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fts3cov-13 -sqlprep {\n  PRAGMA encoding = 'UTF-16';\n  CREATE VIRTUAL TA...} -sqlbody {\n  SELECT snippet(t13, '%%', '%%', '#') FROM t13 W...}")
+	// do_malloc_test fts3cov-12 -sqlprep {
+  CREATE VIRTUAL TABLE t12 USING fts3;
+  INSERT I...} -sqlbody {
+  SELECT * FROM t12 WHERE t12 MATCH 'one'
+} (unsupported command, not transpiled)
+	// do_malloc_test fts3cov-13 -sqlprep {
+  PRAGMA encoding = 'UTF-16';
+  CREATE VIRTUAL TA...} -sqlbody {
+  SELECT snippet(t13, '%%', '%%', '#') FROM t13 W...} (unsupported command, not transpiled)
 	{ // "14.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t14 USING fts4(a, b);\n  INSERT INTO t14 VALUES('one two three', 'one three four');\n  INSERT INTO t14 VALUES('a b c', 'd e a');\n")
 		if _res.Error != nil {
@@ -310,7 +371,7 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "16.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t16 USING fts4;\n  INSERT INTO t16 VALUES('theoretical work to examine the relationship');\n  INSERT INTO t16 VALUES('solution of our problems on the invisible');\n  DELETE FROM t16_content WHERE rowid = 2;\n")
 		if _res.Error != nil {

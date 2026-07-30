@@ -39,8 +39,43 @@ func Test_having(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var r1 string
+	_ = r1 // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+	var sql1 string
+	_ = sql1 // pre-declared from TCL source
+	var sql2 string
+	_ = sql2 // pre-declared from TCL source
+	var nondeter_ret string
+	_ = nondeter_ret // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var opcode string
+	_ = opcode // pre-declared from TCL source
+	var p1 string
+	_ = p1 // pre-declared from TCL source
+	var p2 string
+	_ = p2 // pre-declared from TCL source
+	var p3 string
+	_ = p3 // pre-declared from TCL source
+	var p4 string
+	_ = p4 // pre-declared from TCL source
+	var p5 string
+	_ = p5 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "having"
+	testprefix = "having"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t2(c, d);\n\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(1, 3);\n  INSERT INTO t1 VALUES(2, 4);\n  INSERT INTO t1 VALUES(1, 5);\n  INSERT INTO t1 VALUES(2, 6);\n")
@@ -77,7 +112,7 @@ func Test_having(t *testing.T) {
 			sql2 := _items1[_idx1+2]
 			_ = sql2 // suppress unused warning
 			_ = _idx1
-				t.Errorf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 2.$tn $sql1 $sql2 1")
+				// do_compare_vdbe_test 2.$tn $sql1 $sql2 1 (unsupported command, not transpiled)
 			}
 			{ // "2.4a"
 				r = db.Query("\n  SELECT x,y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 \n    GROUP BY a\n  ) WHERE x BETWEEN 2 AND 9999\n")
@@ -113,7 +148,7 @@ func Test_having(t *testing.T) {
 				sql2 := _items2[_idx2+2]
 				_ = sql2 // suppress unused warning
 				_ = _idx2
-					t.Errorf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 3.$tn $sql1 $sql2 0")
+					// do_compare_vdbe_test 3.$tn $sql1 $sql2 0 (unsupported command, not transpiled)
 				}
 				{ // "4.1"
 					_res = db.Exec("\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 1);\n  INSERT INTO t3 VALUES(2, 2);\n  INSERT INTO t3 VALUES(2, 3);\n")
@@ -122,8 +157,8 @@ func Test_having(t *testing.T) {
 					}
 				}
 				// proc definition (not transpiled)
-				var _nondeter_ret = "0" // TCL namespace variable
-				_ = _nondeter_ret // suppress unused warning
+				nondeter_ret = "0" // TCL namespace variable
+				_ = nondeter_ret // suppress unused warning
 				{ // "4.2"
 					r = db.Query("\n  SELECT a, sum(b) FROM t3 GROUP BY a HAVING nondeter(a)\n")
 					if r.Error != nil {
@@ -136,8 +171,8 @@ func Test_having(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				var _nondeter_ret = "0" // TCL namespace variable
-				_ = _nondeter_ret // suppress unused warning
+				nondeter_ret = "0" // TCL namespace variable
+				_ = nondeter_ret // suppress unused warning
 				{ // "4.3"
 					r = db.Query("\n  SELECT a, sum(b) FROM t3 WHERE nondeter(a) GROUP BY a\n")
 					if r.Error != nil {

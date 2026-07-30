@@ -40,6 +40,39 @@ func Test_select2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var t1 string
+	_ = t1 // pre-declared from TCL source
+	var t2 string
+	_ = t2 // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var data_f1 string
+	_ = data_f1 // pre-declared from TCL source
+	var f1_ string
+	_ = f1_ // pre-declared from TCL source
+	var f1 string
+	_ = f1 // pre-declared from TCL source
+	var sql2 string
+	_ = sql2 // pre-declared from TCL source
+	var d2_f2 string
+	_ = d2_f2 // pre-declared from TCL source
+	var i2 string
+	_ = i2 // pre-declared from TCL source
+	var i3 string
+	_ = i3 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("CREATE TABLE tbl1(f1 int, f2 int)")
 	if _res.Error != nil {
@@ -49,7 +82,7 @@ func Test_select2(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		_res = db.Exec("INSERT INTO tbl1 VALUES(" + "$i%9" + "," + "$i%10" + ")")
@@ -69,9 +102,9 @@ func Test_select2(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
 	{ // do_test "select2-1.1"
-		var sql = "SELECT DISTINCT f1 FROM tbl1 ORDER BY f1"
+		sql = "SELECT DISTINCT f1 FROM tbl1 ORDER BY f1"
 		_ = sql // suppress unused warning
-		var _r = ""
+		_r = ""
 		_ = _r // suppress unused warning
 		{
 			var _catchErr error
@@ -83,9 +116,9 @@ func Test_select2(t *testing.T) {
 		}
 	}
 	{ // do_test "select2-1.2"
-		var sql = "SELECT DISTINCT f1 FROM tbl1 WHERE f1>3 AND f1<5"
+		sql = "SELECT DISTINCT f1 FROM tbl1 WHERE f1>3 AND f1<5"
 		_ = sql // suppress unused warning
-		var _r = ""
+		_r = ""
 		_ = _r // suppress unused warning
 		_res = db.Exec(sql)
 		if _res.Error != nil {
@@ -99,10 +132,11 @@ func Test_select2(t *testing.T) {
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
 	{ // do_test "select2-2.0.2"
-		var t2 = "time {\n    execsql {CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;}\n    for {set i 1} {$i<=30000} {incr i} {\n      set i2 [expr {$i*2}]\n      set i3 [expr {$i*3}]\n      execsql \"INSERT INTO tbl2 VALUES($i,$i2,$i3)\"\n    }\n    execsql {COMMIT}\n  }"
+		t2 = "time {\n    execsql {CREATE TABLE tbl2(f1 int, f2 int, f3 int); BEGIN;}\n    for {set i 1} {$i<=30000} {incr i} {\n      set i2 [expr {$i*2}]\n      set i3 [expr {$i*3}]\n      execsql \"INSERT INTO tbl2 VALUES($i,$i2,$i3)\"\n    }\n    execsql {COMMIT}\n  }"
 		_ = t2 // suppress unused warning
 	}
-	t.Log("time without cache: " + t2)
+	_putsMsg := "time without cache: " + t2
+	_ = _putsMsg
 	{ // do_test "select2-2.1"
 		r = db.Query("SELECT count(*) FROM tbl2")
 		if r.Error != nil {
@@ -140,7 +174,7 @@ func Test_select2(t *testing.T) {
 		}
 	}
 	{ // do_test "select2-3.2d"
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT * FROM tbl2 WHERE 1000=f2")
 		if r.Error != nil {
@@ -148,7 +182,7 @@ func Test_select2(t *testing.T) {
 		}
 	}
 	{ // do_test "select2-3.2e"
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT * FROM tbl2 WHERE f2=1000")
 		if r.Error != nil {
@@ -160,7 +194,7 @@ func Test_select2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX idx1")
 		}
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT f1 FROM tbl2 WHERE f2==2000")
 		if r.Error != nil {

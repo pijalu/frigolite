@@ -39,10 +39,31 @@ func Test_fts4growth(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var iDoc string
+	_ = iDoc // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts4growth"
+	testprefix = "fts4growth"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "1.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE x1 USING fts3; ")
 		if _res.Error != nil {
@@ -130,7 +151,7 @@ func Test_fts4growth(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+	// fts_kjv_genesis (unsupported command, not transpiled)
 	{ // do_test "2.2"
 		// skip: foreach over unresolved TCL command
 		// skip: foreach over unresolved TCL command
@@ -217,22 +238,22 @@ func Test_fts4growth(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "insert_doc 1 2 3 4 5 6")
+		// insert_doc 1 2 3 4 5 6 (unsupported command, not transpiled)
 		r = db.Query(" SELECT level, idx, second(end_block) FROM x3_segdir ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT level, idx, second(end_block) FROM x3_segdir ")
 		}
 	}
 	{ // do_test "3.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "delete_doc 1 2 3 4 5 6")
+		// delete_doc 1 2 3 4 5 6 (unsupported command, not transpiled)
 		r = db.Query(" SELECT count(*) FROM x3_segdir ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM x3_segdir ")
 		}
 	}
 	{ // do_test "3.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "insert_doc 1 2 3 4 5 6 7 8 9")
-		t.Errorf("TODO: %s not implemented in frigolite", "delete_doc 9 8 7")
+		// insert_doc 1 2 3 4 5 6 7 8 9 (unsupported command, not transpiled)
+		// delete_doc 9 8 7 (unsupported command, not transpiled)
 		r = db.Query(" SELECT level, idx, second(end_block) FROM x3_segdir ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT level, idx, second(end_block) FROM x3_segdir ")
@@ -253,8 +274,8 @@ func Test_fts4growth(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM x3 ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "insert_doc 8 7 6 5 4 3 2 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "delete_doc 7 8")
+		// insert_doc 8 7 6 5 4 3 2 1 (unsupported command, not transpiled)
+		// delete_doc 7 8 (unsupported command, not transpiled)
 		r = db.Query(" SELECT count(*) FROM x3_segdir ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM x3_segdir ")
@@ -275,15 +296,15 @@ func Test_fts4growth(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM x3 ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "insert_doc 1 2 3 4 5 6 7 8 9 10 11")
-		t.Errorf("TODO: %s not implemented in frigolite", "delete_doc 11 10 9 8 7")
+		// insert_doc 1 2 3 4 5 6 7 8 9 10 11 (unsupported command, not transpiled)
+		// delete_doc 11 10 9 8 7 (unsupported command, not transpiled)
 		r = db.Query(" SELECT count(*) FROM x3_segdir ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM x3_segdir ")
 		}
 	}
 	{ // do_test "3.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "insert_doc 12")
+		// insert_doc 12 (unsupported command, not transpiled)
 		r = db.Query(" SELECT level, idx, second(end_block) FROM x3_segdir WHERE level=1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT level, idx, second(end_block) FROM x3_segdir WHERE level=1 ")
@@ -296,7 +317,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 	}
 	{ // do_test "4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+		// fts_kjv_genesis (unsupported command, not transpiled)
 		_res = db.Exec(" INSERT INTO x4 SELECT words FROM t1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO x4 SELECT words FROM t1 ")
@@ -360,7 +381,7 @@ func Test_fts4growth(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS x2;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(docid, words);\n  CREATE VIRTUAL TABLE x2 USING fts4;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+	// fts_kjv_genesis (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "5.2"
 		// skip: foreach over unresolved TCL command

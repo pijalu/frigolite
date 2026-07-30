@@ -39,6 +39,29 @@ func Test_joinD(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var j1 string
+	_ = j1 // pre-declared from TCL source
+	var j2 string
+	_ = j2 // pre-declared from TCL source
+	var j3 string
+	_ = j3 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var q1 string
+	_ = q1 // pre-declared from TCL source
+	var op1 string
+	_ = op1 // pre-declared from TCL source
+	var op2 string
+	_ = op2 // pre-declared from TCL source
+	var op3 string
+	_ = op3 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, c INT, d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<95)\n    INSERT INTO t1(a,b,c,d) SELECT x, x+100, x+200, x+300 FROM c;\n  CREATE TABLE t2(b INT, x INT);\n  INSERT INTO t2(b,x) SELECT b, a FROM t1 WHERE a%2=0;\n  CREATE INDEX t2b ON t2(b);\n  CREATE TABLE t3(c INT, y INT);\n  INSERT INTO t3(c,y) SELECT c, a FROM t1 WHERE a%3=0;\n  CREATE INDEX t3c ON t3(c);\n  CREATE TABLE t4(d INT, z INT);\n  INSERT INTO t4(d,z) SELECT d, a FROM t1 WHERE a%5=0;\n  CREATE INDEX t4d ON t4(d);\n  INSERT INTO t1(a,b,c,d) VALUES\n    (96,NULL,296,396),\n    (97,197,NULL,397),\n    (98,198,298,NULL),\n    (99,NULL,NULL,NULL);\n  ANALYZE;\n")
 	if _res.Error != nil {

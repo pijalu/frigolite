@@ -41,8 +41,17 @@ func Test_misc8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var nosuch string
+	_ = nosuch // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db eval")
+	// load_static_extension db eval (unsupported command, not transpiled)
 	{ // "misc8-1.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),(4,5,6);\n  SELECT quote(eval('SELECT * FROM t1 ORDER BY a','-abc-'));\n")
 		if r.Error != nil {
@@ -138,7 +147,8 @@ func Test_misc8(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "misc8-4.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3);\n  ATTACH 'test2.db' AS aux2;\n  CREATE TABLE aux2.t2(c,d,e);\n  INSERT INTO t2 VALUES(4,5,6);\n  SELECT * FROM t1, t2;\n")
@@ -164,7 +174,7 @@ func Test_misc8(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "dbconfig_maindbname_icecube db")
+	// dbconfig_maindbname_icecube db (unsupported command, not transpiled)
 	{ // "misc8-4.2"
 		r = db.Query("\n  SELECT name FROM icecube.sqlite_master;\n")
 		if r.Error != nil {

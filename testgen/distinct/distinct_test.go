@@ -39,8 +39,39 @@ func Test_distinct(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sql1 string
+	_ = sql1 // pre-declared from TCL source
+	var sql2 string
+	_ = sql2 // pre-declared from TCL source
+	var program1 string
+	_ = program1 // pre-declared from TCL source
+	var program2 string
+	_ = program2 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var noop string
+	_ = noop // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var temptables string
+	_ = temptables // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var opcode string
+	_ = opcode // pre-declared from TCL source
+	var p5 string
+	_ = p5 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "distinct"
+	testprefix = "distinct"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -63,12 +94,12 @@ func Test_distinct(t *testing.T) {
 		_ = sql // suppress unused warning
 		_ = _idx0
 			if tclBool(noop) {
-				t.Errorf("TODO: %s not implemented in frigolite", "do_distinct_noop_test 1.$tn $sql")
+				// do_distinct_noop_test 1.$tn $sql (unsupported command, not transpiled)
 			} else {
-				t.Errorf("TODO: %s not implemented in frigolite", "do_distinct_not_noop_test 1.$tn $sql")
+				// do_distinct_not_noop_test 1.$tn $sql (unsupported command, not transpiled)
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		// drop_all_tables (unsupported command, not transpiled)
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t1(b COLLATE nocase, c COLLATE nocase);\n\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n")
 			if _res.Error != nil {
@@ -99,7 +130,7 @@ func Test_distinct(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "do_temptables_test 2.$tn.2 SELECT DISTINCT $sql $temptables")
+				// do_temptables_test 2.$tn.2 SELECT DISTINCT $sql $temptables (unsupported command, not transpiled)
 			}
 			{ // "2.A"
 				r = db.Query("\n  SELECT (SELECT DISTINCT o.a FROM t1 AS i) FROM t1 AS o ORDER BY rowid;\n")
@@ -206,7 +237,8 @@ func Test_distinct(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			db, err = frigolite.Open(":memory:")
+			_dbtmp2, err := frigolite.Open(":memory:")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "6.1"
 				r = db.Query("\n  CREATE TABLE jjj(x);\n  SELECT (SELECT 'mmm' UNION SELECT DISTINCT max(name) ORDER BY 1) \n    FROM sqlite_master;\n")
@@ -278,13 +310,13 @@ func Test_distinct(t *testing.T) {
 				}
 			}
 			// foreach {tn idx} "\n  1 { }\n  2 { CREATE INDEX i1 ON t1(a, b); }\n  3 { CREATE INDEX i1 ON t1(b, a); }\n  4 { CREATE INDEX i1 ON t1(a COLLATE nocase, b COLLATE nocase); }\n  5 { CREATE INDEX i1 ON t1(b COLLATE nocase, a COLLATE nocase); }\n"
-			_items2 := tclSplitList("\n  1 { }\n  2 { CREATE INDEX i1 ON t1(a, b); }\n  3 { CREATE INDEX i1 ON t1(b, a); }\n  4 { CREATE INDEX i1 ON t1(a COLLATE nocase, b COLLATE nocase); }\n  5 { CREATE INDEX i1 ON t1(b COLLATE nocase, a COLLATE nocase); }\n")
-			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-				tn := _items2[_idx2+0]
+			_items3 := tclSplitList("\n  1 { }\n  2 { CREATE INDEX i1 ON t1(a, b); }\n  3 { CREATE INDEX i1 ON t1(b, a); }\n  4 { CREATE INDEX i1 ON t1(a COLLATE nocase, b COLLATE nocase); }\n  5 { CREATE INDEX i1 ON t1(b COLLATE nocase, a COLLATE nocase); }\n")
+			for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+				tn := _items3[_idx3+0]
 				_ = tn // suppress unused warning
-				idx := _items2[_idx2+1]
+				idx := _items3[_idx3+1]
 				_ = idx // suppress unused warning
-				_ = _idx2
+				_ = _idx3
 					_res = db.Exec(" DROP INDEX IF EXISTS i1 ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i1 ")

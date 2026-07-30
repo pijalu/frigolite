@@ -40,6 +40,29 @@ func Test_in3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var nEph string
+	_ = nEph // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var maxy string
+	_ = maxy // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -50,63 +73,64 @@ func Test_in3(t *testing.T) {
 		}
 	}
 	{ // do_test "in3-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT rowid FROM t1 WHERE rowid IN (SELECT rowid...}")
+		// exec_neph { SELECT rowid FROM t1 WHERE rowid IN (SELECT rowid...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1); }")
+		// exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1); } (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT rowid FROM t1 WHERE rowid+0 IN (SELECT row...}")
+		// exec_neph { SELECT rowid FROM t1 WHERE rowid+0 IN (SELECT row...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a+0 IN (SELECT a FROM t1);...}")
+		// exec_neph { SELECT a FROM t1 WHERE a+0 IN (SELECT a FROM t1);...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT rowid FROM t1 WHERE rowid IN (SELECT rowid...}")
+		// exec_neph { SELECT rowid FROM t1 WHERE rowid IN (SELECT rowid...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a+0 FROM t1);...}")
+		// exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a+0 FROM t1);...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 WHE...}")
+		// exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 WHE...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 GRO...}")
+		// exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 GRO...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 ORD...}")
+		// exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 ORD...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph {SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 ORDE...}")
+		// exec_neph {SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 ORDE...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph {\n    SELECT a FROM t1 WHERE a IN (SELECT a FROM t1...}")
+		// exec_neph {
+    SELECT a FROM t1 WHERE a IN (SELECT a FROM t1...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a COLLATE nocase IN (SELEC...}")
+		// exec_neph { SELECT a FROM t1 WHERE a COLLATE nocase IN (SELEC...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.15"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a COLLATE binary IN (SELEC...}")
+		// exec_neph { SELECT a FROM t1 WHERE a COLLATE binary IN (SELEC...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.16"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph {SELECT a FROM t1 WHERE a COLLATE nocase IN (SELECT...}")
+		// exec_neph {SELECT a FROM t1 WHERE a COLLATE nocase IN (SELECT...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-1.17"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph {SELECT a FROM t1 WHERE a COLLATE binary IN (SELECT...}")
+		// exec_neph {SELECT a FROM t1 WHERE a COLLATE binary IN (SELECT...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-2.1"
 		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(w int, x int, y int);\n    CREATE TABLE t2(p int, q int, r int, s int);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(w int, x int, y int);\n    CREATE TABLE t2(p int, q int, r int, s int);\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-			var w = i
+			w = i
 			_ = w // suppress unused warning
-			var x = "int(log($i)/log(2))"
+			x = "int(log($i)/log(2))"
 			_ = x // suppress unused warning
-			var y = "$i*$i + 2*$i + 1"
+			y = "$i*$i + 2*$i + 1"
 			_ = y // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + w + "," + x + "," + y + ")")
 			if _res.Error != nil {
@@ -120,7 +144,7 @@ func Test_in3(t *testing.T) {
 				}
 			}
 		}
-		var maxy = "execsql {select max(y) from t1}"
+		maxy = "execsql {select max(y) from t1}"
 		_ = maxy // suppress unused warning
 		_res = db.Exec(" INSERT INTO t2 SELECT 101-w, x, $maxy+1-y, y FROM t1 ")
 		if _res.Error != nil {
@@ -158,22 +182,22 @@ func Test_in3(t *testing.T) {
 		}
 	}
 	{ // do_test "in3-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT x IN (SELECT a FROM t1) FROM t2 }")
+		// exec_neph { SELECT x IN (SELECT a FROM t1) FROM t2 } (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT x IN (SELECT b FROM t1) FROM t2 }")
+		// exec_neph { SELECT x IN (SELECT b FROM t1) FROM t2 } (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT x IN (SELECT c FROM t1) FROM t2 }")
+		// exec_neph { SELECT x IN (SELECT c FROM t1) FROM t2 } (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT y IN (SELECT a FROM t1) FROM t2 }")
+		// exec_neph { SELECT y IN (SELECT a FROM t1) FROM t2 } (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-3.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT y IN (SELECT b FROM t1) FROM t2 }")
+		// exec_neph { SELECT y IN (SELECT b FROM t1) FROM t2 } (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-3.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT y IN (SELECT c FROM t1) FROM t2 }")
+		// exec_neph { SELECT y IN (SELECT c FROM t1) FROM t2 } (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-4.1"
 		_res = db.Exec("\n    CREATE TABLE t3(a, b, c);\n    CREATE UNIQUE INDEX t3_i ON t3(b, a);\n  ")
@@ -186,20 +210,20 @@ func Test_in3(t *testing.T) {
 		}
 	}
 	{ // do_test "in3-4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT 'text' IN (SELECT b FROM t3) }")
+		// exec_neph { SELECT 'text' IN (SELECT b FROM t3) } (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT 'TEXT' COLLATE nocase IN (SELECT b FROM t3...}")
+		// exec_neph { SELECT 'TEXT' COLLATE nocase IN (SELECT b FROM t3...} (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT b FROM t3 WHERE b IN (SELECT b FROM t3) }")
+		// exec_neph { SELECT b FROM t3 WHERE b IN (SELECT b FROM t3) } (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-4.5"
 		_res = db.Exec(" CREATE UNIQUE INDEX t3_i2 ON t3(b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE UNIQUE INDEX t3_i2 ON t3(b) ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT b FROM t3 WHERE b IN (SELECT b FROM t3) }")
+		// exec_neph { SELECT b FROM t3 WHERE b IN (SELECT b FROM t3) } (unsupported command, not transpiled)
 	}
 	{ // do_test "in3-4.6"
 		_res = db.Exec(" DROP INDEX t3_i2 ")

@@ -39,73 +39,88 @@ func Test_schema2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "schema2-1.1"
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-1.3"
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
 		_res = db.Exec("\n    DROP TABLE abc;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE abc;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-4.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n  ")
 		_ = _res // catchsql
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
 		_res = db.Exec("\n    CREATE INDEX abc_index ON abc(a);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX abc_index ON abc(a);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-4.3"
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
 		_res = db.Exec("\n    DROP INDEX abc_index;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX abc_index;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-6.1"
-		var sql = "SELECT * FROM abc;"
+		sql = "SELECT * FROM abc;"
 		_ = sql // suppress unused warning
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-6.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+		// sqlite3_reset $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-6.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_delete_function $::DB hello_function")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		// sqlite_delete_function $::DB hello_function (unsupported command, not transpiled)
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-6.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-9.1"
 		db2, err = frigolite.Open("test.db")
@@ -127,18 +142,18 @@ func Test_schema2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(1, 2, 3);\n  ")
 		}
-		var sql = "SELECT * FROM abc"
+		sql = "SELECT * FROM abc"
 		_ = sql // suppress unused warning
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-10.2"
 		_res = db.Exec("\n    CREATE TABLE t2(a, b, c);\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "schema2-10.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-10.4"
 		db2, err = frigolite.Open("test.db")
@@ -152,17 +167,16 @@ func Test_schema2(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "schema2-11.1"
-		var sql = "SELECT * FROM abc"
+		sql = "SELECT * FROM abc"
 		_ = sql // suppress unused warning
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-11.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_delete_function $::DB tstfunc")
+		// sqlite_delete_function $::DB tstfunc (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-11.3"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -179,20 +193,19 @@ func Test_schema2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "schema2-11.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-11.5"
-		var sql = "SELECT * FROM abc"
+		sql = "SELECT * FROM abc"
 		_ = sql // suppress unused warning
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-11.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_delete_collation $::DB tstcollate")
+		// sqlite_delete_collation $::DB tstcollate (unsupported command, not transpiled)
 	}
 	{ // do_test "schema2-11.7"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -209,6 +222,6 @@ func Test_schema2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "schema2-11.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 }

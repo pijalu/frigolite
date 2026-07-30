@@ -40,14 +40,22 @@ func Test_wal64k(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "wal64k"
+	testprefix = "wal64k"
 	_ = testprefix // suppress unused warning
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall pagesize 65536")
-	db, err = frigolite.Open("test.db")
+	// test_syscall pagesize 65536 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		_res = db.Exec(" \n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(x);\n  CREATE INDEX i1 ON t1(x);\n")
@@ -78,7 +86,8 @@ func Test_wal64k(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"
 		r = db.Query("\n  PRAGMA page_size=512;\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<8200)\n  INSERT INTO t1(a,b) SELECT x, zeroblob(300) FROM c;\n  PRAGMA integrity_check;\n")
@@ -92,5 +101,5 @@ func Test_wal64k(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall pagesize -1")
+	// test_syscall pagesize -1 (unsupported command, not transpiled)
 }

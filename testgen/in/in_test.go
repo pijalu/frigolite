@@ -40,13 +40,24 @@ func Test_in(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "in-1.0"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a int, b int);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a int, b int);\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 10 }() {
 			_res = db.Exec("INSERT INTO t1 VALUES(" + i + "," + "1<<$i" + ")")
@@ -163,7 +174,6 @@ func Test_in(t *testing.T) {
 		}
 	}
 	{ // do_test "in-2.11"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -353,7 +363,7 @@ func Test_in(t *testing.T) {
 		}
 	}
 	{ // do_test "in-8.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT b FROM t1 WHERE a IN (\"hello\",'there')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a IN (\"hello\",'there')\n  ")

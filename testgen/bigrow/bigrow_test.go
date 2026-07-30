@@ -40,16 +40,41 @@ func Test_bigrow(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var bigstr string
+	_ = bigstr // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sep string
+	_ = sep // pre-declared from TCL source
+	var big1 string
+	_ = big1 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var big2 string
+	_ = big2 // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "bigrow-1.0"
-		var _bigstr = "" // TCL namespace variable
-		_ = _bigstr // suppress unused warning
-		var i = "1"
+		bigstr = "" // TCL namespace variable
+		_ = bigstr // suppress unused warning
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 9999 }() {
-			var sep = "\"abcdefghijklmnopqrstuvwxyz\" [expr {$i%26}]"
+			sep = "\"abcdefghijklmnopqrstuvwxyz\" [expr {$i%26}]"
 			_ = sep // suppress unused warning
-			_bigstr += sep + " " + "format %04d $i" + " "
+			bigstr += sep + " " + "format %04d $i" + " "
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -58,7 +83,7 @@ func Test_bigrow(t *testing.T) {
 				}
 			}
 		}
-		len(_bigstr)
+		_ = strconv.Itoa(len(bigstr)) // string length result
 	}
 	{ // do_test "bigrow-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a text, b text, c text);\n    SELECT name FROM sqlite_master\n      WHERE type='table' OR type='index'\n      ORDER BY name\n  ")
@@ -67,11 +92,11 @@ func Test_bigrow(t *testing.T) {
 		}
 	}
 	{ // do_test "bigrow-1.2"
-		var _big1 = "$::bigstr 0 65519" // TCL namespace variable
-		_ = _big1 // suppress unused warning
-		var sql = "INSERT INTO t1 VALUES('abc',"
+		big1 = "$::bigstr 0 65519" // TCL namespace variable
+		_ = big1 // suppress unused warning
+		sql = "INSERT INTO t1 VALUES('abc',"
 		_ = sql // suppress unused warning
-		sql += "'" + _big1 + "', 'xyz');"
+		sql += "'" + big1 + "', 'xyz');"
 		_res = db.Exec(sql)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -88,12 +113,11 @@ func Test_bigrow(t *testing.T) {
 		}
 	}
 	{ // do_test "bigrow-1.4"
-		var _big2 = "$::bigstr 0 65520" // TCL namespace variable
-		_ = _big2 // suppress unused warning
-		var sql = "INSERT INTO t1 VALUES('abc2',"
+		big2 = "$::bigstr 0 65520" // TCL namespace variable
+		_ = big2 // suppress unused warning
+		sql = "INSERT INTO t1 VALUES('abc2',"
 		_ = sql // suppress unused warning
-		sql += "'" + _big2 + "', 'xyz2');"
-	var _r string
+		sql += "'" + big2 + "', 'xyz2');"
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -151,15 +175,15 @@ func Test_bigrow(t *testing.T) {
 		}
 	}
 	{ // do_test "bigrow-1.8"
-		r = db.Query("SELECT b FROM t1 WHERE a=='" + _big1 + "'")
+		r = db.Query("SELECT b FROM t1 WHERE a=='" + big1 + "'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=='" + _big1 + "'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=='" + big1 + "'")
 		}
 	}
 	{ // do_test "bigrow-1.9"
-		r = db.Query("SELECT b FROM t1 WHERE a!='" + _big1 + "' ORDER BY a")
+		r = db.Query("SELECT b FROM t1 WHERE a!='" + big1 + "' ORDER BY a")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a!='" + _big1 + "' ORDER BY a")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a!='" + big1 + "' ORDER BY a")
 		}
 	}
 	{ // do_test "bigrow-2.1"
@@ -167,9 +191,9 @@ func Test_bigrow(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i1 ON t1(a)\n  ")
 		}
-		r = db.Query("SELECT b FROM t1 WHERE a=='" + _big1 + "'")
+		r = db.Query("SELECT b FROM t1 WHERE a=='" + big1 + "'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=='" + _big1 + "'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=='" + big1 + "'")
 		}
 	}
 	{ // do_test "bigrow-2.2"
@@ -187,9 +211,9 @@ func Test_bigrow(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET a=b, b=a\n  ")
 		}
-		r = db.Query("SELECT b FROM t1 WHERE a=='" + _big1 + "'")
+		r = db.Query("SELECT b FROM t1 WHERE a=='" + big1 + "'")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=='" + _big1 + "'")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=='" + big1 + "'")
 		}
 	}
 	{
@@ -224,7 +248,7 @@ func Test_bigrow(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a,length(b),c FROM t1")
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 		{ // do_test "bigrow-3.3." + i
@@ -308,7 +332,7 @@ func Test_bigrow(t *testing.T) {
 	}
 	i = "1"
 	_ = i // suppress unused warning
-	var sz = "60"
+	sz = "60"
 	_ = sz // suppress unused warning
 	for func() bool { sz_n, _sz_e := strconv.Atoi(sz); if _sz_e != nil { return false }; return sz_n < 1048560 }() {
 		{ // do_test "bigrow-5.2." + i
@@ -317,7 +341,6 @@ func Test_bigrow(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;\n    ")
 			}
 		}
-		var i = "0"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -329,7 +352,7 @@ func Test_bigrow(t *testing.T) {
 		{
 			_n, _err := strconv.Atoi(sz)
 			if _err == nil {
-				sz = strconv.Itoa(_n + sz)
+				sz = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(sz); return _v }())
 			}
 		}
 	}
@@ -360,7 +383,7 @@ func Test_bigrow(t *testing.T) {
 		}
 	}
 	if func() bool { SQLITE_MAX_LENGTH_n, _SQLITE_MAX_LENGTH_e := strconv.Atoi(SQLITE_MAX_LENGTH); if _SQLITE_MAX_LENGTH_e != nil { return false }; return SQLITE_MAX_LENGTH_n > 1200*1000*1000 }() {
-		var v = "A 1100000000"
+		v = "A 1100000000"
 		_ = v // suppress unused warning
 		{ // "bigrow-6.0"
 			_res = db.Exec("\n    CREATE TABLE docs(content TEXT);\n    INSERT INTO docs VALUES ( $v );\n  ")

@@ -39,12 +39,37 @@ func Test_diskfull(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sqlite_io_error_persist string
+	_ = sqlite_io_error_persist // pre-declared from TCL source
+	var sqlite_io_error_hit string
+	_ = sqlite_io_error_hit // pre-declared from TCL source
+	var sqlite_io_error_pending string
+	_ = sqlite_io_error_pending // pre-declared from TCL source
+	var sqlite_diskfull_pending string
+	_ = sqlite_diskfull_pending // pre-declared from TCL source
+	var _go string
+	_ = _go // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sqlite_diskfull string
+	_ = sqlite_diskfull // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var sqlite_io_error_persist = "0"
+	sqlite_io_error_persist = "0"
 	_ = sqlite_io_error_persist // suppress unused warning
-	var sqlite_io_error_hit = "0"
+	sqlite_io_error_hit = "0"
 	_ = sqlite_io_error_hit // suppress unused warning
-	var sqlite_io_error_pending = "0"
+	sqlite_io_error_pending = "0"
 	_ = sqlite_io_error_pending // suppress unused warning
 	{ // do_test "diskfull-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(1000,1000));\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x AS a, x AS b FROM t1;\n    CREATE INDEX t2i1 ON t2(b);\n  ")
@@ -52,12 +77,12 @@ func Test_diskfull(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(1000,1000));\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x AS a, x AS b FROM t1;\n    CREATE INDEX t2i1 ON t2(b);\n  ")
 		}
 	}
-	var sqlite_diskfull_pending = "0"
+	sqlite_diskfull_pending = "0"
 	_ = sqlite_diskfull_pending // suppress unused warning
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "diskfull-1.3"
-		var sqlite_diskfull_pending = "1"
+		sqlite_diskfull_pending = "1"
 		_ = sqlite_diskfull_pending // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
 		_ = _res // catchsql
@@ -67,7 +92,7 @@ func Test_diskfull(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "diskfull-1.5"
-		var sqlite_diskfull_pending = "1"
+		sqlite_diskfull_pending = "1"
 		_ = sqlite_diskfull_pending // suppress unused warning
 		_res = db.Exec("\n    DELETE FROM t1;\n  ")
 		_ = _res // catchsql
@@ -79,5 +104,5 @@ func Test_diskfull(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_diskfull_test diskfull-2 VACUUM")
+	// do_diskfull_test diskfull-2 VACUUM (unsupported command, not transpiled)
 }

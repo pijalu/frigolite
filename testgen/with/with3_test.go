@@ -40,9 +40,16 @@ func Test_with3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "with3" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "with3" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  WITH i(x) AS (\n    WITH j AS (SELECT 10)\n    SELECT 5 FROM t0 UNION SELECT 8 FROM m\n  )\n  SELECT * FROM i;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: m") {

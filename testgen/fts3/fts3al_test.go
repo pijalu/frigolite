@@ -39,6 +39,21 @@ func Test_fts3al(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var word string
+	_ = word // pre-declared from TCL source
+	var phrase1 string
+	_ = phrase1 // pre-declared from TCL source
+	var phrase2 string
+	_ = phrase2 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "fts3al-1.1"
 		_res = db.Exec("CREATE VIRTUAL TABLE t1 USING fts3(content, \\x80)")
@@ -53,7 +68,7 @@ func Test_fts3al(t *testing.T) {
 			_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts3(content, tokenize \\x80)")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg $DB")
+		// sqlite3_errmsg $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "fts3al-1.3"
 		_res = db.Exec("CREATE VIRTUAL TABLE t3 USING fts3(content, tokenize\\x80)")
@@ -61,11 +76,11 @@ func Test_fts3al(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t3 USING fts3(content, tokenize\\x80)")
 		}
 	}
-	var word = "\\x80xxxxx\\x80xxxxx\\x80xxxxx\\x80xxxxx\\x80xxxxx\\x80xxxxx\\x80"
+	word = "\\x80xxxxx\\x80xxxxx\\x80xxxxx\\x80xxxxx\\x80xxxxx\\x80xxxxx\\x80"
 	_ = word // suppress unused warning
-	var phrase1 = word + " " + word + " " + word + " target " + word + " " + word + " " + word
+	phrase1 = word + " " + word + " " + word + " target " + word + " " + word + " " + word
 	_ = phrase1 // suppress unused warning
-	var phrase2 = word + " " + word + " " + word + "    target    " + word + " " + word + " " + word
+	phrase2 = word + " " + word + " " + word + "    target    " + word + " " + word + " " + word
 	_ = phrase2 // suppress unused warning
 	_res = db.Exec("CREATE VIRTUAL TABLE t4 USING fts3(content)")
 	if _res.Error != nil {

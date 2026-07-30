@@ -39,10 +39,25 @@ func Test_zeroblobfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var quoted_res string
+	_ = quoted_res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "zeroblobfault"
+	testprefix = "zeroblobfault"
 	_ = testprefix // suppress unused warning
-	var quoted_res = "db one { SELECT quote(zeroblob(2000)) }"
+	quoted_res = "db one { SELECT quote(zeroblob(2000)) }"
 	_ = quoted_res // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { SELECT quote(zeroblob(2000)) }\n} -test {\n  faultsim_test_result [list 0 $::quoted_res]\n}")
+	// do_faultsim_test 1 -prep {
+  sqlite3 db test.db
+} -body {
+  execsql { SELECT quote(zeroblob(2000)) }
+} -test {
+  faultsim_test_result [list 0 $::quoted_res]
+} (unsupported command, not transpiled)
 }

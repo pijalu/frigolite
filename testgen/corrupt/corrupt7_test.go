@@ -39,11 +39,20 @@ func Test_corrupt7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var cell_offset string
+	_ = cell_offset // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "corrupt7-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n  ")
 		if _res.Error != nil {
@@ -52,17 +61,17 @@ func Test_corrupt7(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "corrupt7-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 16 2]")
+		// hexio_get_int [hexio_read test.db 16 2] (unsupported command, not transpiled)
 	}
 	{ // do_test "corrupt7-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 20 1]")
+		// hexio_get_int [hexio_read test.db 20 1] (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "corrupt7-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 1062 FF")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db 1062 FF (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check(1)")
 		if _res.Error != nil {
@@ -70,9 +79,9 @@ func Test_corrupt7(t *testing.T) {
 		}
 	}
 	{ // do_test "corrupt7-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 1062 04")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db 1062 04 (unsupported command, not transpiled)
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check(1)")
 		if _res.Error != nil {

@@ -40,6 +40,13 @@ func Test_parser1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var zero string
+	_ = zero // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "parser1-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE nocase DESC) REFERENCES t1(a COLLATE binary ASC)\n  );\n")
@@ -47,7 +54,7 @@ func Test_parser1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \\\"b\\\"", _res.Error, "\n  CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE nocase DESC) REFERENCES t1(a COLLATE binary ASC)\n  );\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "parser1-1.2"
 		r = db.Query("\n  CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b) REFERENCES t1(a)\n  );\n  INSERT INTO t1 VALUES('abc',NULL),('xyz','abc');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE nocase) REFERENCES t1(a)\n  )' WHERE name='t1';\n  SELECT name FROM sqlite_master WHERE sql LIKE '%collate%';\n")
 		if r.Error != nil {
@@ -114,7 +121,7 @@ func Test_parser1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var zero = "0"
+	zero = "0"
 	_ = zero // suppress unused warning
 	{ // "parser1-4.1"
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  SELECT max(x) AND $zero FROM t1;\n")

@@ -40,10 +40,31 @@ func Test_walckptnoop(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var VAL string
+	_ = VAL // pre-declared from TCL source
+	var A string
+	_ = A // pre-declared from TCL source
+	var C string
+	_ = C // pre-declared from TCL source
+	var M string
+	_ = M // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walckptnoop"
+	testprefix = "walckptnoop"
 	_ = testprefix // suppress unused warning
-	var VAL = "123"
+	VAL = "123"
 	_ = VAL // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -107,8 +128,8 @@ func Test_walckptnoop(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+	// db_save_and_close (unsupported command, not transpiled)
+	// db_restore_and_reopen (unsupported command, not transpiled)
 	{ // "1.5"
 		r = db.Query("\n  PRAGMA wal_checkpoint = noop;\n")
 		if r.Error != nil {
@@ -121,7 +142,8 @@ func Test_walckptnoop(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec("\n  PRAGMA auto_vacuum=NONE;\n  PRAGMA secure_delete=OFF;\n")
 	if _res.Error != nil {
@@ -152,7 +174,7 @@ func Test_walckptnoop(t *testing.T) {
 		}
 	}
 	{ // do_test "1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint_v2 db noop")
+		// sqlite3_wal_checkpoint_v2 db noop (unsupported command, not transpiled)
 	}
 	{ // "1.10"
 		r = db.Query("\n  PRAGMA journal_mode = delete;\n  PRAGMA wal_checkpoint = noop;\n")

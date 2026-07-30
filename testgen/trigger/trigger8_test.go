@@ -40,11 +40,24 @@ func Test_trigger8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var nStatement string
+	_ = nStatement // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var nStatement = "10000"
+	nStatement = "10000"
 	_ = nStatement // suppress unused warning
 	if tcl_platform_platform == "symbian" {
-		var nStatement = "1000"
+		nStatement = "1000"
 		_ = nStatement // suppress unused warning
 	}
 	nStatement = "5"
@@ -54,9 +67,9 @@ func Test_trigger8(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n  ")
 		}
-		var sql = "CREATE TRIGGER r" + nStatement + " AFTER INSERT ON t1 BEGIN\\n"
+		sql = "CREATE TRIGGER r" + nStatement + " AFTER INSERT ON t1 BEGIN\\n"
 		_ = sql // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nStatement_n, _nStatement_e := strconv.Atoi(nStatement); if _nStatement_e != nil { return false }; return i_n < nStatement_n }() {
 			sql += "  INSERT INTO t2 VALUES(" + i + ");\\n"

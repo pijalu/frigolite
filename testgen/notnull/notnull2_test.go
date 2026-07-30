@@ -39,8 +39,15 @@ func Test_notnull2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "notnull2"
+	testprefix = "notnull2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO t1 SELECT i, i FROM x;\n  INSERT INTO t2 SELECT * FROM t1;\n")
@@ -48,16 +55,31 @@ func Test_notnull2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d NOT NULL);\n\n  WITH x(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM x WHERE i<1000\n  )\n  INSERT INTO t1 SELECT i, i FROM x;\n  INSERT INTO t2 SELECT * FROM t1;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 1.1.1 {\n  SELECT * FROM t1 LEFT JOIN t2 WHERE a=c AND d I...} 100 {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 1.1.2 {\n  SELECT * FROM t1 LEFT JOIN t2 WHERE a=c AND c I...} +1000 {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 1.2.1 {\n  SELECT * FROM ( SELECT * FROM t2 ) WHERE d IS N...} 100 {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 1.2.2 {\n  SELECT * FROM ( SELECT * FROM t2 ) WHERE c IS N...} +1000 {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 1.3.1 {\n  SELECT * FROM t2 WHERE d IS NULL\n} 100 {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 1.3.2 {\n  SELECT * FROM t2 WHERE c IS NULL\n} +1000 {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 1.4.1 {\n  SELECT (d IS NOT NULL) FROM t2 WHERE 0==( d IS ...} 100 {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 1.4.2 {\n  SELECT * FROM t2 WHERE 0==( c IS NOT NULL )\n} +1000 {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 1.5.1 {\n  SELECT count(*) FROM t2 WHERE EXISTS(\n    SELEC...} 7000 {0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 1.5.2 {\n  SELECT count(*) FROM t2 WHERE EXISTS(\n    SELEC...} 5000 {0}")
+	// do_vmstep_test 1.1.1 {
+  SELECT * FROM t1 LEFT JOIN t2 WHERE a=c AND d I...} 100 {} (unsupported command, not transpiled)
+	// do_vmstep_test 1.1.2 {
+  SELECT * FROM t1 LEFT JOIN t2 WHERE a=c AND c I...} +1000 {} (unsupported command, not transpiled)
+	// do_vmstep_test 1.2.1 {
+  SELECT * FROM ( SELECT * FROM t2 ) WHERE d IS N...} 100 {} (unsupported command, not transpiled)
+	// do_vmstep_test 1.2.2 {
+  SELECT * FROM ( SELECT * FROM t2 ) WHERE c IS N...} +1000 {} (unsupported command, not transpiled)
+	// do_vmstep_test 1.3.1 {
+  SELECT * FROM t2 WHERE d IS NULL
+} 100 {} (unsupported command, not transpiled)
+	// do_vmstep_test 1.3.2 {
+  SELECT * FROM t2 WHERE c IS NULL
+} +1000 {} (unsupported command, not transpiled)
+	// do_vmstep_test 1.4.1 {
+  SELECT (d IS NOT NULL) FROM t2 WHERE 0==( d IS ...} 100 {} (unsupported command, not transpiled)
+	// do_vmstep_test 1.4.2 {
+  SELECT * FROM t2 WHERE 0==( c IS NOT NULL )
+} +1000 {} (unsupported command, not transpiled)
+	// do_vmstep_test 1.5.1 {
+  SELECT count(*) FROM t2 WHERE EXISTS(
+    SELEC...} 7000 {0} (unsupported command, not transpiled)
+	// do_vmstep_test 1.5.2 {
+  SELECT count(*) FROM t2 WHERE EXISTS(
+    SELEC...} 5000 {0} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

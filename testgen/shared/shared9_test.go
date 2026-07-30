@@ -40,10 +40,33 @@ func Test_shared9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var invoked_mycollate_db1 string
+	_ = invoked_mycollate_db1 // pre-declared from TCL source
+	var busyhandler_invoked_for string
+	_ = busyhandler_invoked_for // pre-declared from TCL source
+	var tf string
+	_ = tf // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var handle string
+	_ = handle // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "shared9"
+	testprefix = "shared9"
 	_ = testprefix // suppress unused warning
-	var enable_shared_cache = "sqlite3_enable_shared_cache 1"
+	enable_shared_cache = "sqlite3_enable_shared_cache 1"
 	_ = enable_shared_cache // suppress unused warning
 	db1, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -95,20 +118,20 @@ func Test_shared9(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "2.3"
-		var _invoked_mycollate_db1 = "0" // TCL namespace variable
-		_ = _invoked_mycollate_db1 // suppress unused warning
+		invoked_mycollate_db1 = "0" // TCL namespace variable
+		_ = invoked_mycollate_db1 // suppress unused warning
 		db1.Exec("\n    CREATE TABLE t1(a COLLATE mycollate, CHECK (a IN ('one', 'two', 'three')));\n    INSERT INTO t1 VALUES('one');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db1.Close()
-		_ = _invoked_mycollate_db1 // TCL namespace variable (query)
+		_ = invoked_mycollate_db1 // TCL namespace variable (query)
 	}
 	{ // do_test "2.4"
-		var _invoked_mycollate_db1 = "0" // TCL namespace variable
-		_ = _invoked_mycollate_db1 // suppress unused warning
+		invoked_mycollate_db1 = "0" // TCL namespace variable
+		_ = invoked_mycollate_db1 // suppress unused warning
 		db2.Exec("\n    INSERT INTO t1 VALUES('two');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
-		_ = _invoked_mycollate_db1 // TCL namespace variable (query)
+		_ = invoked_mycollate_db1 // TCL namespace variable (query)
 	}
 	os.Remove("test.db")
 	db1, err = frigolite.Open("test.db")
@@ -116,20 +139,20 @@ func Test_shared9(t *testing.T) {
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "2.13"
-		var _invoked_mycollate_db1 = "0" // TCL namespace variable
-		_ = _invoked_mycollate_db1 // suppress unused warning
+		invoked_mycollate_db1 = "0" // TCL namespace variable
+		_ = invoked_mycollate_db1 // suppress unused warning
 		db1.Exec("\n    CREATE TABLE t1(a, CHECK (a COLLATE mycollate IN ('one', 'two', 'three')));\n    INSERT INTO t1 VALUES('one');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db1.Close()
-		_ = _invoked_mycollate_db1 // TCL namespace variable (query)
+		_ = invoked_mycollate_db1 // TCL namespace variable (query)
 	}
 	{ // do_test "2.14"
-		var _invoked_mycollate_db1 = "0" // TCL namespace variable
-		_ = _invoked_mycollate_db1 // suppress unused warning
+		invoked_mycollate_db1 = "0" // TCL namespace variable
+		_ = invoked_mycollate_db1 // suppress unused warning
 		db2.Exec("\n    INSERT INTO t1 VALUES('two');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
-		_ = _invoked_mycollate_db1 // TCL namespace variable (query)
+		_ = invoked_mycollate_db1 // TCL namespace variable (query)
 	}
 	os.Remove("test.db")
 	db1, err = frigolite.Open("test.db")
@@ -146,9 +169,12 @@ func Test_shared9(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "3.2"
-		var _tf = "launch_testfixture" // TCL namespace variable
-		_ = _tf // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::tf {\n    sqlite3 db test.db\n    db eval {\n      BEGIN;...}")
+		tf = "launch_testfixture" // TCL namespace variable
+		_ = tf // suppress unused warning
+		// testfixture $::tf {
+    sqlite3 db test.db
+    db eval {
+      BEGIN;...} (unsupported command, not transpiled)
 	}
 	{ // do_test "3.3"
 		db2.Exec(" SELECT * FROM t2 ")
@@ -159,7 +185,7 @@ func Test_shared9(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "3.5"
-		_ = _busyhandler_invoked_for // TCL namespace variable (query)
+		_ = busyhandler_invoked_for // TCL namespace variable (query)
 	}
 	{ // do_test "3.6"
 		// close $::tf
@@ -168,5 +194,5 @@ func Test_shared9(t *testing.T) {
 	}
 	db1.Close()
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

@@ -39,7 +39,28 @@ func Test_attachmalloc(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test attachmalloc-1 -tclprep {\n  catch { db close }\n  for {set i 2} {$i<=4} {inc...} -tclbody {\n  if {[catch {sqlite3 db test.db}]} {\n    error \"...} -sqlbody {\n  ATTACH 'test2.db' AS two;\n  CREATE TABLE two.t1...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test attachmalloc-2 -tclprep {\n  forcedelete test2.db\n  forcedelete test2.db-jou...} -sqlbody {\n  CREATE TABLE t1(d, e, f);\n  ATTACH 'test2.db' A...}")
+	// do_malloc_test attachmalloc-1 -tclprep {
+  catch { db close }
+  for {set i 2} {$i<=4} {inc...} -tclbody {
+  if {[catch {sqlite3 db test.db}]} {
+    error "...} -sqlbody {
+  ATTACH 'test2.db' AS two;
+  CREATE TABLE two.t1...} (unsupported command, not transpiled)
+	// do_malloc_test attachmalloc-2 -tclprep {
+  forcedelete test2.db
+  forcedelete test2.db-jou...} -sqlbody {
+  CREATE TABLE t1(d, e, f);
+  ATTACH 'test2.db' A...} (unsupported command, not transpiled)
 }

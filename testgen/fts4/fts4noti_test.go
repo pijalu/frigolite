@@ -40,9 +40,30 @@ func Test_fts4noti(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var arg string
+	_ = arg // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var schema string
+	_ = schema // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var v1 string
+	_ = v1 // pre-declared from TCL source
+	var v2 string
+	_ = v2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts4noti" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts4noti" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE cc(a, b, c);\n")
 		if _res.Error != nil {
@@ -262,11 +283,11 @@ func Test_fts4noti(t *testing.T) {
 				}
 			}
 			{ // do_test "3.2"
-				var v = "\" 1\" 50000"
+				v = "\" 1\" 50000"
 				_ = v // suppress unused warning
-				var v1 = "x " + v
+				v1 = "x " + v
 				_ = v1 // suppress unused warning
-				var v2 = "y " + v
+				v2 = "y " + v
 				_ = v2 // suppress unused warning
 				_res = db.Exec(" \n    INSERT INTO t2 VALUES(1, 'x y z');\n    INSERT INTO t2 VALUES(2, $v1);\n    INSERT INTO t2 VALUES(3, $v2);\n    INSERT INTO t2 VALUES(4, $v2);\n    INSERT INTO t2 VALUES(5, $v2);\n    INSERT INTO t2 VALUES(6, $v2);\n  ")
 				if _res.Error != nil {

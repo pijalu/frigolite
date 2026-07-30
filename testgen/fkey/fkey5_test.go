@@ -40,8 +40,25 @@ func Test_fkey5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var table string
+	_ = table // pre-declared from TCL source
+	var rowid string
+	_ = rowid // pre-declared from TCL source
+	var fkid string
+	_ = fkid // pre-declared from TCL source
+	var parent string
+	_ = parent // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fkey5"
+	testprefix = "fkey5"
 	_ = testprefix // suppress unused warning
 	{ // do_test "fkey5-1.1"
 		_res = db.Exec("\n    CREATE TABLE p1(a INTEGER PRIMARY KEY); INSERT INTO p1 VALUES(88),(89);\n    CREATE TABLE p2(a INT PRIMARY KEY); INSERT INTO p2 VALUES(77),(78);\n    CREATE TABLE p3(a TEXT PRIMARY KEY);\n    INSERT INTO p3 VALUES(66),(67),('alpha'),('BRAVO');\n    CREATE TABLE p4(a TEXT PRIMARY KEY COLLATE nocase);\n    INSERT INTO p4 VALUES('alpha'),('BRAVO'),('55'),('Delta'),('ECHO');\n    CREATE TABLE p5(a INTEGER PRIMARY KEY, b, c, UNIQUE(b,c));\n    INSERT INTO p5 VALUES(1,'Alpha','abc'),(2,'beta','def');\n    CREATE TABLE p6(a INTEGER PRIMARY KEY, b TEXT COLLATE nocase,\n                    c TEXT COLLATE rtrim, UNIQUE(b,c));\n    INSERT INTO p6 VALUES(1,'Alpha','abc '),(2,'bETA','def    ');\n\n    CREATE TABLE c1(x INTEGER PRIMARY KEY references p1);\n    CREATE TABLE c2(x INTEGER PRIMARY KEY references p2);\n    CREATE TABLE c3(x INTEGER PRIMARY KEY references p3);\n    CREATE TABLE c4(x INTEGER PRIMARY KEY references p4);\n    CREATE TABLE c5(x INT references p1);\n    CREATE TABLE c6(x INT references p2);\n    CREATE TABLE c7(x INT references p3);\n    CREATE TABLE c8(x INT references p4);\n    CREATE TABLE c9(x TEXT UNIQUE references p1);\n    CREATE TABLE c10(x TEXT UNIQUE references p2);\n    CREATE TABLE c11(x TEXT UNIQUE references p3);\n    CREATE TABLE c12(x TEXT UNIQUE references p4);\n    CREATE TABLE c13(x TEXT COLLATE nocase references p3);\n    CREATE TABLE c14(x TEXT COLLATE nocase references p4);\n    CREATE TABLE c15(x, y, FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c16(x, y, FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c17(x, y, FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c18(x, y, FOREIGN KEY(x,y) REFERENCES p6(c,b));\n    CREATE TABLE c19(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(b,c));\n    CREATE TABLE c20(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p5(c,b));\n    CREATE TABLE c21(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(b,c));\n    CREATE TABLE c22(x TEXT COLLATE nocase, y TEXT COLLATE rtrim,\n                     FOREIGN KEY(x,y) REFERENCES p6(c,b));\n\n    PRAGMA foreign_key_check;\n  ")
@@ -246,13 +263,13 @@ func Test_fkey5(t *testing.T) {
 		}
 	}
 	{ // do_test "fkey5-7.1"
-		var res = ""
+		res = ""
 		_ = res // suppress unused warning
 		_res = db.Exec("\n    INSERT OR IGNORE INTO c13 SELECT * FROM c12;\n    INSERT OR IGNORE INTO C14 SELECT * FROM c12;\n    DELETE FROM c12;\n    PRAGMA foreign_key_check;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT OR IGNORE INTO c13 SELECT * FROM c12;\n    INSERT OR IGNORE INTO C14 SELECT * FROM c12;\n    DELETE FROM c12;\n    PRAGMA foreign_key_check;\n  ")
 		}
-		tclSort(res)
+		_ = tclSort(res) // lsort result
 	}
 	{ // do_test "fkey5-7.2"
 		_res = db.Exec("\n    PRAGMA foreign_key_check(c14);\n  ")

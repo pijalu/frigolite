@@ -39,6 +39,13 @@ func Test_tkt3508(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3508-1.1"
 		_res = db.Exec("\n    CREATE TABLE modificationsTmp (\n      SUBSTRATE_HPRD_ID VARCHAR(80),\n      SUBSTRATE_GENE_SYMBOL VARCHAR(80),\n      SUBSTRATE_ISOFORM_ID VARCHAR(80),\n      SUBSTRATE_REFSEQ_ID VARCHAR(80),\n      SITE INTEGER,\n      RESIDUE VARCHAR(80),\n      ENZYME_NAME VARCHAR(80),\n      ENZYME_HPRD_ID VARCHAR(80),\n      MODIFICATION_TYPE VARCHAR(80),\n      EXPERIMENT_TYPE VARCHAR(80),\n      REFERENCE_ID VARCHAR(80)\n    );\n    select SUBSTRATE_HPRD_ID, count(substrate_refseq_id) as c\n      from modificationsTmp where c > 1 group by SUBSTRATE_HPRD_ID;\n  ")

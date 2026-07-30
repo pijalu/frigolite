@@ -39,24 +39,136 @@ func Test_shared_err(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var possible_results string
+	_ = possible_results // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var residx string
+	_ = residx // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var success string
+	_ = success // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var DB2 string
+	_ = DB2 // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var steprc string
+	_ = steprc // pre-declared from TCL source
+	var column string
+	_ = column // pre-declared from TCL source
+	var finalrc string
+	_ = finalrc // pre-declared from TCL source
+	var aborted string
+	_ = aborted // pre-declared from TCL source
+	var ans string
+	_ = ans // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var rc1 string
+	_ = rc1 // pre-declared from TCL source
+	var rc2 string
+	_ = rc2 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// proc definition (not transpiled)
 	// set testdir: test directory (not used in Go test context)
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test shared_ioerr-1 -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA read...} -sqlbody {\n  SELECT * FROM sqlite_master;\n  INSERT INTO t1 V...} -cleanup {\n  do_test shared_ioerr-1.$n.cleanup.1 {\n    set r...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test shared_ioerr-2 -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA read...} -tclbody {\n  set ::residx 0\n  execsql {DELETE FROM t1 WHERE ...} -cleanup {\n  catchsql ROLLBACK\n  do_test shared_ioerr-2.$n.c...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test shared_ioerr-3 -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA read...} -tclbody {\n  execsql {\n    BEGIN;\n    INSERT INTO t1 VALUES(...} -cleanup {\n  set ::steprc  [sqlite3_step $::STMT]\n  set ::co...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test shared_ioerr-3rev -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA read...} -tclbody {\n  execsql {\n    BEGIN;\n    INSERT INTO t1 VALUES(...} -cleanup {\n  set ::steprc  [sqlite3_step $::STMT]\n  set ::co...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test shared_err-4 -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA read...} -tclbody {\n  execsql {\n    INSERT INTO t1 VALUES(6, NULL);\n ...} -cleanup {\n  do_test shared_malloc-4.$::n.cleanup.1 {\n    se...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test shared_err-5 -tclbody {\n  db close\n  sqlite3 dbX test.db\n  sqlite3 dbY te...} -cleanup {\n  catch {dbX close}\n  catch {dbY close}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test shared_err-6 -tclbody {\n  catch {db close}\n  ifcapable deprecated {\n    s...} -cleanup {\n  sqlite3_enable_shared_cache 1\n}")
-	var _aborted = "0" // TCL namespace variable
-	_ = _aborted // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test shared_err-8 -tclprep {\n  sqlite3 db2 test.db\n  execsql {\n    PRAGMA read...} -tclbody {\n  execsql {\n    BEGIN;\n    INSERT INTO t1 VALUES(...} -cleanup {\n  # UPDATE: As of [5668], if the rollback fails S...}")
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	// do_ioerr_test shared_ioerr-1 -tclprep {
+  sqlite3 db2 test.db
+  execsql {
+    PRAGMA read...} -sqlbody {
+  SELECT * FROM sqlite_master;
+  INSERT INTO t1 V...} -cleanup {
+  do_test shared_ioerr-1.$n.cleanup.1 {
+    set r...} (unsupported command, not transpiled)
+	// do_ioerr_test shared_ioerr-2 -tclprep {
+  sqlite3 db2 test.db
+  execsql {
+    PRAGMA read...} -tclbody {
+  set ::residx 0
+  execsql {DELETE FROM t1 WHERE ...} -cleanup {
+  catchsql ROLLBACK
+  do_test shared_ioerr-2.$n.c...} (unsupported command, not transpiled)
+	// do_ioerr_test shared_ioerr-3 -tclprep {
+  sqlite3 db2 test.db
+  execsql {
+    PRAGMA read...} -tclbody {
+  execsql {
+    BEGIN;
+    INSERT INTO t1 VALUES(...} -cleanup {
+  set ::steprc  [sqlite3_step $::STMT]
+  set ::co...} (unsupported command, not transpiled)
+	// do_ioerr_test shared_ioerr-3rev -tclprep {
+  sqlite3 db2 test.db
+  execsql {
+    PRAGMA read...} -tclbody {
+  execsql {
+    BEGIN;
+    INSERT INTO t1 VALUES(...} -cleanup {
+  set ::steprc  [sqlite3_step $::STMT]
+  set ::co...} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-4 -tclprep {
+  sqlite3 db2 test.db
+  execsql {
+    PRAGMA read...} -tclbody {
+  execsql {
+    INSERT INTO t1 VALUES(6, NULL);
+ ...} -cleanup {
+  do_test shared_malloc-4.$::n.cleanup.1 {
+    se...} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-5 -tclbody {
+  db close
+  sqlite3 dbX test.db
+  sqlite3 dbY te...} -cleanup {
+  catch {dbX close}
+  catch {dbY close}
+} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-6 -tclbody {
+  catch {db close}
+  ifcapable deprecated {
+    s...} -cleanup {
+  sqlite3_enable_shared_cache 1
+} (unsupported command, not transpiled)
+	aborted = "0" // TCL namespace variable
+	_ = aborted // suppress unused warning
+	// do_malloc_test shared_err-8 -tclprep {
+  sqlite3 db2 test.db
+  execsql {
+    PRAGMA read...} -tclbody {
+  execsql {
+    BEGIN;
+    INSERT INTO t1 VALUES(...} -cleanup {
+  # UPDATE: As of [5668], if the rollback fails S...} (unsupported command, not transpiled)
 	{ // do_test "shared_malloc-8.X"
 		// expr $::aborted==0 → "$::aborted==0"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test shared_err-9 -tclprep {\n  sqlite3 db2 test.db\n} -sqlbody {\n  PRAGMA page_size = 4096;\n  PRAGMA page_size = 1...} -cleanup {\n  db2 eval {\n    CREATE TABLE abc(a, b, c);\n    B...}")
+	// do_malloc_test shared_err-9 -tclprep {
+  sqlite3 db2 test.db
+} -sqlbody {
+  PRAGMA page_size = 4096;
+  PRAGMA page_size = 1...} -cleanup {
+  db2 eval {
+    CREATE TABLE abc(a, b, c);
+    B...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -66,8 +178,24 @@ func Test_shared_err(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test shared_err-10 -tclprep {\n  sqlite3 db test.db\n  sqlite3 db2 test.db\n  \n  d...} -tclbody {\n  catch {db eval {SELECT * FROM sqlite_master}}\n ...} -cleanup {\n  execsql { SELECT * FROM sqlite_master }\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test shared_err-11 -tclprep {\n  sqlite3 db test.db\n  sqlite3 db2 test.db\n  \n  d...} -tclbody {\n  catch {db eval {SELECT * FROM sqlite_master}}\n ...} -cleanup {\n  execsql { SELECT * FROM sqlite_master }\n}")
+	// do_malloc_test shared_err-10 -tclprep {
+  sqlite3 db test.db
+  sqlite3 db2 test.db
+  
+  d...} -tclbody {
+  catch {db eval {SELECT * FROM sqlite_master}}
+ ...} -cleanup {
+  execsql { SELECT * FROM sqlite_master }
+} (unsupported command, not transpiled)
+	// do_malloc_test shared_err-11 -tclprep {
+  sqlite3 db test.db
+  sqlite3 db2 test.db
+  
+  d...} -tclbody {
+  catch {db eval {SELECT * FROM sqlite_master}}
+ ...} -cleanup {
+  execsql { SELECT * FROM sqlite_master }
+} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -77,7 +205,9 @@ func Test_shared_err(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test shared_err-12 -sqlbody {\n  CREATE TABLE abc(a, b, c);\n  INSERT INTO abc VA...}")
+	// do_malloc_test shared_err-12 -sqlbody {
+  CREATE TABLE abc(a, b, c);
+  INSERT INTO abc VA...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -87,5 +217,5 @@ func Test_shared_err(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

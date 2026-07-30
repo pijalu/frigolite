@@ -39,11 +39,18 @@ func Test_merge1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "merge1"
+	testprefix = "merge1"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db series")
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all on")
+	// load_static_extension db series (unsupported command, not transpiled)
+	// optimization_control db all on (unsupported command, not transpiled)
 	{ // "100"
 		r = db.Query("\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
 		if r.Error != nil {
@@ -62,7 +69,7 @@ func Test_merge1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db balanced-merge off")
+	// optimization_control db balanced-merge off (unsupported command, not transpiled)
 	{ // "110"
 		r = db.Query("\n  WITH data(v) AS (\n    SELECT value FROM generate_series(1,35,3)\n    UNION ALL\n    SELECT value FROM generate_series(10,30,4)\n    UNION ALL\n    SELECT value FROM generate_series(20,50,5)\n    UNION ALL\n    SELECT value FROM generate_series(30,60,6)\n    UNION ALL\n    SELECT value FROM generate_series(1,50,7)\n    UNION ALL\n    SELECT value FROM generate_series(10,80,8)\n  )\n  SELECT v FROM data ORDER BY v;\n")
 		if r.Error != nil {

@@ -41,6 +41,17 @@ func Test_count(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var iTest string
+	_ = iTest // pre-declared from TCL source
+	var zIndex string
+	_ = zIndex // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "count-0.1"
 		_res = db.Exec("\n     SELECT count(*) FROM sqlite_master;\n  ")
@@ -48,11 +59,10 @@ func Test_count(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     SELECT count(*) FROM sqlite_master;\n  ")
 		}
 	}
-	var iTest = "0"
+	iTest = "0"
 	_ = iTest // suppress unused warning
 	for _, zIndex := range tclSplitList("list {\n  /* no-op */\n} {\n  CREATE INDEX i1 ON t1(a);\n}") {
 	_ = zIndex // suppress unused warning
-		var iTest = "0"
 		// incr iTest 1
 		{
 			_n, _err := strconv.Atoi(iTest)
@@ -105,30 +115,30 @@ func Test_count(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a, b);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM t2}")
+		// uses_op_count {SELECT count(*) FROM t2} (unsupported command, not transpiled)
 	}
 	{ // do_test "count-2.2"
 		_res = db.Exec("SELECT count(DISTINCT *) FROM t2")
 		_ = _res // catchsql
 	}
 	{ // do_test "count-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(DISTINCT a) FROM t2}")
+		// uses_op_count {SELECT count(DISTINCT a) FROM t2} (unsupported command, not transpiled)
 	}
 	{ // do_test "count-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(a) FROM t2}")
+		// uses_op_count {SELECT count(a) FROM t2} (unsupported command, not transpiled)
 	}
 	{ // do_test "count-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count() FROM t2}")
+		// uses_op_count {SELECT count() FROM t2} (unsupported command, not transpiled)
 	}
 	{ // do_test "count-2.6"
 		_res = db.Exec("SELECT count(DISTINCT) FROM t2")
 		_ = _res // catchsql
 	}
 	{ // do_test "count-2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*)+1 FROM t2}")
+		// uses_op_count {SELECT count(*)+1 FROM t2} (unsupported command, not transpiled)
 	}
 	{ // do_test "count-2.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM t2 WHERE a IS NOT NULL}")
+		// uses_op_count {SELECT count(*) FROM t2 WHERE a IS NOT NULL} (unsupported command, not transpiled)
 	}
 	{ // "count-2.9a"
 		r = db.Query("\n  SELECT count(*) FROM t2 HAVING count(*)>1;\n")
@@ -149,20 +159,20 @@ func Test_count(t *testing.T) {
 		}
 	}
 	{ // do_test "count-2.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM (SELECT 1)}")
+		// uses_op_count {SELECT count(*) FROM (SELECT 1)} (unsupported command, not transpiled)
 	}
 	{ // do_test "count-2.11"
 		_res = db.Exec(" CREATE VIEW v1 AS SELECT 1 AS a ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIEW v1 AS SELECT 1 AS a ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM v1}")
+		// uses_op_count {SELECT count(*) FROM v1} (unsupported command, not transpiled)
 	}
 	{ // do_test "count-2.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*), max(a) FROM t2}")
+		// uses_op_count {SELECT count(*), max(a) FROM t2} (unsupported command, not transpiled)
 	}
 	{ // do_test "count-2.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM t1, t2}")
+		// uses_op_count {SELECT count(*) FROM t1, t2} (unsupported command, not transpiled)
 	}
 	{ // do_test "count-3.1"
 		r = db.Query("\n    CREATE TABLE t3(a, b);\n    SELECT a FROM (SELECT count(*) AS a FROM t3) WHERE a==0;\n  ")

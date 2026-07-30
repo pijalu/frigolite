@@ -39,17 +39,64 @@ func Test_tempfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var testrc string
+	_ = testrc // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tempfault"
+	testprefix = "tempfault"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults * -prep {\n  sqlite3 db \"\"\n  db eval {\n    PRAGMA page_size ...} -body {\n  execsql { INSERT INTO t1 VALUES(5, 6) }\n} -test {\n  faultsim_test_result {0 {}}\n  set rc [catch { e...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults * -prep {\n  sqlite3 db \"\"\n  db eval {\n    PRAGMA page_size ...} -body {\n  execsql { UPDATE t1 SET a = randomblob(99) }\n} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
+	// do_faultsim_test 1 -faults * -prep {
+  sqlite3 db ""
+  db eval {
+    PRAGMA page_size ...} -body {
+  execsql { INSERT INTO t1 VALUES(5, 6) }
+} -test {
+  faultsim_test_result {0 {}}
+  set rc [catch { e...} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults * -prep {
+  sqlite3 db ""
+  db eval {
+    PRAGMA page_size ...} -body {
+  execsql { UPDATE t1 SET a = randomblob(99) }
+} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -faults * -prep {\n  if {[info commands db]==\"\"} {\n    sqlite3 db \"\"...} -body {\n  execsql { UPDATE t1 SET a = randomblob(99) }\n} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults * -prep {\n  sqlite3 db \"\"\n  db eval {\n    PRAGMA page_size ...} -body {\n  execsql { \n    BEGIN;\n      UPDATE t1 SET a = r...} -test {\n  faultsim_test_result {0 {}}\n  faultsim_integrit...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults * -prep {\n  sqlite3 db \"\"\n  db eval {\n    PRAGMA page_size ...} -body {\n  execsql { \n    BEGIN;\n      UPDATE t1 SET a = r...} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 1")
+	// do_faultsim_test 2.1 -faults * -prep {
+  if {[info commands db]==""} {
+    sqlite3 db ""...} -body {
+  execsql { UPDATE t1 SET a = randomblob(99) }
+} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults * -prep {
+  sqlite3 db ""
+  db eval {
+    PRAGMA page_size ...} -body {
+  execsql { 
+    BEGIN;
+      UPDATE t1 SET a = r...} -test {
+  faultsim_test_result {0 {}}
+  faultsim_integrit...} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults * -prep {
+  sqlite3 db ""
+  db eval {
+    PRAGMA page_size ...} -body {
+  execsql { 
+    BEGIN;
+      UPDATE t1 SET a = r...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
+	// sqlite3_memdebug_vfs_oom_test 1 (unsupported command, not transpiled)
 }

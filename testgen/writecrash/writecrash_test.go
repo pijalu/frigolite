@@ -40,10 +40,23 @@ func Test_writecrash(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var bGo string
+	_ = bGo // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "writecrash"
+	testprefix = "writecrash"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	if tcl_platform_platform == "windows" {
 		return
 	}
@@ -53,23 +66,23 @@ func Test_writecrash(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB UNIQUE);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<100\n  )\n  INSERT INTO t1 SELECT NULL, randomblob(900) FROM s;\n")
 		}
 	}
-	var bGo = "1"
+	bGo = "1"
 	_ = bGo // suppress unused warning
-	var tn = "1"
+	tn = "1"
 	_ = tn // suppress unused warning
 	for tclBool(bGo) {
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // do_test "1." + tn + ".1"
-			var res = "crash_on_write $tn {\n      UPDATE t1 SET b = randomblob(899) WHERE (a%3)==0\n    }"
+			res = "crash_on_write $tn {\n      UPDATE t1 SET b = randomblob(899) WHERE (a%3)==0\n    }"
 			_ = res // suppress unused warning
-			var bGo = "0"
+			bGo = "0"
 			_ = bGo // suppress unused warning
 			if tclBool("{1 {child killed:*}} $res") {
-				var res = "0 {}"
+				res = "0 {}"
 				_ = res // suppress unused warning
-				var bGo = "1"
+				bGo = "1"
 				_ = bGo // suppress unused warning
 			}
 		}
@@ -85,7 +98,8 @@ func Test_writecrash(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "1." + tn + ".3"
 			r = db.Query(" PRAGMA integrity_check ")

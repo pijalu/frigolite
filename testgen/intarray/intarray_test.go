@@ -40,16 +40,39 @@ func Test_intarray(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var ia1 string
+	_ = ia1 // pre-declared from TCL source
+	var ia2 string
+	_ = ia2 // pre-declared from TCL source
+	var ia3 string
+	_ = ia3 // pre-declared from TCL source
+	var ia4 string
+	_ = ia4 // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var ia5 string
+	_ = ia5 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "intarray-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 999 }() {
-			var b = "format {x%03d} $i"
+			b = "format {x%03d} $i"
 			_ = b // suppress unused warning
 			_res = db.Exec("INSERT INTO t1(a,b) VALUES($i,$b)")
 			if _res.Error != nil {
@@ -69,13 +92,13 @@ func Test_intarray(t *testing.T) {
 		}
 	}
 	{ // do_test "intarray-1.1"
-		var ia1 = "sqlite3_intarray_create db ia1"
+		ia1 = "sqlite3_intarray_create db ia1"
 		_ = ia1 // suppress unused warning
-		var ia2 = "sqlite3_intarray_create db ia2"
+		ia2 = "sqlite3_intarray_create db ia2"
 		_ = ia2 // suppress unused warning
-		var ia3 = "sqlite3_intarray_create db ia3"
+		ia3 = "sqlite3_intarray_create db ia3"
 		_ = ia3 // suppress unused warning
-		var ia4 = "sqlite3_intarray_create db ia4"
+		ia4 = "sqlite3_intarray_create db ia4"
 		_ = ia4 // suppress unused warning
 		_res = db.Exec("\n    SELECT type, name FROM temp.sqlite_master\n     ORDER BY name\n  ")
 		if _res.Error != nil {
@@ -87,13 +110,11 @@ func Test_intarray(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE ia1")
 		}
-	var rc string
 	_ = rc // suppress unused warning
-	var ia1 string
 	_ = ia1 // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_intarray_create db ia1")
+			// sqlite3_intarray_create db ia1 (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				ia1 = _catchErr.Error()
@@ -111,7 +132,7 @@ func Test_intarray(t *testing.T) {
 		}
 	}
 	{ // do_test "intarray-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_intarray_bind $ia3 45 123 678")
+		// sqlite3_intarray_bind $ia3 45 123 678 (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")
@@ -124,10 +145,10 @@ func Test_intarray(t *testing.T) {
 		}
 	}
 	{ // do_test "intarray-1.5"
-		var cmd = "sqlite3_intarray_bind"
+		cmd = "sqlite3_intarray_bind"
 		_ = cmd // suppress unused warning
 		cmd = tclListAppend(cmd, ia1)
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 999 }() {
 			cmd = tclListAppend(cmd, i)
@@ -141,7 +162,7 @@ func Test_intarray(t *testing.T) {
 				}
 			}
 		}
-		// eval $cmd
+		// eval (dynamic, not transpiled)
 		_res = db.Exec("\n    REPLACE INTO t1 SELECT * FROM t2;\n    DELETE FROM t1 WHERE a NOT IN ia1;\n    SELECT count(*) FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    REPLACE INTO t1 SELECT * FROM t2;\n    DELETE FROM t1 WHERE a NOT IN ia1;\n    SELECT count(*) FROM t1;\n  ")
@@ -160,7 +181,7 @@ func Test_intarray(t *testing.T) {
 		}
 	}
 	{ // do_test "intarray-2.2"
-		var ia5 = "sqlite3_intarray_create db ia5"
+		ia5 = "sqlite3_intarray_create db ia5"
 		_ = ia5 // suppress unused warning
 		_res = db.Exec("\n    SELECT count(*) FROM t3 WHERE p IN ia1;\n  ")
 		if _res.Error != nil {

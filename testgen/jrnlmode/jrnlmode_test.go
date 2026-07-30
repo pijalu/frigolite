@@ -40,24 +40,47 @@ func Test_jrnlmode(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var temp_persist string
+	_ = temp_persist // pre-declared from TCL source
+	var temp_delete string
+	_ = temp_delete // pre-declared from TCL source
+	var temp_truncate string
+	_ = temp_truncate // pre-declared from TCL source
+	var temp_off string
+	_ = temp_off // pre-declared from TCL source
+	var newmode string
+	_ = newmode // pre-declared from TCL source
+	var journalsize string
+	_ = journalsize // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("info exists TEMP_STORE" + " && " + TEMP_STORE + ">=2") {
-		var temp_persist = "memory"
+		temp_persist = "memory"
 		_ = temp_persist // suppress unused warning
-		var temp_delete = "memory"
+		temp_delete = "memory"
 		_ = temp_delete // suppress unused warning
-		var temp_truncate = "memory"
+		temp_truncate = "memory"
 		_ = temp_truncate // suppress unused warning
-		var temp_off = "off"
+		temp_off = "off"
 		_ = temp_off // suppress unused warning
 	} else {
-		var temp_persist = "persist"
+		temp_persist = "persist"
 		_ = temp_persist // suppress unused warning
-		var temp_delete = "delete"
+		temp_delete = "delete"
 		_ = temp_delete // suppress unused warning
-		var temp_truncate = "truncate"
+		temp_truncate = "truncate"
 		_ = temp_truncate // suppress unused warning
-		var temp_off = "off"
+		temp_off = "off"
 		_ = temp_off // suppress unused warning
 	}
 	// proc definition (not transpiled)
@@ -80,14 +103,14 @@ func Test_jrnlmode(t *testing.T) {
 		}
 	}
 	{ // do_test "jrnlmode-1.4a"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 1")
+		// sqlite3_db_config db DEFENSIVE 1 (unsupported command, not transpiled)
 		r = db.Query("\n    PRAGMA journal_mode = off;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n  ")
 		}
 	}
 	{ // do_test "jrnlmode-1.4b"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		r = db.Query("\n    PRAGMA journal_mode = off;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n  ")

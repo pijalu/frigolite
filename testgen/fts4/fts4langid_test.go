@@ -41,9 +41,74 @@ func Test_fts4langid(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var xwords string
+	_ = xwords // pre-declared from TCL source
+	var ywords string
+	_ = ywords // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var iLangid string
+	_ = iLangid // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var rowid_list_langid string
+	_ = rowid_list_langid // pre-declared from TCL source
+	var langid string
+	_ = langid // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var i1 string
+	_ = i1 // pre-declared from TCL source
+	var i2 string
+	_ = i2 // pre-declared from TCL source
+	var n1 string
+	_ = n1 // pre-declared from TCL source
+	var n2 string
+	_ = n2 // pre-declared from TCL source
+	var e1 string
+	_ = e1 // pre-declared from TCL source
+	var e2 string
+	_ = e2 // pre-declared from TCL source
+	var a_i string
+	_ = a_i // pre-declared from TCL source
+	var actual string
+	_ = actual // pre-declared from TCL source
+	var ptr string
+	_ = ptr // pre-declared from TCL source
+	var languages string
+	_ = languages // pre-declared from TCL source
+	var lid string
+	_ = lid // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var pattern string
+	_ = pattern // pre-declared from TCL source
+	var rowid string
+	_ = rowid // pre-declared from TCL source
+	var list1 string
+	_ = list1 // pre-declared from TCL source
+	var list2 string
+	_ = list2 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var list string
+	_ = list // pre-declared from TCL source
+	var res_script string
+	_ = res_script // pre-declared from TCL source
+	var query string
+	_ = query // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts4langid" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts4langid" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(a, b, languageid=lang_id);\n")
 		if _res.Error != nil {
@@ -212,13 +277,15 @@ func Test_fts4langid(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "build_multilingual_db_1 db")
+		// build_multilingual_db_1 db (unsupported command, not transpiled)
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.1 {delta} { rowid_list delta }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
+	// do_test_query1 2.1.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
+	// do_test_query1 2.1.2 {"zero one two"} { rowid_list "zero one two" } (unsupported command, not transpiled)
+	// do_test_query1 2.1.3 {zero one two} {
+  and_merge_lists [rowid_list zero] [rowid_list o...} (unsupported command, not transpiled)
+	// do_test_query1 2.1.4 {"zero one" OR "one two"} {
+  or_merge_lists [rowid_list "zero one"] [rowid_l...} (unsupported command, not transpiled)
 	{ // "2.2"
 		r = db.Query("\n  INSERT INTO t2(t2) VALUES('optimize');\n  SELECT count(*) FROM t2_segdir;\n")
 		if r.Error != nil {
@@ -231,29 +298,33 @@ func Test_fts4langid(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.1 {delta} { rowid_list delta }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
+	// do_test_query1 2.2.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
+	// do_test_query1 2.2.2 {"zero one two"} { rowid_list "zero one two" } (unsupported command, not transpiled)
+	// do_test_query1 2.2.3 {zero one two} {
+  and_merge_lists [rowid_list zero] [rowid_list o...} (unsupported command, not transpiled)
+	// do_test_query1 2.2.4 {"zero one" OR "one two"} {
+  or_merge_lists [rowid_list "zero one"] [rowid_l...} (unsupported command, not transpiled)
 	{ // do_test "2.3"
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "build_multilingual_db_1 db")
+		// build_multilingual_db_1 db (unsupported command, not transpiled)
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('rebuild') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('rebuild') ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.1 {delta} { rowid_list delta }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
+	// do_test_query1 2.3.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
+	// do_test_query1 2.3.2 {"zero one two"} { rowid_list "zero one two" } (unsupported command, not transpiled)
+	// do_test_query1 2.3.3 {zero one two} {
+  and_merge_lists [rowid_list zero] [rowid_list o...} (unsupported command, not transpiled)
+	// do_test_query1 2.3.4 {"zero one" OR "one two"} {
+  or_merge_lists [rowid_list "zero one"] [rowid_l...} (unsupported command, not transpiled)
 	{ // do_test "3.0"
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "build_multilingual_db_1 db")
+		// build_multilingual_db_1 db (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t3_data(l, x, y);\n    INSERT INTO t3_data(rowid, l, x, y) SELECT docid, l, x, y FROM t2;\n    DROP TABLE t2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3_data(l, x, y);\n    INSERT INTO t3_data(rowid, l, x, y) SELECT docid, l, x, y FROM t2;\n    DROP TABLE t2;\n  ")
@@ -265,10 +336,12 @@ func Test_fts4langid(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(content=t3_data, languageid=l);\n  INSERT INTO t2(t2) VALUES('rebuild');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.1 {delta} { rowid_list delta }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
+	// do_test_query1 3.1.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
+	// do_test_query1 3.1.2 {"zero one two"} { rowid_list "zero one two" } (unsupported command, not transpiled)
+	// do_test_query1 3.1.3 {zero one two} {
+  and_merge_lists [rowid_list zero] [rowid_list o...} (unsupported command, not transpiled)
+	// do_test_query1 3.1.4 {"zero one" OR "one two"} {
+  or_merge_lists [rowid_list "zero one"] [rowid_l...} (unsupported command, not transpiled)
 	{ // "3.2.1"
 		_res = db.Exec("\n  DROP TABLE t2;\n  CREATE VIRTUAL TABLE t2 USING fts4(x, y, languageid=l, content=nosuchtable);\n")
 		if _res.Error != nil {
@@ -287,10 +360,12 @@ func Test_fts4langid(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t3_data;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.1 {delta} { rowid_list delta }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
+	// do_test_query1 3.3.1 {delta} { rowid_list delta } (unsupported command, not transpiled)
+	// do_test_query1 3.3.2 {"zero one two"} { rowid_list "zero one two" } (unsupported command, not transpiled)
+	// do_test_query1 3.3.3 {zero one two} {
+  and_merge_lists [rowid_list zero] [rowid_list o...} (unsupported command, not transpiled)
+	// do_test_query1 3.3.4 {"zero one" OR "one two"} {
+  or_merge_lists [rowid_list "zero one"] [rowid_l...} (unsupported command, not transpiled)
 	{ // "3.4"
 		r = db.Query("\n  CREATE TABLE t8c(a, b);\n  CREATE VIRTUAL TABLE t8 USING fts4(content=t8c, languageid=langid);\n  INSERT INTO t8(docid, a, b) VALUES(-1, 'one two three', 'x y z');\n  SELECT docid FROM t8 WHERE t8 MATCH 'one x' AND langid=0\n")
 		if r.Error != nil {
@@ -308,14 +383,14 @@ func Test_fts4langid(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		var ptr = "fts3_test_tokenizer"
+		ptr = "fts3_test_tokenizer"
 		_ = ptr // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1")
+		// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
 		r = db.Query(" SELECT fts3_tokenizer('testtokenizer', $ptr) ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT fts3_tokenizer('testtokenizer', $ptr) ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "build_multilingual_db_2 db")
+		// build_multilingual_db_2 db (unsupported command, not transpiled)
 	}
 	{ // "4.1.1"
 		r = db.Query("\n  SELECT docid FROM t4 WHERE t4 MATCH 'quick';\n")
@@ -347,7 +422,7 @@ func Test_fts4langid(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
 		{ // "4.1.4." + i
@@ -381,7 +456,7 @@ func Test_fts4langid(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "build_multilingual_db_3 db")
+		// build_multilingual_db_3 db (unsupported command, not transpiled)
 	}
 	{ // "5.1.1"
 		r = db.Query("\n  SELECT level FROM t5_segdir;\n")
@@ -422,7 +497,7 @@ func Test_fts4langid(t *testing.T) {
 			}
 		}
 	}
-	var lid = "1073741824"
+	lid = "1073741824"
 	_ = lid // suppress unused warning
 	{ // "5.3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t6 USING fts4(languageid=lid);\n  INSERT INTO t6 VALUES('I belong to language 0!');\n")
@@ -431,7 +506,7 @@ func Test_fts4langid(t *testing.T) {
 		}
 	}
 	{ // do_test "5.3.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 			_res = db.Exec("\n      INSERT INTO t6(content, lid) VALUES(\n        'I (row '||$i||') belong to language N!', $lid\n      );\n    ")

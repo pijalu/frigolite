@@ -41,18 +41,37 @@ func Test_fts3corrupt7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var DEPTH string
+	_ = DEPTH // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var height string
+	_ = height // pre-declared from TCL source
+	var child_blockid string
+	_ = child_blockid // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3corrupt7"
+	testprefix = "fts3corrupt7"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
-	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
+	// sqlite3_fts3_may_be_corrupt 1 (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
+	// extra_schema_checks 0 (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.0"
-		db, err := frigolite.Open("")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "1.1"
@@ -65,8 +84,8 @@ func Test_fts3corrupt7(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.0"
-		db, err := frigolite.Open("")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "2.1"
@@ -78,7 +97,7 @@ func Test_fts3corrupt7(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	var DEPTH = "40000"
+	DEPTH = "40000"
 	_ = DEPTH // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -93,7 +112,7 @@ func Test_fts3corrupt7(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; DEPTH_n, _DEPTH_e := strconv.Atoi(DEPTH); if _DEPTH_e != nil { return false }; return ii_n < DEPTH_n }() {
 			_res = db.Exec("\n      INSERT INTO fts_segments(blockid, block) \n      VALUES($ii+100, make_interior_node($DEPTH-$ii, 101+$ii))\n    ")

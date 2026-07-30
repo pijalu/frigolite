@@ -39,6 +39,19 @@ func Test_like3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enc string
+	_ = enc // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "like3-1.1"
 		r = db.Query("\n  PRAGMA encoding=UTF8;\n  CREATE TABLE t1(a,b TEXT COLLATE nocase);\n  INSERT INTO t1(a,b)\n     VALUES(1,'abc'),\n           (2,'ABX'),\n           (3,'BCD'),\n           (4,x'616263'),\n           (5,x'414258'),\n           (6,x'424344');\n  CREATE INDEX t1ba ON t1(b,a);\n\n  SELECT a, b FROM t1 WHERE b LIKE 'aB%' ORDER BY +a;\n")
@@ -438,7 +451,7 @@ func Test_like3(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding = '" + enc + "'")
 				}
-				var tn = "utf" + "$enc 4 end" + "." + tn
+				tn = "utf" + "$enc 4 end" + "." + tn
 				_ = tn // suppress unused warning
 				{ // "like3-8." + tn + ".1"
 					_res = db.Exec("\n      CREATE TABLE t1(x);\n    ")
@@ -476,7 +489,7 @@ func Test_like3(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				var x = "db one {SELECT x || '%' FROM t1}"
+				x = "db one {SELECT x || '%' FROM t1}"
 				_ = x // suppress unused warning
 				{ // "like3-8." + tn + ".5"
 					r = db.Query("\n      SELECT rowid FROM t1 WHERE x LIKE $x\n    ")

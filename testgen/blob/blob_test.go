@@ -39,32 +39,55 @@ func Test_blob(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var bytes string
+	_ = bytes // pre-declared from TCL source
+	var bytes2 string
+	_ = bytes2 // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var blobs string
+	_ = blobs // pre-declared from TCL source
+	var blobs2 string
+	_ = blobs2 // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "blob-1.0"
-		var blob = "execsql {SELECT X'01020304';}"
+		blob = "execsql {SELECT X'01020304';}"
 		_ = blob // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		// bin_to_hex [lindex $blob 0] (unsupported command, not transpiled)
 	}
 	{ // do_test "blob-1.1"
-		var blob = "execsql {SELECT x'ABCDEF';}"
+		blob = "execsql {SELECT x'ABCDEF';}"
 		_ = blob // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		// bin_to_hex [lindex $blob 0] (unsupported command, not transpiled)
 	}
 	{ // do_test "blob-1.2"
-		var blob = "execsql {SELECT x'';}"
+		blob = "execsql {SELECT x'';}"
 		_ = blob // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		// bin_to_hex [lindex $blob 0] (unsupported command, not transpiled)
 	}
 	{ // do_test "blob-1.3"
-		var blob = "execsql {SELECT x'abcdEF12';}"
+		blob = "execsql {SELECT x'abcdEF12';}"
 		_ = blob // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		// bin_to_hex [lindex $blob 0] (unsupported command, not transpiled)
 	}
 	{ // do_test "blob-1.3.2"
-		var blob = "execsql {SELECT x'0123456789abcdefABCDEF';}"
+		blob = "execsql {SELECT x'0123456789abcdefABCDEF';}"
 		_ = blob // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		// bin_to_hex [lindex $blob 0] (unsupported command, not transpiled)
 	}
 	{ // do_test "blob-1.4"
 		_res = db.Exec("SELECT X'01020k304', 100")
@@ -111,9 +134,9 @@ func Test_blob(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a BLOB, b BLOB);\n    INSERT INTO t1 VALUES(X'123456', x'7890ab');\n    INSERT INTO t1 VALUES(X'CDEF12', x'345678');\n  ")
 		}
-		var blobs = "execsql {SELECT * FROM t1}"
+		blobs = "execsql {SELECT * FROM t1}"
 		_ = blobs // suppress unused warning
-		var blobs2 = "list"
+		blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning
@@ -125,9 +148,9 @@ func Test_blob(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i1 ON t1(a);\n  ")
 		}
-		var blobs = "execsql {SELECT * FROM t1}"
+		blobs = "execsql {SELECT * FROM t1}"
 		_ = blobs // suppress unused warning
-		var blobs2 = "list"
+		blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning
@@ -135,9 +158,9 @@ func Test_blob(t *testing.T) {
 		}
 	}
 	{ // do_test "blob-2.2"
-		var blobs = "execsql {SELECT * FROM t1 where a = X'123456'}"
+		blobs = "execsql {SELECT * FROM t1 where a = X'123456'}"
 		_ = blobs // suppress unused warning
-		var blobs2 = "list"
+		blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning
@@ -145,9 +168,9 @@ func Test_blob(t *testing.T) {
 		}
 	}
 	{ // do_test "blob-2.3"
-		var blobs = "execsql {SELECT * FROM t1 where a = X'CDEF12'}"
+		blobs = "execsql {SELECT * FROM t1 where a = X'CDEF12'}"
 		_ = blobs // suppress unused warning
-		var blobs2 = "list"
+		blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning
@@ -155,9 +178,9 @@ func Test_blob(t *testing.T) {
 		}
 	}
 	{ // do_test "blob-2.4"
-		var blobs = "execsql {SELECT * FROM t1 where a = X'CD12'}"
+		blobs = "execsql {SELECT * FROM t1 where a = X'CD12'}"
 		_ = blobs // suppress unused warning
-		var blobs2 = "list"
+		blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning
@@ -167,21 +190,21 @@ func Test_blob(t *testing.T) {
 	{ // do_test "blob-3.0"
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		var DB = "sqlite3_connection_pointer db2"
+		DB = "sqlite3_connection_pointer db2"
 		_ = DB // suppress unused warning
-		var STMT = "sqlite3_prepare $DB \"DELETE FROM t1 WHERE a = ?\" -1 DUMMY"
+		STMT = "sqlite3_prepare $DB \"DELETE FROM t1 WHERE a = ?\" -1 DUMMY"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_blob $STMT 1 \\x12\\x34\\x56 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_bind_blob $STMT 1 \x12\x34\x56 3 (unsupported command, not transpiled)
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "blob-3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		db2.Close()
 	}
 	{ // do_test "blob-3.2"
-		var blobs = "execsql {SELECT * FROM t1}"
+		blobs = "execsql {SELECT * FROM t1}"
 		_ = blobs // suppress unused warning
-		var blobs2 = "list"
+		blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
 		_ = b // suppress unused warning

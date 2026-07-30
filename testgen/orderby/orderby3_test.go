@@ -39,9 +39,16 @@ func Test_orderby3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "orderby3" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "orderby3" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  CREATE TABLE t2(b INTEGER PRIMARY KEY, c INTEGER);\n  CREATE TABLE t3(d INTEGER);\n    \n  INSERT INTO t1 VALUES(1),(2),(3);\n    \n  INSERT INTO t2 VALUES(3, 1);\n  INSERT INTO t2 VALUES(4, 2);\n  INSERT INTO t2 VALUES(5, 3);\n    \n  INSERT INTO t3 VALUES(4),(3),(5);\n")
 		if _res.Error != nil {

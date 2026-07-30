@@ -39,25 +39,44 @@ func Test_walhook(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var wal_hook string
+	_ = wal_hook // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var dbpages string
+	_ = dbpages // pre-declared from TCL source
+	var logpages string
+	_ = logpages // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var zDb string
+	_ = zDb // pre-declared from TCL source
+	var nEntry string
+	_ = nEntry // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _wal_hook = "list" // TCL namespace variable
-	_ = _wal_hook // suppress unused warning
+	wal_hook = "list" // TCL namespace variable
+	_ = wal_hook // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "walhook-1.1"
 		_res = db.Exec(" \n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA synchronous = normal;\n    CREATE TABLE t1(i PRIMARY KEY, j);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    PRAGMA synchronous = normal;\n    CREATE TABLE t1(i PRIMARY KEY, j);\n  ")
 		}
-		_ = _wal_hook // TCL namespace variable (query)
+		_ = wal_hook // TCL namespace variable (query)
 	}
 	{ // do_test "walhook-1.2"
-		var _wal_hook = "list" // TCL namespace variable
-		_ = _wal_hook // suppress unused warning
+		wal_hook = "list" // TCL namespace variable
+		_ = wal_hook // suppress unused warning
 		_res = db.Exec(" INSERT INTO t1 VALUES(1, 'one') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(1, 'one') ")
 		}
-		_ = _wal_hook // TCL namespace variable (query)
+		_ = wal_hook // TCL namespace variable (query)
 	}
 	{ // do_test "walhook-1.3"
 		// proc definition (not transpiled)
@@ -86,7 +105,8 @@ func Test_walhook(t *testing.T) {
 		// file size test.db
 	}
 	db2.Close()
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walhook-2.1"
 		r = db.Query(" PRAGMA synchronous = NORMAL ")
@@ -111,17 +131,17 @@ func Test_walhook(t *testing.T) {
 		}
 	}
 	// foreach {tn sql dbpages logpages} "\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n"
-	_items0 := tclSplitList("\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n")
-	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n")
+	for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items1[_idx1+1]
 		_ = sql // suppress unused warning
-		dbpages := _items0[_idx0+2]
+		dbpages := _items1[_idx1+2]
 		_ = dbpages // suppress unused warning
-		logpages := _items0[_idx0+3]
+		logpages := _items1[_idx1+3]
 		_ = logpages // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "walhook-2." + tn
 				_res = db.Exec(sql)
 				if _res.Error != nil {

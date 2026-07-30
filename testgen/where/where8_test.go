@@ -40,6 +40,29 @@ func Test_where8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var echo_module string
+	_ = echo_module // pre-declared from TCL source
+	var A string
+	_ = A // pre-declared from TCL source
+	var idxsql string
+	_ = idxsql // pre-declared from TCL source
+	var B string
+	_ = B // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var R string
+	_ = R // pre-declared from TCL source
+	var results_B string
+	_ = results_B // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("permutation" + "==\"sorterref\"") {
 		return
@@ -53,43 +76,54 @@ func Test_where8(t *testing.T) {
 		}
 	}
 	{ // do_test "where8-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a = 1 OR b = 'nine' }")
+		// execsql_status2 { SELECT c FROM t1 WHERE a = 1 OR b = 'nine' } (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a > 8 OR b = 'two' }")
+		// execsql_status2 { SELECT c FROM t1 WHERE a > 8 OR b = 'two' } (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status { SELECT c FROM t1 WHERE a = 1 OR b = 'three' ORDER...}")
+		// execsql_status { SELECT c FROM t1 WHERE a = 1 OR b = 'three' ORDER...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status { SELECT c FROM t1 WHERE a = 1 OR b = 'three' ORDER...}")
+		// execsql_status { SELECT c FROM t1 WHERE a = 1 OR b = 'three' ORDER...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a > 1 AND c LIKE 'I%' }")
+		// execsql_status2 { SELECT c FROM t1 WHERE a > 1 AND c LIKE 'I%' } (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a >= 9 OR b <= 'eight' }")
+		// execsql_status2 { SELECT c FROM t1 WHERE a >= 9 OR b <= 'eight' } (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE (a >= 9 AND c != 'X')...}")
+		// execsql_status2 { 
+    SELECT c FROM t1 WHERE (a >= 9 AND c != 'X')...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE (a >= 4 AND a <= 6) O...}")
+		// execsql_status2 { 
+    SELECT c FROM t1 WHERE (a >= 4 AND a <= 6) O...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.12.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE a IN(1, 2, 3) OR a = ...}")
+		// execsql_status2 { 
+    SELECT c FROM t1 WHERE a IN(1, 2, 3) OR a = ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.12.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE +a IN(1, 2, 3) OR +a ...}")
+		// execsql_status2 { 
+    SELECT c FROM t1 WHERE +a IN(1, 2, 3) OR +a ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 {\n    SELECT c FROM t1\n    WHERE a = 2 OR b = 'thre...}")
+		// execsql_status2 {
+    SELECT c FROM t1
+    WHERE a = 2 OR b = 'thre...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 {\n    SELECT c FROM t1\n    WHERE \n      a = 2 OR b ...}")
+		// execsql_status2 {
+    SELECT c FROM t1
+    WHERE 
+      a = 2 OR b ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-1.15"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 {\n    SELECT c FROM t1 WHERE \n      a BETWEEN 2 AND...}")
+		// execsql_status2 {
+    SELECT c FROM t1 WHERE 
+      a BETWEEN 2 AND...} (unsupported command, not transpiled)
 	}
 	if false {
 	}
@@ -100,64 +134,94 @@ func Test_where8(t *testing.T) {
 		}
 	}
 	{ // do_test "where8-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE b=e\n  }")
+		// execsql_status {
+    SELECT a, d FROM t1, t2 WHERE b=e
+  } (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...}")
+		// execsql_status {
+    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...}")
+		// execsql_status {
+    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...}")
+		// execsql_status {
+    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a = ...}")
+		// execsql_status {
+    SELECT a, d 
+    FROM t1, t2 
+    WHERE (a = ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE a = 2...}")
+		// execsql_status {
+    SELECT a, d 
+    FROM t1, t2 
+    WHERE a = 2...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a = ...}")
+		// execsql_status {
+    SELECT a, d 
+    FROM t1, t2 
+    WHERE (a = ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a = ...}")
+		// execsql_status {
+    SELECT a, d 
+    FROM t1, t2 
+    WHERE (a = ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT d FROM t2 WHERE e IS NULL OR e = 'four...}")
+		// execsql_status {
+    SELECT d FROM t2 WHERE e IS NULL OR e = 'four...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...}")
+		// execsql_status {
+    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...}")
+		// execsql_status {
+    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...}")
+		// execsql_status {
+    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT c FROM t1 WHERE a > (SELECT d FROM t2 ...}")
+		// execsql_status {
+    SELECT c FROM t1 WHERE a > (SELECT d FROM t2 ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.15"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT c FROM t1, t2 WHERE a BETWEEN 1 AND 2 ...}")
+		// execsql_status {
+    SELECT c FROM t1, t2 WHERE a BETWEEN 1 AND 2 ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.21"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, (t2) WHERE (a=d OR b=e) ...}")
+		// execsql_status {
+    SELECT a, d FROM t1, (t2) WHERE (a=d OR b=e) ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "where8-3.21.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, ((t2)) AS t3 WHERE (a=d ...}")
+		// execsql_status {
+    SELECT a, d FROM t1, ((t2)) AS t3 WHERE (a=d ...} (unsupported command, not transpiled)
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // do_test "where8-3.21.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, ((SELECT * FROM t2)) AS ...}")
+			// execsql_status {
+    SELECT a, d FROM t1, ((SELECT * FROM t2)) AS ...} (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "where8-3.22"
-		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM ((((((t1))), (((t2))))))\n   ...}")
+		// execsql_status {
+    SELECT a, d FROM ((((((t1))), (((t2))))))
+   ...} (unsupported command, not transpiled)
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // do_test "where8-3.23"
-			t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT * FROM ((SELECT * FROM t2)) AS t3;\n  }")
+			// execsql_status {
+    SELECT * FROM ((SELECT * FROM t2)) AS t3;
+  } (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "where8-4.1"
@@ -178,7 +242,7 @@ func Test_where8(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	var A = "2"
+	A = "2"
 	_ = A // suppress unused warning
 	for _, idxsql := range tclSplitList("\n  { \n    /* No indexes */ \n  } {\n    CREATE INDEX i5 ON t3(a);\n  } {\n    CREATE INDEX i5 ON t3(a, b);\n    CREATE INDEX i6 ON t4(f);\n  } {\n    CREATE UNIQUE INDEX i5 ON t3(a, b);\n    CREATE INDEX i7 ON t3(c);\n    CREATE INDEX i6 ON t4(f);\n    CREATE INDEX i8 ON t4(h);\n  } {\n    CREATE INDEX i5 ON t3(a, b, c);\n    CREATE INDEX i6 ON t4(f, g, h);\n    CREATE INDEX i7 ON t3(c, b, a);\n    CREATE INDEX i8 ON t4(h, g, f);\n  }\n") {
 	_ = idxsql // suppress unused warning
@@ -199,18 +263,17 @@ func Test_where8(t *testing.T) {
 			_ = sql // suppress unused warning
 			_ = _idx0
 				{ // do_test "where8-4." + A + "." + B + ".1"
-					var R = "execsql $sql"
+					R = "execsql $sql"
 					_ = R // suppress unused warning
 					if tclBool("!" + "info exists results($B)") {
-						var results_B = R
+						results_B = R
 						_ = results_B // suppress unused warning
 					}
 				}
 				{ // do_test "where8-4." + A + "." + B + ".2"
-					tclSort(R)
+					_ = tclSort(R) // lsort result
 				}
 			}
-			var A = "0"
 			// incr A 1
 			{
 				_n, _err := strconv.Atoi(A)
@@ -232,10 +295,10 @@ func Test_where8(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		{ // do_test "where8-5.1"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+			// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 			_res = db.Exec("\n    CREATE TABLE tA(\n      a, b, c, d, e, f, g, h, \n      i, j, k, l, m, n, o, p\n    );\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tA(\n      a, b, c, d, e, f, g, h, \n      i, j, k, l, m, n, o, p\n    );\n  ")

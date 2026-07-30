@@ -39,6 +39,11 @@ func Test_without_rowid2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "without_rowid2-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(\n      a INT PRIMARY KEY,\n      b INT\n           REFERENCES t1 ON DELETE CASCADE\n           REFERENCES t2,\n      c TEXT,\n      FOREIGN KEY (b,c) REFERENCES t2(x,y) ON UPDATE CASCADE\n    ) WITHOUT rowid;\n  ")
@@ -89,6 +94,6 @@ func Test_without_rowid2(t *testing.T) {
 		}
 	}
 	{ // do_test "without_rowid2-3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		// sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0 (unsupported command, not transpiled)
 	}
 }

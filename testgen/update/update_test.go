@@ -41,9 +41,21 @@ func Test_update(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "update-1.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -61,7 +73,7 @@ func Test_update(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "update-2.1"
-		var v = "0"
+		v = "0"
 		_ = v // suppress unused warning
 		v = tclListAppend(v, msg)
 	}
@@ -70,10 +82,10 @@ func Test_update(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(f1 int,f2 int)")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 10 }() {
-			var sql = "INSERT INTO test1 VALUES(" + i + "," + "1<<$i" + ")"
+			sql = "INSERT INTO test1 VALUES(" + i + "," + "1<<$i" + ")"
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -93,7 +105,6 @@ func Test_update(t *testing.T) {
 		}
 	}
 	{ // do_test "update-3.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -111,7 +122,6 @@ func Test_update(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "update-3.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -129,7 +139,6 @@ func Test_update(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "update-3.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -793,7 +802,6 @@ func Test_update(t *testing.T) {
 		}
 	}
 	{ // do_test "update-9.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -811,7 +819,6 @@ func Test_update(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "update-9.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -829,7 +836,6 @@ func Test_update(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "update-9.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -847,7 +853,6 @@ func Test_update(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "update-9.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block

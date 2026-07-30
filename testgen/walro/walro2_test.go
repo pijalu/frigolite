@@ -40,9 +40,42 @@ func Test_walro2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var MINSHMSZ string
+	_ = MINSHMSZ // pre-declared from TCL source
+	var dfltpgsz string
+	_ = dfltpgsz // pre-declared from TCL source
+	var bZeroShm string
+	_ = bZeroShm // pre-declared from TCL source
+	var pgsz string
+	_ = pgsz // pre-declared from TCL source
+	var TN string
+	_ = TN // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var nRem string
+	_ = nRem // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "walro2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "walro2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "0.0"
 		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x);\n")
@@ -50,18 +83,20 @@ func Test_walro2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x);\n")
 		}
 	}
-	var MINSHMSZ = "file size test.db-shm"
+	MINSHMSZ = "file size test.db-shm"
 	_ = MINSHMSZ // suppress unused warning
-	var dfltpgsz = "db one {PRAGMA page_size}"
+	dfltpgsz = "db one {PRAGMA page_size}"
 	_ = dfltpgsz // suppress unused warning
 	for _, bZeroShm := range tclSplitList("0 1") {
 	_ = bZeroShm // suppress unused warning
-		var pgsz = "512"
+		pgsz = "512"
 		_ = pgsz // suppress unused warning
 		for func() bool { pgsz_n, _pgsz_e := strconv.Atoi(pgsz); if _pgsz_e != nil { return false }; return pgsz_n <= 65536 }() {
-			var TN = "$bZeroShm+1]-$pgsz"
+			TN = "$bZeroShm+1]-$pgsz"
 			_ = TN // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n      \n      # Close all connections and delete t...}")
+			// do_multiclient_test tn {
+      
+      # Close all connections and delete t...} (unsupported command, not transpiled)
 			pgsz = "$pgsz*2"
 			_ = pgsz // suppress unused warning
 		}

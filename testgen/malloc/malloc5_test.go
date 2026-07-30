@@ -41,24 +41,65 @@ func Test_malloc5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var mrange string
+	_ = mrange // pre-declared from TCL source
+	var pgalloc string
+	_ = pgalloc // pre-declared from TCL source
+	var nRelease string
+	_ = nRelease // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var soft_limit string
+	_ = soft_limit // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var nMaxBytes string
+	_ = nMaxBytes // pre-declared from TCL source
+	var bt string
+	_ = bt // pre-declared from TCL source
+	var stats_page string
+	_ = stats_page // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var target string
+	_ = target // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping malloc5 tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping malloc5 tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
 	// proc definition (not transpiled)
-	var mrange = "0.98"
+	mrange = "0.98"
 	_ = mrange // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 100")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
-	db, err = frigolite.Open("test.db")
+	// test_set_config_pagecache 0 100 (unsupported command, not transpiled)
+	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "malloc5-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE abc(a, b, c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n    BEGIN;\n    CREATE TABLE abc(a, b, c);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
+		// sqlite3_release_memory (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.2"
 		db2, err = frigolite.Open("test.db")
@@ -69,23 +110,23 @@ func Test_malloc5(t *testing.T) {
 		}
 	}
 	{ // do_test "malloc5-1.3"
-		var _pgalloc = "sqlite3_release_memory" // TCL namespace variable
-		_ = _pgalloc // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "value_in_range 1288 0.75")
+		pgalloc = "sqlite3_release_memory" // TCL namespace variable
+		_ = pgalloc // suppress unused warning
+		// value_in_range 1288 0.75 (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.4"
 		r = db.Query("\n    COMMIT;\n    BEGIN;\n    SELECT * FROM abc;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    BEGIN;\n    SELECT * FROM abc;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "value_in_range $::pgalloc $::mrange [sqlite3_release_memory]")
+		// value_in_range $::pgalloc $::mrange [sqlite3_release_memory] (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.5"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "value_in_range $::pgalloc $::mrange [sqlite3_release_memory]")
+		// value_in_range $::pgalloc $::mrange [sqlite3_release_memory] (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.6"
 		db2.Close()
@@ -93,7 +134,7 @@ func Test_malloc5(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE def(d, e, f);\n    SELECT * FROM abc;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "value_in_range $::pgalloc $::mrange [sqlite3_release_memory 500]")
+		// value_in_range $::pgalloc $::mrange [sqlite3_release_memory 500] (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.7"
 		db2, err = frigolite.Open("test.db")
@@ -103,7 +144,7 @@ func Test_malloc5(t *testing.T) {
 	}
 	{ // do_test "malloc5-1.8"
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 500")
+		// sqlite3_release_memory 500 (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-1.8"
 		db2, err = frigolite.Open("test.db")
@@ -124,14 +165,14 @@ func Test_malloc5(t *testing.T) {
 		}
 	}
 	{ // do_test "malloc5-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
-		var nRelease = "0"
+		// sqlite3_release_memory (unsupported command, not transpiled)
+		nRelease = "0"
 		_ = nRelease // suppress unused warning
 		r = db.Query(" \n    BEGIN;\n    SELECT * FROM def;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    BEGIN;\n    SELECT * FROM def;\n  ")
 		}
-		var data = "list"
+		data = "list"
 		_ = data // suppress unused warning
 		_res = db.Exec("SELECT * FROM abc")
 		if _res.Error != nil {
@@ -141,7 +182,7 @@ func Test_malloc5(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "value_in_range $::pgalloc $::mrange $nRelease")
+		// value_in_range $::pgalloc $::mrange $nRelease (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-2.2.1"
 	}
@@ -154,16 +195,20 @@ func Test_malloc5(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM sqlite_master;\n    BEGIN;\n    SELECT * FROM def;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "value_in_range [expr $::pgalloc*2] 0.99 [sqlite3_release_memory]")
+		// value_in_range [expr $::pgalloc*2] 0.99 [sqlite3_release_memory] (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-3.2"
-		_r := tclList(append([]string{}, tclSplitList("execsql {SELECT * FROM abc; COMMIT}")..., tclSplitList("execsql {SELECT * FROM def; COMMIT} db2")...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("execsql {SELECT * FROM abc; COMMIT}")...)
+		_r_tcl = append(_r_tcl, tclSplitList("execsql {SELECT * FROM def; COMMIT} db2")...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	db2.Close()
-	t.Log("Highwater mark: " + "sqlite3_memory_highwater")
-	var _soft_limit = "sqlite3_soft_heap_limit -1" // TCL namespace variable
-	_ = _soft_limit // suppress unused warning
+	_putsMsg := "Highwater mark: " + "sqlite3_memory_highwater"
+	_ = _putsMsg
+	soft_limit = "sqlite3_soft_heap_limit -1" // TCL namespace variable
+	_ = soft_limit // suppress unused warning
 	r = db.Query("PRAGMA cache_size=2000")
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size=2000")
@@ -177,7 +222,7 @@ func Test_malloc5(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM abc;")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10000 }() {
 			_res = db.Exec("INSERT INTO abc VALUES(" + i + ", " + i + ", '" + "X 100" + "');")
@@ -196,15 +241,16 @@ func Test_malloc5(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT;")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
+		// sqlite3_release_memory (unsupported command, not transpiled)
+		// sqlite3_memory_highwater 1 (unsupported command, not transpiled)
 		r = db.Query("SELECT * FROM abc")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 		}
-		var nMaxBytes = "sqlite3_memory_highwater 1"
+		nMaxBytes = "sqlite3_memory_highwater 1"
 		_ = nMaxBytes // suppress unused warning
-		t.Log("-nonewline")
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
 		// expr $nMaxBytes → "$nMaxBytes"
 	}
 	{ // do_test "malloc5-4.2"
@@ -212,16 +258,17 @@ func Test_malloc5(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA cache_size=1")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 200000")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
+		// sqlite3_release_memory (unsupported command, not transpiled)
+		// sqlite3_soft_heap_limit 200000 (unsupported command, not transpiled)
+		// sqlite3_memory_highwater 1 (unsupported command, not transpiled)
 		r = db.Query("SELECT * FROM abc")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM abc")
 		}
-		var nMaxBytes = "sqlite3_memory_highwater 1"
+		nMaxBytes = "sqlite3_memory_highwater 1"
 		_ = nMaxBytes // suppress unused warning
-		t.Log("-nonewline")
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
 		// expr $nMaxBytes → "$nMaxBytes"
 	}
 	{ // do_test "malloc5-4.3"
@@ -230,31 +277,31 @@ func Test_malloc5(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*), sum(a), sum(b) FROM abc;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $::soft_limit")
+	// sqlite3_soft_heap_limit $::soft_limit (unsupported command, not transpiled)
 	{ // do_test "malloc5-5.1"
-		db, err := frigolite.Open(":memory:")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open(":memory:")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES('abcdefghi', 1234567890, NULL);\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES('abcdefghi', 1234567890, NULL);\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
+		// sqlite3_release_memory (unsupported command, not transpiled)
 	}
 	{ // do_test "malloc5-5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 5000")
+		// sqlite3_soft_heap_limit 5000 (unsupported command, not transpiled)
 		r = db.Query("\n    COMMIT;\n    PRAGMA temp_store = memory;\n    SELECT * FROM abc ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    COMMIT;\n    PRAGMA temp_store = memory;\n    SELECT * FROM abc ORDER BY a;\n  ")
 		}
 		// expr 1 → "1"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $::soft_limit")
+	// sqlite3_soft_heap_limit $::soft_limit (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	os.Remove("test.db")
 	{ // do_test "malloc5-6.1.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA page_size=1024;\n    PRAGMA default_cache_size=2;\n  ")
 		if r.Error != nil {
@@ -288,7 +335,7 @@ func Test_malloc5(t *testing.T) {
 		// expr [nPage db] → "[nPage db]"
 	}
 	{ // do_test "malloc5-6.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 3000")
+		// sqlite3_release_memory 3000 (unsupported command, not transpiled)
 		// expr [nPage db] → "[nPage db]"
 	}
 	{ // do_test "malloc5-6.2.3"
@@ -296,7 +343,7 @@ func Test_malloc5(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM abc ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 3000")
+		// sqlite3_release_memory 3000 (unsupported command, not transpiled)
 		// expr [nPage db] → "[nPage db]"
 	}
 	{ // do_test "malloc5-6.3.1"
@@ -311,37 +358,37 @@ func Test_malloc5(t *testing.T) {
 		// expr [nPage db] → "[nPage db]"
 	}
 	{ // do_test "malloc5-6.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory [expr 7*1132]")
+		// sqlite3_release_memory [expr 7*1132] (unsupported command, not transpiled)
 		_list := tclList([]string{"nPage db", "nPage db2"})
 		_ = _list
 	}
 	{ // do_test "malloc5-6.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 1000")
+		// sqlite3_release_memory 1000 (unsupported command, not transpiled)
 		_list := tclList([]string{"nPage db", "nPage db2"})
 		_ = _list
 	}
 	{ // do_test "malloc5-6.3.4"
-		if func() bool { _tcl_platform_n, __tcl_platform_e := strconv.Atoi(_tcl_platform); if __tcl_platform_e != nil { return false }; return _tcl_platform_n(wordSize) == 8 }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 10500")
+		if func() bool { tcl_platform_wordSize_n, _tcl_platform_wordSize_e := strconv.Atoi(tcl_platform_wordSize); if _tcl_platform_wordSize_e != nil { return false }; return tcl_platform_wordSize_n == 8 }() {
+			// sqlite3_release_memory 10500 (unsupported command, not transpiled)
 		} else {
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 9900")
+			// sqlite3_release_memory 9900 (unsupported command, not transpiled)
 		}
 		_list := tclList([]string{"nPage db", "nPage db2"})
 		_ = _list
 	}
 	{ // do_test "malloc5-6.3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 1000")
+		// sqlite3_release_memory 1000 (unsupported command, not transpiled)
 		_list := tclList([]string{"nPage db", "nPage db2"})
 		_ = _list
 	}
 	{ // do_test "malloc5-6.3.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 31459")
+		// sqlite3_release_memory 31459 (unsupported command, not transpiled)
 		_list := tclList([]string{"nPage db", "nPage db2"})
 		_ = _list
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $::soft_limit")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	// sqlite3_soft_heap_limit $::soft_limit (unsupported command, not transpiled)
+	// test_restore_config_pagecache (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

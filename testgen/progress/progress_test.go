@@ -39,13 +39,38 @@ func Test_progress(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var counter string
+	_ = counter // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var five_rows string
+	_ = five_rows // pre-declared from TCL source
+	var rx string
+	_ = rx // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  BEGIN;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n  INSERT INTO t1 VALUES(5);\n  INSERT INTO t1 VALUES(6);\n  INSERT INTO t1 VALUES(7);\n  INSERT INTO t1 VALUES(8);\n  INSERT INTO t1 VALUES(9);\n  INSERT INTO t1 VALUES(10);\n  COMMIT;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n  INSERT INTO t1 VALUES(5);\n  INSERT INTO t1 VALUES(6);\n  INSERT INTO t1 VALUES(7);\n  INSERT INTO t1 VALUES(8);\n  INSERT INTO t1 VALUES(9);\n  INSERT INTO t1 VALUES(10);\n  COMMIT;\n")
 	}
 	{ // do_test "progress-1.0"
-		var counter = "0"
+		counter = "0"
 		_ = counter // suppress unused warning
 		r = db.Query("\n    SELECT * FROM t1\n  ")
 		if r.Error != nil {
@@ -56,7 +81,6 @@ func Test_progress(t *testing.T) {
 	{ // do_test "progress-1.0.1"
 	}
 	{ // do_test "progress-1.0.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -72,9 +96,8 @@ func Test_progress(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "progress-1.1"
-		var counter = "0"
+		counter = "0"
 		_ = counter // suppress unused warning
-	var rc string
 	_ = rc // suppress unused warning
 	var _catchErrMsg string
 	_ = _catchErrMsg // suppress unused warning
@@ -94,7 +117,7 @@ func Test_progress(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "progress-1.2"
-		var five_rows = "0"
+		five_rows = "0"
 		_ = five_rows // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1 SELECT a+10 FROM t1 WHERE a < 6\n  ")
 		if _res.Error != nil {
@@ -132,7 +155,7 @@ func Test_progress(t *testing.T) {
 		}
 	}
 	{ // do_test "progress-1.4"
-		var counter = "0"
+		counter = "0"
 		_ = counter // suppress unused warning
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -140,7 +163,7 @@ func Test_progress(t *testing.T) {
 		}
 	}
 	{ // do_test "progress-1.5"
-		var rx = "0"
+		rx = "0"
 		_ = rx // suppress unused warning
 		// proc definition (not transpiled)
 		_res = db.Exec("\n    SELECT sum(a) FROM t1\n  ")
@@ -149,19 +172,19 @@ func Test_progress(t *testing.T) {
 		}
 	}
 	{ // do_test "progress-1.6"
-		_ = _rx // TCL namespace variable (query)
+		_ = rx // TCL namespace variable (query)
 	}
 	{ // do_test "progress-1.7"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		}
-		var _res = "list" // TCL namespace variable
-		_ = _res // suppress unused warning
+		res = "list" // TCL namespace variable
+		_ = res // suppress unused warning
 		_res = db.Exec("SELECT a, b, c FROM abc")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a, b, c FROM abc")
 		}
-		_ = _res // TCL namespace variable (query)
+		_ = res // TCL namespace variable (query)
 	}
 }

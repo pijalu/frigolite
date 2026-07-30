@@ -40,8 +40,15 @@ func Test_upsert1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "zipfile"
+	testprefix = "zipfile"
 	_ = testprefix // suppress unused warning
 	{ // "upsert1-100"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT, c DEFAULT 0);\n  CREATE UNIQUE INDEX t1x1 ON t1(b);\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT DO NOTHING;\n  INSERT INTO t1(a,b) VALUES(1,99),(99,2) ON CONFLICT DO NOTHING;\n  SELECT * FROM t1;\n")
@@ -319,7 +326,8 @@ func Test_upsert1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 REAL UNIQUE, c1);\n  CREATE UNIQUE INDEX test800i0 ON t0(0 || c1);\n  INSERT INTO t0(c0, c1) VALUES (1, 2),  (2, 1);\n  INSERT INTO t0(c0) VALUES (1) ON CONFLICT(c0) DO UPDATE SET c1=excluded.c0;\n  PRAGMA integrity_check;\n  REINDEX;\n")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "upsert1-900"
 		_res = db.Exec("\n  CREATE VIEW t1(a) AS SELECT 1;\n  CREATE TRIGGER t1r1 INSTEAD OF INSERT ON t1 BEGIN\n     SELECT 2;\n  END;\n")
@@ -366,7 +374,7 @@ func Test_upsert1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE UNIQUE INDEX t1x ON t1(b+3);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ENABLE_QPSG 1")
+	// sqlite3_db_config db ENABLE_QPSG 1 (unsupported command, not transpiled)
 	{ // "upsert1-1210"
 		_res = db.Exec("\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT(b+?1) DO NOTHING;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {

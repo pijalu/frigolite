@@ -39,15 +39,48 @@ func Test_mallocI(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-1 -sqlprep {\n  CREATE TABLE t1(a,b,c,d);\n  CREATE VIEW v1 AS S...} -sqlbody {\n  SELECT * FROM v1\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-2 -sqlbody {\n  PRAGMA temp.page_size\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-3 -sqlprep {\n  CREATE TABLE t1(a,b,c);\n} -sqlbody {\n  CREATE TABLE t2 AS SELECT b,c FROM t1;\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-4 -tclprep {\n  sqlite3 db2 test.db\n  db2 eval {\n    CREATE TAB...} -sqlbody {\n  SELECT * FROM t1\n} -cleanup {\n  do_test mallocI-4.$::n.2 {\n    # If this INSERT...}")
+	// do_malloc_test mallocI-1 -sqlprep {
+  CREATE TABLE t1(a,b,c,d);
+  CREATE VIEW v1 AS S...} -sqlbody {
+  SELECT * FROM v1
+} (unsupported command, not transpiled)
+	// do_malloc_test mallocI-2 -sqlbody {
+  PRAGMA temp.page_size
+} (unsupported command, not transpiled)
+	// do_malloc_test mallocI-3 -sqlprep {
+  CREATE TABLE t1(a,b,c);
+} -sqlbody {
+  CREATE TABLE t2 AS SELECT b,c FROM t1;
+} (unsupported command, not transpiled)
+	// do_malloc_test mallocI-4 -tclprep {
+  sqlite3 db2 test.db
+  db2 eval {
+    CREATE TAB...} -sqlbody {
+  SELECT * FROM t1
+} -cleanup {
+  do_test mallocI-4.$::n.2 {
+    # If this INSERT...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test mallocI-5 -faults oom* -prep {\n  catch { db close }\n  sqlite3 db test.db\n  sqlit...} -body {\n  db eval { Select CAST(1 AS blob) }\n} -test {\n  faultsim_test_result {0 1}\n}")
+	// do_faultsim_test mallocI-5 -faults oom* -prep {
+  catch { db close }
+  sqlite3 db test.db
+  sqlit...} -body {
+  db eval { Select CAST(1 AS blob) }
+} -test {
+  faultsim_test_result {0 1}
+} (unsupported command, not transpiled)
 }

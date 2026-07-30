@@ -40,8 +40,15 @@ func Test_upsert2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "zipfile"
+	testprefix = "zipfile"
 	_ = testprefix // suppress unused warning
 	{ // "upsert2-100"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b int, c DEFAULT 0);\n  INSERT INTO t1(a,b) VALUES(1,2),(3,4);\n  INSERT INTO t1(a,b) VALUES(1,8),(2,11),(3,1)\n    ON CONFLICT(a) DO UPDATE SET b=excluded.b, c=c+1 WHERE t1.b<excluded.b;\n  SELECT *, 'x' FROM t1 ORDER BY a;\n")

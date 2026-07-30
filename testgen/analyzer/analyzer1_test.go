@@ -40,49 +40,64 @@ func Test_analyzer1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var PROG string
+	_ = PROG // pre-declared from TCL source
+	var line string
+	_ = line // pre-declared from TCL source
+	var MSG string
+	_ = MSG // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var cmdlinearg_TESTFIXTURE_HOME string
+	_ = cmdlinearg_TESTFIXTURE_HOME // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tcl_platform_platform == "windows" {
-		var PROG = "sqlite3_analyzer.exe"
+		PROG = "sqlite3_analyzer.exe"
 		_ = PROG // suppress unused warning
 	} else {
-		var PROG = "./sqlite3_analyzer"
+		PROG = "./sqlite3_analyzer"
 		_ = PROG // suppress unused warning
 	}
 	if tclBool("!" + "file exe $PROG") {
-		var PROG = "file normalize [file join $::cmdlinearg(TESTFIXTURE_HOME) $PROG]"
+		PROG = "file normalize [file join $::cmdlinearg(TESTFIXTURE_HOME) $PROG]"
 		_ = PROG // suppress unused warning
 		if tclBool("!" + "file exe $PROG") {
-			t.Log("analyzer1 cannot run because " + PROG + " is not available")
+			_putsMsg := "analyzer1 cannot run because " + PROG + " is not available"
+			_ = _putsMsg
 			return
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "analyzer1-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<250)\n    INSERT INTO t1(a,b) SELECT x, randomblob(200) FROM c;\n    INSERT INTO t2(a,b) SELECT a, b FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t2(a INT PRIMARY KEY, b) WITHOUT ROWID;\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<250)\n    INSERT INTO t1(a,b) SELECT x, randomblob(200) FROM c;\n    INSERT INTO t2(a,b) SELECT a, b FROM t1;\n  ")
 		}
-		var line = "exec " + PROG + " test.db"
+		line = "exec " + PROG + " test.db"
 		_ = line // suppress unused warning
 		{
-			var _MSG string // catch result ("0"=ok, "1"=error)
+			var MSG string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
-			_ = _MSG // suppress unused warning
+			_ = MSG // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			// eval $line
+			// eval (dynamic, not transpiled)
 			if _catchErr != nil {
-				_MSG = "1"
+				MSG = "1"
 				_catchErrMsg = _catchErr.Error()
 			} else {
-				_MSG = "0"
+				MSG = "0"
 				_catchErrMsg = ""
 			}
 		}
 	}
 	{ // do_test "analyzer1-1.1"
-		tclRegexp("^/\\*\\* Disk-Space Utilization.*COMMIT;\\W*$", _MSG)
+		tclRegexp("^/\\*\\* Disk-Space Utilization.*COMMIT;\\W*$", MSG)
 	}
 }

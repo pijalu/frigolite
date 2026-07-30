@@ -39,9 +39,16 @@ func Test_tkt_d635236375(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "tkt-d635236375" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "tkt-d635236375" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "1.0"
 		r = db.Query("\n    CREATE TABLE t1(id1 INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(9999);\n    CREATE TABLE t2(id2 INTEGER PRIMARY KEY);\n    INSERT INTO t2 VALUES(12345);\n    INSERT INTO t2 VALUES(54321);\n    SELECT DISTINCT id1 AS x, id1 AS y FROM t1, t2;\n  ")
 		if r.Error != nil {

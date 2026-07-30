@@ -39,8 +39,23 @@ func Test_literal2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var myres string
+	_ = myres // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "literal2"
+	testprefix = "literal2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  SELECT 123_456\n")
@@ -63,16 +78,15 @@ func Test_literal2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		var myres = ""
+		myres = ""
 		_ = myres // suppress unused warning
 		// skip: foreach over unresolved TCL command
-		var res2 = "1000000000000.0000"
+		res2 = "1000000000000.0000"
 		_ = res2 // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // "3.0.0"
 		r = db.Query("\n  SELECT 0xFF_FF\n")

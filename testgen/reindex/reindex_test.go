@@ -39,8 +39,25 @@ func Test_reindex(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var wo string
+	_ = wo // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "reindex"
+	testprefix = "reindex"
 	_ = testprefix // suppress unused warning
 	{ // do_test "reindex-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    CREATE INDEX i1 ON t1(a);\n    REINDEX;\n  ")
@@ -165,7 +182,6 @@ func Test_reindex(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			// eval [string map [list %without_rowid% $wo] {
-    do_ex...
+			// eval (dynamic, not transpiled)
 		}
 }

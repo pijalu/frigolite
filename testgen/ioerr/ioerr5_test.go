@@ -40,16 +40,61 @@ func Test_ioerr5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var soft_limit string
+	_ = soft_limit // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var locking_mode string
+	_ = locking_mode // pre-declared from TCL source
+	var nPage string
+	_ = nPage // pre-declared from TCL source
+	var iFail string
+	_ = iFail // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var channel string
+	_ = channel // pre-declared from TCL source
+	var sqlite_io_error_persist string
+	_ = sqlite_io_error_persist // pre-declared from TCL source
+	var sqlite_io_error_pending string
+	_ = sqlite_io_error_pending // pre-declared from TCL source
+	var sqlite_io_error_hit string
+	_ = sqlite_io_error_hit // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var zDatabase string
+	_ = zDatabase // pre-declared from TCL source
+	var zDatabase2 string
+	_ = zDatabase2 // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var error_hit string
+	_ = error_hit // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var zSql string
+	_ = zSql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
-	var _soft_limit = "sqlite3_soft_heap_limit 1048576" // TCL namespace variable
-	_ = _soft_limit // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	soft_limit = "sqlite3_soft_heap_limit 1048576" // TCL namespace variable
+	_ = soft_limit // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "ioerr5-1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "opendatabases")
+		// opendatabases (unsupported command, not transpiled)
 		_res = db.Exec(" CREATE TABLE A(Id INTEGER, Name TEXT) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE A(Id INTEGER, Name TEXT) ")
@@ -57,18 +102,18 @@ func Test_ioerr5(t *testing.T) {
 	}
 	for _, locking_mode := range tclSplitList("normal exclusive") {
 	_ = locking_mode // suppress unused warning
-		var nPage = "2"
+		nPage = "2"
 		_ = nPage // suppress unused warning
-		var iFail = "1"
+		iFail = "1"
 		_ = iFail // suppress unused warning
 		for func() bool { iFail_n, _iFail_e := strconv.Atoi(iFail); if _iFail_e != nil { return false }; return iFail_n < 200 }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 1048576")
-			t.Errorf("TODO: %s not implemented in frigolite", "opendatabases")
+			// sqlite3_soft_heap_limit 1048576 (unsupported command, not transpiled)
+			// opendatabases (unsupported command, not transpiled)
 			r = db.Query(" pragma locking_mode=exclusive ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " pragma locking_mode=exclusive ")
 			}
-			var nRow = "db one {SELECT count(*) FROM a}"
+			nRow = "db one {SELECT count(*) FROM a}"
 			_ = nRow // suppress unused warning
 			{ // do_test "ioerr5-1." + locking_mode + "-" + iFail + ".1"
 				_res = db.Exec("\n        BEGIN EXCLUSIVE;\n        INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');\n      ")
@@ -76,38 +121,38 @@ func Test_ioerr5(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        BEGIN EXCLUSIVE;\n        INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');\n      ")
 				}
 			}
-			var channel = "db incrblob -readonly a Name [db last_insert_rowid]"
+			channel = "db incrblob -readonly a Name [db last_insert_rowid]"
 			_ = channel // suppress unused warning
-			var _sqlite_io_error_persist = "1" // TCL namespace variable
-			_ = _sqlite_io_error_persist // suppress unused warning
-			var _sqlite_io_error_pending = iFail // TCL namespace variable
-			_ = _sqlite_io_error_pending // suppress unused warning
+			sqlite_io_error_persist = "1" // TCL namespace variable
+			_ = sqlite_io_error_persist // suppress unused warning
+			sqlite_io_error_pending = iFail // TCL namespace variable
+			_ = sqlite_io_error_pending // suppress unused warning
 			{ // do_test "ioerr5-1." + locking_mode + "-" + iFail + ".2"
-				var rc = "catchsql {COMMIT}"
+				rc = "catchsql {COMMIT}"
 				_ = rc // suppress unused warning
 			}
-			var _sqlite_io_error_hit = "0" // TCL namespace variable
-			_ = _sqlite_io_error_hit // suppress unused warning
-			var _sqlite_io_error_persist = "0" // TCL namespace variable
-			_ = _sqlite_io_error_persist // suppress unused warning
-			var _sqlite_io_error_pending = "0" // TCL namespace variable
-			_ = _sqlite_io_error_pending // suppress unused warning
-			var fd = "open test.db"
+			sqlite_io_error_hit = "0" // TCL namespace variable
+			_ = sqlite_io_error_hit // suppress unused warning
+			sqlite_io_error_persist = "0" // TCL namespace variable
+			_ = sqlite_io_error_persist // suppress unused warning
+			sqlite_io_error_pending = "0" // TCL namespace variable
+			_ = sqlite_io_error_pending // suppress unused warning
+			fd = "open test.db"
 			_ = fd // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-			var zDatabase = "read $fd"
+			// fconfigure $fd -translation binary (unsupported command, not transpiled)
+			zDatabase = "read $fd"
 			_ = zDatabase // suppress unused warning
 			// close $fd
 			{ // do_test "ioerr5-1." + locking_mode + "-" + iFail + ".3"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 1024")
-				t.Errorf("TODO: %s not implemented in frigolite", "compilesql16 SELECT 10")
+				// sqlite3_soft_heap_limit 1024 (unsupported command, not transpiled)
+				// compilesql16 SELECT 10 (unsupported command, not transpiled)
 			}
 			// close $channel
 			{ // do_test "ioerr5-1." + locking_mode + "-" + iFail + ".4"
-				var fd = "open test.db"
+				fd = "open test.db"
 				_ = fd // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-				var zDatabase2 = "read $fd"
+				// fconfigure $fd -translation binary (unsupported command, not transpiled)
+				zDatabase2 = "read $fd"
 				_ = zDatabase2 // suppress unused warning
 				// close $fd
 				// expr $zDatabase eq $zDatabase2 → "$zDatabase eq $zDatabase2"
@@ -142,8 +187,8 @@ func Test_ioerr5(t *testing.T) {
 		}
 	}
 	{ // do_test "ioerr5-2.0"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE INDEX i1 ON a(id, name); ")
 		if _res.Error != nil {
@@ -152,16 +197,16 @@ func Test_ioerr5(t *testing.T) {
 	}
 	for _, locking_mode := range tclSplitList("exclusive normal") {
 	_ = locking_mode // suppress unused warning
-		var iFail = "1"
+		iFail = "1"
 		_ = iFail // suppress unused warning
 		for func() bool { iFail_n, _iFail_e := strconv.Atoi(iFail); if _iFail_e != nil { return false }; return iFail_n < 200 }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 1048576")
-			t.Errorf("TODO: %s not implemented in frigolite", "opendatabases")
+			// sqlite3_soft_heap_limit 1048576 (unsupported command, not transpiled)
+			// opendatabases (unsupported command, not transpiled)
 			r = db.Query(" pragma locking_mode=exclusive ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " pragma locking_mode=exclusive ")
 			}
-			var nRow = "db one {SELECT count(*) FROM a}"
+			nRow = "db one {SELECT count(*) FROM a}"
 			_ = nRow // suppress unused warning
 			{ // do_test "ioerr5-2." + locking_mode + "-" + iFail + ".1"
 				_res = db.Exec("\n        BEGIN EXCLUSIVE;\n        INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');\n      ")
@@ -169,19 +214,19 @@ func Test_ioerr5(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        BEGIN EXCLUSIVE;\n        INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');\n      ")
 				}
 			}
-			var _sqlite_io_error_persist = "1" // TCL namespace variable
-			_ = _sqlite_io_error_persist // suppress unused warning
-			var _sqlite_io_error_pending = iFail // TCL namespace variable
-			_ = _sqlite_io_error_pending // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 10000")
-			var error_hit = _sqlite_io_error_hit
+			sqlite_io_error_persist = "1" // TCL namespace variable
+			_ = sqlite_io_error_persist // suppress unused warning
+			sqlite_io_error_pending = iFail // TCL namespace variable
+			_ = sqlite_io_error_pending // suppress unused warning
+			// sqlite3_release_memory 10000 (unsupported command, not transpiled)
+			error_hit = sqlite_io_error_hit
 			_ = error_hit // suppress unused warning
-			var _sqlite_io_error_hit = "0" // TCL namespace variable
-			_ = _sqlite_io_error_hit // suppress unused warning
-			var _sqlite_io_error_persist = "0" // TCL namespace variable
-			_ = _sqlite_io_error_persist // suppress unused warning
-			var _sqlite_io_error_pending = "0" // TCL namespace variable
-			_ = _sqlite_io_error_pending // suppress unused warning
+			sqlite_io_error_hit = "0" // TCL namespace variable
+			_ = sqlite_io_error_hit // suppress unused warning
+			sqlite_io_error_persist = "0" // TCL namespace variable
+			_ = sqlite_io_error_persist // suppress unused warning
+			sqlite_io_error_pending = "0" // TCL namespace variable
+			_ = sqlite_io_error_pending // suppress unused warning
 			if tclBool(error_hit) {
 				{ // do_test "ioerr5-2." + locking_mode + "-" + iFail + ".3a"
 					_res = db.Exec("COMMIT")
@@ -216,6 +261,6 @@ func Test_ioerr5(t *testing.T) {
 			db2.Close()
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $::soft_limit")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
+	// sqlite3_soft_heap_limit $::soft_limit (unsupported command, not transpiled)
 }

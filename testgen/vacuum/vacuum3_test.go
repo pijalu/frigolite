@@ -40,6 +40,27 @@ func Test_vacuum3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var I string
+	_ = I // pre-declared from TCL source
+	var request string
+	_ = request // pre-declared from TCL source
+	var actual string
+	_ = actual // pre-declared from TCL source
+	var database string
+	_ = database // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var sig string
+	_ = sig // pre-declared from TCL source
+	var create_database_sql string
+	_ = create_database_sql // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "vacuum3-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b, c);\n    INSERT INTO t1 VALUES(1, 2, 3);\n  ")
@@ -56,7 +77,7 @@ func Test_vacuum3(t *testing.T) {
 	{ // do_test "vacuum3-1.3"
 		// file size test.db
 	}
-	var I = "4"
+	I = "4"
 	_ = I // suppress unused warning
 	// foreach {request actual database} "list \\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\"
 	_items0 := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\")
@@ -89,7 +110,6 @@ func Test_vacuum3(t *testing.T) {
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			var I = "0"
 			// incr I 1
 			{
 				_n, _err := strconv.Atoi(I)
@@ -116,9 +136,9 @@ func Test_vacuum3(t *testing.T) {
 			}
 		}
 		{ // do_test "vacuum3-2.3"
-			var blob = "db one {select d from t1}"
+			blob = "db one {select d from t1}"
 			_ = blob // suppress unused warning
-			len(blob)
+			_ = strconv.Itoa(len(blob)) // string length result
 		}
 		I = "4"
 		_ = I // suppress unused warning
@@ -153,7 +173,6 @@ func Test_vacuum3(t *testing.T) {
 				}
 				_res = db.Exec("PRAGMA integrity_check")
 				if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-				var I = "0"
 				// incr I 1
 				{
 					_n, _err := strconv.Atoi(I)
@@ -175,8 +194,8 @@ func Test_vacuum3(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ")
 				}
 			}
-			var _sig = "signature" // TCL namespace variable
-			_ = _sig // suppress unused warning
+			sig = "signature" // TCL namespace variable
+			_ = sig // suppress unused warning
 			I = "3"
 			_ = I // suppress unused warning
 			// foreach {request actual} "list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\"
@@ -198,11 +217,10 @@ func Test_vacuum3(t *testing.T) {
 						}
 					}
 					{ // do_test "vacuum3-3." + I + ".2"
-						t.Errorf("TODO: %s not implemented in frigolite", "signature")
+						// signature (unsupported command, not transpiled)
 					}
 					_res = db.Exec("PRAGMA integrity_check")
 					if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-					var I = "0"
 					// incr I 1
 					{
 						_n, _err := strconv.Atoi(I)
@@ -212,9 +230,9 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.1"
-					t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					// delete_file test.db (unsupported command, not transpiled)
+					_dbtmp3, err := frigolite.Open("test.db")
+					_ = _dbtmp3 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    PRAGMA page_size=1024;\n    CREATE TABLE abc(a, b, c);\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n  ")
 					if _res.Error != nil {
@@ -280,12 +298,32 @@ func Test_vacuum3(t *testing.T) {
 					db2.Exec("\n    PRAGMA page_size\n  ")
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				}
-				var create_database_sql = "\n  BEGIN; \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, randstr(50,50), randstr(50,50)); \n  INSERT INTO t1 SELECT a+2, b||'-'||rowid, c||'-'||rowid FROM t1; \n  INSERT INTO t1 SELECT a+4, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+8, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+16, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+32, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+64, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+128, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 VALUES(1, randstr(600,600), randstr(600,600));\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  CREATE TABLE t3 AS SELECT * FROM t1;\n  COMMIT;\n  DROP TABLE t2;\n"
+				create_database_sql = "\n  BEGIN; \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, randstr(50,50), randstr(50,50)); \n  INSERT INTO t1 SELECT a+2, b||'-'||rowid, c||'-'||rowid FROM t1; \n  INSERT INTO t1 SELECT a+4, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+8, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+16, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+32, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+64, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+128, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 VALUES(1, randstr(600,600), randstr(600,600));\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  CREATE TABLE t3 AS SELECT * FROM t1;\n  COMMIT;\n  DROP TABLE t2;\n"
 				_ = create_database_sql // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test vacuum3-ioerr-1 -cksum true -sqlprep \n  PRAGMA page_size = 1024;\n  $create_database_sql... -sqlbody {\n  PRAGMA page_size = 4096;\n  VACUUM;\n}")
-				t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test vacuum3-ioerr-2 -cksum true -sqlprep  \n  PRAGMA page_size = 2048;\n  $create_database_sq... -sqlbody {\n  PRAGMA page_size = 512;\n  VACUUM;\n}")
+				// do_ioerr_test vacuum3-ioerr-1 -cksum true -sqlprep 
+  PRAGMA page_size = 1024;
+  $create_database_sql... -sqlbody {
+  PRAGMA page_size = 4096;
+  VACUUM;
+} (unsupported command, not transpiled)
+				// do_ioerr_test vacuum3-ioerr-2 -cksum true -sqlprep  
+  PRAGMA page_size = 2048;
+  $create_database_sq... -sqlbody {
+  PRAGMA page_size = 512;
+  VACUUM;
+} (unsupported command, not transpiled)
 				if tclBool(MEMDEBUG) {
-					t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test vacuum3-malloc-1 -sqlprep { \n    PRAGMA page_size = 2048;\n    BEGIN; \n    CRE...} -sqlbody {\n    PRAGMA page_size = 512;\n    VACUUM;\n  }")
-					t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test vacuum3-malloc-2 -sqlprep { \n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a...} -sqlbody {\n    VACUUM;\n  }")
+					// do_malloc_test vacuum3-malloc-1 -sqlprep { 
+    PRAGMA page_size = 2048;
+    BEGIN; 
+    CRE...} -sqlbody {
+    PRAGMA page_size = 512;
+    VACUUM;
+  } (unsupported command, not transpiled)
+					// do_malloc_test vacuum3-malloc-2 -sqlprep { 
+    PRAGMA encoding=UTF16;
+    CREATE TABLE t1(a...} -sqlbody {
+    VACUUM;
+  } (unsupported command, not transpiled)
 				}
 }

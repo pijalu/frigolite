@@ -39,8 +39,15 @@ func Test_fts3drop(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3drop"
+	testprefix = "fts3drop"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f1 USING fts3;\n  INSERT INTO f1 VALUES('a b c');\n")

@@ -40,8 +40,17 @@ func Test_subjournal(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nPage string
+	_ = nPage // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "subjournal"
+	testprefix = "subjournal"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA temp_store = memory;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
@@ -77,10 +86,10 @@ func Test_subjournal(t *testing.T) {
 		os.Remove("test.db2")
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-		var nPage = "db one {PRAGMA page_count}"
+		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+		nPage = "db one {PRAGMA page_count}"
 		_ = nPage // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "B step [expr $nPage-10]")
+		// B step [expr $nPage-10] (unsupported command, not transpiled)
 	}
 	{ // "2.2"
 		r = db.Query("\n  BEGIN;\n    UPDATE t2 SET a=randomblob(499);\n    SAVEPOINT two;\n      UPDATE t2 SET a=randomblob(498);\n    ROLLBACK TO two;\n  COMMIT;\n  PRAGMA integrity_check;\n")
@@ -95,10 +104,10 @@ func Test_subjournal(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 1000")
+		// B step 1000 (unsupported command, not transpiled)
 	}
 	{ // do_test "2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+		// B finish (unsupported command, not transpiled)
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")

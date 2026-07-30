@@ -40,8 +40,23 @@ func Test_indexA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "indexA"
+	testprefix = "indexA"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT, b, c);\n  CREATE INDEX i1 ON t1(b, c) WHERE a='abc';\n  INSERT INTO t1 VALUES('abc', 1, 2);\n")
@@ -520,7 +535,8 @@ func Test_indexA(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX ex1 ON t1(c) WHERE b IS 'abc' COLLATE xyz;\n")
 				}
 			}
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "5.3"
 				r = db.Query("\n  SELECT * FROM t1\n")

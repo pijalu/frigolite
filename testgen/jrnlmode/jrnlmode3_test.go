@@ -41,6 +41,21 @@ func Test_jrnlmode3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var all_journal_modes string
+	_ = all_journal_modes // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var fromjmode string
+	_ = fromjmode // pre-declared from TCL source
+	var tojmode string
+	_ = tojmode // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "jrnlmode3-1.1"
 		_res = db.Exec("\n    PRAGMA journal_mode=OFF;\n    PRAGMA locking_mode=EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
@@ -55,7 +70,8 @@ func Test_jrnlmode3(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "jrnlmode3-2.1"
 		_res = db.Exec("\n    PRAGMA locking_mode=EXCLUSIVE;\n    PRAGMA journal_mode=OFF;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
@@ -69,9 +85,9 @@ func Test_jrnlmode3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
 		}
 	}
-	var all_journal_modes = "delete persist truncate memory off"
+	all_journal_modes = "delete persist truncate memory off"
 	_ = all_journal_modes // suppress unused warning
-	var cnt = "0"
+	cnt = "0"
 	_ = cnt // suppress unused warning
 	for _, fromjmode := range tclSplitList(all_journal_modes) {
 	_ = fromjmode // suppress unused warning
@@ -79,7 +95,6 @@ func Test_jrnlmode3(t *testing.T) {
 		_ = tojmode // suppress unused warning
 			if func() bool { fromjmode_n, _fromjmode_e := strconv.Atoi(fromjmode); if _fromjmode_e != nil { return false }; tojmode_n, _tojmode_e := strconv.Atoi(tojmode); if _tojmode_e != nil { return false }; return fromjmode_n == tojmode_n }() {
 			}
-			var cnt = "0"
 			// incr cnt 1
 			{
 				_n, _err := strconv.Atoi(cnt)
@@ -88,8 +103,8 @@ func Test_jrnlmode3(t *testing.T) {
 				}
 			}
 			os.Remove("test.db")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // do_test "jrnlmode3-3." + cnt + ".1-(" + fromjmode + "-to-" + tojmode + ")"
 				_res = db.Exec("PRAGMA journal_mode = " + fromjmode + ";")

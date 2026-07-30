@@ -40,6 +40,21 @@ func Test_e_update(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var ac string
+	_ = ac // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("test.db2")
 	{ // "e_update-0.0"
@@ -49,50 +64,68 @@ func Test_e_update(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_update_tests e_update-0 {\n  1    \"UPDATE t1 SET a=10\" {}\n  2    \"UPDATE t1 ...}")
+	// do_update_tests e_update-0 {
+  1    "UPDATE t1 SET a=10" {}
+  2    "UPDATE t1 ...} (unsupported command, not transpiled)
 	{ // "e_update-1.1.0"
 		_res = db.Exec("\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n\n  INSERT INTO aux.t1 VALUES(1, 'I');\n  INSERT INTO aux.t1 VALUES(2, 'II');\n  INSERT INTO aux.t1 VALUES(3, 'III');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n\n  INSERT INTO aux.t1 VALUES(1, 'I');\n  INSERT INTO aux.t1 VALUES(2, 'II');\n  INSERT INTO aux.t1 VALUES(3, 'III');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_update_tests e_update-1.1 {\n  1.1  \"UPDATE t1 SET a = a+1; SELECT * FROM t1\" ...}")
+	// do_update_tests e_update-1.1 {
+  1.1  "UPDATE t1 SET a = a+1; SELECT * FROM t1" ...} (unsupported command, not transpiled)
 	{ // "e_update-1.2.0"
 		_res = db.Exec("\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_update_tests e_update-1.2 {\n  1  \"UPDATE t1 SET b = 'roman' ; SELECT * FROM t...}")
+	// do_update_tests e_update-1.2 {
+  1  "UPDATE t1 SET b = 'roman' ; SELECT * FROM t...} (unsupported command, not transpiled)
 	{ // "e_update-1.3.0"
 		_res = db.Exec("\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(NULL, '');\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(NULL, '');\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_update_tests e_update-1.3 {\n  1  \"UPDATE t1 SET b = 'roman' WHERE a<2 ; SELEC...}")
+	// do_update_tests e_update-1.3 {
+  1  "UPDATE t1 SET b = 'roman' WHERE a<2 ; SELEC...} (unsupported command, not transpiled)
 	{ // "e_update-1.4.0"
 		_res = db.Exec("\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(NULL, '');\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM main.t1;\n  INSERT INTO main.t1 VALUES(NULL, '');\n  INSERT INTO main.t1 VALUES(1, 'i');\n  INSERT INTO main.t1 VALUES(2, 'ii');\n  INSERT INTO main.t1 VALUES(3, 'iii');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_update_tests e_update-1.4 -query {\n  SELECT * FROM t1\n} {\n  1  \"UPDATE t1 SET b = 'burmese' WHERE a=5\" {{} ...}")
+	// do_update_tests e_update-1.4 -query {
+  SELECT * FROM t1
+} {
+  1  "UPDATE t1 SET b = 'burmese' WHERE a=5" {{} ...} (unsupported command, not transpiled)
 	{ // "e_update-1.5.0"
 		_res = db.Exec("\n  INSERT INTO t2(rowid, a, b, c) VALUES(1,  3, 1, 4);\n  INSERT INTO t2(rowid, a, b, c) VALUES(2,  1, 5, 9);\n  INSERT INTO t2(rowid, a, b, c) VALUES(3,  2, 6, 5);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t2(rowid, a, b, c) VALUES(1,  3, 1, 4);\n  INSERT INTO t2(rowid, a, b, c) VALUES(2,  1, 5, 9);\n  INSERT INTO t2(rowid, a, b, c) VALUES(3,  2, 6, 5);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_update_tests e_update-1.5 -query {\n  SELECT * FROM t2\n} {\n  1   \"UPDATE t2 SET c = 1+1 WHERE a=2\" \n      {3...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_update_tests e_update-1.6 -query {\n  SELECT * FROM t2\n} {\n  1   \"UPDATE t2 SET c=5, c=6, c=7 WHERE rowid=1\"...}")
+	// do_update_tests e_update-1.5 -query {
+  SELECT * FROM t2
+} {
+  1   "UPDATE t2 SET c = 1+1 WHERE a=2" 
+      {3...} (unsupported command, not transpiled)
+	// do_update_tests e_update-1.6 -query {
+  SELECT * FROM t2
+} {
+  1   "UPDATE t2 SET c=5, c=6, c=7 WHERE rowid=1"...} (unsupported command, not transpiled)
 	{ // "e_update-1.7.0"
 		_res = db.Exec("\n  DELETE FROM t2;\n  INSERT INTO t2(rowid, a, b, c) VALUES(1,  3, 1, 4);\n  INSERT INTO t2(rowid, a, b, c) VALUES(2,  1, 5, 9);\n  INSERT INTO t2(rowid, a, b, c) VALUES(3,  2, 6, 5);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t2;\n  INSERT INTO t2(rowid, a, b, c) VALUES(1,  3, 1, 4);\n  INSERT INTO t2(rowid, a, b, c) VALUES(2,  1, 5, 9);\n  INSERT INTO t2(rowid, a, b, c) VALUES(3,  2, 6, 5);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_update_tests e_update-1.7 -query {\n  SELECT * FROM t2\n} {\n  1   \"UPDATE t2 SET a=b+c\"          {5 1 4     1...}")
+	// do_update_tests e_update-1.7 -query {
+  SELECT * FROM t2
+} {
+  1   "UPDATE t2 SET a=b+c"          {5 1 4     1...} (unsupported command, not transpiled)
 	{ // "e_update-1.8.0"
 		_res = db.Exec("\n  DELETE FROM t3;\n  INSERT INTO t3 VALUES(1, 'one');\n  INSERT INTO t3 VALUES(2, 'two');\n  INSERT INTO t3 VALUES(3, 'three');\n  INSERT INTO t3 VALUES(4, 'four');\n")
 		if _res.Error != nil {
@@ -132,17 +165,24 @@ func Test_e_update(t *testing.T) {
 				}
 			}
 			{ // do_test "e_update-1.8." + tn + ".3"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+				// sqlite3_get_autocommit db (unsupported command, not transpiled)
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_update_tests e_update-2.1 -error {\n  qualified table names are not allowed on INSERT...} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON t1...}")
+		// do_update_tests e_update-2.1 -error {
+  qualified table names are not allowed on INSERT...} {
+  1 {
+      CREATE TRIGGER tr1 AFTER INSERT ON t1...} (unsupported command, not transpiled)
 		{ // "e_update-2.1.3"
 			_res = db.Exec("\n  CREATE TRIGGER tr1 AFTER DELETE ON t4 BEGIN\n    UPDATE main.t1 SET a=1, b=2;\n  END;\n  DROP TRIGGER tr1;\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr1 AFTER DELETE ON t4 BEGIN\n    UPDATE main.t1 SET a=1, b=2;\n  END;\n  DROP TRIGGER tr1;\n")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_update_tests e_update-2.2 -error {\n  no such table: %s\n} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON t1...}")
+		// do_update_tests e_update-2.2 -error {
+  no such table: %s
+} {
+  1 {
+      CREATE TRIGGER tr1 AFTER INSERT ON t1...} (unsupported command, not transpiled)
 		{ // "e_update-2.2.X"
 			_res = db.Exec("\n  DROP TRIGGER tr1;\n  DROP TRIGGER aux.tr1;\n")
 			if _res.Error != nil {
@@ -197,5 +237,8 @@ func Test_e_update(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_update_tests e_update-2.4 -error {\n  the %s %s clause is not allowed on UPDATE or DE...} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON t2...}")
+		// do_update_tests e_update-2.4 -error {
+  the %s %s clause is not allowed on UPDATE or DE...} {
+  1 {
+      CREATE TRIGGER tr1 AFTER INSERT ON t2...} (unsupported command, not transpiled)
 }

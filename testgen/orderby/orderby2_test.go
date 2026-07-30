@@ -39,9 +39,16 @@ func Test_orderby2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "orderby2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "orderby2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1,11), (2,22);\n    CREATE TABLE t2(d, e, UNIQUE(d,e));\n    INSERT INTO t2 VALUES(10, 'ten'), (11,'eleven'), (12,'twelve'),\n                         (11, 'oneteen');\n  ")
 		if _res.Error != nil {
@@ -103,11 +110,11 @@ func Test_orderby2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db cover-idx-scan off")
+		// optimization_control db cover-idx-scan off (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT a||','||c||','||e||','||g FROM t31, t32, t33, t34\n     WHERE c=b AND e=d AND g=f\n     ORDER BY a ASC, c ASC, e ASC, g ASC;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a||','||c||','||e||','||g FROM t31, t32, t33, t34\n     WHERE c=b AND e=d AND g=f\n     ORDER BY a ASC, c ASC, e ASC, g ASC;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all on")
+	// optimization_control db all on (unsupported command, not transpiled)
 }

@@ -39,6 +39,13 @@ func Test_tkt2767(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2767-1.1"
 		_res = db.Exec("\n    -- Construct a table with many rows of data\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n    INSERT INTO t1 SELECT x+16 FROM t1;\n\n    -- BEFORE triggers that invoke raise(ignore).  The effect of\n    -- these triggers should be to make INSERTs, UPDATEs, and DELETEs\n    -- into no-ops.\n    CREATE TRIGGER r1 BEFORE UPDATE ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n    CREATE TRIGGER r2 BEFORE DELETE ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n    CREATE TRIGGER r3 BEFORE INSERT ON t1 BEGIN\n      SELECT raise(ignore);\n    END;\n\n    -- Verify the table content\n    SELECT count(*), sum(x) FROM t1;\n  ")

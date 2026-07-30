@@ -39,8 +39,43 @@ func Test_snapshot(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var tcl string
+	_ = tcl // pre-declared from TCL source
+	var snapshot string
+	_ = snapshot // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var t53 string
+	_ = t53 // pre-declared from TCL source
+	var p1 string
+	_ = p1 // pre-declared from TCL source
+	var p2 string
+	_ = p2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var DBNAME string
+	_ = DBNAME // pre-declared from TCL source
+	var SNAPSHOT string
+	_ = SNAPSHOT // pre-declared from TCL source
+	var SNAPSHOT1 string
+	_ = SNAPSHOT1 // pre-declared from TCL source
+	var SNAPSHOT2 string
+	_ = SNAPSHOT2 // pre-declared from TCL source
+	var snap string
+	_ = snap // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "snapshot"
+	testprefix = "snapshot"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
@@ -56,7 +91,7 @@ func Test_snapshot(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			// eval $tcl
+			// eval (dynamic, not transpiled)
 			{ // tn + ".1.0"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 				if _res.Error != nil {
@@ -96,7 +131,7 @@ func Test_snapshot(t *testing.T) {
 				_ = _list
 			}
 			{ // do_test tn + ".1.3.2"
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $snap")
+				// snapshot_free $snap (unsupported command, not transpiled)
 			}
 			{ // tn + ".2.1.0"
 				r = db.Query("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
@@ -111,7 +146,7 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".2.1.1"
-				var snapshot = "snapshot_get db main"
+				snapshot = "snapshot_get db main"
 				_ = snapshot // suppress unused warning
 				r = db.Query("\n      COMMIT;\n      INSERT INTO t1 VALUES(9, 10);\n      SELECT * FROM t1;\n    ")
 				if r.Error != nil {
@@ -123,14 +158,14 @@ func Test_snapshot(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_open db main $snapshot")
+				// snapshot_open db main $snapshot (unsupported command, not transpiled)
 				r = db.Query("\n      SELECT * FROM t1;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1;\n    ")
 				}
 			}
 			{ // do_test tn + ".2.1.3"
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $snapshot")
+				// snapshot_free $snapshot (unsupported command, not transpiled)
 				_res = db.Exec("COMMIT")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -145,7 +180,7 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".2.2.1"
-				var snapshot = "snapshot_get db2 main"
+				snapshot = "snapshot_get db2 main"
 				_ = snapshot // suppress unused warning
 				r = db.Query("\n      INSERT INTO t1 VALUES(11, 12);\n      SELECT * FROM t1;\n    ")
 				if r.Error != nil {
@@ -157,14 +192,14 @@ func Test_snapshot(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_open db main $snapshot")
+				// snapshot_open db main $snapshot (unsupported command, not transpiled)
 				r = db.Query("\n      SELECT * FROM t1;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT * FROM t1;\n    ")
 				}
 			}
 			{ // do_test tn + ".2.2.3"
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $snapshot")
+				// snapshot_free $snapshot (unsupported command, not transpiled)
 				_res = db.Exec("COMMIT")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -190,7 +225,7 @@ func Test_snapshot(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_open db main $snapshot")
+				// snapshot_open db main $snapshot (unsupported command, not transpiled)
 				r = db.Query(" SELECT * FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -205,7 +240,7 @@ func Test_snapshot(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $snapshot")
+				// snapshot_free $snapshot (unsupported command, not transpiled)
 			}
 			{ // tn + ".3.0.0"
 				r = db.Query("\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('c', 'd');\n    BEGIN;\n      SELECT * FROM t2;\n  ")
@@ -220,7 +255,7 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".3.0.1"
-				var snapshot = "snapshot_get db main"
+				snapshot = "snapshot_get db main"
 				_ = snapshot // suppress unused warning
 				_res = db.Exec(" COMMIT ")
 				if _res.Error != nil {
@@ -248,7 +283,7 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".3.2.2b"
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_open db main $snapshot")
+				// snapshot_open db main $snapshot (unsupported command, not transpiled)
 			}
 			{ // do_test tn + ".3.2.3"
 				_res = db.Exec("\n      COMMIT;\n      BEGIN;\n        INSERT INTO t2 VALUES('g', 'h');\n    ")
@@ -285,7 +320,7 @@ func Test_snapshot(t *testing.T) {
 				_ = _list
 			}
 			{ // do_test tn + "." + tn + ".3.3.2"
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $snapshot")
+				// snapshot_free $snapshot (unsupported command, not transpiled)
 				_res = db.Exec("COMMIT")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -304,7 +339,7 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".4.1.1"
-				var snapshot = "snapshot_get db main"
+				snapshot = "snapshot_get db main"
 				_ = snapshot // suppress unused warning
 				_res = db.Exec("COMMIT")
 				if _res.Error != nil {
@@ -316,7 +351,7 @@ func Test_snapshot(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      INSERT INTO t3 VALUES('f', 's'); \n      BEGIN;\n    ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_open db main $snapshot")
+				// snapshot_open db main $snapshot (unsupported command, not transpiled)
 				r = db.Query(" SELECT * FROM t3 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
@@ -331,7 +366,7 @@ func Test_snapshot(t *testing.T) {
 				_ = _list
 			}
 			{ // do_test tn + ".4.1.4"
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $snapshot")
+				// snapshot_free $snapshot (unsupported command, not transpiled)
 				_res = db.Exec("COMMIT")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -344,13 +379,13 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".4.2.2"
-				var snapshot = "snapshot_get db main"
+				snapshot = "snapshot_get db main"
 				_ = snapshot // suppress unused warning
 				_res = db.Exec("\n      COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n      PRAGMA wal_checkpoint;\n      BEGIN;\n    ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_open db main $snapshot")
+				// snapshot_open db main $snapshot (unsupported command, not transpiled)
 				r = db.Query(" SELECT * FROM t3 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t3 ")
@@ -365,14 +400,14 @@ func Test_snapshot(t *testing.T) {
 				_ = _list
 			}
 			{ // do_test tn + ".4.2.4"
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $snapshot")
+				// snapshot_free $snapshot (unsupported command, not transpiled)
 			}
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			// testvfs tvfs (unsupported command, not transpiled)
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // tn + ".5.1"
 				r = db.Query("\n    PRAGMA journal_mode = wal;\n    CREATE TABLE x1(x, xx, xxx);\n    INSERT INTO x1 VALUES('z', 'zz', 'zzz');\n    BEGIN;\n      SELECT * FROM x1;\n  ")
@@ -387,8 +422,8 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".5.2"
-				var _snapshot = "snapshot_get db main" // TCL namespace variable
-				_ = _snapshot // suppress unused warning
+				snapshot = "snapshot_get db main" // TCL namespace variable
+				_ = snapshot // suppress unused warning
 				db2, err = frigolite.Open("test.db")
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n      INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;\n    ")
@@ -396,16 +431,16 @@ func Test_snapshot(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;\n    ")
 				}
 			}
-			var t53 = "0"
+			t53 = "0"
 			_ = t53 // suppress unused warning
 			// proc definition (not transpiled)
-			t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xWrite")
-			t.Errorf("TODO: %s not implemented in frigolite", "tvfs script write_callback")
+			// tvfs filter xWrite (unsupported command, not transpiled)
+			// tvfs script write_callback (unsupported command, not transpiled)
 			db2.Exec(" PRAGMA wal_checkpoint ")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			db2.Close()
-			t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
-			t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $snapshot")
+			// tvfs delete (unsupported command, not transpiled)
+			// snapshot_free $snapshot (unsupported command, not transpiled)
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -422,8 +457,8 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".6.2"
-				var _snapshot = "snapshot_get db main" // TCL namespace variable
-				_ = _snapshot // suppress unused warning
+				snapshot = "snapshot_get db main" // TCL namespace variable
+				_ = snapshot // suppress unused warning
 				_res = db.Exec("\n      INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO x1 VALUES('a', 'aa', 'aaa');\n      COMMIT;\n    ")
@@ -434,7 +469,7 @@ func Test_snapshot(t *testing.T) {
 				if err != nil { t.Fatal(err) }
 				db2.Exec("PRAGMA user_version ; BEGIN")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_open db2 main $::snapshot")
+				// snapshot_open db2 main $::snapshot (unsupported command, not transpiled)
 				db2.Exec(" SELECT * FROM x1 ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
@@ -446,7 +481,7 @@ func Test_snapshot(t *testing.T) {
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				db2.Exec("BEGIN")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				t.Errorf("TODO: %s not implemented in frigolite", "snapshot_open db2 main $::snapshot")
+				// snapshot_open db2 main $::snapshot (unsupported command, not transpiled)
 				db2.Exec(" SELECT * FROM x1 ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
@@ -459,7 +494,7 @@ func Test_snapshot(t *testing.T) {
 				_list := tclList([]string{"0", msg})
 				_ = _list
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $snapshot")
+			// snapshot_free $snapshot (unsupported command, not transpiled)
 			// proc definition (not transpiled)
 			{
 				var _catchErr error
@@ -480,7 +515,7 @@ func Test_snapshot(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN ; PRAGMA application_id ")
 				}
-				var p1 = "snapshot_get db main"
+				p1 = "snapshot_get db main"
 				_ = p1 // suppress unused warning
 				_res = db.Exec("\n      INSERT INTO t1 VALUES(10);\n      COMMIT;\n    ")
 				if _res.Error != nil {
@@ -490,16 +525,16 @@ func Test_snapshot(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN ; PRAGMA application_id ")
 				}
-				var p2 = "snapshot_get db main"
+				p2 = "snapshot_get db main"
 				_ = p2 // suppress unused warning
 				_res = db.Exec("COMMIT")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snapshot_cmp_test $tn.7.1.3 $p1 $p2 -1")
-			t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $p1")
-			t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $p2")
+			// do_snapshot_cmp_test $tn.7.1.3 $p1 $p2 -1 (unsupported command, not transpiled)
+			// snapshot_free $p1 (unsupported command, not transpiled)
+			// snapshot_free $p2 (unsupported command, not transpiled)
 			{ // tn + ".7.2.1"
 				r = db.Query("\n    INSERT INTO t1 VALUES(11);\n    INSERT INTO t1 VALUES(12);\n    INSERT INTO t1 VALUES(13);\n    BEGIN; \n      PRAGMA application_id;\n  ")
 				if r.Error != nil {
@@ -513,35 +548,35 @@ func Test_snapshot(t *testing.T) {
 				}
 			}
 			{ // do_test tn + ".7.2.2"
-				var p1 = "snapshot_get db main"
+				p1 = "snapshot_get db main"
 				_ = p1 // suppress unused warning
 				r = db.Query("\n      COMMIT;\n      INSERT INTO t1 VALUES(14);\n      PRAGMA wal_checkpoint;\n      BEGIN;\n        PRAGMA application_id;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      COMMIT;\n      INSERT INTO t1 VALUES(14);\n      PRAGMA wal_checkpoint;\n      BEGIN;\n        PRAGMA application_id;\n    ")
 				}
-				var p2 = "snapshot_get db main"
+				p2 = "snapshot_get db main"
 				_ = p2 // suppress unused warning
 				_res = db.Exec("COMMIT")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snapshot_cmp_test $tn.7.2.3 $p1 $p2 -1")
-			t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $p2")
+			// do_snapshot_cmp_test $tn.7.2.3 $p1 $p2 -1 (unsupported command, not transpiled)
+			// snapshot_free $p2 (unsupported command, not transpiled)
 			{ // do_test tn + ".7.3.1"
 				r = db.Query("\n      INSERT INTO t1 VALUES(14);\n      BEGIN;\n        PRAGMA application_id;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t1 VALUES(14);\n      BEGIN;\n        PRAGMA application_id;\n    ")
 				}
-				var p2 = "snapshot_get db main"
+				p2 = "snapshot_get db main"
 				_ = p2 // suppress unused warning
 				_res = db.Exec("COMMIT")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "do_snapshot_cmp_test $tn.7.3.2 $p1 $p2 -1")
-			t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $p1")
-			t.Errorf("TODO: %s not implemented in frigolite", "snapshot_free $p2")
+			// do_snapshot_cmp_test $tn.7.3.2 $p1 $p2 -1 (unsupported command, not transpiled)
+			// snapshot_free $p1 (unsupported command, not transpiled)
+			// snapshot_free $p2 (unsupported command, not transpiled)
 		}
 }

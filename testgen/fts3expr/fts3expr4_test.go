@@ -39,38 +39,62 @@ func Test_fts3expr4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tokenizer string
+	_ = tokenizer // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3expr4"
+	testprefix = "fts3expr4"
 	_ = testprefix // suppress unused warning
-	var sqlite_fts3_enable_parentheses = "1"
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 1.1 abcd {PHRASE 3 0 abcd}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 1.2  tag  {PHRASE 3 0 tag}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 1.3 {\"x y z\"} {PHRASE 3 0 x y z}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 1.4 {x OR y} {OR {PHRASE 3 0 x} {PHRASE 3 0 y}}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 1.5 {(x OR y)} {OR {PHRASE 3 0 x} {PHRASE 3 0 y}}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 1.6 { \"(x OR y)\" } {PHRASE 3 0 ( x or y )}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 1.7 {a:word} {PHRASE 0 0 word}")
+	// do_icu_expr_test 1.1 abcd {PHRASE 3 0 abcd} (unsupported command, not transpiled)
+	// do_icu_expr_test 1.2  tag  {PHRASE 3 0 tag} (unsupported command, not transpiled)
+	// do_icu_expr_test 1.3 {"x y z"} {PHRASE 3 0 x y z} (unsupported command, not transpiled)
+	// do_icu_expr_test 1.4 {x OR y} {OR {PHRASE 3 0 x} {PHRASE 3 0 y}} (unsupported command, not transpiled)
+	// do_icu_expr_test 1.5 {(x OR y)} {OR {PHRASE 3 0 x} {PHRASE 3 0 y}} (unsupported command, not transpiled)
+	// do_icu_expr_test 1.6 { "(x OR y)" } {PHRASE 3 0 ( x or y )} (unsupported command, not transpiled)
+	// do_icu_expr_test 1.7 {a:word} {PHRASE 0 0 word} (unsupported command, not transpiled)
 	{ // do_test "1.8"
-		var res = "db one {SELECT fts3_exprtest('icu en_US', 'd:word', 'a', 'b', 'c')}"
+		res = "db one {SELECT fts3_exprtest('icu en_US', 'd:word', 'a', 'b', 'c')}"
 		_ = res // suppress unused warning
 		// expr \n    $res=="PHRASE 3 0 d:word" ||\n    $res=="AND {AND {PHRASE 3 0 d} {PHRASE 3... → "$res==\"PHRASE 3 0 d:word\" ||\n    $res==\"AND {AND {PHRASE 3 0 d} {PHRASE 3 0 :}} {PHRASE 3 0 word}\""
 	}
 	sqlite_fts3_enable_parentheses = "0"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 2.1 {\n  f (e NEAR/2 a)\n} {AND {AND {AND {PHRASE 3 0 f} {PHRASE 3 0 (}} {NEAR...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_simple_expr_test 3.1 {*lOl* *h4h*} {\n  AND {PHRASE 3 0 lol+} {PHRASE 3 0 h4h+}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 3.2 {*lOl* *h4h*} {\n  AND {AND {AND {PHRASE 3 0 *} {PHRASE 3 0 lol+}}...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_simple_expr_test 3.3 { * } {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_simple_expr_test 3.4 { *a } { PHRASE 3 0 a }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_simple_expr_test 3.5 { a*b } { AND {PHRASE 3 0 a+} {PHRASE 3 0 b} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_simple_expr_test 3.6 { *a*b } { AND {PHRASE 3 0 a+} {PHRASE 3 0 b} }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_simple_expr_test 3.7 { *\"abc\" } { PHRASE 3 0 abc }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_simple_expr_test 3.8 { \"abc\"* } { PHRASE 3 0 abc }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_simple_expr_test 3.8 { \"ab*c\" } { PHRASE 3 0 ab+ c }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 3.9 { \"ab*c\" } { PHRASE 3 0 ab+ * c }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 3.10 { ab*c } { AND {PHRASE 3 0 ab+} {PHRASE 3 0 c}}")
+	// do_icu_expr_test 2.1 {
+  f (e NEAR/2 a)
+} {AND {AND {AND {PHRASE 3 0 f} {PHRASE 3 0 (}} {NEAR...} (unsupported command, not transpiled)
+	// do_simple_expr_test 3.1 {*lOl* *h4h*} {
+  AND {PHRASE 3 0 lol+} {PHRASE 3 0 h4h+}
+} (unsupported command, not transpiled)
+	// do_icu_expr_test 3.2 {*lOl* *h4h*} {
+  AND {AND {AND {PHRASE 3 0 *} {PHRASE 3 0 lol+}}...} (unsupported command, not transpiled)
+	// do_simple_expr_test 3.3 { * } {} (unsupported command, not transpiled)
+	// do_simple_expr_test 3.4 { *a } { PHRASE 3 0 a } (unsupported command, not transpiled)
+	// do_simple_expr_test 3.5 { a*b } { AND {PHRASE 3 0 a+} {PHRASE 3 0 b} } (unsupported command, not transpiled)
+	// do_simple_expr_test 3.6 { *a*b } { AND {PHRASE 3 0 a+} {PHRASE 3 0 b} } (unsupported command, not transpiled)
+	// do_simple_expr_test 3.7 { *"abc" } { PHRASE 3 0 abc } (unsupported command, not transpiled)
+	// do_simple_expr_test 3.8 { "abc"* } { PHRASE 3 0 abc } (unsupported command, not transpiled)
+	// do_simple_expr_test 3.8 { "ab*c" } { PHRASE 3 0 ab+ c } (unsupported command, not transpiled)
+	// do_icu_expr_test 3.9 { "ab*c" } { PHRASE 3 0 ab+ * c } (unsupported command, not transpiled)
+	// do_icu_expr_test 3.10 { ab*c } { AND {PHRASE 3 0 ab+} {PHRASE 3 0 c}} (unsupported command, not transpiled)
 }

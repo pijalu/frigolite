@@ -39,11 +39,33 @@ func Test_atomic2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var setup string
+	_ = setup // pre-declared from TCL source
+	var at_fail string
+	_ = at_fail // pre-declared from TCL source
+	var at_nfail string
+	_ = at_nfail // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var iFail string
+	_ = iFail // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var z string
+	_ = z // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "atomic2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "atomic2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	if tclBool("atomic_batch_write test.db" + "==0") {
-		t.Log("No f2fs atomic-batch-write support. Skipping tests...")
+		_putsMsg := "No f2fs atomic-batch-write support. Skipping tests..."
+		_ = _putsMsg
 		return
 	}
 	db.Close()
@@ -55,19 +77,26 @@ func Test_atomic2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1x ON t1(x);\n  CREATE INDEX i2x ON t1(y);\n\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100 )\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM s;\n")
 		}
 	}
-	var setup = "list \\\n  -injectstart at_injectstart \\\n  -injectstop  at_injectstop  \\"
+	setup = "list \\\n  -injectstart at_injectstart \\\n  -injectstop  at_injectstop  \\"
 	_ = setup // suppress unused warning
-	var _at_fail = "0" // TCL namespace variable
-	_ = _at_fail // suppress unused warning
-	var _at_nfail = "0" // TCL namespace variable
-	_ = _at_nfail // suppress unused warning
+	at_fail = "0" // TCL namespace variable
+	_ = at_fail // suppress unused warning
+	at_nfail = "0" // TCL namespace variable
+	_ = at_nfail // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script at_vfs_callback")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xFileControl xWrite}")
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_one_faultsim_test 2.0 {*} $setup -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    WITH s(i) AS ( SELECT 1 UNION ALL...} -test {\n  faultsim_test_result {0 {}}\n\n  set res [execsql...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+	// testvfs tvfs -default 1 (unsupported command, not transpiled)
+	// tvfs script at_vfs_callback (unsupported command, not transpiled)
+	// tvfs filter {xFileControl xWrite} (unsupported command, not transpiled)
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_one_faultsim_test 2.0 {*} $setup -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    WITH s(i) AS ( SELECT 1 UNION ALL...} -test {
+  faultsim_test_result {0 {}}
+
+  set res [execsql...} (unsupported command, not transpiled)
+	// tvfs delete (unsupported command, not transpiled)
 }

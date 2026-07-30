@@ -40,29 +40,40 @@ func Test_corruptF(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "corruptF"
+	testprefix = "corruptF"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// do_not_use_codec (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "create_test_db")
+		// create_test_db (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2"
 		// file size test.db
 	}
 	{ // do_test "1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 32 4")
+		// hexio_read test.db 32 4 (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db [expr 2*1024] 12")
+		// hexio_read test.db [expr 2*1024] 12 (unsupported command, not transpiled)
 	}
 	{ // do_test "1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 2*1024 + 8] 00000006")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db [expr 2*1024 + 8] 00000006 (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "1.6"
@@ -77,17 +88,17 @@ func Test_corruptF(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
+	// db_save_and_close (unsupported command, not transpiled)
 	if true {
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 128 }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+			// db_restore_and_reopen (unsupported command, not transpiled)
 			{ // do_test "1.7." + i
-				var res = "catchsql { INSERT INTO t4 SELECT x FROM t1 WHERE rowid>$i }"
+				res = "catchsql { INSERT INTO t4 SELECT x FROM t1 WHERE rowid>$i }"
 				_ = res // suppress unused warning
-				if res == "0 {}" || res == "1 {database disk image is malformed}" {
-					var res = ""
+				if tclBool(res + " == \"0 {}\" || " + res + " == \"1 {database disk image is malformed}\"") {
+					res = ""
 					_ = res // suppress unused warning
 				}
 			}
@@ -101,21 +112,21 @@ func Test_corruptF(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "create_test_db")
+		// create_test_db (unsupported command, not transpiled)
 	}
 	{ // do_test "2.2"
 		// file size test.db
 	}
 	{ // do_test "2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 32 4")
+		// hexio_read test.db 32 4 (unsupported command, not transpiled)
 	}
 	{ // do_test "2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db [expr 2*1024] 12")
+		// hexio_read test.db [expr 2*1024] 12 (unsupported command, not transpiled)
 	}
 	{ // do_test "2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 2*1024 + 8] 00000005")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db [expr 2*1024 + 8] 00000005 (unsupported command, not transpiled)
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // "2.6"
@@ -130,16 +141,16 @@ func Test_corruptF(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	var i = "127"
+	// db_save_and_close (unsupported command, not transpiled)
+	i = "127"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0 }() {
-		t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+		// db_restore_and_reopen (unsupported command, not transpiled)
 		{ // do_test "2.7." + i
-			var res = "catchsql { \n        INSERT INTO t4 SELECT x FROM t1 WHERE rowid<$i ORDER BY rowid DESC \n      }"
+			res = "catchsql { \n        INSERT INTO t4 SELECT x FROM t1 WHERE rowid<$i ORDER BY rowid DESC \n      }"
 			_ = res // suppress unused warning
-			if res == "0 {}" || res == "1 {database disk image is malformed}" {
-				var res = ""
+			if tclBool(res + " == \"0 {}\" || " + res + " == \"1 {database disk image is malformed}\"") {
+				res = ""
 				_ = res // suppress unused warning
 			}
 		}

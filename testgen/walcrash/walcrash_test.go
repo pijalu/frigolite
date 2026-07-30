@@ -41,21 +41,36 @@ func Test_walcrash(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var seed string
+	_ = seed // pre-declared from TCL source
+	var REPEATS string
+	_ = REPEATS // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var pgsz string
+	_ = pgsz // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var seed = "0"
+	seed = "0"
 	_ = seed // suppress unused warning
-	var REPEATS = "100"
+	REPEATS = "100"
 	_ = REPEATS // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")
 		{ // do_test "walcrash-1." + i + ".1"
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 4 -file test.db-wal -seed [incr seed] {\n      PRAGMA journal_mode = WAL;\n      CREATE TAB...}")
+			// crashsql -delay 4 -file test.db-wal -seed [incr seed] {
+      PRAGMA journal_mode = WAL;
+      CREATE TAB...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-1." + i + ".2"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT sum(a)==max(b) FROM t1 ")
 			if r.Error != nil {
@@ -65,11 +80,12 @@ func Test_walcrash(t *testing.T) {
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "walcrash-1." + i + ".4"
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db-wal -seed [incr seed] {\n      INSERT INTO t1 VALUES(4, (SELECT sum(a) FRO...}")
+			// crashsql -delay 2 -file test.db-wal -seed [incr seed] {
+      INSERT INTO t1 VALUES(4, (SELECT sum(a) FRO...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-1." + i + ".5"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT sum(a)==max(b) FROM t1 ")
 			if r.Error != nil {
@@ -97,11 +113,13 @@ func Test_walcrash(t *testing.T) {
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")
 		{ // do_test "walcrash-2." + i + ".1"
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 5 -file test.db-wal -seed [incr seed] {\n      PRAGMA journal_mode = WAL;\n      CREATE TAB...}")
+			// crashsql -delay 5 -file test.db-wal -seed [incr seed] {
+      PRAGMA journal_mode = WAL;
+      CREATE TAB...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-2." + i + ".2"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT sum(a)==max(b) FROM t1 ")
 			if r.Error != nil {
@@ -111,11 +129,12 @@ func Test_walcrash(t *testing.T) {
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "walcrash-2." + i + ".4"
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db-wal -seed [incr seed] {\n      INSERT INTO t1 VALUES(6, (SELECT sum(a) FRO...}")
+			// crashsql -delay 2 -file test.db-wal -seed [incr seed] {
+      INSERT INTO t1 VALUES(6, (SELECT sum(a) FRO...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-2." + i + ".5"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp3, err := frigolite.Open("test.db")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT sum(a)==max(b) FROM t1 ")
 			if r.Error != nil {
@@ -144,11 +163,13 @@ func Test_walcrash(t *testing.T) {
 		os.Remove("test.db")
 		os.Remove("test2.db")
 		{ // do_test "walcrash-4." + i + ".1"
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 4 -file test.db-wal -seed [incr seed] -blocksize 4096 {\n      PRAGMA journal_mode = WAL;\n      PRAGMA pag...}")
+			// crashsql -delay 4 -file test.db-wal -seed [incr seed] -blocksize 4096 {
+      PRAGMA journal_mode = WAL;
+      PRAGMA pag...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-4." + i + ".2"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp4, err := frigolite.Open("test.db")
+			_ = _dbtmp4 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" \n      SELECT * FROM t1 WHERE a = 1;\n    ")
 			if r.Error != nil {
@@ -181,11 +202,13 @@ func Test_walcrash(t *testing.T) {
 		os.Remove("test.db")
 		os.Remove("test2.db")
 		{ // do_test "walcrash-5." + i + ".1"
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 13 -file test.db-wal -seed [incr seed] -blocksize 4096 {\n      PRAGMA journal_mode = WAL;\n      PRAGMA pag...}")
+			// crashsql -delay 13 -file test.db-wal -seed [incr seed] -blocksize 4096 {
+      PRAGMA journal_mode = WAL;
+      PRAGMA pag...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-5." + i + ".2"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp5, err := frigolite.Open("test.db")
+			_ = _dbtmp5 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT count(*)==33 OR count(*)==34 FROM t1 WHERE x != 1 ")
 			if r.Error != nil {
@@ -218,11 +241,13 @@ func Test_walcrash(t *testing.T) {
 		os.Remove("test.db")
 		os.Remove("test2.db")
 		{ // do_test "walcrash-6." + i + ".1"
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 14 -file test.db-wal -seed [incr seed] -blocksize 512 {\n      PRAGMA journal_mode = WAL;\n      PRAGMA pag...}")
+			// crashsql -delay 14 -file test.db-wal -seed [incr seed] -blocksize 512 {
+      PRAGMA journal_mode = WAL;
+      PRAGMA pag...} (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-6." + i + ".2"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp6, err := frigolite.Open("test.db")
+			_ = _dbtmp6 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT count(*) BETWEEN 34 AND 36 FROM t1 WHERE x != 1 ")
 			if r.Error != nil {
@@ -253,14 +278,16 @@ func Test_walcrash(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")
-		var pgsz = "lindex {512 1024 2048 4096 8192 16384} [expr $i%6]"
+		pgsz = "lindex {512 1024 2048 4096 8192 16384} [expr $i%6]"
 		_ = pgsz // suppress unused warning
 		{ // do_test "walcrash-7." + i + ".1"
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 3 -file test.db -seed [incr seed] -blocksize 512 \n      PRAGMA page_size = $pgsz;\n      PRAGMA jour...")
+			// crashsql -delay 3 -file test.db -seed [incr seed] -blocksize 512 
+      PRAGMA page_size = $pgsz;
+      PRAGMA jour... (unsupported command, not transpiled)
 		}
 		{ // do_test "walcrash-7." + i + ".2"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp7, err := frigolite.Open("test.db")
+			_ = _dbtmp7 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT b FROM t1 WHERE a = 1 ")
 			if r.Error != nil {

@@ -40,9 +40,16 @@ func Test_orderby5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "orderby5" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "orderby5" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1bc ON t1(b,c);\n\n  EXPLAIN QUERY PLAN\n  SELECT DISTINCT a, b, c FROM t1 WHERE a=0;\n")
 		if r.Error != nil {
@@ -361,7 +368,8 @@ func Test_orderby5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a INTEGER PRIMARY KEY, b COLLATE hello, c, d);\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "4.3.2"
 		_res = db.Exec("\n  SELECT a FROM t5 WHERE b='def' ORDER BY b;\n")

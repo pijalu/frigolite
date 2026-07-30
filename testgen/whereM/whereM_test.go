@@ -39,8 +39,15 @@ func Test_whereM(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "whereM"
+	testprefix = "whereM"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a, b INTEGER, c TEXT, d REAL, e BLOB);\n  INSERT INTO t1 VALUES(10.0, 10.0, 10.0, 10.0, 10.0);\n  SELECT * FROM t1;\n")

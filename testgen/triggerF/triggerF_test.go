@@ -39,8 +39,21 @@ func Test_triggerF(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var log string
+	_ = log // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "triggerF"
+	testprefix = "triggerF"
 	_ = testprefix // suppress unused warning
 	// foreach {tn sql log} "\n  1 {} {}\n\n  2 { \n    CREATE TRIGGER trd AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one2 2two1 3three1}\n\n  3 { \n    CREATE TRIGGER trd BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 2two2 3three2}\n\n  4 { \n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n    CREATE TRIGGER tr2 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 1one2 2two2 2two1 3three2 3three1}\n\n"
 	_items0 := tclSplitList("\n  1 {} {}\n\n  2 { \n    CREATE TRIGGER trd AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one2 2two1 3three1}\n\n  3 { \n    CREATE TRIGGER trd BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 2two2 3three2}\n\n  4 { \n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n    CREATE TRIGGER tr2 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 1one2 2two2 2two1 3three2 3three1}\n\n")

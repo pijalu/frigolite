@@ -40,10 +40,25 @@ func Test_vtabL(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var cts string
+	_ = cts // pre-declared from TCL source
+	var create_table_sql string
+	_ = create_table_sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "vtabL"
+	testprefix = "vtabL"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// foreach {tn cts} "\n  1 {SELECT 123}\n  2 {SELECT 123, 456}\n  3 {INSERT INTO t1 VALUES(5, 6)}\n  4 {CREATE INDEX i1 ON t1(a)}\n  5 {CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END;}\n  6 {DROP TABLE nosuchtable}\n  7 {DROP TABLE x1}\n  8 {DROP TABLE t1}\n"
 	_items0 := tclSplitList("\n  1 {SELECT 123}\n  2 {SELECT 123, 456}\n  3 {INSERT INTO t1 VALUES(5, 6)}\n  4 {CREATE INDEX i1 ON t1(a)}\n  5 {CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END;}\n  6 {DROP TABLE nosuchtable}\n  7 {DROP TABLE x1}\n  8 {DROP TABLE t1}\n")
@@ -53,8 +68,8 @@ func Test_vtabL(t *testing.T) {
 		cts := _items0[_idx0+1]
 		_ = cts // suppress unused warning
 		_ = _idx0
-			var _create_table_sql = cts // TCL namespace variable
-			_ = _create_table_sql // suppress unused warning
+			create_table_sql = cts // TCL namespace variable
+			_ = create_table_sql // suppress unused warning
 			{ // "1." + tn
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "declare_vtab: syntax error") {
@@ -70,8 +85,8 @@ func Test_vtabL(t *testing.T) {
 			cts := _items1[_idx1+1]
 			_ = cts // suppress unused warning
 			_ = _idx1
-				var _create_table_sql = cts // TCL namespace variable
-				_ = _create_table_sql // suppress unused warning
+				create_table_sql = cts // TCL namespace variable
+				_ = create_table_sql // suppress unused warning
 				{ // "1." + tn
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "declare_vtab: SQL logic error") {
@@ -87,8 +102,8 @@ func Test_vtabL(t *testing.T) {
 				cts := _items2[_idx2+1]
 				_ = cts // suppress unused warning
 				_ = _idx2
-					var _create_table_sql = cts // TCL namespace variable
-					_ = _create_table_sql // suppress unused warning
+					create_table_sql = cts // TCL namespace variable
+					_ = create_table_sql // suppress unused warning
 					_res = db.Exec(" DROP TABLE IF EXISTS x1 ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS x1 ")

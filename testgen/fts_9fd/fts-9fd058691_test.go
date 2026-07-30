@@ -40,9 +40,16 @@ func Test_fts_9fd058691(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3-9fd058691" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts3-9fd058691" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  CREATE VIRTUAL TABLE fts USING fts3( tags TEXT);\n  INSERT INTO fts (tags) VALUES ('tag1');\n  SELECT * FROM fts WHERE tags MATCH 'tag1';\n")
 		if r.Error != nil {
@@ -56,8 +63,8 @@ func Test_fts_9fd058691(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    UPDATE fts SET tags = 'tag1' WHERE rowid = 1;\n    SELECT * FROM fts WHERE tags MATCH 'tag1';\n  ")
 		if r.Error != nil {
@@ -65,7 +72,8 @@ func Test_fts_9fd058691(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE fts USING fts3(tags TEXT);\n  INSERT INTO fts (docid, tags) VALUES (1, 'tag1');\n  INSERT INTO fts (docid, tags) VALUES (2, NULL);\n  INSERT INTO fts (docid, tags) VALUES (3, 'three');\n")

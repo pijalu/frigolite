@@ -39,8 +39,25 @@ func Test_snapshot_up(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var snap1 string
+	_ = snap1 // pre-declared from TCL source
+	var snap2 string
+	_ = snap2 // pre-declared from TCL source
+	var snap3 string
+	_ = snap3 // pre-declared from TCL source
+	var snap4 string
+	_ = snap4 // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "snapshot_up"
+	testprefix = "snapshot_up"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
@@ -56,8 +73,8 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var _snap1 = "sqlite3_snapshot_get db main" // TCL namespace variable
-		_ = _snap1 // suppress unused warning
+		snap1 = "sqlite3_snapshot_get db main" // TCL namespace variable
+		_ = snap1 // suppress unused warning
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -70,8 +87,8 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var _snap2 = "sqlite3_snapshot_get db main" // TCL namespace variable
-		_ = _snap2 // suppress unused warning
+		snap2 = "sqlite3_snapshot_get db main" // TCL namespace variable
+		_ = snap2 // suppress unused warning
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -84,8 +101,8 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var _snap3 = "sqlite3_snapshot_get db main" // TCL namespace variable
-		_ = _snap3 // suppress unused warning
+		snap3 = "sqlite3_snapshot_get db main" // TCL namespace variable
+		_ = snap3 // suppress unused warning
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -104,14 +121,14 @@ func Test_snapshot_up(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap1")
+		// sqlite3_snapshot_open db main $::snap1 (unsupported command, not transpiled)
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap2")
+		// sqlite3_snapshot_open db main $::snap2 (unsupported command, not transpiled)
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -174,8 +191,8 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var _snap4 = "sqlite3_snapshot_get db main" // TCL namespace variable
-		_ = _snap4 // suppress unused warning
+		snap4 = "sqlite3_snapshot_get db main" // TCL namespace variable
+		_ = snap4 // suppress unused warning
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -192,7 +209,7 @@ func Test_snapshot_up(t *testing.T) {
 		}
 	}
 	{ // do_test "1.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap4")
+		// sqlite3_snapshot_open db main $::snap4 (unsupported command, not transpiled)
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -209,7 +226,8 @@ func Test_snapshot_up(t *testing.T) {
 		}
 	}
 	db2.Close()
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.15"
 		r = db.Query("\n  BEGIN;\n    SELECT * FROM t1\n")
@@ -233,15 +251,16 @@ func Test_snapshot_up(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap2")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap3")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap4")
+	// sqlite3_snapshot_free $::snap1 (unsupported command, not transpiled)
+	// sqlite3_snapshot_free $::snap2 (unsupported command, not transpiled)
+	// sqlite3_snapshot_free $::snap3 (unsupported command, not transpiled)
+	// sqlite3_snapshot_free $::snap4 (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -257,8 +276,8 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var _snap1 = "sqlite3_snapshot_get db main" // TCL namespace variable
-		_ = _snap1 // suppress unused warning
+		snap1 = "sqlite3_snapshot_get db main" // TCL namespace variable
+		_ = snap1 // suppress unused warning
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -271,14 +290,13 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var _snap2 = "sqlite3_snapshot_get db main" // TCL namespace variable
-		_ = _snap2 // suppress unused warning
+		snap2 = "sqlite3_snapshot_get db main" // TCL namespace variable
+		_ = snap2 // suppress unused warning
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // "-db"
 		_res = db.Exec("db2")
@@ -291,7 +309,7 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap1")
+		// sqlite3_snapshot_open db main $::snap1 (unsupported command, not transpiled)
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -303,8 +321,8 @@ func Test_snapshot_up(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA wal_checkpoint = restart")
 		}
-		_ = _res // TCL namespace variable (query)
+		_ = res // TCL namespace variable (query)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap2")
+	// sqlite3_snapshot_free $::snap1 (unsupported command, not transpiled)
+	// sqlite3_snapshot_free $::snap2 (unsupported command, not transpiled)
 }

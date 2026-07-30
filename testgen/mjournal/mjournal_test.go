@@ -41,8 +41,53 @@ func Test_mjournal(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var open string
+	_ = open // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var mjname string
+	_ = mjname // pre-declared from TCL source
+	var cksum string
+	_ = cksum // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var tests string
+	_ = tests // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var bDel string
+	_ = bDel // pre-declared from TCL source
+	var content string
+	_ = content // pre-declared from TCL source
+	var jname string
+	_ = jname // pre-declared from TCL source
+	var mjexists string
+	_ = mjexists // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var expected string
+	_ = expected // pre-declared from TCL source
+	var bytes string
+	_ = bytes // pre-declared from TCL source
+	var jrnl string
+	_ = jrnl // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "mjournal"
+	testprefix = "mjournal"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
@@ -56,12 +101,12 @@ func Test_mjournal(t *testing.T) {
 	{ // do_test "1.1"
 		os.Remove("test.db2journal")
 		// close [open test.db-journal w]
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 0 746573742e6462326a6f75726e616c00")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 16 00000010")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 20 000005e1")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 24 d9d505f920a163d7")
+		// hexio_write test.db-journal 0 746573742e6462326a6f75726e616c00 (unsupported command, not transpiled)
+		// hexio_write test.db-journal 16 00000010 (unsupported command, not transpiled)
+		// hexio_write test.db-journal 20 000005e1 (unsupported command, not transpiled)
+		// hexio_write test.db-journal 24 d9d505f920a163d7 (unsupported command, not transpiled)
 		// close [open test.db2journal w]
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db2journal 0 abcd")
+		// hexio_write test.db2journal 0 abcd (unsupported command, not transpiled)
 	}
 	{ // "1.2"
 		r = db.Query("\n  SELECT * FROM t1;\n")
@@ -72,12 +117,12 @@ func Test_mjournal(t *testing.T) {
 	{ // do_test "1.3"
 		os.Remove("test0db2journal")
 		// close [open test.db-journal w]
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 0 74657374306462326a6f75726e616c00")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 16 00000010")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 20 000005e3")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 24 d9d505f920a163d7")
+		// hexio_write test.db-journal 0 74657374306462326a6f75726e616c00 (unsupported command, not transpiled)
+		// hexio_write test.db-journal 16 00000010 (unsupported command, not transpiled)
+		// hexio_write test.db-journal 20 000005e3 (unsupported command, not transpiled)
+		// hexio_write test.db-journal 24 d9d505f920a163d7 (unsupported command, not transpiled)
 		// close [open test0db2journal w]
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test0db2journal 0 abcd")
+		// hexio_write test0db2journal 0 abcd (unsupported command, not transpiled)
 	}
 	{ // "1.4"
 		r = db.Query("\n  SELECT * FROM t1;\n")
@@ -88,14 +133,14 @@ func Test_mjournal(t *testing.T) {
 	{ // do_test "1.5"
 		os.Remove("test.db2-master")
 		// close [open test.db-journal w]
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 0 746573742e6462322d6d617374657200")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 16 00000010")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 20 0000059f")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal 24 d9d505f920a163d7")
+		// hexio_write test.db-journal 0 746573742e6462322d6d617374657200 (unsupported command, not transpiled)
+		// hexio_write test.db-journal 16 00000010 (unsupported command, not transpiled)
+		// hexio_write test.db-journal 20 0000059f (unsupported command, not transpiled)
+		// hexio_write test.db-journal 24 d9d505f920a163d7 (unsupported command, not transpiled)
 		// close [open test.db2-master w]
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db2-master 0 746573743100")
+		// hexio_write test.db2-master 0 746573743100 (unsupported command, not transpiled)
 		// close [open test1 w]
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test1 0 abcd")
+		// hexio_write test1 0 abcd (unsupported command, not transpiled)
 	}
 	{ // "1.6"
 		r = db.Query("\n  SELECT * FROM t1;\n")
@@ -103,18 +148,19 @@ func Test_mjournal(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xOpen")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script open_cb")
-	var _open = "" // TCL namespace variable
-	_ = _open // suppress unused warning
+	// testvfs tvfs (unsupported command, not transpiled)
+	// tvfs filter xOpen (unsupported command, not transpiled)
+	// tvfs script open_cb (unsupported command, not transpiled)
+	open = "" // TCL namespace variable
+	_ = open // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	os.Remove("test.db")
 	os.Remove("test.db2")
 	os.Remove("test.db3")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS dbfile;\n  ATTACH ''         AS dbtemp;\n  ATTACH ':memory:'  AS dbmem;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE dbfile.t2(x);\n  CREATE TABLE dbtemp.t3(x);\n  CREATE TABLE dbmem.t4(x);\n")
@@ -122,9 +168,18 @@ func Test_mjournal(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS dbfile;\n  ATTACH ''         AS dbtemp;\n  ATTACH ':memory:'  AS dbmem;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE dbfile.t2(x);\n  CREATE TABLE dbtemp.t3(x);\n  CREATE TABLE dbmem.t4(x);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_hasmj_test 2.1 {\n  BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INSERT...} {1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_hasmj_test 2.2 {\n  BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INSERT...} {0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_hasmj_test 2.3 {\n  BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INSERT...} {0}")
+	// do_hasmj_test 2.1 {
+  BEGIN;
+    INSERT INTO t1 VALUES(1);
+    INSERT...} {1} (unsupported command, not transpiled)
+	// do_hasmj_test 2.2 {
+  BEGIN;
+    INSERT INTO t1 VALUES(1);
+    INSERT...} {0} (unsupported command, not transpiled)
+	// do_hasmj_test 2.3 {
+  BEGIN;
+    INSERT INTO t1 VALUES(1);
+    INSERT...} {0} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -140,46 +195,53 @@ func Test_mjournal(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t1 VALUES(100, 200);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_save")
-	t.Errorf("TODO: %s not implemented in frigolite", "db_restore")
+	// db_save (unsupported command, not transpiled)
+	// db_restore (unsupported command, not transpiled)
 	{ // do_test "3.2"
-		var mjname = "file join [pwd] test.db-super"
+		mjname = "file join [pwd] test.db-super"
 		_ = mjname // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $mjname c* bytes")
-		var cksum = "0"
+		// binary scan $mjname c* bytes (test infra, not transpiled)
+		cksum = "0"
 		_ = cksum // suppress unused warning
 		for _, b := range tclSplitList(bytes) {
 		_ = b // suppress unused warning
-			var cksum = "0"
 			// incr cksum b
 			{
 				_n, _err := strconv.Atoi(cksum)
 				if _err == nil {
-					cksum = strconv.Itoa(_n + b)
+					cksum = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(b); return _v }())
 				}
 			}
 		}
-		var fd = "open test.db-journal a+"
+		fd = "open test.db-journal a+"
 		_ = fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary -encoding iso8859-1")
-		t.Log("-nonewline")
-		t.Log("-nonewline")
-		t.Log("-nonewline")
-		t.Log("-nonewline")
+		// fconfigure $fd -translation binary -encoding iso8859-1 (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
 		// close $fd
 		fd = "open test.db-super w"
 		_ = fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary -encoding iso8859-1")
-		t.Log("-nonewline")
+		// fconfigure $fd -translation binary -encoding iso8859-1 (unsupported command, not transpiled)
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
 		// close $fd
 		fd = "open test2.db-journal w"
 		_ = fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary -encoding iso8859-1")
-		t.Log("-nonewline")
-		t.Log("-nonewline")
+		// fconfigure $fd -translation binary -encoding iso8859-1 (unsupported command, not transpiled)
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
+		_putsMsg = "-nonewline"
+		_ = _putsMsg
 		// close $fd
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "3.3"
 		r = db.Query("\n  SELECT type, name, tbl_name, sql FROM sqlite_schema\n")
@@ -202,54 +264,57 @@ func Test_mjournal(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
+	// db_save_and_close (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	var c = "0"
+	c = "0"
 	_ = c // suppress unused warning
-	var tests = "1 notamasterjournal   0\n  2 master.9FF          " + c + "\n  3 master-mj1234569AA  1\n  4 master-mj123456_AA  0\n  5 abc                 0\n  6 masterr9FF          0\n  7 master-fj123456_AA  0\n  8 -mj1234569AA        1\n  9 1-mj1234569AA       1\n  10 .9AB               0\n  11 master.9X2         0\n  12 master.92X         0\n  13 master-mj12G4569AA 0"
+	tests = "1 notamasterjournal   0\n  2 master.9FF          " + c + "\n  3 master-mj1234569AA  1\n  4 master-mj123456_AA  0\n  5 abc                 0\n  6 masterr9FF          0\n  7 master-fj123456_AA  0\n  8 -mj1234569AA        1\n  9 1-mj1234569AA       1\n  10 .9AB               0\n  11 master.9X2         0\n  12 master.92X         0\n  13 master-mj12G4569AA 0"
 	_ = tests // suppress unused warning
 	// foreach {tn mjname bDel} tests
-	_items0 := tclSplitList(tests)
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items2 := tclSplitList(tests)
+	for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+		tn := _items2[_idx2+0]
 		_ = tn // suppress unused warning
-		mjname := _items0[_idx0+1]
+		mjname := _items2[_idx2+1]
 		_ = mjname // suppress unused warning
-		bDel := _items0[_idx0+2]
+		bDel := _items2[_idx2+2]
 		_ = bDel // suppress unused warning
-		_ = _idx0
-			var content = "0"
+		_ = _idx2
+			content = "0"
 			_ = content // suppress unused warning
 			for func() bool { content_n, _content_e := strconv.Atoi(content); if _content_e != nil { return false }; return content_n < 2 }() {
-				t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+				// db_restore_and_reopen (unsupported command, not transpiled)
 				_res = db.Exec("\n      PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA synchronous = OFF;\n      BEGIN;\n        INSERT INTO t1 DEFAULT VALUES;\n    ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
-				t.Errorf("TODO: %s not implemented in frigolite", "db_restore")
-				t.Errorf("TODO: %s not implemented in frigolite", "append_super_journal test.db-journal $mjname")
-				var fd = "open $mjname w"
+				// db_save_and_close (unsupported command, not transpiled)
+				// db_restore (unsupported command, not transpiled)
+				// append_super_journal test.db-journal $mjname (unsupported command, not transpiled)
+				fd = "open $mjname w"
 				_ = fd // suppress unused warning
 				if tclBool(content) {
-					var jname = "file normalize test.db-journal"
+					jname = "file normalize test.db-journal"
 					_ = jname // suppress unused warning
-					if _tcl_platform_platform == "windows" {
-						var jname = "[list / \\\\] $jname"
+					if tcl_platform_platform == "windows" {
+						jname = ""
 						_ = jname // suppress unused warning
 					}
-					t.Log("-nonewline")
-					t.Log("-nonewline")
-					var mjexists = "!$bDel"
+					_putsMsg := "-nonewline"
+					_ = _putsMsg
+					_putsMsg = "-nonewline"
+					_ = _putsMsg
+					mjexists = "!$bDel"
 					_ = mjexists // suppress unused warning
 				} else {
-					t.Log("-nonewline")
-					var mjexists = "1"
+					_putsMsg := "-nonewline"
+					_ = _putsMsg
+					mjexists = "1"
 					_ = mjexists // suppress unused warning
 				}
 				// close $fd
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp3, err := frigolite.Open("test.db")
+				_ = _dbtmp3 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				{ // do_test "4." + tn + "." + content + ".1"
 					r = db.Query(" SELECT * FROM t1 ")

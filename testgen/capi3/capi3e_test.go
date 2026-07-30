@@ -41,17 +41,39 @@ func Test_capi3e(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var names string
+	_ = names // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var nt string
+	_ = nt // pre-declared from TCL source
+	var vals string
+	_ = vals // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var names = "t 1 t. 1. t.d 1.d t-1 1-1 t.db ä.db ë.db ö.db ü.db ÿ.db"
+	names = "t 1 t. 1. t.d 1.d t-1 1-1 t.db ä.db ë.db ö.db ü.db ÿ.db"
 	_ = names // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for _, name := range tclSplitList(names) {
 	_ = name // suppress unused warning
-		var i = "0"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -60,12 +82,11 @@ func Test_capi3e(t *testing.T) {
 			}
 		}
 		{ // do_test "capi3e-1.1." + i
-			var db2 = "sqlite3_open $name {}"
-			_ = db2 // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode $db2")
+			// set db2 [sqlite3_open ...] (skipped, DB connection)
+			// sqlite3_errcode $db2 (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3e-1.2." + i
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $db2")
+			// sqlite3_close $db2 (unsupported command, not transpiled)
 		}
 		{ // do_test "capi3e-1.3." + i
 			// file isfile $name

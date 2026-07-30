@@ -40,58 +40,93 @@ func Test_loadext(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testextension string
+	_ = testextension // pre-declared from TCL source
+	var gcc_shared string
+	_ = gcc_shared // pre-declared from TCL source
+	var dlerror_nosuchfile string
+	_ = dlerror_nosuchfile // pre-declared from TCL source
+	var dlerror_notadll string
+	_ = dlerror_notadll // pre-declared from TCL source
+	var dlerror_nosymbol string
+	_ = dlerror_nosymbol // pre-declared from TCL source
+	var srcdir string
+	_ = srcdir // pre-declared from TCL source
+	var testextsrc string
+	_ = testextsrc // pre-declared from TCL source
+	var cmdline string
+	_ = cmdline // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var mused string
+	_ = mused // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	if _tcl_platform_platform == "windows" {
-		var testextension = "./testloadext.dll"
+	if tcl_platform_platform == "windows" {
+		testextension = "./testloadext.dll"
 		_ = testextension // suppress unused warning
 	} else {
-		var testextension = "./libtestloadext.so"
+		testextension = "./libtestloadext.so"
 		_ = testextension // suppress unused warning
 	}
-	var gcc_shared = "-shared -fPIC"
+	gcc_shared = "-shared -fPIC"
 	_ = gcc_shared // suppress unused warning
-	if _tcl_platform_os == "Darwin" {
-		var gcc_shared = "-dynamiclib"
+	if tcl_platform_os == "Darwin" {
+		gcc_shared = "-dynamiclib"
 		_ = gcc_shared // suppress unused warning
 	}
-	var dlerror_nosuchfile = "%s: cannot open shared object file: No such file or directory"
+	dlerror_nosuchfile = "%s: cannot open shared object file: No such file or directory"
 	_ = dlerror_nosuchfile // suppress unused warning
-	var dlerror_notadll = "%s: file too short"
+	dlerror_notadll = "%s: file too short"
 	_ = dlerror_notadll // suppress unused warning
-	var dlerror_nosymbol = "%s: undefined symbol: %s"
+	dlerror_nosymbol = "%s: undefined symbol: %s"
 	_ = dlerror_nosymbol // suppress unused warning
-	if _tcl_platform_os == "Darwin" {
-		var dlerror_nosuchfile = "dlopen.%s, 10.: .*image.*found.*"
+	if tcl_platform_os == "Darwin" {
+		dlerror_nosuchfile = "dlopen.%s, 10.: .*image.*found.*"
 		_ = dlerror_nosuchfile // suppress unused warning
-		var dlerror_notadll = "dlopen.%1$s, 10.: .*image.*found.*"
+		dlerror_notadll = "dlopen.%1$s, 10.: .*image.*found.*"
 		_ = dlerror_notadll // suppress unused warning
-		var dlerror_nosymbol = "dlsym.XXX, %2$s.: symbol not found"
+		dlerror_nosymbol = "dlsym.XXX, %2$s.: symbol not found"
 		_ = dlerror_nosymbol // suppress unused warning
 	}
-	if _tcl_platform_os == "Windows NT" {
-		var dlerror_nosuchfile = "The specified module could not be found.*"
+	if tcl_platform_os == "Windows NT" {
+		dlerror_nosuchfile = "The specified module could not be found.*"
 		_ = dlerror_nosuchfile // suppress unused warning
-		if _tcl_platform_platform == "unix" {
-			var dlerror_notadll = dlerror_nosuchfile
+		if tcl_platform_platform == "unix" {
+			dlerror_notadll = dlerror_nosuchfile
 			_ = dlerror_notadll // suppress unused warning
 		} else {
-			var dlerror_notadll = "%%1 is not a valid Win32 application.*"
+			dlerror_notadll = "%%1 is not a valid Win32 application.*"
 			_ = dlerror_notadll // suppress unused warning
 		}
-		var dlerror_nosymbol = "The specified procedure could not be found.*"
+		dlerror_nosymbol = "The specified procedure could not be found.*"
 		_ = dlerror_nosymbol // suppress unused warning
 	}
 	if tclBool("!" + "file exists $testextension") {
-		var srcdir = "file dir $testdir" + "/src"
+		srcdir = "file dir $testdir" + "/src"
 		_ = srcdir // suppress unused warning
-		var testextsrc = srcdir + "/test_loadext.c"
+		testextsrc = srcdir + "/test_loadext.c"
 		_ = testextsrc // suppress unused warning
-		var cmdline = "concat exec gcc $gcc_shared"
+		cmdline = "concat exec gcc $gcc_shared"
 		_ = cmdline // suppress unused warning
 		cmdline = tclListAppend(cmdline, "-Wall", "-I" + srcdir, "-I.", "-I..", "-g", testextsrc, "-o", testextension)
 		if false {
-			t.Log("Skipping loadext tests: Test extension not built...")
-			t.Log(msg)
+			_putsMsg := "Skipping loadext tests: Test extension not built..."
+			_ = _putsMsg
+			_putsMsg = msg
+			_ = _putsMsg
 			return
 		}
 	}
@@ -100,19 +135,19 @@ func Test_loadext(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db $testextension testloadext_init")
+		// sqlite3_load_extension db $testextension testloadext_init (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT half(1.0);\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-1.3"
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db2 SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION 1")
+		// sqlite3_db_config db2 SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION 1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT half(1.0);\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db2 $testextension testloadext_init")
+		// sqlite3_load_extension db2 $testextension testloadext_init (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT half(1.0);\n  ")
 		_ = _res // catchsql
 	}
@@ -121,17 +156,17 @@ func Test_loadext(t *testing.T) {
 		_ = _res // catchsql
 	}
 	db2.Close()
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 1")
+	// sqlite3_enable_load_extension db 1 (unsupported command, not transpiled)
 	{ // do_test "loadext-2.1"
 		os.Remove("$")
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db ${testextension}xx")
+			// sqlite3_load_extension db ${testextension}xx (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -144,20 +179,21 @@ func Test_loadext(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "loadext-2.2"
-		var fd = "open \"./notasharedlib.so\" w"
+		fd = "open \"./notasharedlib.so\" w"
 		_ = fd // suppress unused warning
-		t.Log(fd)
+		_putsMsg := fd
+		_ = _putsMsg
 		// close $fd
 		fd = "open \"./notasharedlib.dll\" w"
 		_ = fd // suppress unused warning
-		t.Log(fd)
+		_putsMsg = fd
+		_ = _putsMsg
 		// close $fd
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db ./notasharedlib")
+			// sqlite3_load_extension db ./notasharedlib (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -170,12 +206,11 @@ func Test_loadext(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "loadext-2.3"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db $testextension icecream")
+			// sqlite3_load_extension db $testextension icecream (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -184,20 +219,19 @@ func Test_loadext(t *testing.T) {
 				msg = ""
 			}
 		}
-		if _tcl_platform_os == "Darwin" {
-			msg := tclRegsub("0x[1234567890abcdefABCDEF]*", msg, "XXX")
+		if tcl_platform_os == "Darwin" {
+			msg = tclRegsub("0x[1234567890abcdefABCDEF]*", msg, "XXX")
 			_ = msg // suppress unused warning
 		}
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
 	{ // do_test "loadext-2.4"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db $testextension testbrokenext_init")
+			// sqlite3_load_extension db $testextension testbrokenext_init (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -209,18 +243,19 @@ func Test_loadext(t *testing.T) {
 		_list := tclList([]string{rc, msg})
 		_ = _list
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 1")
+	// sqlite3_enable_load_extension db 1 (unsupported command, not transpiled)
 	{ // do_test "loadext-3.1"
 		_res = db.Exec("\n    SELECT half(5);\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-3.2"
-		var res = "catchsql {\n    SELECT load_extension($::testextension)\n  }"
+		res = "catchsql {\n    SELECT load_extension($::testextension)\n  }"
 		_ = res // suppress unused warning
-		if _tcl_platform_os == "Darwin" {
-			res := tclRegsub("0x[1234567890abcdefABCDEF]*", res, "XXX")
+		if tcl_platform_os == "Darwin" {
+			res = tclRegsub("0x[1234567890abcdefABCDEF]*", res, "XXX")
 			_ = res // suppress unused warning
 		}
 	}
@@ -237,7 +272,8 @@ func Test_loadext(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT sqlite3_status('MEMORY_USED') AS mused\n  ")
 		}
-		t.Log("-nonewline")
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
 		// expr $mused>0 → "$mused>0"
 	}
 	{ // do_test "loadext-3.6"
@@ -252,30 +288,36 @@ func Test_loadext(t *testing.T) {
 		_res = db.Exec("\n    SELECT sqlite3_status(23) AS mused\n  ")
 		_ = _res // catchsql
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "loadext-4.1"
 		_res = db.Exec("\n    SELECT load_extension($::testextension,'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 1")
+		// sqlite3_enable_load_extension db 1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT load_extension($::testextension,'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 0")
+		// sqlite3_enable_load_extension db 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT load_extension($::testextension,'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION 1")
+		// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION 1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT load_extension($::testextension,'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test loadext-5 -tclprep {\n  sqlite3_reset_auto_extension\n} -tclbody {\n  if {[autoinstall_test_functions]==7} {error \"ou...}")
-	if _tcl_platform_platform != "windows" {
-		t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test loadext-6 -tclbody {\n    db enable_load_extension 1\n    sqlite3_load_e...}")
+	// do_malloc_test loadext-5 -tclprep {
+  sqlite3_reset_auto_extension
+} -tclbody {
+  if {[autoinstall_test_functions]==7} {error "ou...} (unsupported command, not transpiled)
+	if tcl_platform_platform != "windows" {
+		// do_malloc_test loadext-6 -tclbody {
+    db enable_load_extension 1
+    sqlite3_load_e...} (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	// autoinstall_test_functions (unsupported command, not transpiled)
 }

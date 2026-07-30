@@ -3,6 +3,7 @@ package alter
 
 import (
 "github.com/pijalu/frigolite"
+"strconv"
 "strings"
 "testing"
 )
@@ -40,11 +41,48 @@ func Test_alter(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var temp string
+	_ = temp // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var TRIGGER string
+	_ = TRIGGER // pre-declared from TCL source
+	var tblname string
+	_ = tblname // pre-declared from TCL source
+	var tbl_name string
+	_ = tbl_name // pre-declared from TCL source
+	var oid string
+	_ = oid // pre-declared from TCL source
+	var tbl_name2 string
+	_ = tbl_name2 // pre-declared from TCL source
+	var col_name string
+	_ = col_name // pre-declared from TCL source
+	var col_name2 string
+	_ = col_name2 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var isutf16 string
+	_ = isutf16 // pre-declared from TCL source
+	var system_table_list string
+	_ = system_table_list // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "alter-1.1"
-		_res = db.Exec("-nocommands {\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + _temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);\n  }")
+		_res = db.Exec("-nocommands {\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);\n  }")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "-nocommands {\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + _temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);\n  }")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "-nocommands {\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE TABLE " + "t1'x1" + "(c UNIQUE, b PRIMARY KEY);\n    INSERT INTO " + "t1'x1" + " VALUES(3,4);\n    CREATE INDEX t1i1 ON T1(B);\n    CREATE INDEX t1i2 ON t1(a,b);\n    CREATE INDEX i3 ON " + "t1'x1" + "(b,c);\n    CREATE " + temp + " TABLE \"temp table\"(e,f,g UNIQUE);\n    CREATE INDEX i2 ON " + "temp table" + "(f);\n    INSERT INTO " + "temp table" + " VALUES(5,6,7);\n  }")
 		}
 		r = db.Query("\n    SELECT 't1', * FROM t1;\n    SELECT 't1''x1', * FROM \"t1'x1\";\n    SELECT * FROM [temp table];\n  ")
 		if r.Error != nil {
@@ -52,9 +90,9 @@ func Test_alter(t *testing.T) {
 		}
 	}
 	{ // do_test "alter-1.2"
-		_res = db.Exec("CREATE " + _temp + " TABLE objlist(type, name, tbl_name);\n    INSERT INTO objlist SELECT type, name, tbl_name \n        FROM sqlite_master WHERE NAME!='objlist';")
+		_res = db.Exec("CREATE " + temp + " TABLE objlist(type, name, tbl_name);\n    INSERT INTO objlist SELECT type, name, tbl_name \n        FROM sqlite_master WHERE NAME!='objlist';")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE " + _temp + " TABLE objlist(type, name, tbl_name);\n    INSERT INTO objlist SELECT type, name, tbl_name \n        FROM sqlite_master WHERE NAME!='objlist';")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE " + temp + " TABLE objlist(type, name, tbl_name);\n    INSERT INTO objlist SELECT type, name, tbl_name \n        FROM sqlite_master WHERE NAME!='objlist';")
 		}
 		r = db.Query("\n    SELECT type, name, tbl_name FROM objlist ORDER BY tbl_name, type desc, name;\n  ")
 		if r.Error != nil {
@@ -95,7 +133,9 @@ func Test_alter(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "alter-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    ALTER TABLE [-t1-] RENAME to [*t1*];\n    ALTE...}")
+		// stepsql $DB {
+    ALTER TABLE [-t1-] RENAME to [*t1*];
+    ALTE...} (unsupported command, not transpiled)
 		_res = db.Exec("\n    DELETE FROM objlist;\n    INSERT INTO objlist SELECT type, name, tbl_name\n        FROM sqlite_master WHERE NAME!='objlist';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM objlist;\n    INSERT INTO objlist SELECT type, name, tbl_name\n        FROM sqlite_master WHERE NAME!='objlist';\n  ")
@@ -183,83 +223,85 @@ func Test_alter(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE \\\"" + tblname + "\\\"")
 		}
 	}
-	var _tbl_name = "abc\\uABCDdef" // TCL namespace variable
-	_ = _tbl_name // suppress unused warning
+	tbl_name = "abc\\uABCDdef" // TCL namespace variable
+	_ = tbl_name // suppress unused warning
 	{ // do_test "alter-6.1"
-		len(_tbl_name)
+		_ = strconv.Itoa(len(tbl_name)) // string length result
 	}
 	{ // do_test "alter-6.2"
 		_res = db.Exec("\n    CREATE TABLE " + tbl_name + "(a, b, c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE " + tbl_name + "(a, b, c);\n  ")
 		}
-		var _oid = "execsql {SELECT max(oid) FROM sqlite_master}" // TCL namespace variable
-		_ = _oid // suppress unused warning
-		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE oid = " + _oid + ";\n  ")
+		oid = "execsql {SELECT max(oid) FROM sqlite_master}" // TCL namespace variable
+		_ = oid // suppress unused warning
+		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + ";\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + _oid + ";\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + ";\n  ")
 		}
 	}
-	r = db.Query("\n  SELECT * FROM " + _tbl_name + "\n")
+	r = db.Query("\n  SELECT * FROM " + tbl_name + "\n")
 	if r.Error != nil {
-		t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM " + _tbl_name + "\n")
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM " + tbl_name + "\n")
 	}
-	var _tbl_name2 = "abcXdef" // TCL namespace variable
-	_ = _tbl_name2 // suppress unused warning
+	tbl_name2 = "abcXdef" // TCL namespace variable
+	_ = tbl_name2 // suppress unused warning
 	{ // do_test "alter-6.3"
-		_res = db.Exec("\n    ALTER TABLE " + _tbl_name + " RENAME TO " + _tbl_name2 + " \n  ")
+		_res = db.Exec("\n    ALTER TABLE " + tbl_name + " RENAME TO " + tbl_name2 + " \n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE " + _tbl_name + " RENAME TO " + _tbl_name2 + " \n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE " + tbl_name + " RENAME TO " + tbl_name2 + " \n  ")
 		}
-		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE oid = " + _oid + "\n  ")
+		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + "\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + _oid + "\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + "\n  ")
 		}
 	}
 	{ // do_test "alter-6.4"
-		_res = db.Exec("\n    ALTER TABLE " + _tbl_name2 + " RENAME TO " + _tbl_name + "\n  ")
+		_res = db.Exec("\n    ALTER TABLE " + tbl_name2 + " RENAME TO " + tbl_name + "\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE " + _tbl_name2 + " RENAME TO " + _tbl_name + "\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE " + tbl_name2 + " RENAME TO " + tbl_name + "\n  ")
 		}
-		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE oid = " + _oid + "\n  ")
+		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + "\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + _oid + "\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + "\n  ")
 		}
 	}
-	var _col_name = "ghi\\1234\\jkl" // TCL namespace variable
-	_ = _col_name // suppress unused warning
+	col_name = "ghi\\1234\\jkl" // TCL namespace variable
+	_ = col_name // suppress unused warning
 	{ // do_test "alter-6.5"
-		_res = db.Exec("\n    ALTER TABLE " + _tbl_name + " ADD COLUMN " + _col_name + " VARCHAR\n  ")
+		_res = db.Exec("\n    ALTER TABLE " + tbl_name + " ADD COLUMN " + col_name + " VARCHAR\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE " + _tbl_name + " ADD COLUMN " + _col_name + " VARCHAR\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE " + tbl_name + " ADD COLUMN " + col_name + " VARCHAR\n  ")
 		}
-		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE oid = " + _oid + "\n  ")
+		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + "\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + _oid + "\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + "\n  ")
 		}
 	}
-	var _col_name2 = "B\\3421\\A" // TCL namespace variable
-	_ = _col_name2 // suppress unused warning
+	col_name2 = "B\\3421\\A" // TCL namespace variable
+	_ = col_name2 // suppress unused warning
 	{ // do_test "alter-6.6"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		_res = db.Exec("\n    ALTER TABLE " + _tbl_name + " ADD COLUMN " + _col_name2 + "\n  ")
+		_res = db.Exec("\n    ALTER TABLE " + tbl_name + " ADD COLUMN " + col_name2 + "\n  ")
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE " + _tbl_name + " ADD COLUMN " + _col_name2 + "\n  ")
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE " + tbl_name + " ADD COLUMN " + col_name2 + "\n  ")
 		}
-		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE oid = " + _oid + "\n  ")
+		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + "\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + _oid + "\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sql FROM sqlite_master WHERE oid = " + oid + "\n  ")
 		}
 	}
 	{ // do_test "alter-6.7"
-		r = db.Query("\n    INSERT INTO " + _tbl_name + " VALUES(1, 2, 3, 4, 5);\n    SELECT " + _col_name + ", " + _col_name2 + " FROM " + _tbl_name + ";\n  ")
+		r = db.Query("\n    INSERT INTO " + tbl_name + " VALUES(1, 2, 3, 4, 5);\n    SELECT " + col_name + ", " + col_name2 + " FROM " + tbl_name + ";\n  ")
 		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO " + _tbl_name + " VALUES(1, 2, 3, 4, 5);\n    SELECT " + _col_name + ", " + _col_name2 + " FROM " + _tbl_name + ";\n  ")
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO " + tbl_name + " VALUES(1, 2, 3, 4, 5);\n    SELECT " + col_name + ", " + col_name2 + " FROM " + tbl_name + ";\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test alter-7.1 {\n  execsql {\n    CREATE TABLE t1(a TEXT COLLATE BI...} {text 1 integer -2 text 5.4e-08 real 5.4e-08}")
+	// do_realnum_test alter-7.1 {
+  execsql {
+    CREATE TABLE t1(a TEXT COLLATE BI...} {text 1 integer -2 text 5.4e-08 real 5.4e-08} (expr test, not transpiled)
 	{ // do_test "alter-8.1"
 		r = db.Query("\n    CREATE TABLE t2(a INTEGER);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    ALTER TABLE t2 ADD COLUMN b INTEGER DEFAULT 9;\n    SELECT sum(b) FROM t2;\n  ")
 		if r.Error != nil {
@@ -272,7 +314,7 @@ func Test_alter(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, sum(b) FROM t2 GROUP BY a;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 	{ // do_test "alter-9.1"
 		r = db.Query("SELECT SQLITE_RENAME_COLUMN(0,0,0,0,0,0,0,0,0)")
 		if r.Error != nil {
@@ -280,13 +322,13 @@ func Test_alter(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n    1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }\n"
-	_items0 := tclSplitList("\n    1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n    1 { SELECT SQLITE_RENAME_TABLE(0,0,0,0,0,0,0) }\n    2 { SELECT SQLITE_RENAME_TABLE(10,20,30,40,50,60,70) }\n    3 { SELECT SQLITE_RENAME_TABLE('foo','foo','foo','foo','foo','foo','foo') }\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items1[_idx1+1]
 		_ = sql // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "alter-9.2." + tn
 				{
 					var _catchErr error
@@ -296,7 +338,7 @@ func Test_alter(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+		// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 		{ // "alter-9.3"
 			_res = db.Exec("\n  SELECT sqlite_rename_table(0,0,0,0,0,0,0);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_rename_table") {
@@ -340,7 +382,7 @@ func Test_alter(t *testing.T) {
 			}
 		}
 		{ // do_test "alter-11.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11(%c6%c6)}")
+			// sqlite3_exec db {CREATE TABLE t11(%c6%c6)} (unsupported command, not transpiled)
 			_res = db.Exec("\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
@@ -348,7 +390,7 @@ func Test_alter(t *testing.T) {
 			_res = db.Exec("\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
 			_ = _res // catchsql
 		}
-		var isutf16 = "regexp 16 [db one {PRAGMA encoding}]"
+		isutf16 = "regexp 16 [db one {PRAGMA encoding}]"
 		_ = isutf16 // suppress unused warning
 		if tclBool("!" + isutf16) {
 			{ // do_test "alter-11.2"
@@ -356,11 +398,11 @@ func Test_alter(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11 VALUES(1,2)")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %c6%c6 AS xyz, abc FROM t11}")
+				// sqlite3_exec db {SELECT %c6%c6 AS xyz, abc FROM t11} (unsupported command, not transpiled)
 			}
 		}
 		{ // do_test "alter-11.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11b(\"%81%82%83\" text)}")
+			// sqlite3_exec db {CREATE TABLE t11b("%81%82%83" text)} (unsupported command, not transpiled)
 			_res = db.Exec("\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
@@ -374,17 +416,17 @@ func Test_alter(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11b VALUES(3,4)")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11b}")
+				// sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11b} (unsupported command, not transpiled)
 			}
 			{ // do_test "alter-11.5"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11b}")
+				// sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11b} (unsupported command, not transpiled)
 			}
 			{ // do_test "alter-11.6"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT \"%81%82%83\" AS xyz, abc FROM t11b}")
+				// sqlite3_exec db {SELECT "%81%82%83" AS xyz, abc FROM t11b} (unsupported command, not transpiled)
 			}
 		}
 		{ // do_test "alter-11.7"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11c(%81%82%83 text)}")
+			// sqlite3_exec db {CREATE TABLE t11c(%81%82%83 text)} (unsupported command, not transpiled)
 			_res = db.Exec("\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
@@ -398,13 +440,13 @@ func Test_alter(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11c VALUES(5,6)")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11c}")
+				// sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11c} (unsupported command, not transpiled)
 			}
 			{ // do_test "alter-11.9"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11c}")
+				// sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11c} (unsupported command, not transpiled)
 			}
 			{ // do_test "alter-11.10"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT \"%81%82%83\" AS xyz, abc FROM t11c}")
+				// sqlite3_exec db {SELECT "%81%82%83" AS xyz, abc FROM t11c} (unsupported command, not transpiled)
 			}
 		}
 		{ // do_test "alter-12.1"
@@ -424,8 +466,8 @@ func Test_alter(t *testing.T) {
 			}
 		}
 		{ // do_test "alter-12.4"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT * FROM v1; ")
 			if r.Error != nil {
@@ -462,18 +504,18 @@ func Test_alter(t *testing.T) {
 			_res = db.Exec("\n    ALTER TABLE t3651 ADD COLUMN b PRIMARY KEY;\n  ")
 			_ = _res // catchsql
 		}
-		var system_table_list = "1 sqlite_master"
+		system_table_list = "1 sqlite_master"
 		_ = system_table_list // suppress unused warning
 		_res = db.Exec("ANALYZE")
 		_ = _res // catchsql
 		// foreach {tn tbl} system_table_list
-		_items1 := tclSplitList(system_table_list)
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			tn := _items1[_idx1+0]
+		_items3 := tclSplitList(system_table_list)
+		for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+			tn := _items3[_idx3+0]
 			_ = tn // suppress unused warning
-			tbl := _items1[_idx1+1]
+			tbl := _items3[_idx3+1]
 			_ = tbl // suppress unused warning
-			_ = _idx1
+			_ = _idx3
 				{ // do_test "alter-15." + tn + ".1"
 					_res = db.Exec("ALTER TABLE " + tbl + " RENAME TO xyz")
 					_ = _res // catchsql

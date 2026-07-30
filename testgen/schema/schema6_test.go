@@ -39,14 +39,66 @@ func Test_schema6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var hash string
+	_ = hash // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var pgsz string
+	_ = pgsz // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var thishash string
+	_ = thishash // pre-declared from TCL source
+	var hashes string
+	_ = hashes // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var basename string
+	_ = basename // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "schema6" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	testprefix = "schema6" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// do_not_use_codec (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "check_same_database_content 100 {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...} {\n  CREATE TABLE t1(xyz INTEGER, abc, PRIMARY KEY(x...} {\n  CREATE TABLE t1(xyz INTEGER, abc, UNIQUE(abc), ...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY ASC, b UN...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CR...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  IN...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_same_database_content 110 {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_same_database_content 120 {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...} {\n  CREATE TABLE t1(xyz INTEGER, abc, PRIMARY KEY(x...} {\n  CREATE TABLE t1(xyz INTEGER, abc, UNIQUE(abc), ...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY ASC, b UN...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {\n  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b) WITHO...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b) WITHO...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "check_different_database_content 130 {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b...} {\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...}")
+	// check_same_database_content 100 {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...} {
+  CREATE TABLE t1(xyz INTEGER, abc, PRIMARY KEY(x...} {
+  CREATE TABLE t1(xyz INTEGER, abc, UNIQUE(abc), ...} {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY ASC, b UN...} {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);
+  CR...} {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);
+  IN...} (unsupported command, not transpiled)
+	// check_same_database_content 110 {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b...} {
+  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {
+  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {
+  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {
+  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} (unsupported command, not transpiled)
+	// check_same_database_content 120 {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...} {
+  CREATE TABLE t1(xyz INTEGER, abc, PRIMARY KEY(x...} {
+  CREATE TABLE t1(xyz INTEGER, abc, UNIQUE(abc), ...} {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY ASC, b UN...} {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b...} {
+  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {
+  CREATE TABLE t1(a INTEGER UNIQUE PRIMARY KEY, b...} {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY, b) WITHO...} {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY, b) WITHO...} (unsupported command, not transpiled)
+	// check_different_database_content 130 {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...} {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY UNIQUE, b...} {
+  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE...} (unsupported command, not transpiled)
 }

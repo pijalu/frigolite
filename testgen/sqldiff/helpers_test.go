@@ -19,8 +19,8 @@ import (
 var tcl_platform_platform = "unix"
 var tcl_platform_byteOrder = "littleEndian"
 var tcl_platform_os = "Darwin"
-var tcl_platform_pointerSize = 8
-var tcl_platform_wordSize = 8
+var tcl_platform_pointerSize = "8"
+var tcl_platform_wordSize = "8"
 var _tcl_platform_platform = "unix"
 var _tcl_platform_byteOrder = "littleEndian"
 var _tcl_platform_os = "unix"
@@ -122,7 +122,12 @@ func flatten(res *frigolite.Result) string {
 				case int64:
 					parts = append(parts, strconv.FormatInt(x, 10))
 				case float64:
-					parts = append(parts, strconv.FormatFloat(x, 'g', -1, 64))
+					s := strconv.FormatFloat(x, 'g', -1, 64)
+					// SQLite preserves trailing .0 for whole-number REALs
+					if !strings.ContainsAny(s, ".eE") {
+						s = s + ".0"
+					}
+					parts = append(parts, s)
 				case string:
 					parts = append(parts, x)
 				case []byte:
@@ -227,15 +232,29 @@ func tclLRange(list string, start, end interface{}) string {
 	return tclList(items[s : e+1])
 }
 
-func tclLReplace(list string, first, count int, args ...string) string {
+func tclLReplace(list string, first, count interface{}, args ...string) string {
 	items := tclSplitList(list)
-	if first < 0 { first = 0 }
-	if first > len(items) { first = len(items) }
-	end := first + count
+	f := toInt(first)
+	c := toInt(count)
+	if f < 0 { f = 0 }
+	if f > len(items) { f = len(items) }
+	end := f + c
 	if end > len(items) { end = len(items) }
 	repl := args
-	items = append(items[:first], append(repl, items[end:]...)...)
+	items = append(items[:f], append(repl, items[end:]...)...)
 	return tclList(items)
+}
+
+func toInt(v interface{}) int {
+	switch x := v.(type) {
+	case int: return x
+	case int64: return int(x)
+	case string:
+		n, _ := strconv.Atoi(x)
+		return n
+	default:
+		return 0
+	}
 }
 
 func tclSort(list string) string {
@@ -254,6 +273,10 @@ func tclRegsub(pattern, str, replacement string) string {
 	re, err := regexp.Compile(pattern)
 	if err != nil { return str }
 	return re.ReplaceAllString(str, replacement)
+}
+
+func tclRegsubAll(pattern, str, replacement string) string {
+	return tclRegsub(pattern, str, replacement)
 }
 
 func tclStringMatch(pattern, str string) bool {
@@ -287,4 +310,34 @@ func tclGlob(pattern string) string {
 // In TCL: "0" and "" are false, everything else is true.
 func tclBool(s string) bool {
 	return s != "" && s != "0"
+}
+
+// tclStr converts any value to a string (for error/interface types in concatenation).
+func tclStr(v interface{}) string {
+	if v == nil { return "" }
+	return fmt.Sprintf("%v", v)
+}
+
+// tclStringRange implements TCL string range command.
+// Handles TCL "end" syntax: "end" = last char, "end-N" = N chars from end.
+func tclStringRange(s string, start, end interface{}) string {
+	strLen := len(s)
+	startIdx := tclIndex(start, strLen)
+	endIdx := tclIndex(end, strLen)
+	if startIdx < 0 { startIdx = 0 }
+	if endIdx >= strLen { endIdx = strLen - 1 }
+	if startIdx > endIdx || startIdx >= strLen { return "" }
+	return s[startIdx : endIdx+1]
+}
+
+func tclIndex(idx interface{}, length int) int {
+	s := fmt.Sprintf("%v", idx)
+	if strings.HasPrefix(s, "end") {
+		rest := s[3:]
+		if rest == "" { return length - 1 }
+		n, _ := strconv.Atoi(rest)
+		return length - 1 + n
+	}
+	n, _ := strconv.Atoi(s)
+	return n
 }

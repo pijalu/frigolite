@@ -40,6 +40,11 @@ func Test_colname(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "colname-1.1"
 		_res = db.Exec("PRAGMA short_column_names")
@@ -264,11 +269,11 @@ func Test_colname(t *testing.T) {
 		}
 	}
 	{ // do_test "colname-5.1"
-		tclLReplace("db eval {\n    SELECT x.* FROM sqlite_master X LIMIT 1;\n  }", "3", "3", "x")
+		_ = tclLReplace("db eval {\n    SELECT x.* FROM sqlite_master X LIMIT 1;\n  }", "3", "3", "x") // lreplace result
 	}
 	{ // do_test "colname-6.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t6(a, ['a'], [\"a\"], \"[a]\", [`a`]);\n    INSERT INTO t6 VALUES(1,2,3,4,5);\n  ")
 		if _res.Error != nil {
@@ -367,7 +372,8 @@ func Test_colname(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE \"t3893\"(\"x\");\n    INSERT INTO t3893 VALUES(123);\n    SELECT \"y\".\"x\" FROM (SELECT \"x\" FROM \"t3893\") AS \"y\";\n  ")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp1, err := frigolite.Open(":memory:")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "colname-9.100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    CREATE VIEW v1(x,y) AS SELECT a,b FROM t1;\n  ")

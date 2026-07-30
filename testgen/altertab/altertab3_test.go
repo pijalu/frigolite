@@ -40,8 +40,25 @@ func Test_altertab3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var pg string
+	_ = pg // pre-declared from TCL source
+	var pg2 string
+	_ = pg2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "altertab3"
+	testprefix = "altertab3"
 	_ = testprefix // suppress unused warning
 	db.Close()
 	db, err = frigolite.Open("")
@@ -460,7 +477,8 @@ func Test_altertab3(t *testing.T) {
 				}
 			}
 		}
-		db, err = frigolite.Open(":memory:")
+		_dbtmp1, err := frigolite.Open(":memory:")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "20.10"
 			_res = db.Exec("\n  CREATE TABLE s(a, b, c);\n  CREATE INDEX k ON s( (WITH s AS( SELECT * ) VALUES(2) ) IN () );\n  ALTER TABLE s RENAME a TO a2;\n")
@@ -546,7 +564,8 @@ func Test_altertab3(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "view v2 is circularly defined", _res.Error, "\n  SELECT * FROM v2\n")
 			}
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "23.3"
 			_res = db.Exec("\n  ALTER TABLE v0 RENAME TO t3 ;\n")
@@ -780,13 +799,13 @@ func Test_altertab3(t *testing.T) {
 			}
 		}
 		{ // do_test "31.1"
-			var pg = "db one {PRAGMA page_count}"
+			pg = "db one {PRAGMA page_count}"
 			_ = pg // suppress unused warning
 			_res = db.Exec("\n    ALTER TABLE t1 DROP COLUMN tt;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t1 DROP COLUMN tt;\n  ")
 			}
-			var pg2 = "db one {PRAGMA page_count}"
+			pg2 = "db one {PRAGMA page_count}"
 			_ = pg2 // suppress unused warning
 			// expr $pg==$pg2 → "$pg==$pg2"
 		}

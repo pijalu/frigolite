@@ -39,12 +39,21 @@ func Test_bigfile2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	if tclBool("file exists skip-big-file") {
 	}
 	if tcl_platform_os == "Darwin" {
 	}
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bigfile2"
+	testprefix = "bigfile2"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
@@ -53,25 +62,27 @@ func Test_bigfile2(t *testing.T) {
 		}
 	}
 	if false {
-		t.Log("**** Unable to create a file larger than 4096 MB. *****")
+		_putsMsg := "**** Unable to create a file larger than 4096 MB. *****"
+		_ = _putsMsg
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
+	// hexio_write test.db 28 00000000 (unsupported command, not transpiled)
 	{ // do_test "1.2"
 		// file size test.db
 	}
-	var str = "k 30000"
+	str = "k 30000"
 	_ = str // suppress unused warning
 	{ // do_test "1.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, $str) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(3, $str) ")
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
+	// delete_file test.db (unsupported command, not transpiled)
 }

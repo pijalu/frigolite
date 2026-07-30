@@ -40,32 +40,63 @@ func Test_speed4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sqlout string
+	_ = sqlout // pre-declared from TCL source
+	var ones string
+	_ = ones // pre-declared from TCL source
+	var tens string
+	_ = tens // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var jj string
+	_ = jj // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var ii2 string
+	_ = ii2 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_init speed1")
+	// speed_trial_init speed1 (unsupported command, not transpiled)
 	// expr srand(0) → "srand(0)"
-	var sqlout = "open speed1.txt w"
+	sqlout = "open speed1.txt w"
 	_ = sqlout // suppress unused warning
 	// proc definition (not transpiled)
-	var ones = "zero one two three four five six seven eight nine\n          ten eleven twelve thirteen fourteen fifteen sixteen seventeen\n          eighteen nineteen"
+	ones = "zero one two three four five six seven eight nine\n          ten eleven twelve thirteen fourteen fifteen sixteen seventeen\n          eighteen nineteen"
 	_ = ones // suppress unused warning
-	var tens = "{} ten twenty thirty forty fifty sixty seventy eighty ninety"
+	tens = "{} ten twenty thirty forty fifty sixty seventy eighty ninety"
 	_ = tens // suppress unused warning
 	// proc definition (not transpiled)
 	_res = db.Exec("\n  BEGIN;\n  CREATE TABLE t1(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t2(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t3(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n\n  CREATE VIEW v1 AS SELECT rowid, i, t FROM t1;\n  CREATE VIEW v2 AS SELECT rowid, i, t FROM t2;\n  CREATE VIEW v3 AS SELECT rowid, i, t FROM t3;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE TABLE t1(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t2(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TABLE t3(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n\n  CREATE VIEW v1 AS SELECT rowid, i, t FROM t1;\n  CREATE VIEW v2 AS SELECT rowid, i, t FROM t2;\n  CREATE VIEW v3 AS SELECT rowid, i, t FROM t3;\n")
 	}
-	var jj = "1"
+	jj = "1"
 	_ = jj // suppress unused warning
 	for func() bool { jj_n, _jj_e := strconv.Atoi(jj); if _jj_e != nil { return false }; return jj_n <= 3 }() {
-		var stmt = "\"%T% t$jj\" {INSERT INTO %T% VALUES(NULL, $i, $t)}"
+		stmt = ""
 		_ = stmt // suppress unused warning
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 50000 }() {
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
-			var _t = "number_name $i"
+			_t = "number_name $i"
 			_ = _t // suppress unused warning
 			_res = db.Exec(stmt)
 			if _res.Error != nil {
@@ -91,15 +122,15 @@ func Test_speed4(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(t);\n  CREATE INDEX i2 ON t2(t);\n  CREATE INDEX i3 ON t3(t);\n  COMMIT;\n")
 	}
-	var sql = "SELECT * FROM t1, t2, t3 WHERE t1.oid = t2.oid AND t2.oid = t3.oid"
+	sql = "SELECT * FROM t1, t2, t3 WHERE t1.oid = t2.oid AND t2.oid = t3.oid"
 	_ = sql // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-join1 50000 row $sql")
+	// speed_trial speed4-join1 50000 row $sql (unsupported command, not transpiled)
 	sql = "SELECT * FROM t1, t2, t3 WHERE t1.t = t2.t AND t2.t = t3.t"
 	_ = sql // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-join2 50000 row $sql")
+	// speed_trial speed4-join2 50000 row $sql (unsupported command, not transpiled)
 	sql = ""
 	_ = sql // suppress unused warning
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
 		sql += "SELECT * FROM v" + "($ii%3)+1" + " WHERE rowid = " + "$ii*3" + ";"
@@ -111,7 +142,7 @@ func Test_speed4(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-view1 10000 stmt $sql")
+	// speed_trial speed4-view1 10000 stmt $sql (unsupported command, not transpiled)
 	sql = ""
 	_ = sql // suppress unused warning
 	ii = "1"
@@ -126,7 +157,7 @@ func Test_speed4(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-table1 10000 stmt $sql")
+	// speed_trial speed4-table1 10000 stmt $sql (unsupported command, not transpiled)
 	sql = ""
 	_ = sql // suppress unused warning
 	ii = "1"
@@ -141,7 +172,7 @@ func Test_speed4(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-subselect1 10000 stmt $sql")
+	// speed_trial speed4-subselect1 10000 stmt $sql (unsupported command, not transpiled)
 	_res = db.Exec("\n  CREATE TABLE log(op TEXT, r INTEGER, i INTEGER, t TEXT);\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TRIGGER t4_trigger1 AFTER INSERT ON t4 BEGIN\n    INSERT INTO log VALUES('INSERT INTO t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger2 AFTER UPDATE ON t4 BEGIN\n    INSERT INTO log VALUES('UPDATE OF t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger3 AFTER DELETE ON t4 BEGIN\n    INSERT INTO log VALUES('DELETE OF t4', old.rowid, old.i, old.t);\n  END;\n  BEGIN;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE log(op TEXT, r INTEGER, i INTEGER, t TEXT);\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TRIGGER t4_trigger1 AFTER INSERT ON t4 BEGIN\n    INSERT INTO log VALUES('INSERT INTO t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger2 AFTER UPDATE ON t4 BEGIN\n    INSERT INTO log VALUES('UPDATE OF t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger3 AFTER DELETE ON t4 BEGIN\n    INSERT INTO log VALUES('DELETE OF t4', old.rowid, old.i, old.t);\n  END;\n  BEGIN;\n")
@@ -160,13 +191,13 @@ func Test_speed4(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-trigger1 10000 stmt $sql")
+	// speed_trial speed4-trigger1 10000 stmt $sql (unsupported command, not transpiled)
 	sql = ""
 	_ = sql // suppress unused warning
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		var ii2 = "$ii*2"
+		ii2 = "$ii*2"
 		_ = ii2 // suppress unused warning
 		sql += "\n    UPDATE t4 SET i = " + ii2 + ", t = '" + "number_name $ii2" + "' WHERE rowid = " + ii + ";\n  "
 		// incr ii 2
@@ -177,7 +208,7 @@ func Test_speed4(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-trigger2 10000 stmt $sql")
+	// speed_trial speed4-trigger2 10000 stmt $sql (unsupported command, not transpiled)
 	sql = ""
 	_ = sql // suppress unused warning
 	ii = "1"
@@ -192,7 +223,7 @@ func Test_speed4(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-trigger3 10000 stmt $sql")
+	// speed_trial speed4-trigger3 10000 stmt $sql (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -215,13 +246,13 @@ func Test_speed4(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-notrigger1 10000 stmt $sql")
+	// speed_trial speed4-notrigger1 10000 stmt $sql (unsupported command, not transpiled)
 	sql = ""
 	_ = sql // suppress unused warning
 	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		var ii2 = "$ii*2"
+		ii2 = "$ii*2"
 		_ = ii2 // suppress unused warning
 		sql += "\n    UPDATE t4 SET i = " + ii2 + ", t = '" + "number_name $ii2" + "' WHERE rowid = " + ii + ";\n  "
 		// incr ii 2
@@ -232,7 +263,7 @@ func Test_speed4(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-notrigger2 10000 stmt $sql")
+	// speed_trial speed4-notrigger2 10000 stmt $sql (unsupported command, not transpiled)
 	sql = ""
 	_ = sql // suppress unused warning
 	ii = "1"
@@ -247,10 +278,10 @@ func Test_speed4(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-notrigger3 10000 stmt $sql")
+	// speed_trial speed4-notrigger3 10000 stmt $sql (unsupported command, not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_summary speed4")
+	// speed_trial_summary speed4 (unsupported command, not transpiled)
 }

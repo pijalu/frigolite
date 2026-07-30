@@ -40,24 +40,48 @@ func Test_atof1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var mxpow string
+	_ = mxpow // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var pow string
+	_ = pow // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var xf string
+	_ = xf // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var mxpow = "35"
+	mxpow = "35"
 	_ = mxpow // suppress unused warning
 	// expr srand(1) → "srand(1)"
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20000 }() {
-		var pow = "int((rand()-0.5)*$mxpow)"
+		pow = "int((rand()-0.5)*$mxpow)"
 		_ = pow // suppress unused warning
-		var x = "pow((rand()-0.5)*2*rand(),$pow)"
+		x = "pow((rand()-0.5)*2*rand(),$pow)"
 		_ = x // suppress unused warning
-		var xf = "format %.32e $x"
+		xf = "format %.32e $x"
 		_ = xf // suppress unused warning
 		{ // do_test "atof1-1." + i + ".1"
-			var y = "db eval \"SELECT $xf=\\$x\""
+			y = "db eval \"SELECT $xf=\\$x\""
 			_ = y // suppress unused warning
 			if tclBool("!" + y) {
-				t.Log("-nonewline")
+				_putsMsg := "-nonewline"
+				_ = _putsMsg
 				_res = db.Exec("SELECT " + xf + "+0.0 AS a, \\$x AS b")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT " + xf + "+0.0 AS a, \\$x AS b")
@@ -65,26 +89,32 @@ func Test_atof1(t *testing.T) {
 			}
 		}
 		{ // do_test "atof1-1." + i + ".2"
-			var y = "db eval {SELECT $x=CAST(quote($x) AS real)}"
+			y = "db eval {SELECT $x=CAST(quote($x) AS real)}"
 			_ = y // suppress unused warning
 			if tclBool("!" + y) {
 				_res = db.Exec("SELECT real2hex($x) a, real2hex(CAST(quote($x) AS real)) b")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT real2hex($x) a, real2hex(CAST(quote($x) AS real)) b")
 				}
-				t.Log("")
+				_putsMsg := ""
+				_ = _putsMsg
 				if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 0 }() {
-					t.Log("format {!SCALE: %17s 1 23456789 123456789 123456789} {}")
+					_putsMsg = "format {!SCALE: %17s 1 23456789 123456789 123456789} {}"
+					_ = _putsMsg
 				} else {
-					t.Log("format {!SCALE: %16s 1 23456789 123456789 123456789} {}")
+					_putsMsg = "format {!SCALE: %16s 1 23456789 123456789 123456789} {}"
+					_ = _putsMsg
 				}
-				t.Log("!IN:    " + a + " " + xf)
-				t.Log("format {!QUOTE: %16s %s} {} [db eval {SELECT quote($x)}]")
+				_putsMsg = "!IN:    " + a + " " + xf
+				_ = _putsMsg
+				_putsMsg = "format {!QUOTE: %16s %s} {} [db eval {SELECT quote($x)}]"
+				_ = _putsMsg
 				_res = db.Exec("SELECT CAST(quote($x) AS real) c")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(quote($x) AS real) c")
 				}
-				t.Log("!OUT:   " + b + " " + "format %.32e $c")
+				_putsMsg = "!OUT:   " + b + " " + "format %.32e $c"
+				_ = _putsMsg
 			}
 		}
 		// incr i 1

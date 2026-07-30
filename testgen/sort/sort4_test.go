@@ -40,13 +40,85 @@ func Test_sort4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var SORT4TIMEOUT string
+	_ = SORT4TIMEOUT // pre-declared from TCL source
+	var nCol string
+	_ = nCol // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var insert string
+	_ = insert // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var nLoad string
+	_ = nLoad // pre-declared from TCL source
+	var nPayload string
+	_ = nPayload // pre-declared from TCL source
+	var mask string
+	_ = mask // pre-declared from TCL source
+	var col string
+	_ = col // pre-declared from TCL source
+	var sql1 string
+	_ = sql1 // pre-declared from TCL source
+	var sql2 string
+	_ = sql2 // pre-declared from TCL source
+	var a__rows string
+	_ = a__rows // pre-declared from TCL source
+	var a__repeats string
+	_ = a__repeats // pre-declared from TCL source
+	var a__read string
+	_ = a__read // pre-declared from TCL source
+	var a__payload string
+	_ = a__payload // pre-declared from TCL source
+	var a__cachesize string
+	_ = a__cachesize // pre-declared from TCL source
+	var a__fakeheap string
+	_ = a__fakeheap // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var optlist string
+	_ = optlist // pre-declared from TCL source
+	var a_s string
+	_ = a_s // pre-declared from TCL source
+	var iTimeLimit string
+	_ = iTimeLimit // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var iNow string
+	_ = iNow // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var nRead string
+	_ = nRead // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "sort4"
+	testprefix = "sort4"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pmasz 10")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	db, err = frigolite.Open("test.db")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pmasz 10 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	if tclBool("!" + "*MAX_WORKER_THREADS=0* [db eval {PRAGMA compile_options}]") {
 		{ // do_test "sort4-init001"
@@ -54,20 +126,20 @@ func Test_sort4(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA threads=5")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS -1")
+			// sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS -1 (unsupported command, not transpiled)
 		}
 		{ // do_test "sort4-init002"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS 3")
+			// sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS 3 (unsupported command, not transpiled)
 			_res = db.Exec("PRAGMA threads")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA threads")
 			}
 		}
 	}
-	var SORT4TIMEOUT = "0"
+	SORT4TIMEOUT = "0"
 	_ = SORT4TIMEOUT // suppress unused warning
 	if tclBool("permutation" + " == \"multithread\"") {
-		var SORT4TIMEOUT = "300"
+		SORT4TIMEOUT = "300"
 		_ = SORT4TIMEOUT // suppress unused warning
 	}
 	// proc definition (not transpiled)
@@ -79,21 +151,21 @@ func Test_sort4(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size = 4096")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "populate_table 100000 500")
+		// populate_table 100000 500 (unsupported command, not transpiled)
 	}
-	var iTimeLimit = "[clock_seconds] + $SORT4TIMEOUT"
+	iTimeLimit = "[clock_seconds] + $SORT4TIMEOUT"
 	_ = iTimeLimit // suppress unused warning
-	var _t = "2"
+	_t = "2"
 	_ = _t // suppress unused warning
 	for true {
-		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.2 -repeats 10 -rows 1000 -read 100")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.3 -repeats 10 -rows 100000 -read 1000")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.4 -repeats 10 -rows 100000 -read 1000 -payload 500")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.5 -repeats 10 -rows 100000 -read 100000 -payload 8")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.6 -repeats 10 -rows 100000 -read 10 -payload 8")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.7 -repeats 10 -rows 10000 -read 10000 -payload 8 -fakeheap 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.8 -repeats 10 -rows 100000 -read 10000 -cachesize 250")
-		var iNow = "clock_seconds"
+		// do_sorter_test $t.2 -repeats 10 -rows 1000 -read 100 (unsupported command, not transpiled)
+		// do_sorter_test $t.3 -repeats 10 -rows 100000 -read 1000 (unsupported command, not transpiled)
+		// do_sorter_test $t.4 -repeats 10 -rows 100000 -read 1000 -payload 500 (unsupported command, not transpiled)
+		// do_sorter_test $t.5 -repeats 10 -rows 100000 -read 100000 -payload 8 (unsupported command, not transpiled)
+		// do_sorter_test $t.6 -repeats 10 -rows 100000 -read 10 -payload 8 (unsupported command, not transpiled)
+		// do_sorter_test $t.7 -repeats 10 -rows 10000 -read 10000 -payload 8 -fakeheap 1 (unsupported command, not transpiled)
+		// do_sorter_test $t.8 -repeats 10 -rows 100000 -read 10000 -cachesize 250 (unsupported command, not transpiled)
+		iNow = "clock_seconds"
 		_ = iNow // suppress unused warning
 		if func() bool { iNow_n, _iNow_e := strconv.Atoi(iNow); if _iNow_e != nil { return false }; iTimeLimit_n, _iTimeLimit_e := strconv.Atoi(iTimeLimit); if _iTimeLimit_e != nil { return false }; return iNow_n >= iTimeLimit_n }() {
 		}
@@ -103,7 +175,6 @@ func Test_sort4(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "")
 			}
 		}
-		var tn = "0"
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)

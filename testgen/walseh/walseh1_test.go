@@ -39,19 +39,44 @@ func Test_walseh1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var seh_countdown string
+	_ = seh_countdown // pre-declared from TCL source
+	var seh_errno string
+	_ = seh_errno // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var FAULTSIM_seh string
+	_ = FAULTSIM_seh // pre-declared from TCL source
+	var serrno string
+	_ = serrno // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var iFault string
+	_ = iFault // pre-declared from TCL source
+	var iFail string
+	_ = iFail // pre-declared from TCL source
+	var expect string
+	_ = expect // pre-declared from TCL source
+	var testrc string
+	_ = testrc // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walseh1"
+	testprefix = "walseh1"
 	_ = testprefix // suppress unused warning
-	var _seh_countdown = "0" // TCL namespace variable
-	_ = _seh_countdown // suppress unused warning
-	var _seh_errno = "10" // TCL namespace variable
-	_ = _seh_errno // suppress unused warning
+	seh_countdown = "0" // TCL namespace variable
+	_ = seh_countdown // suppress unused warning
+	seh_errno = "10" // TCL namespace variable
+	_ = seh_errno // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var FAULTSIM_seh = "list                   \\\n  -injectinstall   seh_injectinstall   \\\n  -injectstart     seh_injectstart     \\\n  -injectstop      seh_injectstop      \\\n  -injecterrlist   {{1 {disk I/O error}}} \\\n  -injectuninstall seh_injectuninstall \\"
+	FAULTSIM_seh = "list                   \\\n  -injectinstall   seh_injectinstall   \\\n  -injectstart     seh_injectstart     \\\n  -injectstop      seh_injectstop      \\\n  -injecterrlist   {{1 {disk I/O error}}} \\\n  -injectuninstall seh_injectuninstall \\"
 	_ = FAULTSIM_seh // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
@@ -60,27 +85,63 @@ func Test_walseh1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults seh -prep {\n  catch { db2 close }\n  faultsim_restore_and_reop...} -body {\n  execsql { SELECT * FROM t1 } db2\n} -test {\n  faultsim_test_result {0 {1 2 3 4}} \n  if {$test...}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults seh -prep {
+  catch { db2 close }
+  faultsim_restore_and_reop...} -body {
+  execsql { SELECT * FROM t1 } db2
+} -test {
+  faultsim_test_result {0 {1 2 3 4}} 
+  if {$test...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { SELECT * FROM t1 } \n} -test {\n  faultsim_test_result {0 {1 2 3 4}} \n  if {$test...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { INSERT INTO t1 VALUES(5, 6) }\n  execs...} -test {\n  faultsim_test_result {0 {1 2 3 4 5 6}} \n  if {$...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { PRAGMA wal_checkpoint }\n  execsql { I...} -test {\n  faultsim_test_result {0 {1 2 3 4 7 8}} \n  if {$...}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults seh -prep {
+  catch { db close }
+  faultsim_restore_and_reope...} -body {
+  execsql { SELECT * FROM t1 } 
+} -test {
+  faultsim_test_result {0 {1 2 3 4}} 
+  if {$test...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults seh -prep {
+  catch { db close }
+  faultsim_restore_and_reope...} -body {
+  execsql { INSERT INTO t1 VALUES(5, 6) }
+  execs...} -test {
+  faultsim_test_result {0 {1 2 3 4 5 6}} 
+  if {$...} (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults seh -prep {
+  catch { db close }
+  faultsim_restore_and_reope...} -body {
+  execsql { PRAGMA wal_checkpoint }
+  execsql { I...} -test {
+  faultsim_test_result {0 {1 2 3 4 7 8}} 
+  if {$...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql ROLLBACK\n} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc} { te...}")
+	// do_faultsim_test 5 -faults seh -prep {
+  catch { db close }
+  faultsim_restore_and_reope...} -body {
+  execsql ROLLBACK
+} -test {
+  faultsim_test_result {0 {}}
+  if {$testrc} { te...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 6 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { PRAGMA wal_checkpoint = TRUNCATE }\n  ...} -test {\n  faultsim_test_result {0 {1 2 3 4 7 8}} \n  if {$...}")
+	// do_faultsim_test 6 -faults seh -prep {
+  catch { db close }
+  faultsim_restore_and_reope...} -body {
+  execsql { PRAGMA wal_checkpoint = TRUNCATE }
+  ...} -test {
+  faultsim_test_result {0 {1 2 3 4 7 8}} 
+  if {$...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

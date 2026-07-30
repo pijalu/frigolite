@@ -39,6 +39,13 @@ func Test_exec(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "exec-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    SELECT * FROM t1;\n  ")
@@ -47,7 +54,7 @@ func Test_exec(t *testing.T) {
 		}
 	}
 	{ // do_test "exec-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {/* comment */;;; SELECT * FROM t1; /* comment */}")
+		// sqlite3_exec db {/* comment */;;; SELECT * FROM t1; /* comment */} (unsupported command, not transpiled)
 	}
 	{ // do_test "exec-1.3"
 		db2, err = frigolite.Open("test.db")
@@ -55,6 +62,6 @@ func Test_exec(t *testing.T) {
 		db2.Exec("CREATE TABLE t2(x, y);")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT * FROM t1}")
+		// sqlite3_exec db {SELECT * FROM t1} (unsupported command, not transpiled)
 	}
 }

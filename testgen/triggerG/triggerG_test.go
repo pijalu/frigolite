@@ -40,8 +40,15 @@ func Test_triggerG(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "triggerG"
+	testprefix = "triggerG"
 	_ = testprefix // suppress unused warning
 	{ // "100"
 		r = db.Query("\n  PRAGMA recursive_triggers = 1;\n  \n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1(a) VALUES(0),(2),(3),(8),(9);\n  CREATE TABLE t2(b);\n  CREATE TABLE t3(c);\n  \n  CREATE TRIGGER tr AFTER INSERT ON t3 BEGIN\n    INSERT INTO t3 SELECT new.c+1 WHERE new.c<5;\n    INSERT INTO t2 SELECT new.c*100+a FROM t1 WHERE a IN (1, 2, 3, 4);\n  END;\n  \n  INSERT INTO t3 VALUES(2);\n  SELECT c FROM t3 ORDER BY c;;\n")

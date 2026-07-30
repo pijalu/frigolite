@@ -39,6 +39,15 @@ func Test_tkt35xx(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var big string
+	_ = big // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt35xx-1.1"
 		r = db.Query("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n  ")
@@ -56,10 +65,11 @@ func Test_tkt35xx(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
-	db, err = frigolite.Open("test.db")
+	// delete_file test.db (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	var big = "abcdefghij 22"
+	big = "abcdefghij 22"
 	_ = big // suppress unused warning
 	{ // do_test "tkt35xx-1.2.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, $big);\n    INSERT INTO t3 VALUES(2, $big);\n    INSERT INTO t3 VALUES(3, $big);\n    INSERT INTO t3 VALUES(4, $big);\n    CREATE TABLE t4(c, d);\n    INSERT INTO t4 VALUES(5, $big);\n    INSERT INTO t4 VALUES(1, $big);\n  ")

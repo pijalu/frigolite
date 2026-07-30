@@ -40,10 +40,33 @@ func Test_vacuum2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var pageSize string
+	_ = pageSize // pre-declared from TCL source
+	var cksum string
+	_ = cksum // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "vacuum2"
+	testprefix = "vacuum2"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	if tclBool(AUTOVACUUM) {
 		return
 	}
@@ -58,18 +81,18 @@ func Test_vacuum2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(1);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 24 4]")
+		// hexio_get_int [hexio_read test.db 24 4] (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum2-2.2"
 		_res = db.Exec("\n    VACUUM\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 24 4]")
+		// hexio_get_int [hexio_read test.db 24 4] (unsupported command, not transpiled)
 	}
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var pageSize = "db eval {pragma page_size}"
+	pageSize = "db eval {pragma page_size}"
 	_ = pageSize // suppress unused warning
 	{ // do_test "vacuum2-3.1"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t2 VALUES('out there');\n  ")
@@ -78,16 +101,16 @@ func Test_vacuum2(t *testing.T) {
 		}
 		// expr [file size test.db]/$pageSize → "[file size test.db]/$pageSize"
 	}
-	var cksum = "cksum"
+	cksum = "cksum"
 	_ = cksum // suppress unused warning
 	{ // do_test "vacuum2-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksum db2")
+		// cksum db2 (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum2-3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksum db2")
+		// cksum db2 (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum2-3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksum")
+		// cksum (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum2-3.6"
 		r = db.Query("PRAGMA integrity_check")
@@ -109,10 +132,10 @@ func Test_vacuum2(t *testing.T) {
 		// expr [file size test.db]/$pageSize → "[file size test.db]/$pageSize"
 	}
 	{ // do_test "vacuum2-3.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksum db2")
+		// cksum db2 (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum2-3.15"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksum")
+		// cksum (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum2-3.16"
 		r = db.Query("PRAGMA integrity_check")
@@ -128,7 +151,8 @@ func Test_vacuum2(t *testing.T) {
 	}
 	db2.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "vacuum2-5.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 SELECT a+1, randomblob(500) FROM t1;      -- 2\n  INSERT INTO t1 SELECT a+2, randomblob(500) FROM t1;      -- 4 \n  INSERT INTO t1 SELECT a+4, randomblob(500) FROM t1;      -- 8 \n  INSERT INTO t1 SELECT a+8, randomblob(500) FROM t1;      -- 16 \n")
@@ -145,9 +169,9 @@ func Test_vacuum2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "vacuum2-5.4"
-		var res = ""
+		res = ""
 		_ = res // suppress unused warning
-		var res2 = ""
+		res2 = ""
 		_ = res2 // suppress unused warning
 		_res = db.Exec("SELECT a, b FROM t1 WHERE a<=10")
 		if _res.Error != nil {

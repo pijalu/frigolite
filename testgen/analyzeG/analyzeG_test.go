@@ -39,8 +39,15 @@ func Test_analyzeG(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "analyzeG"
+	testprefix = "analyzeG"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA automatic_index = 0;\n  CREATE TABLE t1(a, x);\n  CREATE TABLE t2(b, y);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n  )\n  INSERT INTO t1 SELECT (i%50), NULL FROM s;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<100\n  )\n  INSERT INTO t2 SELECT (CASE WHEN i<95 THEN 44 ELSE i END), NULL FROM s;\n")

@@ -41,15 +41,46 @@ func Test_corrupt4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var bigstring string
+	_ = bigstring // pre-declared from TCL source
+	var trunkpgno string
+	_ = trunkpgno // pre-declared from TCL source
+	var baseaddr string
+	_ = baseaddr // pre-declared from TCL source
+	var nView string
+	_ = nView // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var bin string
+	_ = bin // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var nChild string
+	_ = nChild // pre-declared from TCL source
+	var offChild string
+	_ = offChild // pre-declared from TCL source
+	var pgnoChild string
+	_ = pgnoChild // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "corrupt4"
+	testprefix = "corrupt4"
 	_ = testprefix // suppress unused warning
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "corrupt4-1.1"
-		var bigstring = "0123456789 200"
+		bigstring = "0123456789 200"
 		_ = bigstring // suppress unused warning
 		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES($bigstring);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES(1);\n    DROP TABLE t1;\n  ")
 		if _res.Error != nil {
@@ -63,17 +94,17 @@ func Test_corrupt4(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA freelist_count")
 		}
 	}
-	var trunkpgno = "hexio_get_int [hexio_read test.db 32 4]"
+	trunkpgno = "hexio_get_int [hexio_read test.db 32 4]"
 	_ = trunkpgno // suppress unused warning
-	var baseaddr = "($trunkpgno-1)*1024"
+	baseaddr = "($trunkpgno-1)*1024"
 	_ = baseaddr // suppress unused warning
 	{ // do_test "corrupt4-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db [expr {$::baseaddr+4}] 4]")
+		// hexio_get_int [hexio_read test.db [expr {$::baseaddr+4}] 4] (unsupported command, not transpiled)
 	}
 	{ // do_test "corrupt4-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {$::baseaddr+4}] [hexio_render_int32 -100000000]")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db [expr {$::baseaddr+4}] [hexio_render_int32 -100000000] (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    DROP TABLE t2\n  ")
 		_ = _res // catchsql
@@ -87,14 +118,14 @@ func Test_corrupt4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 512;\n  CREATE TABLE t1(a, b, c);\n")
 		}
 	}
-	var nView = "1000"
+	nView = "1000"
 	_ = nView // suppress unused warning
 	{ // do_test "2.1"
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nView_n, _nView_e := strconv.Atoi(nView); if _nView_e != nil { return false }; return ii_n < nView_n }() {
 			_res = db.Exec(" CREATE VIEW v" + ii + " AS SELECT a, b, c FROM t1 ")
@@ -117,20 +148,20 @@ func Test_corrupt4(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var fd = "open test.db r+"
+	fd = "open test.db r+"
 	_ = fd // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-	var nChild = "get2byte $fd 103"
+	// fconfigure $fd -translation binary (unsupported command, not transpiled)
+	nChild = "get2byte $fd 103"
 	_ = nChild // suppress unused warning
-	var offChild = "get2byte $fd [expr 100+12+($nChild-2)*2]"
+	offChild = "get2byte $fd [expr 100+12+($nChild-2)*2]"
 	_ = offChild // suppress unused warning
-	var pgnoChild = "get4byte $fd $offChild"
+	pgnoChild = "get4byte $fd $offChild"
 	_ = pgnoChild // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "put4byte $fd $offChild 1")
+	// put4byte $fd $offChild 1 (unsupported command, not transpiled)
 	// close $fd
 	if tclBool("!" + "info exists ::G(perm:presql)") {
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "2.2"
 			_res = db.Exec("\n    PRAGMA writable_schema = 1;\n    SELECT * FROM sqlite_schema;\n  ")

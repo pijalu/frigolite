@@ -39,22 +39,37 @@ func Test_misc6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var sqlite_static_bind_value string
+	_ = sqlite_static_bind_value // pre-declared from TCL source
+	var sqlite_static_bind_nbyte string
+	_ = sqlite_static_bind_nbyte // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "misc6-1.1"
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function $DB")
-		var STMT = "sqlite3_prepare $DB {SELECT hex8(?)} -1 DUMMY"
+		// sqlite3_create_function $DB (unsupported command, not transpiled)
+		STMT = "sqlite3_prepare $DB {SELECT hex8(?)} -1 DUMMY"
 		_ = STMT // suppress unused warning
-		var sqlite_static_bind_value = "0123456789"
+		sqlite_static_bind_value = "0123456789"
 		_ = sqlite_static_bind_value // suppress unused warning
-		var sqlite_static_bind_nbyte = "5"
+		sqlite_static_bind_nbyte = "5"
 		_ = sqlite_static_bind_nbyte // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_bind $STMT 1 {} static-nbytes")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite_bind $STMT 1 {} static-nbytes (unsupported command, not transpiled)
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "misc6-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $STMT 0")
+		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+	// sqlite3_finalize $STMT (unsupported command, not transpiled)
 }

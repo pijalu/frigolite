@@ -41,10 +41,35 @@ func Test_fts3comp1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var next_x string
+	_ = next_x // pre-declared from TCL source
+	var strings__next_x string
+	_ = strings__next_x // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var zip string
+	_ = zip // pre-declared from TCL source
+	var unzip string
+	_ = unzip // pre-declared from TCL source
+	var myfunc_invoked string
+	_ = myfunc_invoked // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var strings_x string
+	_ = strings_x // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3comp1" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	var next_x = "0"
+	testprefix = "fts3comp1" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	next_x = "0"
 	_ = next_x // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -58,15 +83,15 @@ func Test_fts3comp1(t *testing.T) {
 		unzip := _items0[_idx0+2]
 		_ = unzip // suppress unused warning
 		_ = _idx0
-			var next_x = "0"
+			next_x = "0"
 			_ = next_x // suppress unused warning
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.db")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(\n      a, b, \n      compress='" + zip + "', uncompress='" + unzip + "'\n    );\n  ")
@@ -204,8 +229,8 @@ func Test_fts3comp1(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA trusted_schema = OFF;\n")
 			}
 		}
-		var _myfunc_invoked = "0" // TCL namespace variable
-		_ = _myfunc_invoked // suppress unused warning
+		myfunc_invoked = "0" // TCL namespace variable
+		_ = myfunc_invoked // suppress unused warning
 		// proc definition (not transpiled)
 		{ // "3.1"
 			_res = db.Exec("\n  CREATE VIEW v1 AS SELECT myfunc('xyz');\n")
@@ -232,7 +257,7 @@ func Test_fts3comp1(t *testing.T) {
 			}
 		}
 		{ // do_test "3.5"
-			_ = _myfunc_invoked // TCL namespace variable (query)
+			_ = myfunc_invoked // TCL namespace variable (query)
 		}
 		{ // "3.6.1"
 			_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES( myfunc(new.x) );\n  END;\n")
@@ -263,7 +288,8 @@ func Test_fts3comp1(t *testing.T) {
 				t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO v1 VALUES('one two three');\n")
 			}
 		}
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "4.2"
 			_res = db.Exec("\n  INSERT INTO v1 VALUES('one two three');\n")

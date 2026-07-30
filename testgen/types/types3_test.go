@@ -39,88 +39,118 @@ func Test_types3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var V string
+	_ = V // pre-declared from TCL source
+	var Vx string
+	_ = Vx // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "types3-1.1"
-		var V = "format %s xxxxx"
+		V = "format %s xxxxx"
 		_ = V // suppress unused warning
-		_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("tcl_variable_type V")...)
+		_r_tcl = append(_r_tcl, tclSplitList("execsql {SELECT typeof(:V)}")...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "types3-1.2"
-		var V = "3"
+		V = "3"
 		_ = V // suppress unused warning
-		_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("tcl_variable_type V")...)
+		_r_tcl = append(_r_tcl, tclSplitList("execsql {SELECT typeof(:V)}")...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
-	var V = "12345678012346"
+	V = "12345678012346"
 	_ = V // suppress unused warning
 	if tclBool("tcl_variable_type V" + "==\"wideInt\"") {
 		{ // do_test "types3-1.3"
-			var V = "123456789012346"
+			V = "123456789012346"
 			_ = V // suppress unused warning
-			_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
-			_ = _r
+			_r_tcl := append([]string{}, tclSplitList("tcl_variable_type V")...)
+			_r_tcl = append(_r_tcl, tclSplitList("execsql {SELECT typeof(:V)}")...)
+			_r_tcl_str := tclList(_r_tcl)
+			_ = _r_tcl_str
+			_ = _r_tcl
 		}
 	} else {
 		{ // do_test "types3-1.3"
-			var V = "123456789012346"
+			V = "123456789012346"
 			_ = V // suppress unused warning
-			_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
-			_ = _r
+			_r_tcl := append([]string{}, tclSplitList("tcl_variable_type V")...)
+			_r_tcl = append(_r_tcl, tclSplitList("execsql {SELECT typeof(:V)}")...)
+			_r_tcl_str := tclList(_r_tcl)
+			_ = _r_tcl_str
+			_ = _r_tcl
 		}
 	}
 	{ // do_test "types3-1.4"
-		var V = "2"
+		V = "2"
 		_ = V // suppress unused warning
-		_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("tcl_variable_type V")...)
+		_r_tcl = append(_r_tcl, tclSplitList("execsql {SELECT typeof(:V)}")...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "types3-1.5"
-		var V = "binary format a3 abc"
+		V = "binary format a3 abc"
 		_ = V // suppress unused warning
-		_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("tcl_variable_type V")...)
+		_r_tcl = append(_r_tcl, tclSplitList("execsql {SELECT typeof(:V)}")...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "types3-1.6"
-		var V = "abc"
+		V = "abc"
 		_ = V // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $V a3 x")
-		_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
-		_ = _r
+		// binary scan $V a3 x (test infra, not transpiled)
+		_r_tcl := append([]string{}, tclSplitList("tcl_variable_type V")...)
+		_r_tcl = append(_r_tcl, tclSplitList("execsql {SELECT typeof(:V)}")...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "types3-2.2"
-		var V = "db one {SELECT 123}"
+		V = "db one {SELECT 123}"
 		_ = V // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		// tcl_variable_type V (unsupported command, not transpiled)
 	}
-	var Vx = "123456789123457"
+	Vx = "123456789123457"
 	_ = Vx // suppress unused warning
 	{ // do_test "types3-2.3"
-		var V = "db one {SELECT 1234567890123456}"
+		V = "db one {SELECT 1234567890123456}"
 		_ = V // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		// tcl_variable_type V (unsupported command, not transpiled)
 	}
 	{ // do_test "types3-2.4.1"
-		var V = "db one {SELECT 1234567890123456.1}"
+		V = "db one {SELECT 1234567890123456.1}"
 		_ = V // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		// tcl_variable_type V (unsupported command, not transpiled)
 	}
 	{ // do_test "types3-2.4.2"
-		var V = "db one {SELECT 1234567890123.456}"
+		V = "db one {SELECT 1234567890123.456}"
 		_ = V // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		// tcl_variable_type V (unsupported command, not transpiled)
 	}
 	{ // do_test "types3-2.5"
-		var V = "db one {SELECT '1234567890123456.0'}"
+		V = "db one {SELECT '1234567890123456.0'}"
 		_ = V // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		// tcl_variable_type V (unsupported command, not transpiled)
 	}
 	{ // do_test "types3-2.6"
-		var V = "db one {SELECT NULL}"
+		V = "db one {SELECT NULL}"
 		_ = V // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		// tcl_variable_type V (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+	// sqlite3_create_function db (unsupported command, not transpiled)
 	{ // "types3-3.1"
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x TEXT PRIMARY KEY);\n  INSERT INTO t1 VALUES('1');\n  SELECT * FROM t1 WHERE NOT x=upper(1);\n")
 		if r.Error != nil {

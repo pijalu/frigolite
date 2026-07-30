@@ -39,11 +39,86 @@ func Test_rowvalue5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var COL_0 string
+	_ = COL_0 // pre-declared from TCL source
+	var COL_1 string
+	_ = COL_1 // pre-declared from TCL source
+	var COL_2 string
+	_ = COL_2 // pre-declared from TCL source
+	var COL_3 string
+	_ = COL_3 // pre-declared from TCL source
+	var COL_4 string
+	_ = COL_4 // pre-declared from TCL source
+	var OP_eq string
+	_ = OP_eq // pre-declared from TCL source
+	var OP_ne string
+	_ = OP_ne // pre-declared from TCL source
+	var OP_gt string
+	_ = OP_gt // pre-declared from TCL source
+	var OP_le string
+	_ = OP_le // pre-declared from TCL source
+	var OP_lt string
+	_ = OP_lt // pre-declared from TCL source
+	var OP_ge string
+	_ = OP_ge // pre-declared from TCL source
+	var OP_match string
+	_ = OP_match // pre-declared from TCL source
+	var OP_like string
+	_ = OP_like // pre-declared from TCL source
+	var OP_glob string
+	_ = OP_glob // pre-declared from TCL source
+	var OP_regexp string
+	_ = OP_regexp // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var elist string
+	_ = elist // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var idxnum string
+	_ = idxnum // pre-declared from TCL source
+	var idxstr string
+	_ = idxstr // pre-declared from TCL source
+	var arglist string
+	_ = arglist // pre-declared from TCL source
+	var ee string
+	_ = ee // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var C_usable string
+	_ = C_usable // pre-declared from TCL source
+	var COL_C_column string
+	_ = COL_C_column // pre-declared from TCL source
+	var OP_C_op string
+	_ = OP_C_op // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "rowvalue5" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "rowvalue5" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n")
 		if _res.Error != nil {

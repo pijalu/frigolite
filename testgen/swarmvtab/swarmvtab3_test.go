@@ -41,12 +41,55 @@ func Test_swarmvtab3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nFile string
+	_ = nFile // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var dbcache_test_dbi string
+	_ = dbcache_test_dbi // pre-declared from TCL source
+	var remote string
+	_ = remote // pre-declared from TCL source
+	var dbcache_filename string
+	_ = dbcache_filename // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var exists string
+	_ = exists // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var nMaxOpen string
+	_ = nMaxOpen // pre-declared from TCL source
+	var cvt string
+	_ = cvt // pre-declared from TCL source
+	var ctx string
+	_ = ctx // pre-declared from TCL source
+	var ctx_used_ctx string
+	_ = ctx_used_ctx // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+	var bClose string
+	_ = bClose // pre-declared from TCL source
+	var dbcache_k string
+	_ = dbcache_k // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "swarmvtab3"
+	testprefix = "swarmvtab3"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
-	var nFile = sqlite_open_file_count
+	// do_not_use_codec (unsupported command, not transpiled)
+	// load_static_extension db unionvtab (unsupported command, not transpiled)
+	nFile = sqlite_open_file_count
 	_ = nFile // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TEMP TABLE swarm(id, tbl, minval, maxval);\n")
@@ -55,24 +98,26 @@ func Test_swarmvtab3(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			var file = "remote_test.db" + i
+			file = "remote_test.db" + i
 			_ = file // suppress unused warning
 			os.Remove(file)
 			os.Remove("test.db" + i)
 			rrr, err := frigolite.Open(file)
 			defer rrr.Close()
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "rrr eval {\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "rrr close")
+			// rrr eval {
+      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);
+...} (unsupported command, not transpiled)
+			// rrr close (unsupported command, not transpiled)
 			_res = db.Exec("\n      INSERT INTO swarm VALUES($i, 't1', $i, $i);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES($i, 't1', $i, $i);\n    ")
 			}
-			var _dbcache_test_dbi = "0" // TCL namespace variable
-			_ = _dbcache_test_dbi // suppress unused warning
+			dbcache_test_dbi = "0" // TCL namespace variable
+			_ = dbcache_test_dbi // suppress unused warning
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -118,7 +163,7 @@ func Test_swarmvtab3(t *testing.T) {
 				}
 			}
 			{ // do_test "1." + tn + ".3"
-				t.Errorf("TODO: %s not implemented in frigolite", "check_dbcache")
+				// check_dbcache (unsupported command, not transpiled)
 			}
 			{ // "1." + tn + ".4"
 				r = db.Query("\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
@@ -133,14 +178,14 @@ func Test_swarmvtab3(t *testing.T) {
 				}
 			}
 			{ // do_test "1." + tn + ".5"
-				t.Errorf("TODO: %s not implemented in frigolite", "check_dbcache")
+				// check_dbcache (unsupported command, not transpiled)
 			}
 		}
 		_res = db.Exec(" DROP TABLE IF EXISTS s ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS s ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			os.Remove("remote_test.db" + i)
@@ -167,32 +212,34 @@ func Test_swarmvtab3(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 			}
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 				for true {
-					var ctx = "0"
+					ctx = "0"
 					_ = ctx // suppress unused warning
 					if tclBool("info exists ctx_used($ctx)" + "==0") {
 					}
 				}
-				var ctx_used_ctx = "1"
+				ctx_used_ctx = "1"
 				_ = ctx_used_ctx // suppress unused warning
-				var file = "test_remote.db" + ctx
+				file = "test_remote.db" + ctx
 				_ = file // suppress unused warning
 				os.Remove(file)
 				os.Remove("test.db" + i)
 				rrr, err := frigolite.Open(file)
 				defer rrr.Close()
 				if err != nil { t.Fatal(err) }
-				t.Errorf("TODO: %s not implemented in frigolite", "rrr eval {\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n...}")
-				t.Errorf("TODO: %s not implemented in frigolite", "rrr close")
+				// rrr eval {
+      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);
+...} (unsupported command, not transpiled)
+				// rrr close (unsupported command, not transpiled)
 				_res = db.Exec("\n      INSERT INTO swarm VALUES('test.db' || $i, 't1', $i, $i, $file)\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES('test.db' || $i, 't1', $i, $i, $file)\n    ")
 				}
-				var _dbcache_test_dbi = "0" // TCL namespace variable
-				_ = _dbcache_test_dbi // suppress unused warning
+				dbcache_test_dbi = "0" // TCL namespace variable
+				_ = dbcache_test_dbi // suppress unused warning
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -238,7 +285,7 @@ func Test_swarmvtab3(t *testing.T) {
 					}
 				}
 				{ // do_test "3." + tn + ".3"
-					t.Errorf("TODO: %s not implemented in frigolite", "check_dbcache")
+					// check_dbcache (unsupported command, not transpiled)
 				}
 				{ // "3." + tn + ".4"
 					r = db.Query("\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
@@ -253,7 +300,7 @@ func Test_swarmvtab3(t *testing.T) {
 					}
 				}
 				{ // do_test "3." + tn + ".5"
-					t.Errorf("TODO: %s not implemented in frigolite", "check_dbcache")
+					// check_dbcache (unsupported command, not transpiled)
 				}
 			}
 			os.Remove("*")

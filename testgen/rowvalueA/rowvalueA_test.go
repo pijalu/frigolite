@@ -41,8 +41,19 @@ func Test_rowvalueA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "rowvalueA"
+	testprefix = "rowvalueA"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  SELECT (1, 2) IN ( (3, 4), (5, 6), (1, 3) );\n")
@@ -116,7 +127,7 @@ func Test_rowvalueA(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 2000 }() {
 		L = tclListAppend(L, "(" + ii + ", " + ii + ")")

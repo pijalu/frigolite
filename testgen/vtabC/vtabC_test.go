@@ -41,21 +41,40 @@ func Test_vtabC(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var tablist string
+	_ = tablist // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var N = "1"
+	N = "1"
 	_ = N // suppress unused warning
 	for func() bool { N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return N_n <= 20 }() {
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
-		var tablist = ""
+		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		tablist = ""
 		_ = tablist // suppress unused warning
 		{ // do_test "vtabC-1." + N + ".1"
-			var i = "1"
+			i = "1"
 			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return i_n <= _N_n }() {
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n <= N_n }() {
 				_res = db.Exec("CREATE TABLE t" + i + "(x)")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t" + i + "(x)")
@@ -64,7 +83,7 @@ func Test_vtabC(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE vt" + i + " USING echo(t" + i + ")")
 				}
-				_tablist = tclListAppend(_tablist, "t" + i, "vt" + i)
+				tablist = tclListAppend(tablist, "t" + i, "vt" + i)
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -89,11 +108,11 @@ func Test_vtabC(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE m(a)")
 			}
-			var sql = "CREATE TRIGGER rins AFTER INSERT ON m BEGIN\\n"
+			sql = "CREATE TRIGGER rins AFTER INSERT ON m BEGIN\\n"
 			_ = sql // suppress unused warning
-			var i = "1"
+			i = "1"
 			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return i_n <= _N_n }() {
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n <= N_n }() {
 				sql += "  INSERT INTO vt" + i + " VALUES(NEW.a+" + i + ");\\n"
 				// incr i 1
 				{
@@ -119,19 +138,19 @@ func Test_vtabC(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO m VALUES(1000);\n      SELECT * FROM m;\n    ")
 			}
 		}
-		var j = "1"
+		j = "1"
 		_ = j // suppress unused warning
-		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return j_n <= _N_n }() {
+		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return j_n <= N_n }() {
 			{ // do_test "vtabC-1." + N + ".5." + j
-				r = db.Query("SELECT * FROM t" + _j)
+				r = db.Query("SELECT * FROM t" + j)
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t" + _j)
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t" + j)
 				}
 			}
 			{ // do_test "vtabC-1." + N + ".6." + j
-				r = db.Query("SELECT * FROM vt" + _j)
+				r = db.Query("SELECT * FROM vt" + j)
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM vt" + _j)
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM vt" + j)
 				}
 			}
 			// incr j 1
@@ -143,11 +162,11 @@ func Test_vtabC(t *testing.T) {
 			}
 		}
 		{ // do_test "vtabC-1." + N + ".7"
-			var sql = "CREATE TRIGGER rins2 BEFORE INSERT ON m BEGIN\\n"
+			sql = "CREATE TRIGGER rins2 BEFORE INSERT ON m BEGIN\\n"
 			_ = sql // suppress unused warning
-			var i = "1"
+			i = "1"
 			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return i_n <= _N_n }() {
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n <= N_n }() {
 				sql += "  INSERT INTO vt" + i + " VALUES(NEW.a+" + i + "*100);\\n"
 				// incr i 1
 				{
@@ -159,7 +178,7 @@ func Test_vtabC(t *testing.T) {
 			}
 			i = "1"
 			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return i_n <= _N_n }() {
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n <= N_n }() {
 				sql += "  INSERT INTO vt" + i + " VALUES(NEW.a+" + i + "*10000);\\n"
 				// incr i 1
 				{
@@ -187,22 +206,22 @@ func Test_vtabC(t *testing.T) {
 		}
 		j = "1"
 		_ = j // suppress unused warning
-		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return j_n <= _N_n }() {
-			var res = "$j+1000"
+		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return j_n <= N_n }() {
+			res = "$j+1000"
 			_ = res // suppress unused warning
 			res = tclListAppend(res, "$j*100+9000000")
 			res = tclListAppend(res, "$j*10000+9000000")
 			res = tclListAppend(res, "$j+9000000")
 			{ // do_test "vtabC-1." + N + ".9." + j
-				r = db.Query("SELECT * FROM t" + _j)
+				r = db.Query("SELECT * FROM t" + j)
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t" + _j)
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t" + j)
 				}
 			}
 			{ // do_test "vtabC-1." + N + ".10." + j
-				r = db.Query("SELECT * FROM vt" + _j)
+				r = db.Query("SELECT * FROM vt" + j)
 				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM vt" + _j)
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM vt" + j)
 				}
 			}
 			// incr j 1

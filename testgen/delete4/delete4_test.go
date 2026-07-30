@@ -40,8 +40,15 @@ func Test_delete4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "delete4"
+	testprefix = "delete4"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(1, 0);\n  INSERT INTO t1 VALUES(2, 1);\n  INSERT INTO t1 VALUES(3, 0);\n  INSERT INTO t1 VALUES(4, 1);\n  INSERT INTO t1 VALUES(5, 0);\n  INSERT INTO t1 VALUES(6, 1);\n  INSERT INTO t1 VALUES(7, 0);\n  INSERT INTO t1 VALUES(8, 1);\n")
@@ -209,7 +216,8 @@ func Test_delete4(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "5.0"
 		r = db.Query("\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX x1 ON t1(b, c);\n  INSERT INTO t1(a,b,c) VALUES(1, 1, zeroblob(80));\n  INSERT INTO t1(a,b,c) SELECT a+1, 1, c FROM t1;\n  INSERT INTO t1(a,b,c) SELECT a+2, 1, c FROM t1;\n  INSERT INTO t1(a,b,c) SELECT a+10, 2, c FROM t1 WHERE b=1;\n  INSERT INTO t1(a,b,c) SELECT a+20, 3, c FROM t1 WHERE b=1;\n  PRAGMA reverse_unordered_selects = ON;\n  DELETE FROM t1 WHERE b=2;\n  SELECT a FROM t1 WHERE b=2;\n")
@@ -218,7 +226,8 @@ func Test_delete4(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "6.0"
 		r = db.Query("\n  CREATE TABLE t2(x INT);\n  INSERT INTO t2(x) VALUES(1),(2),(3),(4),(5);\n  DELETE FROM t2 WHERE EXISTS(SELECT 1 FROM t2 AS v WHERE v.x=t2.x-1);\n  SELECT x FROM t2;\n")
@@ -274,7 +283,8 @@ func Test_delete4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t4i ON t4(b);\n  INSERT INTO t4 VALUES(1, 'hello');\n  INSERT INTO t4 VALUES(2, 'world');\n\n  CREATE TABLE t5(a PRIMARY KEY, b) WITHOUT ROWID;\n  CREATE INDEX t5i ON t5(b);\n  INSERT INTO t5 VALUES(1, 'hello');\n  INSERT INTO t5 VALUES(3, 'world');\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET rootpage = (\n    SELECT rootpage FROM sqlite_master WHERE name = 't5'\n  ) WHERE name = 't4';\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "7.2.1"
 		_res = db.Exec("\n  DELETE FROM t4 WHERE b='world'\n")

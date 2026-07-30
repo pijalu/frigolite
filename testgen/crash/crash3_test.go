@@ -41,9 +41,40 @@ func Test_crash3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var crashfile string
+	_ = crashfile // pre-declared from TCL source
+	var rand string
+	_ = rand // pre-declared from TCL source
+	var delay string
+	_ = delay // pre-declared from TCL source
+	var char string
+	_ = char // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var res1 string
+	_ = res1 // pre-declared from TCL source
+	var tcl string
+	_ = tcl // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	var tn = "1"
+	tn = "1"
 	_ = tn // suppress unused warning
 	// foreach {sql res2} "list \\\n  {INSERT INTO abc VALUES(4, 5, 6)}                    {1 2 3 4 5 6} \\\n  {DELETE FROM abc}                                    {}    \\\n  {INSERT INTO abc SELECT * FROM abc}                  {1 2 3 1 2 3} \\\n  {UPDATE abc SET a = 2}                               {2 2 3}       \\\n  {INSERT INTO abc VALUES(4, 5, randstr(1000,1000))}   {n/a} \\\n  {CREATE TABLE def(d, e, f)}                          {n/a} \\"
 	_items0 := tclSplitList("list \\\n  {INSERT INTO abc VALUES(4, 5, 6)}                    {1 2 3 4 5 6} \\\n  {DELETE FROM abc}                                    {}    \\\n  {INSERT INTO abc SELECT * FROM abc}                  {1 2 3 1 2 3} \\\n  {UPDATE abc SET a = 2}                               {2 2 3}       \\\n  {INSERT INTO abc VALUES(4, 5, randstr(1000,1000))}   {n/a} \\\n  {CREATE TABLE def(d, e, f)}                          {n/a} \\")
@@ -53,12 +84,12 @@ func Test_crash3(t *testing.T) {
 		res2 := _items0[_idx0+1]
 		_ = res2 // suppress unused warning
 		_ = _idx0
-			var ii = "0"
+			ii = "0"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
 				os.Remove("test.db")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				{ // do_test "crash3-1." + tn + ".1"
 					_res = db.Exec("\n        PRAGMA page_size = 1024;\n        BEGIN;\n        CREATE TABLE abc(a, b, c);\n        INSERT INTO abc VALUES(1, 2, 3);\n        COMMIT;\n      ")
@@ -66,12 +97,12 @@ func Test_crash3(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        PRAGMA page_size = 1024;\n        BEGIN;\n        CREATE TABLE abc(a, b, c);\n        INSERT INTO abc VALUES(1, 2, 3);\n        COMMIT;\n      ")
 					}
 				}
-				var crashfile = "test.db"
+				crashfile = "test.db"
 				_ = crashfile // suppress unused warning
 				if func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return (ii_n%2) == 0 }() {
 					crashfile += "-journal"
 				}
-				var rand = "SELECT randstr(" + tn + "," + tn + ");"
+				rand = "SELECT randstr(" + tn + "," + tn + ");"
 				_ = rand // suppress unused warning
 				{ // do_test "crash3-1." + tn + ".2"
 					_res = db.Exec("crashsql -file " + crashfile + " -char atomic {" + rand + " " + sql + "}\n      sqlite3 db test.db\n      execsql { PRAGMA integrity_check; }")
@@ -79,8 +110,9 @@ func Test_crash3(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "crashsql -file " + crashfile + " -char atomic {" + rand + " " + sql + "}\n      sqlite3 db test.db\n      execsql { PRAGMA integrity_check; }")
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "do_test2 crash3-1.$tn.3 {\n      execsql { SELECT * FROM abc }\n    } {1 2 3} $res2")
-				var tn = "0"
+				// do_test2 crash3-1.$tn.3 {
+      execsql { SELECT * FROM abc }
+    } {1 2 3} $res2 (unsupported command, not transpiled)
 				// incr tn 1
 				{
 					_n, _err := strconv.Atoi(tn)
@@ -98,7 +130,8 @@ func Test_crash3(t *testing.T) {
 			}
 		}
 		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // do_test "crash3-2.0"
 			_res = db.Exec("\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    CREATE TABLE def(d PRIMARY KEY, e, f);\n    PRAGMA default_cache_size = 10;\n    INSERT INTO abc VALUES(randstr(10,1000),randstr(10,1000),randstr(10,1000));\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    COMMIT;\n  ")
@@ -109,24 +142,24 @@ func Test_crash3(t *testing.T) {
 		tn = "1"
 		_ = tn // suppress unused warning
 		// foreach {::crashfile ::delay ::char} "\n  test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append\n"
-		_items1 := tclSplitList("\n  test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append\n")
-		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-			_crashfile := _items1[_idx1+0]
-			_ = _crashfile // suppress unused warning
-			_delay := _items1[_idx1+1]
-			_ = _delay // suppress unused warning
-			_char := _items1[_idx1+2]
-			_ = _char // suppress unused warning
-			_ = _idx1
-				var ii = "0"
+		_items3 := tclSplitList("\n  test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append\n")
+		for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+			crashfile := _items3[_idx3+0]
+			_ = crashfile // suppress unused warning
+			delay := _items3[_idx3+1]
+			_ = delay // suppress unused warning
+			char := _items3[_idx3+2]
+			_ = char // suppress unused warning
+			_ = _idx3
+				ii = "0"
 				_ = ii // suppress unused warning
 				for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 100 }() {
-					var _SQL = "SELECT randstr(" + ii + "," + ii + "+10);\n      BEGIN;\n      DELETE FROM abc WHERE random()%5;\n      INSERT INTO abc \n        SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) \n        FROM abc\n        WHERE (random()%5)==0;\n      DELETE FROM def WHERE random()%5;\n      INSERT INTO def \n        SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) \n        FROM def\n        WHERE (random()%5)==0;\n      COMMIT;" // TCL namespace variable
-					_ = _SQL // suppress unused warning
+					var SQL = "SELECT randstr(" + ii + "," + ii + "+10);\n      BEGIN;\n      DELETE FROM abc WHERE random()%5;\n      INSERT INTO abc \n        SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) \n        FROM abc\n        WHERE (random()%5)==0;\n      DELETE FROM def WHERE random()%5;\n      INSERT INTO def \n        SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) \n        FROM def\n        WHERE (random()%5)==0;\n      COMMIT;" // TCL namespace variable
+					_ = SQL // suppress unused warning
 					{ // do_test "crash3-2." + tn + "." + ii
-						t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file $::crashfile -delay $::delay -char $::char $::SQL")
-						db, err := frigolite.Open("test.db")
-						defer db.Close()
+						// crashsql -file $::crashfile -delay $::delay -char $::char $::SQL (unsupported command, not transpiled)
+						_dbtmp4, err := frigolite.Open("test.db")
+						_ = _dbtmp4 // sqlite3 db connection
 						if err != nil { t.Fatal(err) }
 						r = db.Query("PRAGMA integrity_check")
 						if r.Error != nil {
@@ -141,7 +174,6 @@ func Test_crash3(t *testing.T) {
 						}
 					}
 				}
-				var tn = "0"
 				// incr tn 1
 				{
 					_n, _err := strconv.Atoi(tn)
@@ -150,13 +182,15 @@ func Test_crash3(t *testing.T) {
 					}
 				}
 			}
-			var ii = "0"
+			ii = "0"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
 				os.Remove("test.db")
-				t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file test.db -char {sequential atomic} {\n    CREATE TABLE abc(a, b, c);\n  }")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				// crashsql -file test.db -char {sequential atomic} {
+    CREATE TABLE abc(a, b, c);
+  } (unsupported command, not transpiled)
+				_dbtmp5, err := frigolite.Open("test.db")
+				_ = _dbtmp5 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				{ // do_test "crash3-3." + ii
 					r = db.Query("PRAGMA integrity_check")

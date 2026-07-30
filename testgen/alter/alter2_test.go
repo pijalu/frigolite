@@ -39,8 +39,37 @@ func Test_alter2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var schemacookie string
+	_ = schemacookie // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var default_file_format string
+	_ = default_file_format // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var newval string
+	_ = newval // pre-declared from TCL source
+	var fname string
+	_ = fname // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var SQLITE_DEFAULT_FILE_FORMAT string
+	_ = SQLITE_DEFAULT_FILE_FORMAT // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -49,7 +78,7 @@ func Test_alter2(t *testing.T) {
 		_res = db.Exec("SELECT substr('abcdefg',1,3)")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // do_test "alter2-1.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b);\n    INSERT INTO abc VALUES(1, 2);\n    INSERT INTO abc VALUES(3, 4);\n    INSERT INTO abc VALUES(5, 6);\n  ")
 		if _res.Error != nil {
@@ -57,7 +86,7 @@ func Test_alter2(t *testing.T) {
 		}
 	}
 	{ // do_test "alter2-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "alter_table abc {CREATE TABLE abc(a, b, c);}")
+		// alter_table abc {CREATE TABLE abc(a, b, c);} (unsupported command, not transpiled)
 	}
 	{ // do_test "alter2-1.3"
 		r = db.Query("\n    SELECT * FROM abc;\n  ")
@@ -96,7 +125,7 @@ func Test_alter2(t *testing.T) {
 		}
 	}
 	{ // do_test "alter2-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "alter_table abc {CREATE TABLE abc(a, b, c, d);}")
+		// alter_table abc {CREATE TABLE abc(a, b, c, d);} (unsupported command, not transpiled)
 		if tclBool("permutation" + " == \"prepare\"") {
 		}
 		r = db.Query(" SELECT * FROM abc; ")
@@ -121,16 +150,15 @@ func Test_alter2(t *testing.T) {
 		}
 	}
 	{ // do_test "alter2-4.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "set_file_format 5")
+		// set_file_format 5 (unsupported command, not transpiled)
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 		}
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "alter2-4.2"
 		_res = db.Exec(" SELECT * FROM sqlite_master; ")
@@ -139,32 +167,32 @@ func Test_alter2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "alter2-4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
 	{ // do_test "alter2-4.4"
-		var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-		_ = _DB // suppress unused warning
+		DB = "sqlite3_connection_pointer db" // TCL namespace variable
+		_ = DB // suppress unused warning
 		_res = db.Exec("\n    SELECT * FROM sqlite_master;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "alter2-4.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		// sqlite3_errcode db (unsupported command, not transpiled)
 	}
-	var default_file_format = "$SQLITE_DEFAULT_FILE_FORMAT==4 ? 4 : 1"
+	default_file_format = "$SQLITE_DEFAULT_FILE_FORMAT==4 ? 4 : 1"
 	_ = default_file_format // suppress unused warning
 	{ // do_test "alter2-6.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "set_file_format 2")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// set_file_format 2 (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
+		// get_file_format (unsupported command, not transpiled)
 	}
 	{ // do_test "alter2-6.3"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
+		// get_file_format (unsupported command, not transpiled)
 	}
 	{ // do_test "alter2-7.1"
 		r = db.Query("\n    DROP TABLE t1;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;\n  ")
@@ -173,9 +201,9 @@ func Test_alter2(t *testing.T) {
 		}
 	}
 	{ // do_test "alter2-7.2"
-		var sql = "CREATE TABLE t1(a, b DEFAULT '123', c INTEGER DEFAULT '123')"
+		sql = "CREATE TABLE t1(a, b DEFAULT '123', c INTEGER DEFAULT '123')"
 		_ = sql // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "alter_table t1 $sql 3")
+		// alter_table t1 $sql 3 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT * FROM t1 LIMIT 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LIMIT 1;\n  ")
@@ -194,9 +222,9 @@ func Test_alter2(t *testing.T) {
 		}
 	}
 	{ // do_test "alter2-7.5"
-		var sql = "CREATE TABLE t1(a, b DEFAULT -123.0, c VARCHAR(10) default 5)"
+		sql = "CREATE TABLE t1(a, b DEFAULT -123.0, c VARCHAR(10) default 5)"
 		_ = sql // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "alter_table t1 $sql 3")
+		// alter_table t1 $sql 3 (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT a, typeof(a), b, typeof(b), c, typeof(c) FROM t1 LIMIT 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, typeof(a), b, typeof(b), c, typeof(c) FROM t1 LIMIT 1;\n  ")

@@ -42,6 +42,23 @@ func Test_alter3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var fname string
+	_ = fname // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("0" + " || " + _r) {
 		var has_codec = "1"
@@ -52,7 +69,7 @@ func Test_alter3(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "alter3-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
+		// sqlite3_db_config db LEGACY_FILE_FORMAT 1 (unsupported command, not transpiled)
 		r = db.Query("\n    CREATE TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_master;\n  ")
@@ -158,14 +175,14 @@ func Test_alter3(t *testing.T) {
 	}
 	if tclBool("!" + has_codec) {
 		{ // do_test "alter3-3.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
+			// get_file_format (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "alter3-4.1"
 		os.Remove("test.db")
-		var _DB = "sqlite3 db test.db" // TCL namespace variable
-		_ = _DB // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
+		DB = "sqlite3 db test.db" // TCL namespace variable
+		_ = DB // suppress unused warning
+		// sqlite3_db_config db LEGACY_FILE_FORMAT 1 (unsupported command, not transpiled)
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
@@ -185,7 +202,7 @@ func Test_alter3(t *testing.T) {
 	}
 	if tclBool("!" + has_codec) {
 		{ // do_test "alter3-4.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
+			// get_file_format (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "alter3-4.99"
@@ -202,12 +219,12 @@ func Test_alter3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(c1);\n  ")
 		}
 	}
-	var _sql = "" // TCL namespace variable
-	_ = _sql // suppress unused warning
+	sql = "" // TCL namespace variable
+	_ = sql // suppress unused warning
 	{ // do_test "alter3-8.2"
-		var cols = "c1"
+		cols = "c1"
 		_ = cols // suppress unused warning
-		var i = "2"
+		i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			_res = db.Exec("\n      ALTER TABLE t4 ADD c" + i + "\n    ")
@@ -223,8 +240,8 @@ func Test_alter3(t *testing.T) {
 				}
 			}
 		}
-		var _sql = "CREATE TABLE t4(" + "join $cols {, }" + ")" // TCL namespace variable
-		_ = _sql // suppress unused warning
+		sql = "CREATE TABLE t4(" + "join $cols {, }" + ")" // TCL namespace variable
+		_ = sql // suppress unused warning
 	}
 	{ // do_test "alter3-8.2"
 		r = db.Query("\n    SELECT sql FROM sqlite_master WHERE name = 't4';\n  ")

@@ -40,6 +40,19 @@ func Test_pragma3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("sqlite3 -has-codec") {
 		return
@@ -156,11 +169,12 @@ func Test_pragma3(t *testing.T) {
 		}
 	}
 	{ // do_test "pragma3-201"
-		var fd = "open pragma3.txt wb"
+		fd = "open pragma3.txt wb"
 		_ = fd // suppress unused warning
-		t.Log(fd)
+		_putsMsg := fd
+		_ = _putsMsg
 		// close $fd
-		t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] pragma3.txt")
+		// exec [info nameofexec] pragma3.txt (unsupported command, not transpiled)
 		os.Remove("pragma3.txt")
 		_res = db.Exec("\n    PRAGMA data_version;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
@@ -170,8 +184,8 @@ func Test_pragma3(t *testing.T) {
 	db2.Close()
 	if tclBool("wal_is_capable") {
 		if tclBool("permutation" + "!=\"inmemory_journal\"") {
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA journal_mode=WAL")
 			if _res.Error != nil {

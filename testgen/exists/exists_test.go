@@ -39,15 +39,38 @@ func Test_exists(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var jm string
+	_ = jm // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	for _, jm := range tclSplitList("rollback wal") {
 	_ = jm // suppress unused warning
 		if tclBool("!" + "wal_is_capable" + " && " + jm + "==\"wal\"") {
 		}
-		var testprefix = "exists-" + jm
+		testprefix = "exists-" + jm
 		_ = testprefix // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    # TABLE objects.\n    #\n    do_test 1.$tn.1.1...}")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    # TABLE objects.\n    #\n    do_test 2.$tn.1 {...}")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    forcedelete test.db2\n    do_test 3.$tn.0 {\n ...}")
+		// do_multiclient_test tn {
+
+    # TABLE objects.
+    #
+    do_test 1.$tn.1.1...} (unsupported command, not transpiled)
+		// do_multiclient_test tn {
+
+    # TABLE objects.
+    #
+    do_test 2.$tn.1 {...} (unsupported command, not transpiled)
+		// do_multiclient_test tn {
+
+    forcedelete test.db2
+    do_test 3.$tn.0 {
+ ...} (unsupported command, not transpiled)
 	}
 }

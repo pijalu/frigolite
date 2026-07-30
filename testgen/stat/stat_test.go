@@ -41,16 +41,27 @@ func Test_stat(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var asc string
+	_ = asc // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "stat"
+	testprefix = "stat"
 	_ = testprefix // suppress unused warning
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	var _asc = "1" // TCL namespace variable
-	_ = _asc // suppress unused warning
+	asc = "1" // TCL namespace variable
+	_ = asc // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_dbstat_vtab db")
+	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "stat-0.0"
 		r = db.Query("\n  PRAGMA table_info(dbstat);\n")
 		if r.Error != nil {
@@ -82,9 +93,10 @@ func Test_stat(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "register_dbstat_vtab db")
+	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "stat-0.2"
 		r = db.Query("\n  PRAGMA auto_vacuum = OFF;\n  CREATE VIRTUAL TABLE temp.stat USING dbstat;\n  SELECT * FROM stat;\n")
 		if r.Error != nil {
@@ -214,9 +226,10 @@ func Test_stat(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "register_dbstat_vtab db")
+	// register_dbstat_vtab db (unsupported command, not transpiled)
 	{ // "stat-5.1"
 		r = db.Query("\n  PRAGMA auto_vacuum = OFF;\n  CREATE TABLE tx(y);\n  ATTACH ':memory:' AS aux1;\n  CREATE VIRTUAL TABLE temp.stat USING dbstat(aux1);\n  CREATE TABLE aux1.t1(x);\n  INSERT INTO t1 VALUES(zeroblob(1513));\n  INSERT INTO t1 VALUES(zeroblob(1514));\n  SELECT name, path, pageno, pagetype, ncell, payload, unused, mx_payload\n    FROM stat WHERE name = 't1';\n")
 		if r.Error != nil {

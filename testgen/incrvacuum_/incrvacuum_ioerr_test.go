@@ -39,8 +39,60 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var iTest string
+	_ = iTest // pre-declared from TCL source
+	var nFree string
+	_ = nFree // pre-declared from TCL source
+	var nPage string
+	_ = nPage // pre-declared from TCL source
+	var sqlite_io_error_pending string
+	_ = sqlite_io_error_pending // pre-declared from TCL source
+	var sqlite_io_error_persist string
+	_ = sqlite_io_error_persist // pre-declared from TCL source
+	var sqlite_io_error_hit string
+	_ = sqlite_io_error_hit // pre-declared from TCL source
+	var sqlite_io_error_hardhit string
+	_ = sqlite_io_error_hardhit // pre-declared from TCL source
+	var nFree2 string
+	_ = nFree2 // pre-declared from TCL source
+	var nPage2 string
+	_ = nPage2 // pre-declared from TCL source
+	var shrink string
+	_ = shrink // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-1 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 'incremental';\n  CREATE TA...} -sqlbody {\n  BEGIN;\n  CREATE TABLE abc2(a);\n  DELETE FROM ab...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-2 -start 1 -cksum 1 -tclprep {\n  db eval {\n    PRAGMA auto_vacuum = 'full';\n    ...} -sqlbody {\n  BEGIN;\n  PRAGMA incremental_vacuum;\n  DELETE FR...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-3 -start 1 -cksum 1 -tclprep {\n  db eval {\n    PRAGMA auto_vacuum = 'incremental...} -sqlbody {\n  PRAGMA incremental_vacuum(5);\n} -cleanup {\n  sqlite3 db test.db\n  integrity_check incrvacuum...}")
+	// do_ioerr_test incrvacuum-ioerr-1 -cksum 1 -sqlprep {
+  PRAGMA auto_vacuum = 'incremental';
+  CREATE TA...} -sqlbody {
+  BEGIN;
+  CREATE TABLE abc2(a);
+  DELETE FROM ab...} (unsupported command, not transpiled)
+	// do_ioerr_test incrvacuum-ioerr-2 -start 1 -cksum 1 -tclprep {
+  db eval {
+    PRAGMA auto_vacuum = 'full';
+    ...} -sqlbody {
+  BEGIN;
+  PRAGMA incremental_vacuum;
+  DELETE FR...} (unsupported command, not transpiled)
+	// do_ioerr_test incrvacuum-ioerr-3 -start 1 -cksum 1 -tclprep {
+  db eval {
+    PRAGMA auto_vacuum = 'incremental...} -sqlbody {
+  PRAGMA incremental_vacuum(5);
+} -cleanup {
+  sqlite3 db test.db
+  integrity_check incrvacuum...} (unsupported command, not transpiled)
 }

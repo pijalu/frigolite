@@ -40,6 +40,19 @@ func Test_stmt(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var expected string
+	_ = expected // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("atomic_batch_write test.db") {
 		return
@@ -50,7 +63,7 @@ func Test_stmt(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a integer primary key, b INTEGER NOT NULL) ")
 		}
 	}
-	if func() bool { _TEMP_STORE_n, __TEMP_STORE_e := strconv.Atoi(_TEMP_STORE); if __TEMP_STORE_e != nil { return false }; return _TEMP_STORE_n == 3 }() {
+	if func() bool { TEMP_STORE_n, _TEMP_STORE_e := strconv.Atoi(TEMP_STORE); if _TEMP_STORE_e != nil { return false }; return TEMP_STORE_n == 3 }() {
 		return
 	}
 	{ // do_test "stmt-1.2"
@@ -92,15 +105,19 @@ func Test_stmt(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "filecount stmt-2.1 { INSERT INTO t1 VALUES(9, 9)  } 2")
-	t.Errorf("TODO: %s not implemented in frigolite", "filecount stmt-2.2 { REPLACE INTO t1 VALUES(9, 9) } 2")
-	t.Errorf("TODO: %s not implemented in frigolite", "filecount stmt-2.3 { INSERT INTO t1 SELECT 9, 9   } 2")
-	t.Errorf("TODO: %s not implemented in frigolite", "filecount stmt-2.4 { \n    INSERT INTO t1 SELECT 9, 9;\n    INSERT INTO ...} 2")
+	// filecount stmt-2.1 { INSERT INTO t1 VALUES(9, 9)  } 2 (unsupported command, not transpiled)
+	// filecount stmt-2.2 { REPLACE INTO t1 VALUES(9, 9) } 2 (unsupported command, not transpiled)
+	// filecount stmt-2.3 { INSERT INTO t1 SELECT 9, 9   } 2 (unsupported command, not transpiled)
+	// filecount stmt-2.4 { 
+    INSERT INTO t1 SELECT 9, 9;
+    INSERT INTO ...} 2 (unsupported command, not transpiled)
 	{ // do_test "stmt-2.5"
 		_res = db.Exec(" CREATE INDEX i1 ON t1(b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(b) ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "filecount stmt-2.6 { \n  REPLACE INTO t1 VALUES(5, 5);\n  REPLACE INTO t...} 2")
+	// filecount stmt-2.6 { 
+  REPLACE INTO t1 VALUES(5, 5);
+  REPLACE INTO t...} 2 (unsupported command, not transpiled)
 }

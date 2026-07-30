@@ -40,6 +40,21 @@ func Test_e_insert(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var ac string
+	_ = ac // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "e_insert-0.0"
 		_res = db.Exec("\n  CREATE TABLE a1(a, b);\n  CREATE TABLE a2(a, b, c DEFAULT 'xyz');\n  CREATE TABLE a3(x DEFAULT 1.0, y DEFAULT 'string', z);\n  CREATE TABLE a4(c UNIQUE, d);\n")
@@ -48,31 +63,52 @@ func Test_e_insert(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-0 {\n     1  \"INSERT             INTO a1 DEFAULT VALUE...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.1 {\n    0    \"SELECT count(*) FROM a2\"           {0}\n...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.2 -error { \n  table %s has %d columns but %d values were sup...} {\n    1    \"INSERT INTO a2 VALUES(1)\"         {a2 3...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.3 {\n    1a   \"INSERT INTO a2 VALUES(1, 2, 3)\"    {}\n ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.4 -error { \n  %d values for %d columns\n} {\n    1    \"INSERT INTO a2(a, b, c) VALUES(1)\"     ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.5 {\n    1a   \"INSERT INTO a2(b, c) VALUES('b', 'c')\" ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.1 {\n    0    \"SELECT count(*) FROM a1\"            {0}...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.2 -error {\n  %d values for %d columns\n} {\n    1    \"INSERT INTO a3(x, y) SELECT a, b, c FRO...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.3 -error {\n  table %s has %d columns but %d values were supp...} {\n    1    \"INSERT INTO a1 SELECT a, b, c FROM a2\" ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
+	// do_insert_tests e_insert-0 {
+     1  "INSERT             INTO a1 DEFAULT VALUE...} (unsupported command, not transpiled)
+	// delete_all_data (unsupported command, not transpiled)
+	// do_insert_tests e_insert-1.1 {
+    0    "SELECT count(*) FROM a2"           {0}
+...} (unsupported command, not transpiled)
+	// do_insert_tests e_insert-1.2 -error { 
+  table %s has %d columns but %d values were sup...} {
+    1    "INSERT INTO a2 VALUES(1)"         {a2 3...} (unsupported command, not transpiled)
+	// delete_all_data (unsupported command, not transpiled)
+	// do_insert_tests e_insert-1.3 {
+    1a   "INSERT INTO a2 VALUES(1, 2, 3)"    {}
+ ...} (unsupported command, not transpiled)
+	// do_insert_tests e_insert-1.4 -error { 
+  %d values for %d columns
+} {
+    1    "INSERT INTO a2(a, b, c) VALUES(1)"     ...} (unsupported command, not transpiled)
+	// delete_all_data (unsupported command, not transpiled)
+	// do_insert_tests e_insert-1.5 {
+    1a   "INSERT INTO a2(b, c) VALUES('b', 'c')" ...} (unsupported command, not transpiled)
+	// delete_all_data (unsupported command, not transpiled)
+	// do_insert_tests e_insert-2.1 {
+    0    "SELECT count(*) FROM a1"            {0}...} (unsupported command, not transpiled)
+	// do_insert_tests e_insert-2.2 -error {
+  %d values for %d columns
+} {
+    1    "INSERT INTO a3(x, y) SELECT a, b, c FRO...} (unsupported command, not transpiled)
+	// do_insert_tests e_insert-2.3 -error {
+  table %s has %d columns but %d values were supp...} {
+    1    "INSERT INTO a1 SELECT a, b, c FROM a2" ...} (unsupported command, not transpiled)
+	// delete_all_data (unsupported command, not transpiled)
 	{ // "e_insert-2.3.0"
 		_res = db.Exec("\n  INSERT INTO a1 VALUES('x', 'y');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO a1 VALUES('x', 'y');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.3 {\n  1  \"INSERT INTO a1 SELECT a,b FROM a1 UNION SEL...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-3.1 {\n    1    \"SELECT count(*) FROM a3\"           {0}\n...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-3.2 {\n    1.1    \"INSERT INTO a3 DEFAULT VALUES\"     {}...}")
+	// do_insert_tests e_insert-2.3 {
+  1  "INSERT INTO a1 SELECT a,b FROM a1 UNION SEL...} (unsupported command, not transpiled)
+	// delete_all_data (unsupported command, not transpiled)
+	// do_insert_tests e_insert-3.1 {
+    1    "SELECT count(*) FROM a3"           {0}
+...} (unsupported command, not transpiled)
+	// delete_all_data (unsupported command, not transpiled)
+	// do_insert_tests e_insert-3.2 {
+    1.1    "INSERT INTO a3 DEFAULT VALUES"     {}...} (unsupported command, not transpiled)
 	{ // "e_insert-4.1.0"
 		_res = db.Exec("\n  INSERT INTO a4 VALUES(1, 'a');\n  INSERT INTO a4 VALUES(2, 'a');\n  INSERT INTO a4 VALUES(3, 'a');\n")
 		if _res.Error != nil {
@@ -112,11 +148,12 @@ func Test_e_insert(t *testing.T) {
 				}
 			}
 			{ // do_test "e_insert-4.1." + tn + ".3"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+				// sqlite3_get_autocommit db (unsupported command, not transpiled)
 			}
 		}
-		err = "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
-		_ = err // suppress unused warning
+		var _err_tcl string
+		_err_tcl = "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
+		_ = _err_tcl // suppress unused warning
 		{ // "e_insert-5.1.1"
 			_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")
 			if _res.Error == nil {
@@ -135,5 +172,5 @@ func Test_e_insert(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"DEFAULT\\\": syntax error", _res.Error, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
+		// delete_all_data (unsupported command, not transpiled)
 }

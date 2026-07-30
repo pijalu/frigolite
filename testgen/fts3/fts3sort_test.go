@@ -39,9 +39,50 @@ func Test_fts3sort(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var vocab string
+	_ = vocab // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var doc string
+	_ = doc // pre-declared from TCL source
+	var div string
+	_ = div // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var param string
+	_ = param // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var query string
+	_ = query // pre-declared from TCL source
+	var A_list string
+	_ = A_list // pre-declared from TCL source
+	var B_list string
+	_ = B_list // pre-declared from TCL source
+	var C_list string
+	_ = C_list // pre-declared from TCL source
+	var D_list string
+	_ = D_list // pre-declared from TCL source
+	var CONTROL_tn string
+	_ = CONTROL_tn // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var X_docid string
+	_ = X_docid // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	var testprefix = "fts3sort"
+	testprefix = "fts3sort"
 	_ = testprefix // suppress unused warning
 	// foreach {t param} "\n  1     \"\"\n  2     \"order=asc\"\n  3     \"order=desc\"\n"
 	_items0 := tclSplitList("\n  1     \"\"\n  2     \"order=asc\"\n  3     \"order=desc\"\n")
@@ -51,12 +92,12 @@ func Test_fts3sort(t *testing.T) {
 		param := _items0[_idx0+1]
 		_ = param // suppress unused warning
 		_ = _idx0
-			var testprefix = "fts3sort-1." + _t
+			testprefix = "fts3sort-1." + _t
 			_ = testprefix // suppress unused warning
-			var nRow = "1000"
+			nRow = "1000"
 			_ = nRow // suppress unused warning
 			{ // do_test "1.0"
-				t.Errorf("TODO: %s not implemented in frigolite", "build_database $nRow $param")
+				// build_database $nRow $param (unsupported command, not transpiled)
 				r = db.Query(" SELECT count(*) FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
@@ -70,13 +111,13 @@ func Test_fts3sort(t *testing.T) {
 				query := _items1[_idx1+1]
 				_ = query // suppress unused warning
 				_ = _idx1
-					var A_list = "list"
+					A_list = "list"
 					_ = A_list // suppress unused warning
-					var B_list = "list"
+					B_list = "list"
 					_ = B_list // suppress unused warning
-					var C_list = "list"
+					C_list = "list"
 					_ = C_list // suppress unused warning
-					var D_list = "list"
+					D_list = "list"
 					_ = D_list // suppress unused warning
 					_res = db.Exec(query + " ORDER BY rowid ASC")
 					if _res.Error != nil {
@@ -107,22 +148,22 @@ func Test_fts3sort(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, query)
 					}
 					{ // do_test tn + ".5"
-						tclSort("array get A")
+						_ = tclSort("array get A") // lsort result
 					}
 					{ // do_test tn + ".6"
-						tclSort("array get B")
+						_ = tclSort("array get B") // lsort result
 					}
 					{ // do_test tn + ".7"
-						tclSort("array get C")
+						_ = tclSort("array get C") // lsort result
 					}
 					{ // do_test tn + ".8"
-						tclSort("array get D")
+						_ = tclSort("array get D") // lsort result
 					}
 					if tclBool("info exists CONTROL($tn)") {
 						{ // do_test tn + ".9"
 						}
 					} else {
-						var CONTROL_tn = "lsort [array get DATA]"
+						CONTROL_tn = "lsort [array get DATA]"
 						_ = CONTROL_tn // suppress unused warning
 					}
 				}

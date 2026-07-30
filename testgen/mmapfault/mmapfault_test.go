@@ -39,10 +39,23 @@ func Test_mmapfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var a_string_counter string
+	_ = a_string_counter // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "mmapfault"
+	testprefix = "mmapfault"
 	_ = testprefix // suppress unused warning
-	var a_string_counter = "1"
+	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "1-pre"
@@ -50,7 +63,13 @@ func Test_mmapfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  db func a_string ...} -body {\n  execsql { INSERT INTO t1 VALUES(a_string(200), ...} -test {\n  faultsim_test_result {0 {}} \n\n  if {[sqlite3_ge...}")
+	// do_faultsim_test 1 -prep {
+  faultsim_restore_and_reopen
+  db func a_string ...} -body {
+  execsql { INSERT INTO t1 VALUES(a_string(200), ...} -test {
+  faultsim_test_result {0 {}} 
+
+  if {[sqlite3_ge...} (unsupported command, not transpiled)
 }

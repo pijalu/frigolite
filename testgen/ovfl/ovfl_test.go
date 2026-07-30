@@ -40,20 +40,33 @@ func Test_ovfl(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var c2 string
+	_ = c2 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var c1 string
+	_ = c1 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "ovfl"
+	testprefix = "ovfl"
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.1"
-		var c2 = "abcdefghij 200"
+		c2 = "abcdefghij 200"
 		_ = c2 // suppress unused warning
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(c1 TEXT, c2 TEXT);\n    BEGIN;\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 2000 }() {
-			var c1 = ". $i"
+			c1 = ". $i"
 			_ = c1 // suppress unused warning
 			_res = db.Exec(" INSERT INTO t1 VALUES($c1, $c2) ")
 			if _res.Error != nil {

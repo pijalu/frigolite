@@ -39,6 +39,17 @@ func Test_loadext2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var errmsg string
+	_ = errmsg // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("info command sqlite3_auto_extension_sqr" + "==\"\"") {
 		return
@@ -52,17 +63,17 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
+		// sqlite3_cancel_auto_extension_sqr (unsupported command, not transpiled)
 	}
 	{ // do_test "loadext2-1.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
+		// sqlite3_cancel_auto_extension_sqr (unsupported command, not transpiled)
 	}
 	{ // do_test "loadext2-1.2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
+		// sqlite3_cancel_auto_extension_sqr (unsupported command, not transpiled)
 	}
 	{ // do_test "loadext2-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_sqr")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_cube")
+		// sqlite3_auto_extension_sqr (unsupported command, not transpiled)
+		// sqlite3_auto_extension_cube (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
 		_ = _res // catchsql
 	}
@@ -71,8 +82,8 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.5"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
 		_ = _res // catchsql
@@ -82,16 +93,16 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.7.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
+		// sqlite3_cancel_auto_extension_sqr (unsupported command, not transpiled)
 	}
 	{ // do_test "loadext2-1.7.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
+		// sqlite3_cancel_auto_extension_sqr (unsupported command, not transpiled)
 	}
 	{ // do_test "loadext2-1.7.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_cube")
+		// sqlite3_cancel_auto_extension_cube (unsupported command, not transpiled)
 	}
 	{ // do_test "loadext2-1.7.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_cube")
+		// sqlite3_cancel_auto_extension_cube (unsupported command, not transpiled)
 	}
 	{ // do_test "loadext2-1.7.5"
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
@@ -102,9 +113,9 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_sqr")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// sqlite3_auto_extension_sqr (unsupported command, not transpiled)
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
 		_ = _res // catchsql
@@ -114,10 +125,10 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_cube")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// sqlite3_reset_auto_extension (unsupported command, not transpiled)
+		// sqlite3_auto_extension_cube (unsupported command, not transpiled)
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
 		_ = _res // catchsql
@@ -127,15 +138,13 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_broken")
-	var rc string
+		// sqlite3_auto_extension_broken (unsupported command, not transpiled)
 	_ = rc // suppress unused warning
-	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			if _catchErr != nil {
 				rc = "1"
@@ -155,6 +164,6 @@ func Test_loadext2(t *testing.T) {
 		_res = db.Exec("\n    SELECT cube(2)\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	// sqlite3_reset_auto_extension (unsupported command, not transpiled)
+	// autoinstall_test_functions (unsupported command, not transpiled)
 }

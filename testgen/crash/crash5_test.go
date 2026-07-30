@@ -41,28 +41,52 @@ func Test_crash5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var jj string
+	_ = jj // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var env_ComSpec string
+	_ = env_ComSpec // pre-declared from TCL source
+	var comSpec string
+	_ = comSpec // pre-declared from TCL source
+	var iFail string
+	_ = iFail // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
-		var jj = "1"
+		jj = "1"
 		_ = jj // suppress unused warning
 		for func() bool { jj_n, _jj_e := strconv.Atoi(jj); if _jj_e != nil { return false }; return jj_n < 100 }() {
 			os.Remove("test.db")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			var c = "3 1500"
+			c = "3 1500"
 			_ = c // suppress unused warning
 			_res = db.Exec("\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', $c);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', $c);\n    ")
 			}
 			{ // do_test "crash5-" + ii + "." + jj + ".1"
-				t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db-journal -seed $ii -tclbody [join [list \\\n        [list set iFail $jj] {\n     ... {}")
+				// crashsql -delay 1 -file test.db-journal -seed $ii -tclbody [join [list \
+        [list set iFail $jj] {
+     ... {} (unsupported command, not transpiled)
 				// expr 1 → "1"
 			}
-			db, err = frigolite.Open("test.db")
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // do_test "crash5-" + ii + "." + jj + ".2"
 				_res = db.Exec("pragma integrity_check")

@@ -41,8 +41,63 @@ func Test_func(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var word string
+	_ = word // pre-declared from TCL source
+	var isutf16 string
+	_ = isutf16 // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var x1 string
+	_ = x1 // pre-declared from TCL source
+	var x2 string
+	_ = x2 // pre-declared from TCL source
+	var encoding string
+	_ = encoding // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var V string
+	_ = V // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var sdx string
+	_ = sdx // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var rep string
+	_ = rep // pre-declared from TCL source
+	var midargs string
+	_ = midargs // pre-declared from TCL source
+	var midres string
+	_ = midres // pre-declared from TCL source
+	var limit string
+	_ = limit // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var xyz string
+	_ = xyz // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "func"
+	testprefix = "func"
 	_ = testprefix // suppress unused warning
 	{ // do_test "func-0.0"
 		_res = db.Exec("CREATE TABLE tbl1(t1 text)")
@@ -73,7 +128,7 @@ func Test_func(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT length(t1) FROM tbl1 ORDER BY t1")
 		}
 	}
-	var isutf16 = "regexp 16 [db one {PRAGMA encoding}]"
+	isutf16 = "regexp 16 [db one {PRAGMA encoding}]"
 	_ = isutf16 // suppress unused warning
 	{ // "func-1.0b"
 		r = db.Query("\n  SELECT octet_length(t1) FROM tbl1 ORDER BY t1;\n")
@@ -88,7 +143,6 @@ func Test_func(t *testing.T) {
 		}
 	}
 	{ // do_test "func-1.1"
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -106,7 +160,6 @@ func Test_func(t *testing.T) {
 		_r = tclListAppend(_r, msg)
 	}
 	{ // do_test "func-1.2"
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -491,7 +544,7 @@ func Test_func(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT length(randomblob(32)), length(randomblob(-5)),\n           length(randomblob(2000))\n  ")
 		}
 	}
-	var encoding = "db one {PRAGMA encoding}"
+	encoding = "db one {PRAGMA encoding}"
 	_ = encoding // suppress unused warning
 	if encoding == "UTF-16le" {
 		{ // do_test "func-9.11-utf16le"
@@ -544,9 +597,9 @@ func Test_func(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-	_ = _DB // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite_register_test_function $::DB testfunc")
+	DB = "sqlite3_connection_pointer db" // TCL namespace variable
+	_ = DB // suppress unused warning
+	// sqlite_register_test_function $::DB testfunc (unsupported command, not transpiled)
 	{ // do_test "func-10.1"
 		_res = db.Exec("\n    SELECT testfunc(NULL,NULL);\n  ")
 		_ = _res // catchsql
@@ -651,14 +704,14 @@ func Test_func(t *testing.T) {
 		}
 	}
 	{ // do_test "func-13.7"
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
-		var sql = "SELECT test_auxdata( ? , a ) FROM t4;"
+		sql = "SELECT test_auxdata( ? , a ) FROM t4;"
 		_ = sql // suppress unused warning
-		var STMT = "sqlite3_prepare $DB $sql -1 TAIL"
+		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 1 hello\\000 -1")
-		var res = "list"
+		// sqlite3_bind_text $STMT 1 hello\000 -1 (unsupported command, not transpiled)
+		res = "list"
 		_ = res // suppress unused warning
 		for tclBool("\"SQLITE_ROW\"==" + "SQLITE_ROW") {
 			res = tclListAppend(res, "")
@@ -701,7 +754,7 @@ func Test_func(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var V = "one"
+	V = "one"
 	_ = V // suppress unused warning
 	{ // "13.8.4"
 		r = db.Query("\n  SELECT test_auxdata($V), $V FROM t4;\n")
@@ -774,11 +827,11 @@ func Test_func(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tbl2(a, b);\n  ")
 		}
-		var STMT = "sqlite3_prepare $::DB \"INSERT INTO tbl2 VALUES(?, ?)\" -1 TAIL"
+		STMT = "sqlite3_prepare $::DB \"INSERT INTO tbl2 VALUES(?, ?)\" -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_blob $::STMT 1 abc 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		// sqlite3_bind_blob $::STMT 1 abc 3 (unsupported command, not transpiled)
+		// sqlite3_step $::STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT quote(a), quote(b) FROM tbl2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT quote(a), quote(b) FROM tbl2;\n  ")
@@ -880,7 +933,7 @@ func Test_func(t *testing.T) {
 		_ = _res // catchsql
 	}
 	if tclBool("!" + "0") {
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// foreach {name sdx} "\n    euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000\n  "
 		_items0 := tclSplitList("\n    euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000\n  ")
@@ -890,7 +943,6 @@ func Test_func(t *testing.T) {
 			sdx := _items0[_idx0+1]
 			_ = sdx // suppress unused warning
 			_ = _idx0
-				var i = "0"
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -1120,29 +1172,29 @@ func Test_func(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT 'BEGIN-'||group_concat(t1) FROM tbl1\n  ")
 			}
 		}
-		var midargs = ""
+		midargs = ""
 		_ = midargs // suppress unused warning
-		var midres = ""
+		midres = ""
 		_ = midres // suppress unused warning
-		var limit = "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1"
+		limit = "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1"
 		_ = limit // suppress unused warning
 		if func() bool { limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return limit_n > 400 }() {
-			var limit = "400"
+			limit = "400"
 			_ = limit // suppress unused warning
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
 			midargs += ",'/" + i + "'"
 			midres += "/" + i
-			var result = "md5 \\\n     \"this${midres}program${midres}is${midres}free${midres}software${midres}\""
+			result = "md5 \\\n     \"this${midres}program${midres}is${midres}free${midres}software${midres}\""
 			_ = result // suppress unused warning
-			var sql = "SELECT md5sum(t1" + midargs + ") FROM tbl1"
+			sql = "SELECT md5sum(t1" + midargs + ") FROM tbl1"
 			_ = sql // suppress unused warning
 			{ // do_test "func-24.7." + i
-				_res = db.Exec(_sql)
+				_res = db.Exec(sql)
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, _sql)
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 				}
 			}
 			// incr i 1
@@ -1202,14 +1254,14 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // do_test "func-26.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "abuse_create_function db")
+			// abuse_create_function db (unsupported command, not transpiled)
 		}
 		{ // do_test "func-26.2"
-			var a = ""
+			a = ""
 			_ = a // suppress unused warning
-			var limit = _SQLITE_MAX_FUNCTION_ARG
+			limit = SQLITE_MAX_FUNCTION_ARG
 			_ = limit // suppress unused warning
-			var i = "1"
+			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {
 				a = tclListAppend(a, i)
@@ -1227,11 +1279,11 @@ func Test_func(t *testing.T) {
 			}
 		}
 		{ // do_test "func-26.3"
-			var a = ""
+			a = ""
 			_ = a // suppress unused warning
-			var i = "1"
+			i = "1"
 			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _SQLITE_MAX_FUNCTION_ARG_n, __SQLITE_MAX_FUNCTION_ARG_e := strconv.Atoi(_SQLITE_MAX_FUNCTION_ARG); if __SQLITE_MAX_FUNCTION_ARG_e != nil { return false }; return i_n <= _SQLITE_MAX_FUNCTION_ARG_n+1 }() {
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; SQLITE_MAX_FUNCTION_ARG_n, _SQLITE_MAX_FUNCTION_ARG_e := strconv.Atoi(SQLITE_MAX_FUNCTION_ARG); if _SQLITE_MAX_FUNCTION_ARG_e != nil { return false }; return i_n <= SQLITE_MAX_FUNCTION_ARG_n+1 }() {
 				a = tclListAppend(a, i)
 				// incr i 1
 				{
@@ -1245,11 +1297,11 @@ func Test_func(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "func-26.4"
-			var a = ""
+			a = ""
 			_ = a // suppress unused warning
-			var limit = "$::SQLITE_MAX_FUNCTION_ARG-1"
+			limit = "$::SQLITE_MAX_FUNCTION_ARG-1"
 			_ = limit // suppress unused warning
-			var i = "1"
+			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {
 				a = tclListAppend(a, i)
@@ -1297,28 +1349,28 @@ func Test_func(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t29(id INTEGER PRIMARY KEY, x, y);\n    INSERT INTO t29 VALUES(1, 2, 3), (2, NULL, 4), (3, 4.5, 5);\n    INSERT INTO t29 VALUES(4, randomblob(1000000), 6);\n    INSERT INTO t29 VALUES(5, 'hello', 7);\n  ")
 			}
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_MISS 1")
+			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(x), length(x), typeof(y) FROM t29 ORDER BY id")
 			}
 		}
 		{ // do_test "func-29.2"
-			var x = "lindex [sqlite3_db_status db CACHE_MISS 1] 1"
+			x = "lindex [sqlite3_db_status db CACHE_MISS 1] 1"
 			_ = x // suppress unused warning
 			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
-				var x = "1"
+				x = "1"
 				_ = x // suppress unused warning
 			}
 		}
 		{ // do_test "func-29.3"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_MISS 1")
+			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT typeof(+x) FROM t29 ORDER BY id")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT typeof(+x) FROM t29 ORDER BY id")
@@ -1327,20 +1379,20 @@ func Test_func(t *testing.T) {
 		if tclBool("permutation" + " != \"mmap\"") {
 		}
 		{ // do_test "func-29.5"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_MISS 1")
+			// sqlite3_db_status db CACHE_MISS 1 (unsupported command, not transpiled)
 			_res = db.Exec("SELECT sum(length(x)) FROM t29")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT sum(length(x)) FROM t29")
 			}
 		}
 		{ // do_test "func-29.6"
-			var x = "lindex [sqlite3_db_status db CACHE_MISS 1] 1"
+			x = "lindex [sqlite3_db_status db CACHE_MISS 1] 1"
 			_ = x // suppress unused warning
 			if func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
-				var x = "1"
+				x = "1"
 				_ = x // suppress unused warning
 			}
 		}

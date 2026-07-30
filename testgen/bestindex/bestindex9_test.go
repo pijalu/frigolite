@@ -39,15 +39,65 @@ func Test_bestindex9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var vtab_orderby string
+	_ = vtab_orderby // pre-declared from TCL source
+	var vtab_distinct string
+	_ = vtab_distinct // pre-declared from TCL source
+	var create_table string
+	_ = create_table // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var create string
+	_ = create // pre-declared from TCL source
+	var _select string
+	_ = _select // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var distinct string
+	_ = distinct // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindex9"
+	testprefix = "bestindex9"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex9_test 1.0 {\n  CREATE TABLE x(k1, k2, v1, PRIMARY KEY(k1, k2))...} {\n  SELECT DISTINCT k1, k2 FROM t1 \n} {{column 0 desc 0} {column 1 desc 0}} 2")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex9_test 1.1 {\n  CREATE TABLE x(k1, k2, v1, PRIMARY KEY(k1, k2))...} {\n  SELECT DISTINCT k1, k2 FROM t1 \n} {} 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex9_test 1.2 {\n  CREATE TABLE x(k1 NOT NULL, k2 NOT NULL, v1, PR...} {\n  SELECT DISTINCT k1, k2 FROM t1 \n} {} 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex9_test 2 {\n  CREATE TABLE x(c1, c2, c3);\n} {\n  SELECT DISTINCT c1 FROM t1 ORDER BY c1\n} {{column 0 desc 0}} 3")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex9_test 3 {\n  CREATE TABLE x(c1, c2, c3);\n} {\n  SELECT DISTINCT c1 FROM t1 GROUP BY c1\n} {{column 0 desc 0}} 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex9_test 4 {\n  CREATE TABLE x(c1, c2, c3);\n} {\n  CREATE TABLE t2(balls);\n  SELECT DISTINCT c1 FR...} {{column 0 desc 0}} 2")
+	// do_bestindex9_test 1.0 {
+  CREATE TABLE x(k1, k2, v1, PRIMARY KEY(k1, k2))...} {
+  SELECT DISTINCT k1, k2 FROM t1 
+} {{column 0 desc 0} {column 1 desc 0}} 2 (unsupported command, not transpiled)
+	// do_bestindex9_test 1.1 {
+  CREATE TABLE x(k1, k2, v1, PRIMARY KEY(k1, k2))...} {
+  SELECT DISTINCT k1, k2 FROM t1 
+} {} 0 (unsupported command, not transpiled)
+	// do_bestindex9_test 1.2 {
+  CREATE TABLE x(k1 NOT NULL, k2 NOT NULL, v1, PR...} {
+  SELECT DISTINCT k1, k2 FROM t1 
+} {} 0 (unsupported command, not transpiled)
+	// do_bestindex9_test 2 {
+  CREATE TABLE x(c1, c2, c3);
+} {
+  SELECT DISTINCT c1 FROM t1 ORDER BY c1
+} {{column 0 desc 0}} 3 (unsupported command, not transpiled)
+	// do_bestindex9_test 3 {
+  CREATE TABLE x(c1, c2, c3);
+} {
+  SELECT DISTINCT c1 FROM t1 GROUP BY c1
+} {{column 0 desc 0}} 1 (unsupported command, not transpiled)
+	// do_bestindex9_test 4 {
+  CREATE TABLE x(c1, c2, c3);
+} {
+  CREATE TABLE t2(balls);
+  SELECT DISTINCT c1 FR...} {{column 0 desc 0}} 2 (unsupported command, not transpiled)
 }

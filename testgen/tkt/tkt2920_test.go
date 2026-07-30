@@ -40,6 +40,15 @@ func Test_tkt2920(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2920-1.1"
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA max_page_count=40;\n    PRAGMA auto_vacuum=0;\n    CREATE TABLE filler (fill);\n  ")
@@ -53,7 +62,7 @@ func Test_tkt2920(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 34 }() {
 			_res = db.Exec("INSERT INTO filler VALUES(randomblob(1024))")

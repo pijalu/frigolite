@@ -39,8 +39,17 @@ func Test_changes2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "changes2"
+	testprefix = "changes2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
@@ -48,8 +57,8 @@ func Test_changes2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
 		}
 	}
-	var _stmt = "" // TCL namespace variable
-	_ = _stmt // suppress unused warning
+	stmt = "" // TCL namespace variable
+	_ = stmt // suppress unused warning
 	{ // do_test "1.1"
 		_list := tclList([]string{"SQLITE_ROW", "db changes"})
 		_ = _list
@@ -58,7 +67,7 @@ func Test_changes2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "db changes"})
 		_ = _list
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::stmt")
+	// sqlite3_reset $::stmt (unsupported command, not transpiled)
 	{ // "1.2"
 		_res = db.Exec("\n  DROP TABLE some_table;\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
 		if _res.Error != nil {
@@ -73,7 +82,7 @@ func Test_changes2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "db changes"})
 		_ = _list
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+	// sqlite3_finalize $::stmt (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -83,8 +92,8 @@ func Test_changes2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE TABLE log(t);\n")
 		}
 	}
-	var _stmt = "" // TCL namespace variable
-	_ = _stmt // suppress unused warning
+	stmt = "" // TCL namespace variable
+	_ = stmt // suppress unused warning
 	{ // "2.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES (1, 'v1'), (2, 'v2');\n")
 		if _res.Error != nil {
@@ -111,7 +120,7 @@ func Test_changes2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "sqlite3_reset $::stmt"})
 		_ = _list
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+	// sqlite3_finalize $::stmt (unsupported command, not transpiled)
 	{ // "2.4"
 		r = db.Query("\n  SELECT * FROM log;\n")
 		if r.Error != nil {

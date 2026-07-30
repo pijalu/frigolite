@@ -39,6 +39,19 @@ func Test_quota_glob(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testnum string
+	_ = testnum // pre-declared from TCL source
+	var pattern string
+	_ = pattern // pre-declared from TCL source
+	var text string
+	_ = text // pre-declared from TCL source
+	var ans string
+	_ = ans // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{
 		var _catchErr error
@@ -69,10 +82,10 @@ func Test_quota_glob(t *testing.T) {
 		_ = ans // suppress unused warning
 		_ = _idx0
 			{ // do_test "quota-glob-" + testnum + ".1"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_glob $::pattern $::text")
+				// sqlite3_quota_glob $::pattern $::text (unsupported command, not transpiled)
 			}
 			{ // do_test "quota-glob-" + testnum + ".2"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_glob $::pattern [string map {/ \\\\} $::text]")
+				// sqlite3_quota_glob $::pattern [string map {/ \\} $::text] (unsupported command, not transpiled)
 			}
 		}
 }

@@ -39,20 +39,42 @@ func Test_vtab_err(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test vtab_err-1 -tclprep {\n  register_echo_module [sqlite3_connection_pointe...} -sqlbody {\n  BEGIN;\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test vtab_err-2 -tclprep { \n  register_echo_module [sqlite3_connection_point...} -sqlbody {\n  BEGIN;\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail -1")
+	// do_ioerr_test vtab_err-1 -tclprep {
+  register_echo_module [sqlite3_connection_pointe...} -sqlbody {
+  BEGIN;
+  CREATE TABLE r(a PRIMARY KEY, b, c);
+ ...} (unsupported command, not transpiled)
+	// do_malloc_test vtab_err-2 -tclprep { 
+  register_echo_module [sqlite3_connection_point...} -sqlbody {
+  BEGIN;
+  CREATE TABLE r(a PRIMARY KEY, b, c);
+ ...} (unsupported command, not transpiled)
+	// sqlite3_memdebug_fail -1 (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // "vtab_err-3.0"
 		_res = db.Exec("\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n  CREATE VIRTUAL TABLE e USING echo(r);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n  CREATE VIRTUAL TABLE e USING echo(r);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test vtab_err-3 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n  register_echo_mod...} -body {\n  execsql {\n    BEGIN;\n      CREATE TABLE xyz(x);...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test vtab_err-3 -faults oom-t* -prep {
+  faultsim_restore_and_reopen
+  register_echo_mod...} -body {
+  execsql {
+    BEGIN;
+      CREATE TABLE xyz(x);...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 }

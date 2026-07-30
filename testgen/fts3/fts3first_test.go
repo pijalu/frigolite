@@ -39,8 +39,39 @@ func Test_fts3first(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var scan_littleEndian string
+	_ = scan_littleEndian // pre-declared from TCL source
+	var scan_bigEndian string
+	_ = scan_bigEndian // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var match string
+	_ = match // pre-declared from TCL source
+	var rev string
+	_ = rev // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var scan__tcl_platform_byteOrder string
+	_ = scan__tcl_platform_byteOrder // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3first"
+	testprefix = "fts3first"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -62,7 +93,7 @@ func Test_fts3first(t *testing.T) {
 			res := _items0[_idx0+2]
 			_ = res // suppress unused warning
 			_ = _idx0
-				var rev = "lreverse $res"
+				rev = "lreverse $res"
 				_ = rev // suppress unused warning
 				{ // "1." + x + "." + tn + ".1"
 					r = db.Query("SELECT docid FROM x1 WHERE x1 MATCH $match")
@@ -106,7 +137,7 @@ func Test_fts3first(t *testing.T) {
 			res := _items1[_idx1+2]
 			_ = res // suppress unused warning
 			_ = _idx1
-				var rev = "lreverse $res"
+				rev = "lreverse $res"
 				_ = rev // suppress unused warning
 				{ // "1.3." + tn + ".1"
 					r = db.Query("\n    SELECT snippet(x1, '[', ']', '...') FROM x1 WHERE x1 MATCH $match\n  ")
@@ -143,7 +174,7 @@ func Test_fts3first(t *testing.T) {
 				res := _items2[_idx2+2]
 				_ = res // suppress unused warning
 				_ = _idx2
-					var rev = "lreverse $res"
+					rev = "lreverse $res"
 					_ = rev // suppress unused warning
 					{ // "1.3." + tn + ".1"
 						r = db.Query("\n    SELECT mit(matchinfo(x1, 'x')) FROM x1 WHERE x1 MATCH $match\n  ")

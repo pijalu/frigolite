@@ -39,6 +39,11 @@ func Test_numindex1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "numindex1-1.1"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1(a,b) VALUES(100, 356282677878746339);\n  INSERT INTO t1(a,b) VALUES(50, 356282677878746339.0);\n  INSERT INTO t1(a,b) VALUES(0, 356282677878746340);\n  DELETE FROM t1 WHERE a=50;\n  PRAGMA integrity_check;\n")

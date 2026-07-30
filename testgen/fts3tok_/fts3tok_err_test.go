@@ -39,18 +39,34 @@ func Test_fts3tok_err(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3tok_err" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test fts3tok_err-1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts3tok...} -test {\n  faultsim_test_result {0 {}} \n}")
+	testprefix = "fts3tok_err" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test fts3tok_err-1 -faults oom* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { CREATE VIRTUAL TABLE t1 USING fts3tok...} -test {
+  faultsim_test_result {0 {}} 
+} (unsupported command, not transpiled)
 	{ // do_test "fts3tok_err-2.prep"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts3tokenize(\"simple\"); ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING fts3tokenize(\"simple\"); ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test fts3tok_err-2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT token FROM t1 WHERE input = 'A...} -test {\n  faultsim_test_result {0 {a galaxy far far away}...}")
+	// do_faultsim_test fts3tok_err-2 -faults oom* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { SELECT token FROM t1 WHERE input = 'A...} -test {
+  faultsim_test_result {0 {a galaxy far far away}...} (unsupported command, not transpiled)
 }

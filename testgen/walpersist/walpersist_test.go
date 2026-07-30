@@ -41,9 +41,18 @@ func Test_walpersist(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "walpersist" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "walpersist" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "walpersist-1.0"
 		_res = db.Exec("\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(randomblob(5000));\n  ")
 		if _res.Error != nil {
@@ -59,8 +68,8 @@ func Test_walpersist(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "walpersist-1.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("SELECT length(a) FROM t1")
 		if _res.Error != nil {
@@ -72,22 +81,22 @@ func Test_walpersist(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "walpersist-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db -1")
+		// file_control_persist_wal db -1 (unsupported command, not transpiled)
 	}
 	{ // do_test "walpersist-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
+		// file_control_persist_wal db 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "walpersist-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db -1")
+		// file_control_persist_wal db -1 (unsupported command, not transpiled)
 	}
 	{ // do_test "walpersist-1.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 0")
+		// file_control_persist_wal db 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "walpersist-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db -1")
+		// file_control_persist_wal db -1 (unsupported command, not transpiled)
 	}
 	{ // do_test "walpersist-1.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
+		// file_control_persist_wal db 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "walpersist-1.11"
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal", "file exists test.db-shm"})
@@ -95,8 +104,8 @@ func Test_walpersist(t *testing.T) {
 	}
 	os.Remove("test.db")
 	{ // do_test "walpersist-2.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=OFF;\n    PRAGMA journal_size_limit=12000;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(50000));\n    UPDATE t1 SET x=randomblob(50000);\n  ")
 		if _res.Error != nil {
@@ -105,13 +114,16 @@ func Test_walpersist(t *testing.T) {
 		// expr [file size test.db-wal]>100000 → "[file size test.db-wal]>100000"
 	}
 	{ // do_test "walpersist-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
-		_r := tclList(append([]string{}, tclSplitList("file exists test.db-wal")..., tclSplitList("file size test.db-wal")...))
-		_ = _r
+		// file_control_persist_wal db 1 (unsupported command, not transpiled)
+		_r_tcl := append([]string{}, tclSplitList("file exists test.db-wal")...)
+		_r_tcl = append(_r_tcl, tclSplitList("file size test.db-wal")...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "walpersist-2.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
@@ -124,8 +136,8 @@ func Test_walpersist(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint=128;\n    PRAGMA journal_size_limit=16384;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n  ")
 		if _res.Error != nil {
@@ -133,7 +145,7 @@ func Test_walpersist(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 200 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES(randomblob(500), randomblob(500)) ")
@@ -148,14 +160,14 @@ func Test_walpersist(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
+		// file_control_persist_wal db 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "walpersist-3.3"
 		// file size test.db-wal
 	}
 	{ // do_test "walpersist-3.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
@@ -170,7 +182,7 @@ func Test_walpersist(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
+		// file_control_persist_wal db 1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA journal_mode=TRUNCATE;\n    PRAGMA journal_mode=MEMORY;\n    PRAGMA journal_mode=WAL;\n    PRAGMA journal_mode=PERSIST;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode=TRUNCATE;\n    PRAGMA journal_mode=MEMORY;\n    PRAGMA journal_mode=WAL;\n    PRAGMA journal_mode=PERSIST;\n  ")

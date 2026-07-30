@@ -40,11 +40,22 @@ func Test_index2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "index2-1.1"
-		var sql = "CREATE TABLE t1("
+		sql = "CREATE TABLE t1("
 		_ = sql // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			sql += "c" + i + ","
@@ -63,9 +74,9 @@ func Test_index2(t *testing.T) {
 		}
 	}
 	{ // do_test "index2-1.2"
-		var sql = "INSERT INTO t1 VALUES("
+		sql = "INSERT INTO t1 VALUES("
 		_ = sql // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			sql += i + ","
@@ -94,12 +105,12 @@ func Test_index2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var j = "1"
+		j = "1"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n <= 100 }() {
-			var sql = "INSERT INTO t1 VALUES("
+			sql = "INSERT INTO t1 VALUES("
 			_ = sql // suppress unused warning
-			var i = "1"
+			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 				sql += "$j*10000+$i" + ","
@@ -140,9 +151,9 @@ func Test_index2(t *testing.T) {
 		}
 	}
 	{ // do_test "index2-2.1"
-		var sql = "CREATE INDEX t1i1 ON t1("
+		sql = "CREATE INDEX t1i1 ON t1("
 		_ = sql // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			sql += "c" + i + ","

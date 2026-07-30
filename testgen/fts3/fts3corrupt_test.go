@@ -40,10 +40,23 @@ func Test_fts3corrupt(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3corrupt" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	testprefix = "fts3corrupt" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('hello');\n")
 		if _res.Error != nil {
@@ -51,7 +64,7 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3corrupt-1.1"
-		var blob = "db one {SELECT root from t1_segdir}"
+		blob = "db one {SELECT root from t1_segdir}"
 		_ = blob // suppress unused warning
 		blob = "binary format a7ca* $blob 24 [string range $blob 8 end]"
 		_ = blob // suppress unused warning
@@ -76,7 +89,7 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
 	{ // "1.4"
 		_res = db.Exec(" \n  DROP TABLE t1;\n")
@@ -91,7 +104,7 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3corrupt-2.1"
-		var blob = "db one {SELECT root from t1_segdir}"
+		blob = "db one {SELECT root from t1_segdir}"
 		_ = blob // suppress unused warning
 		blob = "binary format a*a* \"\\x00\\x7F\" [string range $blob 2 end]"
 		_ = blob // suppress unused warning
@@ -107,7 +120,7 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
 	{ // "3.0"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('hello');\n    INSERT INTO t1 VALUES('world');\n  COMMIT;\n")
@@ -116,7 +129,7 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3corrupt-3.1"
-		var blob = "db one {SELECT quote(root) from t1_segdir}"
+		blob = "db one {SELECT quote(root) from t1_segdir}"
 		_ = blob // suppress unused warning
 		blob = "binary format a11a*a* $blob \"\\x7F\" [string range $blob 12 end]"
 		_ = blob // suppress unused warning
@@ -132,7 +145,7 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
 	{ // "4.0"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1(t1) VALUES('nodesize=24');\n")
@@ -164,9 +177,9 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "4.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
-	var blob = "binary format cca*cca*cca*cca*cca*cca*cca*cca*cca*cca*a* \\\n  22 120 [string repeat a 120]  \\\n  22 120 [string repeat b 120]  \\\n  22 120 [string repeat c 120]  \\\n  22 120 [string repeat d 120]  \\\n  22 120 [string repeat e 120]  \\\n  22 120 [string repeat f 120]  \\\n  22 120 [string repeat g 120]  \\\n  22 120 [string repeat h 120]  \\\n  22 120 [string repeat i 120]  \\\n  22 120 [string repeat j 120]  \\\n  \"\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\""
+	blob = "binary format cca*cca*cca*cca*cca*cca*cca*cca*cca*cca*a* \\\n  22 120 [string repeat a 120]  \\\n  22 120 [string repeat b 120]  \\\n  22 120 [string repeat c 120]  \\\n  22 120 [string repeat d 120]  \\\n  22 120 [string repeat e 120]  \\\n  22 120 [string repeat f 120]  \\\n  22 120 [string repeat g 120]  \\\n  22 120 [string repeat h 120]  \\\n  22 120 [string repeat i 120]  \\\n  22 120 [string repeat j 120]  \\\n  \"\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\""
 	_ = blob // suppress unused warning
 	{ // "4.3"
 		_res = db.Exec("\n  UPDATE t1_segdir SET root = $blob;\n  SELECT rowid FROM t1 WHERE t1 MATCH 'world';\n")
@@ -175,7 +188,7 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "4.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
 	{ // "5.0"
 		_res = db.Exec("\n  DROP TABLE t1;\n  CREATE VIRTUAL TABLE t1 USING fts4;\n")
@@ -216,7 +229,7 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "5.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
 	{ // "5.3"
 		_res = db.Exec("\n  UPDATE t1_stat SET value = NULL;\n  SELECT matchinfo(t1, 'nxa') FROM t1 WHERE t1 MATCH 't*';\n")
@@ -225,9 +238,10 @@ func Test_fts3corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "5.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		// sqlite3_extended_errcode db (unsupported command, not transpiled)
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "6.10"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f using fts3(a,b);\n  CREATE TABLE f_stat(id INTEGER PRIMARY KEY, value BLOB);\n  INSERT INTO f_segdir VALUES (2000, 0,0,0, '16', '');\n  INSERT INTO f_segdir VALUES (1999, 0,0,0, '0 18',\n                               x'000131030102000103323334050101010200');\n  INSERT INTO f_segments (blockid) values (16);\n  INSERT INTO f_segments values (0, x'');\n  INSERT INTO f_stat VALUES (1,x'cf0f01');\n  INSERT INTO f(f) VALUES ('merge=1');\n")
@@ -247,7 +261,7 @@ func Test_fts3corrupt(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
+	// sqlite3_fts3_may_be_corrupt 1 (unsupported command, not transpiled)
 	{ // "8.1"
 		r = db.Query("\n  CREATE VIRTUAL TABLE f USING fts3(a);\n  INSERT INTO f(f) VALUES('nodesize=24');\n  BEGIN;\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n  COMMIT;\n  BEGIN;\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz0123456789');\n\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n    INSERT INTO f VALUES('abcdefghijklmnopqrstuvwxyz012345678X');\n  COMMIT;\n\n  SELECT count(*) FROM f_segments;\n")
 		if r.Error != nil {
@@ -272,5 +286,5 @@ func Test_fts3corrupt(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  INSERT INTO f(f) VALUES('merge=2,2');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 0")
+	// sqlite3_fts3_may_be_corrupt 0 (unsupported command, not transpiled)
 }

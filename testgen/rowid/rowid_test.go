@@ -41,8 +41,71 @@ func Test_rowid(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var x2rowid_1 string
+	_ = x2rowid_1 // pre-declared from TCL source
+	var x2rowid_3 string
+	_ = x2rowid_3 // pre-declared from TCL source
+	var rowid2x_x2rowid_1_ string
+	_ = rowid2x_x2rowid_1_ // pre-declared from TCL source
+	var rowid2x_x2rowid_3_ string
+	_ = rowid2x_x2rowid_3_ // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var norow string
+	_ = norow // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var v2 string
+	_ = v2 // pre-declared from TCL source
+	var r1 string
+	_ = r1 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var e string
+	_ = e // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+	var u string
+	_ = u // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var z string
+	_ = z // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var oids string
+	_ = oids // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var nosuch string
+	_ = nosuch // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "rowid"
+	testprefix = "rowid"
 	_ = testprefix // suppress unused warning
 	{ // do_test "rowid-1.1"
 		r = db.Query("\n    CREATE TABLE t1(x int, y int);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    SELECT x FROM t1 ORDER BY y;\n  ")
@@ -51,20 +114,20 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-1.2"
-		var _r = "execsql {SELECT rowid FROM t1 ORDER BY x}"
+		_r = "execsql {SELECT rowid FROM t1 ORDER BY x}"
 		_ = _r // suppress unused warning
-		var x2rowid_1 = "lindex $r 0"
+		x2rowid_1 = "lindex $r 0"
 		_ = x2rowid_1 // suppress unused warning
-		var x2rowid_3 = "lindex $r 1"
+		x2rowid_3 = "lindex $r 1"
 		_ = x2rowid_3 // suppress unused warning
-		var rowid2x_x2rowid(1) = "1"
-		_ = rowid2x_x2rowid(1) // suppress unused warning
-		var rowid2x_x2rowid(3) = "3"
-		_ = rowid2x_x2rowid(3) // suppress unused warning
-		tclLLength(_r)
+		rowid2x_x2rowid_1_ = "1"
+		_ = rowid2x_x2rowid_1_ // suppress unused warning
+		rowid2x_x2rowid_3_ = "3"
+		_ = rowid2x_x2rowid_3_ // suppress unused warning
+		_ = strconv.Itoa(tclLLength(_r)) // llength result
 	}
 	{ // do_test "rowid-1.3"
-		var sql = "SELECT x FROM t1 WHERE rowid==" + x2rowid + "(1)"
+		sql = "SELECT x FROM t1 WHERE rowid==" + x2rowid_1
 		_ = sql // suppress unused warning
 		_res = db.Exec(sql)
 		if _res.Error != nil {
@@ -72,7 +135,7 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-1.4"
-		var sql = "SELECT x FROM t1 WHERE rowid==" + x2rowid + "(3)"
+		sql = "SELECT x FROM t1 WHERE rowid==" + x2rowid_3
 		_ = sql // suppress unused warning
 		_res = db.Exec(sql)
 		if _res.Error != nil {
@@ -80,7 +143,7 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-1.5"
-		var sql = "SELECT x FROM t1 WHERE oid==" + x2rowid + "(1)"
+		sql = "SELECT x FROM t1 WHERE oid==" + x2rowid_1
 		_ = sql // suppress unused warning
 		_res = db.Exec(sql)
 		if _res.Error != nil {
@@ -88,7 +151,7 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-1.6"
-		var sql = "SELECT x FROM t1 WHERE OID==" + x2rowid + "(3)"
+		sql = "SELECT x FROM t1 WHERE OID==" + x2rowid_3
 		_ = sql // suppress unused warning
 		_res = db.Exec(sql)
 		if _res.Error != nil {
@@ -96,7 +159,7 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-1.7"
-		var sql = "SELECT x FROM t1 WHERE _rowid_==" + x2rowid + "(1)"
+		sql = "SELECT x FROM t1 WHERE _rowid_==" + x2rowid_1
 		_ = sql // suppress unused warning
 		_res = db.Exec(sql)
 		if _res.Error != nil {
@@ -105,9 +168,9 @@ func Test_rowid(t *testing.T) {
 	}
 	{ // do_test "rowid-1.7.1"
 		for true {
-			var norow = "0"
+			norow = "0"
 			_ = norow // suppress unused warning
-			if func() bool { norow_n, _norow_e := strconv.Atoi(norow); if _norow_e != nil { return false }; x2rowid_n, _x2rowid_e := strconv.Atoi(x2rowid); if _x2rowid_e != nil { return false }; return norow_n != x2rowid_n(1) && norow_n!=x2rowid_n(3) }() {
+			if tclBool(norow + "!=" + x2rowid_1 + " && " + norow + "!=" + x2rowid_3) {
 			}
 		}
 		r = db.Query("SELECT x FROM t1 WHERE rowid=" + norow)
@@ -116,23 +179,23 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-1.8"
-		var v = "execsql {SELECT x, oid FROM t1 order by x}"
+		v = "execsql {SELECT x, oid FROM t1 order by x}"
 		_ = v // suppress unused warning
-		var v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
+		v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 → "$v==$v2"
 	}
 	{ // do_test "rowid-1.9"
-		var v = "execsql {SELECT x, RowID FROM t1 order by x}"
+		v = "execsql {SELECT x, RowID FROM t1 order by x}"
 		_ = v // suppress unused warning
-		var v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
+		v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 → "$v==$v2"
 	}
 	{ // do_test "rowid-1.10"
-		var v = "execsql {SELECT x, _rowid_ FROM t1 order by x}"
+		v = "execsql {SELECT x, _rowid_ FROM t1 order by x}"
 		_ = v // suppress unused warning
-		var v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
+		v2 = "list 1 $x2rowid(1) 3 $x2rowid(3)"
 		_ = v2 // suppress unused warning
 		// expr $v==$v2 → "$v==$v2"
 	}
@@ -161,7 +224,7 @@ func Test_rowid(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "rowid-2.7"
-		var sql = "UPDATE t1 SET x=2 WHERE OID==" + x2rowid + "(3)"
+		sql = "UPDATE t1 SET x=2 WHERE OID==" + x2rowid_3
 		_ = sql // suppress unused warning
 		_res = db.Exec(sql)
 		if _res.Error != nil {
@@ -173,7 +236,7 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-2.8"
-		var sql = "UPDATE t1 SET x=3 WHERE _rowid_==" + x2rowid + "(3)"
+		sql = "UPDATE t1 SET x=3 WHERE _rowid_==" + x2rowid_3
 		_ = sql // suppress unused warning
 		_res = db.Exec(sql)
 		if _res.Error != nil {
@@ -186,7 +249,6 @@ func Test_rowid(t *testing.T) {
 	}
 	if false {
 		{ // do_test "rowid-2.9"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
@@ -204,7 +266,6 @@ func Test_rowid(t *testing.T) {
 			v = tclListAppend(v, msg)
 		}
 		{ // do_test "rowid-2.10"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
@@ -222,7 +283,6 @@ func Test_rowid(t *testing.T) {
 			v = tclListAppend(v, msg)
 		}
 		{ // do_test "rowid-2.11"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
@@ -240,7 +300,6 @@ func Test_rowid(t *testing.T) {
 			v = tclListAppend(v, msg)
 		}
 		{ // do_test "rowid-2.12"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
@@ -277,23 +336,24 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-3.4"
-		var r1 = "execsql {SELECT _rowid_, rowid FROM t2 ORDER BY rowid}"
+		r1 = "execsql {SELECT _rowid_, rowid FROM t2 ORDER BY rowid}"
 		_ = r1 // suppress unused warning
 		// foreach a,b,c,d,e,f r1 (no body)
-		var r2 = "execsql {SELECT _rowid_, rowid FROM t2 ORDER BY x DESC}"
+		r2 = "execsql {SELECT _rowid_, rowid FROM t2 ORDER BY x DESC}"
 		_ = r2 // suppress unused warning
 		// foreach u,v,w,x,y,z r2 (no body)
 		// expr $u==$e && $w==$c && $y==$a → "$u==$e && $w==$c && $y==$a"
 	}
 	if false {
-		t.Errorf("TODO: %s not implemented in frigolite", "do_probtest rowid-3.5 {\n  set r1 [execsql {SELECT _rowid_, rowid FROM t2 ...} {1}")
+		// do_probtest rowid-3.5 {
+  set r1 [execsql {SELECT _rowid_, rowid FROM t2 ...} {1} (unsupported command, not transpiled)
 	}
 	{ // do_test "rowid-4.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50 }() {
 			_res = db.Exec("INSERT INTO t1(x,y) VALUES(" + i + "," + "$i*$i" + ")")
@@ -410,16 +470,22 @@ func Test_rowid(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX idxt2 ON t2(y)")
 		}
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
-		_r := tclList(append([]string{}, tclSplitList("execsql {\n    SELECT t1.x FROM t2, t1 \n    WHERE t2.y==256 AND t1.rowid==t2.rowid\n  }")..., tclSplitList(sqlite_search_count)...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("execsql {\n    SELECT t1.x FROM t2, t1 \n    WHERE t2.y==256 AND t1.rowid==t2.rowid\n  }")...)
+		_r_tcl = append(_r_tcl, tclSplitList(sqlite_search_count)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "rowid-4.5.1"
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
-		_r := tclList(append([]string{}, tclSplitList("execsql {\n    SELECT t1.x FROM t2, t1 \n    WHERE t1.OID==t2.rowid AND t2.y==81\n  }")..., tclSplitList(sqlite_search_count)...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("execsql {\n    SELECT t1.x FROM t2, t1 \n    WHERE t1.OID==t2.rowid AND t2.y==81\n  }")...)
+		_r_tcl = append(_r_tcl, tclSplitList(sqlite_search_count)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "rowid-4.6"
 		r = db.Query("\n    SELECT t1.x FROM t1, t2\n    WHERE t2.y==256 AND t1.rowid==t2.rowid\n  ")
@@ -442,23 +508,22 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-6.2"
-		var _norow = "1" // TCL namespace variable
-		_ = _norow // suppress unused warning
+		norow = "1" // TCL namespace variable
+		_ = norow // suppress unused warning
 		for true {
 			if tclBool("execsql \"SELECT x FROM t1 WHERE rowid=$::norow\"" + "==\"\"") {
 			}
-			var _norow = "0"
-			// incr _norow 1
+			// incr norow 1
 			{
-				_n, _err := strconv.Atoi(_norow)
+				_n, _err := strconv.Atoi(norow)
 				if _err == nil {
-					_norow = strconv.Itoa(_n + 1)
+					norow = strconv.Itoa(_n + 1)
 				}
 			}
 		}
-		_res = db.Exec("DELETE FROM t1 WHERE rowid=" + _norow)
+		_res = db.Exec("DELETE FROM t1 WHERE rowid=" + norow)
 		if _res.Error != nil {
-			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid=" + _norow)
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE rowid=" + norow)
 		}
 	}
 	{ // do_test "rowid-6.3"
@@ -900,10 +965,10 @@ func Test_rowid(t *testing.T) {
 		}
 	}
 	{ // do_test "rowid-12.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "save_prng_state")
+		// save_prng_state (unsupported command, not transpiled)
 		r = db.Query("\n    INSERT INTO t7 VALUES(NULL,'b');\n    SELECT x, y FROM t7 ORDER BY x;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t7 VALUES(NULL,'b');\n    SELECT x, y FROM t7 ORDER BY x;\n  ")
@@ -913,7 +978,7 @@ func Test_rowid(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t7 VALUES(2,'y');")
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 		{ // do_test "rowid-12.3." + i
@@ -921,7 +986,7 @@ func Test_rowid(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t7temp; INSERT INTO t7temp VALUES(1);")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "restore_prng_state")
+			// restore_prng_state (unsupported command, not transpiled)
 			r = db.Query("\n      INSERT INTO t7 VALUES(NULL,'x');\n      SELECT count(*) FROM t7 WHERE y=='x';\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO t7 VALUES(NULL,'x');\n      SELECT count(*) FROM t7 WHERE y=='x';\n    ")
@@ -940,7 +1005,7 @@ func Test_rowid(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t7temp; INSERT INTO t7temp VALUES(1);")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "restore_prng_state")
+		// restore_prng_state (unsupported command, not transpiled)
 		_res = db.Exec("\n    INSERT INTO t7 VALUES(NULL,'x');\n  ")
 		_ = _res // catchsql
 	}

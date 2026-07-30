@@ -39,6 +39,15 @@ func Test_tkt1644(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt1644-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    CREATE TABLE t2(b);\n    INSERT INTO t2 VALUES(99);\n    CREATE TEMP VIEW v1 AS SELECT * FROM t1;\n    SELECT * FROM v1;\n  ")

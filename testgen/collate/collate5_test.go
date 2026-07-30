@@ -40,8 +40,25 @@ func Test_collate5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var lens string
+	_ = lens // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "collate5"
+	testprefix = "collate5"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "collate5-1.0"
@@ -145,14 +162,14 @@ func Test_collate5(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM collate5t2 INTERSECT select a, b FROM collate5t1;\n  ")
 		}
 	}
-	var _lens = "list \\\n  0 1 2 3 4 5 6 7 8 9 \\\n  240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 \\\n  257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 272 273 \\\n  65520 65521 65522 65523 65524 65525 65526 65527 65528 65529 65530 \\\n  65531 65532 65533 65534 65535 65536 65537 65538 65539 65540 65541 \\\n  65542 65543 65544 65545 65546 65547 65548 65549 65550 65551" // TCL namespace variable
-	_ = _lens // suppress unused warning
+	lens = "list \\\n  0 1 2 3 4 5 6 7 8 9 \\\n  240 241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 \\\n  257 258 259 260 261 262 263 264 265 266 267 268 269 270 271 272 273 \\\n  65520 65521 65522 65523 65524 65525 65526 65527 65528 65529 65530 \\\n  65531 65532 65533 65534 65535 65536 65537 65538 65539 65540 65541 \\\n  65542 65543 65544 65545 65546 65547 65548 65549 65550 65551" // TCL namespace variable
+	_ = lens // suppress unused warning
 	{ // do_test "collate5-2.4.0"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE collate5t3(a, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE collate5t3(a, b);\n  ")
 		}
-		for _, ii := range tclSplitList(_lens) {
+		for _, ii := range tclSplitList(lens) {
 		_ = ii // suppress unused warning
 			_res = db.Exec("INSERT INTO collate5t3 VALUES(" + ii + ", '" + "a $ii" + "');")
 			if _res.Error != nil {

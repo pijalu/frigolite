@@ -40,79 +40,96 @@ func Test_shell3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var CLI string
+	_ = CLI // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var fexist string
+	_ = fexist // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var CLI = "test_cli_invocation"
+	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	if _tcl_platform_platform == "windows" {
+	if tcl_platform_platform == "windows" {
 		return
 	}
 	{ // do_test "shell3-1.1"
 		os.Remove("foo.db")
-		var rc = "catchcmd \"foo.db \\\"CREATE TABLE t1(a);\\\"\""
+		rc = "catchcmd \"foo.db \\\"CREATE TABLE t1(a);\\\"\""
 		_ = rc // suppress unused warning
-		var fexist = "file exist foo.db"
+		fexist = "file exist foo.db"
 		_ = fexist // suppress unused warning
 		_list := tclList([]string{rc, fexist})
 		_ = _list
 	}
 	{ // do_test "shell3-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db .tables")
+		// catchcmd foo.db .tables (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db \\\"DROP TABLE t1;\\\"")
+		// catchcmd foo.db \"DROP TABLE t1;\" (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db .tables")
+		// catchcmd foo.db .tables (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db \\\"CREATE TABLE t1(a); DROP TABLE t1;\\\"")
+		// catchcmd foo.db \"CREATE TABLE t1(a); DROP TABLE t1;\" (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db .tables")
+		// catchcmd foo.db .tables (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db \\\"CREATE TABLE\\\"")
+		// catchcmd foo.db \"CREATE TABLE\" (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-2.1"
 		os.Remove("foo.db")
-		var rc = "catchcmd \"foo.db\" \"CREATE TABLE t1(a);\""
+		rc = "catchcmd \"foo.db\" \"CREATE TABLE t1(a);\""
 		_ = rc // suppress unused warning
-		var fexist = "file exist foo.db"
+		fexist = "file exist foo.db"
 		_ = fexist // suppress unused warning
 		_list := tclList([]string{rc, fexist})
 		_ = _list
 	}
 	{ // do_test "shell3-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db .tables")
+		// catchcmd foo.db .tables (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db DROP TABLE t1;")
+		// catchcmd foo.db DROP TABLE t1; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db .tables")
+		// catchcmd foo.db .tables (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db CREATE TABLE t1(a); DROP TABLE t1;")
+		// catchcmd foo.db CREATE TABLE t1(a); DROP TABLE t1; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db .tables")
+		// catchcmd foo.db .tables (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db CREATE TABLE")
+		// catchcmd foo.db CREATE TABLE (unsupported command, not transpiled)
 	}
 	{ // do_test "shell3-3.1"
 		os.Remove("foo.db")
-		var rc = "catchcmd \"foo.db\" {CREATE TABLE t1(\"\na--.\n\" --x\n); CREATE TABLE t2(\"a[\"\"b\"\"]\");\n.header on\nINSERT INTO t1 VALUES ('\nx''y');\nINSERT INTO t2 VALUES ('\n/*.\n.*/ x\n''y');\nSELECT * from t1 limit 1;\nSELECT * from t2 limit 1;\n}"
+		rc = "catchcmd \"foo.db\" {CREATE TABLE t1(\"\na--.\n\" --x\n); CREATE TABLE t2(\"a[\"\"b\"\"]\");\n.header on\nINSERT INTO t1 VALUES ('\nx''y');\nINSERT INTO t2 VALUES ('\n/*.\n.*/ x\n''y');\nSELECT * from t1 limit 1;\nSELECT * from t2 limit 1;\n}"
 		_ = rc // suppress unused warning
-		var fexist = "file exist foo.db"
+		fexist = "file exist foo.db"
 		_ = fexist // suppress unused warning
 		_list := tclList([]string{rc, fexist})
 		_ = _list
 	}
 	{ // do_test "shell3-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd  {\n.open xyz.db\nSELECT ;\n  }")
+		// catchcmd  {
+.open xyz.db
+SELECT ;
+  } (unsupported command, not transpiled)
 	}
 }

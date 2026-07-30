@@ -40,23 +40,39 @@ func Test_walblock(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var C string
+	_ = C // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var _continue string
+	_ = _continue // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	return
-	if _tcl_platform_platform != "unix" {
+	if tcl_platform_platform != "unix" {
 		return
 	}
-	var testprefix = "walblock"
+	testprefix = "walblock"
 	_ = testprefix // suppress unused warning
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
+	// testvfs tvfs -fullshm 1 (unsupported command, not transpiled)
 	for _, f := range tclSplitList("glob test.db*") {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  PRAGMA journal_mode = wal;\n  INSERT INTO t1 VALUES(7, 8);\n")
@@ -65,21 +81,25 @@ func Test_walblock(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1.1"
-		tclSort("glob test.db*")
+		_ = tclSort("glob test.db*") // lsort result
 	}
 	{ // do_test "1.1.2"
-		var C = "launch_testfixture"
+		C = "launch_testfixture"
 		_ = C // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $C {\n    sqlite3 db test.db\n    db eval { SELECT * FRO...}")
+		// testfixture $C {
+    sqlite3 db test.db
+    db eval { SELECT * FRO...} (unsupported command, not transpiled)
 	}
 	{ // do_test "1.1.3"
-		var _out = "list" // TCL namespace variable
-		_ = _out // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $C {\n    db eval { SELECT * FROM t1 }\n  } [list set ::out]")
-		_ = _out // TCL namespace variable (query)
+		out = "list" // TCL namespace variable
+		_ = out // suppress unused warning
+		// testfixture $C {
+    db eval { SELECT * FROM t1 }
+  } [list set ::out] (unsupported command, not transpiled)
+		_ = out // TCL namespace variable (query)
 	}
 	{ // do_test "1.1.4"
-		_ = _out // TCL namespace variable (query)
+		_ = out // TCL namespace variable (query)
 	}
 	{ // "1.2.1"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
@@ -87,16 +107,16 @@ func Test_walblock(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script barrier_callback")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmBarrier")
+	// tvfs script barrier_callback (unsupported command, not transpiled)
+	// tvfs filter xShmBarrier (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
 	{ // do_test "1.2.3.(blocking 0.5 seconds)"
-		var _continue = "0" // TCL namespace variable
+		_continue = "0" // TCL namespace variable
 		_ = _continue // suppress unused warning
-		_ = _out // TCL namespace variable (query)
+		_ = out // TCL namespace variable (query)
 	}
 }

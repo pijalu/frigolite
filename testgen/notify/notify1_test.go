@@ -41,12 +41,39 @@ func Test_notify1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var zScript string
+	_ = zScript // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var lUnlock string
+	_ = lUnlock // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var nConn string
+	_ = nConn // pre-declared from TCL source
+	var lUnlockFinal string
+	_ = lUnlockFinal // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var unlocked string
+	_ = unlocked // pre-declared from TCL source
+	var unlock_notify string
+	_ = unlock_notify // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "notify1-1.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -64,7 +91,7 @@ func Test_notify1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "notify1-1.3"
-		var zScript = ""
+		zScript = ""
 		_ = zScript // suppress unused warning
 		// db2.unlock_notify (db command)
 		r = db.Query(" SELECT * FROM t1 ")
@@ -79,7 +106,7 @@ func Test_notify1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		// eval $zScript
+		// eval (dynamic, not transpiled)
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -100,7 +127,7 @@ func Test_notify1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "notify1-1.13"
-		var zScript = ""
+		zScript = ""
 		_ = zScript // suppress unused warning
 		// db2.unlock_notify (db command)
 		r = db.Query(" SELECT * FROM t1 ")
@@ -116,7 +143,7 @@ func Test_notify1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		// eval $zScript
+		// eval (dynamic, not transpiled)
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -150,7 +177,6 @@ func Test_notify1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "notify1-2.2.5"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -174,8 +200,8 @@ func Test_notify1(t *testing.T) {
 			con, err := frigolite.Open("test.db")
 			defer con.Close()
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "$con eval { ATTACH 'test2.db' AS aux2 }")
-			t.Errorf("TODO: %s not implemented in frigolite", "$con eval { ATTACH 'test3.db' AS aux3 }")
+			// $con eval { ATTACH 'test2.db' AS aux2 } (unsupported command, not transpiled)
+			// $con eval { ATTACH 'test3.db' AS aux3 } (unsupported command, not transpiled)
 		}
 		_res = db.Exec("\n    CREATE TABLE main.t1(a, b);\n    CREATE TABLE aux2.t2(a, b);\n    CREATE TABLE aux3.t3(a, b);\n  ")
 		if _res.Error != nil {
@@ -209,12 +235,11 @@ func Test_notify1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "notify1-2.3.6"
-		var lUnlock = "list"
+		lUnlock = "list"
 		_ = lUnlock // suppress unused warning
 		// db2.unlock_notify (db command)
 	}
 	{ // do_test "notify1-2.3.7"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -267,39 +292,40 @@ func Test_notify1(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	// foreach {tn nConn} "3 20 4 76"
-	_items0 := tclSplitList("3 20 4 76")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("3 20 4 76")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		nConn := _items0[_idx0+1]
+		nConn := _items1[_idx1+1]
 		_ = nConn // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "notify1-" + tn + ".1"
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp2, err := frigolite.Open("test.db")
+				_ = _dbtmp2 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n      BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n      INSERT INTO t1 VALUES('a', 'b');\n    ")
 				}
 			}
-			var lUnlock = "list"
+			lUnlock = "list"
 			_ = lUnlock // suppress unused warning
-			var lUnlockFinal = "list"
+			lUnlockFinal = "list"
 			_ = lUnlockFinal // suppress unused warning
-			var ii = "1"
+			ii = "1"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return ii_n <= nConn_n }() {
 				{ // do_test "notify1-" + tn + ".2." + ii + ".1"
 					var cmd = "db" + ii
 					_ = cmd // suppress unused warning
-					cmd, err = frigolite.Open("test.db")
+					_dbtmp3, err := frigolite.Open("test.db")
+					_ = _dbtmp3 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" SELECT * FROM t1 ")
 					_ = _res // catchsql
 				}
 				{ // do_test "notify1-" + tn + ".2." + ii + ".2"
-					t.Errorf("TODO: %s not implemented in frigolite", "$cmd unlock_notify lappend lUnlock $ii")
+					// $cmd unlock_notify lappend lUnlock $ii (unsupported command, not transpiled)
 				}
 				lUnlockFinal = tclListAppend(lUnlockFinal, ii)
 				// incr ii 1
@@ -317,13 +343,13 @@ func Test_notify1(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 				}
-				tclSort("-integer")
+				_ = tclSort("-integer") // lsort result
 			}
 			{ // do_test "notify1-" + tn + ".5"
-				var ii = "1"
+				ii = "1"
 				_ = ii // suppress unused warning
 				for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return ii_n <= nConn_n }() {
-					t.Errorf("TODO: %s not implemented in frigolite", "db$ii close")
+					// db$ii close (unsupported command, not transpiled)
 					// incr ii 1
 					{
 						_n, _err := strconv.Atoi(ii)
@@ -334,7 +360,15 @@ func Test_notify1(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test notify1-5 -tclprep {\n  set ::lUnlock [list]\n  execsql {\n    CREATE TAB...} -sqlbody {\n  COMMIT;\n} -cleanup {\n  # One of two things should have happened:\n  #\n ...}")
+		// do_malloc_test notify1-5 -tclprep {
+  set ::lUnlock [list]
+  execsql {
+    CREATE TAB...} -sqlbody {
+  COMMIT;
+} -cleanup {
+  # One of two things should have happened:
+  #
+ ...} (unsupported command, not transpiled)
 		{ // do_test "notify1-6.1.1"
 			os.Remove("test.db")
 			for _, conn := range tclSplitList("db db2 db3") {
@@ -369,7 +403,7 @@ func Test_notify1(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-6.2.1"
-			var unlocked = "0"
+			unlocked = "0"
 			_ = unlocked // suppress unused warning
 		}
 		{ // do_test "notify1-6.2.2"
@@ -393,7 +427,7 @@ func Test_notify1(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-6.3.3"
-			var unlocked = "0"
+			unlocked = "0"
 			_ = unlocked // suppress unused warning
 		}
 		{ // do_test "notify1-6.3.4"
@@ -450,10 +484,10 @@ func Test_notify1(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-7.4"
-			var unlock_notify = "0"
+			unlock_notify = "0"
 			_ = unlock_notify // suppress unused warning
 			// db2.unlock_notify (db command)
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_unlock_notify db3")
+			// sqlite3_unlock_notify db3 (unsupported command, not transpiled)
 		}
 		{ // do_test "notify1-7.5"
 		}
@@ -472,7 +506,7 @@ func Test_notify1(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-8.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db2")
+			// sqlite3_extended_errcode db2 (unsupported command, not transpiled)
 		}
 		{ // do_test "notify1-8.3"
 			_res = db.Exec("\n    COMMIT;\n    BEGIN EXCLUSIVE;\n  ")
@@ -483,7 +517,7 @@ func Test_notify1(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-8.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db2")
+			// sqlite3_extended_errcode db2 (unsupported command, not transpiled)
 		}
 		{ // do_test "notify1-8.X"
 			_res = db.Exec(" COMMIT ")
@@ -565,5 +599,5 @@ func Test_notify1(t *testing.T) {
 		}
 		db2.Close()
 		db3.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+		// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

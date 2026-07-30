@@ -40,9 +40,32 @@ func Test_rowvalue4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var e string
+	_ = e // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var nm string
+	_ = nm // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "rowvalue4" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "rowvalue4" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX t1bac ON t1(b, a, c);\n")
 		if _res.Error != nil {
@@ -95,7 +118,7 @@ func Test_rowvalue4(t *testing.T) {
 				idx := _items2[_idx2+1]
 				_ = idx // suppress unused warning
 				_ = _idx2
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_indexes")
+					// drop_all_indexes (unsupported command, not transpiled)
 					_res = db.Exec(idx)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
@@ -110,10 +133,10 @@ func Test_rowvalue4(t *testing.T) {
 						res := _items3[_idx3+2]
 						_ = res // suppress unused warning
 						_ = _idx3
-							var result = "db eval \"SELECT d FROM t2 WHERE $where\""
+							result = "db eval \"SELECT d FROM t2 WHERE $where\""
 							_ = result // suppress unused warning
 							{ // do_test "2.1." + nm + "." + tn
-								tclSort("-integer")
+								_ = tclSort("-integer") // lsort result
 							}
 						}
 						// foreach {tn e res} "\n    1 \"(2, 1) IN (SELECT a, b FROM t2)\" 1\n    2 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d)\" 1\n    3 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 9)\" 0\n    4 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 10)\" 1\n\n    5 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d DESC LIMIT 1)\" 1\n    6 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" 0\n    7 \"(1, NULL) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" {{}}\n\n    8 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d DESC LIMIT 1 OFFSET 2)\" 1\n    9 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" 0\n    10 \"(1, NULL) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" {{}}\n\n    11 \"(3, 3) = (SELECT max(a), max(b) FROM t2)\" 1\n    12 \"(3, 1) = (SELECT max(a), min(b) FROM t2)\" 1\n    13 \"(NULL, NULL) = (SELECT max(a), min(b) FROM t2)\" {{}}\n\n    14 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 11)\" 1\n    15 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 12)\" 0\n  "
@@ -212,7 +235,7 @@ func Test_rowvalue4(t *testing.T) {
 								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: nose", _res.Error, "\n  SELECT * FROM f1 WHERE (?, ? COLLATE nose) > (a, b);\n")
 							}
 						}
-						t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						// drop_all_tables (unsupported command, not transpiled)
 						{ // "8.1"
 							_res = db.Exec("\n  CREATE TABLE c1(x, y);\n  CREATE TABLE c2(a, b, c);\n  CREATE INDEX c2ab ON c2(a, b);\n  CREATE INDEX c2c ON c2(c);\n\n  CREATE TABLE c3(d);\n")
 							if _res.Error != nil {

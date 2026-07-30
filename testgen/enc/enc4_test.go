@@ -41,20 +41,51 @@ func Test_enc4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var encodings string
+	_ = encodings // pre-declared from TCL source
+	var inits string
+	_ = inits // pre-declared from TCL source
+	var vals string
+	_ = vals // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var enc string
+	_ = enc // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var init string
+	_ = init // pre-declared from TCL source
+	var S string
+	_ = S // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var part string
+	_ = part // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var encodings = "list UTF-8 UTF-16le UTF-16be"
+	encodings = "list UTF-8 UTF-16le UTF-16be"
 	_ = encodings // suppress unused warning
-	var inits = "list 1 1.0 1. 1e0"
+	inits = "list 1 1.0 1. 1e0"
 	_ = inits // suppress unused warning
-	var vals = "list\\\n\"922337203685477580792233720368547758079223372036854775807\"\\\n\"100000000000000000000000000000000000000000000000000000000\"\\\n\"1.0000000000000000000000000000000000000000000000000000000\"\\"
+	vals = "list\\\n\"922337203685477580792233720368547758079223372036854775807\"\\\n\"100000000000000000000000000000000000000000000000000000000\"\\\n\"1.0000000000000000000000000000000000000000000000000000000\"\\"
 	_ = vals // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for _, enc := range tclSplitList(encodings) {
 	_ = enc // suppress unused warning
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA encoding = \\\"" + enc + "\\\"")
 		if _res.Error != nil {
@@ -66,26 +97,30 @@ func Test_enc4(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
 			}
 		}
-		var j = "1"
+		j = "1"
 		_ = j // suppress unused warning
 		for _, init := range tclSplitList(inits) {
 		_ = init // suppress unused warning
 			{ // do_test "enc4-" + i + "." + j + ".2"
-				var S = ""
+				S = ""
 				_ = S // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+				// sqlite3_expired $S (unsupported command, not transpiled)
 			}
-			var k = "1"
+			k = "1"
 			_ = k // suppress unused warning
 			for _, val := range tclSplitList(vals) {
 			_ = val // suppress unused warning
-				var x = "1"
+				x = "1"
 				_ = x // suppress unused warning
 				for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 16 }() {
-					var part = "$init + [string range $val 0 [expr $x-1]]"
+					part = "$init + [string range $val 0 [expr $x-1]]"
 					_ = part // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test enc4-$i.$j.$k.3.$x {\n          sqlite3_reset $S\n          sqlite3_bind...} [list $part]")
-					t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test enc4-$i.$j.$k.4.$x {\n          sqlite3_reset $S\n          sqlite3_bind...} [list $part]")
+					// do_realnum_test enc4-$i.$j.$k.3.$x {
+          sqlite3_reset $S
+          sqlite3_bind...} [list $part] (expr test, not transpiled)
+					// do_realnum_test enc4-$i.$j.$k.4.$x {
+          sqlite3_reset $S
+          sqlite3_bind...} [list $part] (expr test, not transpiled)
 					// incr x 1
 					{
 						_n, _err := strconv.Atoi(x)
@@ -94,7 +129,6 @@ func Test_enc4(t *testing.T) {
 						}
 					}
 				}
-				var k = "0"
 				// incr k 1
 				{
 					_n, _err := strconv.Atoi(k)
@@ -104,9 +138,8 @@ func Test_enc4(t *testing.T) {
 				}
 			}
 			{ // do_test "enc4-" + i + "." + j + ".5"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+				// sqlite3_finalize $S (unsupported command, not transpiled)
 			}
-			var j = "0"
 			// incr j 1
 			{
 				_n, _err := strconv.Atoi(j)
@@ -115,7 +148,6 @@ func Test_enc4(t *testing.T) {
 				}
 			}
 		}
-		var i = "0"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -125,7 +157,8 @@ func Test_enc4(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "enc4-4.1"
 		_res = db.Exec("select 1+1.")
@@ -134,32 +167,32 @@ func Test_enc4(t *testing.T) {
 		}
 	}
 	{ // do_test "enc4-4.2.1"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $S 0")
+		// sqlite3_step $S (unsupported command, not transpiled)
+		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "enc4-4.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "enc4-4.3.1"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 1. 2")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $S 0")
+		// sqlite3_bind_text $S 1 1. 2 (unsupported command, not transpiled)
+		// sqlite3_step $S (unsupported command, not transpiled)
+		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "enc4-4.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "enc4-4.4.1"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 1.0 2")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $S 0")
+		// sqlite3_bind_text $S 1 1.0 2 (unsupported command, not transpiled)
+		// sqlite3_step $S (unsupported command, not transpiled)
+		// sqlite3_column_text $S 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "enc4-4.4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 }

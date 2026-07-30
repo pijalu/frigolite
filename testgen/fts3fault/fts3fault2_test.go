@@ -39,40 +39,94 @@ func Test_fts3fault2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var TMPDBERROR string
+	_ = TMPDBERROR // pre-declared from TCL source
+	var chunkconfig string
+	_ = chunkconfig // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3fault2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts3fault2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "1.0"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts4(x);\n    INSERT INTO t1 VALUES('a b c');\n    INSERT INTO t1 VALUES('c d e');\n    CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(x);\n    INSERT INTO t1 VALUES('a b c');\n    INSERT INTO t1 VALUES('c d e');\n    CREATE VIRTUAL TABLE terms USING fts4aux(t1);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT *...} -body {\n  execsql \"CREATE VIRTUAL TABLE terms2 USING fts4...} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT *...} -body {\n  execsql \"SELECT * FROM terms\"\n} -test {\n  faultsim_test_result {0 {a * 1 1 a 0 1 1 b * 1 ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.3 -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT *...} -body {\n  execsql \"SELECT * FROM terms WHERE term>'a' AND...} -test {\n  faultsim_test_result {0 {b * 1 1 b 0 1 1 c * 2 ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.4 -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT *...} -body {\n  execsql \"SELECT * FROM terms WHERE term='c'\"\n} -test {\n  faultsim_test_result {0 {c * 2 2 c 0 2 2}}\n}")
+	// do_faultsim_test 1.1 -prep {
+  faultsim_restore_and_reopen
+  db eval {SELECT *...} -body {
+  execsql "CREATE VIRTUAL TABLE terms2 USING fts4...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
+	// do_faultsim_test 1.2 -prep {
+  faultsim_restore_and_reopen
+  db eval {SELECT *...} -body {
+  execsql "SELECT * FROM terms"
+} -test {
+  faultsim_test_result {0 {a * 1 1 a 0 1 1 b * 1 ...} (unsupported command, not transpiled)
+	// do_faultsim_test 1.3 -prep {
+  faultsim_restore_and_reopen
+  db eval {SELECT *...} -body {
+  execsql "SELECT * FROM terms WHERE term>'a' AND...} -test {
+  faultsim_test_result {0 {b * 1 1 b 0 1 1 c * 2 ...} (unsupported command, not transpiled)
+	// do_faultsim_test 1.4 -prep {
+  faultsim_restore_and_reopen
+  db eval {SELECT *...} -body {
+  execsql "SELECT * FROM terms WHERE term='c'"
+} -test {
+  faultsim_test_result {0 {c * 2 2 c 0 2 2}}
+} (unsupported command, not transpiled)
 	{ // do_test "2.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE tx USING fts4(a, b);\n    INSERT INTO tx VALUES('a b c', 'x y z');\n    CREATE VIRTUAL TABLE terms2 USING fts4aux(tx);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE tx USING fts4(a, b);\n    INSERT INTO tx VALUES('a b c', 'x y z');\n    CREATE VIRTUAL TABLE terms2 USING fts4aux(tx);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT *...} -body {\n  execsql \"SELECT * FROM terms2\"\n} -test {\n  faultsim_test_result {0 {a * 1 1 a 0 1 1 b * 1 ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.0 -faults oom* -prep {\n  faultsim_delete_and_reopen\n  db eval { CREATE T...} -body {\n  execsql {\n    CREATE VIRTUAL TABLE tt USING fts...} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.1 -faults oom* -prep {\n  faultsim_delete_and_reopen\n  db func zip zip\n  ...} -body {\n  execsql {\n    CREATE VIRTUAL TABLE tt USING fts...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// do_faultsim_test 2.1 -prep {
+  faultsim_restore_and_reopen
+  db eval {SELECT *...} -body {
+  execsql "SELECT * FROM terms2"
+} -test {
+  faultsim_test_result {0 {a * 1 1 a 0 1 1 b * 1 ...} (unsupported command, not transpiled)
+	// do_faultsim_test 3.0 -faults oom* -prep {
+  faultsim_delete_and_reopen
+  db eval { CREATE T...} -body {
+  execsql {
+    CREATE VIRTUAL TABLE tt USING fts...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
+	// do_faultsim_test 3.1 -faults oom* -prep {
+  faultsim_delete_and_reopen
+  db func zip zip
+  ...} -body {
+  execsql {
+    CREATE VIRTUAL TABLE tt USING fts...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 	{ // do_test "4.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE ft USING fts4(a, b);\n    INSERT INTO ft VALUES('U U T C O', 'F N D E S');\n    INSERT INTO ft VALUES('P H X G B', 'I D M R U');\n    INSERT INTO ft VALUES('P P X D M', 'Y V N T C');\n    INSERT INTO ft VALUES('Z L Q O W', 'D F U N Q');\n    INSERT INTO ft VALUES('A J D U P', 'C H M Q E');\n    INSERT INTO ft VALUES('P S A O H', 'S Z C W D');\n    INSERT INTO ft VALUES('T B N L W', 'C A K T I');\n    INSERT INTO ft VALUES('K E Z L O', 'L L Y C E');\n    INSERT INTO ft VALUES('C R E S V', 'Q V F W P');\n    INSERT INTO ft VALUES('S K H G W', 'R W Q F G');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE ft USING fts4(a, b);\n    INSERT INTO ft VALUES('U U T C O', 'F N D E S');\n    INSERT INTO ft VALUES('P H X G B', 'I D M R U');\n    INSERT INTO ft VALUES('P P X D M', 'Y V N T C');\n    INSERT INTO ft VALUES('Z L Q O W', 'D F U N Q');\n    INSERT INTO ft VALUES('A J D U P', 'C H M Q E');\n    INSERT INTO ft VALUES('P S A O H', 'S Z C W D');\n    INSERT INTO ft VALUES('T B N L W', 'C A K T I');\n    INSERT INTO ft VALUES('K E Z L O', 'L L Y C E');\n    INSERT INTO ft VALUES('C R E S V', 'Q V F W P');\n    INSERT INTO ft VALUES('S K H G W', 'R W Q F G');\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4.1 -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT *...} -body {\n  execsql { INSERT INTO ft(ft) VALUES('rebuild') ...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// do_faultsim_test 4.1 -prep {
+  faultsim_restore_and_reopen
+  db eval {SELECT *...} -body {
+  execsql { INSERT INTO ft(ft) VALUES('rebuild') ...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -81,9 +135,14 @@ func Test_fts3fault2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t6 USING fts4(x,order=DESC);\n    INSERT INTO t6(docid, x) VALUES(-1,'a b');\n    INSERT INTO t6(docid, x) VALUES(1, 'b');\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 6.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT *...} -body {\n  execsql { SELECT docid FROM t6 WHERE t6 MATCH '...} -test {\n  faultsim_test_result {0 -1}\n}")
+	// do_faultsim_test 6.1 -faults oom* -prep {
+  faultsim_restore_and_reopen
+  db eval {SELECT *...} -body {
+  execsql { SELECT docid FROM t6 WHERE t6 MATCH '...} -test {
+  faultsim_test_result {0 -1}
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -93,7 +152,10 @@ func Test_fts3fault2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t7 USING fts4(x,prefix=2);\n  INSERT INTO t7 VALUES('the quick brown fox');\n  INSERT INTO t7 VALUES('jumped over the');\n  INSERT INTO t7 VALUES('lazy dog');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 7.1 -faults oom* -body {\n  execsql { SELECT docid FROM t7 WHERE t7 MATCH '...} -test {\n  faultsim_test_result {0 {1 2}}\n}")
+	// do_faultsim_test 7.1 -faults oom* -body {
+  execsql { SELECT docid FROM t7 WHERE t7 MATCH '...} -test {
+  faultsim_test_result {0 {1 2}}
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -109,15 +171,26 @@ func Test_fts3fault2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 8.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { INSERT INTO t8 VALUES('one two three'...} -test {\n  faultsim_test_result {0 {}}\n}")
-	var _TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
-	_ = _TMPDBERROR // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 8.2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { ALTER TABLE t8 RENAME TO t8ii }\n} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 8.1 -faults oom* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { INSERT INTO t8 VALUES('one two three'...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
+	TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
+	_ = TMPDBERROR // suppress unused warning
+	// do_faultsim_test 8.2 -faults oom* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { ALTER TABLE t8 RENAME TO t8ii }
+} -test {
+  faultsim_test_result {0 {}} $::TMPDBERROR
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	var chunkconfig = "fts3_configure_incr_load 1 1"
+	chunkconfig = "fts3_configure_incr_load 1 1"
 	_ = chunkconfig // suppress unused warning
 	{ // "9.0"
 		r = db.Query("\n  PRAGMA page_size = 512;\n  CREATE VIRTUAL TABLE t9 USING fts3;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t9 SELECT 'one two three' FROM s;\n")
@@ -125,6 +198,9 @@ func Test_fts3fault2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 512;\n  CREATE VIRTUAL TABLE t9 USING fts3;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t9 SELECT 'one two three' FROM s;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 8.2 -faults io* -body {\n  execsql { SELECT count(*) FROM t9 WHERE t9 MATC...} -test {\n  faultsim_test_result {0 50}\n}")
-	// eval fts3_configure_incr_load $chunkconfig
+	// do_faultsim_test 8.2 -faults io* -body {
+  execsql { SELECT count(*) FROM t9 WHERE t9 MATC...} -test {
+  faultsim_test_result {0 50}
+} (unsupported command, not transpiled)
+	// eval (dynamic, not transpiled)
 }

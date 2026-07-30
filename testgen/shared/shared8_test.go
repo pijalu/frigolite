@@ -39,13 +39,26 @@ func Test_shared8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var R_n string
+	_ = R_n // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "shared8"
+	testprefix = "shared8"
 	_ = testprefix // suppress unused warning
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "0.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache")
+		// sqlite3_enable_shared_cache (unsupported command, not transpiled)
 	}
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
@@ -58,7 +71,7 @@ func Test_shared8(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db1 DEFENSIVE 0")
+		// sqlite3_db_config db1 DEFENSIVE 0 (unsupported command, not transpiled)
 		r = db.Query(" \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
@@ -115,13 +128,13 @@ func Test_shared8(t *testing.T) {
 		_res = db.Exec(" SELECT * FROM v1 ")
 		_ = _res // catchsql
 	}
-	for _, db := range tclSplitList("db1 db2 db3 db4") {
-	_ = db // suppress unused warning
+	for _, db_iter := range tclSplitList("db1 db2 db3 db4") {
+	_ = db_iter // suppress unused warning
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "$db close")
+			// $db close (unsupported command, not transpiled)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

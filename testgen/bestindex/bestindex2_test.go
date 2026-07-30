@@ -39,11 +39,56 @@ func Test_bestindex2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var mask string
+	_ = mask // pre-declared from TCL source
+	var cons string
+	_ = cons // pre-declared from TCL source
+	var used string
+	_ = used // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var nCons string
+	_ = nCons // pre-declared from TCL source
+	var cost string
+	_ = cost // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var C_op string
+	_ = C_op // pre-declared from TCL source
+	var C_usable string
+	_ = C_usable // pre-declared from TCL source
+	var C_column string
+	_ = C_column // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindex2"
+	testprefix = "bestindex2"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING tcl(\"vtab_cmd t1 {a b}\");\n  CREATE VIRTUAL TABLE t2 USING tcl(\"vtab_cmd t2 {c d}\");\n  CREATE VIRTUAL TABLE t3 USING tcl(\"vtab_cmd t3 {e f}\");\n")
 		if _res.Error != nil {

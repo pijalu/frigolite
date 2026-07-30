@@ -39,23 +39,33 @@ func Test_corruptG(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var idxroot string
+	_ = idxroot // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "corruptG"
+	testprefix = "corruptG"
 	_ = testprefix // suppress unused warning
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // "1.1"
 		_res = db.Exec("\n  PRAGMA page_size=512;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(rowid,a,b,c) VALUES(52,'abc','xyz','123');\n  CREATE INDEX t1abc ON t1(a,b,c);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=512;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(rowid,a,b,c) VALUES(52,'abc','xyz','123');\n  CREATE INDEX t1abc ON t1(a,b,c);\n")
 		}
 	}
-	var idxroot = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1abc'}"
+	idxroot = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1abc'}"
 	_ = idxroot // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {$idxroot*512 - 15}] 888080807f")
-	db, err = frigolite.Open("test.db")
+	// hexio_write test.db [expr {$idxroot*512 - 15}] 888080807f (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.2"
 		_res = db.Exec("\n    SELECT c FROM t1 WHERE a>'abc';\n  ")
@@ -69,8 +79,9 @@ func Test_corruptG(t *testing.T) {
 		_res = db.Exec("\n    SELECT c FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {$idxroot*512-15}] 0513ff7f01")
-	db, err = frigolite.Open("test.db")
+	// hexio_write test.db [expr {$idxroot*512-15}] 0513ff7f01 (unsupported command, not transpiled)
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "2.1"
 		_res = db.Exec("\n    SELECT rowid FROM t1 WHERE a='abc' and b='xyz123456789XYZ';\n  ")

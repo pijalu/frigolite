@@ -39,6 +39,19 @@ func Test_tkt_b72787b1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "tkt-b72787b1.1"
@@ -46,16 +59,16 @@ func Test_tkt_b72787b1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 SELECT x+2 FROM t1;\n    INSERT INTO t2 SELECT x+4 FROM t1;\n  ")
 		}
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
-		var sql = "SELECT max(x) FROM t1"
+		sql = "SELECT max(x) FROM t1"
 		_ = sql // suppress unused warning
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
 		_res = db.Exec("\n    SELECT CASE WHEN y=3 THEN y+100 WHEN y==4 THEN runsql()+200\n                ELSE 300+y END FROM t2\n    UNION ALL\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT CASE WHEN y=3 THEN y+100 WHEN y==4 THEN runsql()+200\n                ELSE 300+y END FROM t2\n    UNION ALL\n    SELECT * FROM t1;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+	// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 }

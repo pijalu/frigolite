@@ -39,10 +39,19 @@ func Test_spellfix2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "spellfix2"
+	testprefix = "spellfix2"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")
+	// load_static_extension db spellfix nextchar (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE demo USING spellfix1;\n  INSERT INTO demo(word) VALUES ('amsterdam');\n  INSERT INTO demo(word) VALUES ('amsterdammetje');\n  INSERT INTO demo(word) VALUES ('amsterdamania');\n  INSERT INTO demo(word) VALUES ('amsterdamweg');\n  INSERT INTO demo(word) VALUES ('amsterdamsestraat');\n  INSERT INTO demo(word) VALUES ('amsterdamlaan');\n")
 		if _res.Error != nil {

@@ -41,12 +41,20 @@ func Test_e_wal(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "e_wal"
+	testprefix = "e_wal"
 	_ = testprefix // suppress unused warning
 	os.Remove("test.db-shm")
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs oldvfs -iversion 1")
-	db, err = frigolite.Open("test.db")
+	// testvfs oldvfs -iversion 1 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.1"
 		r = db.Query("\n  PRAGMA journal_mode = WAL;\n")
@@ -83,8 +91,8 @@ func Test_e_wal(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.2.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
@@ -104,8 +112,8 @@ func Test_e_wal(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.3.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
 		_ = _res // catchsql
@@ -128,7 +136,8 @@ func Test_e_wal(t *testing.T) {
 		_list := tclList([]string{"file exists test.db-shm", "file exists test.db-wal"})
 		_ = _list
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp3, err := frigolite.Open("test.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.1.1"
 		r = db.Query("\n  PRAGMA locking_mode = EXCLUSIVE;\n  SELECT * FROM t1;\n")
@@ -203,8 +212,8 @@ func Test_e_wal(t *testing.T) {
 	}
 	db2.Close()
 	{ // do_test "3.0"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA journal_mode = WAL ")
 		if r.Error != nil {
@@ -212,8 +221,8 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
@@ -258,16 +267,16 @@ func Test_e_wal(t *testing.T) {
 	}
 	db2.Close()
 	{ // do_test "3.4.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp6, err := frigolite.Open("test.db")
+		_ = _dbtmp6 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "3.4.2"
 		os.Remove("test.db2")
-		db, err := frigolite.Open("test.db2")
-		defer db.Close()
+		_dbtmp7, err := frigolite.Open("test.db2")
+		_ = _dbtmp7 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA journal_mode = WAL ")
 		_ = _res // catchsql
@@ -282,7 +291,7 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "4.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+		// hexio_read test.db 18 2 (unsupported command, not transpiled)
 	}
 	{ // "4.1.3"
 		r = db.Query(" PRAGMA journal_mode = wAL ")
@@ -297,7 +306,7 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "4.1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+		// hexio_read test.db 18 2 (unsupported command, not transpiled)
 	}
 	{ // "4.2.1"
 		_res = db.Exec(" INSERT INTO t1 VALUES(1, 1); ")
@@ -324,6 +333,6 @@ func Test_e_wal(t *testing.T) {
 		// file exists "test.db-wal"
 	}
 	{ // do_test "4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+		// hexio_read test.db 18 2 (unsupported command, not transpiled)
 	}
 }

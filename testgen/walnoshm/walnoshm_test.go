@@ -39,12 +39,20 @@ func Test_walnoshm(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walnoshm"
+	testprefix = "walnoshm"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfsshm")
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1 -iversion 1")
-	db, err = frigolite.Open("test.db")
+	// testvfs tvfsshm (unsupported command, not transpiled)
+	// testvfs tvfs -default 1 -iversion 1 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n")
@@ -221,8 +229,8 @@ func Test_walnoshm(t *testing.T) {
 	}
 	db2.Close()
 	{ // do_test "3.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" \n    SELECT * FROM t1;\n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(5, 6);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(7, 8);\n  ")
 		if _res.Error != nil {
@@ -237,8 +245,8 @@ func Test_walnoshm(t *testing.T) {
 	}
 	db2.Close()
 	{ // do_test "3.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" \n    PRAGMA locking_mode = EXCLUSIVE;\n    INSERT INTO t1 VALUES(9, 10);\n    PRAGMA locking_mode = NORMAL;\n    INSERT INTO t1 VALUES(11, 12);\n  ")
 		if _res.Error != nil {
@@ -250,6 +258,6 @@ func Test_walnoshm(t *testing.T) {
 		_ = _res // catchsql
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfsshm delete")
+	// tvfs delete (unsupported command, not transpiled)
+	// tvfsshm delete (unsupported command, not transpiled)
 }

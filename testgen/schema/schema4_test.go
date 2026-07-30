@@ -39,6 +39,11 @@ func Test_schema4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "schema4-1.1"
 		_res = db.Exec("\n  CREATE TABLE log(x, a, b);\n  CREATE TABLE tbl(a, b);\n\n  CREATE TABLE t1(a, b);\n  CREATE VIEW v1 AS SELECT * FROM tbl;\n  CREATE INDEX i1 ON tbl(a);\n")
@@ -76,7 +81,8 @@ func Test_schema4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "schema4-1.5"
 		r = db.Query("\n  DELETE FROM log;\n  INSERT INTO tbl VALUES(1, 2);\n  UPDATE tbl SET b=a+b, a=a+1;\n  DELETE FROM tbl;\n  SELECT x, a, b FROM log;\n")

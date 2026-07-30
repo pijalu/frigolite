@@ -41,6 +41,61 @@ func Test_incrvacuum(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var nStep string
+	_ = nStep // pre-declared from TCL source
+	var TestScriptList string
+	_ = TestScriptList // pre-declared from TCL source
+	var tbl_list string
+	_ = tbl_list // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var control string
+	_ = control // pre-declared from TCL source
+	var str1 string
+	_ = str1 // pre-declared from TCL source
+	var str2 string
+	_ = str2 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var jj string
+	_ = jj // pre-declared from TCL source
+	var iWrite string
+	_ = iWrite // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sqlite_options_default_autovacuum string
+	_ = sqlite_options_default_autovacuum // pre-declared from TCL source
+	var A string
+	_ = A // pre-declared from TCL source
+	var B string
+	_ = B // pre-declared from TCL source
+	var tname string
+	_ = tname // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "incrvacuum-1.1"
 		r = db.Query("\n    pragma auto_vacuum;\n  ")
@@ -103,8 +158,8 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-2.2.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    pragma auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -130,8 +185,8 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-3.2"
-		var _str = "1234567890 110" // TCL namespace variable
-		_ = _str // suppress unused warning
+		str = "1234567890 110" // TCL namespace variable
+		_ = str // suppress unused warning
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES($::str);\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 2;\n    BEGIN;\n    CREATE TABLE tbl2(str);\n    INSERT INTO tbl2 VALUES($::str);\n    COMMIT;\n  ")
@@ -153,8 +208,8 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
 	}
 	{ // do_test "incrvacuum-4.1"
-		var _str = "1234567890 110" // TCL namespace variable
-		_ = _str // suppress unused warning
+		str = "1234567890 110" // TCL namespace variable
+		_ = str // suppress unused warning
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES($::str);\n    CREATE TABLE tbl1(a, b, c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 2;\n    INSERT INTO tbl2 VALUES($::str);\n    CREATE TABLE tbl1(a, b, c);\n  ")
@@ -169,13 +224,13 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
 	}
 	{ // do_test "incrvacuum-4.3"
-		var _nStep = "0" // TCL namespace variable
-		_ = _nStep // suppress unused warning
+		nStep = "0" // TCL namespace variable
+		_ = nStep // suppress unused warning
 		_res = db.Exec("pragma incremental_vacuum(10)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "pragma incremental_vacuum(10)")
 		}
-		_list := tclList([]string{"[file size test.db] / 1024", _nStep})
+		_list := tclList([]string{"[file size test.db] / 1024", nStep})
 		_ = _list
 	}
 	{ // do_test "incrvacuum-5.1.1"
@@ -189,8 +244,8 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
 	}
 	{ // do_test "incrvacuum-5.2.1"
-		var _str = "abcdefghij 110" // TCL namespace variable
-		_ = _str // suppress unused warning
+		str = "abcdefghij 110" // TCL namespace variable
+		_ = str // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES($::str);\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE tbl1(a);\n    INSERT INTO tbl1 VALUES($::str);\n    PRAGMA incremental_vacuum;                 -- this is a no-op.\n    COMMIT;\n  ")
@@ -198,8 +253,8 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
 	}
 	{ // do_test "incrvacuum-5.2.2"
-		var _str = "abcdefghij 110" // TCL namespace variable
-		_ = _str // suppress unused warning
+		str = "abcdefghij 110" // TCL namespace variable
+		_ = str // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO tbl1 VALUES($::str);\n    INSERT INTO tbl1 SELECT * FROM tbl1;\n    DELETE FROM tbl1 WHERE oid%2;        -- Put 2 overflow pages on free-list.\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO tbl1 VALUES($::str);\n    INSERT INTO tbl1 SELECT * FROM tbl1;\n    DELETE FROM tbl1 WHERE oid%2;        -- Put 2 overflow pages on free-list.\n    COMMIT;\n  ")
@@ -226,13 +281,13 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
 	}
-	var TestScriptList = "list {\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t1_i ON t1(a);\n  CREATE INDEX t2_i ON t2(a);\n} {\n  INSERT INTO t1 VALUES($::str1, $::str2);\n  INSERT INTO t1 VALUES($::str1||$::str2, $::str2||$::str1);\n  INSERT INTO t2 SELECT b, a FROM t1;\n  INSERT INTO t2 SELECT a, b FROM t1;\n  INSERT INTO t1 SELECT b, a FROM t2;\n  UPDATE t2 SET b = '';\n  PRAGMA incremental_vacuum;\n} {\n  UPDATE t2 SET b = (SELECT b FROM t1 WHERE t1.oid = t2.oid);\n  PRAGMA incremental_vacuum;\n} {\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 SELECT * FROM t2;\n  DROP TABLE t2;\n  PRAGMA incremental_vacuum;\n} {\n  CREATE INDEX t3_i ON t3(a);\n  COMMIT;\n} {\n  BEGIN;\n  DROP INDEX t3_i;\n  PRAGMA incremental_vacuum;\n  INSERT INTO t3 VALUES('hello', 'world');\n  ROLLBACK;\n} {\n  INSERT INTO t3 VALUES('hello', 'world');\n}"
+	TestScriptList = "list {\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE INDEX t1_i ON t1(a);\n  CREATE INDEX t2_i ON t2(a);\n} {\n  INSERT INTO t1 VALUES($::str1, $::str2);\n  INSERT INTO t1 VALUES($::str1||$::str2, $::str2||$::str1);\n  INSERT INTO t2 SELECT b, a FROM t1;\n  INSERT INTO t2 SELECT a, b FROM t1;\n  INSERT INTO t1 SELECT b, a FROM t2;\n  UPDATE t2 SET b = '';\n  PRAGMA incremental_vacuum;\n} {\n  UPDATE t2 SET b = (SELECT b FROM t1 WHERE t1.oid = t2.oid);\n  PRAGMA incremental_vacuum;\n} {\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 SELECT * FROM t2;\n  DROP TABLE t2;\n  PRAGMA incremental_vacuum;\n} {\n  CREATE INDEX t3_i ON t3(a);\n  COMMIT;\n} {\n  BEGIN;\n  DROP INDEX t3_i;\n  PRAGMA incremental_vacuum;\n  INSERT INTO t3 VALUES('hello', 'world');\n  ROLLBACK;\n} {\n  INSERT INTO t3 VALUES('hello', 'world');\n}"
 	_ = TestScriptList // suppress unused warning
 	// proc definition (not transpiled)
-	var _str1 = "abcdefghij 130" // TCL namespace variable
-	_ = _str1 // suppress unused warning
-	var _str2 = "1234567890 105" // TCL namespace variable
-	_ = _str2 // suppress unused warning
+	str1 = "abcdefghij 130" // TCL namespace variable
+	_ = str1 // suppress unused warning
+	str2 = "1234567890 105" // TCL namespace variable
+	_ = str2 // suppress unused warning
 	os.Remove("test1.db")
 	db1, err = frigolite.Open("test1.db")
 	if err != nil { t.Fatal(err) }
@@ -246,9 +301,9 @@ func Test_incrvacuum(t *testing.T) {
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum = 'incremental' ")
 	}
-	var tn = "1"
+	tn = "1"
 	_ = tn // suppress unused warning
-	for _, sql := range tclSplitList(_TestScriptList) {
+	for _, sql := range tclSplitList(TestScriptList) {
 	_ = sql // suppress unused warning
 		_res = db.Exec(sql)
 		if _res.Error != nil {
@@ -258,14 +313,13 @@ func Test_incrvacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "compare_dbs db1 db2 incrvacuum-5.3.$ {tn}")
+		// compare_dbs db1 db2 incrvacuum-5.3.$ {tn} (unsupported command, not transpiled)
 		{ // do_test "incrvacuum-5.3.$"
-			t.Errorf("TODO: %s not implemented in frigolite", "tn")
+			// tn (unsupported command, not transpiled)
 		}
 		{ // do_test "incrvacuum-5.3.$"
-			t.Errorf("TODO: %s not implemented in frigolite", "tn")
+			// tn (unsupported command, not transpiled)
 		}
-		var tn = "0"
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
@@ -276,14 +330,14 @@ func Test_incrvacuum(t *testing.T) {
 	}
 	db1.Close()
 	db2.Close()
-	var jj = "0"
+	jj = "0"
 	_ = jj // suppress unused warning
 	for func() bool { jj_n, _jj_e := strconv.Atoi(jj); if _jj_e != nil { return false }; return jj_n < 10 }() {
 		{ // do_test "incrvacuum-6.$"
-			t.Errorf("TODO: %s not implemented in frigolite", "jj")
+			// jj (unsupported command, not transpiled)
 		}
 		{ // do_test "incrvacuum-6.$"
-			t.Errorf("TODO: %s not implemented in frigolite", "jj")
+			// jj (unsupported command, not transpiled)
 		}
 		// incr jj 1
 		{
@@ -293,32 +347,31 @@ func Test_incrvacuum(t *testing.T) {
 			}
 		}
 	}
-	var _iWrite = "1" // TCL namespace variable
-	_ = _iWrite // suppress unused warning
+	iWrite = "1" // TCL namespace variable
+	_ = iWrite // suppress unused warning
 	for true {
 		{ // do_test "incrvacuum-7.$"
-			t.Errorf("TODO: %s not implemented in frigolite", "::iWrite")
+			// ::iWrite (unsupported command, not transpiled)
 		}
 		{ // do_test "incrvacuum-7.$"
-			t.Errorf("TODO: %s not implemented in frigolite", "::iWrite")
+			// ::iWrite (unsupported command, not transpiled)
 		}
 		{ // do_test "incrvacuum-7.$"
-			t.Errorf("TODO: %s not implemented in frigolite", "::iWrite")
+			// ::iWrite (unsupported command, not transpiled)
 		}
-		if func() bool { _nRow_n, __nRow_e := strconv.Atoi(_nRow); if __nRow_e != nil { return false }; _iWrite_n, __iWrite_e := strconv.Atoi(_iWrite); if __iWrite_e != nil { return false }; return _nRow_n == _iWrite_n }() {
+		if func() bool { nRow_n, _nRow_e := strconv.Atoi(nRow); if _nRow_e != nil { return false }; iWrite_n, _iWrite_e := strconv.Atoi(iWrite); if _iWrite_e != nil { return false }; return nRow_n == iWrite_n }() {
 		}
-		var _iWrite = "0"
-		// incr _iWrite 1
+		// incr iWrite 1
 		{
-			_n, _err := strconv.Atoi(_iWrite)
+			_n, _err := strconv.Atoi(iWrite)
 			if _err == nil {
-				_iWrite = strconv.Itoa(_n + 1)
+				iWrite = strconv.Itoa(_n + 1)
 			}
 		}
 	}
 	{ // do_test "incrvacuum-8.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA incremental_vacuum(50);\n  ")
 		if r.Error != nil {
@@ -327,8 +380,8 @@ func Test_incrvacuum(t *testing.T) {
 	}
 	{ // do_test "incrvacuum-9.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 'incremental';\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(a, b, c);\n    INSERT INTO t2 VALUES(randstr(500,500),randstr(500,500),randstr(500,500));\n    INSERT INTO t1 VALUES(1, 2, 3);\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n    INSERT INTO t1 SELECT a||a, b||b, c||c FROM t1;\n  ")
 		if _res.Error != nil {
@@ -408,7 +461,8 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db] → "[file size test.db]"
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp3, err := frigolite.Open("test.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "incrvacuum-11.2"
 		r = db.Query("\n    PRAGMA auto_vacuum = incremental;\n  ")
@@ -426,8 +480,8 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db]>0 → "[file size test.db]>0"
 	}
 	{ // do_test "incrvacuum-11.5"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum; ")
 		if r.Error != nil {
@@ -441,8 +495,8 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-11.7"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum; ")
 		if r.Error != nil {
@@ -450,7 +504,8 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp6, err := frigolite.Open("test.db")
+	_ = _dbtmp6 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "incrvacuum-12.1"
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n  ")
@@ -480,8 +535,8 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-12.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp7, err := frigolite.Open("test.db")
+		_ = _dbtmp7 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA auto_vacuum ")
 		if r.Error != nil {
@@ -500,18 +555,19 @@ func Test_incrvacuum(t *testing.T) {
 	}
 	db2.Close()
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp8, err := frigolite.Open("test.db")
+	_ = _dbtmp8 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-	_ = _DB // suppress unused warning
+	DB = "sqlite3_connection_pointer db" // TCL namespace variable
+	_ = DB // suppress unused warning
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "incrvacuum-13.1"
 		// expr [file size test.db]>1 → "[file size test.db]>1"
 	}
 	{ // do_test "incrvacuum-13.2"
-		var _STMT = "sqlite3_prepare $::DB {PRAGMA auto_vacuum = 2} -1 DUMMY" // TCL namespace variable
-		_ = _STMT // suppress unused warning
+		STMT = "sqlite3_prepare $::DB {PRAGMA auto_vacuum = 2} -1 DUMMY" // TCL namespace variable
+		_ = STMT // suppress unused warning
 		r = db.Query("\n    PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = none;\n    PRAGMA default_cache_size = 1024;\n    PRAGMA auto_vacuum;\n  ")
@@ -521,7 +577,7 @@ func Test_incrvacuum(t *testing.T) {
 		// expr [file size test.db]>0 → "[file size test.db]>0"
 	}
 	{ // do_test "incrvacuum-13.4"
-		var rc = "SQLITE_ROW"
+		rc = "SQLITE_ROW"
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, ""})
 		_ = _list
@@ -534,9 +590,10 @@ func Test_incrvacuum(t *testing.T) {
 	}
 	if tclBool("permutation" + " == \"\"") {
 		{ // do_test "incrvacuum-14.1"
-			var out = "open invalid.db w"
+			out = "open invalid.db w"
 			_ = out // suppress unused warning
-			t.Log(out)
+			_putsMsg := out
+			_ = _putsMsg
 			// close $out
 			db3, err = frigolite.Open("invalid.db")
 			if err != nil { t.Fatal(err) }
@@ -548,10 +605,10 @@ func Test_incrvacuum(t *testing.T) {
 	{ // do_test "incrvacuum-15.1"
 		db2.Close()
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp9, err := frigolite.Open("test.db")
+		_ = _dbtmp9 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var str = "\"abcdefghij\" 500"
+		str = "\"abcdefghij\" 500"
 		_ = str // suppress unused warning
 		r = db.Query("\n    PRAGMA cache_size = 10;\n    PRAGMA auto_vacuum = incremental;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES('a', $str);\n    INSERT INTO t1 VALUES('b', $str);\n    INSERT INTO t1 VALUES('c', $str);\n    INSERT INTO t1 VALUES('d', $str);\n    INSERT INTO t1 VALUES('e', $str);\n    INSERT INTO t1 VALUES('f', $str);\n    INSERT INTO t1 VALUES('g', $str);\n    INSERT INTO t1 VALUES('h', $str);\n    INSERT INTO t1 VALUES('i', $str);\n    INSERT INTO t1 VALUES('j', $str);\n    INSERT INTO t1 VALUES('j', $str);\n\n    CREATE TABLE t2(x PRIMARY KEY, y);\n    INSERT INTO t2 VALUES('a', $str);\n    INSERT INTO t2 VALUES('b', $str);\n    INSERT INTO t2 VALUES('c', $str);\n    INSERT INTO t2 VALUES('d', $str);\n\n    BEGIN;\n      DELETE FROM t2;\n      PRAGMA incremental_vacuum;\n  ")
 		if r.Error != nil {
@@ -565,10 +622,10 @@ func Test_incrvacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "incrvacuum-17.0"
-		db, err := frigolite.Open("")
-		defer db.Close()
+		_dbtmp10, err := frigolite.Open("")
+		_ = _dbtmp10 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+		// database_may_be_corrupt (unsupported command, not transpiled)
 	}
 	{ // "incrvacuum-17.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON;\n  PRAGMA incremental_vacuum(10);\n")

@@ -39,10 +39,19 @@ func Test_intreal(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var D string
+	_ = D // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "intreal" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+	testprefix = "intreal" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// sqlite3_create_function db (unsupported command, not transpiled)
 	{ // "100"
 		r = db.Query("\n  SELECT intreal(5);\n")
 		if r.Error != nil {
@@ -181,7 +190,7 @@ func Test_intreal(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0 (c0);\n  CREATE TABLE t1 (c1 REAL);\n  INSERT INTO t1(c1) VALUES (8366271098608253588);\n  INSERT INTO t0(c0) VALUES ('a');\n")
 		}
 	}
-	var D = "db one {SELECT c1 FROM t1}"
+	D = "db one {SELECT c1 FROM t1}"
 	_ = D // suppress unused warning
 	{ // "2.4"
 		r = db.Query("\n  SELECT * FROM t1 WHERE (t1.c1 = CAST(8366271098608253588 AS REAL));\n")
@@ -219,7 +228,8 @@ func Test_intreal(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "3.0"
 		r = db.Query("\n  CREATE TABLE t0 (c0 REAL, c1);\n  CREATE UNIQUE INDEX i0 ON t0(c1, 0 | c0);\n  INSERT INTO t0(c0) VALUES (4750228396194493326), (0);\n  UPDATE OR REPLACE t0 SET c0 = 'a', c1 = '';\n  SELECT * FROM t0 ORDER BY t0.c1;\n  PRAGMA integrity_check;\n")

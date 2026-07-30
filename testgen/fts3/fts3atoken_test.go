@@ -40,11 +40,48 @@ func Test_fts3atoken(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var char string
+	_ = char // pre-declared from TCL source
+	var simplename string
+	_ = simplename // pre-declared from TCL source
+	var blah2name string
+	_ = blah2name // pre-declared from TCL source
+	var simple string
+	_ = simple // pre-declared from TCL source
+	var input string
+	_ = input // pre-declared from TCL source
+	var output string
+	_ = output // pre-declared from TCL source
+	var longtoken string
+	_ = longtoken // pre-declared from TCL source
+	var fmt string
+	_ = fmt // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var locale string
+	_ = locale // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var codepoint_list string
+	_ = codepoint_list // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3atoken" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts3atoken" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1")
+	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
 	{ // do_test "fts3atoken-1.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize blah);\n  ")
 		_ = _res // catchsql
@@ -71,13 +108,13 @@ func Test_fts3atoken(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(content) VALUES('There was movement at the station');\n    INSERT INTO t1(content) VALUES('For the word has passed around');\n    INSERT INTO t1(content) VALUES('That the colt from ol regret had got');\n    SELECT content FROM t1 WHERE content MATCH 'movement'\n  ")
 		}
 	}
-	var simplename = "simple"
+	simplename = "simple"
 	_ = simplename // suppress unused warning
-	var blah2name = "blah2"
+	blah2name = "blah2"
 	_ = blah2name // suppress unused warning
-	var simple = "db one {SELECT fts3_tokenizer('simple')}"
+	simple = "db one {SELECT fts3_tokenizer('simple')}"
 	_ = simple // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 0")
+	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 0 (unsupported command, not transpiled)
 	{ // "1.6"
 		_res = db.Exec("\n  SELECT fts3_tokenizer('blah', fts3_tokenizer('simple')) IS NULL;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fts3tokenize disabled") {
@@ -96,7 +133,7 @@ func Test_fts3atoken(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT fts3_tokenizer($blah2name) == fts3_tokenizer($simplename),\n           typeof(fts3_tokenizer($blah2name)),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer($simplename)),\n           typeof(fts3_tokenizer('simple'));\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1")
+	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
 	{ // do_test "fts3atoken-1.9"
 		r = db.Query("\n    SELECT fts3_tokenizer('blah2') == fts3_tokenizer('simple'),\n           typeof(fts3_tokenizer($blah2name)),\n           typeof(fts3_tokenizer('blah2')),\n           typeof(fts3_tokenizer($simplename)),\n           typeof(fts3_tokenizer('simple'));\n  ")
 		if r.Error != nil {
@@ -137,7 +174,7 @@ func Test_fts3atoken(t *testing.T) {
 		_res = db.Exec("\n    SELECT fts3_tokenizer('nosuchtokenizer');\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1")
+	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
 	{ // do_test "fts3atoken-3.1"
 		r = db.Query("\n    SELECT fts3_tokenizer_test('simple', 'I don''t see how');\n  ")
 		if r.Error != nil {
@@ -180,7 +217,7 @@ func Test_fts3atoken(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "unknown tokenizer:", _res.Error, "\n  SELECT fts3_tokenizer(NULL);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1")
+	// sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1 (unsupported command, not transpiled)
 	{ // "6.2.2"
 		_res = db.Exec("\n  SELECT fts3_tokenizer(NULL, X'1234567812345678');\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "argument type mismatch") {

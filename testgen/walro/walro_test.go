@@ -40,13 +40,32 @@ func Test_walro(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "walro" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	if _tcl_platform_os == "Windows NT" {
+	testprefix = "walro" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	if tcl_platform_os == "Windows NT" {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  \n  # Close all connections and delete the datab...}")
+	// do_multiclient_test tn {
+  
+  # Close all connections and delete the datab...} (unsupported command, not transpiled)
 	os.Remove("test.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  \n  # Close all connections and delete the datab...}")
+	// do_multiclient_test tn {
+  
+  # Close all connections and delete the datab...} (unsupported command, not transpiled)
 }

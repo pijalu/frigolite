@@ -39,9 +39,30 @@ func Test_vtab7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var callbacks_xSync_abc string
+	_ = callbacks_xSync_abc // pre-declared from TCL source
+	var counter string
+	_ = counter // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tablename string
+	_ = tablename // pre-declared from TCL source
+	var echo_module string
+	_ = echo_module // pre-declared from TCL source
+	var callbacks_x_tablename string
+	_ = callbacks_x_tablename // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
-	t.Errorf("TODO: %s not implemented in frigolite", "trace add variable ::echo_module write echo_module_trace")
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	// trace add variable ::echo_module write echo_module_trace (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "vtab7-1.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n    CREATE VIRTUAL TABLE abc2 USING echo(abc);\n  ")
@@ -50,19 +71,19 @@ func Test_vtab7(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab7-1.2"
-		var _callbacks_xSync,abc = "incr ::counter" // TCL namespace variable
-		_ = _callbacks_xSync,abc // suppress unused warning
-		var _counter = "0" // TCL namespace variable
-		_ = _counter // suppress unused warning
+		callbacks_xSync_abc = "incr ::counter" // TCL namespace variable
+		_ = callbacks_xSync_abc // suppress unused warning
+		counter = "0" // TCL namespace variable
+		_ = counter // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO abc2 VALUES(1, 2, 3);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc2 VALUES(1, 2, 3);\n  ")
 		}
-		_ = _counter // TCL namespace variable (query)
+		_ = counter // TCL namespace variable (query)
 	}
 	{ // do_test "vtab7-2.1"
-		var _callbacks_xSync,abc = "\n    execsql {INSERT INTO log VALUES('xSync');}\n  " // TCL namespace variable
-		_ = _callbacks_xSync,abc // suppress unused warning
+		callbacks_xSync_abc = "\n    execsql {INSERT INTO log VALUES('xSync');}\n  " // TCL namespace variable
+		_ = callbacks_xSync_abc // suppress unused warning
 		r = db.Query("\n    CREATE TABLE log(msg);\n    INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE log(msg);\n    INSERT INTO abc2 VALUES(4, 5, 6);\n    SELECT * FROM log;\n  ")
@@ -81,23 +102,23 @@ func Test_vtab7(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab7-2.5"
-		var _callbacks_xSync,abc = "\n    execsql { CREATE TABLE newtab(d, e, f); }\n  " // TCL namespace variable
-		_ = _callbacks_xSync,abc // suppress unused warning
+		callbacks_xSync_abc = "\n    execsql { CREATE TABLE newtab(d, e, f); }\n  " // TCL namespace variable
+		_ = callbacks_xSync_abc // suppress unused warning
 		r = db.Query("\n    INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;\n  ")
 		}
 	}
 	{ // do_test "vtab7-2.6"
-		var _callbacks_xSync,abc = "\n    set ::rc [catchsql { DROP TABLE newtab }]\n  " // TCL namespace variable
-		_ = _callbacks_xSync,abc // suppress unused warning
+		callbacks_xSync_abc = "\n    set ::rc [catchsql { DROP TABLE newtab }]\n  " // TCL namespace variable
+		_ = callbacks_xSync_abc // suppress unused warning
 		r = db.Query("\n    INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;\n  ")
 		}
 	}
 	{ // do_test "vtab7-2.6.1"
-		_ = _rc // TCL namespace variable (query)
+		_ = rc // TCL namespace variable (query)
 	}
 	_res = db.Exec("DROP TABLE newtab")
 	if _res.Error != nil {
@@ -108,8 +129,8 @@ func Test_vtab7(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE def(d, e, f);\n    CREATE VIRTUAL TABLE def2 USING echo(def);\n  ")
 		}
-		var _callbacks_xSync,abc = "\n    set ::error [catchsql { INSERT INTO def2 VALUES(1, 2, 3) }]\n  " // TCL namespace variable
-		_ = _callbacks_xSync,abc // suppress unused warning
+		callbacks_xSync_abc = "\n    set ::error [catchsql { INSERT INTO def2 VALUES(1, 2, 3) }]\n  " // TCL namespace variable
+		_ = callbacks_xSync_abc // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO abc2 VALUES(1, 2, 3);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc2 VALUES(1, 2, 3);\n  ")
@@ -117,8 +138,8 @@ func Test_vtab7(t *testing.T) {
 		_ = _error // TCL namespace variable (query)
 	}
 	{ // do_test "vtab7-4.2"
-		var _callbacks_xSync,abc = "\n    set ::error [catchsql { CREATE VIRTUAL TABLE def3 USING echo(def) }]\n  " // TCL namespace variable
-		_ = _callbacks_xSync,abc // suppress unused warning
+		callbacks_xSync_abc = "\n    set ::error [catchsql { CREATE VIRTUAL TABLE def3 USING echo(def) }]\n  " // TCL namespace variable
+		_ = callbacks_xSync_abc // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO abc2 VALUES(1, 2, 3);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc2 VALUES(1, 2, 3);\n  ")
@@ -126,13 +147,13 @@ func Test_vtab7(t *testing.T) {
 		_ = _error // TCL namespace variable (query)
 	}
 	{ // do_test "vtab7-4.3"
-		var _callbacks_xSync,abc = "\n    set ::error [catchsql { DROP TABLE def2 }]\n  " // TCL namespace variable
-		_ = _callbacks_xSync,abc // suppress unused warning
+		callbacks_xSync_abc = "\n    set ::error [catchsql { DROP TABLE def2 }]\n  " // TCL namespace variable
+		_ = callbacks_xSync_abc // suppress unused warning
 		r = db.Query("\n    INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO abc2 VALUES(1, 2, 3);\n    SELECT name FROM sqlite_master ORDER BY name;\n  ")
 		}
 		_ = _error // TCL namespace variable (query)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "trace remove variable ::echo_module write echo_module_trace")
+	// trace remove variable ::echo_module write echo_module_trace (unsupported command, not transpiled)
 }

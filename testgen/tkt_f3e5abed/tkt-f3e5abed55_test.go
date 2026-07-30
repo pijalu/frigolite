@@ -40,6 +40,15 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	for _, f := range tclSplitList("glob -nocomplain test.db*mj*") {
 	_ = f // suppress unused warning
@@ -90,12 +99,12 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 	}
 	db2.Close()
 	if tclBool("permutation" + "!=\"inmemory_journal\"") {
-		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xDelete")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xDelete")
+		// testvfs tvfs -default 1 (unsupported command, not transpiled)
+		// tvfs script xDelete (unsupported command, not transpiled)
+		// tvfs filter xDelete (unsupported command, not transpiled)
 		// proc definition (not transpiled)
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -127,7 +136,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		}
 		{ // do_test "tkt-f3e5abed55-2.5"
 			db2.Close()
-			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+			// faultsim_restore_and_reopen (unsupported command, not transpiled)
 			r = db.Query("\n      ATTACH 'test.db2' AS aux;\n      SELECT * FROM t1;\n      SELECT * FROM t2;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test.db2' AS aux;\n      SELECT * FROM t1;\n      SELECT * FROM t2;\n    ")

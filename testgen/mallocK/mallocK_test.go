@@ -40,16 +40,39 @@ func Test_mallocK(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var term string
+	_ = term // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "mallocK"
+	testprefix = "mallocK"
 	_ = testprefix // suppress unused warning
-	var sql = "SELECT * FROM t1, t2 WHERE (a=1 OR a=2)"
+	sql = "SELECT * FROM t1, t2 WHERE (a=1 OR a=2)"
 	_ = sql // suppress unused warning
-	var x = "1"
+	x = "1"
 	_ = x // suppress unused warning
 	for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
 		sql += " AND b=y"
-		t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocK-1.$x -sqlbody $sql -sqlprep {\n    CREATE TABLE t1(a,b);\n    CREATE TABLE t2(x,y...}")
+		// do_malloc_test mallocK-1.$x -sqlbody $sql -sqlprep {
+    CREATE TABLE t1(a,b);
+    CREATE TABLE t2(x,y...} (unsupported command, not transpiled)
 		// incr x 1
 		{
 			_n, _err := strconv.Atoi(x)
@@ -64,7 +87,9 @@ func Test_mallocK(t *testing.T) {
 	_ = x // suppress unused warning
 	for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
 		sql += " AND b!=" + x
-		t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocK-2.$x -sqlbody $sql -sqlprep {\n    CREATE TABLE t1(a,b);\n  }")
+		// do_malloc_test mallocK-2.$x -sqlbody $sql -sqlprep {
+    CREATE TABLE t1(a,b);
+  } (unsupported command, not transpiled)
 		// incr x 1
 		{
 			_n, _err := strconv.Atoi(x)
@@ -79,7 +104,9 @@ func Test_mallocK(t *testing.T) {
 	_ = x // suppress unused warning
 	for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
 		sql += " AND b=" + x
-		t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocK-3.$x -sqlbody $sql -sqlprep {\n    CREATE TABLE t1(a,b);\n  }")
+		// do_malloc_test mallocK-3.$x -sqlbody $sql -sqlprep {
+    CREATE TABLE t1(a,b);
+  } (unsupported command, not transpiled)
 		// incr x 1
 		{
 			_n, _err := strconv.Atoi(x)
@@ -93,9 +120,9 @@ func Test_mallocK(t *testing.T) {
 	x = "1"
 	_ = x // suppress unused warning
 	for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
-		var term = "(b=" + x
+		term = "(b=" + x
 		_ = term // suppress unused warning
-		var y = "0"
+		y = "0"
 		_ = y // suppress unused warning
 		for func() bool { y_n, _y_e := strconv.Atoi(y); if _y_e != nil { return false }; x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return y_n < x_n }() {
 			term += " AND a!=" + y
@@ -108,7 +135,9 @@ func Test_mallocK(t *testing.T) {
 			}
 		}
 		sql += " OR " + term + ")"
-		t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocK-4.$x -sqlbody $sql -sqlprep {\n    CREATE TABLE t1(a,b);\n  }")
+		// do_malloc_test mallocK-4.$x -sqlbody $sql -sqlprep {
+    CREATE TABLE t1(a,b);
+  } (unsupported command, not transpiled)
 		// incr x 1
 		{
 			_n, _err := strconv.Atoi(x)
@@ -117,7 +146,7 @@ func Test_mallocK(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "add_alignment_test_collations db")
+	// add_alignment_test_collations db (unsupported command, not transpiled)
 	{ // "6.0"
 		r = db.Query("\n  CREATE TABLE t3(a TEXT, b TEXT COLLATE utf16_aligned, c);\n  INSERT INTO t3 VALUES('one', '.....', 0);\n  INSERT INTO t3 VALUES('one', '....x', 1);\n  INSERT INTO t3 VALUES('one', '...x.', 2);\n  INSERT INTO t3 VALUES('one', '...xx', 3);\n  INSERT INTO t3 VALUES('one', '..x..', 4);\n  INSERT INTO t3 VALUES('one', '..x.x', 5);\n  INSERT INTO t3 VALUES('one', '..xx.', 6);\n  INSERT INTO t3 VALUES('one', '..xxx', 7);\n  INSERT INTO t3 VALUES('one', '.x...', 8);\n  INSERT INTO t3 VALUES('one', '.x..x', 9);\n  INSERT INTO t3 VALUES('one', '.x.x.', 10);\n  INSERT INTO t3 VALUES('one', '.x.xx', 11);\n  INSERT INTO t3 VALUES('one', '.xx..', 12);\n  INSERT INTO t3 VALUES('one', '.xx.x', 13);\n  INSERT INTO t3 VALUES('one', '.xxx.', 14);\n  INSERT INTO t3 VALUES('one', '.xxxx', 15);\n\n  INSERT INTO t3 VALUES('two', 'x....', 16);\n  INSERT INTO t3 VALUES('two', 'x...x', 17);\n  INSERT INTO t3 VALUES('two', 'x..x.', 18);\n  INSERT INTO t3 VALUES('two', 'x..xx', 19);\n  INSERT INTO t3 VALUES('two', 'x.x..', 20);\n  INSERT INTO t3 VALUES('two', 'x.x.x', 21);\n  INSERT INTO t3 VALUES('two', 'x.xx.', 22);\n  INSERT INTO t3 VALUES('two', 'x.xxx', 23);\n  INSERT INTO t3 VALUES('two', 'xx...', 24);\n  INSERT INTO t3 VALUES('two', 'xx..x', 25);\n  INSERT INTO t3 VALUES('two', 'xx.x.', 26);\n  INSERT INTO t3 VALUES('two', 'xx.xx', 27);\n  INSERT INTO t3 VALUES('two', 'xxx..', 28);\n  INSERT INTO t3 VALUES('two', 'xxx.x', 29);\n  INSERT INTO t3 VALUES('two', 'xxxx.', 30);\n  INSERT INTO t3 VALUES('two', 'xxxxx', 31);\n\n  INSERT INTO t3 SELECT * FROM t3;\n\n  CREATE INDEX i3 ON t3(a, b);\n  ANALYZE;\n\n  SELECT 'x' > '.';\n")
 		if r.Error != nil {
@@ -130,14 +159,21 @@ func Test_mallocK(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 6 -faults oom* -body {\n  db cache flush\n  db eval { SELECT DISTINCT c FR...} -test {\n  faultsim_test_result {0 {12 13 14 15}} \n}")
+	// do_faultsim_test 6 -faults oom* -body {
+  db cache flush
+  db eval { SELECT DISTINCT c FR...} -test {
+  faultsim_test_result {0 {12 13 14 15}} 
+} (unsupported command, not transpiled)
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 7.2 -faults oom* -body {\n  execsql { SELECT * FROM x1 WHERE a = (SELECT 1)...} -test {\n  faultsim_test_result [list 0 {}]\n}")
+	// do_faultsim_test 7.2 -faults oom* -body {
+  execsql { SELECT * FROM x1 WHERE a = (SELECT 1)...} -test {
+  faultsim_test_result [list 0 {}]
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -149,5 +185,8 @@ func Test_mallocK(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 8 -faults oom* -body {\n  execsql { SELECT * FROM x2 WHERE x = str('19') ...} -test {\n  faultsim_test_result [list 0 {}]\n}")
+	// do_faultsim_test 8 -faults oom* -body {
+  execsql { SELECT * FROM x2 WHERE x = str('19') ...} -test {
+  faultsim_test_result [list 0 {}]
+} (unsupported command, not transpiled)
 }

@@ -40,6 +40,15 @@ func Test_tkt1873(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("test2.db")
 	{ // do_test "tkt1873-1.1"
@@ -49,7 +58,6 @@ func Test_tkt1873(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt1873-1.2"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -68,7 +76,6 @@ func Test_tkt1873(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "tkt1873-1.3"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block

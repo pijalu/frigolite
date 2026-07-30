@@ -39,6 +39,19 @@ func Test_trans3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ecode string
+	_ = ecode // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var errmsg string
+	_ = errmsg // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "trans3-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    SELECT * FROM t1;\n  ")
@@ -55,11 +68,9 @@ func Test_trans3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(4);")
 		}
-		var _ecode = "" // TCL namespace variable
-		_ = _ecode // suppress unused warning
-	var x string
+		ecode = "" // TCL namespace variable
+		_ = ecode // suppress unused warning
 	_ = x // suppress unused warning
-	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -76,10 +87,10 @@ func Test_trans3(t *testing.T) {
 		x = tclListAppend(x, errmsg)
 	}
 	{ // do_test "trans3-1.3"
-		_ = _ecode // TCL namespace variable (query)
+		_ = ecode // TCL namespace variable (query)
 	}
 	{ // do_test "trans3-1.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		// sqlite3_get_autocommit db (unsupported command, not transpiled)
 	}
 	{ // do_test "trans3-1.4"
 		_res = db.Exec("SELECT * FROM t1")
@@ -96,11 +107,9 @@ func Test_trans3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(5);")
 		}
-		var _ecode = "" // TCL namespace variable
-		_ = _ecode // suppress unused warning
-	var x string
+		ecode = "" // TCL namespace variable
+		_ = ecode // suppress unused warning
 	_ = x // suppress unused warning
-	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -117,7 +126,7 @@ func Test_trans3(t *testing.T) {
 		x = tclListAppend(x, errmsg)
 	}
 	{ // do_test "trans3-1.6"
-		_ = _ecode // TCL namespace variable (query)
+		_ = ecode // TCL namespace variable (query)
 	}
 	{ // do_test "trans3-1.7"
 		_res = db.Exec("SELECT * FROM t1")

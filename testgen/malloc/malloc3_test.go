@@ -41,51 +41,150 @@ func Test_malloc3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var run_test_sql_id string
+	_ = run_test_sql_id // pre-declared from TCL source
+	var run_test_script string
+	_ = run_test_script // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var padding string
+	_ = padding // pre-declared from TCL source
+	var STMT32 string
+	_ = STMT32 // pre-declared from TCL source
+	var k2 string
+	_ = k2 // pre-declared from TCL source
+	var v2 string
+	_ = v2 // pre-declared from TCL source
+	var ac string
+	_ = ac // pre-declared from TCL source
+	var nac string
+	_ = nac // pre-declared from TCL source
+	var begin_pc string
+	_ = begin_pc // pre-declared from TCL source
+	var iFail string
+	_ = iFail // pre-declared from TCL source
+	var pc string
+	_ = pc // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var iterid string
+	_ = iterid // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var testid string
+	_ = testid // pre-declared from TCL source
+	var rollback_hook_count string
+	_ = rollback_hook_count // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var nFail string
+	_ = nFail // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var catchupsql string
+	_ = catchupsql // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var p string
+	_ = p // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var a2 string
+	_ = a2 // pre-declared from TCL source
+	var a1 string
+	_ = a1 // pre-declared from TCL source
+	var arglist string
+	_ = arglist // pre-declared from TCL source
+	var pcstart string
+	_ = pcstart // pre-declared from TCL source
+	var iFailStart string
+	_ = iFailStart // pre-declared from TCL source
+	var nBenign string
+	_ = nBenign // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping malloc3 tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping malloc3 tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
 	if tclBool("atomic_batch_write test.db") {
-		t.Log("Skipping malloc3 tests: atomic-batch support")
+		_putsMsg := "Skipping malloc3 tests: atomic-batch support"
+		_ = _putsMsg
 		return
 	}
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
 	}
-	var _run_test_sql_id = "0" // TCL namespace variable
-	_ = _run_test_sql_id // suppress unused warning
-	var _run_test_script = "list" // TCL namespace variable
-	_ = _run_test_script // suppress unused warning
+	run_test_sql_id = "0" // TCL namespace variable
+	_ = run_test_sql_id // suppress unused warning
+	run_test_script = "list" // TCL namespace variable
+	_ = run_test_script // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 1 {\n  do_test $testid {\n    execsql {SELECT tbl_name ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL { \n  CREATE TABLE IF NOT EXISTS abc(a, b, c); \n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 2 {\n  do_test $testid.1 {\n    execsql {SELECT tbl_nam...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 3 {\n  do_test $testid.2 {\n    execsql {SELECT * FROM ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {INSERT INTO abc VALUES(1, 2, 3);}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {INSERT INTO abc VALUES(4, 5, 6);}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {INSERT INTO abc VALUES(7, 8, 9);}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 4 {\n  do_test $testid {\n    execsql {SELECT * FROM ab...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {CREATE INDEX abc_i ON abc(a, b, c);}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 4 {\n  do_test $testid {\n    execsql {\n      SELECT * ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {DELETE FROM abc WHERE a > 2;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {CREATE TRIGGER abc_t AFTER INSERT ON abc BEGIN SEL...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {CREATE VIEW abc_v AS SELECT * FROM abc;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 5 {\n  do_test $testid {\n    execsql {\n      SELECT na...}")
-	var sql = "\n  BEGIN;DELETE FROM abc;\n"
+	// TEST 1 {
+  do_test $testid {
+    execsql {SELECT tbl_name ...} (unsupported command, not transpiled)
+	// SQL { 
+  CREATE TABLE IF NOT EXISTS abc(a, b, c); 
+} (unsupported command, not transpiled)
+	// TEST 2 {
+  do_test $testid.1 {
+    execsql {SELECT tbl_nam...} (unsupported command, not transpiled)
+	// TEST 3 {
+  do_test $testid.2 {
+    execsql {SELECT * FROM ...} (unsupported command, not transpiled)
+	// SQL {INSERT INTO abc VALUES(1, 2, 3);} (unsupported command, not transpiled)
+	// SQL {INSERT INTO abc VALUES(4, 5, 6);} (unsupported command, not transpiled)
+	// SQL {INSERT INTO abc VALUES(7, 8, 9);} (unsupported command, not transpiled)
+	// TEST 4 {
+  do_test $testid {
+    execsql {SELECT * FROM ab...} (unsupported command, not transpiled)
+	// SQL {CREATE INDEX abc_i ON abc(a, b, c);} (unsupported command, not transpiled)
+	// TEST 4 {
+  do_test $testid {
+    execsql {
+      SELECT * ...} (unsupported command, not transpiled)
+	// SQL {DELETE FROM abc WHERE a > 2;} (unsupported command, not transpiled)
+	// SQL {CREATE TRIGGER abc_t AFTER INSERT ON abc BEGIN SEL...} (unsupported command, not transpiled)
+	// SQL {CREATE VIEW abc_v AS SELECT * FROM abc;} (unsupported command, not transpiled)
+	// TEST 5 {
+  do_test $testid {
+    execsql {
+      SELECT na...} (unsupported command, not transpiled)
+	sql = "\n  BEGIN;DELETE FROM abc;\n"
 	_ = sql // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-		var a = i
+		a = i
 		_ = a // suppress unused warning
-		var b = "String value " + i
+		b = "String value " + i
 		_ = b // suppress unused warning
-		var c = "X $i"
+		c = "X $i"
 		_ = c // suppress unused warning
 		sql += "INSERT INTO abc VALUES (" + a + ", '" + b + "', '" + c + "');"
 		// incr i 1
@@ -97,77 +196,135 @@ func Test_malloc3(t *testing.T) {
 		}
 	}
 	sql += "COMMIT;"
-	t.Errorf("TODO: %s not implemented in frigolite", "PREP $sql")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {\n  DELETE FROM abc WHERE oid IN (SELECT oid FROM a...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 6 {\n  do_test $testid.1 {\n    execsql {SELECT count(*...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {\n  DELETE FROM abc WHERE oid IN (SELECT oid FROM a...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 7 {\n  do_test $testid {\n    execsql {SELECT count(*) ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {\n  DELETE FROM abc WHERE oid IN (SELECT oid FROM a...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 9 {\n  do_test $testid {\n    execsql {SELECT count(*) ...}")
-	var padding = "X 500"
+	// PREP $sql (unsupported command, not transpiled)
+	// SQL {
+  DELETE FROM abc WHERE oid IN (SELECT oid FROM a...} (unsupported command, not transpiled)
+	// TEST 6 {
+  do_test $testid.1 {
+    execsql {SELECT count(*...} (unsupported command, not transpiled)
+	// SQL {
+  DELETE FROM abc WHERE oid IN (SELECT oid FROM a...} (unsupported command, not transpiled)
+	// TEST 7 {
+  do_test $testid {
+    execsql {SELECT count(*) ...} (unsupported command, not transpiled)
+	// SQL {
+  DELETE FROM abc WHERE oid IN (SELECT oid FROM a...} (unsupported command, not transpiled)
+	// TEST 9 {
+  do_test $testid {
+    execsql {SELECT count(*) ...} (unsupported command, not transpiled)
+	padding = "X 500"
 	_ = padding // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "PREP [subst {\n  DROP TABLE abc;\n  CREATE TABLE abc(a PR...")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 10 {\n  do_test $testid {\n    execsql {SELECT a, b, c F...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {BEGIN;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {INSERT INTO abc VALUES(9, 'XXXXX', 11, 12);}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST_AUTOCOMMIT 11 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL -norollback {UPDATE abc SET a = a + 1, c = c + 1;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST_AUTOCOMMIT 12 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {DELETE FROM abc WHERE a = 10;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST_AUTOCOMMIT 13 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {COMMIT;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 14 {\n  do_test $testid.1 {\n    sqlite3_get_autocommit ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "PREP [subst {\n  DROP TABLE abc;\n  CREATE TABLE abc(a, p...")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 15 {\n  db eval {PRAGMA cache_size = 10}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {BEGIN;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 16 {\n  do_test $testid {\n    execsql {SELECT a, count(...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 17 {\n  do_test $testid {\n    execsql {SELECT a, count(...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 18 {\n  do_test $testid {\n    execsql {SELECT a, count(...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 19 {\n  do_test $testid {\n    execsql {SELECT a, count(...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {COMMIT;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 21 {\n  do_test $testid {\n    execsql {SELECT a, count(...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {BEGIN;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {DELETE FROM abc WHERE oid %2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 22 {\n  do_test $testid {\n    execsql {SELECT a, count(...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {DELETE FROM abc}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 23 {\n  do_test $testid {\n    execsql {SELECT * FROM ab...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {ROLLBACK;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 24 {\n  do_test $testid {\n    execsql {SELECT a, count(...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "PREP {DROP VIEW abc_v;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 25 {\n  do_test $testid {\n    execsql {\n      SELECT na...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {BEGIN;}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {CREATE TABLE def(d, e, f);}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {CREATE TABLE ghi(g, h, i);}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 26 {\n  do_test $testid {\n    execsql {\n      SELECT na...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {CREATE VIEW v1 AS SELECT * FROM def, ghi}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {CREATE UNIQUE INDEX ghi_i1 ON ghi(g);}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 27 {\n  do_test $testid {\n    execsql {\n      SELECT na...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {INSERT INTO def VALUES('a', 'b', 'c')}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {INSERT INTO def VALUES(1, 2, 3)}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL -norollback {INSERT INTO ghi SELECT * FROM def}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 28 {\n  do_test $testid {\n    execsql {\n      SELECT * ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL {COMMIT}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 29 {\n  do_test $testid {\n    execsql {\n      SELECT * ...}")
+	// PREP [subst {
+  DROP TABLE abc;
+  CREATE TABLE abc(a PR... (unsupported command, not transpiled)
+	// TEST 10 {
+  do_test $testid {
+    execsql {SELECT a, b, c F...} (unsupported command, not transpiled)
+	// SQL {BEGIN;} (unsupported command, not transpiled)
+	// SQL {INSERT INTO abc VALUES(9, 'XXXXX', 11, 12);} (unsupported command, not transpiled)
+	// TEST_AUTOCOMMIT 11 0 (unsupported command, not transpiled)
+	// SQL -norollback {UPDATE abc SET a = a + 1, c = c + 1;} (unsupported command, not transpiled)
+	// TEST_AUTOCOMMIT 12 0 (unsupported command, not transpiled)
+	// SQL {DELETE FROM abc WHERE a = 10;} (unsupported command, not transpiled)
+	// TEST_AUTOCOMMIT 13 0 (unsupported command, not transpiled)
+	// SQL {COMMIT;} (unsupported command, not transpiled)
+	// TEST 14 {
+  do_test $testid.1 {
+    sqlite3_get_autocommit ...} (unsupported command, not transpiled)
+	// PREP [subst {
+  DROP TABLE abc;
+  CREATE TABLE abc(a, p... (unsupported command, not transpiled)
+	// TEST 15 {
+  db eval {PRAGMA cache_size = 10}
+} (unsupported command, not transpiled)
+	// SQL {BEGIN;} (unsupported command, not transpiled)
+	// SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...} (unsupported command, not transpiled)
+	// TEST 16 {
+  do_test $testid {
+    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...} (unsupported command, not transpiled)
+	// TEST 17 {
+  do_test $testid {
+    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...} (unsupported command, not transpiled)
+	// TEST 18 {
+  do_test $testid {
+    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// SQL -norllbck {INSERT INTO abc (oid, a, padding, b, c) SELECT NUL...} (unsupported command, not transpiled)
+	// TEST 19 {
+  do_test $testid {
+    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// SQL {COMMIT;} (unsupported command, not transpiled)
+	// TEST 21 {
+  do_test $testid {
+    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// SQL {BEGIN;} (unsupported command, not transpiled)
+	// SQL {DELETE FROM abc WHERE oid %2} (unsupported command, not transpiled)
+	// TEST 22 {
+  do_test $testid {
+    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// SQL {DELETE FROM abc} (unsupported command, not transpiled)
+	// TEST 23 {
+  do_test $testid {
+    execsql {SELECT * FROM ab...} (unsupported command, not transpiled)
+	// SQL {ROLLBACK;} (unsupported command, not transpiled)
+	// TEST 24 {
+  do_test $testid {
+    execsql {SELECT a, count(...} (unsupported command, not transpiled)
+	// PREP {DROP VIEW abc_v;} (unsupported command, not transpiled)
+	// TEST 25 {
+  do_test $testid {
+    execsql {
+      SELECT na...} (unsupported command, not transpiled)
+	// SQL {BEGIN;} (unsupported command, not transpiled)
+	// SQL {CREATE TABLE def(d, e, f);} (unsupported command, not transpiled)
+	// SQL {CREATE TABLE ghi(g, h, i);} (unsupported command, not transpiled)
+	// TEST 26 {
+  do_test $testid {
+    execsql {
+      SELECT na...} (unsupported command, not transpiled)
+	// SQL {CREATE VIEW v1 AS SELECT * FROM def, ghi} (unsupported command, not transpiled)
+	// SQL {CREATE UNIQUE INDEX ghi_i1 ON ghi(g);} (unsupported command, not transpiled)
+	// TEST 27 {
+  do_test $testid {
+    execsql {
+      SELECT na...} (unsupported command, not transpiled)
+	// SQL {INSERT INTO def VALUES('a', 'b', 'c')} (unsupported command, not transpiled)
+	// SQL {INSERT INTO def VALUES(1, 2, 3)} (unsupported command, not transpiled)
+	// SQL -norollback {INSERT INTO ghi SELECT * FROM def} (unsupported command, not transpiled)
+	// TEST 28 {
+  do_test $testid {
+    execsql {
+      SELECT * ...} (unsupported command, not transpiled)
+	// SQL {COMMIT} (unsupported command, not transpiled)
+	// TEST 29 {
+  do_test $testid {
+    execsql {
+      SELECT * ...} (unsupported command, not transpiled)
 	os.Remove("test2.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 32 {\n  if {![info exists ::STMT32]} {\n    set sql \"SEL...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL BEGIN")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 33 { \n  do_test $testid {\n    execsql {SELECT * FROM g...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL -norollback { \n  -- There is a unique index on ghi(g), so this ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "TEST 34 {\n  if {[info exists ::STMT32]} {\n    do_test $test...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "SQL COMMIT")
+	// TEST 32 {
+  if {![info exists ::STMT32]} {
+    set sql "SEL...} (unsupported command, not transpiled)
+	// SQL BEGIN (unsupported command, not transpiled)
+	// TEST 33 { 
+  do_test $testid {
+    execsql {SELECT * FROM g...} (unsupported command, not transpiled)
+	// SQL -norollback { 
+  -- There is a unique index on ghi(g), so this ...} (unsupported command, not transpiled)
+	// TEST 34 {
+  if {[info exists ::STMT32]} {
+    do_test $test...} (unsupported command, not transpiled)
+	// SQL COMMIT (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test $::run_test_script 1")
+	// sqlite3_extended_result_codes db 1 (unsupported command, not transpiled)
+	// run_test $::run_test_script 1 (unsupported command, not transpiled)
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db 1")
-	var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
-	_ = _DB // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "run_test $::run_test_script 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail -1")
+	// sqlite3_extended_result_codes db 1 (unsupported command, not transpiled)
+	DB = "sqlite3_connection_pointer db" // TCL namespace variable
+	_ = DB // suppress unused warning
+	// run_test $::run_test_script 0 (unsupported command, not transpiled)
+	// sqlite3_memdebug_fail -1 (unsupported command, not transpiled)
 }

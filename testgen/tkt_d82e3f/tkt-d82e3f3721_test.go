@@ -39,6 +39,11 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-d82e3-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(null,'abc');\n    INSERT INTO t1 VALUES(null,'def');\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(null,'ghi');\n    SELECT * FROM t1;\n  ")

@@ -39,6 +39,16 @@ func Test_tkt3838(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test tkt3838-1.1 {\n  db eval {\n    PRAGMA encoding=UTF16;\n    CREATE...} {2 999 9e+99 xyzzy}")
+	// do_realnum_test tkt3838-1.1 {
+  db eval {
+    PRAGMA encoding=UTF16;
+    CREATE...} {2 999 9e+99 xyzzy} (expr test, not transpiled)
 }

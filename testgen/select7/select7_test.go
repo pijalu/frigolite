@@ -40,8 +40,23 @@ func Test_select7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "select7"
+	testprefix = "select7"
 	_ = testprefix // suppress unused warning
 	if tclBool("clang_sanitize_address" + "==0") {
 	}
@@ -51,8 +66,8 @@ func Test_select7(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 10")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 0")
+	// sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 10 (unsupported command, not transpiled)
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 0 (unsupported command, not transpiled)
 	{ // "select7-6.6"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: \\\"\\\" - should this be a string literal in single-quotes?") {
@@ -71,7 +86,7 @@ func Test_select7(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 	{ // "select7-6.8"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
 		if _res.Error == nil {

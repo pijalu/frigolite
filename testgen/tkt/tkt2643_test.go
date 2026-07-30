@@ -39,14 +39,21 @@ func Test_tkt2643(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2643-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ANALYZE;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ANALYZE;\n  ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE INDEX i1 ON t1(c);\n    SELECT count(*) FROM t1 WHERE c IS NOT NULL\n  ")
 		if r.Error != nil {

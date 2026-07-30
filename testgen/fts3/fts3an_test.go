@@ -40,8 +40,33 @@ func Test_fts3an(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var text string
+	_ = text // pre-declared from TCL source
+	var bigtext string
+	_ = bigtext // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var ntext string
+	_ = ntext // pre-declared from TCL source
+	var o string
+	_ = o // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var text = "\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n"
+	text = "\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n"
 	_ = text // suppress unused warning
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n\n  INSERT INTO t1(rowid, c) VALUES(1, $text);\n  INSERT INTO t1(rowid, c) VALUES(2, 'Another lovely row');\n")
 	if _res.Error != nil {
@@ -125,8 +150,8 @@ func Test_fts3an(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t1 WHERE t1 MATCH '\\\"a* l* row\\\"'")
 		}
 	}
-	'' := tclRegsub("-all", "[Ll]orem", text)
-	_ = '' // suppress unused warning
+	ntext = tclRegsubAll("[Ll]orem", text, "''")
+	_ = ntext // suppress unused warning
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts3(c);\n\n  INSERT INTO t2(rowid, c) VALUES(1, $text);\n  INSERT INTO t2(rowid, c) VALUES(2, 'Another lovely row');\n  UPDATE t2 SET c = $ntext WHERE rowid = 1;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts3(c);\n\n  INSERT INTO t2(rowid, c) VALUES(1, $text);\n  INSERT INTO t2(rowid, c) VALUES(2, 'Another lovely row');\n  UPDATE t2 SET c = $ntext WHERE rowid = 1;\n")
@@ -161,21 +186,21 @@ func Test_fts3an(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid FROM t2 WHERE t2 MATCH 'lov*'")
 		}
 	}
-	var bigtext = text
+	bigtext = text
 	_ = bigtext // suppress unused warning
 	for _, c := range tclSplitList("a b c d e") {
 	_ = c // suppress unused warning
-		&c := tclRegsub("-all", "[A-Za-z]+", bigtext)
-		_ = &c // suppress unused warning
+		_t = tclRegsubAll("[A-Za-z]+", bigtext, "&" + c)
+		_ = _t // suppress unused warning
 		bigtext += _t
 	}
-	var ret = "6 1"
+	ret = "6 1"
 	_ = ret // suppress unused warning
 	_res = db.Exec("\n  BEGIN;\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n\n  INSERT INTO t3(rowid, c) VALUES(1, $text);\n  INSERT INTO t3(rowid, c) VALUES(2, 'Another lovely row');\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE VIRTUAL TABLE t3 USING fts3(c);\n\n  INSERT INTO t3(rowid, c) VALUES(1, $text);\n  INSERT INTO t3(rowid, c) VALUES(2, 'Another lovely row');\n")
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 68 }() {
 		_res = db.Exec("INSERT INTO t3(rowid, c) VALUES(3+$i, $bigtext)")
@@ -196,14 +221,15 @@ func Test_fts3an(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT;")
 	}
 	{ // do_test "fts3an-3.1"
-		var _t = ""
+		_t = ""
 		_ = _t // suppress unused warning
 		_res = db.Exec("SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT offsets(t3) as o FROM t3 WHERE t3 MATCH 'l*'")
 		}
 	}
-	t.Log("This next test can take a little while (~ 30 seconds)...")
+	_putsMsg := "This next test can take a little while (~ 30 seconds)..."
+	_ = _putsMsg
 	{ // do_test "fts3an-4.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE ft USING fts3(x) ")
 		if _res.Error != nil {

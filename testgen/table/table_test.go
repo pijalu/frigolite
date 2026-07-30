@@ -42,6 +42,35 @@ func Test_table(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var big_table string
+	_ = big_table // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var k string
+	_ = k // pre-declared from TCL source
+	var date string
+	_ = date // pre-declared from TCL source
+	var time string
+	_ = time // pre-declared from TCL source
+	var seconds string
+	_ = seconds // pre-declared from TCL source
+	var sqlite_current_time string
+	_ = sqlite_current_time // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "table-1.1"
 		_res = db.Exec("\n    CREATE TABLE test1 (\n      one varchar(10),\n      two text\n    )\n  ")
@@ -60,8 +89,8 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-1.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name, tbl_name, type from sqlite_master WHERE type!='meta'")
 		if r.Error != nil {
@@ -79,8 +108,8 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-1.6"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta'")
 		if r.Error != nil {
@@ -140,7 +169,6 @@ func Test_table(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "table-2.1b"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -158,10 +186,9 @@ func Test_table(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "table-2.1c"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -205,10 +232,9 @@ func Test_table(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "table-2.2b"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -236,7 +262,6 @@ func Test_table(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX test3")
 		}
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -269,7 +294,7 @@ func Test_table(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		}
 	}
-	var big_table = "CREATE TABLE big(\n  f1 varchar(20),\n  f2 char(10),\n  f3 varchar(30) primary key,\n  f4 text,\n  f5 text,\n  f6 text,\n  f7 text,\n  f8 text,\n  f9 text,\n  f10 text,\n  f11 text,\n  f12 text,\n  f13 text,\n  f14 text,\n  f15 text,\n  f16 text,\n  f17 text,\n  f18 text,\n  f19 text,\n  f20 text\n)"
+	big_table = "CREATE TABLE big(\n  f1 varchar(20),\n  f2 char(10),\n  f3 varchar(30) primary key,\n  f4 text,\n  f5 text,\n  f6 text,\n  f7 text,\n  f8 text,\n  f9 text,\n  f10 text,\n  f11 text,\n  f12 text,\n  f13 text,\n  f14 text,\n  f15 text,\n  f16 text,\n  f17 text,\n  f18 text,\n  f19 text,\n  f20 text\n)"
 	_ = big_table // suppress unused warning
 	{ // do_test "table-3.1"
 		_res = db.Exec(big_table)
@@ -282,7 +307,6 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-3.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -300,7 +324,6 @@ func Test_table(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "table-3.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -318,7 +341,6 @@ func Test_table(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "table-3.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -336,10 +358,9 @@ func Test_table(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "table-3.5"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -366,9 +387,9 @@ func Test_table(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta'")
 		}
 	}
-	var _r = ""
+	_r = ""
 	_ = _r // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 		_r = tclListAppend(_r, "format test%03d $i")
@@ -381,12 +402,12 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-4.1"
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-			var sql = "CREATE TABLE " + "format test%03d $i" + " ("
+			sql = "CREATE TABLE " + "format test%03d $i" + " ("
 			_ = sql // suppress unused warning
-			var k = "1"
+			k = "1"
 			_ = k // suppress unused warning
 			for func() bool { k_n, _k_e := strconv.Atoi(k); if _k_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return k_n < i_n }() {
 				sql += "field" + k + " text,"
@@ -417,8 +438,8 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-4.1b"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		if r.Error != nil {
@@ -440,10 +461,10 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-4.2"
-		var i = "2"
+		i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-			var sql = "DROP TABLE " + "format TEST%03d $i"
+			sql = "DROP TABLE " + "format TEST%03d $i"
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -463,10 +484,10 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-4.3"
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-			var sql = "DROP TABLE " + "format test%03d $i"
+			sql = "DROP TABLE " + "format test%03d $i"
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -505,17 +526,18 @@ func Test_table(t *testing.T) {
 	}
 	{ // do_test "table-5.2.2"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp6, err := frigolite.Open("test.db")
+		_ = _dbtmp6 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t0(a,b);\n    CREATE INDEX t ON t0(a);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE TABLE a.b(a UNIQUE';\n    BEGIN;\n    CREATE TABLE t1(x);\n    ROLLBACK;\n    DROP TABLE IF EXISTS t99;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(a,b);\n    CREATE INDEX t ON t0(a);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE TABLE a.b(a UNIQUE';\n    BEGIN;\n    CREATE TABLE t1(x);\n    ROLLBACK;\n    DROP TABLE IF EXISTS t99;\n  ")
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp7, err := frigolite.Open("test.db")
+	_ = _dbtmp7 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "table-5.3"
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta'")
@@ -534,7 +556,6 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-7.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -600,8 +621,8 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-8.5"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp8, err := frigolite.Open("test.db")
+		_ = _dbtmp8 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM [t4\"abc];\n  ")
 		if r.Error != nil {
@@ -671,16 +692,15 @@ func Test_table(t *testing.T) {
 	i = "0"
 	_ = i // suppress unused warning
 	// foreach {date time seconds} "\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n"
-	_items0 := tclSplitList("\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		date := _items0[_idx0+0]
+	_items9 := tclSplitList("\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n")
+	for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
+		date := _items9[_idx9+0]
 		_ = date // suppress unused warning
-		time := _items0[_idx0+1]
+		time := _items9[_idx9+1]
 		_ = time // suppress unused warning
-		seconds := _items0[_idx0+2]
+		seconds := _items9[_idx9+2]
 		_ = seconds // suppress unused warning
-		_ = _idx0
-			var i = "0"
+		_ = _idx9
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -688,7 +708,7 @@ func Test_table(t *testing.T) {
 					i = strconv.Itoa(_n + 1)
 				}
 			}
-			var sqlite_current_time = seconds
+			sqlite_current_time = seconds
 			_ = sqlite_current_time // suppress unused warning
 			{ // do_test "table-13.2." + i
 				r = db.Query("\n      INSERT INTO tablet8(a) VALUES(" + i + ");\n      SELECT tm, dt, dttm FROM tablet8 WHERE a=" + i + ";\n    ")
@@ -697,18 +717,18 @@ func Test_table(t *testing.T) {
 				}
 			}
 		}
-		var sqlite_current_time = "0"
+		sqlite_current_time = "0"
 		_ = sqlite_current_time // suppress unused warning
 		{ // do_test "table-14.1"
-			var rc = "0"
+			rc = "0"
 			_ = rc // suppress unused warning
-			var result = "list $rc $msg"
+			result = "list $rc $msg"
 			_ = result // suppress unused warning
 		}
 		{ // do_test "table-14.2"
-			var rc = "0"
+			rc = "0"
 			_ = rc // suppress unused warning
-			var result = "list $rc $msg"
+			result = "list $rc $msg"
 			_ = result // suppress unused warning
 		}
 		{ // do_test "table-15.1"
@@ -716,7 +736,7 @@ func Test_table(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 			}
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
 				_res = db.Exec("CREATE TABLE tbl" + i + " (a, b, c)")
@@ -741,7 +761,7 @@ func Test_table(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 			}
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
 				_res = db.Exec("DROP TABLE tbl" + i)

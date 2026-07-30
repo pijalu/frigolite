@@ -40,8 +40,25 @@ func Test_indexexpr2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var abc string
+	_ = abc // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "indexexpr2"
+	testprefix = "indexexpr2"
 	_ = testprefix // suppress unused warning
 	{ // "1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'one');\n  INSERT INTO t1 VALUES(2, 'two');\n  INSERT INTO t1 VALUES(3, 'three');\n\n  CREATE INDEX i1 ON t1(b || 'x');\n")
@@ -232,42 +249,43 @@ func Test_indexexpr2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var cnt = "0"
+	cnt = "0"
 	_ = cnt // suppress unused warning
 	// proc definition (not transpiled)
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d,e,f);\n    CREATE INDEX t1abc ON t1(refcnt(a+b+c));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c,d,e,f);\n    CREATE INDEX t1abc ON t1(refcnt(a+b+c));\n  ")
 		}
-		_ = _cnt // TCL namespace variable (query)
+		_ = cnt // TCL namespace variable (query)
 	}
 	{ // do_test "4.110"
 		_res = db.Exec("INSERT INTO t1 VALUES(1,2,3,4,5,6);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(1,2,3,4,5,6);")
 		}
-		_ = _cnt // TCL namespace variable (query)
+		_ = cnt // TCL namespace variable (query)
 	}
 	{ // do_test "4.120"
-		var _cnt = "0" // TCL namespace variable
-		_ = _cnt // suppress unused warning
+		cnt = "0" // TCL namespace variable
+		_ = cnt // suppress unused warning
 		_res = db.Exec("UPDATE t1 SET b=b+1;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET b=b+1;")
 		}
-		_ = _cnt // TCL namespace variable (query)
+		_ = cnt // TCL namespace variable (query)
 	}
 	{ // do_test "4.130"
-		var _cnt = "0" // TCL namespace variable
-		_ = _cnt // suppress unused warning
+		cnt = "0" // TCL namespace variable
+		_ = cnt // suppress unused warning
 		_res = db.Exec("UPDATE t1 SET d=d+1;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET d=d+1;")
 		}
-		_ = _cnt // TCL namespace variable (query)
+		_ = cnt // TCL namespace variable (query)
 	}
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t5(a INTEGER, b INTEGER);\n  INSERT INTO t5 VALUES(2, 4), (3, 9);\n")
@@ -429,13 +447,13 @@ func Test_indexexpr2(t *testing.T) {
 		}
 	}
 	// foreach {tn expr} "\n  1 \" 0  ==  (34 BETWEEN c0 AND 33)\"\n  2 \" 1  !=  (34 BETWEEN c0 AND 33)\"\n  3 \"-1   <  (34 BETWEEN c0 AND 33)\"\n  4 \"-1  <=  (34 BETWEEN c0 AND 33)\"\n  5 \" 1   >  (34 BETWEEN c0 AND 33)\"\n  6 \" 1  >=  (34 BETWEEN c0 AND 33)\"\n  7 \" 1   -  (34 BETWEEN c0 AND 33)\"\n  8 \"-1   +  (34 BETWEEN c0 AND 33)\"\n  9 \" 1   |  (34 BETWEEN c0 AND 33)\"\n 10 \" 1  <<  (34 BETWEEN c0 AND 33)\"\n 11 \" 1  >>  (34 BETWEEN c0 AND 33)\"\n 12 \" 1  ||  (34 BETWEEN c0 AND 33)\"\n"
-	_items0 := tclSplitList("\n  1 \" 0  ==  (34 BETWEEN c0 AND 33)\"\n  2 \" 1  !=  (34 BETWEEN c0 AND 33)\"\n  3 \"-1   <  (34 BETWEEN c0 AND 33)\"\n  4 \"-1  <=  (34 BETWEEN c0 AND 33)\"\n  5 \" 1   >  (34 BETWEEN c0 AND 33)\"\n  6 \" 1  >=  (34 BETWEEN c0 AND 33)\"\n  7 \" 1   -  (34 BETWEEN c0 AND 33)\"\n  8 \"-1   +  (34 BETWEEN c0 AND 33)\"\n  9 \" 1   |  (34 BETWEEN c0 AND 33)\"\n 10 \" 1  <<  (34 BETWEEN c0 AND 33)\"\n 11 \" 1  >>  (34 BETWEEN c0 AND 33)\"\n 12 \" 1  ||  (34 BETWEEN c0 AND 33)\"\n")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1 \" 0  ==  (34 BETWEEN c0 AND 33)\"\n  2 \" 1  !=  (34 BETWEEN c0 AND 33)\"\n  3 \"-1   <  (34 BETWEEN c0 AND 33)\"\n  4 \"-1  <=  (34 BETWEEN c0 AND 33)\"\n  5 \" 1   >  (34 BETWEEN c0 AND 33)\"\n  6 \" 1  >=  (34 BETWEEN c0 AND 33)\"\n  7 \" 1   -  (34 BETWEEN c0 AND 33)\"\n  8 \"-1   +  (34 BETWEEN c0 AND 33)\"\n  9 \" 1   |  (34 BETWEEN c0 AND 33)\"\n 10 \" 1  <<  (34 BETWEEN c0 AND 33)\"\n 11 \" 1  >>  (34 BETWEEN c0 AND 33)\"\n 12 \" 1  ||  (34 BETWEEN c0 AND 33)\"\n")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		expr := _items0[_idx0+1]
+		expr := _items1[_idx1+1]
 		_ = expr // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // "8.3." + tn + ".1"
 				r = db.Query("SELECT * FROM t0 WHERE " + expr + " ORDER BY c0")
 				if r.Error != nil {
@@ -468,13 +486,13 @@ func Test_indexexpr2(t *testing.T) {
 			}
 		}
 		// foreach {tn expr} "\n  1 \" 0  ==  (a=0 AND y=1)\"\n  2 \" 1  !=  (a=0 AND y=1)\"\n  3 \"-1  <   (a=0 AND y=1)\"\n  4 \"-1  <=  (a=0 AND y=1)\"\n  5 \" 1   >  (a=0 AND y=1)\"\n  6 \" 1  >=  (a=0 AND y=1)\"\n  7 \" 1   -  (a=0 AND y=1)\"\n  8 \"-1   +  (a=0 AND y=1)\"\n  9 \" 1   |  (a=0 AND y=1)\"\n  10 \"1  <<  (a=0 AND y=1)\"\n  11 \"1  >>  (a=0 AND y=1)\"\n  12 \"1  ||  (a=0 AND y=1)\"\n\n  13 \" 0  ==  (10 BETWEEN y AND b)\"\n  14 \" 1  !=  (10 BETWEEN y AND b)\"\n  15 \"-1  <   (10 BETWEEN y AND b)\"\n  16 \"-1  <=  (10 BETWEEN y AND b)\"\n  17 \" 1   >  (10 BETWEEN y AND b)\"\n  18 \" 1  >=  (10 BETWEEN y AND b)\"\n  19 \" 1   -  (10 BETWEEN y AND b)\"\n  20 \"-1   +  (10 BETWEEN y AND b)\"\n  21 \" 1   |  (10 BETWEEN y AND b)\"\n  22 \" 1  <<  (10 BETWEEN y AND b)\"\n  23 \" 1  >>  (10 BETWEEN y AND b)\"\n  24 \" 1  ||  (10 BETWEEN y AND b)\"\n\n  25 \" 1  ||  (10 BETWEEN y AND b)\"\n"
-		_items1 := tclSplitList("\n  1 \" 0  ==  (a=0 AND y=1)\"\n  2 \" 1  !=  (a=0 AND y=1)\"\n  3 \"-1  <   (a=0 AND y=1)\"\n  4 \"-1  <=  (a=0 AND y=1)\"\n  5 \" 1   >  (a=0 AND y=1)\"\n  6 \" 1  >=  (a=0 AND y=1)\"\n  7 \" 1   -  (a=0 AND y=1)\"\n  8 \"-1   +  (a=0 AND y=1)\"\n  9 \" 1   |  (a=0 AND y=1)\"\n  10 \"1  <<  (a=0 AND y=1)\"\n  11 \"1  >>  (a=0 AND y=1)\"\n  12 \"1  ||  (a=0 AND y=1)\"\n\n  13 \" 0  ==  (10 BETWEEN y AND b)\"\n  14 \" 1  !=  (10 BETWEEN y AND b)\"\n  15 \"-1  <   (10 BETWEEN y AND b)\"\n  16 \"-1  <=  (10 BETWEEN y AND b)\"\n  17 \" 1   >  (10 BETWEEN y AND b)\"\n  18 \" 1  >=  (10 BETWEEN y AND b)\"\n  19 \" 1   -  (10 BETWEEN y AND b)\"\n  20 \"-1   +  (10 BETWEEN y AND b)\"\n  21 \" 1   |  (10 BETWEEN y AND b)\"\n  22 \" 1  <<  (10 BETWEEN y AND b)\"\n  23 \" 1  >>  (10 BETWEEN y AND b)\"\n  24 \" 1  ||  (10 BETWEEN y AND b)\"\n\n  25 \" 1  ||  (10 BETWEEN y AND b)\"\n")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			tn := _items1[_idx1+0]
+		_items2 := tclSplitList("\n  1 \" 0  ==  (a=0 AND y=1)\"\n  2 \" 1  !=  (a=0 AND y=1)\"\n  3 \"-1  <   (a=0 AND y=1)\"\n  4 \"-1  <=  (a=0 AND y=1)\"\n  5 \" 1   >  (a=0 AND y=1)\"\n  6 \" 1  >=  (a=0 AND y=1)\"\n  7 \" 1   -  (a=0 AND y=1)\"\n  8 \"-1   +  (a=0 AND y=1)\"\n  9 \" 1   |  (a=0 AND y=1)\"\n  10 \"1  <<  (a=0 AND y=1)\"\n  11 \"1  >>  (a=0 AND y=1)\"\n  12 \"1  ||  (a=0 AND y=1)\"\n\n  13 \" 0  ==  (10 BETWEEN y AND b)\"\n  14 \" 1  !=  (10 BETWEEN y AND b)\"\n  15 \"-1  <   (10 BETWEEN y AND b)\"\n  16 \"-1  <=  (10 BETWEEN y AND b)\"\n  17 \" 1   >  (10 BETWEEN y AND b)\"\n  18 \" 1  >=  (10 BETWEEN y AND b)\"\n  19 \" 1   -  (10 BETWEEN y AND b)\"\n  20 \"-1   +  (10 BETWEEN y AND b)\"\n  21 \" 1   |  (10 BETWEEN y AND b)\"\n  22 \" 1  <<  (10 BETWEEN y AND b)\"\n  23 \" 1  >>  (10 BETWEEN y AND b)\"\n  24 \" 1  ||  (10 BETWEEN y AND b)\"\n\n  25 \" 1  ||  (10 BETWEEN y AND b)\"\n")
+		for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			expr := _items1[_idx1+1]
+			expr := _items2[_idx2+1]
 			_ = expr // suppress unused warning
-			_ = _idx1
+			_ = _idx2
 				{ // "8.5." + tn + ".1"
 					r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 WHERE " + expr + "\n  ")
 					if r.Error != nil {

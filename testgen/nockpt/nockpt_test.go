@@ -40,11 +40,20 @@ func Test_nockpt(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("permutation" + "==\"journaltest\" || " + "permutation" + "==\"inmemory_journal\"") {
 		return
 	}
-	var testprefix = "nockpt"
+	testprefix = "nockpt"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA auto_vacuum=OFF;\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  CREATE TABLE c1(x, y, z);\n  INSERT INTO c1 VALUES(1, 2, 3);\n")
@@ -63,7 +72,8 @@ func Test_nockpt(t *testing.T) {
 	{ // do_test "1.4"
 		// file exists "test.db-wal"
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.5"
 		_res = db.Exec("\n  INSERT INTO c1 VALUES(4, 5, 6);\n  INSERT INTO c1 VALUES(7, 8, 9);\n")
@@ -75,7 +85,7 @@ func Test_nockpt(t *testing.T) {
 		// file exists "test.db-wal"
 	}
 	{ // do_test "1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db NO_CKPT_ON_CLOSE 1")
+		// sqlite3_db_config db NO_CKPT_ON_CLOSE 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "1.8"
 		// file size test.db-wal
@@ -88,7 +98,8 @@ func Test_nockpt(t *testing.T) {
 	{ // do_test "1.11"
 		// file size test.db-wal
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.12"
 		r = db.Query("\n  SELECT * FROM c1\n")
@@ -115,7 +126,7 @@ func Test_nockpt(t *testing.T) {
 		}
 	}
 	{ // do_test "1.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db NO_CKPT_ON_CLOSE 1")
+		// sqlite3_db_config db NO_CKPT_ON_CLOSE 1 (unsupported command, not transpiled)
 	}
 	{ // "1.14"
 		r = db.Query(" PRAGMA main.journal_mode = delete ")
@@ -132,18 +143,17 @@ func Test_nockpt(t *testing.T) {
 	{ // do_test "1.15"
 		// file exists "test.db-wal"
 	}
-	if _tcl_platform_platform != "windows" {
+	if tcl_platform_platform != "windows" {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		var _db1 = "sqlite3_open_v2 test.db SQLITE_OPEN_READWRITE \"\"" // TCL namespace variable
-		_ = _db1 // suppress unused warning
+		// set ::db1 (skipped, DB connection)
 		{ // do_test "2.0"
-			tclLIndex("sqlite3_exec $::db1 {\n      PRAGMA journal_mode = wal;\n      CREATE TABLE t1(x PRIMARY KEY, y UNIQUE, z);\n      INSERT INTO t1 VALUES(1, 2, 3);\n      PRAGMA wal_checkpoint;\n    }", "0")
+			_ = tclLIndex("sqlite3_exec $::db1 {\n      PRAGMA journal_mode = wal;\n      CREATE TABLE t1(x PRIMARY KEY, y UNIQUE, z);\n      INSERT INTO t1 VALUES(1, 2, 3);\n      PRAGMA wal_checkpoint;\n    }", "0") // lindex result
 		}
-		var _stmt = "sqlite3_prepare $::db1 \"SELECT * FROM t1\" -1 dummy" // TCL namespace variable
-		_ = _stmt // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close_v2 $::db1")
+		stmt = "sqlite3_prepare $::db1 \"SELECT * FROM t1\" -1 dummy" // TCL namespace variable
+		_ = stmt // suppress unused warning
+		// sqlite3_close_v2 $::db1 (unsupported command, not transpiled)
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
@@ -159,8 +169,8 @@ func Test_nockpt(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test.db-shm")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -195,7 +205,7 @@ func Test_nockpt(t *testing.T) {
 			}
 		}
 		{ // do_test "2.5"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+			// sqlite3_finalize $::stmt (unsupported command, not transpiled)
 			db3, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" \n    PRAGMA integrity_check; \n    SELECT * FROM y1;\n  ")

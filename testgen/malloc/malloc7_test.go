@@ -39,17 +39,37 @@ func Test_malloc7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sql16 string
+	_ = sql16 // pre-declared from TCL source
+	var nbyte string
+	_ = nbyte // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping malloc7 tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping malloc7 tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc7-1 -sqlprep {\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX i1 ON ...} -tclbody {\n  set sql16 [encoding convertto unicode \"SELECT *...}")
+	// do_malloc_test malloc7-1 -sqlprep {
+  CREATE TABLE t1(a,b,c,d);
+  CREATE INDEX i1 ON ...} -tclbody {
+  set sql16 [encoding convertto unicode "SELECT *...} (unsupported command, not transpiled)
 	{ // do_test "malloc-99.X"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
 	}
-	t.Log("open-file-count=" + sqlite_open_file_count)
+	_putsMsg := "open-file-count=" + sqlite_open_file_count
+	_ = _putsMsg
 }

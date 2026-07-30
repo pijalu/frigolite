@@ -39,9 +39,18 @@ func Test_select6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "select6" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "select6" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "select6-1.0"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 VALUES(3,2);\n    INSERT INTO t1 VALUES(4,3);\n    INSERT INTO t1 VALUES(5,3);\n    INSERT INTO t1 VALUES(6,3);\n    INSERT INTO t1 VALUES(7,3);\n    INSERT INTO t1 VALUES(8,4);\n    INSERT INTO t1 VALUES(9,4);\n    INSERT INTO t1 VALUES(10,4);\n    INSERT INTO t1 VALUES(11,4);\n    INSERT INTO t1 VALUES(12,4);\n    INSERT INTO t1 VALUES(13,4);\n    INSERT INTO t1 VALUES(14,4);\n    INSERT INTO t1 VALUES(15,4);\n    INSERT INTO t1 VALUES(16,5);\n    INSERT INTO t1 VALUES(17,5);\n    INSERT INTO t1 VALUES(18,5);\n    INSERT INTO t1 VALUES(19,5);\n    INSERT INTO t1 VALUES(20,5);\n    COMMIT;\n    SELECT DISTINCT y FROM t1 ORDER BY y;\n  ")
 		if r.Error != nil {
@@ -421,8 +430,9 @@ func Test_select6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(i,j,k);\n  CREATE TABLE j(l,m);\n  CREATE TABLE k(o);\n")
 		}
 	}
-	err = "list 1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
-	_ = err // suppress unused warning
+	var _err_tcl string
+	_err_tcl = "list 1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+	_ = _err_tcl // suppress unused warning
 	{ // "10.2"
 		r = db.Query("\n  SELECT * FROM (SELECT * FROM t), j;\n")
 		if r.Error != nil {

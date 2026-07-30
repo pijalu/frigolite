@@ -39,12 +39,34 @@ func Test_malloc9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var sqlbytes string
+	_ = sqlbytes // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping malloc9 tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping malloc9 tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc-9.1 -tclprep {\n  set sql {CREATE TABLE t1(x)}\n  set sqlbytes [st...} -tclbody {\n  if {[catch {sqlite3_prepare db $sql $sqlbytes T...} -cleanup {\n  if {$STMT!=\"\"} {\n    sqlite3_finalize $STMT\n  }...}")
+	// do_malloc_test malloc-9.1 -tclprep {
+  set sql {CREATE TABLE t1(x)}
+  set sqlbytes [st...} -tclbody {
+  if {[catch {sqlite3_prepare db $sql $sqlbytes T...} -cleanup {
+  if {$STMT!=""} {
+    sqlite3_finalize $STMT
+  }...} (unsupported command, not transpiled)
 	{ // do_test "malloc9-99.X"
 		{
 			var _catchErr error

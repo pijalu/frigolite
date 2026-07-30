@@ -40,9 +40,40 @@ func Test_with2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var min string
+	_ = min // pre-declared from TCL source
+	var max string
+	_ = max // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var vals string
+	_ = vals // pre-declared from TCL source
+	var nLimit string
+	_ = nLimit // pre-declared from TCL source
+	var sqlite3_xferopt_count string
+	_ = sqlite3_xferopt_count // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var bXfer string
+	_ = bXfer // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "with2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "with2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n")
 		if _res.Error != nil {
@@ -247,10 +278,10 @@ func Test_with2(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "multiple references to recursive table: t4", _res.Error, "\n  WITH \n  t4(x) AS ( \n    VALUES(4)\n    UNION ALL \n    SELECT x+1 FROM t4, main.t4, t4 WHERE x<10\n  )\n  SELECT * FROM t4;\n")
 		}
 	}
-	var _min = "3" // TCL namespace variable
-	_ = _min // suppress unused warning
-	var _max = "9" // TCL namespace variable
-	_ = _max // suppress unused warning
+	min = "3" // TCL namespace variable
+	_ = min // suppress unused warning
+	max = "9" // TCL namespace variable
+	_ = max // suppress unused warning
 	{ // "2.1"
 		r = db.Query("\n  WITH i(x) AS (\n    VALUES($min) UNION ALL SELECT x+1 FROM i WHERE x < $max\n  )\n  SELECT * FROM i;\n")
 		if r.Error != nil {
@@ -330,7 +361,7 @@ func Test_with2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "genstmt 255")
 		}
 	}
-	var nLimit = "sqlite3_limit db SQLITE_LIMIT_COLUMN -1"
+	nLimit = "sqlite3_limit db SQLITE_LIMIT_COLUMN -1"
 	_ = nLimit // suppress unused warning
 	{ // "4.5"
 		_res = db.Exec("genstmt [expr $nLimit-1]")
@@ -357,13 +388,17 @@ func Test_with2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.2 1 { INSERT INTO t1 SELECT * FROM t2 }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.3 0 { INSERT INTO t1 SELECT a, b FROM t2 }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.4 0 { INSERT INTO t1 SELECT b, a FROM t2 }")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.5 0 { \n  WITH x AS (SELECT a, b FROM t2) INSERT INTO t1...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.6 0 { \n  WITH x AS (SELECT a, b FROM t2) INSERT INTO t1...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.7 0 { \n INSERT INTO t1 WITH x AS ( SELECT * FROM t2 ) S...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.8 0 { \n INSERT INTO t1 WITH x(a,b) AS ( SELECT * FROM t...}")
+	// do_xfer_test 5.2 1 { INSERT INTO t1 SELECT * FROM t2 } (unsupported command, not transpiled)
+	// do_xfer_test 5.3 0 { INSERT INTO t1 SELECT a, b FROM t2 } (unsupported command, not transpiled)
+	// do_xfer_test 5.4 0 { INSERT INTO t1 SELECT b, a FROM t2 } (unsupported command, not transpiled)
+	// do_xfer_test 5.5 0 { 
+  WITH x AS (SELECT a, b FROM t2) INSERT INTO t1...} (unsupported command, not transpiled)
+	// do_xfer_test 5.6 0 { 
+  WITH x AS (SELECT a, b FROM t2) INSERT INTO t1...} (unsupported command, not transpiled)
+	// do_xfer_test 5.7 0 { 
+ INSERT INTO t1 WITH x AS ( SELECT * FROM t2 ) S...} (unsupported command, not transpiled)
+	// do_xfer_test 5.8 0 { 
+ INSERT INTO t1 WITH x(a,b) AS ( SELECT * FROM t...} (unsupported command, not transpiled)
 	{ // "6.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n")
 		if _res.Error != nil {

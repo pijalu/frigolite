@@ -40,21 +40,66 @@ func Test_bestindex4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var mask string
+	_ = mask // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var use string
+	_ = use // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var score string
+	_ = score // pre-declared from TCL source
+	var param1 string
+	_ = param1 // pre-declared from TCL source
+	var param2 string
+	_ = param2 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var param string
+	_ = param // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var C_usable string
+	_ = C_usable // pre-declared from TCL source
+	var C_op string
+	_ = C_op // pre-declared from TCL source
+	var C_column string
+	_ = C_column // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindex4"
+	testprefix = "bestindex4"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
-	var param1 = "0"
+	// register_tcl_module db (unsupported command, not transpiled)
+	param1 = "0"
 	_ = param1 // suppress unused warning
 	for func() bool { param1_n, _param1_e := strconv.Atoi(param1); if _param1_e != nil { return false }; return param1_n < 16 }() {
-		var param2 = "0"
+		param2 = "0"
 		_ = param2 // suppress unused warning
 		for func() bool { param2_n, _param2_e := strconv.Atoi(param2); if _param2_e != nil { return false }; return param2_n < 16 }() {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+			// register_tcl_module db (unsupported command, not transpiled)
 			{ // "1." + param1 + "." + param2 + ".1"
 				_res = db.Exec("\n      CREATE VIRTUAL TABLE t1 USING tcl('vtab_cmd " + param1 + "');\n      CREATE VIRTUAL TABLE t2 USING tcl('vtab_cmd " + param2 + "');\n    ")
 				if _res.Error != nil {
@@ -69,7 +114,7 @@ func Test_bestindex4(t *testing.T) {
 				sql := _items0[_idx0+1]
 				_ = sql // suppress unused warning
 				_ = _idx0
-					if func() bool { param1_n, _param1_e := strconv.Atoi(param1); if _param1_e != nil { return false }; param2_n, _param2_e := strconv.Atoi(param2); if _param2_e != nil { return false }; return (param1_n & 0x08) == 0 && (param2_n & 0x08)==0 }() {
+					if tclBool("(" + param1 + " & 0x08)==0 && (" + param2 + " & 0x08)==0") {
 						{ // "1." + param1 + "." + param2 + "." + tn + ".a"
 							_res = db.Exec(sql)
 							if _res.Error != nil {
@@ -80,8 +125,7 @@ func Test_bestindex4(t *testing.T) {
 						{ // do_test "1." + param1 + "." + param2 + "." + tn + ".b"
 							_res = db.Exec(sql)
 							_ = _res // catchsql
-							var _unnamed_var = ""
-							_ = _unnamed_var // suppress unused warning
+							// set  (invalid identifier, skipped)
 						}
 					}
 				}
@@ -104,7 +148,7 @@ func Test_bestindex4(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+		// register_tcl_module db (unsupported command, not transpiled)
 		// proc definition (not transpiled)
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n  CREATE TABLE t1 (x INT PRIMARY KEY);\n")

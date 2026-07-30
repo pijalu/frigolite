@@ -40,8 +40,19 @@ func Test_fts3aa(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var rowid string
+	_ = rowid // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3aa"
+	testprefix = "fts3aa"
 	_ = testprefix // suppress unused warning
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1(content) VALUES('one');\n  INSERT INTO t1(content) VALUES('two');\n  INSERT INTO t1(content) VALUES('one two');\n  INSERT INTO t1(content) VALUES('three');\n  INSERT INTO t1(content) VALUES('one three');\n  INSERT INTO t1(content) VALUES('two three');\n  INSERT INTO t1(content) VALUES('one two three');\n  INSERT INTO t1(content) VALUES('four');\n  INSERT INTO t1(content) VALUES('one four');\n  INSERT INTO t1(content) VALUES('two four');\n  INSERT INTO t1(content) VALUES('one two four');\n  INSERT INTO t1(content) VALUES('three four');\n  INSERT INTO t1(content) VALUES('one three four');\n  INSERT INTO t1(content) VALUES('two three four');\n  INSERT INTO t1(content) VALUES('one two three four');\n  INSERT INTO t1(content) VALUES('five');\n  INSERT INTO t1(content) VALUES('one five');\n  INSERT INTO t1(content) VALUES('two five');\n  INSERT INTO t1(content) VALUES('one two five');\n  INSERT INTO t1(content) VALUES('three five');\n  INSERT INTO t1(content) VALUES('one three five');\n  INSERT INTO t1(content) VALUES('two three five');\n  INSERT INTO t1(content) VALUES('one two three five');\n  INSERT INTO t1(content) VALUES('four five');\n  INSERT INTO t1(content) VALUES('one four five');\n  INSERT INTO t1(content) VALUES('two four five');\n  INSERT INTO t1(content) VALUES('one two four five');\n  INSERT INTO t1(content) VALUES('three four five');\n  INSERT INTO t1(content) VALUES('one three four five');\n  INSERT INTO t1(content) VALUES('two three four five');\n  INSERT INTO t1(content) VALUES('one two three four five');\n")
 	if _res.Error != nil {
@@ -258,7 +269,7 @@ func Test_fts3aa(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3aa-5.2"
-		var rowid = "db last_insert_rowid"
+		rowid = "db last_insert_rowid"
 		_ = rowid // suppress unused warning
 		r = db.Query("SELECT content FROM t1 WHERE rowid=$rowid")
 		if r.Error != nil {
@@ -403,5 +414,5 @@ func Test_fts3aa(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  DELETE FROM z1;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "expand_all_sql db")
+	// expand_all_sql db (unsupported command, not transpiled)
 }

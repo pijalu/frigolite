@@ -40,9 +40,27 @@ func Test_select1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var long string
+	_ = long // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var _r_arr string
+	_ = _r_arr // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var tab string
+	_ = tab // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "select1-1.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -64,7 +82,6 @@ func Test_select1(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(f1 int, f2 int)")
 	}
 	{ // do_test "select1-1.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -82,7 +99,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-1.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -213,7 +229,7 @@ func Test_select1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT min(test1.f1,test2.r1), max(test1.f2,test2.r2)\n           FROM test1, test2")
 		}
 	}
-	var long = "This is a string that is too big to fit inside a NBFS buffer"
+	long = "This is a string that is too big to fit inside a NBFS buffer"
 	_ = long // suppress unused warning
 	{ // do_test "select1-2.0"
 		r = db.Query("\n    DROP TABLE test2;\n    DELETE FROM test1;\n    INSERT INTO test1 VALUES(11,22);\n    INSERT INTO test1 VALUES(33,44);\n    CREATE TABLE t3(a,b);\n    INSERT INTO t3 VALUES('abc',NULL);\n    INSERT INTO t3 VALUES(NULL,'xyz');\n    INSERT INTO t3 SELECT * FROM test1;\n    CREATE TABLE t4(a,b);\n    INSERT INTO t4 VALUES(NULL,'" + long + "');\n    SELECT * FROM t3;\n  ")
@@ -222,7 +238,6 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-2.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -240,7 +255,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -258,7 +272,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -276,7 +289,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -294,7 +306,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.5"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -330,7 +341,6 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-2.6"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -348,7 +358,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.7"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -366,7 +375,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.8"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -402,7 +410,6 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-2.9"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -420,7 +427,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.10"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -438,7 +444,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.11"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -456,7 +461,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-2.12"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -474,7 +478,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-2.13"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -504,7 +507,6 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-2.14"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -522,7 +524,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.15"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -540,7 +541,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.16"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -558,7 +558,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.17"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -582,7 +581,6 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-2.18"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -600,7 +598,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.19"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -618,7 +615,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.20"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -652,7 +648,6 @@ func Test_select1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "select1-3.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -670,7 +665,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-3.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -688,7 +682,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-3.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -706,7 +699,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-3.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -724,7 +716,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-3.5"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -742,7 +733,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-3.6"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -760,7 +750,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-3.7"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -778,7 +767,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-3.8"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -796,7 +784,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-3.9"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -814,7 +801,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-4.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -832,7 +818,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-4.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -850,7 +835,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-4.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -868,7 +852,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-4.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -948,7 +931,6 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-5.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -974,7 +956,6 @@ func Test_select1(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test2 VALUES('abc','xyz')")
 	}
 	{ // do_test "select1-6.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -996,7 +977,6 @@ func Test_select1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA full_column_names=on")
 		}
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1014,7 +994,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.1.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1032,7 +1011,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.1.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1050,7 +1028,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.1.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1072,7 +1049,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.1.5"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1090,7 +1066,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.1.6"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1108,7 +1083,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1126,7 +1100,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1144,7 +1117,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.3.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1162,7 +1134,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1180,7 +1151,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.4a"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1198,7 +1168,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.5"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1220,7 +1189,6 @@ func Test_select1(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA full_column_names=on")
 		}
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1242,7 +1210,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.6"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1260,7 +1227,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.7"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1278,7 +1244,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.8"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1296,7 +1261,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.8b"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1314,7 +1278,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.8c"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1332,7 +1295,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.9.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1350,7 +1312,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.9.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1404,16 +1365,16 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-6.9.7"
-		var x = "execsql2 {\n     SELECT * FROM test1 a, (select 5, 6) LIMIT 1\n  }"
+		x = "execsql2 {\n     SELECT * FROM test1 a, (select 5, 6) LIMIT 1\n  }"
 		_ = x // suppress unused warning
-		subquery_0 := tclRegsub("-all", "subquery-\\d+", x)
-		_ = subquery_0 // suppress unused warning
+		x = tclRegsubAll("subquery-\\d+", x, "subquery-0")
+		_ = x // suppress unused warning
 	}
 	{ // do_test "select1-6.9.8"
-		var x = "execsql2 {\n     SELECT * FROM test1 a, (select 5 AS x, 6 AS y) AS b LIMIT 1\n  }"
+		x = "execsql2 {\n     SELECT * FROM test1 a, (select 5 AS x, 6 AS y) AS b LIMIT 1\n  }"
 		_ = x // suppress unused warning
-		subquery_0 := tclRegsub("-all", "subquery-\\d+", x)
-		_ = subquery_0 // suppress unused warning
+		x = tclRegsubAll("subquery-\\d+", x, "subquery-0")
+		_ = x // suppress unused warning
 	}
 	{ // do_test "select1-6.9.9"
 		r = db.Query("\n     SELECT a.f1, b.f2 FROM test1 a, test1 b LIMIT 1\n  ")
@@ -1480,7 +1441,6 @@ func Test_select1(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA short_column_names=ON;\n  PRAGMA full_column_names=OFF;\n")
 	}
 	{ // do_test "select1-7.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1498,7 +1458,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1516,7 +1475,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1534,7 +1492,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.5"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1552,7 +1509,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.6"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1570,7 +1526,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.7"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1588,7 +1543,6 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.8"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -1650,7 +1604,7 @@ func Test_select1(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		var _r_arr = ""
+		_r_arr = ""
 		_ = _r_arr // suppress unused warning
 		_res = db.Exec("SELECT * FROM test1 WHERE f1<0")
 		if _res.Error != nil {
@@ -1658,7 +1612,7 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-9.4"
-		var _r_arr = ""
+		_r_arr = ""
 		_ = _r_arr // suppress unused warning
 		_res = db.Exec("SELECT * FROM test1 ORDER BY f1")
 		if _res.Error != nil {
@@ -1666,7 +1620,7 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-9.5"
-		var _r_arr = ""
+		_r_arr = ""
 		_ = _r_arr // suppress unused warning
 		_res = db.Exec("SELECT * FROM test1 WHERE f1<0 ORDER BY f1")
 		if _res.Error != nil {
@@ -1814,7 +1768,8 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	// skip: foreach over unresolved TCL command
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "select1-14.1"
 		r = db.Query(" \n    SELECT * FROM sqlite_master WHERE rowid>10; \n    SELECT * FROM sqlite_master WHERE rowid=10;\n    SELECT * FROM sqlite_master WHERE rowid<10;\n    SELECT * FROM sqlite_master WHERE rowid<=10;\n    SELECT * FROM sqlite_master WHERE rowid>=10;\n    SELECT * FROM sqlite_master;\n  ")

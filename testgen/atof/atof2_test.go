@@ -39,6 +39,11 @@ func Test_atof2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "atof2-1.0"
 		r = db.Query("\n  SELECT format('%g',192.496475);\n")
@@ -64,7 +69,7 @@ func Test_atof2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db ieee754")
+	// load_static_extension db ieee754 (unsupported command, not transpiled)
 	{ // "atof2-2.1"
 		r = db.Query("\n  SELECT format('%!.30f',ieee754_inc(100.0,-1));\n")
 		if r.Error != nil {

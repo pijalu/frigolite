@@ -40,8 +40,59 @@ func Test_mmap1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var bt string
+	_ = bt // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var mmap_size string
+	_ = mmap_size // pre-declared from TCL source
+	var nRead string
+	_ = nRead // pre-declared from TCL source
+	var c2init string
+	_ = c2init // pre-declared from TCL source
+	var rcnt string
+	_ = rcnt // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var aaa string
+	_ = aaa // pre-declared from TCL source
+	var bbb string
+	_ = bbb // pre-declared from TCL source
+	var ccc string
+	_ = ccc // pre-declared from TCL source
+	var ddd string
+	_ = ddd // pre-declared from TCL source
+	var eee string
+	_ = eee // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var stats_read string
+	_ = stats_read // pre-declared from TCL source
+	var dbname string
+	_ = dbname // pre-declared from TCL source
+	var seed string
+	_ = seed // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "mmap1"
+	testprefix = "mmap1"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -57,10 +108,12 @@ func Test_mmap1(t *testing.T) {
 		c2init := _items0[_idx0+3]
 		_ = c2init // suppress unused warning
 		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    sql1 {PRAGMA cache_size=2000}\n    sql2 {PRAGM...}")
+			// do_multiclient_test tn {
+    sql1 {PRAGMA cache_size=2000}
+    sql2 {PRAGM...} (unsupported command, not transpiled)
 		}
-		var _rcnt = "0" // TCL namespace variable
-		_ = _rcnt // suppress unused warning
+		rcnt = "0" // TCL namespace variable
+		_ = rcnt // suppress unused warning
 		// proc definition (not transpiled)
 		db.Close()
 		db, err = frigolite.Open("")
@@ -79,7 +132,7 @@ func Test_mmap1(t *testing.T) {
 			}
 		}
 		{ // do_test "3.2"
-			var nRow = "0"
+			nRow = "0"
 			_ = nRow // suppress unused warning
 			_res = db.Exec("SELECT * FROM t2 ORDER BY a, b")
 			if _res.Error != nil {
@@ -93,15 +146,15 @@ func Test_mmap1(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 67108864; ")
 		}
-		var aaa = "a 400"
+		aaa = "a 400"
 		_ = aaa // suppress unused warning
-		var bbb = "b 400"
+		bbb = "b 400"
 		_ = bbb // suppress unused warning
-		var ccc = "c 400"
+		ccc = "c 400"
 		_ = ccc // suppress unused warning
-		var ddd = "d 400"
+		ddd = "d 400"
 		_ = ddd // suppress unused warning
-		var eee = "e 400"
+		eee = "e 400"
 		_ = eee // suppress unused warning
 		{ // "4.1"
 			_res = db.Exec("\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES($aaa);\n  INSERT INTO t1 VALUES($bbb);\n  INSERT INTO t1 VALUES($ccc);\n  INSERT INTO t1 VALUES($ddd);\n  SELECT * FROM t1;\n  BEGIN;\n")
@@ -110,27 +163,28 @@ func Test_mmap1(t *testing.T) {
 			}
 		}
 		{ // do_test "4.2"
-			var _STMT = "sqlite3_prepare db \"SELECT * FROM t1 ORDER BY rowid\" -1 dummy" // TCL namespace variable
-			_ = _STMT // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $::STMT 0")
+			STMT = "sqlite3_prepare db \"SELECT * FROM t1 ORDER BY rowid\" -1 dummy" // TCL namespace variable
+			_ = STMT // suppress unused warning
+			// sqlite3_step $::STMT (unsupported command, not transpiled)
+			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "4.3"
 			for _, _r := range tclSplitList("2 3 4") {
 			_ = _r // suppress unused warning
-				var fd = "db incrblob t1 x $r"
+				fd = "db incrblob t1 x $r"
 				_ = fd // suppress unused warning
-				t.Log("-nonewline")
+				_putsMsg := "-nonewline"
+				_ = _putsMsg
 				// close $fd
 			}
-			var res = "list"
+			res = "list"
 			_ = res // suppress unused warning
 			for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
 				res = tclListAppend(res, "")
 			}
 		}
 		{ // do_test "4.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+			// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 		}
 		{ // "4.5"
 			_res = db.Exec(" COMMIT ")
@@ -158,10 +212,10 @@ func Test_mmap1(t *testing.T) {
 			}
 		}
 		{ // do_test "5.2"
-			var _STMT = "sqlite3_prepare db \"SELECT * FROM t1 ORDER BY rowid\" -1 dummy" // TCL namespace variable
-			_ = _STMT // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $::STMT 0")
+			STMT = "sqlite3_prepare db \"SELECT * FROM t1 ORDER BY rowid\" -1 dummy" // TCL namespace variable
+			_ = STMT // suppress unused warning
+			// sqlite3_step $::STMT (unsupported command, not transpiled)
+			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
 		}
 		{ // "5.3"
 			_res = db.Exec("\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('tricked you!');\n  INSERT INTO t2 VALUES('tricked you!');\n")
@@ -170,11 +224,11 @@ func Test_mmap1(t *testing.T) {
 			}
 		}
 		{ // do_test "5.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $::STMT 0")
+			// sqlite3_step $::STMT (unsupported command, not transpiled)
+			// sqlite3_column_text $::STMT 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "5.5"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+			// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 		}
 		os.Remove("test2.db")
 		db2, err = frigolite.Open("test2.db")

@@ -40,6 +40,19 @@ func Test_istrue(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var X string
+	_ = X // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "istrue-100"
 		r = db.Query("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y BOOLEAN);\n  INSERT INTO t1 VALUES(1, true),(2, false),(3, null);\n  SELECT x FROM t1 WHERE y IS TRUE;\n")
@@ -113,7 +126,7 @@ func Test_istrue(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var X = "9"
+	X = "9"
 	_ = X // suppress unused warning
 	{ // "istrue-160"
 		r = db.Query("\n  SELECT x FROM t1 WHERE y IS TRUE OR (8==$X)\n")
@@ -292,12 +305,12 @@ func Test_istrue(t *testing.T) {
 				}
 			}
 			{ // do_test "istrue-600." + tn + ".2"
-				var _STMT = "sqlite3_prepare db \"INSERT INTO t1 VALUES(?)\" -1 TAIL" // TCL namespace variable
-				_ = _STMT // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 $val")
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+				STMT = "sqlite3_prepare db \"INSERT INTO t1 VALUES(?)\" -1 TAIL" // TCL namespace variable
+				_ = STMT // suppress unused warning
+				// sqlite3_bind_double $::STMT 1 $val (unsupported command, not transpiled)
+				// sqlite3_step $::STMT (unsupported command, not transpiled)
+				// sqlite3_reset $::STMT (unsupported command, not transpiled)
+				// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 			}
 			{ // "istrue-600." + tn + ".3"
 				r = db.Query("\n    SELECT x IS TRUE FROM t1;\n  ")

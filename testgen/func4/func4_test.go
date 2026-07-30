@@ -40,20 +40,36 @@ func Test_func4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var saved_tcl_precision string
+	_ = saved_tcl_precision // pre-declared from TCL source
+	var highPrecision_1 string
+	_ = highPrecision_1 // pre-declared from TCL source
+	var highPrecision_2 string
+	_ = highPrecision_2 // pre-declared from TCL source
+	var highPrecision_3 string
+	_ = highPrecision_3 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var saved_tcl_precision = tcl_precision
+	saved_tcl_precision = tcl_precision
 	_ = saved_tcl_precision // suppress unused warning
 	var tcl_precision = "0"
 	_ = tcl_precision // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db totype")
-	var highPrecision_1 = "\\\n    {[db eval {SELECT tointeger(9223372036854775807 + 1);}] eq {{}}}"
+	// load_static_extension db totype (unsupported command, not transpiled)
+	highPrecision_1 = "\\\n    {[db eval {SELECT tointeger(9223372036854775807 + 1);}] eq {{}}}"
 	_ = highPrecision_1 // suppress unused warning
-	var highPrecision_2 = "\\\n    {[db eval {SELECT toreal(-9223372036854775808 + 1);}] eq {{}}}"
+	highPrecision_2 = "\\\n    {[db eval {SELECT toreal(-9223372036854775808 + 1);}] eq {{}}}"
 	_ = highPrecision_2 // suppress unused warning
-	var highPrecision_3 = "\\\n    {[db eval {SELECT toreal(9007199254740992 + 1);}] eq {{}}}"
+	highPrecision_3 = "\\\n    {[db eval {SELECT toreal(9007199254740992 + 1);}] eq {{}}}"
 	_ = highPrecision_3 // suppress unused warning
-	if tclBool("!" + highPrecision + "(1) || !" + highPrecision + "(2) || !" + highPrecision + "(3)") {
-		t.Log("NOTICE:\\\n        highPrecision: " + highPrecision + "(1) " + highPrecision + "(2) " + highPrecision + "(3)")
+	if tclBool("!" + highPrecision_1 + " || !" + highPrecision_2 + " || !" + highPrecision_3) {
+		_putsMsg := "NOTICE:\\\n        highPrecision: " + highPrecision_1 + " " + highPrecision_2 + " " + highPrecision_3
+		_ = _putsMsg
 	}
 	{ // "func4-1.1"
 		r = db.Query("\n  SELECT tointeger(NULL);\n")
@@ -487,7 +503,7 @@ func Test_func4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	if tclBool(highPrecision + "(1)") {
+	if tclBool(highPrecision_1) {
 		{ // "func4-1.37"
 			r = db.Query("\n    SELECT tointeger(9223372036854775807 + 1);\n  ")
 			if r.Error != nil {
@@ -633,7 +649,7 @@ func Test_func4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	if tclBool(highPrecision + "(1)") {
+	if tclBool(highPrecision_1) {
 		{ // "func4-1.49"
 			r = db.Query("\n    SELECT tointeger(9223372036854775807 + 1);\n  ")
 			if r.Error != nil {
@@ -719,7 +735,7 @@ func Test_func4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 8 }() {

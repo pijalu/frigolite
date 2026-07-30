@@ -39,11 +39,55 @@ func Test_lock6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var prg string
+	_ = prg // pre-declared from TCL source
+	var _chan string
+	_ = _chan // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var line string
+	_ = line // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var sqlite_hostid_num string
+	_ = sqlite_hostid_num // pre-declared from TCL source
+	var using_proxy string
+	_ = using_proxy // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var env_SQLITE_FORCE_PROXY_LOCKING string
+	_ = env_SQLITE_FORCE_PROXY_LOCKING // pre-declared from TCL source
+	var tf1 string
+	_ = tf1 // pre-declared from TCL source
+	var lockpath string
+	_ = lockpath // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var sqlite_pending_byte string
+	_ = sqlite_pending_byte // pre-declared from TCL source
+	var cmdlinearg_soft_heap_limit string
+	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var f = "open tf_main2.tcl w"
+	f = "open tf_main2.tcl w"
 	_ = f // suppress unused warning
-	t.Log(f)
+	_putsMsg := f
+	_ = _putsMsg
 	// close $f
 }

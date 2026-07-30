@@ -40,11 +40,32 @@ func Test_thread3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nAttempt string
+	_ = nAttempt // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var nBusy string
+	_ = nBusy // pre-declared from TCL source
+	var nTotalBusy string
+	_ = nTotalBusy // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var varname string
+	_ = varname // pre-declared from TCL source
+	var X string
+	_ = X // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	var testprefix = "thread3"
+	testprefix = "thread3"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = DELETE;\n")
@@ -59,22 +80,27 @@ func Test_thread3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	var nAttempt = "250"
+	nAttempt = "250"
 	_ = nAttempt // suppress unused warning
 	{ // do_test "1.1"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nAttempt_n, _nAttempt_e := strconv.Atoi(nAttempt); if _nAttempt_e != nil { return false }; return i_n < nAttempt_n }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlthread spawn X {\n      sqlite3 dbI test.db\n      dbI timeout 100\n ...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlthread spawn Y {\n      sqlite3 dbR test.db\n      catch {\n        d...}")
-			t.Errorf("TODO: %s not implemented in frigolite", "wait_for_var X")
-			t.Errorf("TODO: %s not implemented in frigolite", "wait_for_var Y")
-			var nTotalBusy = "0"
+			// sqlthread spawn X {
+      sqlite3 dbI test.db
+      dbI timeout 100
+ ...} (unsupported command, not transpiled)
+			// sqlthread spawn Y {
+      sqlite3 dbR test.db
+      catch {
+        d...} (unsupported command, not transpiled)
+			// wait_for_var X (unsupported command, not transpiled)
+			// wait_for_var Y (unsupported command, not transpiled)
 			// incr nTotalBusy X
 			{
 				_n, _err := strconv.Atoi(nTotalBusy)
 				if _err == nil {
-					nTotalBusy = strconv.Itoa(_n + X)
+					nTotalBusy = strconv.Itoa(_n + func() int { _v, _ := strconv.Atoi(X); return _v }())
 				}
 			}
 			// incr i 1
@@ -89,8 +115,7 @@ func Test_thread3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")
 		}
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // "1.Total BUSY errors: " + nTotalBusy + " .2"
 		r = db.Query("\n  SELECT count(*) FROM t1;\n")

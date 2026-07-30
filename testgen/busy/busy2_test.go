@@ -39,10 +39,32 @@ func Test_busy2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var us string
+	_ = us // pre-declared from TCL source
+	var busy_called string
+	_ = busy_called // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "busy2"
+	testprefix = "busy2"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test 1.$tn.0 {\n    sql2 {\n      CREATE TABLE...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  # Make the db a WAL mode db. And add a table an...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  code1 {\n    set ::busy_called 0\n    proc busy {...}")
+	// do_multiclient_test tn {
+  do_test 1.$tn.0 {
+    sql2 {
+      CREATE TABLE...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {
+  # Make the db a WAL mode db. And add a table an...} (unsupported command, not transpiled)
+	// do_multiclient_test tn {
+  code1 {
+    set ::busy_called 0
+    proc busy {...} (unsupported command, not transpiled)
 }

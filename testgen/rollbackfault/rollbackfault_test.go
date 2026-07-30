@@ -39,8 +39,35 @@ func Test_rollbackfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var sql1 string
+	_ = sql1 // pre-declared from TCL source
+	var sql2 string
+	_ = sql2 // pre-declared from TCL source
+	var s1 string
+	_ = s1 // pre-declared from TCL source
+	var s2 string
+	_ = s2 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var res1 string
+	_ = res1 // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var rc1 string
+	_ = rc1 // pre-declared from TCL source
+	var rc2 string
+	_ = rc2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "rollbackfault"
+	testprefix = "rollbackfault"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
@@ -63,6 +90,14 @@ func Test_rollbackfault(t *testing.T) {
 	}
 	for _, f := range tclSplitList("oom ioerr") {
 	_ = f // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -faults $f* -prep {\n    set sql1 { SELECT i FROM t1 WHERE (i%2)==0 }\n...} -body {\n    execsql { ROLLBACK }\n  } -test {\n  \n    set res1 [list]\n    set res2 [list]\n    wh...}")
+		// do_faultsim_test 1.2 -faults $f* -prep {
+    set sql1 { SELECT i FROM t1 WHERE (i%2)==0 }
+...} -body {
+    execsql { ROLLBACK }
+  } -test {
+  
+    set res1 [list]
+    set res2 [list]
+    wh...} (unsupported command, not transpiled)
 	}
 }

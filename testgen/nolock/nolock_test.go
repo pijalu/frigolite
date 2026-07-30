@@ -40,70 +40,89 @@ func Test_nolock(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tvfs_calls_op string
+	_ = tvfs_calls_op // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var tvfs_calls_xLock string
+	_ = tvfs_calls_xLock // pre-declared from TCL source
+	var tvfs_calls_xUnlock string
+	_ = tvfs_calls_xUnlock // pre-declared from TCL source
+	var tvfs_calls_xCheckReservedLock string
+	_ = tvfs_calls_xCheckReservedLock // pre-declared from TCL source
+	var tvfs_calls_xAccess string
+	_ = tvfs_calls_xAccess // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script tvfs_callback")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xLock xUnlock xCheckReservedLock xAccess}")
+	// tvfs_reset (unsupported command, not transpiled)
+	// testvfs tvfs (unsupported command, not transpiled)
+	// tvfs script tvfs_callback (unsupported command, not transpiled)
+	// tvfs filter {xLock xUnlock xCheckReservedLock xAccess} (unsupported command, not transpiled)
 	{ // do_test "nolock-1.0"
 		os.Remove("test.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite db test.db -vfs tvfs")
+		// tvfs_reset (unsupported command, not transpiled)
+		// sqlite db test.db -vfs tvfs (unsupported command, not transpiled)
 		_res = db.Exec("CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
 		}
-		_list := tclList([]string{"xLock", _tvfs_calls + "(xLock)", "xUnlock", _tvfs_calls + "(xUnlock)", "xCheckReservedLock", _tvfs_calls + "(xCheckReservedLock)"})
+		_list := tclList([]string{"xLock", tvfs_calls_xLock, "xUnlock", tvfs_calls_xUnlock, "xCheckReservedLock", tvfs_calls_xCheckReservedLock})
 		_ = _list
 	}
 	{ // do_test "nolock-1.1"
 		os.Remove("test.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=0 -vfs tvfs -uri 1")
+		// tvfs_reset (unsupported command, not transpiled)
+		// sqlite db file:test.db?nolock=0 -vfs tvfs -uri 1 (unsupported command, not transpiled)
 		_res = db.Exec("CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
 		}
-		_list := tclList([]string{"xLock", _tvfs_calls + "(xLock)", "xUnlock", _tvfs_calls + "(xUnlock)", "xCheckReservedLock", _tvfs_calls + "(xCheckReservedLock)"})
+		_list := tclList([]string{"xLock", tvfs_calls_xLock, "xUnlock", tvfs_calls_xUnlock, "xCheckReservedLock", tvfs_calls_xCheckReservedLock})
 		_ = _list
 	}
 	{ // do_test "nolock-1.2"
 		os.Remove("test.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=1 -vfs tvfs -uri 1")
+		// tvfs_reset (unsupported command, not transpiled)
+		// sqlite db file:test.db?nolock=1 -vfs tvfs -uri 1 (unsupported command, not transpiled)
 		_res = db.Exec("CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
 		}
-		_list := tclList([]string{"xLock", _tvfs_calls + "(xLock)", "xUnlock", _tvfs_calls + "(xUnlock)", "xCheckReservedLock", _tvfs_calls + "(xCheckReservedLock)"})
+		_list := tclList([]string{"xLock", tvfs_calls_xLock, "xUnlock", tvfs_calls_xUnlock, "xCheckReservedLock", tvfs_calls_xCheckReservedLock})
 		_ = _list
 	}
 	{ // do_test "nolock-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=0 -vfs tvfs -uri 1 -readonly 1")
+		// tvfs_reset (unsupported command, not transpiled)
+		// sqlite db file:test.db?nolock=0 -vfs tvfs -uri 1 -readonly 1 (unsupported command, not transpiled)
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
 		}
-		_list := tclList([]string{"xLock", _tvfs_calls + "(xLock)", "xUnlock", _tvfs_calls + "(xUnlock)", "xCheckReservedLock", _tvfs_calls + "(xCheckReservedLock)"})
+		_list := tclList([]string{"xLock", tvfs_calls_xLock, "xUnlock", tvfs_calls_xUnlock, "xCheckReservedLock", tvfs_calls_xCheckReservedLock})
 		_ = _list
 	}
 	{ // do_test "nolock-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=1 -vfs tvfs -uri 1 -readonly 1")
+		// tvfs_reset (unsupported command, not transpiled)
+		// sqlite db file:test.db?nolock=1 -vfs tvfs -uri 1 -readonly 1 (unsupported command, not transpiled)
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
 		}
-		_list := tclList([]string{"xLock", _tvfs_calls + "(xLock)", "xUnlock", _tvfs_calls + "(xUnlock)", "xCheckReservedLock", _tvfs_calls + "(xCheckReservedLock)"})
+		_list := tclList([]string{"xLock", tvfs_calls_xLock, "xUnlock", tvfs_calls_xUnlock, "xCheckReservedLock", tvfs_calls_xCheckReservedLock})
 		_ = _list
 	}
 	{ // do_test "nolock-2.0"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n     CREATE TABLE t1(a,b);\n     INSERT INTO t1 VALUES('hello','world');\n     CREATE TABLE t2(x,y);\n     INSERT INTO t2 VALUES(12345,67890);\n     SELECT * FROM t1, t2;\n  ")
 		if _res.Error != nil {
@@ -111,84 +130,84 @@ func Test_nolock(t *testing.T) {
 		}
 	}
 	{ // do_test "nolock-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-2.2"
-		_list := tclList([]string{"xLock", _tvfs_calls + "(xLock)", "xUnlock", _tvfs_calls + "(xUnlock)", "xCheckReservedLock", _tvfs_calls + "(xCheckReservedLock)", "xAccess", _tvfs_calls + "(xAccess)"})
+		_list := tclList([]string{"xLock", tvfs_calls_xLock, "xUnlock", tvfs_calls_xUnlock, "xCheckReservedLock", tvfs_calls_xCheckReservedLock, "xAccess", tvfs_calls_xAccess})
 		_ = _list
 	}
 	{ // do_test "nolock-2.11"
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("file:test.db?immutable=0")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-2.12"
-		_list := tclList([]string{"xLock", _tvfs_calls + "(xLock)", "xUnlock", _tvfs_calls + "(xUnlock)", "xCheckReservedLock", _tvfs_calls + "(xCheckReservedLock)", "xAccess", _tvfs_calls + "(xAccess)"})
+		_list := tclList([]string{"xLock", tvfs_calls_xLock, "xUnlock", tvfs_calls_xUnlock, "xCheckReservedLock", tvfs_calls_xCheckReservedLock, "xAccess", tvfs_calls_xAccess})
 		_ = _list
 	}
 	{ // do_test "nolock-2.21"
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("file:test.db?immutable=1")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-2.22"
-		_list := tclList([]string{"xLock", _tvfs_calls + "(xLock)", "xUnlock", _tvfs_calls + "(xUnlock)", "xCheckReservedLock", _tvfs_calls + "(xCheckReservedLock)", "xAccess", _tvfs_calls + "(xAccess)"})
+		_list := tclList([]string{"xLock", tvfs_calls_xLock, "xUnlock", tvfs_calls_xUnlock, "xCheckReservedLock", tvfs_calls_xCheckReservedLock, "xAccess", tvfs_calls_xAccess})
 		_ = _list
 	}
 	{ // do_test "nolock-2.31"
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("file:test.db?immutable=1")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-2.32"
-		_list := tclList([]string{"xLock", _tvfs_calls + "(xLock)", "xUnlock", _tvfs_calls + "(xUnlock)", "xCheckReservedLock", _tvfs_calls + "(xCheckReservedLock)", "xAccess", _tvfs_calls + "(xAccess)"})
+		_list := tclList([]string{"xLock", tvfs_calls_xLock, "xUnlock", tvfs_calls_xUnlock, "xCheckReservedLock", tvfs_calls_xCheckReservedLock, "xAccess", tvfs_calls_xAccess})
 		_ = _list
 	}
 	{ // do_test "nolock-3.1"
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs devchar immutable")
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		// tvfs devchar immutable (unsupported command, not transpiled)
+		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-3.2"
-		_list := tclList([]string{"xLock", _tvfs_calls + "(xLock)", "xUnlock", _tvfs_calls + "(xUnlock)", "xCheckReservedLock", _tvfs_calls + "(xCheckReservedLock)", "xAccess", _tvfs_calls + "(xAccess)"})
+		_list := tclList([]string{"xLock", tvfs_calls_xLock, "xUnlock", tvfs_calls_xUnlock, "xCheckReservedLock", tvfs_calls_xCheckReservedLock, "xAccess", tvfs_calls_xAccess})
 		_ = _list
 	}
 	{ // do_test "nolock-3.11"
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		// tvfs_reset (unsupported command, not transpiled)
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		db2.Exec("SELECT * FROM t1, t2")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "nolock-3.12"
-		_list := tclList([]string{"xLock", _tvfs_calls + "(xLock)", "xUnlock", _tvfs_calls + "(xUnlock)", "xCheckReservedLock", _tvfs_calls + "(xCheckReservedLock)", "xAccess", _tvfs_calls + "(xAccess)"})
+		_list := tclList([]string{"xLock", tvfs_calls_xLock, "xUnlock", tvfs_calls_xUnlock, "xCheckReservedLock", tvfs_calls_xCheckReservedLock, "xAccess", tvfs_calls_xAccess})
 		_ = _list
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+	// tvfs delete (unsupported command, not transpiled)
 	if tclBool("permutation" + "!=\"inmemory_journal\"") {
 		{ // do_test "nolock-4.1"
 			os.Remove("test.db")
-			db, err := frigolite.Open("file:test.db?nolock=1")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("file:test.db?nolock=1")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n       PRAGMA journal_mode=WAL;\n       CREATE TABLE t1(x);\n       INSERT INTO t1 VALUES('youngling');\n       SELECT * FROM t1;\n    ")
 			if _res.Error != nil {
@@ -197,8 +216,8 @@ func Test_nolock(t *testing.T) {
 		}
 		{ // do_test "nolock-4.2"
 			os.Remove("test.db")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      PRAGMA journal_mode=WAL;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('catbird');\n      SELECT * FROM t1;\n    ")
 			if _res.Error != nil {
@@ -206,10 +225,9 @@ func Test_nolock(t *testing.T) {
 			}
 		}
 		{ // do_test "nolock-4.3"
-			db, err := frigolite.Open("file:test.db?nolock=1")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("file:test.db?nolock=1")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block

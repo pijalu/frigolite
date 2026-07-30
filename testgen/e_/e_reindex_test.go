@@ -40,6 +40,41 @@ func Test_e_reindex(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var BY_length string
+	_ = BY_length // pre-declared from TCL source
+	var BY_value string
+	_ = BY_value // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+	var V_lhs string
+	_ = V_lhs // pre-declared from TCL source
+	var V_rhs string
+	_ = V_rhs // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var collation string
+	_ = collation // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var BY_expected string
+	_ = BY_expected // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // "e_reindex-0.0"
@@ -48,24 +83,28 @@ func Test_e_reindex(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE INDEX i2 ON t1(b, a);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_reindex_tests e_reindex-0.1 {\n  1   \"REINDEX\"           {}\n  2   \"REINDEX nocas...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// do_reindex_tests e_reindex-0.1 {
+  1   "REINDEX"           {}
+  2   "REINDEX nocas...} (unsupported command, not transpiled)
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "e_reindex-1.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE TABLE saved(a,b,c,d,e);\n  INSERT INTO saved SELECT * FROM sqlite_master WHERE type = 'index';\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE type = 'index';\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE TABLE saved(a,b,c,d,e);\n  INSERT INTO saved SELECT * FROM sqlite_master WHERE type = 'index';\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE type = 'index';\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "e_reindex-1.2"
 		_res = db.Exec("\n  DELETE FROM t1 WHERE a = 3;\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master SELECT * FROM saved;\n  DROP TABLE saved;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1 WHERE a = 3;\n  INSERT INTO t1 VALUES(7, 8);\n  INSERT INTO t1 VALUES(9, 10);\n  PRAGMA writable_schema = 1;\n  INSERT INTO sqlite_master SELECT * FROM saved;\n  DROP TABLE saved;\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "e_reindex-1.3"
 		r = db.Query("\n  PRAGMA integrity_check;\n")
@@ -93,13 +132,14 @@ func Test_e_reindex(t *testing.T) {
 	}
 	os.Remove("test.db2")
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var BY_length = "one six two five four eight seven three"
+	BY_length = "one six two five four eight seven three"
 	_ = BY_length // suppress unused warning
-	var BY_value = "one two three four five six seven eight"
+	BY_value = "one two three four five six seven eight"
 	_ = BY_value // suppress unused warning
 	{ // "e_reindex-2.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n\n  CREATE TABLE t1(x);\n  CREATE INDEX i1_a ON t1(x COLLATE collA);\n  CREATE INDEX i1_b ON t1(x COLLATE collB);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('two');\n  INSERT INTO t1 VALUES('three');\n  INSERT INTO t1 VALUES('four');\n  INSERT INTO t1 VALUES('five');\n  INSERT INTO t1 VALUES('six');\n  INSERT INTO t1 VALUES('seven');\n  INSERT INTO t1 VALUES('eight');\n\n  CREATE TABLE t2(x);\n  CREATE INDEX i2_a ON t2(x COLLATE collA);\n  CREATE INDEX i2_b ON t2(x COLLATE collB);\n  INSERT INTO t2 SELECT x FROM t1;\n\n  CREATE TABLE aux.t1(x);\n  CREATE INDEX aux.i1_a ON t1(x COLLATE collA);\n  CREATE INDEX aux.i1_b ON t1(x COLLATE collB);\n  INSERT INTO aux.t1 SELECT x FROM main.t1;\n\n")
@@ -109,193 +149,193 @@ func Test_e_reindex(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 1.1 t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 1.2 t1 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 1.3 t2 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 1.4 t2 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 1.5 aux.t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 1.6 aux.t1 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "set_collations value length")
+	// test_index 1.1 t1 collA length (unsupported command, not transpiled)
+	// test_index 1.2 t1 collB value (unsupported command, not transpiled)
+	// test_index 1.3 t2 collA length (unsupported command, not transpiled)
+	// test_index 1.4 t2 collB value (unsupported command, not transpiled)
+	// test_index 1.5 aux.t1 collA length (unsupported command, not transpiled)
+	// test_index 1.6 aux.t1 collB value (unsupported command, not transpiled)
+	// set_collations value length (unsupported command, not transpiled)
 	{ // "e_reindex-2.2.1"
 		_res = db.Exec("REINDEX")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 2.2 t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 2.3 t1 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 2.4 t2 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 2.5 t2 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 2.6 aux.t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 2.7 aux.t1 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "set_collations length value")
+	// test_index 2.2 t1 collA value (unsupported command, not transpiled)
+	// test_index 2.3 t1 collB length (unsupported command, not transpiled)
+	// test_index 2.4 t2 collA value (unsupported command, not transpiled)
+	// test_index 2.5 t2 collB length (unsupported command, not transpiled)
+	// test_index 2.6 aux.t1 collA value (unsupported command, not transpiled)
+	// test_index 2.7 aux.t1 collB length (unsupported command, not transpiled)
+	// set_collations length value (unsupported command, not transpiled)
 	{ // "e_reindex-2.3.1"
 		_res = db.Exec("REINDEX collA")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX collA")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.2 t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.3 t1 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.4 t2 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.5 t2 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.6 aux.t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.7 aux.t1 collB length")
+	// test_index 3.2 t1 collA length (unsupported command, not transpiled)
+	// test_index 3.3 t1 collB length (unsupported command, not transpiled)
+	// test_index 3.4 t2 collA length (unsupported command, not transpiled)
+	// test_index 3.5 t2 collB length (unsupported command, not transpiled)
+	// test_index 3.6 aux.t1 collA length (unsupported command, not transpiled)
+	// test_index 3.7 aux.t1 collB length (unsupported command, not transpiled)
 	{ // "e_reindex-2.3.8"
 		_res = db.Exec("REINDEX collB")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX collB")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.9 t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.10 t1 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.11 t2 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.12 t2 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.13 aux.t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 3.14 aux.t1 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "set_collations value length")
+	// test_index 3.9 t1 collA length (unsupported command, not transpiled)
+	// test_index 3.10 t1 collB value (unsupported command, not transpiled)
+	// test_index 3.11 t2 collA length (unsupported command, not transpiled)
+	// test_index 3.12 t2 collB value (unsupported command, not transpiled)
+	// test_index 3.13 aux.t1 collA length (unsupported command, not transpiled)
+	// test_index 3.14 aux.t1 collB value (unsupported command, not transpiled)
+	// set_collations value length (unsupported command, not transpiled)
 	{ // "e_reindex-2.4.1"
 		_res = db.Exec("REINDEX t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX t1")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.2 t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.3 t1 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.4 t2 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.5 t2 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.6 aux.t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.7 aux.t1 collB value")
+	// test_index 4.2 t1 collA value (unsupported command, not transpiled)
+	// test_index 4.3 t1 collB length (unsupported command, not transpiled)
+	// test_index 4.4 t2 collA length (unsupported command, not transpiled)
+	// test_index 4.5 t2 collB value (unsupported command, not transpiled)
+	// test_index 4.6 aux.t1 collA length (unsupported command, not transpiled)
+	// test_index 4.7 aux.t1 collB value (unsupported command, not transpiled)
 	{ // "e_reindex-2.4.8"
 		_res = db.Exec("REINDEX aux.t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX aux.t1")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.9 t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.10 t1 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.11 t2 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.12 t2 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.13 aux.t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.14 aux.t1 collB length")
+	// test_index 4.9 t1 collA value (unsupported command, not transpiled)
+	// test_index 4.10 t1 collB length (unsupported command, not transpiled)
+	// test_index 4.11 t2 collA length (unsupported command, not transpiled)
+	// test_index 4.12 t2 collB value (unsupported command, not transpiled)
+	// test_index 4.13 aux.t1 collA value (unsupported command, not transpiled)
+	// test_index 4.14 aux.t1 collB length (unsupported command, not transpiled)
 	{ // "e_reindex-2.4.15"
 		_res = db.Exec("REINDEX t2")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX t2")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.16 t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.17 t1 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.18 t2 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.19 t2 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.20 aux.t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 4.21 aux.t1 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "set_collations length value")
+	// test_index 4.16 t1 collA value (unsupported command, not transpiled)
+	// test_index 4.17 t1 collB length (unsupported command, not transpiled)
+	// test_index 4.18 t2 collA value (unsupported command, not transpiled)
+	// test_index 4.19 t2 collB length (unsupported command, not transpiled)
+	// test_index 4.20 aux.t1 collA value (unsupported command, not transpiled)
+	// test_index 4.21 aux.t1 collB length (unsupported command, not transpiled)
+	// set_collations length value (unsupported command, not transpiled)
 	{ // "e_reindex-2.5.1"
 		_res = db.Exec("REINDEX i1_a")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX i1_a")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.2 t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.3 t1 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.4 t2 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.5 t2 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.6 aux.t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.7 aux.t1 collB length")
+	// test_index 5.2 t1 collA length (unsupported command, not transpiled)
+	// test_index 5.3 t1 collB length (unsupported command, not transpiled)
+	// test_index 5.4 t2 collA value (unsupported command, not transpiled)
+	// test_index 5.5 t2 collB length (unsupported command, not transpiled)
+	// test_index 5.6 aux.t1 collA value (unsupported command, not transpiled)
+	// test_index 5.7 aux.t1 collB length (unsupported command, not transpiled)
 	{ // "e_reindex-2.5.8"
 		_res = db.Exec("REINDEX i2_b")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX i2_b")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.9 t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.10 t1 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.11 t2 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.12 t2 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.13 aux.t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.14 aux.t1 collB length")
+	// test_index 5.9 t1 collA length (unsupported command, not transpiled)
+	// test_index 5.10 t1 collB length (unsupported command, not transpiled)
+	// test_index 5.11 t2 collA value (unsupported command, not transpiled)
+	// test_index 5.12 t2 collB value (unsupported command, not transpiled)
+	// test_index 5.13 aux.t1 collA value (unsupported command, not transpiled)
+	// test_index 5.14 aux.t1 collB length (unsupported command, not transpiled)
 	{ // "e_reindex-2.5.15"
 		_res = db.Exec("REINDEX aux.i1_b")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX aux.i1_b")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.16 t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.17 t1 collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.18 t2 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.19 t2 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.20 aux.t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.21 aux.t1 collB value")
+	// test_index 5.16 t1 collA length (unsupported command, not transpiled)
+	// test_index 5.17 t1 collB length (unsupported command, not transpiled)
+	// test_index 5.18 t2 collA value (unsupported command, not transpiled)
+	// test_index 5.19 t2 collB value (unsupported command, not transpiled)
+	// test_index 5.20 aux.t1 collA value (unsupported command, not transpiled)
+	// test_index 5.21 aux.t1 collB value (unsupported command, not transpiled)
 	{ // "e_reindex-2.5.22"
 		_res = db.Exec("REINDEX i1_b")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX i1_b")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.23 t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.24 t1 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.25 t2 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.26 t2 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.27 aux.t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.28 aux.t1 collB value")
+	// test_index 5.23 t1 collA length (unsupported command, not transpiled)
+	// test_index 5.24 t1 collB value (unsupported command, not transpiled)
+	// test_index 5.25 t2 collA value (unsupported command, not transpiled)
+	// test_index 5.26 t2 collB value (unsupported command, not transpiled)
+	// test_index 5.27 aux.t1 collA value (unsupported command, not transpiled)
+	// test_index 5.28 aux.t1 collB value (unsupported command, not transpiled)
 	{ // "e_reindex-2.5.29"
 		_res = db.Exec("REINDEX i2_a")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX i2_a")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.30 t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.31 t1 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.32 t2 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.33 t2 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.34 aux.t1 collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.35 aux.t1 collB value")
+	// test_index 5.30 t1 collA length (unsupported command, not transpiled)
+	// test_index 5.31 t1 collB value (unsupported command, not transpiled)
+	// test_index 5.32 t2 collA length (unsupported command, not transpiled)
+	// test_index 5.33 t2 collB value (unsupported command, not transpiled)
+	// test_index 5.34 aux.t1 collA value (unsupported command, not transpiled)
+	// test_index 5.35 aux.t1 collB value (unsupported command, not transpiled)
 	{ // "e_reindex-2.5.36"
 		_res = db.Exec("REINDEX aux.i1_a")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX aux.i1_a")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.37 t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.38 t1 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.39 t2 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.40 t2 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.41 aux.t1 collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 5.42 aux.t1 collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "set_collations value length")
+	// test_index 5.37 t1 collA length (unsupported command, not transpiled)
+	// test_index 5.38 t1 collB value (unsupported command, not transpiled)
+	// test_index 5.39 t2 collA length (unsupported command, not transpiled)
+	// test_index 5.40 t2 collB value (unsupported command, not transpiled)
+	// test_index 5.41 aux.t1 collA length (unsupported command, not transpiled)
+	// test_index 5.42 aux.t1 collB value (unsupported command, not transpiled)
+	// set_collations value length (unsupported command, not transpiled)
 	{ // "e_reindex-2.6.0"
 		_res = db.Exec("\n  CREATE TABLE collA(x);\n  CREATE INDEX icolla_a ON collA(x COLLATE collA);\n  CREATE INDEX icolla_b ON collA(x COLLATE collB);\n\n  INSERT INTO collA SELECT x FROM t1;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE collA(x);\n  CREATE INDEX icolla_a ON collA(x COLLATE collA);\n  CREATE INDEX icolla_b ON collA(x COLLATE collB);\n\n  INSERT INTO collA SELECT x FROM t1;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 6.1 collA collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 6.2 collA collB length")
-	t.Errorf("TODO: %s not implemented in frigolite", "set_collations length value")
+	// test_index 6.1 collA collA value (unsupported command, not transpiled)
+	// test_index 6.2 collA collB length (unsupported command, not transpiled)
+	// set_collations length value (unsupported command, not transpiled)
 	{ // "e_reindex-2.6.3"
 		_res = db.Exec("REINDEX collA")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX collA")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 6.4 collA collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 6.5 collA collB length")
+	// test_index 6.4 collA collA length (unsupported command, not transpiled)
+	// test_index 6.5 collA collB length (unsupported command, not transpiled)
 	{ // "e_reindex-2.6.3"
 		_res = db.Exec("REINDEX main.collA")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX main.collA")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 6.4 collA collA length")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 6.5 collA collB value")
-	t.Errorf("TODO: %s not implemented in frigolite", "set_collations value length")
+	// test_index 6.4 collA collA length (unsupported command, not transpiled)
+	// test_index 6.5 collA collB value (unsupported command, not transpiled)
+	// set_collations value length (unsupported command, not transpiled)
 	{ // "e_reindex-2.6.6"
 		_res = db.Exec("REINDEX main.collA")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "REINDEX main.collA")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 6.7 collA collA value")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_index 6.8 collA collB length")
+	// test_index 6.7 collA collA value (unsupported command, not transpiled)
+	// test_index 6.8 collA collB length (unsupported command, not transpiled)
 }

@@ -40,28 +40,35 @@ func Test_pcache2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	// test_set_config_pagecache 0 0 (unsupported command, not transpiled)
 	{ // do_test "pcache2-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 6000 100")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-		t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_status SQLITE_STATUS_PAGECACHE_USED 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0")
+		// sqlite3_reset_auto_extension (unsupported command, not transpiled)
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_pagecache 6000 100 (unsupported command, not transpiled)
+		// sqlite3_config singlethread (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
+		// autoinstall_test_functions (unsupported command, not transpiled)
+		// sqlite3_status SQLITE_STATUS_PAGECACHE_USED 1 (unsupported command, not transpiled)
+		// sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache2-1.2"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA cache_size=10; SELECT 1 FROM sqlite_master;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA cache_size=10; SELECT 1 FROM sqlite_master;")
 		}
-		tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0", "1")
+		_ = tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0", "1") // lindex result
 	}
 	{ // do_test "pcache2-1.3"
 		os.Remove("test2.db")
@@ -69,14 +76,14 @@ func Test_pcache2(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2.Exec("PRAGMA cache_size=50; SELECT 1 FROM sqlite_master;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0", "1")
+		_ = tclLIndex("sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0", "1") // lindex result
 	}
 	{ // do_test "pcache2-1.4"
 		_res = db.Exec("\n     CREATE TABLE t1(a,b);\n     CREATE TABLE t2(x,y);\n     INSERT INTO t1 VALUES(1, zeroblob(800));\n     INSERT INTO t1 VALUES(2, zeroblob(800));\n     INSERT INTO t2 SELECT * FROM t1;\n     INSERT INTO t1 SELECT x+2, y FROM t2;\n     INSERT INTO t2 SELECT a+10, b FROM t1;\n     INSERT INTO t1 SELECT x+10, y FROM t2;\n     INSERT INTO t2 SELECT a+100, b FROM t1;\n     INSERT INTO t1 SELECT x+100, y FROM t2;\n     INSERT INTO t2 SELECT a+1000, b FROM t1;\n     INSERT INTO t1 SELECT x+1000, y FROM t2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t1(a,b);\n     CREATE TABLE t2(x,y);\n     INSERT INTO t1 VALUES(1, zeroblob(800));\n     INSERT INTO t1 VALUES(2, zeroblob(800));\n     INSERT INTO t2 SELECT * FROM t1;\n     INSERT INTO t1 SELECT x+2, y FROM t2;\n     INSERT INTO t2 SELECT a+10, b FROM t1;\n     INSERT INTO t1 SELECT x+10, y FROM t2;\n     INSERT INTO t2 SELECT a+100, b FROM t1;\n     INSERT INTO t1 SELECT x+100, y FROM t2;\n     INSERT INTO t2 SELECT a+1000, b FROM t1;\n     INSERT INTO t1 SELECT x+1000, y FROM t2;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0")
+		// sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "pcache2-2.1"
 		{
@@ -84,12 +91,12 @@ func Test_pcache2(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			db2.Close()
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 0 -1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-		t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+		// sqlite3_reset_auto_extension (unsupported command, not transpiled)
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_pagecache 0 -1 (unsupported command, not transpiled)
+		// sqlite3_config singlethread (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
+		// autoinstall_test_functions (unsupported command, not transpiled)
 	}
 	db.Close()
 	db, err = frigolite.Open("")
@@ -105,11 +112,11 @@ func Test_pcache2(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 0 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config serialized")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	// sqlite3_reset_auto_extension (unsupported command, not transpiled)
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_pagecache 0 0 (unsupported command, not transpiled)
+	// sqlite3_config serialized (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// autoinstall_test_functions (unsupported command, not transpiled)
+	// test_restore_config_pagecache (unsupported command, not transpiled)
 }

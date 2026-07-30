@@ -39,6 +39,11 @@ func Test_tkt1536(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt1536-1.1"
 		r = db.Query("\n    CREATE TABLE t1(\n      a INTEGER PRIMARY KEY,\n      b TEXT\n    );\n    INSERT INTO t1 VALUES(1,'01');\n    SELECT typeof(a), typeof(b) FROM t1;\n  ")

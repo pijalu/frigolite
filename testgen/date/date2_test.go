@@ -40,6 +40,11 @@ func Test_date2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "date2-100"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y, CHECK( date(x) BETWEEN '2017-07-01' AND '2017-07-31' ));\n  INSERT INTO t1(x,y) VALUES('2017-07-20','one');\n")

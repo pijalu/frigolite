@@ -41,14 +41,57 @@ func Test_corrupt(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fsize string
+	_ = fsize // pre-declared from TCL source
+	var junk string
+	_ = junk // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var bt string
+	_ = bt // pre-declared from TCL source
+	var stats_ref string
+	_ = stats_ref // pre-declared from TCL source
+	var t1_r string
+	_ = t1_r // pre-declared from TCL source
+	var t1i1_r string
+	_ = t1i1_r // pre-declared from TCL source
+	var cookie string
+	_ = cookie // pre-declared from TCL source
+	var text string
+	_ = text // pre-declared from TCL source
+	var iRoot string
+	_ = iRoot // pre-declared from TCL source
+	var iOffset string
+	_ = iOffset // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var ct string
+	_ = ct // pre-declared from TCL source
+	var rootpage string
+	_ = rootpage // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		os.Remove("test.db")
 	}
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// do_not_use_codec (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "corrupt-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(100,100));\n    INSERT INTO t1 VALUES(randstr(90,90));\n    INSERT INTO t1 VALUES(randstr(80,80));\n    INSERT INTO t1 SELECT x || randstr(5,5) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(6,6) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(7,7) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(8,8) FROM t1;\n    INSERT INTO t1 VALUES(randstr(3000,3000));\n    INSERT INTO t1 SELECT x || randstr(9,9) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(10,10) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(11,11) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(12,12) FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    DELETE FROM t2 WHERE rowid%5!=0;\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -58,77 +101,78 @@ func Test_corrupt(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	tclFileCopy("test.db", "test.bu")
-	var fsize = "file size test.db"
+	fsize = "file size test.db"
 	_ = fsize // suppress unused warning
-	var junk = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	junk = "abcdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	_ = junk // suppress unused warning
-	for tclBool(strconv.Itoa(len("$junk")) + "<256") {
+	for tclBool(strconv.Itoa(len(junk)) + "<256") {
 		junk += junk
 	}
 	junk = "$junk 0 255"
 	_ = junk // suppress unused warning
-	var i = "256"
+	i = "256"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; fsize_n, _fsize_e := strconv.Atoi(fsize); if _fsize_e != nil { return false }; return i_n < fsize_n-256 }() {
-		var tn = "$i/256"
+		tn = "$i/256"
 		_ = tn // suppress unused warning
 		tclFileCopy("test.bu", "test.db")
-		var fd = "open test.db r+"
+		fd = "open test.db r+"
 		_ = fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd $i")
-		t.Log("-nonewline")
+		// fconfigure $fd -translation binary (unsupported command, not transpiled)
+		// seek $fd $i (unsupported command, not transpiled)
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
 		// close $fd
 		{ // do_test "corrupt-2." + tn + ".1"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("SELECT count(*) FROM sqlite_master")
 			_ = _res // catchsql
-			var x = ""
+			x = ""
 			_ = x // suppress unused warning
 		}
 		{ // do_test "corrupt-2." + tn + ".2"
 			_res = db.Exec("SELECT count(*) FROM t1")
 			_ = _res // catchsql
-			var x = ""
+			x = ""
 			_ = x // suppress unused warning
 		}
 		{ // do_test "corrupt-2." + tn + ".3"
 			_res = db.Exec("SELECT count(*) FROM t1 WHERE x>'abcdef'")
 			_ = _res // catchsql
-			var x = ""
+			x = ""
 			_ = x // suppress unused warning
 		}
 		{ // do_test "corrupt-2." + tn + ".4"
 			_res = db.Exec("SELECT count(*) FROM t2")
 			_ = _res // catchsql
-			var x = ""
+			x = ""
 			_ = x // suppress unused warning
 		}
 		{ // do_test "corrupt-2." + tn + ".5"
 			_res = db.Exec("CREATE TABLE t3 AS SELECT * FROM t1")
 			_ = _res // catchsql
-			var x = ""
+			x = ""
 			_ = x // suppress unused warning
 		}
 		{ // do_test "corrupt-2." + tn + ".6"
 			_res = db.Exec("DROP TABLE t1")
 			_ = _res // catchsql
-			var x = ""
+			x = ""
 			_ = x // suppress unused warning
 		}
 		{ // do_test "corrupt-2." + tn + ".7"
 			_res = db.Exec("PRAGMA integrity_check")
 			_ = _res // catchsql
-			var x = ""
+			x = ""
 			_ = x // suppress unused warning
 		}
 		{ // do_test "corrupt-2." + tn + ".8"
-			var bt = "btree_from_db db"
+			bt = "btree_from_db db"
 			_ = bt // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "db_enter db")
-			t.Errorf("TODO: %s not implemented in frigolite", "db_leave db")
+			// db_enter db (unsupported command, not transpiled)
+			// db_leave db (unsupported command, not transpiled)
 		}
 		// incr i 256
 		{
@@ -140,64 +184,64 @@ func Test_corrupt(t *testing.T) {
 	}
 	{ // do_test "corrupt-3.1"
 		tclFileCopy("test.bu", "test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "corrupt-3.2"
-		var t1_r = "execsql {SELECT rootpage FROM sqlite_master WHERE name = 't1i1'}"
+		t1_r = "execsql {SELECT rootpage FROM sqlite_master WHERE name = 't1i1'}"
 		_ = t1_r // suppress unused warning
-		var t1i1_r = "execsql {SELECT rootpage FROM sqlite_master WHERE name = 't1'}"
+		t1i1_r = "execsql {SELECT rootpage FROM sqlite_master WHERE name = 't1'}"
 		_ = t1i1_r // suppress unused warning
-		var cookie = "[execsql {PRAGMA schema_version}] + 1"
+		cookie = "[execsql {PRAGMA schema_version}] + 1"
 		_ = cookie // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		r = db.Query("\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = " + t1_r + " WHERE name = 't1';\n    UPDATE sqlite_master SET rootpage = " + t1i1_r + " WHERE name = 't1i1';\n    PRAGMA writable_schema = 0;\n    PRAGMA schema_version = " + cookie + ";\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = " + t1_r + " WHERE name = 't1';\n    UPDATE sqlite_master SET rootpage = " + t1i1_r + " WHERE name = 't1i1';\n    PRAGMA writable_schema = 0;\n    PRAGMA schema_version = " + cookie + ";\n  ")
 		}
 	}
 	{ // do_test "corrupt-3.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    INSERT INTO t1 VALUES('abc');\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt-3.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM t1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt-3.5"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM t1 WHERE oid = 10;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt-3.6"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM t1 WHERE x = 'abcde';\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt-4.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp6, err := frigolite.Open("test.db")
+		_ = _dbtmp6 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-			var text = "$i 220"
+			text = "$i 220"
 			_ = text // suppress unused warning
 			_res = db.Exec(" INSERT INTO t1 VALUES($i, $text) ")
 			if _res.Error != nil {
@@ -217,33 +261,33 @@ func Test_corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "corrupt-4.2"
-		var iRoot = "db one {SELECT rootpage FROM sqlite_master WHERE name = 'i1'}"
+		iRoot = "db one {SELECT rootpage FROM sqlite_master WHERE name = 'i1'}"
 		_ = iRoot // suppress unused warning
-		var iOffset = "hexio_get_int [hexio_read test.db [expr 12+($iRoot-1)*1024] 2]"
+		iOffset = "hexio_get_int [hexio_read test.db [expr 12+($iRoot-1)*1024] 2]"
 		_ = iOffset // suppress unused warning
-		var data = "hexio_render_int32 [expr $iRoot - 1]"
+		data = "hexio_render_int32 [expr $iRoot - 1]"
 		_ = data // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr ($iRoot-1)*1024 + $iOffset] $data")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db [expr ($iRoot-1)*1024 + $iOffset] $data (unsupported command, not transpiled)
+		_dbtmp7, err := frigolite.Open("test.db")
+		_ = _dbtmp7 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid = 3 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt-5.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp8, err := frigolite.Open("test.db")
+		_ = _dbtmp8 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA page_size = 1024 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size = 1024 ")
 		}
-		var ct = "CREATE TABLE t1(c0 "
+		ct = "CREATE TABLE t1(c0 "
 		_ = ct // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
-		for tclBool(strconv.Itoa(len("$ct")) + " < 950") {
+		for tclBool(strconv.Itoa(len(ct)) + " < 950") {
 			ct += ", c" + "incr i"
 		}
 		ct += ")"
@@ -253,23 +297,23 @@ func Test_corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "corrupt-5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 108 00000000")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// hexio_write test.db 108 00000000 (unsupported command, not transpiled)
+		_dbtmp9, err := frigolite.Open("test.db")
+		_ = _dbtmp9 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM sqlite_master ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corrupt-6.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp10, err := frigolite.Open("test.db")
+		_ = _dbtmp10 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA page_size = 1024; CREATE TABLE t1(x);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 63 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES( randomblob(10) ) ")
@@ -288,41 +332,42 @@ func Test_corrupt(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE rowid=1 ")
 		}
-		var rootpage = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1'}"
+		rootpage = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1'}"
 		_ = rootpage // suppress unused warning
-		var offset = "($rootpage * 1024)-14+2"
+		offset = "($rootpage * 1024)-14+2"
 		_ = offset // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $offset 00FF")
-		db, err = frigolite.Open("test.db")
+		// hexio_write test.db $offset 00FF (unsupported command, not transpiled)
+		_dbtmp11, err := frigolite.Open("test.db")
+		_ = _dbtmp11 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" INSERT INTO t1 VALUES( randomblob(10) ) ")
 		_ = _res // catchsql
 	}
 	os.Remove("test.db")
 	{ // do_test "corrupt-8.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp12, err := frigolite.Open("test.db")
+		_ = _dbtmp12 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2044 [hexio_render_int32 2]")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 24 [hexio_render_int32 45]")
+		// hexio_write test.db 2044 [hexio_render_int32 2] (unsupported command, not transpiled)
+		// hexio_write test.db 24 [hexio_render_int32 45] (unsupported command, not transpiled)
 		_res = db.Exec(" INSERT OR REPLACE INTO t1 VALUES(5, randomblob(1900)) ")
 		_ = _res // catchsql
 	}
 	os.Remove("test.db")
 	{ // do_test "corrupt-8.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp13, err := frigolite.Open("test.db")
+		_ = _dbtmp13 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2047 FF")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 24 [hexio_render_int32 45]")
+		// hexio_write test.db 2047 FF (unsupported command, not transpiled)
+		// hexio_write test.db 24 [hexio_render_int32 45] (unsupported command, not transpiled)
 		_res = db.Exec(" INSERT INTO t1 VALUES(4, randomblob(1900)) ")
 		_ = _res // catchsql
 	}

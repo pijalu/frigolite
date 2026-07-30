@@ -39,8 +39,21 @@ func Test_limit2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var fast_count string
+	_ = fast_count // pre-declared from TCL source
+	var slow_count string
+	_ = slow_count // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "limit2"
+	testprefix = "limit2"
 	_ = testprefix // suppress unused warning
 	{ // "limit2-100"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);\n")
@@ -48,7 +61,7 @@ func Test_limit2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(a,b) SELECT 1, (x*17)%1000 + 1000 FROM c;\n  INSERT INTO t1(a,b) VALUES(2,2),(3,1006),(4,4),(5,9999);\n  CREATE INDEX t1ab ON t1(a,b);\n")
 		}
 	}
-	var sqlite_search_count = "0"
+	sqlite_search_count = "0"
 	_ = sqlite_search_count // suppress unused warning
 	{ // "limit2-100.1"
 		r = db.Query("\n  SELECT a, b, '|' FROM t1 WHERE a IN (2,4,5,3,1) ORDER BY b LIMIT 5;\n")
@@ -62,7 +75,7 @@ func Test_limit2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var fast_count = sqlite_search_count
+	fast_count = sqlite_search_count
 	_ = fast_count // suppress unused warning
 	sqlite_search_count = "0"
 	_ = sqlite_search_count // suppress unused warning
@@ -79,7 +92,7 @@ func Test_limit2(t *testing.T) {
 		}
 	}
 	{ // do_test "limit2-100.3"
-		var slow_count = sqlite_search_count
+		slow_count = sqlite_search_count
 		_ = slow_count // suppress unused warning
 		// expr $fast_count < 0.02*$slow_count → "$fast_count < 0.02*$slow_count"
 	}
@@ -119,7 +132,7 @@ func Test_limit2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var slow_count = sqlite_search_count
+	slow_count = sqlite_search_count
 	_ = slow_count // suppress unused warning
 	{ // do_test "limit2-110.3"
 		// expr $fast_count < 0.02*$slow_count → "$fast_count < 0.02*$slow_count"
@@ -161,7 +174,7 @@ func Test_limit2(t *testing.T) {
 		}
 	}
 	{ // do_test "limit2-120.3"
-		var slow_count = sqlite_search_count
+		slow_count = sqlite_search_count
 		_ = slow_count // suppress unused warning
 		// expr $fast_count < 0.02*$slow_count → "$fast_count < 0.02*$slow_count"
 	}

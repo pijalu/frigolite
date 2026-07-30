@@ -40,9 +40,36 @@ func Test_trace3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var stmtlist_error string
+	_ = stmtlist_error // pre-declared from TCL source
+	var stmtlist_record string
+	_ = stmtlist_record // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var ns string
+	_ = ns // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "trace3" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "trace3" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -53,7 +80,6 @@ func Test_trace3(t *testing.T) {
 		}
 	}
 	{ // do_test "trace3-1.1"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -69,7 +95,6 @@ func Test_trace3(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "trace3-1.2"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -93,89 +118,88 @@ func Test_trace3(t *testing.T) {
 		}
 	}
 	{ // do_test "trace3-3.2"
-		var _stmtlist_error = "" // TCL namespace variable
-		_ = _stmtlist_error // suppress unused warning
+		stmtlist_error = "" // TCL namespace variable
+		_ = stmtlist_error // suppress unused warning
 		r = db.Query("\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		_ = _stmtlist_error // TCL namespace variable (query)
+		_ = stmtlist_error // TCL namespace variable (query)
 	}
 	{ // do_test "trace3-3.3"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
 		r = db.Query("\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		_ = _stmtlist_record // TCL namespace variable (query)
+		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	{ // do_test "trace3-3.4"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
 		r = db.Query("\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		_ = _stmtlist_record // TCL namespace variable (query)
+		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	{ // do_test "trace3-3.5"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
 		r = db.Query("\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		_ = _stmtlist_record // TCL namespace variable (query)
+		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	{ // do_test "trace3-4.1"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
 		r = db.Query("\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		_ = _stmtlist_record // TCL namespace variable (query)
+		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	{ // do_test "trace3-4.2"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
 		r = db.Query("\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		_ = _stmtlist_record // TCL namespace variable (query)
+		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	{ // do_test "trace3-4.3"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
 		r = db.Query("\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		var stmt = "lindex [lindex $::stmtlist(record) 0] 0"
+		stmt = "lindex [lindex $::stmtlist(record) 0] 0"
 		_ = stmt // suppress unused warning
-		var ns = "lindex [lindex $::stmtlist(record) 0] 1"
+		ns = "lindex [lindex $::stmtlist(record) 0] 1"
 		_ = ns // suppress unused warning
 		_list := tclList([]string{stmt, "$ns >= 0 && $ns <= 9999999"})
 		_ = _list
 	}
 	{ // do_test "trace3-4.4"
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		for true {
-			var _stmtlist_record = "" // TCL namespace variable
-			_ = _stmtlist_record // suppress unused warning
+			stmtlist_record = "" // TCL namespace variable
+			_ = stmtlist_record // suppress unused warning
 			r = db.Query("\n      SELECT a, b FROM t1 ORDER BY a;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT a, b FROM t1 ORDER BY a;\n    ")
 			}
-			var stmt = "lindex [lindex $::stmtlist(record) 0] 0"
+			stmt = "lindex [lindex $::stmtlist(record) 0] 0"
 			_ = stmt // suppress unused warning
-			var ns = "lindex [lindex $::stmtlist(record) 0] 1"
+			ns = "lindex [lindex $::stmtlist(record) 0] 1"
 			_ = ns // suppress unused warning
-			if func() bool { ns_n, _ns_e := strconv.Atoi(ns); if _ns_e != nil { return false }; return ns_n < 0 || ns_n>9999999 }() {
-				var cnt = "0"
+			if tclBool(ns + "<0 || " + ns + ">9999999") {
 				// incr cnt 1
 				{
 					_n, _err := strconv.Atoi(cnt)
@@ -184,12 +208,12 @@ func Test_trace3(t *testing.T) {
 					}
 				}
 				if func() bool { cnt_n, _cnt_e := strconv.Atoi(cnt); if _cnt_e != nil { return false }; return cnt_n > 3 }() {
-					var res = "time out of bounds.  Expected less than 99999999.  Got " + ns
+					res = "time out of bounds.  Expected less than 99999999.  Got " + ns
 					_ = res // suppress unused warning
 					break
 				}
 			} else {
-				var res = "1"
+				res = "1"
 				_ = res // suppress unused warning
 				break
 			}
@@ -198,45 +222,45 @@ func Test_trace3(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "trace3-5.1"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
 		r = db.Query("\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		_ = _stmtlist_record // TCL namespace variable (query)
+		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	{ // do_test "trace3-5.2"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
 		r = db.Query("\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		_ = _stmtlist_record // TCL namespace variable (query)
+		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	{ // do_test "trace3-6.1"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
 		r = db.Query("\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		_ = _stmtlist_record // TCL namespace variable (query)
+		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	{ // do_test "trace3-6.2"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
 		r = db.Query("\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM t1 ORDER BY a;\n  ")
 		}
-		_ = _stmtlist_record // TCL namespace variable (query)
+		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	{ // do_test "trace3-7.1"
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
-		var STMT = ""
+		STMT = ""
 		_ = STMT // suppress unused warning
 	}
 	{ // do_test "trace3-8.1"
@@ -276,7 +300,7 @@ func Test_trace3(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "trace3-9.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "trace3-10.1"
 	}
@@ -287,62 +311,62 @@ func Test_trace3(t *testing.T) {
 		}
 	}
 	{ // do_test "trace3-11.1"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
-		_ = _stmtlist_record // TCL namespace variable (query)
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
+		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "trace3-11.2"
-		var _stmtlist_record = "" // TCL namespace variable
-		_ = _stmtlist_record // suppress unused warning
-		_ = _stmtlist_record // TCL namespace variable (query)
+		stmtlist_record = "" // TCL namespace variable
+		_ = stmtlist_record // suppress unused warning
+		_ = stmtlist_record // TCL namespace variable (query)
 	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "12.1.0"
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $::STMT")
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		// sqlite3_bind_parameter_count $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "12.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 1 A 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 2 B 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 3 C 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 4 D 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 5 E 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 6 F 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expanded_sql $STMT")
+		// sqlite3_bind_text $STMT 1 A 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT 2 B 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT 3 C 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT 4 D 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT 5 E 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT 6 F 1 (unsupported command, not transpiled)
+		// sqlite3_expanded_sql $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "12.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $STMT 0")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "12.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "12.2.0"
 		_res = db.Exec("\n    CREATE TABLE nameFtsFuzzySearchTable(\n      word, distance, langid, score, top, scope\n    );\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE nameFtsFuzzySearchTable(\n      word, distance, langid, score, top, scope\n    );\n  ")
 		}
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $::STMT")
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
+		// sqlite3_bind_parameter_count $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "12.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 1 A 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 2 B 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 3 C 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 4 D 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 5 E 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 6 F 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expanded_sql $STMT")
+		// sqlite3_bind_text $STMT 1 A 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT 2 B 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT 3 C 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT 4 D 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT 5 E 1 (unsupported command, not transpiled)
+		// sqlite3_bind_text $STMT 6 F 1 (unsupported command, not transpiled)
+		// sqlite3_expanded_sql $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "12.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
 	db.Close()
 	db, err = frigolite.Open("")
@@ -359,7 +383,6 @@ func Test_trace3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
 		}
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 }

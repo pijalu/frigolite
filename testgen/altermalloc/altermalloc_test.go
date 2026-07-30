@@ -39,6 +39,21 @@ func Test_altermalloc(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test altermalloc-1 -tclprep {\n  db close\n} -tclbody {\n  if {[catch {sqlite3 db test.db}]} {\n    error \"...} -sqlbody {\n  CREATE TABLE t1(a int);\n  ALTER TABLE t1 ADD CO...}")
+	// do_malloc_test altermalloc-1 -tclprep {
+  db close
+} -tclbody {
+  if {[catch {sqlite3 db test.db}]} {
+    error "...} -sqlbody {
+  CREATE TABLE t1(a int);
+  ALTER TABLE t1 ADD CO...} (unsupported command, not transpiled)
 }

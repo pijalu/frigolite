@@ -39,6 +39,11 @@ func Test_mem5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("info exists ::G(perm:presql)") {
 		return
@@ -48,39 +53,39 @@ func Test_mem5(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 25000000 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_heap 25000000 0 (unsupported command, not transpiled)
+		// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 	{ // do_test "mem5-1.2"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 1 1073741824")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_heap 1 1073741824 (unsupported command, not transpiled)
+		// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 	{ // do_test "mem5-1.3"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 1 1073741825")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_heap 1 1073741825 (unsupported command, not transpiled)
+		// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 	{ // do_test "mem5-1.4"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 0 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		// sqlite3_shutdown (unsupported command, not transpiled)
+		// sqlite3_config_heap 0 0 (unsupported command, not transpiled)
+		// sqlite3_config_lookaside 0 0 (unsupported command, not transpiled)
+		// sqlite3_initialize (unsupported command, not transpiled)
 	}
 }

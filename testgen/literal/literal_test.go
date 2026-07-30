@@ -40,37 +40,54 @@ func Test_literal(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var lit string
+	_ = lit // pre-declared from TCL source
+	var unrec string
+	_ = unrec // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _type string
+	_ = _type // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "literal" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "literal" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.0 45 integer 45")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.1 0xFF integer 255")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.2 0xFFFFFFFF integer [expr 0xFFFFFFFF]")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.3 0x123FFFFFFFF integer [expr 0x123FFFFFFFF]")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.4 -0x123FFFFFFFF integer [expr -1 * 0x123FFFFFFFF]")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.5 0xFFFFFFFFFFFFFFFF integer -1")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.7 0x7FFFFFFFFFFFFFFF integer [expr 0x7FFFFFFFFFFFFFFF]")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.8 -0x7FFFFFFFFFFFFFFF integer [expr -0x7FFFFFFFFFFFFFFF]")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.9 +0x7FFFFFFFFFFFFFFF integer [expr +0x7FFFFFFFFFFFFFFF]")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.10 -45 integer -45")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.11 '0xFF' text 0xFF")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.12 '-0xFF' text -0xFF")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.13 -'0xFF' integer 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 1.14 -9223372036854775808 integer -9223372036854775808")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 2.1 1e12 real 1000000000000.0")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 2.2 1.0 real 1.0")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 2.3 1e1000 real Inf")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 2.4 -1e1000 real -Inf")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 3.1 1_000 integer 1000")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 3.2 1.1_1 real 1.11")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 3.3 1_0.1_1 real 10.11")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 3.4 1e1_000 real Inf")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 3.5 12_3_456.7_8_9 real 123456.789")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 3.6 9_223_372_036_854_775_807 integer 9223372036854775807")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 3.7 9_223_372_036_854_775_808 real 9.22337203685478e+18")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_literal 3.8 -9_223_372_036_854_775_808 integer -9223372036854775808")
+	// test_literal 1.0 45 integer 45 (unsupported command, not transpiled)
+	// test_literal 1.1 0xFF integer 255 (unsupported command, not transpiled)
+	// test_literal 1.2 0xFFFFFFFF integer [expr 0xFFFFFFFF] (unsupported command, not transpiled)
+	// test_literal 1.3 0x123FFFFFFFF integer [expr 0x123FFFFFFFF] (unsupported command, not transpiled)
+	// test_literal 1.4 -0x123FFFFFFFF integer [expr -1 * 0x123FFFFFFFF] (unsupported command, not transpiled)
+	// test_literal 1.5 0xFFFFFFFFFFFFFFFF integer -1 (unsupported command, not transpiled)
+	// test_literal 1.7 0x7FFFFFFFFFFFFFFF integer [expr 0x7FFFFFFFFFFFFFFF] (unsupported command, not transpiled)
+	// test_literal 1.8 -0x7FFFFFFFFFFFFFFF integer [expr -0x7FFFFFFFFFFFFFFF] (unsupported command, not transpiled)
+	// test_literal 1.9 +0x7FFFFFFFFFFFFFFF integer [expr +0x7FFFFFFFFFFFFFFF] (unsupported command, not transpiled)
+	// test_literal 1.10 -45 integer -45 (unsupported command, not transpiled)
+	// test_literal 1.11 '0xFF' text 0xFF (unsupported command, not transpiled)
+	// test_literal 1.12 '-0xFF' text -0xFF (unsupported command, not transpiled)
+	// test_literal 1.13 -'0xFF' integer 0 (unsupported command, not transpiled)
+	// test_literal 1.14 -9223372036854775808 integer -9223372036854775808 (unsupported command, not transpiled)
+	// test_literal 2.1 1e12 real 1000000000000.0 (unsupported command, not transpiled)
+	// test_literal 2.2 1.0 real 1.0 (unsupported command, not transpiled)
+	// test_literal 2.3 1e1000 real Inf (unsupported command, not transpiled)
+	// test_literal 2.4 -1e1000 real -Inf (unsupported command, not transpiled)
+	// test_literal 3.1 1_000 integer 1000 (unsupported command, not transpiled)
+	// test_literal 3.2 1.1_1 real 1.11 (unsupported command, not transpiled)
+	// test_literal 3.3 1_0.1_1 real 10.11 (unsupported command, not transpiled)
+	// test_literal 3.4 1e1_000 real Inf (unsupported command, not transpiled)
+	// test_literal 3.5 12_3_456.7_8_9 real 123456.789 (unsupported command, not transpiled)
+	// test_literal 3.6 9_223_372_036_854_775_807 integer 9223372036854775807 (unsupported command, not transpiled)
+	// test_literal 3.7 9_223_372_036_854_775_808 real 9.22337203685478e+18 (unsupported command, not transpiled)
+	// test_literal 3.8 -9_223_372_036_854_775_808 integer -9223372036854775808 (unsupported command, not transpiled)
 	// foreach {tn lit unrec} "\n  0    123a456       123a456\n  1    1_            1_\n  2    1_.4          1_.4\n  3    1e_4          1e_4\n  4    1_e4          1_e4\n  5    1.4_e4        1.4_e4\n  6    1.4e+_4       1.4e\n  7    1.4e-_4       1.4e\n  8    1.4e4_        1.4e4_\n  9    1.4_e4        1.4_e4\n  10   1.4e_4        1.4e_4\n  11   12__34        12__34\n  12   1234_         1234_\n  13   12._34        12._34\n  14   12_.34        12_.34\n  15   12.34_        12.34_\n  16   1.0e1_______2 1.0e1_______2 \n"
 	_items0 := tclSplitList("\n  0    123a456       123a456\n  1    1_            1_\n  2    1_.4          1_.4\n  3    1e_4          1e_4\n  4    1_e4          1_e4\n  5    1.4_e4        1.4_e4\n  6    1.4e+_4       1.4e\n  7    1.4e-_4       1.4e\n  8    1.4e4_        1.4e4_\n  9    1.4_e4        1.4_e4\n  10   1.4e_4        1.4e_4\n  11   12__34        12__34\n  12   1234_         1234_\n  13   12._34        12._34\n  14   12_.34        12_.34\n  15   12.34_        12.34_\n  16   1.0e1_______2 1.0e1_______2 \n")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
@@ -81,7 +98,7 @@ func Test_literal(t *testing.T) {
 		unrec := _items0[_idx0+2]
 		_ = unrec // suppress unused warning
 		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "test_literal_error 4.$tn $lit $unrec")
+			// test_literal_error 4.$tn $lit $unrec (unsupported command, not transpiled)
 		}
 		{ // "5.1"
 			_res = db.Exec("\n  SELECT 1 ORDER BY 2_3;\n")

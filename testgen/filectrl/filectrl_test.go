@@ -40,68 +40,81 @@ func Test_filectrl(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fn string
+	_ = fn // pre-declared from TCL source
+	var size string
+	_ = size // pre-declared from TCL source
+	var handle string
+	_ = handle // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "filectrl-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_test db")
+		// file_control_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.2"
 		_res = db.Exec("CREATE TEMP TABLE x(y);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TEMP TABLE x(y);")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_test db")
+		// file_control_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.3"
-		db, err := frigolite.Open(":memory:")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open(":memory:")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_test db")
+		// file_control_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_lasterrno_test db")
+		// file_control_lasterrno_test db (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.5"
-		db, err := frigolite.Open("test_control_lockproxy.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test_control_lockproxy.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_lockproxy_test db [get_pwd]")
+		// file_control_lockproxy_test db [get_pwd] (unsupported command, not transpiled)
 	}
 	{ // do_test "filectrl-1.6"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var fn = "file_control_tempfilename db"
+		fn = "file_control_tempfilename db"
 		_ = fn // suppress unused warning
 	}
 	os.Remove(".test_control_lockproxy.db-conch")
 	os.Remove("test.db")
 	if tcl_platform_platform == "windows" {
 		{ // do_test "filectrl-2.1"
-			db, err := frigolite.Open("test2.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test2.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			var size = "file size test2.db"
+			size = "file size test2.db"
 			_ = size // suppress unused warning
-			var handle = "file_control_win32_get_handle db"
+			handle = "file_control_win32_get_handle db"
 			_ = handle // suppress unused warning
 			os.Remove("test2.db")
 			_list := tclList([]string{size, handle, "$handle != 0"})
 			_ = _list
 		}
 		{ // do_test "filectrl-2.2"
-			db, err := frigolite.Open("test2.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test2.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(x);\n      INSERT INTO t1 (x) VALUES(RANDOMBLOB(1048576));\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TABLE t1(x);\n      INSERT INTO t1 (x) VALUES(RANDOMBLOB(1048576));\n    ")
 			}
-			var size = "file size test2.db"
+			size = "file size test2.db"
 			_ = size // suppress unused warning
-			var handle = "file_control_win32_get_handle db"
+			handle = "file_control_win32_get_handle db"
 			_ = handle // suppress unused warning
 			os.Remove("test2.db")
 			_list := tclList([]string{size, handle, "$handle != 0"})

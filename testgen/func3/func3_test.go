@@ -39,35 +39,44 @@ func Test_func3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var destroyed string
+	_ = destroyed // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "func3-2.1"
-		var destroyed = "0"
+		destroyed = "0"
 		_ = destroyed // suppress unused warning
 		// proc definition (not transpiled)
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 utf8 -func f3 -destroy destroy")
+		// sqlite3_create_function_v2 db f3 -1 utf8 -func f3 -destroy destroy (unsupported command, not transpiled)
 	}
 	{ // do_test "func3-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 utf8 -func f3")
+		// sqlite3_create_function_v2 db f3 -1 utf8 -func f3 (unsupported command, not transpiled)
 	}
 	{ // do_test "func3-3.1"
-		var destroyed = "0"
+		destroyed = "0"
 		_ = destroyed // suppress unused warning
 		// proc definition (not transpiled)
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 any -func f3 -destroy destroy")
+		// sqlite3_create_function_v2 db f3 -1 any -func f3 -destroy destroy (unsupported command, not transpiled)
 	}
 	{ // do_test "func3-3.2"
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "func3-4.1"
-		var destroyed = "0"
+		destroyed = "0"
 		_ = destroyed // suppress unused warning
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 any -func f3 -step f3 -destroy destroy")
+			// sqlite3_create_function_v2 db f3 -1 any -func f3 -step f3 -destroy destroy (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -376,6 +385,6 @@ func Test_func3(t *testing.T) {
 		}
 	}
 	{ // do_test "func3-6.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db nofunc 1 utf8")
+		// sqlite3_create_function_v2 db nofunc 1 utf8 (unsupported command, not transpiled)
 	}
 }

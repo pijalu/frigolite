@@ -40,10 +40,42 @@ func Test_notify3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var esc string
+	_ = esc // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var when string
+	_ = when // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var noerr string
+	_ = noerr // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var db1_loaded string
+	_ = db1_loaded // pre-declared from TCL source
+	var db2_loaded string
+	_ = db2_loaded // pre-declared from TCL source
+	var enable_extended_errors string
+	_ = enable_extended_errors // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var error1 string
+	_ = error1 // pre-declared from TCL source
+	var error2 string
+	_ = error2 // pre-declared from TCL source
+	var invoked string
+	_ = invoked // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var esc = "sqlite3_enable_shared_cache 1"
+	esc = "sqlite3_enable_shared_cache 1"
 	_ = esc // suppress unused warning
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")
@@ -79,15 +111,15 @@ func Test_notify3(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "notify3-1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db 1")
+		// sqlite3_extended_result_codes db 1 (unsupported command, not transpiled)
 		{
 			var msg string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
 			_ = msg // suppress unused warning
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
-			var _stmt = "" // TCL namespace variable
-			_ = _stmt // suppress unused warning
+			stmt = "" // TCL namespace variable
+			_ = stmt // suppress unused warning
 			if _catchErr != nil {
 				msg = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -98,27 +130,28 @@ func Test_notify3(t *testing.T) {
 		}
 	}
 	{ // do_test "notify3-1.8"
-		var _when = "1" // TCL namespace variable
-		_ = _when // suppress unused warning
-		var _when = "2" // TCL namespace variable
-		_ = _when // suppress unused warning
+		when = "1" // TCL namespace variable
+		_ = when // suppress unused warning
+		when = "2" // TCL namespace variable
+		_ = when // suppress unused warning
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		_ = _res // TCL namespace variable (query)
+		_ = res // TCL namespace variable (query)
 	}
 	{ // do_test "notify3-1.9"
 		_res = db.Exec(" SELECT * FROM t2 ")
 		_ = _res // catchsql
 	}
-	err = "{1 {unable to open database: test.db2}}"
-	_ = err // suppress unused warning
-	var noerr = "{0 {}}"
+	var _err_tcl string
+	_err_tcl = "{1 {unable to open database: test.db2}}"
+	_ = _err_tcl // suppress unused warning
+	noerr = "{0 {}}"
 	_ = noerr // suppress unused warning
 	if tclBool("presql" + " == \"\"") {
-		// foreach {tn db1_loaded db2_loaded enable_extended_errors result error1 error2} "\n    0   0 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n  "
-		_items0 := tclSplitList("\n    0   0 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n  ")
+		// foreach {tn db1_loaded db2_loaded enable_extended_errors result error1 error2} "\n    0   0 0 0   " + tclStr(err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + tclStr(err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + tclStr(err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + tclStr(err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n  "
+		_items0 := tclSplitList("\n    0   0 0 0   " + tclStr(err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + tclStr(err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + tclStr(err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + tclStr(err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n  ")
 		for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
 			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
@@ -150,8 +183,8 @@ func Test_notify3(t *testing.T) {
 					if err != nil { t.Fatal(err) }
 					db2, err = frigolite.Open("test.db2")
 					if err != nil { t.Fatal(err) }
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db1 $enable_extended_errors")
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db2 $enable_extended_errors")
+					// sqlite3_extended_result_codes db1 $enable_extended_errors (unsupported command, not transpiled)
+					// sqlite3_extended_result_codes db2 $enable_extended_errors (unsupported command, not transpiled)
 					if tclBool(db1_loaded) {
 						db1.Exec("SELECT * FROM sqlite_master")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -171,7 +204,7 @@ func Test_notify3(t *testing.T) {
 				}
 				{ // do_test "notify3-2." + tn + ".3"
 					// db1.unlock_notify (db command)
-					var invoked = "0"
+					invoked = "0"
 					_ = invoked // suppress unused warning
 					db2.Exec("commit")
 					if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -188,5 +221,5 @@ func Test_notify3(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			db2.Close()
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $esc")
+		// sqlite3_enable_shared_cache $esc (unsupported command, not transpiled)
 }

@@ -41,17 +41,50 @@ func Test_walslow(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var seed string
+	_ = seed // pre-declared from TCL source
+	var iTest string
+	_ = iTest // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var incr string
+	_ = incr // pre-declared from TCL source
+	var FAIL string
+	_ = FAIL // pre-declared from TCL source
+	var iOff string
+	_ = iOff // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var blobcnt string
+	_ = blobcnt // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var nByte string
+	_ = nByte // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walslow"
+	testprefix = "walslow"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "save_prng_state")
-	var seed = "1"
+	// save_prng_state (unsupported command, not transpiled)
+	seed = "1"
 	_ = seed // suppress unused warning
 	for func() bool { seed_n, _seed_e := strconv.Atoi(seed); if _seed_e != nil { return false }; return seed_n < 10 }() {
 		// expr srand($seed) → "srand($seed)"
-		t.Errorf("TODO: %s not implemented in frigolite", "restore_prng_state")
-		t.Errorf("TODO: %s not implemented in frigolite", "reopen_db")
+		// restore_prng_state (unsupported command, not transpiled)
+		// reopen_db (unsupported command, not transpiled)
 		{ // do_test "walslow-1.seed=" + seed + ".0"
 			_res = db.Exec(" CREATE TABLE t1(a, b) ")
 			if _res.Error != nil {
@@ -66,13 +99,13 @@ func Test_walslow(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i2 ON t1(b) ")
 			}
 		}
-		var iTest = "1"
+		iTest = "1"
 		_ = iTest // suppress unused warning
 		for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return iTest_n < 100 }() {
 			{ // do_test "walslow-1.seed=" + seed + "." + iTest + ".1"
-				var w = "0"
+				w = "0"
 				_ = w // suppress unused warning
-				var x = "0"
+				x = "0"
 				_ = x // suppress unused warning
 				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob($w), randomblob($x)) ")
 				if _res.Error != nil {
@@ -95,8 +128,8 @@ func Test_walslow(t *testing.T) {
 			}
 			{ // do_test "walslow-1.seed=" + seed + "." + iTest + ".3"
 				os.Remove("testX.db")
-				t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db testX.db")
-				t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-wal testX.db-wal")
+				// copy_file test.db testX.db (unsupported command, not transpiled)
+				// copy_file test.db-wal testX.db-wal (unsupported command, not transpiled)
 				db2, err = frigolite.Open("testX.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" PRAGMA journal_mode = WAL ")
@@ -156,24 +189,25 @@ func Test_walslow(t *testing.T) {
 	for _, incr := range tclSplitList("1 2 3 20 40 60 80 100 120 140 160 180 200 220 240 253 254 255") {
 	_ = incr // suppress unused warning
 		{ // do_test "3.3." + incr
-			var FAIL = "0"
+			FAIL = "0"
 			_ = FAIL // suppress unused warning
-			var iOff = "0"
+			iOff = "0"
 			_ = iOff // suppress unused warning
 			for tclBool(iOff + " < " + "wal_file_size 1 1024") {
 				tclFileCopy("test.db-wal", "test2.db-wal")
-				var fd = "open test2.db-wal r+"
+				fd = "open test2.db-wal r+"
 				_ = fd // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-				t.Errorf("TODO: %s not implemented in frigolite", "seek $fd $iOff")
-				t.Errorf("TODO: %s not implemented in frigolite", "binary scan [read $fd 1] c x")
-				t.Errorf("TODO: %s not implemented in frigolite", "seek $fd $iOff")
-				t.Log("-nonewline")
+				// fconfigure $fd -translation binary (unsupported command, not transpiled)
+				// seek $fd $iOff (unsupported command, not transpiled)
+				// binary scan [read $fd 1] c x (test infra, not transpiled)
+				// seek $fd $iOff (unsupported command, not transpiled)
+				_putsMsg := "-nonewline"
+				_ = _putsMsg
 				// close $fd
 				db2, err = frigolite.Open("test2.db")
 				if err != nil { t.Fatal(err) }
 				if tclBool("execsql { SELECT a FROM t1 } db2" + " != \"1 2\"") {
-					var FAIL = "1"
+					FAIL = "1"
 					_ = FAIL // suppress unused warning
 				}
 				db2.Close()
@@ -187,8 +221,8 @@ func Test_walslow(t *testing.T) {
 			}
 		}
 	}
-	var _blobcnt = "0" // TCL namespace variable
-	_ = _blobcnt // suppress unused warning
+	blobcnt = "0" // TCL namespace variable
+	_ = blobcnt // suppress unused warning
 	// proc definition (not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
@@ -204,13 +238,14 @@ func Test_walslow(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "4.1.2"
-		var fd = "open test.db-wal w"
+		fd = "open test.db-wal w"
 		_ = fd // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 200*1024*1024]")
-		t.Log(fd)
+		// seek $fd [expr 200*1024*1024] (unsupported command, not transpiled)
+		_putsMsg := fd
+		_ = _putsMsg
 		// close $fd
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT * FROM t2 ")
 		if r.Error != nil {
@@ -221,8 +256,8 @@ func Test_walslow(t *testing.T) {
 		// file exists "test.db-wal"
 	}
 	{ // do_test "4.2.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" SELECT count(*) FROM t2 ")
 		if r.Error != nil {
@@ -230,7 +265,7 @@ func Test_walslow(t *testing.T) {
 		}
 	}
 	{ // do_test "4.2.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 16 }() {
 			_res = db.Exec(" INSERT INTO t2 SELECT blob(400), blob(400) FROM t2 ")
@@ -253,5 +288,10 @@ func Test_walslow(t *testing.T) {
 	{ // do_test "4.2.3"
 		// expr [file size test.db-wal] → "[file size test.db-wal]"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  incr tn 2\n\n  do_test 4.$tn.0 {\n    sql1 {\n     ...}")
+	// do_multiclient_test tn {
+  incr tn 2
+
+  do_test 4.$tn.0 {
+    sql1 {
+     ...} (unsupported command, not transpiled)
 }

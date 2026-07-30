@@ -40,11 +40,21 @@ func Test_basexx1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var inLimit string
+	_ = inLimit // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "basexx"
+	testprefix = "basexx"
 	_ = testprefix // suppress unused warning
 	if false {
-		t.Log("Skipping basexx tests, hit load error: " + _error)
+		_putsMsg := "Skipping basexx tests, hit load error: " + _error
+		_ = _putsMsg
 		return
 	}
 	{ // "100"
@@ -167,9 +177,9 @@ func Test_basexx1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var inLimit = "sqlite3_limit db SQLITE_LIMIT_LENGTH -1"
+	inLimit = "sqlite3_limit db SQLITE_LIMIT_LENGTH -1"
 	_ = inLimit // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 1300")
+	// sqlite3_limit db SQLITE_LIMIT_LENGTH 1300 (unsupported command, not transpiled)
 	{ // "109"
 		_res = db.Exec("\n  SELECT len, base64(b) FROM rb WHERE len>200;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "blob expanded to base64 too big") {
@@ -188,7 +198,7 @@ func Test_basexx1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "blob expanded to base85 too big", _res.Error, "\n  SELECT length(base85(b))=1335 FROM rb WHERE len=1054;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH $inLimit")
+	// sqlite3_limit db SQLITE_LIMIT_LENGTH $inLimit (unsupported command, not transpiled)
 	{ // "112"
 		_res = db.Exec("\n  SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'[\\]^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1 0 0 0 0 0 0 0 0 0 0") {

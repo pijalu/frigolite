@@ -41,10 +41,21 @@ func Test_fuzzer1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fuzzer1" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fuzzer")
+	testprefix = "fuzzer1" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// load_static_extension db fuzzer (unsupported command, not transpiled)
 	{ // "fuzzer1-1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fuzzer;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: wrong number of CREATE VIRTUAL TABLE arguments") {

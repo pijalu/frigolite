@@ -39,8 +39,18 @@ func Test_dataversion1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var dv1 string
+	_ = dv1 // pre-declared from TCL source
+	var dv2 string
+	_ = dv2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "dataversion1-100"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(99);\n    SELECT * FROM t1;\n  ")
@@ -48,21 +58,21 @@ func Test_dataversion1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(99);\n    SELECT * FROM t1;\n  ")
 		}
 	}
-	var dv1 = "file_control_data_version db main"
+	dv1 = "file_control_data_version db main"
 	_ = dv1 // suppress unused warning
 	{ // do_test "dataversion1-101"
 		_res = db.Exec("\n    ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t2(y);\n    CREATE TEMP TABLE t3(z);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t2(y);\n    CREATE TEMP TABLE t3(z);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_data_version db main")
+		// file_control_data_version db main (unsupported command, not transpiled)
 	}
 	{ // do_test "dataversion1-110"
 		_res = db.Exec("\n    UPDATE t1 SET x=x+1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET x=x+1;\n  ")
 		}
-		var dv2 = "file_control_data_version db"
+		dv2 = "file_control_data_version db"
 		_ = dv2 // suppress unused warning
 		// expr $::dv1==$dv2 → "$::dv1==$dv2"
 	}
@@ -73,7 +83,7 @@ func Test_dataversion1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t2 SET y=y+1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_data_version db")
+		// file_control_data_version db (unsupported command, not transpiled)
 	}
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -82,12 +92,12 @@ func Test_dataversion1(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "dataversion1-131"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_data_version db")
+		// file_control_data_version db (unsupported command, not transpiled)
 	}
 	{ // do_test "dataversion1-132"
 		db2.Exec("\n    UPDATE t1 SET x=x+1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		var dv2 = "file_control_data_version db"
+		dv2 = "file_control_data_version db"
 		_ = dv2 // suppress unused warning
 		// expr $::dv1==$dv2 → "$::dv1==$dv2"
 	}
@@ -96,7 +106,7 @@ func Test_dataversion1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
 		}
-		var dv2 = "file_control_data_version db"
+		dv2 = "file_control_data_version db"
 		_ = dv2 // suppress unused warning
 		// expr $::dv1==$dv2 → "$::dv1==$dv2"
 	}

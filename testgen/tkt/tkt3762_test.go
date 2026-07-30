@@ -39,6 +39,13 @@ func Test_tkt3762(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3762-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=INCREMENTAL;\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(zeroblob(900));\n    INSERT INTO t1 VALUES(zeroblob(900));\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    INSERT INTO t1 SELECT x FROM t1;\n    DELETE FROM t1 WHERE rowid>202;\n    VACUUM;\n    \n    BEGIN;\n    DELETE FROM t1 WHERE rowid IN (10,11,12) ;\n    PRAGMA incremental_vacuum(10);\n    UPDATE t1 SET x=zeroblob(900) WHERE rowid BETWEEN 100 AND 110;\n    INSERT INTO t1 VALUES(zeroblob(39000));\n    SELECT count(*) FROM t1;\n    ROLLBACK;\n  ")

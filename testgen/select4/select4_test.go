@@ -40,6 +40,17 @@ func Test_select4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "select4-8.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t3(a text, b float, c text);\n    INSERT INTO t3 VALUES(1, 1.1, '1.1');\n    INSERT INTO t3 VALUES(2, 1.10, '1.10');\n    INSERT INTO t3 VALUES(3, 1.10, '1.1');\n    INSERT INTO t3 VALUES(4, 1.1, '1.10');\n    INSERT INTO t3 VALUES(5, 1.2, '1.2');\n    INSERT INTO t3 VALUES(6, 1.3, '1.3');\n    COMMIT;\n  ")
@@ -58,8 +69,8 @@ func Test_select4(t *testing.T) {
 		}
 	}
 	{ // do_test "select4-13.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t13(a,b);\n    INSERT INTO t13 VALUES(1,1);\n    INSERT INTO t13 VALUES(2,1);\n    INSERT INTO t13 VALUES(3,1);\n    INSERT INTO t13 VALUES(2,2);\n    INSERT INTO t13 VALUES(3,2);\n    INSERT INTO t13 VALUES(4,2);\n    CREATE INDEX t13ab ON t13(a,b);\n    SELECT DISTINCT b from t13 WHERE a IN (1,2,3);\n  ")
 		if _res.Error != nil {

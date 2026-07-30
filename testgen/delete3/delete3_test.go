@@ -39,6 +39,11 @@ func Test_delete3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "delete3-1.1"
 		r = db.Query("\n    CREATE TABLE t1(x integer primary key);\n    BEGIN;\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n    INSERT INTO t1 SELECT x+16 FROM t1;\n    INSERT INTO t1 SELECT x+32 FROM t1;\n    INSERT INTO t1 SELECT x+64 FROM t1;\n    INSERT INTO t1 SELECT x+128 FROM t1;\n    INSERT INTO t1 SELECT x+256 FROM t1;\n    INSERT INTO t1 SELECT x+512 FROM t1;\n    INSERT INTO t1 SELECT x+1024 FROM t1;\n    INSERT INTO t1 SELECT x+2048 FROM t1;\n    INSERT INTO t1 SELECT x+4096 FROM t1;\n    INSERT INTO t1 SELECT x+8192 FROM t1;\n    INSERT INTO t1 SELECT x+16384 FROM t1;\n    INSERT INTO t1 SELECT x+32768 FROM t1;\n    INSERT INTO t1 SELECT x+65536 FROM t1;\n    INSERT INTO t1 SELECT x+131072 FROM t1;\n    INSERT INTO t1 SELECT x+262144 FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\t\n  ")

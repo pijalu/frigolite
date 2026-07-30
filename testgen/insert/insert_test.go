@@ -40,9 +40,21 @@ func Test_insert(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var maxa string
+	_ = maxa // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "insert-1.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -60,7 +72,6 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "insert-1.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -82,7 +93,6 @@ func Test_insert(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(one int, two int, three int)")
 		}
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -100,7 +110,6 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "insert-1.3b"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -118,7 +127,6 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "insert-1.3c"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -136,7 +144,6 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "insert-1.3d"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -154,7 +161,6 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "insert-1.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -489,7 +495,8 @@ func Test_insert(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "insert-16.1"
 		_res = db.Exec("\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t0(c0,c1);\n  CREATE UNIQUE INDEX i0 ON t0(c0);\n  INSERT INTO t0(c0,c1) VALUES(123,1);\n  CREATE TRIGGER tr0 AFTER DELETE ON t0\n  BEGIN\n    INSERT INTO t0 VALUES(123,2);\n  END;\n  REPLACE INTO t0(c0,c1) VALUES(123,3);\n")

@@ -40,9 +40,20 @@ func Test_rowvalue9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "rowvalue9" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "rowvalue9" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0.1"
 		_res = db.Exec("\n  CREATE TABLE a1(c, b INTEGER, a TEXT, PRIMARY KEY(a, b));\n \n  INSERT INTO a1 (rowid, c, b, a) VALUES(3,  '0x03', 1, 1);\n  INSERT INTO a1 (rowid, c, b, a) VALUES(14, '0x0E', 2, 2);\n  INSERT INTO a1 (rowid, c, b, a) VALUES(15, '0x0F', 3, 3);\n  INSERT INTO a1 (rowid, c, b, a) VALUES(92, '0x5C', 4, 4);\n\n  CREATE TABLE a2(x BLOB, y BLOB);\n  INSERT INTO a2(x, y) VALUES(1, 1);\n  INSERT INTO a2(x, y) VALUES(2, '2');\n  INSERT INTO a2(x, y) VALUES('3', 3);\n  INSERT INTO a2(x, y) VALUES('4', '4');\n")
 		if _res.Error != nil {

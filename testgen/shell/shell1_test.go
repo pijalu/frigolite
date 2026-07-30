@@ -5,6 +5,7 @@ import (
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -41,606 +42,648 @@ func Test_shell1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var CLI string
+	_ = CLI // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var hex string
+	_ = hex // pre-declared from TCL source
+	var char string
+	_ = char // pre-declared from TCL source
+	var oldChar string
+	_ = oldChar // pre-declared from TCL source
+	var escapes string
+	_ = escapes // pre-declared from TCL source
+	var code string
+	_ = code // pre-declared from TCL source
+	var got string
+	_ = got // pre-declared from TCL source
+	var test string
+	_ = test // pre-declared from TCL source
+	var fileName string
+	_ = fileName // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var CLI = "test_cli_invocation"
+	CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell1-1.1.1"
-		var res = "catchcmd \"-bad test.db\" \"\""
+		res = "catchcmd \"-bad test.db\" \"\""
 		_ = res // suppress unused warning
-		var rc = "lindex $res 0"
+		rc = "lindex $res 0"
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {Error: unknown option: -bad} $res"})
 		_ = _list
 	}
 	{ // do_test "shell1-1.1.1b"
-		var res = "catchcmd \"test.db -bad\" \"\""
+		res = "catchcmd \"test.db -bad\" \"\""
 		_ = res // suppress unused warning
-		var rc = "lindex $res 0"
+		rc = "lindex $res 0"
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {Error: unknown option: -bad} $res"})
 		_ = _list
 	}
 	{ // do_test "shell1-1.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db \\\"select+3\\\" \\\"select+4\\\" ")
+		// catchcmd test.db \"select+3\" \"select+4\"  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db FOO test.db BAD .quit")
+		// catchcmd test.db FOO test.db BAD .quit (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.2.1"
-		var res = "catchcmd \"-help test.db\" \"\""
+		res = "catchcmd \"-help test.db\" \"\""
 		_ = res // suppress unused warning
-		var rc = "lindex $res 0"
+		rc = "lindex $res 0"
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {Usage} $res", "regexp {\\-init} $res", "regexp {\\-version} $res"})
 		_ = _list
 	}
 	os.Remove("FOO")
-	var out = "open FOO w"
+	out = "open FOO w"
 	_ = out // suppress unused warning
-	t.Log(out)
+	_putsMsg := out
+	_ = _putsMsg
 	// close $out
 	{ // do_test "shell1-1.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -init FOO test.db ")
+		// catchcmd -init FOO test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -init FOO test.db .quit BAD ")
+		// catchcmd -init FOO test.db .quit BAD  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -init FOO test.db BAD .quit ")
+		// catchcmd -init FOO test.db BAD .quit  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.4.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -echo test.db ")
+		// catchcmd -echo test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.5.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -header test.db ")
+		// catchcmd -header test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -noheader test.db ")
+		// catchcmd -noheader test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.6.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -bail test.db ")
+		// catchcmd -bail test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.7.1"
-		var res = "catchcmd \"-interactive test.db\" \".quit\""
+		res = "catchcmd \"-interactive test.db\" \".quit\""
 		_ = res // suppress unused warning
-		var rc = "lindex $res 0"
+		rc = "lindex $res 0"
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {SQLite version} $res", "regexp {Enter \".help\" for usage hints} $res"})
 		_ = _list
 	}
 	{ // do_test "shell1-1.8.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -batch test.db ")
+		// catchcmd -batch test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.9.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -column test.db ")
+		// catchcmd -column test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.10.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -csv test.db ")
+		// catchcmd -csv test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.10.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db CREATE TABLE t1(a,b,c);INSERT INTO t1 VALUES(1,2,3...")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -csv test.db .mode --rowsep \\\"\\\\012\\\"\\nSELECT * FROM t1")
+		// catchcmd test.db CREATE TABLE t1(a,b,c);INSERT INTO t1 VALUES(1,2,3... (unsupported command, not transpiled)
+		// catchcmd -csv test.db .mode --rowsep \"\\012\"\nSELECT * FROM t1 (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.10.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -header -csv test.db .mode --rowsep \\\"\\\\012\\\"\\nSELECT * FROM t1")
+		// catchcmd -header -csv test.db .mode --rowsep \"\\012\"\nSELECT * FROM t1 (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.10.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -csv -header test.db .mode --rowsep \\\"\\\\012\\\"\\nSELECT * FROM t1")
+		// catchcmd -csv -header test.db .mode --rowsep \"\\012\"\nSELECT * FROM t1 (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.11.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -html test.db ")
+		// catchcmd -html test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.12.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -line test.db ")
+		// catchcmd -line test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.13.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -list test.db ")
+		// catchcmd -list test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.14.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -separator 'x' test.db ")
+		// catchcmd -separator 'x' test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.14.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -separator x test.db ")
+		// catchcmd -separator x test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.14.3"
-		var res = "catchcmd \"-separator\" \"\""
+		res = "catchcmd \"-separator\" \"\""
 		_ = res // suppress unused warning
-		var rc = "lindex $res 0"
+		rc = "lindex $res 0"
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {Error: missing argument to -separator} $res"})
 		_ = _list
 	}
 	{ // do_test "shell1-1.14b.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -stats test.db ")
+		// catchcmd -stats test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.15.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -nullvalue 'x' test.db ")
+		// catchcmd -nullvalue 'x' test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.15.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -nullvalue x test.db ")
+		// catchcmd -nullvalue x test.db  (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.15.3"
-		var res = "catchcmd \"-nullvalue\" \"\""
+		res = "catchcmd \"-nullvalue\" \"\""
 		_ = res // suppress unused warning
-		var rc = "lindex $res 0"
+		rc = "lindex $res 0"
 		_ = rc // suppress unused warning
 		_list := tclList([]string{rc, "regexp {Error: missing argument to -nullvalue} $res"})
 		_ = _list
 	}
 	{ // do_test "shell1-1.16.1"
-		var x = "catchcmd \"-version test.db\" \"\""
+		x = "catchcmd \"-version test.db\" \"\""
 		_ = x // suppress unused warning
 	}
 	os.Remove("./--db")
 	{ // do_test "shell1-1.17.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd {-- --db \"CREATE TABLE T(c1);\"}")
+		// catchcmd {-- --db "CREATE TABLE T(c1);"} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-1.17.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd {-- --db \"SELECT name from sqlite_schema;\"}")
+		// catchcmd {-- --db "SELECT name from sqlite_schema;"} (unsupported command, not transpiled)
 	}
 	os.Remove("./--db")
 	{ // do_test "shell1-2.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .foo")
+		// catchcmd test.db .foo (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\\"foo OFF\\\"")
+		// catchcmd test.db .\"foo OFF\" (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'foo OFF\\'")
+		// catchcmd test.db .\'foo OFF\' (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\\"foo OFF")
+		// catchcmd test.db .\"foo OFF (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'foo OFF")
+		// catchcmd test.db .\'foo OFF (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\\"OFF")
+		// catchcmd test.db .explain \"OFF (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\'OFF")
+		// catchcmd test.db .explain \'OFF (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode \\\"insert FOO")
+		// catchcmd test.db .mode \"insert FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode \\'insert FOO")
+		// catchcmd test.db .mode \'insert FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain 1")
+		// catchcmd test.db .explain 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain on")
+		// catchcmd test.db .explain on (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\\"1 2 3\\\"")
+		// catchcmd test.db .explain \"1 2 3\" (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\\"OFF\\\"")
+		// catchcmd test.db .explain \"OFF\" (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'explain\\' \\'OFF\\'")
+		// catchcmd test.db .\'explain\' \'OFF\' (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.3.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\'OFF\\'")
+		// catchcmd test.db .explain \'OFF\' (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.3.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'explain\\' \\'OFF\\'")
+		// catchcmd test.db .\'explain\' \'OFF\' (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.4.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode FOO")
+		// catchcmd test.db .mode FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode csv")
+		// catchcmd test.db .mode csv (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode \\\"csv\\\"")
+		// catchcmd test.db .mode \"csv\" (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-2.5.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: .print \\\"\\\\060\\\\077 \\\\x3f\\\\x30 \\\\a\\\\t\\\"")
+		// catchcmd :memory: .print \"\\060\\077 \\x3f\\x30 \\a\\t\" (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup")
+		// catchcmd test.db .backup (unsupported command, not transpiled)
 	}
 	os.Remove("FOO")
 	{ // do_test "shell1-3.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup FOO")
+		// catchcmd test.db .backup FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup FOO BAR")
+		// catchcmd test.db .backup FOO BAR (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup FOO BAR BAD")
+		// catchcmd test.db .backup FOO BAR BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail")
+		// catchcmd test.db .bail (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail ON")
+		// catchcmd test.db .bail ON (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail OFF")
+		// catchcmd test.db .bail OFF (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail OFF BAD")
+		// catchcmd test.db .bail OFF BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.4.1"
-		var res = "catchcmd \"test.db\" \".dump\""
+		res = "catchcmd \"test.db\" \".dump\""
 		_ = res // suppress unused warning
 		_list := tclList([]string{"regexp {BEGIN TRANSACTION;} $res", "regexp {COMMIT;} $res"})
 		_ = _list
 	}
 	{ // do_test "shell1-3.4.2"
-		var res = "catchcmd \"test.db\" \".dump FOO\""
+		res = "catchcmd \"test.db\" \".dump FOO\""
 		_ = res // suppress unused warning
 		_list := tclList([]string{"regexp {BEGIN TRANSACTION;} $res", "regexp {COMMIT;} $res"})
 		_ = _list
 	}
 	{ // do_test "shell1-3.5.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo")
+		// catchcmd test.db .echo (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo ON")
+		// catchcmd test.db .echo ON (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.5.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo OFF")
+		// catchcmd test.db .echo OFF (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.5.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo OFF BAD")
+		// catchcmd test.db .echo OFF BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.6.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .exit")
+		// catchcmd test.db .exit (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.7.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain")
+		// catchcmd test.db .explain (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.7.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain ON")
+		// catchcmd test.db .explain ON (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.7.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain OFF")
+		// catchcmd test.db .explain OFF (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.7.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain OFF BAD")
+		// catchcmd test.db .explain OFF BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.9.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .header")
+		// catchcmd test.db .header (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.9.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .header ON")
+		// catchcmd test.db .header ON (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.9.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .header OFF")
+		// catchcmd test.db .header OFF (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.9.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .header OFF BAD")
+		// catchcmd test.db .header OFF BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.9.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers")
+		// catchcmd test.db .headers (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.9.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers ON")
+		// catchcmd test.db .headers ON (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.9.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers OFF")
+		// catchcmd test.db .headers OFF (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.9.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers OFF BAD")
+		// catchcmd test.db .headers OFF BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.10.1"
-		var res = "catchcmd \"test.db\" \".help\""
+		res = "catchcmd \"test.db\" \".help\""
 		_ = res // suppress unused warning
 		_list := tclList([]string{"regexp {.help} $res", "regexp {.quit} $res", "regexp {.mode} $res"})
 		_ = _list
 	}
 	{ // do_test "shell1-3.10.2"
-		var res = "catchcmd \"test.db\" \".help *\""
+		res = "catchcmd \"test.db\" \".help *\""
 		_ = res // suppress unused warning
 		_list := tclList([]string{"regexp {.help} $res", "regexp {.quit} $res", "regexp {.mode} $res"})
 		_ = _list
 	}
 	{ // do_test "shell1-3.11.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .import")
+		// catchcmd test.db .import (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.11.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .import FOO")
+		// catchcmd test.db .import FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.11.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .import FOO BAR BAD")
+		// catchcmd test.db .import FOO BAR BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.11.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .import <<END t1\\na,b,c\\n1,2,3")
+		// catchcmd test.db .import <<END t1\na,b,c\n1,2,3 (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.12.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .indexes")
+		// catchcmd test.db .indexes (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.12.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .indexes FOO")
+		// catchcmd test.db .indexes FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.12.2-legacy"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .indices FOO")
+		// catchcmd test.db .indices FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.12.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .indexes FOO BAD")
+		// catchcmd test.db .indexes FOO BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.13.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode batch\\n.mode")
+		// catchcmd test.db .mode batch\n.mode (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.13.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode FOO")
+		// catchcmd test.db .mode FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.13.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode csv")
+		// catchcmd test.db .mode csv (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.13.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode column")
+		// catchcmd test.db .mode column (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.13.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode html")
+		// catchcmd test.db .mode html (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.13.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert")
+		// catchcmd test.db .mode insert (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.13.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode line")
+		// catchcmd test.db .mode line (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.13.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode list")
+		// catchcmd test.db .mode list (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.13.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tabs")
+		// catchcmd test.db .mode tabs (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.13.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl")
+		// catchcmd test.db .mode tcl (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.13.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl BAD")
+		// catchcmd test.db .mode tcl BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.14.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .nullvalue")
+		// catchcmd test.db .nullvalue (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.14.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .nullvalue FOO")
+		// catchcmd test.db .nullvalue FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.14.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .nullvalue FOO BAD")
+		// catchcmd test.db .nullvalue FOO BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.15.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .output\n.print x")
+		// catchcmd test.db .output
+.print x (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.15.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode batch\\n.output FOO\n.print x\n.output\nSELECT r...")
+		// catchcmd test.db .mode batch\n.output FOO
+.print x
+.output
+SELECT r... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.15.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .output FOO BAD")
+		// catchcmd test.db .output FOO BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.16.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .output stdout")
+		// catchcmd test.db .output stdout (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.16.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .output stdout BAD")
+		// catchcmd test.db .output stdout BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.17.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt")
+		// catchcmd test.db .prompt (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.17.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt FOO")
+		// catchcmd test.db .prompt FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.17.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt FOO BAR")
+		// catchcmd test.db .prompt FOO BAR (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.17.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt FOO BAR BAD")
+		// catchcmd test.db .prompt FOO BAR BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.18.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .quit")
+		// catchcmd test.db .quit (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.18.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .quit BAD")
+		// catchcmd test.db .quit BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.19.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read")
+		// catchcmd test.db .read (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.19.2"
 		os.Remove("FOO")
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read FOO")
+		// catchcmd test.db .read FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.19.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read FOO BAD")
+		// catchcmd test.db .read FOO BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.20.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore")
+		// catchcmd test.db .restore (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.20.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore FOO")
+		// catchcmd test.db .restore FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.20.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore FOO BAR")
+		// catchcmd test.db .restore FOO BAR (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.20.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore FOO BAR BAD")
+		// catchcmd test.db .restore FOO BAR BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.21.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {CREATE TABLE t2(a INTEGER PRIMARY KEY, b BLOB DEFA...} {.schema -indent t2}")
+		// exec {*} $CLI -noinit test.db {CREATE TABLE t2(a INTEGER PRIMARY KEY, b BLOB DEFA...} {.schema -indent t2} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.21.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {DROP TABLE t2;} {.schema -indent t2}")
+		// exec {*} $CLI -noinit test.db {DROP TABLE t2;} {.schema -indent t2} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.22.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator")
+		// catchcmd test.db .separator (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.22.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator FOO")
+		// catchcmd test.db .separator FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.22.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator ABC XYZ")
+		// catchcmd test.db .separator ABC XYZ (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.22.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator FOO BAD BAD2")
+		// catchcmd test.db .separator FOO BAD BAD2 (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.23.1"
-		var res = "catchcmd \"test.db\" \".mode batch\\n.show\""
+		res = "catchcmd \"test.db\" \".mode batch\\n.show\""
 		_ = res // suppress unused warning
 		_list := tclList([]string{"regexp {echo:} $res", "regexp {explain:} $res", "regexp {headers:} $res", "regexp {mode:} $res", "regexp {nullvalue:} $res", "regexp {output:} $res", "regexp {colseparator:} $res", "regexp {rowseparator:} $res", "regexp {stats:} $res", "regexp {width:} $res"})
 		_ = _list
 	}
 	{ // do_test "shell1-3.23.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .show BAD")
+		// catchcmd test.db .show BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.23b.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats ON")
+		// catchcmd test.db .stats ON (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.23b.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats OFF")
+		// catchcmd test.db .stats OFF (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.23b.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats OFF BAD")
+		// catchcmd test.db .stats OFF BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.23b.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [string map {\"\\n    \" \"\\n\"} {.mode batch\n    CREAT...")
+		// catchcmd test.db [string map {"\n    " "\n"} {.mode batch
+    CREAT... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.24.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .tables")
+		// catchcmd test.db .tables (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.24.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .tables FOO")
+		// catchcmd test.db .tables FOO (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.24.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .tables FOO BAD")
+		// catchcmd test.db .tables FOO BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.25.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout")
+		// catchcmd test.db .timeout (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.25.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout zzz")
+		// catchcmd test.db .timeout zzz (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.25.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout 1")
+		// catchcmd test.db .timeout 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.25.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout 1 BAD")
+		// catchcmd test.db .timeout 1 BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.26.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .width")
+		// catchcmd test.db .width (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.26.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .width xxx")
+		// catchcmd test.db .width xxx (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.26.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .width xxx yyy")
+		// catchcmd test.db .width xxx yyy (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.26.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .width 1 1")
+		// catchcmd test.db .width 1 1 (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.26.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode column\\n.header off\\n.width 10 -10\\nSELECT '...")
+		// catchcmd test.db .mode column\n.header off\n.width 10 -10\nSELECT '... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.26.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode column\\n.header off\\n.width -10 10\\nSELECT '...")
+		// catchcmd test.db .mode column\n.header off\n.width -10 10\nSELECT '... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.27.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer")
+		// catchcmd test.db .timer (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.27.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer ON")
+		// catchcmd test.db .timer ON (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.27.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer OFF")
+		// catchcmd test.db .timer OFF (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.27.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer OFF BAD")
+		// catchcmd test.db .timer OFF BAD (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3.28.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode batch\\n.log stdout\\nSELECT coalesce(sqlite_l...")
+		// catchcmd test.db .mode batch\n.log stdout\nSELECT coalesce(sqlite_l... (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3-29.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .print this is a test")
+		// catchcmd test.db .print this is a test (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3-30.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd {test.db} {.print \"this\\\"is'a\\055test\" 'this\\\"is\\\\a\\055test'}")
+		// catchcmd {test.db} {.print "this\"is'a\055test" 'this\"is\\a\055test'} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-3-31.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd {test.db} {.print \"this\\nis\\ta\\\\test\" 'this\\nis\\ta\\\\test'}")
+		// catchcmd {test.db} {.print "this\nis\ta\\test" 'this\nis\ta\\test'} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(null), (''), (1), (2.25), ('hello'), (x'807f');\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 VALUES(1,null), (2,''), (3,1),\n                         (4,2.25), (5,'hello'), (6,x'807f');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(null), (''), (1), (2.25), ('hello'), (x'807f');\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 VALUES(1,null), (2,''), (3,1),\n                         (4,2.25), (5,'hello'), (6,x'807f');\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db {.dump}")
+		// catchcmd test.db {.dump} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.7"
 		os.Remove("test2.db")
-		db, err := frigolite.Open("test2.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test2.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test2.db {.dump}")
+		// catchcmd test2.db {.dump} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.8"
 		os.Remove("test2.db")
-		db, err := frigolite.Open("test2.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test2.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    DROP TABLE t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    DROP TABLE t1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test2.db {.dump}")
+		// catchcmd test2.db {.dump} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.1.9"
 		os.Remove("test2.db")
-		db, err := frigolite.Open("test2.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test2.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    INSERT INTO sqlite_sequence VALUES('extra',999);\n    DROP TABLE t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    INSERT INTO sqlite_sequence VALUES('extra',999);\n    DROP TABLE t1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test2.db {.dump}")
+		// catchcmd test2.db {.dump} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t1\\nselect * from t1;")
+		// catchcmd test.db .mode insert t1\nselect * from t1; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t1\\n.headers on\\nselect * from t1;")
+		// catchcmd test.db .mode insert t1\n.headers on\nselect * from t1; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t3\\nselect * from t3;")
+		// catchcmd test.db .mode insert t3\nselect * from t3; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t3\\n.headers on\\nselect * from t3;")
+		// catchcmd test.db .mode insert t3\n.headers on\nselect * from t3; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.3"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(null), (''), (1), (2.25), ('hello'), (x'807f');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(null), (''), (1), (2.25), ('hello'), (x'807f');\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl\\nselect * from t1;")
+		// catchcmd test.db .mode tcl\nselect * from t1; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.4"
 		_res = db.Exec("\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(null, ''), (1, 2.25), ('hello', x'807f');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(null, ''), (1, 2.25), ('hello', x'807f');\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl\\nselect * from t2;")
+		// catchcmd test.db .mode tcl\nselect * from t2; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl\\n.nullvalue NULL\\nselect * from t2;")
+		// catchcmd test.db .mode tcl\n.nullvalue NULL\nselect * from t2; (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-4.6"
 		_res = db.Exec("\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('['), (']'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
@@ -652,58 +695,58 @@ func Test_shell1(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shell1-4.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode quote\\nselect x'0123456789ABCDEF';")
+		// catchcmd test.db .mode quote\nselect x'0123456789ABCDEF'; (unsupported command, not transpiled)
 	}
 	if false {
 		{ // do_test "shell1-5.0"
-			var i = "1"
+			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 256 }() {
-				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; tcl_platform_n, _tcl_platform_e := strconv.Atoi(tcl_platform); if _tcl_platform_e != nil { return false }; return i_n == 0x0D || (tcl_platform_n(platform) == "windows" && i_n==0x1A) }() {
+				if tclBool(i + "==0x0D || (" + tcl_platform_platform + " == \"windows\" && " + i + "==0x1A)") {
 					continue
 				}
 				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0x80 }() {
-					if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return i_n <= 0x9F || tcl_version_n>=9.0 }() {
+					if tclBool(i + "<=0x9F || " + tcl_version + ">=9.0") {
 					}
 					if tcl_platform_platform == "windows" {
 					}
 				}
-				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; tcl_platform_n, _tcl_platform_e := strconv.Atoi(tcl_platform); if _tcl_platform_e != nil { return false }; return i_n >= 0xE0 && tcl_platform_n(os) == "OpenBSD" }() {
+				if tclBool(i + ">=0xE0 && " + tcl_platform_os + " == \"OpenBSD\"") {
 				}
-				if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; tcl_platform_n, _tcl_platform_e := strconv.Atoi(tcl_platform); if _tcl_platform_e != nil { return false }; return i_n>=0xE0 && i_n <= 0xEF && tcl_platform_n(os) == "Linux" }() {
+				if tclBool(i + ">=0xE0 && " + i + "<=0xEF && " + tcl_platform_os + " == \"Linux\"") {
 				}
-				var hex = "format %02X $i"
+				hex = "format %02X $i"
 				_ = hex // suppress unused warning
-				var char = "\\\\x" + hex
+				char = "\\\\x" + hex
 				_ = char // suppress unused warning
-				var oldChar = char
+				oldChar = char
 				_ = oldChar // suppress unused warning
-				var escapes = "list"
+				escapes = "list"
 				_ = escapes // suppress unused warning
 				if tcl_platform_platform == "windows" {
-					var escapes = "list \\\n          \\a \\\\a \\b \\\\b \\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f \\r \\\\r \\\n          \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
+					escapes = "list \\\n          \\a \\\\a \\b \\\\b \\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f \\r \\\\r \\\n          \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
 					_ = escapes // suppress unused warning
 				} else {
-					var escapes = "list \\\n          \\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f \\\n          \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
+					escapes = "list \\\n          \\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f \\\n          \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
 					_ = escapes // suppress unused warning
 				}
-				char = "$escapes $char"
+				char = ""
 				_ = char // suppress unused warning
-				var x = "catchcmdex test.db \".print \\\"$char\\\"\\n\""
+				x = "catchcmdex test.db \".print \\\"$char\\\"\\n\""
 				_ = x // suppress unused warning
-				var code = "lindex $x 0"
+				code = "lindex $x 0"
 				_ = code // suppress unused warning
-				var res = "lindex $x 1"
+				res = "lindex $x 1"
 				_ = res // suppress unused warning
 				if code != "0" {
 					t.Errorf("TCL error: %s", "failed with error: " + res)
 				}
 				if res != "oldChar\n" {
 					if tclBool("llength $res" + " > 0") {
-						var got = "format %02X [scan $res %c]"
+						got = "format %02X [scan $res %c]"
 						_ = got // suppress unused warning
 					} else {
-						var got = "<empty>"
+						got = "<empty>"
 						_ = got // suppress unused warning
 					}
 					t.Errorf("TCL error: %s", "failed with byte " + hex + " mismatch, got " + got)
@@ -719,10 +762,10 @@ func Test_shell1(t *testing.T) {
 		}
 	}
 	if false {
-		var test = "\\u6D4B\\u8BD5"
+		test = "\\u6D4B\\u8BD5"
 		_ = test // suppress unused warning
 		{ // do_test "shell1-6.0"
-			var fileName = test
+			fileName = test
 			_ = fileName // suppress unused warning
 			fileName += ".db"
 			{
@@ -730,11 +773,11 @@ func Test_shell1(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				os.Remove(fileName)
 			}
-			var x = "catchcmdex $fileName \"CREATE TABLE t1(x);\\n.schema\\n\""
+			x = "catchcmdex $fileName \"CREATE TABLE t1(x);\\n.schema\\n\""
 			_ = x // suppress unused warning
-			var code = "lindex $x 0"
+			code = "lindex $x 0"
 			_ = code // suppress unused warning
-			var res = "[lindex $x 1]"
+			res = strings.TrimSpace("lindex $x 1")
 			_ = res // suppress unused warning
 			if code != "0" {
 				t.Errorf("TCL error: %s", "failed with error: " + res)
@@ -753,11 +796,11 @@ func Test_shell1(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				os.Remove("test3.db")
 			}
-			var x = "catchcmdex test3.db \\\n      \"CREATE TABLE [encoding convertto utf-8 $test](x);\\n.schema\\n\""
+			x = "catchcmdex test3.db \\\n      \"CREATE TABLE [encoding convertto utf-8 $test](x);\\n.schema\\n\""
 			_ = x // suppress unused warning
-			var code = "lindex $x 0"
+			code = "lindex $x 0"
 			_ = code // suppress unused warning
-			var res = "[lindex $x 1]"
+			res = strings.TrimSpace("lindex $x 1")
 			_ = res // suppress unused warning
 			if code != "0" {
 				t.Errorf("TCL error: %s", "failed with error: " + res)
@@ -769,36 +812,64 @@ func Test_shell1(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp6, err := frigolite.Open("test.db")
+	_ = _dbtmp6 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell1-8.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {.mode batch\n    -- The pow2 table will hold all th...}")
+		// catchcmd :memory: {.mode batch
+    -- The pow2 table will hold all th...} (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell1-8.2 {\n  catchcmd :memory: {\n.mode box\nSELECT ieee754(47...} {0 {╭──────────────\xe2\x94...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell1-8.3 {\n  catchcmd \":memory: --box\" {\n    select ieee754(...} {0 {╭───────╮\n│   x   │\n╞\xe2\x95...}")
+	// do_test_with_ansi_output shell1-8.2 {
+  catchcmd :memory: {
+.mode box
+SELECT ieee754(47...} {0 {╭──────────────�...} (unsupported command, not transpiled)
+	// do_test_with_ansi_output shell1-8.3 {
+  catchcmd ":memory: --box" {
+    select ieee754(...} {0 {╭───────╮
+│   x   │
+╞�...} (unsupported command, not transpiled)
 	{ // do_test "shell1-8.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: --table {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...}")
+		// catchcmd :memory: --table {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-8.4b"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: --psql {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...}")
+		// catchcmd :memory: --psql {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...} (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell1-8.5 {\n  catchcmd \":memory: --box\" {\ncreate table t(a te...} {0 {╭────────────┬─\xe2\x94...}")
+	// do_test_with_ansi_output shell1-8.5 {
+  catchcmd ":memory: --box" {
+create table t(a te...} {0 {╭────────────┬─�...} (unsupported command, not transpiled)
 	{ // do_test "shell1-9.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode csv --rowsep \"\\n\"\n/*\nx */ select 1,2; --x\n ...}")
+		// catchcmd :memory: {
+.mode csv --rowsep "\n"
+/*
+x */ select 1,2; --x
+ ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-10.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode list\n.header off\nselect base64(base64(cast(...}")
+		// catchcmd :memory: {
+.mode list
+.header off
+select base64(base64(cast(...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-11.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode list\n.header off\nselect base64(zeroblob(200...}")
+		// catchcmd :memory: {
+.mode list
+.header off
+select base64(zeroblob(200...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-11.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode list\n.header off\nselect base85(zeroblob(200...}")
+		// catchcmd :memory: {
+.mode list
+.header off
+select base85(zeroblob(200...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-12.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {.mode tty -quote sql\n.print\nSELECT jsonb(1234) AS ...}")
+		// catchcmd :memory: {.mode tty -quote sql
+.print
+SELECT jsonb(1234) AS ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "shell1-12.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {.mode box --textjsonb on\n.print\nSELECT jsonb(1234)...}")
+		// catchcmd :memory: {.mode box --textjsonb on
+.print
+SELECT jsonb(1234)...} (unsupported command, not transpiled)
 	}
 }

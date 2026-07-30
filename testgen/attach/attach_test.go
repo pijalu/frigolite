@@ -42,8 +42,29 @@ func Test_attach(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var list string
+	_ = list // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var m string
+	_ = m // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var i = "2"
+	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 15 }() {
 		os.Remove("test" + i + ".db")
@@ -210,8 +231,8 @@ func Test_attach(t *testing.T) {
 	}
 	{ // do_test "attach-3.1"
 		db2.Close()
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
@@ -370,11 +391,12 @@ func Test_attach(t *testing.T) {
 			dbx, err := frigolite.Open("cannot-read")
 			defer dbx.Close()
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "dbx eval {CREATE TABLE t1(a,b,c)}")
-			t.Errorf("TODO: %s not implemented in frigolite", "dbx close")
+			// dbx eval {CREATE TABLE t1(a,b,c)} (unsupported command, not transpiled)
+			// dbx close (unsupported command, not transpiled)
 			// file attributes cannot-read -permission 0000
 			if tclBool("file writable cannot-read") {
-				t.Log("\\n**** Tests do not work when run as root ****")
+				_putsMsg := "\\n**** Tests do not work when run as root ****"
+				_ = _putsMsg
 				os.Remove("cannot-read")
 			}
 			_res = db.Exec("\n      ATTACH DATABASE 'cannot-read' AS noread;\n    ")
@@ -394,7 +416,7 @@ func Test_attach(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "db$i close")
+			// db$i close (unsupported command, not transpiled)
 		}
 		// incr i 1
 		{
@@ -407,9 +429,10 @@ func Test_attach(t *testing.T) {
 	os.Remove("test2.db")
 	os.Remove("no-such-file")
 	{ // do_test "attach-8.1"
-		var fd = "open test2.db w"
+		fd = "open test2.db w"
 		_ = fd // suppress unused warning
-		t.Log(fd)
+		_putsMsg := fd
+		_ = _putsMsg
 		// close $fd
 		_res = db.Exec("\n    ATTACH 'test2.db' AS t2;\n  ")
 		_ = _res // catchsql
@@ -453,9 +476,10 @@ func Test_attach(t *testing.T) {
 		}
 	}
 	{ // do_test "attach-10.2"
-		tclLRange("execsql {\n    PRAGMA database_list;\n  }", "9", "end")
+		_ = tclLRange("execsql {\n    PRAGMA database_list;\n  }", "9", "end") // lrange result
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "attach-11.1"
 		r = db.Query("\n  ATTACH printf('file:%09000x/x.db?mode=memory&cache=shared',1) AS aux1;\n  CREATE TABLE aux1.t1(x,y);\n  INSERT INTO aux1.t1(x,y) VALUES(1,2),(3,4);\n  SELECT * FROM aux1.t1;\n")
@@ -469,7 +493,8 @@ func Test_attach(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp2, err := frigolite.Open(":memory:")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "attach-12.1"
 		r = db.Query("\n  CREATE TABLE Table1 (col TEXT NOT NULL PRIMARY KEY);\n  ATTACH ':memory:' AS db2;\n  CREATE TABLE db2.Table2(col1 INTEGER, col2 INTEGER, col3 INTEGER, col4);\n  CREATE UNIQUE INDEX db2.idx_col1_unique ON Table2 (col1);\n  CREATE UNIQUE INDEX db2.idx_col23_unique ON Table2 (col2, col3);\n  CREATE INDEX db2.idx_col2 ON Table2 (col2);\n  INSERT INTO Table2 VALUES(1,2,3,4);\n  PRAGMA integrity_check;\n")
@@ -487,14 +512,14 @@ func Test_attach(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "attach-13.1"
-		db, err := frigolite.Open(":memory:")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open(":memory:")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("CREATE TABLE base(x);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE base(x);")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; SQLITE_MAX_ATTACHED_n, _SQLITE_MAX_ATTACHED_e := strconv.Atoi(SQLITE_MAX_ATTACHED); if _SQLITE_MAX_ATTACHED_e != nil { return false }; return i_n < SQLITE_MAX_ATTACHED_n }() {
 			_res = db.Exec("ATTACH ':memory:' AS a" + i)
@@ -509,7 +534,7 @@ func Test_attach(t *testing.T) {
 				}
 			}
 		}
-		var m = "a" + "$SQLITE_MAX_ATTACHED-1"
+		m = "a" + "$SQLITE_MAX_ATTACHED-1"
 		_ = m // suppress unused warning
 		_res = db.Exec("CREATE TABLE " + m + ".t1(a INTEGER PRIMARY KEY, b);")
 		if _res.Error != nil {

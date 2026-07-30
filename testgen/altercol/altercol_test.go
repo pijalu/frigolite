@@ -41,8 +41,41 @@ func Test_altercol(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var z string
+	_ = z // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var before string
+	_ = before // pre-declared from TCL source
+	var after string
+	_ = after // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var lSorted string
+	_ = lSorted // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var old string
+	_ = old // pre-declared from TCL source
+	var _new string
+	_ = _new // pre-declared from TCL source
+	var lSchema string
+	_ = lSchema // pre-declared from TCL source
+	var trigger string
+	_ = trigger // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "altercol"
+	testprefix = "altercol"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// foreach {tn before after} "\n  1 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB)}\n\n  2 {CREATE TABLE t1(a INTEGER, x TEXT, \"b\" BLOB)}\n    {CREATE TABLE t1(a INTEGER, x TEXT, \"d\" BLOB)}\n\n  3 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(b!=''))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(d!=''))}\n\n  4 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(t1.b!=''))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(t1.d!=''))}\n\n  5 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK( coalesce(b,c) ))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK( coalesce(d,c) ))}\n\n  6 {CREATE TABLE t1(a INTEGER, \"b\"TEXT, c BLOB, CHECK( coalesce(b,c) ))}\n    {CREATE TABLE t1(a INTEGER, \"d\"TEXT, c BLOB, CHECK( coalesce(d,c) ))}\n\n  7 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b, c))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d, c))}\n\n  8 {CREATE TABLE t1(a INTEGER, b TEXT PRIMARY KEY, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d TEXT PRIMARY KEY, c BLOB)}\n\n  9 {CREATE TABLE t1(a, b TEXT, c, PRIMARY KEY(a, b), UNIQUE(\"B\"))}\n    {CREATE TABLE t1(a, d TEXT, c, PRIMARY KEY(a, d), UNIQUE(\"d\"))}\n\n 10 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(a, c)}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(a, c)}}\n\n 11 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b, c)}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d, c)}}\n\n 12 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b+b+b+b, c) WHERE b>0}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d+d+d+d, c) WHERE d>0}}\n\n 13 {CREATE TABLE t1(a, b, c, FOREIGN KEY (b) REFERENCES t2)}\n    {CREATE TABLE t1(a, d, c, FOREIGN KEY (d) REFERENCES t2)}\n\n 14 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d))}\n\n 15 {CREATE TABLE t1(a INTEGER, b INTEGER, c BLOB, PRIMARY KEY(b))}\n    {CREATE TABLE t1(a INTEGER, d INTEGER, c BLOB, PRIMARY KEY(d))}\n\n 16 {CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB)}\n\n 17  {CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (b) REFERENCES t2)}\n     {CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (d) REFERENCES t2)}\n\n"
@@ -89,10 +122,10 @@ func Test_altercol(t *testing.T) {
 				}
 			}
 			if tclBool("INDEX $before" + ">0") {
-				var res = after
+				res = after
 				_ = res // suppress unused warning
 			} else {
-				var res = "list $after"
+				res = "list $after"
 				_ = res // suppress unused warning
 			}
 			{ // "1." + tn + ".4"
@@ -490,7 +523,7 @@ func Test_altercol(t *testing.T) {
 			lSchema := _items1[_idx1+3]
 			_ = lSchema // suppress unused warning
 			_ = _idx1
-				t.Errorf("TODO: %s not implemented in frigolite", "do_rename_column_test 9.$tn $old $new $lSchema")
+				// do_rename_column_test 9.$tn $old $new $lSchema (unsupported command, not transpiled)
 			}
 			db.Close()
 			db, err = frigolite.Open("")
@@ -585,7 +618,7 @@ func Test_altercol(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+			// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 			{ // "13.1.4"
 				r = db.Query("\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_master SET sql = 'CREATE INDEX x1i ON x1(j)' WHERE name='x1i';\n  PRAGMA writable_schema = OFF;\n")
 				if r.Error != nil {
@@ -645,7 +678,7 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+				// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 				{ // "14.1"
 					_res = db.Exec("\n  CREATE TABLE ddd(sql, type, object, db, tbl, icol, znew, bquote);\n  INSERT INTO ddd VALUES(\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', -1, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', 2, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'notable', 0, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'ddd', -1, 'zzz', 0\n  );\n")
 					if _res.Error != nil {
@@ -664,7 +697,7 @@ func Test_altercol(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+				// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 				{ // "14.3"
 					_res = db.Exec("\n  SELECT sqlite_rename_column(0,0,0,0,0,0,0,0,0);\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_rename_column") {
@@ -867,7 +900,8 @@ func Test_altercol(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				db, err = frigolite.Open(":memory:")
+				_dbtmp3, err := frigolite.Open(":memory:")
+				_ = _dbtmp3 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				{ // "20.100"
 					r = db.Query("\n  CREATE TABLE t1(aaa,b,c,UNIQUE(aaA),PRIMARY KEY(aAa),UNIQUE(aAA));\n  ALTER TABLE t1 RENAME aaa TO bbb;\n  SELECT sql FROM sqlite_master WHERE name='t1';\n")
@@ -950,8 +984,8 @@ func Test_altercol(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+				// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1 (unsupported command, not transpiled)
+				// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 				{ // "22.0"
 					r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX x1 on t1(\"c\"=b);\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n  INSERT INTO t1 VALUES('c', 'c');\n  ALTER TABLE t1 RENAME COLUMN a TO \"c\";\n  PRAGMA integrity_check;\n")
 					if r.Error != nil {

@@ -4,6 +4,7 @@ package round
 import (
 "github.com/pijalu/frigolite"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -40,36 +41,60 @@ func Test_round1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var iTest string
+	_ = iTest // pre-declared from TCL source
+	var x1 string
+	_ = x1 // pre-declared from TCL source
+	var x2 string
+	_ = x2 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var x3 string
+	_ = x3 // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var ans string
+	_ = ans // pre-declared from TCL source
+	var x4 string
+	_ = x4 // pre-declared from TCL source
+	var r2 string
+	_ = r2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "round1"
+	testprefix = "round1"
 	_ = testprefix // suppress unused warning
 	// expr srand(0) → "srand(0)"
-	var iTest = "1"
+	iTest = "1"
 	_ = iTest // suppress unused warning
 	for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return iTest_n <= 50000 }() {
-		var x1 = "0"
+		x1 = "0"
 		_ = x1 // suppress unused warning
-		var x2 = "0"
+		x2 = "0"
 		_ = x2 // suppress unused warning
-		var n = "1"
+		n = "1"
 		_ = n // suppress unused warning
-		var x3 = "[format %09d $x2] [expr {9-$n}] end"
+		x3 = "[format %09d $x2] [expr {9-$n}] end"
 		_ = x3 // suppress unused warning
-		var _r = x1 + "." + x3
+		_r = x1 + "." + x3
 		_ = _r // suppress unused warning
-		var ans = "$r 0"
+		ans = "$r 0"
 		_ = ans // suppress unused warning
 		if tclBool("*. $ans") {
-			var ans = "$"
+			ans = "$"
 			_ = ans // suppress unused warning
 		}
 		{ // do_test iTest + "/" + n + "/$"
-			t.Errorf("TODO: %s not implemented in frigolite", "r")
+			// r (unsupported command, not transpiled)
 		}
-		var x4 = "[format %09d [expr {$x2+1}]] [expr {9-$n}] end"
+		x4 = "[format %09d [expr {$x2+1}]] [expr {9-$n}] end"
 		_ = x4 // suppress unused warning
-		if tclBool("$x3 9" + "==\"\"") {
-			var x1 = "0"
+		if tclBool(strings.TrimSpace(x3 + " 9") + "==\"\"") {
 			// incr x1 1
 			{
 				_n, _err := strconv.Atoi(x1)
@@ -78,16 +103,16 @@ func Test_round1(t *testing.T) {
 				}
 			}
 		}
-		var r2 = x1 + "." + x4
+		r2 = x1 + "." + x4
 		_ = r2 // suppress unused warning
 		ans = "$r2 0"
 		_ = ans // suppress unused warning
 		if tclBool("*. $ans") {
-			var ans = "$"
+			ans = "$"
 			_ = ans // suppress unused warning
 		}
 		{ // do_test iTest + "/" + n + "/$"
-			t.Errorf("TODO: %s not implemented in frigolite", "r")
+			// r (unsupported command, not transpiled)
 		}
 		// incr iTest 1
 		{

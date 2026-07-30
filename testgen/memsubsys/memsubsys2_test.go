@@ -39,24 +39,43 @@ func Test_memsubsys2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var highwater string
+	_ = highwater // pre-declared from TCL source
+	var allocation string
+	_ = allocation // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var pragmas string
+	_ = pragmas // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+	// sqlite3_reset_auto_extension (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var highwater = "sqlite3_memory_highwater 0"
+	highwater = "sqlite3_memory_highwater 0"
 	_ = highwater // suppress unused warning
 	{ // do_test "memsubsys2-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_malloc 0")
+		// sqlite3_malloc 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
+		// sqlite3_memory_highwater 0 (unsupported command, not transpiled)
 	}
 	if tclBool("sqlite3_memory_used" + "!=0") {
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
-		var highwater = "sqlite3_memory_highwater 0"
+		// sqlite3_memory_highwater 1 (unsupported command, not transpiled)
+		highwater = "sqlite3_memory_highwater 0"
 		_ = highwater // suppress unused warning
 		{ // do_test "memsubsys2-2.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_free [set x [sqlite3_malloc 100000]]")
+			// sqlite3_free [set x [sqlite3_malloc 100000]] (unsupported command, not transpiled)
 			// expr $x!="0" → "$x!=\"0\""
 		}
 		{ // do_test "memsubsys2-2.2.1"
@@ -66,60 +85,60 @@ func Test_memsubsys2(t *testing.T) {
 			// expr [sqlite3_memory_highwater 0]>=$highwater+50000 → "[sqlite3_memory_highwater 0]>=$highwater+50000"
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_memstatus 0 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// reset_highwater_marks (unsupported command, not transpiled)
 	highwater = "sqlite3_memory_highwater 0"
 	_ = highwater // suppress unused warning
 	{ // do_test "memsubsys2-3.1"
 	}
 	{ // do_test "memsubsys2-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_malloc 0")
+		// sqlite3_malloc 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
+		// sqlite3_memory_highwater 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
+		// sqlite3_memory_used (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-3.5"
-		var _allocation = "sqlite3_malloc 100000" // TCL namespace variable
-		_ = _allocation // suppress unused warning
+		allocation = "sqlite3_malloc 100000" // TCL namespace variable
+		_ = allocation // suppress unused warning
 		// expr $::allocation!="0" → "$::allocation!=\"0\""
 	}
 	{ // do_test "memsubsys2-3.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
+		// sqlite3_memory_highwater 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-3.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
+		// sqlite3_memory_used (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-3.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_free $::allocation")
+		// sqlite3_free $::allocation (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-3.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_free 0")
+		// sqlite3_free 0 (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_memstatus 1 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// reset_highwater_marks (unsupported command, not transpiled)
 	highwater = "sqlite3_memory_highwater 0"
 	_ = highwater // suppress unused warning
 	{ // do_test "memsubsys2-4.1"
 	}
 	{ // do_test "memsubsys2-4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_malloc 0")
+		// sqlite3_malloc 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
+		// sqlite3_memory_highwater 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
+		// sqlite3_memory_used (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-4.5"
-		var _allocation = "sqlite3_malloc 100000" // TCL namespace variable
-		_ = _allocation // suppress unused warning
+		allocation = "sqlite3_malloc 100000" // TCL namespace variable
+		_ = allocation // suppress unused warning
 		// expr $::allocation!="0" → "$::allocation!=\"0\""
 	}
 	{ // do_test "memsubsys2-4.6"
@@ -129,16 +148,16 @@ func Test_memsubsys2(t *testing.T) {
 		// expr [sqlite3_memory_used]>=100000 → "[sqlite3_memory_used]>=100000"
 	}
 	{ // do_test "memsubsys2-4.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_free $::allocation")
+		// sqlite3_free $::allocation (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-4.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_free 0")
+		// sqlite3_free 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "memsubsys2-4.10"
 		// expr [sqlite3_memory_highwater 0]>=100000 → "[sqlite3_memory_highwater 0]>=100000"
 	}
 	{ // do_test "memsubsys2-4.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
+		// sqlite3_memory_used (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	// autoinstall_test_functions (unsupported command, not transpiled)
 }

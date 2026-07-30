@@ -39,6 +39,13 @@ func Test_tkt3493(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3493-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE A (id INTEGER PRIMARY KEY AUTOINCREMENT, val TEXT);\n    INSERT INTO A VALUES(1,'123');\n    INSERT INTO A VALUES(2,'456');\n    CREATE TABLE B (id INTEGER PRIMARY KEY AUTOINCREMENT, val TEXT);\n    INSERT INTO B VALUES(1,1);\n    INSERT INTO B VALUES(2,2);\n    CREATE TABLE A_B (B_id INTEGER NOT NULL, A_id INTEGER);\n    INSERT INTO A_B VALUES(1,1);\n    INSERT INTO A_B VALUES(2,2);\n    COMMIT;\n  ")

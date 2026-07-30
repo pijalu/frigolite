@@ -40,6 +40,33 @@ func Test_icu(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var EGRAVE string
+	_ = EGRAVE // pre-declared from TCL source
+	var egrave string
+	_ = egrave // pre-declared from TCL source
+	var OGRAVE string
+	_ = OGRAVE // pre-declared from TCL source
+	var ograve string
+	_ = ograve // pre-declared from TCL source
+	var szlig string
+	_ = szlig // pre-declared from TCL source
+	var small_dotless_i string
+	_ = small_dotless_i // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var settings string
+	_ = settings // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("CREATE TABLE test1(i1 int, i2 int, r1 real, r2 real, t1 text, t2 text)")
 	if _res.Error != nil {

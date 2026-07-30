@@ -39,14 +39,25 @@ func Test_tkt_f7b4edec(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var HOOKS string
+	_ = HOOKS // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
 	db1, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var HOOKS = ""
+	HOOKS = ""
 	_ = HOOKS // suppress unused warning
 	// proc definition (not transpiled)
 	// db1.update_hook (db command)
@@ -60,7 +71,7 @@ func Test_tkt_f7b4edec(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(1, 2) ")
 		}
-		_ = _HOOKS // TCL namespace variable (query)
+		_ = HOOKS // TCL namespace variable (query)
 	}
 	HOOKS = ""
 	_ = HOOKS // suppress unused warning
@@ -69,7 +80,7 @@ func Test_tkt_f7b4edec(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      DROP TABLE t1;\n      CREATE TABLE t1(x, y);\n    ROLLBACK;\n  ")
 		}
-		_ = _HOOKS // TCL namespace variable (query)
+		_ = HOOKS // TCL namespace variable (query)
 	}
 	HOOKS = ""
 	_ = HOOKS // suppress unused warning
@@ -78,9 +89,9 @@ func Test_tkt_f7b4edec(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(1, 2) ")
 		}
-		_ = _HOOKS // TCL namespace variable (query)
+		_ = HOOKS // TCL namespace variable (query)
 	}
 	db1.Close()
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

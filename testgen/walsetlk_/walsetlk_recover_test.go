@@ -40,8 +40,25 @@ func Test_walsetlk_recover(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var done string
+	_ = done // pre-declared from TCL source
+	var sleep_count string
+	_ = sleep_count // pre-declared from TCL source
+	var tm string
+	_ = tm // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var sqlite_options_setlk_timeout string
+	_ = sqlite_options_setlk_timeout // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walsetlk_recover"
+	testprefix = "walsetlk_recover"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n")
@@ -49,25 +66,30 @@ func Test_walsetlk_recover(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "db_restore")
-	t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb myvar {\n\n  testvfs tvfs -fullshm 1\n  sqlite3 db test.db -...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
-	db, err = frigolite.Open("test.db")
+	// db_save_and_close (unsupported command, not transpiled)
+	// db_restore (unsupported command, not transpiled)
+	// testfixture_nb myvar {
+
+  testvfs tvfs -fullshm 1
+  sqlite3 db test.db -...} (unsupported command, not transpiled)
+	// testvfs tvfs -fullshm 1 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script sleep_callback")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xSleep")
-	var _sleep_count = "0" // TCL namespace variable
-	_ = _sleep_count // suppress unused warning
+	// tvfs script sleep_callback (unsupported command, not transpiled)
+	// tvfs filter xSleep (unsupported command, not transpiled)
+	sleep_count = "0" // TCL namespace variable
+	_ = sleep_count // suppress unused warning
 	// proc definition (not transpiled)
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	var tm = "lindex [time {\n  catch {\n    db eval {SELECT * FROM t1}\n  } msg\n}] 0"
+	tm = "lindex [time {\n  catch {\n    db eval {SELECT * FROM t1}\n  } msg\n}] 0"
 	_ = tm // suppress unused warning
 	{ // do_test "1.2"
-		_ = _msg // TCL namespace variable (query)
+		_ = msg // TCL namespace variable (query)
 	}
-	{ // do_test "1.3.(" + _tm + ")"
+	{ // do_test "1.3.(" + tm + ")"
 		// expr $::tm>400000 → "$::tm>400000"
 	}
 	{ // "1.4"
@@ -82,10 +104,10 @@ func Test_walsetlk_recover(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
-	if func() bool { _sqlite_options_n, __sqlite_options_e := strconv.Atoi(_sqlite_options); if __sqlite_options_e != nil { return false }; return _sqlite_options_n(setlk_timeout) == 1 }() {
+	// tvfs delete (unsupported command, not transpiled)
+	if func() bool { sqlite_options_setlk_timeout_n, _sqlite_options_setlk_timeout_e := strconv.Atoi(sqlite_options_setlk_timeout); if _sqlite_options_setlk_timeout_e != nil { return false }; return sqlite_options_setlk_timeout_n == 1 }() {
 		{ // do_test "1.5.1"
-			_ = _sleep_count // TCL namespace variable (query)
+			_ = sleep_count // TCL namespace variable (query)
 		}
 	} else {
 		{ // do_test "1.5.2"

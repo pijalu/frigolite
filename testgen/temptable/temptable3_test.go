@@ -39,10 +39,18 @@ func Test_temptable3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "temptable3"
+	testprefix = "temptable3"
 	_ = testprefix // suppress unused warning
-	db, err = frigolite.Open("")
+	_dbtmp0, err := frigolite.Open("")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
 		r = db.Query("\n  PRAGMA cache_size = 1;\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES( randomblob(800) );\n  INSERT INTO t1 VALUES( randomblob(800) );\n  CREATE TABLE t2(x);\n  PRAGMA integrity_check;\n")
@@ -56,7 +64,8 @@ func Test_temptable3(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("")
+	_dbtmp1, err := frigolite.Open("")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.2"
 		r = db.Query("\n  PRAGMA cache_size = 1;\n  PRAGMA auto_vacuum = 2;\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(x UNIQUE);\n  INSERT INTO t2 VALUES(1), (2), (3);\n  DROP TABLE t1;\n  PRAGMA integrity_check;\n")

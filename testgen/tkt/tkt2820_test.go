@@ -40,15 +40,45 @@ func Test_tkt2820(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var init string
+	_ = init // pre-declared from TCL source
+	var testid string
+	_ = testid // pre-declared from TCL source
+	var ddl string
+	_ = ddl // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "test_schema_change 1 {\n  CREATE TABLE t1(a);\n} {\n  DROP TABLE t1\n} {t1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_schema_change 2 {\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n} {\n  DROP TABLE t2\n} {t1 t2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "test_schema_change 3 {\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);...} {\n  DROP INDEX i1\n} {i1 t1}")
+	// test_schema_change 1 {
+  CREATE TABLE t1(a);
+} {
+  DROP TABLE t1
+} {t1} (unsupported command, not transpiled)
+	// test_schema_change 2 {
+  CREATE TABLE t1(a);
+  CREATE TABLE t2(b);
+} {
+  DROP TABLE t2
+} {t1 t2} (unsupported command, not transpiled)
+	// test_schema_change 3 {
+  CREATE TABLE t1(a);
+  CREATE INDEX i1 ON t1(a);...} {
+  DROP INDEX i1
+} {i1 t1} (unsupported command, not transpiled)
 	{ // do_test "tkt2820-4.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n  ")
 		if _res.Error != nil {

@@ -39,6 +39,13 @@ func Test_tkt3419(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3419-1.1"
 		r = db.Query("\n    create table a(id integer primary key);\n    create table b(id integer primary key, a_id integer);\n    create table c(id integer primary key, b_id integer);\n  \n    insert into a values (1);\n    insert into a values (2);\n  \n    insert into b values (3, 1);\n    insert into b values (4, 1);\n    insert into b values (5, 1);\n    insert into b values (6, 1);\n    insert into b values (9, 2);\n  \n    insert into c values (4, 3);\n    insert into c values (5, 5);\n    insert into c values (6, 4);\n    insert into c values (7, 6);\n    insert into c values (8, 9);\n  \n    select * FROM a, b, c WHERE a.id=2 AND b.a_id = a.id AND b.id=c.b_id;\n  ")

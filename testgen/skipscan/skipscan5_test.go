@@ -40,8 +40,59 @@ func Test_skipscan5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var dbenc string
+	_ = dbenc // pre-declared from TCL source
+	var coll string
+	_ = coll // pre-declared from TCL source
+	var vocab_d string
+	_ = vocab_d // pre-declared from TCL source
+	var vocab_c string
+	_ = vocab_c // pre-declared from TCL source
+	var vocab_b string
+	_ = vocab_b // pre-declared from TCL source
+	var vocab_a string
+	_ = vocab_a // pre-declared from TCL source
+	var _var string
+	_ = _var // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var values string
+	_ = values // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+	var vocab_var string
+	_ = vocab_var // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "skipscan5"
+	testprefix = "skipscan5"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE INDEX i1 ON t1(a, b);\n")
@@ -51,12 +102,12 @@ func Test_skipscan5(t *testing.T) {
 	}
 	// expr srand(4) → "srand(4)"
 	{ // do_test "1.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			var a = "1"
+			a = "1"
 			_ = a // suppress unused warning
-			var b = "1"
+			b = "1"
 			_ = b // suppress unused warning
 			_res = db.Exec(" INSERT INTO t1 VALUES($a, $b, NULL) ")
 			if _res.Error != nil {
@@ -85,7 +136,7 @@ func Test_skipscan5(t *testing.T) {
 		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
 		_ = _idx0
-			var sql = "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE " + q
+			sql = "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE " + q
 			_ = sql // suppress unused warning
 			{ // "1.3." + tn
 				_res = db.Exec(sql)
@@ -108,7 +159,7 @@ func Test_skipscan5(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				// eval $coll
+				// eval (dynamic, not transpiled)
 				{ // "2." + tn + ".1"
 					r = db.Query(" PRAGMA encoding = '" + dbenc + "' ")
 					if r.Error != nil {
@@ -121,21 +172,21 @@ func Test_skipscan5(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a TEXT, b TEXT, c TEXT COLLATE test_collate, d TEXT);\n    CREATE INDEX i2 ON t2(a, b, c);\n  ")
 					}
 				}
-				var vocab_d = " :) "
+				vocab_d = " :) "
 				_ = vocab_d // suppress unused warning
-				var vocab_c = " a b c d e f g h i j k l m n o p q r s t "
+				vocab_c = " a b c d e f g h i j k l m n o p q r s t "
 				_ = vocab_c // suppress unused warning
-				var vocab_b = " one two three "
+				vocab_b = " one two three "
 				_ = vocab_b // suppress unused warning
-				var vocab_a = " sql "
+				vocab_a = " sql "
 				_ = vocab_a // suppress unused warning
 				{ // do_test "2." + tn + ".3"
-					var i = "0"
+					i = "0"
 					_ = i // suppress unused warning
 					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 						for _, _var := range tclSplitList("a b c d") {
 						_ = _var // suppress unused warning
-							var _var = "lindex $vocab($var) [expr $i % [llength $vocab($var)]]"
+							_var = "lindex $vocab($var) [expr $i % [llength $vocab($var)]]"
 							_ = _var // suppress unused warning
 						}
 						_res = db.Exec(" INSERT INTO t2 VALUES($a, $b, $c, $d) ")
@@ -165,7 +216,7 @@ func Test_skipscan5(t *testing.T) {
 					res := _items2[_idx2+2]
 					_ = res // suppress unused warning
 					_ = _idx2
-						var sql = "EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE " + q
+						sql = "EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE " + q
 						_ = sql // suppress unused warning
 						{ // "2." + tn + "." + tn2
 							_res = db.Exec(sql)
@@ -184,10 +235,10 @@ func Test_skipscan5(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c);\n  CREATE INDEX i3 ON t3(a, b);\n")
 					}
 				}
-				var values = "\n    NULL NULL NULL\n    NULL -9567 -9240\n    -8725 -8659 -8248.340244520614\n    -8208 -7939 -7746.985758536954\n    -7057 -6550 -5916\n    -5363 -4935.781822975623 -4935.063633571875\n    -3518.4554911770183 -2537 -2026\n    -1511.2603881914456 -1510.4195994839156 -1435\n    -1127.4210136045804 -1045 99\n    1353 1457 1563.2908193223611\n    2245 2286 2552\n    2745.18831295203 2866.279926554429 3075.0468527316334\n    3447 3867 4237.892420141907\n    4335 5052.9775000424015 5232.178240656935\n    5541.784919585003 5749.725576373621 5758\n    6005 6431 7263.477992854769\n    7441 7541 8667.279760663994\n    8857 9199.638673662972 'dl'\n    'dro' 'h' 'igprfq'\n    'jnbd' 'k' 'kordee'\n    'lhwcv' 'mzlb' 'nbjked'\n    'nufpo' 'nxqkdq' 'shelln'\n    'tvzn' 'wpnt' 'wylf'\n    'ydkgu' 'zdb' X''\n    X'0a' X'203f6429f1f33f' X'23858e324545e0362b'\n    X'3f9f8a' X'516f7ddd4b' X'68f1df0930ac6b'\n    X'9ea60d' X'a06f' X'aefd342a39ce36df'\n    X'afaa020fe2' X'be201c' X'c47d97b209601e45'\n"
+				values = "\n    NULL NULL NULL\n    NULL -9567 -9240\n    -8725 -8659 -8248.340244520614\n    -8208 -7939 -7746.985758536954\n    -7057 -6550 -5916\n    -5363 -4935.781822975623 -4935.063633571875\n    -3518.4554911770183 -2537 -2026\n    -1511.2603881914456 -1510.4195994839156 -1435\n    -1127.4210136045804 -1045 99\n    1353 1457 1563.2908193223611\n    2245 2286 2552\n    2745.18831295203 2866.279926554429 3075.0468527316334\n    3447 3867 4237.892420141907\n    4335 5052.9775000424015 5232.178240656935\n    5541.784919585003 5749.725576373621 5758\n    6005 6431 7263.477992854769\n    7441 7541 8667.279760663994\n    8857 9199.638673662972 'dl'\n    'dro' 'h' 'igprfq'\n    'jnbd' 'k' 'kordee'\n    'lhwcv' 'mzlb' 'nbjked'\n    'nufpo' 'nxqkdq' 'shelln'\n    'tvzn' 'wpnt' 'wylf'\n    'ydkgu' 'zdb' X''\n    X'0a' X'203f6429f1f33f' X'23858e324545e0362b'\n    X'3f9f8a' X'516f7ddd4b' X'68f1df0930ac6b'\n    X'9ea60d' X'a06f' X'aefd342a39ce36df'\n    X'afaa020fe2' X'be201c' X'c47d97b209601e45'\n"
 				_ = values // suppress unused warning
 				{ // do_test "3.2"
-					var c = "0"
+					c = "0"
 					_ = c // suppress unused warning
 					for _, v := range tclSplitList(values) {
 					_ = v // suppress unused warning
@@ -195,7 +246,6 @@ func Test_skipscan5(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t3 VALUES(" + c + " % 2, " + v + ", " + c + ")")
 						}
-						var c = "0"
 						// incr c 1
 						{
 							_n, _err := strconv.Atoi(c)
@@ -219,7 +269,7 @@ func Test_skipscan5(t *testing.T) {
 					res := _items3[_idx3+2]
 					_ = res // suppress unused warning
 					_ = _idx3
-						var sql = "EXPLAIN QUERY PLAN SELECT * FROM t3 WHERE " + q
+						sql = "EXPLAIN QUERY PLAN SELECT * FROM t3 WHERE " + q
 						_ = sql // suppress unused warning
 						{ // "3.3." + tn
 							_res = db.Exec(sql)

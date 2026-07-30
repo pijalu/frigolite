@@ -39,11 +39,25 @@ func Test_tempdb(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var jrnl_in_memory string
+	_ = jrnl_in_memory // pre-declared from TCL source
+	var subj_in_memory string
+	_ = subj_in_memory // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}
-	db, err = frigolite.Open("")
+	_dbtmp0, err := frigolite.Open("")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tempdb-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(x UNIQUE);\n    CREATE TABLE t2(y);\n    INSERT INTO t2 VALUES('hello');\n    INSERT INTO t2 VALUES(NULL);\n  ")
@@ -60,12 +74,12 @@ func Test_tempdb(t *testing.T) {
 		}
 	}
 	{ // do_test "tempdb-2.1"
-		var jrnl_in_memory = "[permutation] eq \"inmemory_journal\""
+		jrnl_in_memory = "[permutation] eq \"inmemory_journal\""
 		_ = jrnl_in_memory // suppress unused warning
-		var subj_in_memory = "$jrnl_in_memory || $TEMP_STORE>=2"
+		subj_in_memory = "$jrnl_in_memory || $TEMP_STORE>=2"
 		_ = subj_in_memory // suppress unused warning
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "tempdb-2.2"

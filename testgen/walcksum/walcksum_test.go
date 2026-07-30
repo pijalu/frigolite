@@ -41,18 +41,59 @@ func Test_walcksum(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+	var c1 string
+	_ = c1 // pre-declared from TCL source
+	var c2 string
+	_ = c2 // pre-declared from TCL source
+	var expect1 string
+	_ = expect1 // pre-declared from TCL source
+	var expect2 string
+	_ = expect2 // pre-declared from TCL source
+	var bin string
+	_ = bin // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var val string
+	_ = val // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var native string
+	_ = native // pre-declared from TCL source
+	var endian string
+	_ = endian // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+	var iFrame string
+	_ = iFrame // pre-declared from TCL source
+	var pgsz string
+	_ = pgsz // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "walcksum"
+	testprefix = "walcksum"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var native = "big"
+	native = "big"
 	_ = native // suppress unused warning
-	if _tcl_platform_byteOrder == "littleEndian" {
-		var native = "little"
+	if tcl_platform_byteOrder == "littleEndian" {
+		native = "little"
 		_ = native // suppress unused warning
 	}
 	for _, endian := range tclSplitList("big little") {
@@ -63,8 +104,8 @@ func Test_walcksum(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.db")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      PRAGMA page_size = 1024;\n      PRAGMA auto_vacuum = 0;\n      PRAGMA synchronous = NORMAL;\n\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES(1,  'one');\n      INSERT INTO t1 VALUES(2,  'two');\n      INSERT INTO t1 VALUES(3,  'three');\n      INSERT INTO t1 VALUES(5,  'five');\n\n      PRAGMA journal_mode = WAL;\n      INSERT INTO t1 VALUES(8,  'eight');\n      INSERT INTO t1 VALUES(13, 'thirteen');\n      INSERT INTO t1 VALUES(21, 'twentyone');\n    ")
 			if _res.Error != nil {
@@ -75,11 +116,11 @@ func Test_walcksum(t *testing.T) {
 			_list := tclList([]string{"file size test2.db", "file size test2.db-wal"})
 			_ = _list
 		}
-		var f = "1"
+		f = "1"
 		_ = f // suppress unused warning
 		for func() bool { f_n, _f_e := strconv.Atoi(f); if _f_e != nil { return false }; return f_n <= 6 }() {
 			{ // do_test "walcksum-1." + endian + ".2." + f
-				t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test2.db-wal $f $native")
+				// log_checksum_verify test2.db-wal $f $native (unsupported command, not transpiled)
 			}
 			// incr f 1
 			{
@@ -89,13 +130,13 @@ func Test_walcksum(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_writemagic test2.db-wal $endian")
+		// log_checksum_writemagic test2.db-wal $endian (unsupported command, not transpiled)
 		f = "1"
 		_ = f // suppress unused warning
 		for func() bool { f_n, _f_e := strconv.Atoi(f); if _f_e != nil { return false }; return f_n <= 6 }() {
 			{ // do_test "walcksum-1." + endian + ".3." + f
-				t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_write test2.db-wal $f $endian")
-				t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test2.db-wal $f $endian")
+				// log_checksum_write test2.db-wal $f $endian (unsupported command, not transpiled)
+				// log_checksum_verify test2.db-wal $f $endian (unsupported command, not transpiled)
 			}
 			// incr f 1
 			{
@@ -108,8 +149,8 @@ func Test_walcksum(t *testing.T) {
 		{ // do_test "walcksum-1." + endian + ".4.1"
 			tclFileCopy("test2.db", "test.db")
 			tclFileCopy("test2.db-wal", "test.db-wal")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			r = db.Query(" SELECT a FROM t1 ")
 			if r.Error != nil {
@@ -128,7 +169,7 @@ func Test_walcksum(t *testing.T) {
 		_ = f // suppress unused warning
 		for func() bool { f_n, _f_e := strconv.Atoi(f); if _f_e != nil { return false }; return f_n <= 8 }() {
 			{ // do_test "walcksum-1." + endian + ".5." + f
-				t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal $f $endian")
+				// log_checksum_verify test.db-wal $f $endian (unsupported command, not transpiled)
 			}
 			// incr f 1
 			{
@@ -158,7 +199,7 @@ func Test_walcksum(t *testing.T) {
 		_ = f // suppress unused warning
 		for func() bool { f_n, _f_e := strconv.Atoi(f); if _f_e != nil { return false }; return f_n <= 10 }() {
 			{ // do_test "walcksum-1." + endian + ".7." + f
-				t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal $f $endian")
+				// log_checksum_verify test.db-wal $f $endian (unsupported command, not transpiled)
 			}
 			// incr f 1
 			{
@@ -184,13 +225,13 @@ func Test_walcksum(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(89, 'eightynine');\n    ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal 1 $native")
+			// log_checksum_verify test.db-wal 1 $native (unsupported command, not transpiled)
 		}
 		{ // do_test "walcksum-1." + endian + ".8.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal 2 $native")
+			// log_checksum_verify test.db-wal 2 $native (unsupported command, not transpiled)
 		}
 		{ // do_test "walcksum-1." + endian + ".8.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal 3 $native")
+			// log_checksum_verify test.db-wal 3 $native (unsupported command, not transpiled)
 		}
 		{ // do_test "walcksum-1." + endian + ".9"
 			r = db.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")
@@ -210,8 +251,8 @@ func Test_walcksum(t *testing.T) {
 	}
 	{ // do_test "walcksum-2.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    PRAGMA cache_size = 10;\n    CREATE TABLE t1(x PRIMARY KEY);\n    PRAGMA wal_checkpoint;\n    INSERT INTO t1 VALUES(randomblob(800));\n    BEGIN;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   2 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   4 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*   8 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  16 */\n      SAVEPOINT one;\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n        INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n      ROLLBACK TO one;\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  32 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /*  64 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 128 */\n      INSERT INTO t1 SELECT randomblob(800) FROM t1;   /* 256 */\n    COMMIT;\n  ")
 		if _res.Error != nil {

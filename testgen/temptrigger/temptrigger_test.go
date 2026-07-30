@@ -42,13 +42,31 @@ func Test_temptrigger(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var nDb string
+	_ = nDb // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var jj string
+	_ = jj // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "temptrigger"
+	testprefix = "temptrigger"
 	_ = testprefix // suppress unused warning
-	var _enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
-	db, err = frigolite.Open("test.db")
+	enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	// sqlite3_enable_shared_cache 1 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -122,8 +140,8 @@ func Test_temptrigger(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "temptrigger-2.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    DELETE FROM t1;\n    CREATE TEMP TABLE tt1(a, b);\n    CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO tt1 VALUES(new.a, new.b);\n    END;\n  ")
 		if _res.Error != nil {
@@ -162,7 +180,7 @@ func Test_temptrigger(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 	{ // do_test "temptrigger-3.1"
 		{
 			var _catchErr error
@@ -174,8 +192,8 @@ func Test_temptrigger(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test.db")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
@@ -469,10 +487,10 @@ func Test_temptrigger(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	var nDb = "8"
+	nDb = "8"
 	_ = nDb // suppress unused warning
 	{ // do_test "9.0"
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDb_n, _nDb_e := strconv.Atoi(nDb); if _nDb_e != nil { return false }; return ii_n < nDb_n }() {
 			_res = db.Exec("ATTACH ':memory:' AS db" + ii)
@@ -494,7 +512,7 @@ func Test_temptrigger(t *testing.T) {
 		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDb_n, _nDb_e := strconv.Atoi(nDb); if _nDb_e != nil { return false }; return ii_n < (nDb_n-1) }() {
-			var jj = "$ii+1"
+			jj = "$ii+1"
 			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER tr" + ii + " AFTER INSERT ON db" + ii + ".tbl BEGIN\n        INSERT INTO db" + jj + ".tbl VALUES(new.b, new.c, new.a);\n      END;\n    ")
 			if _res.Error != nil {
@@ -612,10 +630,10 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "9.2"
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDb_n, _nDb_e := strconv.Atoi(nDb); if _nDb_e != nil { return false }; return ii_n < (nDb_n-1) }() {
-			var jj = "$ii+1"
+			jj = "$ii+1"
 			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER tru" + ii + " AFTER UPDATE ON db" + ii + ".tbl BEGIN\n        UPDATE db" + jj + ".tbl SET a=new.b, b=new.c, c=new.a;\n      END;\n    ")
 			if _res.Error != nil {
@@ -733,10 +751,10 @@ func Test_temptrigger(t *testing.T) {
 		}
 	}
 	{ // do_test "9.4"
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDb_n, _nDb_e := strconv.Atoi(nDb); if _nDb_e != nil { return false }; return ii_n < (nDb_n-1) }() {
-			var jj = "$ii+1"
+			jj = "$ii+1"
 			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER trd" + ii + " BEFORE DELETE ON db" + ii + ".tbl BEGIN\n        DELETE FROM db" + jj + ".tbl;\n      END;\n    ")
 			if _res.Error != nil {

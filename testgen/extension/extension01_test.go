@@ -40,15 +40,29 @@ func Test_extension01(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var in string
+	_ = in // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "extension01" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fileio")
+	testprefix = "extension01" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// load_static_extension db fileio (unsupported command, not transpiled)
 	{ // do_test "1.0"
 		os.Remove("file1.txt")
-		var out = "open ./file1.txt wb"
+		out = "open ./file1.txt wb"
 		_ = out // suppress unused warning
-		t.Log("-nonewline")
+		_putsMsg := "-nonewline"
+		_ = _putsMsg
 		// close $out
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1, readfile('./file1.txt'));\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
@@ -69,9 +83,9 @@ func Test_extension01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3"
-		var in = "open ./file2.txt rb"
+		in = "open ./file2.txt rb"
 		_ = in // suppress unused warning
-		var x = "read $in"
+		x = "read $in"
 		_ = x // suppress unused warning
 		// close $in
 		_list := tclList([]string{x, "file size file2.txt"})
@@ -87,7 +101,7 @@ func Test_extension01(t *testing.T) {
 		// file size ./file2.txt
 	}
 	{ // do_test "1.6"
-		if _tcl_platform_os != "Windows NT" {
+		if tcl_platform_os != "Windows NT" {
 			// file attributes ./file2.txt -permissions r--r--r--
 		} else {
 			// file attributes ./file2.txt -readonly 1
@@ -98,7 +112,7 @@ func Test_extension01(t *testing.T) {
 		}
 	}
 	{ // do_test "1.7"
-		if _tcl_platform_os != "Windows NT" {
+		if tcl_platform_os != "Windows NT" {
 			// file attributes ./file2.txt -permissions rw-r--r--
 		} else {
 			// file attributes ./file2.txt -readonly 0

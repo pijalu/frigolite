@@ -39,8 +39,23 @@ func Test_window4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var myres string
+	_ = myres // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "window4"
+	testprefix = "window4"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t3;\n  CREATE TABLE t3(a TEXT PRIMARY KEY);\n  INSERT INTO t3 VALUES('a'), ('b'), ('c'), ('d'), ('e');\n  INSERT INTO t3 VALUES('f'), ('g'), ('h'), ('i'), ('j');\n")
@@ -2437,16 +2452,15 @@ func Test_window4(t *testing.T) {
 		}
 	}
 	{ // do_test "9.3"
-		var myres = ""
+		myres = ""
 		_ = myres // suppress unused warning
 		// skip: foreach over unresolved TCL command
-		var res2 = "1.0000 0.0000 1.0000 0.0000 1.0000 0.0000 4.0000 0.0000 4.0000 0.0000 6.0000 0.0000 7.0000 0.0000"
+		res2 = "1.0000 0.0000 1.0000 0.0000 1.0000 0.0000 4.0000 0.0000 4.0000 0.0000 6.0000 0.0000 7.0000 0.0000"
 		_ = res2 // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // "9.4"
 		r = db.Query("\n  SELECT x, rank() OVER (ORDER BY x) FROM t2 ORDER BY 1,2\n")
@@ -2473,28 +2487,26 @@ func Test_window4(t *testing.T) {
 		}
 	}
 	{ // do_test "9.6"
-		var myres = ""
+		myres = ""
 		_ = myres // suppress unused warning
 		// skip: foreach over unresolved TCL command
-		var res2 = "0.0000 0.0000 0.0000"
+		res2 = "0.0000 0.0000 0.0000"
 		_ = res2 // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "9.7"
-		var myres = ""
+		myres = ""
 		_ = myres // suppress unused warning
 		// skip: foreach over unresolved TCL command
-		var res2 = "1.0000 1.0000 1.0000"
+		res2 = "1.0000 1.0000 1.0000"
 		_ = res2 // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // "10.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t7;\n  CREATE TABLE t7(id INTEGER PRIMARY KEY, a INTEGER, b INTEGER);\n  INSERT INTO t7(id, a, b) VALUES\n    (1, 1, 2), (2, 1, NULL), (3, 1, 4),\n    (4, 3, NULL), (5, 3, 8), (6, 3, 1);\n")
@@ -2653,27 +2665,25 @@ func Test_window4(t *testing.T) {
 		}
 	}
 	{ // do_test "12.2"
-		var myres = ""
+		myres = ""
 		_ = myres // suppress unused warning
 		// skip: foreach over unresolved TCL command
-		var res2 = "2.0000"
+		res2 = "2.0000"
 		_ = res2 // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // do_test "12.3"
-		var myres = ""
+		myres = ""
 		_ = myres // suppress unused warning
 		// skip: foreach over unresolved TCL command
-		var res2 = "1.0000 2.0000 3.0000"
+		res2 = "1.0000 2.0000 3.0000"
 		_ = res2 // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// foreach r "set myres" (no body)
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 }

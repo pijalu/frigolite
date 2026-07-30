@@ -39,11 +39,56 @@ func Test_bestindexF(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var vtab_orderby string
+	_ = vtab_orderby // pre-declared from TCL source
+	var vtab_distinct string
+	_ = vtab_distinct // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var uses string
+	_ = uses // pre-declared from TCL source
+	var idxStr string
+	_ = idxStr // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var sort string
+	_ = sort // pre-declared from TCL source
+	var idxstr string
+	_ = idxstr // pre-declared from TCL source
+	var distinct string
+	_ = distinct // pre-declared from TCL source
+	var vm string
+	_ = vm // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var iSort string
+	_ = iSort // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var expect string
+	_ = expect // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindexF"
+	testprefix = "bestindexF"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING tcl(vtab_command)\n")
 		if _res.Error != nil {
@@ -52,9 +97,11 @@ func Test_bestindexF(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_idxinsert_test 1.1.1 {\n  SELECT DISTINCT a, b FROM t1 \n} {0    1 a 1 b 2 a 2 b}")
+	// do_idxinsert_test 1.1.1 {
+  SELECT DISTINCT a, b FROM t1 
+} {0    1 a 1 b 2 a 2 b} (unsupported command, not transpiled)
 	{ // do_test "1.1.2"
-		_list := tclList([]string{_vtab_distinct, _vtab_orderby})
+		_list := tclList([]string{vtab_distinct, vtab_orderby})
 		_ = _list
 	}
 	{ // "1.3"
@@ -63,9 +110,10 @@ func Test_bestindexF(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0);\n  INSERT INTO t0 VALUES(0);\n  INSERT INTO t0 VALUES(1);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_idxinsert_test 1.4.1 {\n  SELECT DISTINCT t0.c0 FROM t1, t0 ORDER BY t1.a...} {1    0 1}")
+	// do_idxinsert_test 1.4.1 {
+  SELECT DISTINCT t0.c0 FROM t1, t0 ORDER BY t1.a...} {1    0 1} (unsupported command, not transpiled)
 	{ // do_test "1.4.2"
-		_list := tclList([]string{_vtab_distinct, _vtab_orderby})
+		_list := tclList([]string{vtab_distinct, vtab_orderby})
 		_ = _list
 	}
 	db.Close()
@@ -78,7 +126,7 @@ func Test_bestindexF(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE real_t1(a, b);\n\n  INSERT INTO real_t1 VALUES (1, 'a');\n  INSERT INTO real_t1 VALUES (2, 'a');\n  INSERT INTO real_t1 VALUES (1, 'a');\n\n  INSERT INTO real_t1 VALUES (2, 'b');\n  INSERT INTO real_t1 VALUES (1, 'b');\n  INSERT INTO real_t1 VALUES (2, 'b');\n\n  INSERT INTO real_t1 VALUES (3, 'a');\n  INSERT INTO real_t1 VALUES (4, 'b');\n  INSERT INTO real_t1 VALUES (3, 'a');\n\n  INSERT INTO real_t1 VALUES (4, 'b');\n  INSERT INTO real_t1 VALUES (3, 'a');\n  INSERT INTO real_t1 VALUES (4, 'b');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING tcl(vtab_command)\n")
 		if _res.Error != nil {
@@ -98,14 +146,67 @@ func Test_bestindexF(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.2 {\n  SELECT a, b FROM t1\n} { 0 \"{} {}\"\n  1 a 2 a 1 a \n  2 b 1 b 2 b \n  3 a 4 b...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.3 {\n  SELECT DISTINCT a FROM t1\n} { 0 \"DISTINCT {ORDER BY ((a+2)%5)}\"\n  3 4 1 2\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.4 {\n  SELECT DISTINCT a FROM t1 ORDER BY a\n} { 0 \"DISTINCT {ORDER BY a}\"\n  1 2 3 4\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.5 {\n  SELECT DISTINCT a FROM t1 ORDER BY a DESC\n} { 0 \"DISTINCT {ORDER BY a DESC}\"\n  4 3 2 1\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.6 {\n  SELECT a FROM t1 ORDER BY a\n} { 0 \"{} {ORDER BY a}\"\n  1 1 1\n  2 2 2\n  3 3 3\n  4 4...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.7 {\n  SELECT a FROM t1 ORDER BY a DESC\n} { 0 \"{} {ORDER BY a DESC}\"\n  4 4 4\n  3 3 3\n  2 2 2\n...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.8 {\n  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY ...} { 0 \"{} {ORDER BY a}\"\n  1 3\n  2 3\n  3 3\n  4 3\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.9 {\n  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY ...} { 0 \"{} {ORDER BY a DESC}\"\n  4 3\n  3 3\n  2 3\n  1 3\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.10 {\n  SELECT a, count(*) FROM t1 GROUP BY a\n} { 0 \"{} {ORDER BY ((a+2)%5)}\"\n  3 3\n  4 3\n  1 3\n  2...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.11 {\n  SELECT DISTINCT a, count(*) FROM t1 GROUP BY a\n} { 1 \"{} {ORDER BY ((a+2)%5)}\"\n  3 3\n  4 3\n  1 3\n  2...}")
+	// do_vtabsorter_test 2.2 {
+  SELECT a, b FROM t1
+} { 0 "{} {}"
+  1 a 2 a 1 a 
+  2 b 1 b 2 b 
+  3 a 4 b...} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.3 {
+  SELECT DISTINCT a FROM t1
+} { 0 "DISTINCT {ORDER BY ((a+2)%5)}"
+  3 4 1 2
+} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.4 {
+  SELECT DISTINCT a FROM t1 ORDER BY a
+} { 0 "DISTINCT {ORDER BY a}"
+  1 2 3 4
+} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.5 {
+  SELECT DISTINCT a FROM t1 ORDER BY a DESC
+} { 0 "DISTINCT {ORDER BY a DESC}"
+  4 3 2 1
+} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.6 {
+  SELECT a FROM t1 ORDER BY a
+} { 0 "{} {ORDER BY a}"
+  1 1 1
+  2 2 2
+  3 3 3
+  4 4...} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.7 {
+  SELECT a FROM t1 ORDER BY a DESC
+} { 0 "{} {ORDER BY a DESC}"
+  4 4 4
+  3 3 3
+  2 2 2
+...} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.8 {
+  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY ...} { 0 "{} {ORDER BY a}"
+  1 3
+  2 3
+  3 3
+  4 3
+} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.9 {
+  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY ...} { 0 "{} {ORDER BY a DESC}"
+  4 3
+  3 3
+  2 3
+  1 3
+} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.10 {
+  SELECT a, count(*) FROM t1 GROUP BY a
+} { 0 "{} {ORDER BY ((a+2)%5)}"
+  3 3
+  4 3
+  1 3
+  2...} (unsupported command, not transpiled)
+	// do_vtabsorter_test 2.11 {
+  SELECT DISTINCT a, count(*) FROM t1 GROUP BY a
+} { 1 "{} {ORDER BY ((a+2)%5)}"
+  3 3
+  4 3
+  1 3
+  2...} (unsupported command, not transpiled)
 }

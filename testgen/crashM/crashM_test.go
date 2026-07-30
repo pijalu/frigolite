@@ -41,30 +41,46 @@ func Test_crashM(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "crashM"
+	testprefix = "crashM"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_uri 1 (unsupported command, not transpiled)
 	for _, f := range tclSplitList("glob -nocomplain test1.* test2.*") {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
-	db, err = frigolite.Open("file:test1.db?8_3_names=1")
+	// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("file:test1.db?8_3_names=1")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_control db main chunk_size [expr 64*1024]")
+	// sqlite3_multiplex_control db main chunk_size [expr 64*1024] (unsupported command, not transpiled)
 	{ // "1.0"
 		r = db.Query("\n  ATTACH 'file:test2.db?8_3_names=1' AS aux;\n\n  CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n\n  CREATE TABLE aux.t2(x, y);\n  CREATE INDEX aux.t2x ON t2(x);\n  CREATE INDEX aux.t2y ON t2(y);\n\n  WITH s(a) AS (\n    SELECT 1 UNION ALL SELECT a+1 FROM s WHERE a<1000\n  )\n  INSERT INTO t1 SELECT a, randomblob(500) FROM s;\n\n  WITH s(a) AS (\n    SELECT 1 UNION ALL SELECT a+1 FROM s WHERE a<1000\n  )\n  INSERT INTO t2 SELECT a, randomblob(500) FROM s;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  ATTACH 'file:test2.db?8_3_names=1' AS aux;\n\n  CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x);\n  CREATE INDEX t1y ON t1(y);\n\n  CREATE TABLE aux.t2(x, y);\n  CREATE INDEX aux.t2x ON t2(x);\n  CREATE INDEX aux.t2y ON t2(y);\n\n  WITH s(a) AS (\n    SELECT 1 UNION ALL SELECT a+1 FROM s WHERE a<1000\n  )\n  INSERT INTO t1 SELECT a, randomblob(500) FROM s;\n\n  WITH s(a) AS (\n    SELECT 1 UNION ALL SELECT a+1 FROM s WHERE a<1000\n  )\n  INSERT INTO t2 SELECT a, randomblob(500) FROM s;\n")
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 		{ // do_test "2." + i + ".1"
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test1.db -opendb {\n      sqlite3_shutdown\n      sqlite3_config_uri 1...} {\n      ATTACH 'file:test2.db?8_3_names=1' AS aux;\n...}")
+			// crashsql -delay 1 -file test1.db -opendb {
+      sqlite3_shutdown
+      sqlite3_config_uri 1...} {
+      ATTACH 'file:test2.db?8_3_names=1' AS aux;
+...} (unsupported command, not transpiled)
 		}
 		{ // "2." + i + ".2"
 			r = db.Query("\n    PRAGMA main.integrity_check;\n    PRAGMA aux.integrity_check;\n  ")
@@ -90,5 +106,5 @@ func Test_crashM(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+	// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
 }

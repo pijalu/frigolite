@@ -40,8 +40,19 @@ func Test_memjournal(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "memjournal"
+	testprefix = "memjournal"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a);\n")
@@ -49,7 +60,7 @@ func Test_memjournal(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a);\n")
 		}
 	}
-	var nRow = "1"
+	nRow = "1"
 	_ = nRow // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES( randomblob(500) );\n")
@@ -58,7 +69,7 @@ func Test_memjournal(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 500 }() {
 			_res = db.Exec("\n      SAVEPOINT one;\n      UPDATE t1 SET a=randomblob(500);\n    ")

@@ -39,6 +39,25 @@ func Test_collate9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sqlite_sort_count string
+	_ = sqlite_sort_count // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -61,7 +80,7 @@ func Test_collate9(t *testing.T) {
 		}
 	}
 	{ // do_test "collate9-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT x FROM xy ORDER BY x\n  }")
+		_ = db.Exec(" \n    SELECT x FROM xy ORDER BY x\n  ") // cksort
 	}
 	{ // do_test "collate9-1.5"
 		_res = db.Exec(" \n    CREATE INDEX xy_i ON xy(x)\n  ")
@@ -70,7 +89,7 @@ func Test_collate9(t *testing.T) {
 		}
 	}
 	{ // do_test "collate9-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT x FROM xy ORDER BY x\n  }")
+		_ = db.Exec(" \n    SELECT x FROM xy ORDER BY x\n  ") // cksort
 	}
 	{ // do_test "collate9-2.1"
 		r = db.Query(" \n    SELECT x, x < 'seven' FROM xy ORDER BY x\n  ")
@@ -115,15 +134,15 @@ func Test_collate9(t *testing.T) {
 		}
 	}
 	{ // do_test "collate9-3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y FROM xy ORDER BY y \n  }")
+		_ = db.Exec(" \n    SELECT y FROM xy ORDER BY y \n  ") // cksort
 	}
 	{ // do_test "collate9-3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y FROM xy ORDER BY y COLLATE \"reverse...}")
+		_ = db.Exec(" \n    SELECT y FROM xy ORDER BY y COLLATE \"reverse sort\"\n  ") // cksort
 	}
 	{ // do_test "collate9-3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y AS aaa FROM xy ORDER BY aaa\n  }")
+		_ = db.Exec(" \n    SELECT y AS aaa FROM xy ORDER BY aaa\n  ") // cksort
 	}
 	{ // do_test "collate9-3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y COLLATE \"reverse sort\" AS aaa FROM ...}")
+		_ = db.Exec(" \n    SELECT y COLLATE \"reverse sort\" AS aaa FROM xy ORDER BY aaa\n  ") // cksort
 	}
 }

@@ -40,8 +40,35 @@ func Test_cost(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var nTerm string
+	_ = nTerm // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var w string
+	_ = w // pre-declared from TCL source
+	var p1 string
+	_ = p1 // pre-declared from TCL source
+	var p2 string
+	_ = p2 // pre-declared from TCL source
+	var sql1 string
+	_ = sql1 // pre-declared from TCL source
+	var sql2 string
+	_ = sql2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "cost"
+	testprefix = "cost"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, b NOT NULL);\n  CREATE TABLE t4(c, d, e);\n  CREATE UNIQUE INDEX i3 ON t3(b);\n  CREATE UNIQUE INDEX i4 ON t4(c, d);\n")
@@ -182,7 +209,7 @@ func Test_cost(t *testing.T) {
 		}
 	}
 	{ // do_test "9.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			_res = db.Exec(" INSERT INTO t1 DEFAULT VALUES ")
@@ -202,7 +229,7 @@ func Test_cost(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ANALYZE;\n    CREATE INDEX i2 ON t1(a,b,c,d,e,f,g,h,i,j);\n  ")
 		}
 	}
-	var L = "list a=? b=? c=? d=? e=? f=? g=? h=? i=? j=?"
+	L = "list a=? b=? c=? d=? e=? f=? g=? h=? i=? j=?"
 	_ = L // suppress unused warning
 	// foreach {tn nTerm nRow} "\n  1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5\n"
 	_items0 := tclSplitList("\n  1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5\n")
@@ -214,15 +241,15 @@ func Test_cost(t *testing.T) {
 		nRow := _items0[_idx0+2]
 		_ = nRow // suppress unused warning
 		_ = _idx0
-			var w = "join [lrange $L 0 [expr $nTerm-1]] \" AND \""
+			w = "join [lrange $L 0 [expr $nTerm-1]] \" AND \""
 			_ = w // suppress unused warning
-			var p1 = "($nRow-1) / 100.0"
+			p1 = "($nRow-1) / 100.0"
 			_ = p1 // suppress unused warning
-			var p2 = "($nRow+1) / 100.0"
+			p2 = "($nRow+1) / 100.0"
 			_ = p2 // suppress unused warning
-			var sql1 = "SELECT * FROM t1 WHERE likelihood(k=?, " + p1 + ") AND " + w
+			sql1 = "SELECT * FROM t1 WHERE likelihood(k=?, " + p1 + ") AND " + w
 			_ = sql1 // suppress unused warning
-			var sql2 = "SELECT * FROM t1 WHERE likelihood(k=?, " + p2 + ") AND " + w
+			sql2 = "SELECT * FROM t1 WHERE likelihood(k=?, " + p2 + ") AND " + w
 			_ = sql2 // suppress unused warning
 			{ // "9.3." + tn + ".1"
 				r = db.Query("EXPLAIN QUERY PLAN " + sql1)

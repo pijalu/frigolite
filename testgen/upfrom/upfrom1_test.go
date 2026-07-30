@@ -39,8 +39,15 @@ func Test_upfrom1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "upfrom1"
+	testprefix = "upfrom1"
 	_ = testprefix // suppress unused warning
 	{ // "1.1.0"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b INTEGER, c INTEGER) WITHOUT ROWID;\n  INSERT INTO t2 VALUES(1, 2, 3);\n  INSERT INTO t2 VALUES(4, 5, 6);\n  INSERT INTO t2 VALUES(7, 8, 9);\n\n  DROP TABLE IF EXISTS chng;\n  CREATE TABLE chng(a INTEGER, b INTEGER, c INTEGER);\n  INSERT INTO chng VALUES(1, 100, 1000);\n  INSERT INTO chng VALUES(7, 700, 7000);\n")

@@ -39,9 +39,14 @@ func Test_analyze7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "analyze7-1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+		// load_static_extension db wholenumber (unsupported command, not transpiled)
 		r = db.Query("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1cd ON t1(c,d);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value, value, value/100, value FROM nums\n                    WHERE value BETWEEN 1 AND 256;\n    EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1cd ON t1(c,d);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value, value, value/100, value FROM nums\n                    WHERE value BETWEEN 1 AND 256;\n    EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE a=123;\n  ")

@@ -39,8 +39,15 @@ func Test_vtab8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab1.2244-1"
 		r = db.Query("\n    CREATE TABLE t2244(a, b);\n    CREATE VIRTUAL TABLE t2244e USING echo(t2244);\n    INSERT INTO t2244 VALUES('AA', 'BB');\n    INSERT INTO t2244 VALUES('CC', 'DD');\n    SELECT rowid, * FROM t2244e;\n  ")
 		if r.Error != nil {

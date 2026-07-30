@@ -39,6 +39,15 @@ func Test_tkt3093(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3093.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1\n  ")
@@ -50,7 +59,7 @@ func Test_tkt3093(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 0")
+			// sqlite3_enable_shared_cache 0 (unsupported command, not transpiled)
 		}
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

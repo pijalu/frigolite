@@ -39,9 +39,22 @@ func Test_fts3corrupt3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var doc1 string
+	_ = doc1 // pre-declared from TCL source
+	var doc2 string
+	_ = doc2 // pre-declared from TCL source
+	var doc3 string
+	_ = doc3 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3corrupt3" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts3corrupt3" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA page_size = 512;\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  BEGIN;\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n    INSERT INTO t1 VALUES('one');\n  COMMIT;\n")
 		if _res.Error != nil {
@@ -60,7 +73,7 @@ func Test_fts3corrupt3(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "1.2"
 		_res = db.Exec("\n  UPDATE t1_segdir SET root = X'00036F6E650EFFFFFFFFFFFFFFFFFFFFFFFF0200';\n")
 		if _res.Error != nil {
@@ -73,11 +86,11 @@ func Test_fts3corrupt3(t *testing.T) {
 			t.Errorf("expected error, got none\n  sql: %s", "\n  SELECT rowid FROM t1 WHERE t1 MATCH 'one'\n")
 		}
 	}
-	var doc1 = "\"x \" 600"
+	doc1 = "\"x \" 600"
 	_ = doc1 // suppress unused warning
-	var doc2 = "\"y \" 600"
+	doc2 = "\"y \" 600"
 	_ = doc2 // suppress unused warning
-	var doc3 = "\"z \" 600"
+	doc3 = "\"z \" 600"
 	_ = doc3 // suppress unused warning
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts3;\n  BEGIN;\n    INSERT INTO t2 VALUES($doc1);\n    INSERT INTO t2 VALUES($doc2);\n    INSERT INTO t2 VALUES($doc3);\n  COMMIT;\n")

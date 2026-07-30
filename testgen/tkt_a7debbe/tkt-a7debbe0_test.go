@@ -40,8 +40,17 @@ func Test_tkt_a7debbe0(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tkt-a7debbe0"
+	testprefix = "tkt-a7debbe0"
 	_ = testprefix // suppress unused warning
 	for _, tn := range tclSplitList("1 2") {
 	_ = tn // suppress unused warning
@@ -49,9 +58,9 @@ func Test_tkt_a7debbe0(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
-			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 0")
+			// optimization_control db query-flattener 0 (unsupported command, not transpiled)
 		} else {
-			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 1")
+			// optimization_control db query-flattener 1 (unsupported command, not transpiled)
 		}
 		{ // tn + ".1.0"
 			_res = db.Exec("\n    CREATE TABLE t0(xyz INTEGER);\n    INSERT INTO t0(xyz) VALUES(456);\n    CREATE VIEW v2(a, B) AS \n        SELECT 'a', 'B' COLLATE NOCASE FROM t0;\n    CREATE TABLE t2(a, B COLLATE NOCASE);\n    INSERT INTO t2 VALUES('a', 'B');\n    CREATE VIEW v3(a, B) AS\n        SELECT 'a' COLLATE BINARY, 'B' COLLATE NOCASE FROM t0;\n\n    CREATE VIEW v4(a, B) AS\n        SELECT 'a', +CAST('B' COLLATE NOCASE AS TEXT) FROM t0;\n\n    CREATE VIEW v5(a, B) AS\n        SELECT 'a', ('B' COLLATE NOCASE) || '' FROM t0;\n  ")

@@ -39,6 +39,27 @@ func Test_collate3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var cfact_cnt string
+	_ = cfact_cnt // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var nm string
+	_ = nm // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "collate3-1.0"
 		_res = db.Exec("\n    CREATE TABLE collate3t1(c1 UNIQUE);\n  ")
@@ -78,8 +99,8 @@ func Test_collate3(t *testing.T) {
 		}
 	}
 	{ // do_test "collate3-1.5"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ORDER BY a ")
 		_ = _res // catchsql
@@ -95,22 +116,22 @@ func Test_collate3(t *testing.T) {
 		}
 	}
 	{ // do_test "collate3-1.6.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ORDER BY a ")
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-1.6.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA integrity_check ")
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-1.6.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" REINDEX ")
 		_ = _res // catchsql
@@ -122,44 +143,44 @@ func Test_collate3(t *testing.T) {
 		}
 	}
 	{ // do_test "collate3-1.7.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" SELECT * FROM t1 ORDER BY a COLLATE caseless")
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-1.7.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" REINDEX ")
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-1.7.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp6, err := frigolite.Open("test.db")
+		_ = _dbtmp6 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA integrity_check ")
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-1.7.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp7, err := frigolite.Open("test.db")
+		_ = _dbtmp7 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" REINDEX ")
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-1.7.5"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp8, err := frigolite.Open("test.db")
+		_ = _dbtmp8 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA integrity_check ")
 		_ = _res // catchsql
 	}
 	// proc definition (not transpiled)
 	{ // do_test "collate3-1.7.6"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp9, err := frigolite.Open("test.db")
+		_ = _dbtmp9 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" PRAGMA integrity_check ")
 		_ = _res // catchsql
@@ -175,8 +196,8 @@ func Test_collate3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE collate3t1(c1 COLLATE string_compare, c2);\n  ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp10, err := frigolite.Open("test.db")
+		_ = _dbtmp10 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// expr 0 → "0"
 	}
@@ -221,8 +242,8 @@ func Test_collate3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX collate3t1_i1 ON collate3t1(c1);\n    INSERT INTO collate3t1 VALUES('xxx', 'yyy');\n  ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp11, err := frigolite.Open("test.db")
+		_ = _dbtmp11 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		// expr 0 → "0"
 	}
@@ -291,8 +312,8 @@ func Test_collate3(t *testing.T) {
 		}
 	}
 	{ // do_test "collate3-4.7"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp12, err := frigolite.Open("test.db")
+		_ = _dbtmp12 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM collate3t1 ORDER BY a COLLATE user_defined;\n  ")
 		_ = _res // catchsql
@@ -302,7 +323,7 @@ func Test_collate3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-4.8.2"
-		tclLIndex("0", "0")
+		_ = tclLIndex("0", "0") // lindex result
 	}
 	{ // do_test "collate3-4.8.3"
 		_res = db.Exec("\n    DROP TABLE collate3t1;\n  ")
@@ -316,8 +337,8 @@ func Test_collate3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-5.1"
-		var _cfact_cnt = "0" // TCL namespace variable
-		_ = _cfact_cnt // suppress unused warning
+		cfact_cnt = "0" // TCL namespace variable
+		_ = cfact_cnt // suppress unused warning
 		// proc definition (not transpiled)
 	}
 	{ // do_test "collate3-5.2"
@@ -325,14 +346,14 @@ func Test_collate3(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-5.3"
-		_ = _cfact_cnt // TCL namespace variable (query)
+		_ = cfact_cnt // TCL namespace variable (query)
 	}
 	{ // do_test "collate3-5.4"
 		_res = db.Exec("\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-5.5"
-		_ = _cfact_cnt // TCL namespace variable (query)
+		_ = cfact_cnt // TCL namespace variable (query)
 	}
 	{ // do_test "collate3-5.6"
 		_res = db.Exec("\n    SELECT a FROM collate3t1 ORDER BY 1 COLLATE unk;\n  ")
@@ -343,15 +364,15 @@ func Test_collate3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE collate3t1;\n    CREATE TABLE collate3t1(a COLLATE unk);\n  ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp13, err := frigolite.Open("test.db")
+		_ = _dbtmp13 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT a FROM collate3t1 ORDER BY 1;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "collate3-5.8"
-		var _cfact_cnt = "0" // TCL namespace variable
-		_ = _cfact_cnt // suppress unused warning
+		cfact_cnt = "0" // TCL namespace variable
+		_ = cfact_cnt // suppress unused warning
 		// proc definition (not transpiled)
 		_res = db.Exec("\n    SELECT a FROM collate3t1 ORDER BY 1;\n  ")
 		_ = _res // catchsql

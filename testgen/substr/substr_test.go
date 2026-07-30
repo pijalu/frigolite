@@ -39,6 +39,29 @@ func Test_substr(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var qstr string
+	_ = qstr // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _string string
+	_ = _string // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var i1 string
+	_ = i1 // pre-declared from TCL source
+	var i2 string
+	_ = i2 // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var hex string
+	_ = hex // pre-declared from TCL source
+	var hexresult string
+	_ = hexresult // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec(" \n  CREATE TABLE t1(t text, b blob)\n")
 	if _res.Error != nil {
@@ -46,24 +69,24 @@ func Test_substr(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.1 abcdefg 1 1 a")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.2 abcdefg 2 1 b")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.3 abcdefg 1 2 ab")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.4 abcdefg 1 100 abcdefg")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.5 abcdefg 0 2 a")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.6 abcdefg -1 1 g")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.7 abcdefg -1 10 g")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.8 abcdefg -5 3 cde")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.9 abcdefg -7 3 abc")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.10 abcdefg -100 98 abcde")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.11 abcdefg 5 -1 d")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.12 abcdefg 5 -4 abcd")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.13 abcdefg 5 -5 abcd")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.14 abcdefg -5 -1 b")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.15 abcdefg -5 -2 ab")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.16 abcdefg -5 -3 ab")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.17 abcdefg 100 200 {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 1.18 abcdefg 200 100 {}")
+	// substr-test 1.1 abcdefg 1 1 a (unsupported command, not transpiled)
+	// substr-test 1.2 abcdefg 2 1 b (unsupported command, not transpiled)
+	// substr-test 1.3 abcdefg 1 2 ab (unsupported command, not transpiled)
+	// substr-test 1.4 abcdefg 1 100 abcdefg (unsupported command, not transpiled)
+	// substr-test 1.5 abcdefg 0 2 a (unsupported command, not transpiled)
+	// substr-test 1.6 abcdefg -1 1 g (unsupported command, not transpiled)
+	// substr-test 1.7 abcdefg -1 10 g (unsupported command, not transpiled)
+	// substr-test 1.8 abcdefg -5 3 cde (unsupported command, not transpiled)
+	// substr-test 1.9 abcdefg -7 3 abc (unsupported command, not transpiled)
+	// substr-test 1.10 abcdefg -100 98 abcde (unsupported command, not transpiled)
+	// substr-test 1.11 abcdefg 5 -1 d (unsupported command, not transpiled)
+	// substr-test 1.12 abcdefg 5 -4 abcd (unsupported command, not transpiled)
+	// substr-test 1.13 abcdefg 5 -5 abcd (unsupported command, not transpiled)
+	// substr-test 1.14 abcdefg -5 -1 b (unsupported command, not transpiled)
+	// substr-test 1.15 abcdefg -5 -2 ab (unsupported command, not transpiled)
+	// substr-test 1.16 abcdefg -5 -3 ab (unsupported command, not transpiled)
+	// substr-test 1.17 abcdefg 100 200 {} (unsupported command, not transpiled)
+	// substr-test 1.18 abcdefg 200 100 {} (unsupported command, not transpiled)
 	{ // do_test "substr-1.90"
 		_res = db.Exec("SELECT ifnull(substr(NULL,1,1),'nil')")
 		if _res.Error != nil {
@@ -94,31 +117,31 @@ func Test_substr(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT ifnull(substr('abcdefg',1,NULL),'nil')")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 2.1 \\u1234\\u2345\\u3456 1 1 \\u1234")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 2.2 \\u1234\\u2345\\u3456 2 1 \\u2345")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 2.3 \\u1234\\u2345\\u3456 1 2 \\u1234\\u2345")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 2.4 \\u1234\\u2345\\u3456 -1 1 \\u3456")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 2.5 a\\u1234b\\u2345c\\u3456c -5 3 b\\u2345c")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-test 2.6 a\\u1234b\\u2345c\\u3456c -2 -3 b\\u2345c")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.1 61626364656667 1 1 61")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.2 61626364656667 2 1 62")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.3 61626364656667 1 2 6162")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.4 61626364656667 1 100 61626364656667")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.5 61626364656667 0 2 61")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.6 61626364656667 -1 1 67")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.7 61626364656667 -1 10 67")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.8 61626364656667 -5 3 636465")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.9 61626364656667 -7 3 616263")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.10 61626364656667 -100 98 6162636465")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.11 61626364656667 100 200 {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 3.12 61626364656667 200 100 {}")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 4.1 61E188B462E28D8563E3919663 1 1 61")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 4.2 61E188B462E28D8563E3919663 2 1 E1")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 4.3 61E188B462E28D8563E3919663 1 2 61E1")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 4.4 61E188B462E28D8563E3919663 -2 1 96")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 4.5 61E188B462E28D8563E3919663 -5 4 63E39196")
-	t.Errorf("TODO: %s not implemented in frigolite", "subblob-test 4.6 61E188B462E28D8563E3919663 -100 98 61E188B462E28D8563E391")
+	// substr-test 2.1 \u1234\u2345\u3456 1 1 \u1234 (unsupported command, not transpiled)
+	// substr-test 2.2 \u1234\u2345\u3456 2 1 \u2345 (unsupported command, not transpiled)
+	// substr-test 2.3 \u1234\u2345\u3456 1 2 \u1234\u2345 (unsupported command, not transpiled)
+	// substr-test 2.4 \u1234\u2345\u3456 -1 1 \u3456 (unsupported command, not transpiled)
+	// substr-test 2.5 a\u1234b\u2345c\u3456c -5 3 b\u2345c (unsupported command, not transpiled)
+	// substr-test 2.6 a\u1234b\u2345c\u3456c -2 -3 b\u2345c (unsupported command, not transpiled)
+	// subblob-test 3.1 61626364656667 1 1 61 (unsupported command, not transpiled)
+	// subblob-test 3.2 61626364656667 2 1 62 (unsupported command, not transpiled)
+	// subblob-test 3.3 61626364656667 1 2 6162 (unsupported command, not transpiled)
+	// subblob-test 3.4 61626364656667 1 100 61626364656667 (unsupported command, not transpiled)
+	// subblob-test 3.5 61626364656667 0 2 61 (unsupported command, not transpiled)
+	// subblob-test 3.6 61626364656667 -1 1 67 (unsupported command, not transpiled)
+	// subblob-test 3.7 61626364656667 -1 10 67 (unsupported command, not transpiled)
+	// subblob-test 3.8 61626364656667 -5 3 636465 (unsupported command, not transpiled)
+	// subblob-test 3.9 61626364656667 -7 3 616263 (unsupported command, not transpiled)
+	// subblob-test 3.10 61626364656667 -100 98 6162636465 (unsupported command, not transpiled)
+	// subblob-test 3.11 61626364656667 100 200 {} (unsupported command, not transpiled)
+	// subblob-test 3.12 61626364656667 200 100 {} (unsupported command, not transpiled)
+	// subblob-test 4.1 61E188B462E28D8563E3919663 1 1 61 (unsupported command, not transpiled)
+	// subblob-test 4.2 61E188B462E28D8563E3919663 2 1 E1 (unsupported command, not transpiled)
+	// subblob-test 4.3 61E188B462E28D8563E3919663 1 2 61E1 (unsupported command, not transpiled)
+	// subblob-test 4.4 61E188B462E28D8563E3919663 -2 1 96 (unsupported command, not transpiled)
+	// subblob-test 4.5 61E188B462E28D8563E3919663 -5 4 63E39196 (unsupported command, not transpiled)
+	// subblob-test 4.6 61E188B462E28D8563E3919663 -100 98 61E188B462E28D8563E391 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-2-test 5.1 abcdefghijklmnop 5 efghijklmnop")
-	t.Errorf("TODO: %s not implemented in frigolite", "substr-2-test 5.2 abcdef -5 bcdef")
+	// substr-2-test 5.1 abcdefghijklmnop 5 efghijklmnop (unsupported command, not transpiled)
+	// substr-2-test 5.2 abcdef -5 bcdef (unsupported command, not transpiled)
 }

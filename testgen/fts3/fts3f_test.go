@@ -39,8 +39,21 @@ func Test_fts3f(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var docid string
+	_ = docid // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3f"
+	testprefix = "fts3f"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft USING fts3(x);\n  BEGIN;\n    INSERT INTO ft VALUES('a one'), ('b one'), ('c one');\n")
@@ -49,7 +62,7 @@ func Test_fts3f(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		var ret = "list"
+		ret = "list"
 		_ = ret // suppress unused warning
 		_res = db.Exec(" SELECT docid FROM ft WHERE ft MATCH 'one' ")
 		if _res.Error != nil {

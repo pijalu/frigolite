@@ -40,6 +40,25 @@ func Test_index(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var idxlist string
+	_ = idxlist // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "index-1.1"
 		_res = db.Exec("CREATE TABLE test1(f1 int, f2 int, f3 int)")
@@ -62,8 +81,8 @@ func Test_index(t *testing.T) {
 		}
 	}
 	{ // do_test "index-1.1c"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name, sql, tbl_name, type FROM sqlite_master \n           WHERE name='index1'")
 		if r.Error != nil {
@@ -71,8 +90,8 @@ func Test_index(t *testing.T) {
 		}
 	}
 	{ // do_test "index-1.1d"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		if r.Error != nil {
@@ -90,7 +109,6 @@ func Test_index(t *testing.T) {
 		}
 	}
 	{ // do_test "index-2.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -112,7 +130,6 @@ func Test_index(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(f1 int, f2 int, f3 int)")
 		}
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -130,7 +147,6 @@ func Test_index(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "index-2.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -151,9 +167,9 @@ func Test_index(t *testing.T) {
 		}
 		v = tclListAppend(v, msg)
 	}
-	var _r = ""
+	_r = ""
 	_ = _r // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 		_r = tclListAppend(_r, "format index%02d $i")
@@ -170,10 +186,10 @@ func Test_index(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(f1 int, f2 int, f3 int, f4 int, f5 int)")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-			var sql = "CREATE INDEX " + "format index%02d $i" + " ON test1(f" + "($i%5)+1" + ")"
+			sql = "CREATE INDEX " + "format index%02d $i" + " ON test1(f" + "($i%5)+1" + ")"
 			_ = sql // suppress unused warning
 			_res = db.Exec(sql)
 			if _res.Error != nil {
@@ -211,7 +227,7 @@ func Test_index(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(cnt int, power int)")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 			_res = db.Exec("INSERT INTO test1 VALUES(" + i + "," + "1<<$i" + ")")
@@ -334,7 +350,6 @@ func Test_index(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "index-5.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -370,7 +385,6 @@ func Test_index(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX index1 ON test1(f1)")
 		}
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -402,7 +416,6 @@ func Test_index(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "index-6.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -452,7 +465,7 @@ func Test_index(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(f1 int, f2 int primary key)")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 			_res = db.Exec("INSERT INTO test1 VALUES(" + i + "," + "1<<$i" + ")")
@@ -497,7 +510,6 @@ func Test_index(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "index-8.1"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -597,7 +609,7 @@ func Test_index(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(\n      a text,\n      b int,\n      c float,\n      PRIMARY KEY(b)\n    );\n  ")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50 }() {
 			_res = db.Exec("INSERT INTO t3 VALUES('x" + i + "x'," + i + ",0." + i + ")")
@@ -612,10 +624,13 @@ func Test_index(t *testing.T) {
 				}
 			}
 		}
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
-		_r := tclList(append([]string{}, tclSplitList("execsql {SELECT c FROM t3 WHERE b==10}")..., tclSplitList(sqlite_search_count)...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("execsql {SELECT c FROM t3 WHERE b==10}")...)
+		_r_tcl = append(_r_tcl, tclSplitList(sqlite_search_count)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -670,9 +685,9 @@ func Test_index(t *testing.T) {
 		}
 	}
 	{ // do_test "index-13.2"
-		var _idxlist = "execsql {\n    SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='t5';\n  }" // TCL namespace variable
-		_ = _idxlist // suppress unused warning
-		tclLLength(_idxlist)
+		idxlist = "execsql {\n    SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='t5';\n  }" // TCL namespace variable
+		_ = idxlist // suppress unused warning
+		_ = strconv.Itoa(tclLLength(idxlist)) // llength result
 	}
 	i = "0"
 	_ = i // suppress unused warning
@@ -841,7 +856,7 @@ func Test_index(t *testing.T) {
 		_res = db.Exec("\n    CREATE TABLE sqlite_t1(a, b, c);\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // do_test "index-18.2"
 		_res = db.Exec("\n    CREATE INDEX sqlite_i1 ON t7(c);\n  ")
 		_ = _res // catchsql

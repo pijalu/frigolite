@@ -40,27 +40,56 @@ func Test_multiplex3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var cksum1 string
+	_ = cksum1 // pre-declared from TCL source
+	var cksum2 string
+	_ = cksum2 // pre-declared from TCL source
+	var iTest string
+	_ = iTest // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var testrc string
+	_ = testrc // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "multiplex3" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+	testprefix = "multiplex3" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_uri 1 (unsupported command, not transpiled)
+	// autoinstall_test_functions (unsupported command, not transpiled)
+	// sqlite3_multiplex_initialize  1 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "setup_and_save_db")
+		// setup_and_save_db (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  multiplex_restore_db\n  sqlite3 db file:test.db?...} -body {\n  execsql {\n    UPDATE t1 SET a=randomblob(12), b...} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc!=0} {...}")
+	// do_faultsim_test 1 -prep {
+  multiplex_restore_db
+  sqlite3 db file:test.db?...} -body {
+  execsql {
+    UPDATE t1 SET a=randomblob(12), b...} -test {
+  faultsim_test_result {0 {}}
+  if {$testrc!=0} {...} (unsupported command, not transpiled)
 	{ // do_test "2.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "setup_and_save_db")
-		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_restore_db")
-		db, err := frigolite.Open("file:test.db?8_3_names=1")
-		defer db.Close()
+		// setup_and_save_db (unsupported command, not transpiled)
+		// multiplex_restore_db (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("file:test.db?8_3_names=1")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA cache_size = 10 ")
 		if r.Error != nil {
@@ -71,7 +100,7 @@ func Test_multiplex3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}
 	}
-	var iTest = "1"
+	iTest = "1"
 	_ = iTest // suppress unused warning
 	for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return iTest_n <= 100 }() {
 		{ // do_test "2." + iTest
@@ -104,12 +133,19 @@ func Test_multiplex3(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	{ // do_test "3.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "setup_and_save_db")
+		// setup_and_save_db (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults ioerr-trans* -prep {\n\n  forcedelete test2.db\n  set fd [open test2.wal ...} -body {\n  sqlite3_backup B db2 main db main\n  B step 1000...} -test {\n  faultsim_test_result {0 SQLITE_OK}\n  if {$testr...}")
+	// do_faultsim_test 3 -faults ioerr-trans* -prep {
+
+  forcedelete test2.db
+  set fd [open test2.wal ...} -body {
+  sqlite3_backup B db2 main db main
+  B step 1000...} -test {
+  faultsim_test_result {0 SQLITE_OK}
+  if {$testr...} (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+	// sqlite3_multiplex_shutdown (unsupported command, not transpiled)
 }

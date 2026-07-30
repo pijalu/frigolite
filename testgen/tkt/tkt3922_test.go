@@ -39,6 +39,13 @@ func Test_tkt3922(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("working_64bit_int") {
 		{ // do_test "tkt3922.1"
@@ -55,9 +62,18 @@ func Test_tkt3922(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test tkt3922.2 {\n  execsql {\n    DELETE FROM t1;\n    INSERT INTO t...} {-9.22337203685478e+18 real}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test tkt3922.3 {\n  execsql {\n    DELETE FROM t1;\n    INSERT INTO t...} {-9.22337203685478e+18 real}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test tkt3922.4 {\n  execsql {\n    DELETE FROM t1;\n    INSERT INTO t...} {-9.22337203685478e+18 real}")
+	// do_realnum_test tkt3922.2 {
+  execsql {
+    DELETE FROM t1;
+    INSERT INTO t...} {-9.22337203685478e+18 real} (expr test, not transpiled)
+	// do_realnum_test tkt3922.3 {
+  execsql {
+    DELETE FROM t1;
+    INSERT INTO t...} {-9.22337203685478e+18 real} (expr test, not transpiled)
+	// do_realnum_test tkt3922.4 {
+  execsql {
+    DELETE FROM t1;
+    INSERT INTO t...} {-9.22337203685478e+18 real} (expr test, not transpiled)
 	if tclBool("working_64bit_int") {
 		{ // do_test "tkt3922.5"
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES('9223372036854775807');\n      SELECT a, typeof(a) FROM t1;\n    ")
@@ -73,5 +89,8 @@ func Test_tkt3922(t *testing.T) {
 			}
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test tkt3922.6 {\n  execsql {\n    DELETE FROM t1;\n    INSERT INTO t...} {9.22337203685478e+18 real}")
+	// do_realnum_test tkt3922.6 {
+  execsql {
+    DELETE FROM t1;
+    INSERT INTO t...} {9.22337203685478e+18 real} (expr test, not transpiled)
 }

@@ -41,6 +41,25 @@ func Test_gencol1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var schema string
+	_ = schema // pre-declared from TCL source
+	var typelist string
+	_ = typelist // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var t1 string
+	_ = t1 // pre-declared from TCL source
+	var t2 string
+	_ = t2 // pre-declared from TCL source
+	var x1 string
+	_ = x1 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "gencol1-100"
 		r = db.Query("\n  CREATE TABLE t0(c0 AS(TYPEOF(c1)), c1);\n  INSERT INTO t0(c1) VALUES(0);\n  CREATE TABLE t1(x AS (typeof(y)), y);\n  INSERT INTO t1 SELECT * FROM t0;\n  SELECT * FROM t1;\n")
@@ -66,8 +85,8 @@ func Test_gencol1(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 			}
-			db, err := frigolite.Open(":memory:")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open(":memory:")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec(schema)
 			if _res.Error != nil {
@@ -206,7 +225,8 @@ func Test_gencol1(t *testing.T) {
 				}
 			}
 		}
-		db, err = frigolite.Open(":memory:")
+		_dbtmp2, err := frigolite.Open(":memory:")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-3.100"
 			r = db.Query("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE t0(c0 PRIMARY KEY, c1, c2 AS (c0+c1-c3) REFERENCES t0, c3);\n  INSERT INTO t0 VALUES (0, 0, 0), (11, 5, 5);\n  UPDATE t0 SET c1 = c0, c3 = c0;\n  SELECT *, '|' FROM t0 ORDER BY +c0;\n")
@@ -226,7 +246,8 @@ func Test_gencol1(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  UPDATE t0 SET c1 = c0, c3 = c0+1;\n")
 			}
 		}
-		db, err = frigolite.Open(":memory:")
+		_dbtmp3, err := frigolite.Open(":memory:")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-4.100"
 			_res = db.Exec("\n  CREATE TABLE t0 (\n    c0,\n    c1 a UNIQUE AS (1),\n    c2,\n    c3 REFERENCES t0(c1)\n  );\n  PRAGMA foreign_keys = true;\n  INSERT INTO t0(c0,c2,c3) VALUES(0,0,1);\n")
@@ -240,7 +261,8 @@ func Test_gencol1(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  REPLACE INTO t0(c0,c2,c3) VALUES(0,0,0),(0,0,0);\n")
 			}
 		}
-		db, err = frigolite.Open(":memory:")
+		_dbtmp4, err := frigolite.Open(":memory:")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-5.100"
 			r = db.Query("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE t1(\n    gcb AS (b*1),\n    a INTEGER PRIMARY KEY,\n    gcc AS (c+0),\n    b UNIQUE,\n    gca AS (1*a+0),\n    c UNIQUE\n  ) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1,2,3);\n  INSERT INTO t1 VALUES(4,5,6);\n  INSERT INTO t1 VALUES(7,8,9);\n  CREATE TABLE t1a(\n    gcx AS (x+0) REFERENCES t1(a) ON DELETE CASCADE,\n    id,\n    x,\n    gcid AS (1*id)\n  );\n  INSERT INTO t1a VALUES(1, 1);\n  INSERT INTO t1a VALUES(2, 4);\n  INSERT INTO t1a VALUES(3, 7);\n  DELETE FROM t1 WHERE b=5;\n  SELECT id,x,'|' FROM t1a ORDER BY id;\n")
@@ -440,7 +462,8 @@ func Test_gencol1(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		db, err = frigolite.Open(":memory:")
+		_dbtmp5, err := frigolite.Open(":memory:")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-10.10"
 			r = db.Query("\n  CREATE TABLE t1(aa,bb);\n  CREATE TABLE IF NOT EXISTS t1(aa, bb AS (aa+1));\n  PRAGMA integrity_check;\n")
@@ -454,7 +477,8 @@ func Test_gencol1(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		db, err = frigolite.Open(":memory:")
+		_dbtmp6, err := frigolite.Open(":memory:")
+		_ = _dbtmp6 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-11.10"
 			_res = db.Exec("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE t0(\n    c0,\n    c1 INTEGER PRIMARY KEY,\n    c2 BLOB UNIQUE DEFAULT x'00',\n    c3 BLOB GENERATED ALWAYS AS (1), \n    FOREIGN KEY(c1) REFERENCES t0(c2)\n  );\n")
@@ -504,7 +528,8 @@ func Test_gencol1(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "FOREIGN KEY constraint failed", _res.Error, "\n  INSERT OR REPLACE INTO t0(c0, c1) VALUES (2, 1), (1, 0)\n")
 			}
 		}
-		db, err = frigolite.Open(":memory:")
+		_dbtmp7, err := frigolite.Open(":memory:")
+		_ = _dbtmp7 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-12.10"
 			r = db.Query("\n  CREATE TABLE t0 (c0, c1 NOT NULL AS (c0==0));\n  INSERT INTO t0(c0) VALUES (0);\n  PRAGMA integrity_check;\n")
@@ -590,7 +615,8 @@ func Test_gencol1(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		db, err = frigolite.Open(":memory:")
+		_dbtmp8, err := frigolite.Open(":memory:")
+		_ = _dbtmp8 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		{ // "gencol1-14.10"
 			r = db.Query("\n  CREATE TABLE t0(c0 AS(1 >= 1), c1 UNIQUE AS(TYPEOF(c0)), c2);\n  INSERT INTO t0 VALUES(0);\n  REINDEX;\n  SELECT * FROM t0;\n")
@@ -614,8 +640,8 @@ func Test_gencol1(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "gencol1-15.10"
-			db, err := frigolite.Open("")
-			defer db.Close()
+			_dbtmp9, err := frigolite.Open("")
+			_ = _dbtmp9 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 		}
 		{ // "gencol1-15.20"
@@ -801,15 +827,14 @@ func Test_gencol1(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		var typelist = "ANY INT REAL BLOB TEXT {}"
+		typelist = "ANY INT REAL BLOB TEXT {}"
 		_ = typelist // suppress unused warning
-		var cnt = "0"
+		cnt = "0"
 		_ = cnt // suppress unused warning
 		for _, t1 := range tclSplitList(typelist) {
 		_ = t1 // suppress unused warning
 			for _, t2 := range tclSplitList(typelist) {
 			_ = t2 // suppress unused warning
-				var cnt = "0"
 				// incr cnt 1
 				{
 					_n, _err := strconv.Atoi(cnt)
@@ -821,10 +846,10 @@ func Test_gencol1(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS t1;\n      CREATE TABLE t1(\n        x " + t1 + ",\n        a " + t2 + " AS (x) VIRTUAL,\n        b BLOB AS (x) VIRTUAL\n      );\n      CREATE INDEX x2 ON t1(a);\n      INSERT INTO t1(x) VALUES(NULL),('1'),(2),(3.5),('xyz');\n    ")
 				}
-				var x1 = "lsort [db eval {SELECT typeof(b) FROM t1}]"
+				x1 = "lsort [db eval {SELECT typeof(b) FROM t1}]"
 				_ = x1 // suppress unused warning
 				{ // do_test "gencol1-23.1." + cnt
-					tclSort("db eval {SELECT typeof(b) FROM t1 INDEXED BY x2}")
+					_ = tclSort("db eval {SELECT typeof(b) FROM t1 INDEXED BY x2}") // lsort result
 				}
 			}
 		}

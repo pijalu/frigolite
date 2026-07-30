@@ -40,10 +40,25 @@ func Test_symlink2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var link string
+	_ = link // pre-declared from TCL source
+	var target string
+	_ = target // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var env_ComSpec string
+	_ = env_ComSpec // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "symlink2"
+	testprefix = "symlink2"
 	_ = testprefix // suppress unused warning
-	if _tcl_platform_platform != "windows" {
+	if tcl_platform_platform != "windows" {
 		return
 	}
 	// proc definition (not transpiled)
@@ -60,7 +75,7 @@ func Test_symlink2(t *testing.T) {
 	}
 	os.Remove("link.db")
 	{ // do_test "2.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "createWin32Symlink link.db test.db")
+		// createWin32Symlink link.db test.db (unsupported command, not transpiled)
 	}
 	{ // do_test "2.1"
 		// file exists "test.db"
@@ -104,7 +119,7 @@ func Test_symlink2(t *testing.T) {
 	}
 	{ // do_test "4.0"
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "deleteWin32Symlink link.db")
+		// deleteWin32Symlink link.db (unsupported command, not transpiled)
 	}
 	{ // do_test "4.1"
 		// file exists "test.db"

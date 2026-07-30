@@ -39,6 +39,21 @@ func Test_tkt_cbd054fa6b(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var bytes string
+	_ = bytes // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "tkt-cbd05-1.1"

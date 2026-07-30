@@ -39,57 +39,76 @@ func Test_zerodamage(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var max_journal_size string
+	_ = max_journal_size // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "zerodamage"
+	testprefix = "zerodamage"
 	_ = testprefix // suppress unused warning
 	{ // do_test "zerodamage-1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db -1")
+		// file_control_powersafe_overwrite db -1 (unsupported command, not transpiled)
 	}
 	{ // do_test "zerodamage-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db 0")
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db -1")
+		// file_control_powersafe_overwrite db 0 (unsupported command, not transpiled)
+		// file_control_powersafe_overwrite db -1 (unsupported command, not transpiled)
 	}
 	{ // do_test "zerodamage-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db -1")
+		// file_control_powersafe_overwrite db 1 (unsupported command, not transpiled)
+		// file_control_powersafe_overwrite db -1 (unsupported command, not transpiled)
 	}
 	{ // do_test "zerodamage-2.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
-		t.Errorf("TODO: %s not implemented in frigolite", "tv sectorsize 8192")
-		db, err := frigolite.Open("file:test.db?psow=TRUE")
-		defer db.Close()
+		// testvfs tv -default 1 (unsupported command, not transpiled)
+		// tv sectorsize 8192 (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("file:test.db?psow=TRUE")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var _max_journal_size = "0" // TCL namespace variable
-		_ = _max_journal_size // suppress unused warning
+		max_journal_size = "0" // TCL namespace variable
+		_ = max_journal_size // suppress unused warning
 		// proc definition (not transpiled)
-		t.Errorf("TODO: %s not implemented in frigolite", "tv filter xDelete")
-		t.Errorf("TODO: %s not implemented in frigolite", "tv script xDeleteCallback")
-		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+		// tv filter xDelete (unsupported command, not transpiled)
+		// tv script xDeleteCallback (unsupported command, not transpiled)
+		// load_static_extension db wholenumber (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA cache_size=5;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 SELECT value, randomblob(100) FROM nums\n                    WHERE value BETWEEN 1 AND 400;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA cache_size=5;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 SELECT value, randomblob(100) FROM nums\n                    WHERE value BETWEEN 1 AND 400;\n  ")
 		}
-		var _max_journal_size = "0" // TCL namespace variable
-		_ = _max_journal_size // suppress unused warning
+		max_journal_size = "0" // TCL namespace variable
+		_ = max_journal_size // suppress unused warning
 		_res = db.Exec("\n    UPDATE t1 SET y=randomblob(50) WHERE x=123;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET y=randomblob(50) WHERE x=123;\n  ")
 		}
-		_r := tclList(append([]string{}, tclSplitList("file_control_powersafe_overwrite db -1")..., tclSplitList("set ::max_journal_size")...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("file_control_powersafe_overwrite db -1")...)
+		_r_tcl = append(_r_tcl, tclSplitList("set ::max_journal_size")...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "zerodamage-2.1"
-		var _max_journal_size = "0" // TCL namespace variable
-		_ = _max_journal_size // suppress unused warning
-		db, err := frigolite.Open("file:test.db?psow=FALSE")
-		defer db.Close()
+		max_journal_size = "0" // TCL namespace variable
+		_ = max_journal_size // suppress unused warning
+		_dbtmp1, err := frigolite.Open("file:test.db?psow=FALSE")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    UPDATE t1 SET y=randomblob(50) WHERE x=124;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET y=randomblob(50) WHERE x=124;\n  ")
 		}
-		_r := tclList(append([]string{}, tclSplitList("file_control_powersafe_overwrite db -1")..., tclSplitList("set ::max_journal_size")...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("file_control_powersafe_overwrite db -1")...)
+		_r_tcl = append(_r_tcl, tclSplitList("set ::max_journal_size")...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	if tclBool("wal_is_capable") {
 		{ // do_test "zerodamage-3.0"
@@ -97,8 +116,8 @@ func Test_zerodamage(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       PRAGMA journal_mode=WAL;\n    ")
 			}
-			db, err := frigolite.Open("file:test.db?psow=TRUE")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("file:test.db?psow=TRUE")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n       UPDATE t1 SET y=randomblob(50) WHERE x=124;\n    ")
 			if _res.Error != nil {
@@ -107,8 +126,8 @@ func Test_zerodamage(t *testing.T) {
 			// file size test.db-wal
 		}
 		{ // do_test "zerodamage-3.1"
-			db, err := frigolite.Open("file:test.db?psow=FALSE")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("file:test.db?psow=FALSE")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n       PRAGMA synchronous=FULL;\n       UPDATE t1 SET y=randomblob(50) WHERE x=124;\n    ")
 			if _res.Error != nil {

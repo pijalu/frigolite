@@ -39,10 +39,15 @@ func Test_tkt_3fe897352e(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-3fe89-1.1"
-		db, err := frigolite.Open(":memory:")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open(":memory:")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex_to_utf16be('D800'));\n    SELECT hex(x) FROM t1;\n  ")
 		if _res.Error != nil {

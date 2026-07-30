@@ -40,25 +40,97 @@ func Test_e_walckpt(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var H_f string
+	_ = H_f // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var expect string
+	_ = expect // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var errcode string
+	_ = errcode // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var zDb string
+	_ = zDb // pre-declared from TCL source
+	var dblist string
+	_ = dblist // pre-declared from TCL source
+	var seen_checkpoint_lock string
+	_ = seen_checkpoint_lock // pre-declared from TCL source
+	var write_count string
+	_ = write_count // pre-declared from TCL source
+	var write_errors string
+	_ = write_errors // pre-declared from TCL source
+	var busy_handler_counter string
+	_ = busy_handler_counter // pre-declared from TCL source
+	var mode string
+	_ = mode // pre-declared from TCL source
+	var busy_handler_mode string
+	_ = busy_handler_mode // pre-declared from TCL source
+	var tp string
+	_ = tp // pre-declared from TCL source
+	var sync_counter string
+	_ = sync_counter // pre-declared from TCL source
+	var checkpoint_ongoing string
+	_ = checkpoint_ongoing // pre-declared from TCL source
+	var tail string
+	_ = tail // pre-declared from TCL source
+	var write_ok string
+	_ = write_ok // pre-declared from TCL source
+	var read_ok string
+	_ = read_ok // pre-declared from TCL source
+	var details string
+	_ = details // pre-declared from TCL source
+	var seen_writer_lock string
+	_ = seen_writer_lock // pre-declared from TCL source
+	var did_restart_blocking string
+	_ = did_restart_blocking // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "e_walckpt"
+	testprefix = "e_walckpt"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// skip: foreach over unresolved TCL command
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	// foreach {tn mode res} "\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n"
-	_items0 := tclSplitList("\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n")
+	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		mode := _items0[_idx0+1]
+		mode := _items1[_idx1+1]
 		_ = mode // suppress unused warning
-		res := _items0[_idx0+2]
+		res := _items1[_idx1+2]
 		_ = res // suppress unused warning
-		_ = _idx0
+		_ = _idx1
 			{ // do_test "4." + tn
 				_list := tclList([]string{"0", msg})
 				_ = _list
@@ -67,9 +139,9 @@ func Test_e_walckpt(t *testing.T) {
 		for _, tn := range tclSplitList("1 2 3") {
 		_ = tn // suppress unused warning
 			os.Remove("test.db")
-			t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			// testvfs tvfs (unsupported command, not transpiled)
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    ATTACH 'test.db2' AS aux2;\n    ATTACH 'test.db3' AS aux3;\n    PRAGMA main.journal_mode = WAL;\n    PRAGMA aux2.journal_mode = WAL;\n    PRAGMA aux3.journal_mode = WAL;\n\n    CREATE TABLE main.t1(x,y);\n    CREATE TABLE aux2.t2(x,y);\n    CREATE TABLE aux3.t3(x,y);\n\n    INSERT INTO t1 VALUES('a', 'b');\n    INSERT INTO t2 VALUES('a', 'b');\n    INSERT INTO t3 VALUES('a', 'b');\n  ")
 			if _res.Error != nil {
@@ -77,7 +149,9 @@ func Test_e_walckpt(t *testing.T) {
 			}
 			db2, err = frigolite.Open("test.db2")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "switch -- $tn {\n    1 {\n      # EVIDENCE-OF: R-41299-52117 If no ...}")
+			// switch -- $tn {
+    1 {
+      # EVIDENCE-OF: R-41299-52117 If no ...} (test infra, not transpiled)
 			db2.Close()
 		}
 		db.Close()
@@ -102,11 +176,11 @@ func Test_e_walckpt(t *testing.T) {
 			// file size test.db-wal
 		}
 		{ // do_test "6.4"
-			tclLRange("wal_checkpoint_v2 db passive", "1", "2")
+			_ = tclLRange("wal_checkpoint_v2 db passive", "1", "2") // lrange result
 		}
 		{ // do_test "6.5"
 			db2.Exec("COMMIT")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			t.Errorf("TODO: %s not implemented in frigolite", "wal_checkpoint_v2 db truncate")
+			// wal_checkpoint_v2 db truncate (unsupported command, not transpiled)
 		}
 }

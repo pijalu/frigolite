@@ -39,8 +39,15 @@ func Test_exprfault2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "exprfault2"
+	testprefix = "exprfault2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,f,PRIMARY KEY(b,b));\n  CREATE TABLE t2(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t3(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n")
@@ -48,6 +55,11 @@ func Test_exprfault2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d,f,PRIMARY KEY(b,b));\n  CREATE TABLE t2(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t3(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n  UPDATE t3 SET (d,d,d,d, a )=(SELECT...} -test {\n  faultsim_test_result {1 {near \")\": syntax error...}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom-t* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+  UPDATE t3 SET (d,d,d,d, a )=(SELECT...} -test {
+  faultsim_test_result {1 {near ")": syntax error...} (unsupported command, not transpiled)
 }

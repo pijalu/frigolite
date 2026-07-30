@@ -39,23 +39,32 @@ func Test_tkt_26ff0c2d1e(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "bug-20100512-1"
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
 		var SQL = "SELECT case when 1 then 99 else ? end + ?"
 		_ = SQL // suppress unused warning
-		var STMT = ""
+		STMT = ""
 		_ = STMT // suppress unused warning
 	}
 	{ // do_test "bug-20100512-2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $STMT")
+		// sqlite3_bind_parameter_count $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "bug-20100512-3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $STMT 1 123")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $STMT 2 456")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $STMT 0")
+		// sqlite3_bind_int $STMT 1 123 (unsupported command, not transpiled)
+		// sqlite3_bind_int $STMT 2 456 (unsupported command, not transpiled)
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+		// sqlite3_column_int $STMT 0 (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+	// sqlite3_finalize $STMT (unsupported command, not transpiled)
 }

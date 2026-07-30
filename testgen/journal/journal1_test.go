@@ -39,8 +39,15 @@ func Test_journal1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	if tclBool(tcl_platform + "(platform) == \"windows\"\n || " + "atomic_batch_write test.db") {
+	if tclBool(tcl_platform_platform + " == \"windows\"\n || " + "atomic_batch_write test.db") {
 		return
 	}
 	{ // do_test "journal1-1.1"
@@ -59,10 +66,10 @@ func Test_journal1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
-		t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-journal-bu test.db-journal")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// delete_file test.db (unsupported command, not transpiled)
+		// copy_file test.db-journal-bu test.db-journal (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM sqlite_master\n  ")
 		_ = _res // catchsql

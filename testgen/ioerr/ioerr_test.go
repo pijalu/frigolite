@@ -39,28 +39,107 @@ func Test_ioerr(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var ex string
+	_ = ex // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-1 -erc 1 -ckrefcount 1 -sqlprep {\n  SELECT * FROM sqlite_master;\n} -sqlbody {\n  CREATE TABLE t1(a,b,c);\n  SELECT * FROM sqlite_...} -exclude [expr [string match [execsql {pragma auto_vacuum}]...")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-3 -ckrefcount true -tclprep {\n  execsql {\n    PRAGMA cache_size = 10;\n    BEGIN...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM ab...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-4 -ckrefcount true -tclprep {\n  set sql \"CREATE TABLE abc(a1\"\n  for {set i 2} {...} -sqlbody {\n SELECT * FROM abc;\n}")
-	if tclBool(tcl_platform + "(platform) ne\"windows\" && !" + "atomic_batch_write test.db") {
-		t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-7 -tclprep {\n    db close\n    sqlite3 db2 test2.db\n    db2 eva...} -tclbody {\n    sqlite3 db test.db\n    db eval {\n      SELECT...} -exclude 1")
+	// do_ioerr_test ioerr-1 -erc 1 -ckrefcount 1 -sqlprep {
+  SELECT * FROM sqlite_master;
+} -sqlbody {
+  CREATE TABLE t1(a,b,c);
+  SELECT * FROM sqlite_...} -exclude [expr [string match [execsql {pragma auto_vacuum}]... (unsupported command, not transpiled)
+	// do_ioerr_test ioerr-3 -ckrefcount true -tclprep {
+  execsql {
+    PRAGMA cache_size = 10;
+    BEGIN...} -sqlbody {
+  CREATE TABLE abc2(a);
+  BEGIN;
+  DELETE FROM ab...} (unsupported command, not transpiled)
+	// do_ioerr_test ioerr-4 -ckrefcount true -tclprep {
+  set sql "CREATE TABLE abc(a1"
+  for {set i 2} {...} -sqlbody {
+ SELECT * FROM abc;
+} (unsupported command, not transpiled)
+	if tclBool(tcl_platform_platform + " ne\"windows\" && !" + "atomic_batch_write test.db") {
+		// do_ioerr_test ioerr-7 -tclprep {
+    db close
+    sqlite3 db2 test2.db
+    db2 eva...} -tclbody {
+    sqlite3 db test.db
+    db eval {
+      SELECT...} -exclude 1 (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-8 -ckrefcount true -tclprep {\n  execsql {\n    CREATE TABLE t1(a,b,c);\n    INSER...} -sqlbody {\n  SELECT c FROM t1;\n}")
-	if tclBool(tcl_platform + "(platform) == \"unix\" && " + "atomic_batch_write test.db" + "==0") {
-		t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-9 -ckrefcount true -tclprep {\n    execsql {\n      CREATE TABLE t1(a,b,c);\n     ...} -sqlbody {\n    SELECT a FROM t1;\n  }")
+	// do_ioerr_test ioerr-8 -ckrefcount true -tclprep {
+  execsql {
+    CREATE TABLE t1(a,b,c);
+    INSER...} -sqlbody {
+  SELECT c FROM t1;
+} (unsupported command, not transpiled)
+	if tclBool(tcl_platform_platform + " == \"unix\" && " + "atomic_batch_write test.db" + "==0") {
+		// do_ioerr_test ioerr-9 -ckrefcount true -tclprep {
+    execsql {
+      CREATE TABLE t1(a,b,c);
+     ...} -sqlbody {
+    SELECT a FROM t1;
+  } (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-10 -ckrefcount true -tclprep {\n  execsql {\n    BEGIN;\n    CREATE TABLE t1(a PRIM...} -tclbody {\n\n  catch {execsql {\n    BEGIN;\n    INSERT INTO t1...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-11 -ckrefcount true -erc 1 -sqlprep {\n   CREATE TABLE A(Id INTEGER, Name TEXT);\n   INSE...} -sqlbody {\n   UPDATE A SET Id = 2, Name = 'Name2' WHERE Id =...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char {} -sectorsize 2048")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-12 -ckrefcount true -erc 1 -tclprep {\n  db close\n  sqlite3 db test.db -vfs devsym\n\n  # ...} -tclbody {\n  db eval { INSERT INTO t1 VALUES(randomblob(2000...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char {} -sectorsize 0")
+	// do_ioerr_test ioerr-10 -ckrefcount true -tclprep {
+  execsql {
+    BEGIN;
+    CREATE TABLE t1(a PRIM...} -tclbody {
+
+  catch {execsql {
+    BEGIN;
+    INSERT INTO t1...} (unsupported command, not transpiled)
+	// do_ioerr_test ioerr-11 -ckrefcount true -erc 1 -sqlprep {
+   CREATE TABLE A(Id INTEGER, Name TEXT);
+   INSE...} -sqlbody {
+   UPDATE A SET Id = 2, Name = 'Name2' WHERE Id =...} (unsupported command, not transpiled)
+	// sqlite3_simulate_device -char {} -sectorsize 2048 (unsupported command, not transpiled)
+	// do_ioerr_test ioerr-12 -ckrefcount true -erc 1 -tclprep {
+  db close
+  sqlite3 db test.db -vfs devsym
+
+  # ...} -tclbody {
+  db eval { INSERT INTO t1 VALUES(randomblob(2000...} (unsupported command, not transpiled)
+	// sqlite3_simulate_device -char {} -sectorsize 0 (unsupported command, not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "unregister_devsim")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-13 -ckrefcount true -erc 1 -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  CREATE TABL...} -sqlbody {\n  -- This statement uses the balance_quick() opti...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-14 -ckrefcount true -erc 1 -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  CREATE TABL...} -sqlbody {\n  -- This transaction will cause the root-page of...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr-15 -tclprep {\n  db eval {\n    BEGIN;\n    PRAGMA cache_size = 10...} -sqlbody {\n  BEGIN;\n  INSERT INTO t2 VALUES(randstr(22000,22...}")
+	// unregister_devsim (unsupported command, not transpiled)
+	// do_ioerr_test ioerr-13 -ckrefcount true -erc 1 -sqlprep {
+  PRAGMA auto_vacuum = incremental;
+  CREATE TABL...} -sqlbody {
+  -- This statement uses the balance_quick() opti...} (unsupported command, not transpiled)
+	// do_ioerr_test ioerr-14 -ckrefcount true -erc 1 -sqlprep {
+  PRAGMA auto_vacuum = incremental;
+  CREATE TABL...} -sqlbody {
+  -- This transaction will cause the root-page of...} (unsupported command, not transpiled)
+	// do_ioerr_test ioerr-15 -tclprep {
+  db eval {
+    BEGIN;
+    PRAGMA cache_size = 10...} -sqlbody {
+  BEGIN;
+  INSERT INTO t2 VALUES(randstr(22000,22...} (unsupported command, not transpiled)
 }

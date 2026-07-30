@@ -40,11 +40,18 @@ func Test_wal7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "wal7-1.0"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 SELECT x FROM t1;\n  ")
 		if _res.Error != nil {
@@ -68,8 +75,8 @@ func Test_wal7(t *testing.T) {
 	}
 	{ // do_test "wal7-2.0"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    PRAGMA journal_size_limit=25000;\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 VALUES(1);\n  ")
 		if _res.Error != nil {
@@ -79,27 +86,27 @@ func Test_wal7(t *testing.T) {
 	}
 	{ // do_test "wal7-3.0"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    PRAGMA journal_size_limit=0;\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 VALUES(1);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    PRAGMA journal_size_limit=0;\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 VALUES(1);\n  ")
 		}
-		var sz = "file size test.db-wal"
+		sz = "file size test.db-wal"
 		_ = sz // suppress unused warning
 		// expr $sz>0 && $sz<13700 → "$sz>0 && $sz<13700"
 	}
 	{ // do_test "wal7-4.0"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA journal_size_limit=25000;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 VALUES(1);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA journal_size_limit=25000;\n    PRAGMA journal_mode=WAL;\n    PRAGMA wal_autocheckpoint=50;  -- 50 pages\n    CREATE TABLE t1(x, y UNIQUE);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(zeroblob(200000),4);\n    CREATE TABLE t2(z);\n    DELETE FROM t1;\n    INSERT INTO t2 VALUES(1);\n  ")
 		}
-		var sz = "file size test.db-wal"
+		sz = "file size test.db-wal"
 		_ = sz // suppress unused warning
 	}
 }

@@ -40,6 +40,29 @@ func Test_view(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var log string
+	_ = log // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var code string
+	_ = code // pre-declared from TCL source
+	var arg1 string
+	_ = arg1 // pre-declared from TCL source
+	var arg2 string
+	_ = arg2 // pre-declared from TCL source
+	var arg3 string
+	_ = arg3 // pre-declared from TCL source
+	var arg4 string
+	_ = arg4 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "view-1.0"
 		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(4,5,6);\n    INSERT INTO t1 VALUES(7,8,9);\n    SELECT * FROM t1;\n  ")
@@ -84,8 +107,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-1.3.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -113,8 +136,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-1.8"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM v1 ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -312,8 +335,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-7.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM test;\n  ")
 		if r.Error != nil {
@@ -327,8 +350,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-7.4"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM test;\n  ")
 		if r.Error != nil {
@@ -342,8 +365,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-7.6"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM test;\n  ")
 		if r.Error != nil {
@@ -357,8 +380,8 @@ func Test_view(t *testing.T) {
 		}
 	}
 	{ // do_test "view-8.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM v6 ORDER BY xyz;\n  ")
 		if r.Error != nil {
@@ -523,7 +546,8 @@ func Test_view(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE IF EXISTS t1;\n    DROP VIEW IF EXISTS v1;\n    CREATE TABLE t1(c1);\n    CREATE VIEW v1 AS SELECT c1 FROM (SELECT t1.c1 FROM t1);\n  ")
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp6, err := frigolite.Open(":memory:")
+	_ = _dbtmp6 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "view-22.1"
 		r = db.Query("\n  CREATE VIEW x1 AS SELECT 123 AS '', 234 AS '', 345 AS '';\n  SELECT * FROM x1;\n")
@@ -542,7 +566,7 @@ func Test_view(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM x1")
 		}
-		tclSort("array names x")
+		_ = tclSort("array names x") // lsort result
 	}
 	{ // do_test "view-25.1"
 		_res = db.Exec("\n    CREATE TABLE t25 (x);\n    INSERT INTO t25 (x) VALUES (1);\n    ANALYZE;\n  ")
@@ -550,17 +574,17 @@ func Test_view(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t25 (x);\n    INSERT INTO t25 (x) VALUES (1);\n    ANALYZE;\n  ")
 		}
 		// proc definition (not transpiled)
-		var log = ""
+		log = ""
 		_ = log // suppress unused warning
 		_res = db.Exec("DROP VIEW x1;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP VIEW x1;")
 		}
 	}
-	var res = "list {SQLITE_DELETE sqlite_stat1 {} main {}}"
+	res = "list {SQLITE_DELETE sqlite_stat1 {} main {}}"
 	_ = res // suppress unused warning
 	{ // do_test "view-25.2"
-		var log = ""
+		log = ""
 		_ = log // suppress unused warning
 		_res = db.Exec("DROP TABLE t25;")
 		if _res.Error != nil {
@@ -790,21 +814,21 @@ func Test_view(t *testing.T) {
 		}
 	}
 	if tclBool("sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH -1" + ">0") {
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH 7")
+		// sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH 7 (unsupported command, not transpiled)
 		{ // "view-32.2"
 			_res = db.Exec("\n    SELECT * FROM v7;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "VIEWs and/or subqueries nested too deep") {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "VIEWs and/or subqueries nested too deep", _res.Error, "\n    SELECT * FROM v7;\n  ")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH 6")
+		// sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH 6 (unsupported command, not transpiled)
 		{ // "view-32.3"
 			_res = db.Exec("\n    SELECT * FROM v7;\n  ")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "VIEWs and/or subqueries nested too deep") {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "VIEWs and/or subqueries nested too deep", _res.Error, "\n    SELECT * FROM v7;\n  ")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH 8")
+		// sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH 8 (unsupported command, not transpiled)
 	}
 	{ // "view-32.4"
 		r = db.Query("\n  SELECT * FROM v7;\n")

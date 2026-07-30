@@ -41,10 +41,37 @@ func Test_crash4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sql_cmd_list string
+	_ = sql_cmd_list // pre-declared from TCL source
+	var crash4_cksum_set string
+	_ = crash4_cksum_set // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var fin string
+	_ = fin // pre-declared from TCL source
+	var seed string
+	_ = seed // pre-declared from TCL source
+	var delay string
+	_ = delay // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var sql_cmd_list = "\n  {CREATE TABLE a(id INTEGER, name CHAR(50))}\n  {INSERT INTO a(id,name) VALUES(1,'one')}\n  {INSERT INTO a(id,name) VALUES(2,'two')}\n  {INSERT INTO a(id,name) VALUES(3,'three')}\n  {INSERT INTO a(id,name) VALUES(4,'four')}\n  {INSERT INTO a(id,name) VALUES(5,'five')}\n  {INSERT INTO a(id,name) VALUES(6,'six')}\n  {INSERT INTO a(id,name) VALUES(7,'seven')}\n  {INSERT INTO a(id,name) VALUES(8,'eight')}\n  {INSERT INTO a(id,name) VALUES(9,'nine')}\n  {INSERT INTO a(id,name) VALUES(10,'ten')}\n  {UPDATE A SET name='new text for row 3' WHERE id=3}\n"
+	sql_cmd_list = "\n  {CREATE TABLE a(id INTEGER, name CHAR(50))}\n  {INSERT INTO a(id,name) VALUES(1,'one')}\n  {INSERT INTO a(id,name) VALUES(2,'two')}\n  {INSERT INTO a(id,name) VALUES(3,'three')}\n  {INSERT INTO a(id,name) VALUES(4,'four')}\n  {INSERT INTO a(id,name) VALUES(5,'five')}\n  {INSERT INTO a(id,name) VALUES(6,'six')}\n  {INSERT INTO a(id,name) VALUES(7,'seven')}\n  {INSERT INTO a(id,name) VALUES(8,'eight')}\n  {INSERT INTO a(id,name) VALUES(9,'nine')}\n  {INSERT INTO a(id,name) VALUES(10,'ten')}\n  {UPDATE A SET name='new text for row 3' WHERE id=3}\n"
 	_ = sql_cmd_list // suppress unused warning
-	var crash4_cksum_set = ""
+	crash4_cksum_set = ""
 	_ = crash4_cksum_set // suppress unused warning
 	crash4_cksum_set = tclListAppend(crash4_cksum_set, "allcksum db")
 	for _, cmd := range tclSplitList(sql_cmd_list) {
@@ -55,35 +82,35 @@ func Test_crash4(t *testing.T) {
 		}
 		crash4_cksum_set = tclListAppend(crash4_cksum_set, "allcksum db")
 	}
-	var cnt = "1"
+	cnt = "1"
 	_ = cnt // suppress unused warning
-	var fin = "0"
+	fin = "0"
 	_ = fin // suppress unused warning
 	for tclBool("!" + fin) {
 		os.Remove("test.db")
 		{ // do_test "crash4-1." + cnt + ".1"
-			var seed = "0"
+			seed = "0"
 			_ = seed // suppress unused warning
-			var delay = "int($cnt/50)+1"
+			delay = "int($cnt/50)+1"
 			_ = delay // suppress unused warning
-			var file = "($cnt&1)?\"test.db\":\"test.db-journal\""
+			file = "($cnt&1)?\"test.db\":\"test.db-journal\""
 			_ = file // suppress unused warning
-			var c = "crashsql -delay $delay -file $file -seed $seed -tclbody {\n      db eval {CREATE TABLE a(id INTEGER, name CHAR(50))}\n      db eval {INSERT INTO a(id,name) VALUES(1,'one')}\n      db eval {INSERT INTO a(id,name) VALUES(2,'two')}\n      db eval {INSERT INTO a(id,name) VALUES(3,'three')}\n      db eval {INSERT INTO a(id,name) VALUES(4,'four')}\n      db eval {INSERT INTO a(id,name) VALUES(5,'five')}\n      db eval {INSERT INTO a(id,name) VALUES(6,'six')}\n      db eval {INSERT INTO a(id,name) VALUES(7,'seven')}\n      db eval {INSERT INTO a(id,name) VALUES(8,'eight')}\n      db eval {INSERT INTO a(id,name) VALUES(9,'nine')}\n      db eval {INSERT INTO a(id,name) VALUES(10,'ten')}\n      db close\n      sqlite3 db test.db\n      db eval {UPDATE A SET name='new text for row 3' WHERE id=3}\n      db close\n    } {}"
+			c = "crashsql -delay $delay -file $file -seed $seed -tclbody {\n      db eval {CREATE TABLE a(id INTEGER, name CHAR(50))}\n      db eval {INSERT INTO a(id,name) VALUES(1,'one')}\n      db eval {INSERT INTO a(id,name) VALUES(2,'two')}\n      db eval {INSERT INTO a(id,name) VALUES(3,'three')}\n      db eval {INSERT INTO a(id,name) VALUES(4,'four')}\n      db eval {INSERT INTO a(id,name) VALUES(5,'five')}\n      db eval {INSERT INTO a(id,name) VALUES(6,'six')}\n      db eval {INSERT INTO a(id,name) VALUES(7,'seven')}\n      db eval {INSERT INTO a(id,name) VALUES(8,'eight')}\n      db eval {INSERT INTO a(id,name) VALUES(9,'nine')}\n      db eval {INSERT INTO a(id,name) VALUES(10,'ten')}\n      db close\n      sqlite3 db test.db\n      db eval {UPDATE A SET name='new text for row 3' WHERE id=3}\n      db close\n    } {}"
 			_ = c // suppress unused warning
 			if tclBool(c + "==" + "list 0 {}") {
-				var _fin = "1" // TCL namespace variable
-				_ = _fin // suppress unused warning
-				var c = "list 1 {child process exited abnormally}"
+				fin = "1" // TCL namespace variable
+				_ = fin // suppress unused warning
+				c = "list 1 {child process exited abnormally}"
 				_ = c // suppress unused warning
 			}
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "crash4-1." + cnt + ".3"
-			var x = "lsearch $::crash4_cksum_set [allcksum db]"
+			x = "lsearch $::crash4_cksum_set [allcksum db]"
 			_ = x // suppress unused warning
 			// expr $x>=0 → "$x>=0"
 		}

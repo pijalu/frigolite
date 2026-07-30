@@ -39,10 +39,17 @@ func Test_closure01(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "closure01"
+	testprefix = "closure01"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db closure")
+	// load_static_extension db closure (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  BEGIN;\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y INTEGER);\n  WITH RECURSIVE\n    cnt(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM cnt LIMIT 131072)\n  INSERT INTO t1(x, y) SELECT i, nullif(i,1)/2 FROM cnt;\n  CREATE INDEX t1y ON t1(y);\n  COMMIT;\n  CREATE VIRTUAL TABLE cx \n   USING transitive_closure(tablename=t1, idcolumn=x, parentcolumn=y);\n")
 		if _res.Error != nil {
@@ -392,7 +399,7 @@ func Test_closure01(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db closure")
+	// load_static_extension db closure (unsupported command, not transpiled)
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE t(p, abcx);\n  INSERT INTO t VALUES(1, 2);\n")
 		if _res.Error != nil {

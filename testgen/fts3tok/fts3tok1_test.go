@@ -40,9 +40,20 @@ func Test_fts3tok1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3tok1" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts3tok1" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3tokenize(simple);\n  CREATE VIRTUAL TABLE t2 USING fts3tokenize();\n  CREATE VIRTUAL TABLE t3 USING fts3tokenize(simple, '', 'xyz ');\n")
 		if _res.Error != nil {

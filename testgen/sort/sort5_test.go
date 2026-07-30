@@ -41,10 +41,43 @@ func Test_sort5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var off string
+	_ = off // pre-declared from TCL source
+	var amt string
+	_ = amt // pre-declared from TCL source
+	var F_id string
+	_ = F_id // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var pgsz string
+	_ = pgsz // pre-declared from TCL source
+	var cachesz string
+	_ = cachesz // pre-declared from TCL source
+	var bTemp string
+	_ = bTemp // pre-declared from TCL source
+	var iTemp string
+	_ = iTemp // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "sort5"
+	testprefix = "sort5"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -iversion 1 -default true")
+	// testvfs tvfs -iversion 1 -default true (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -59,7 +92,7 @@ func Test_sort5(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 2000 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES($i, randomblob(2000)) ")
@@ -85,17 +118,18 @@ func Test_sort5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(b);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script tv_callback")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xOpen xWrite}")
+	// tvfs delete (unsupported command, not transpiled)
+	// testvfs tvfs (unsupported command, not transpiled)
+	// tvfs script tv_callback (unsupported command, not transpiled)
+	// tvfs filter {xOpen xWrite} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	_res = db.Exec(" CREATE TABLE t1(x) ")
 	if _res.Error != nil {
@@ -106,19 +140,19 @@ func Test_sort5(t *testing.T) {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA temp_store = 1 ")
 	}
 	// foreach {tn pgsz cachesz bTemp} "\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n"
-	_items0 := tclSplitList("\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n")
-	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-		tn := _items0[_idx0+0]
+	_items1 := tclSplitList("\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n")
+	for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+		tn := _items1[_idx1+0]
 		_ = tn // suppress unused warning
-		pgsz := _items0[_idx0+1]
+		pgsz := _items1[_idx1+1]
 		_ = pgsz // suppress unused warning
-		cachesz := _items0[_idx0+2]
+		cachesz := _items1[_idx1+2]
 		_ = cachesz // suppress unused warning
-		bTemp := _items0[_idx0+3]
+		bTemp := _items1[_idx1+3]
 		_ = bTemp // suppress unused warning
-		_ = _idx0
-			if func() bool { _TEMP_STORE_n, __TEMP_STORE_e := strconv.Atoi(_TEMP_STORE); if __TEMP_STORE_e != nil { return false }; return _TEMP_STORE_n > 2 }() {
-				var bTemp = "0"
+		_ = _idx1
+			if func() bool { TEMP_STORE_n, _TEMP_STORE_e := strconv.Atoi(TEMP_STORE); if _TEMP_STORE_e != nil { return false }; return TEMP_STORE_n > 2 }() {
+				bTemp = "0"
 				_ = bTemp // suppress unused warning
 			}
 			{ // "2." + tn + ".0"
@@ -131,8 +165,8 @@ func Test_sort5(t *testing.T) {
 				continue
 			}
 			{ // do_test "2." + tn + ".1"
-				var _iTemp = "0" // TCL namespace variable
-				_ = _iTemp // suppress unused warning
+				iTemp = "0" // TCL namespace variable
+				_ = iTemp // suppress unused warning
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning

@@ -39,6 +39,13 @@ func Test_tkt3522(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3522-1.1"
 		_res = db.Exec("\n    CREATE TABLE tab4(\n       col0 INTEGER,\n       col1 INTEGER,\n       col2 INTEGER,\n       col3 INTEGER,\n       col4 INTEGER\n    );\n    SELECT cor1.*\n      FROM tab4 AS cor0\n      JOIN tab4 AS cor1 USING ( col4, col3, col2, col1, col0 );\n  ")

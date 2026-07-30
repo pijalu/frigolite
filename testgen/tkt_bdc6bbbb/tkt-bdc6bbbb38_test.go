@@ -39,10 +39,23 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var idxdir string
+	_ = idxdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tkt-bdc6bbbb38"
+	testprefix = "tkt-bdc6bbbb38"
 	_ = testprefix // suppress unused warning
-	var sqlite_fts3_enable_parentheses = "1"
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// foreach {tn idxdir} "1 ASC 2 DESC"
 	_items0 := tclSplitList("1 ASC 2 DESC")

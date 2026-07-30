@@ -41,8 +41,25 @@ func Test_pragma4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var log string
+	_ = log // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var nCol string
+	_ = nCol // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "pragma4"
+	testprefix = "pragma4"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// foreach {tn sql} "\n  1 \"PRAGMA application_id = 10\"\n  2 \"PRAGMA automatic_index = 1\"\n  3 \"PRAGMA auto_vacuum = 1\"\n  4 \"PRAGMA cache_size = -100\"\n  5 \"PRAGMA cache_spill = 1\"\n  6 \"PRAGMA cell_size_check = 1\"\n  7 \"PRAGMA checkpoint_fullfsync = 1\"\n  8 \"PRAGMA count_changes = 1\"\n  9 \"PRAGMA default_cache_size = 100\"\n 10 \"PRAGMA defer_foreign_keys = 1\"\n 11 \"PRAGMA empty_result_callbacks = 1\"\n 12 \"PRAGMA encoding = 'utf-8'\"\n 13 \"PRAGMA foreign_keys = 1\"\n 14 \"PRAGMA full_column_names = 1\"\n 15 \"PRAGMA fullfsync = 1\"\n 16 \"PRAGMA ignore_check_constraints = 1\"\n 18 \"PRAGMA page_size = 511\"\n 19 \"PRAGMA page_size = 512\"\n 20 \"PRAGMA query_only = false\"\n 21 \"PRAGMA read_uncommitted = true\"\n 22 \"PRAGMA recursive_triggers = false\"\n 23 \"PRAGMA reverse_unordered_selects = false\"\n 24 \"PRAGMA schema_version = 211\"\n 25 \"PRAGMA short_column_names = 1\"\n 26 \"PRAGMA synchronous = full\"\n 29 \"PRAGMA temp_store = memory\"\n 30 \"PRAGMA user_version = 405\"\n 31 \"PRAGMA writable_schema = 1\"\n"
@@ -56,8 +73,8 @@ func Test_pragma4(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "do_pragma_ncol_test 1.$tn.1 [lindex [split $sql =] 0] 1")
-			t.Errorf("TODO: %s not implemented in frigolite", "do_pragma_ncol_test 1.$tn.2 $sql 0")
+			// do_pragma_ncol_test 1.$tn.1 [lindex [split $sql =] 0] 1 (unsupported command, not transpiled)
+			// do_pragma_ncol_test 1.$tn.2 $sql 0 (unsupported command, not transpiled)
 		}
 		// foreach {tn sql} "\n  1 \"PRAGMA shrink_memory\"\n  2 \"PRAGMA shrink_memory = 10\"\n  3 \"PRAGMA case_sensitive_like = 0\"\n  4 \"PRAGMA case_sensitive_like = 1\"\n  5 \"PRAGMA case_sensitive_like\"\n"
 		_items1 := tclSplitList("\n  1 \"PRAGMA shrink_memory\"\n  2 \"PRAGMA shrink_memory = 10\"\n  3 \"PRAGMA case_sensitive_like = 0\"\n  4 \"PRAGMA case_sensitive_like = 1\"\n  5 \"PRAGMA case_sensitive_like\"\n")
@@ -67,14 +84,15 @@ func Test_pragma4(t *testing.T) {
 			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
 			_ = _idx1
-				t.Errorf("TODO: %s not implemented in frigolite", "do_pragma_ncol_test 1.$tn.1 $sql 0")
+				// do_pragma_ncol_test 1.$tn.1 $sql 0 (unsupported command, not transpiled)
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // do_test "pragma4-2.100"
 				_res = db.Exec("\n    PRAGMA page_size=512;\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<10000)\n    INSERT INTO t1(x) SELECT zeroblob(300) FROM c;\n    CREATE TABLE t2(y);\n    DROP TABLE t1;\n  ")

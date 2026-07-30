@@ -39,6 +39,11 @@ func Test_tkt_752e1646fc(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-752e1646fc-1.1"
 		r = db.Query("\n    CREATE TABLE \"test\" (\"letter\" VARCHAR(1) PRIMARY KEY, \"number\" INTEGER NOT NULL);\n    INSERT INTO \"test\" (\"letter\", \"number\") VALUES('b', 1); \n    INSERT INTO \"test\" (\"letter\", \"number\") VALUES('a', 2); \n    INSERT INTO \"test\" (\"letter\", \"number\") VALUES('c', 2); \n    SELECT DISTINCT \"number\" FROM (SELECT \"letter\", \"number\" FROM \"test\" ORDER BY \"letter\", \"number\" LIMIT 1) AS \"test\";\n  ")

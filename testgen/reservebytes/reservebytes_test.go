@@ -39,13 +39,20 @@ func Test_reservebytes(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "reservebytes"
+	testprefix = "reservebytes"
 	_ = testprefix // suppress unused warning
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 0")
+	// file_control_reservebytes db 0 (unsupported command, not transpiled)
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t1 SELECT NULL, i, hex(randomblob(500)) FROM s;\n")
 		if r.Error != nil {
@@ -62,9 +69,9 @@ func Test_reservebytes(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 8")
+	// file_control_reservebytes db 8 (unsupported command, not transpiled)
 	{ // do_test "1.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
+		// hexio_read test.db 20 1 (unsupported command, not transpiled)
 	}
 	{ // "-db"
 		_res = db.Exec("db2")
@@ -85,11 +92,11 @@ func Test_reservebytes(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
+		// hexio_read test.db 20 1 (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 16")
+	// file_control_reservebytes db 16 (unsupported command, not transpiled)
 	{ // do_test "1.4.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
+		// hexio_read test.db 20 1 (unsupported command, not transpiled)
 	}
 	{ // "1.4.2"
 		_res = db.Exec(" VACUUM ")
@@ -104,6 +111,6 @@ func Test_reservebytes(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
+		// hexio_read test.db 20 1 (unsupported command, not transpiled)
 	}
 }

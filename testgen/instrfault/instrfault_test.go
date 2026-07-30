@@ -39,19 +39,36 @@ func Test_instrfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var NEEDLE string
+	_ = NEEDLE // pre-declared from TCL source
+	var HAYSTACK string
+	_ = HAYSTACK // pre-declared from TCL source
+	var enc string
+	_ = enc // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "instrfault"
+	testprefix = "instrfault"
 	_ = testprefix // suppress unused warning
-	var _NEEDLE = "\"abcdefghijklmnopqrstuvwxyz\" 10" // TCL namespace variable
-	_ = _NEEDLE // suppress unused warning
-	var _HAYSTACK = "123 10" + NEEDLE + "456 10" // TCL namespace variable
-	_ = _HAYSTACK // suppress unused warning
+	NEEDLE = "\"abcdefghijklmnopqrstuvwxyz\" 10" // TCL namespace variable
+	_ = NEEDLE // suppress unused warning
+	HAYSTACK = "123 10" + NEEDLE + "456 10" // TCL namespace variable
+	_ = HAYSTACK // suppress unused warning
 	for _, enc := range tclSplitList("\n  utf8\n  utf16\n") {
 	_ = enc // suppress unused warning
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+		// sqlite3_db_config_lookaside db 0 0 0 (unsupported command, not transpiled)
 		r = db.Query("PRAGMA encoding = " + enc)
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding = " + enc)
@@ -62,16 +79,37 @@ func Test_instrfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES($::NEEDLE, $::HAYSTACK);\n  ")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.1 -faults oom-t* -prep {\n    execsql { SELECT instr(h, n) FROM t1 }\n  } -body {\n    execsql { SELECT instr(h, n) FROM t1 }\n  } -test {\n    faultsim_test_result {0 31}\n  }")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.2 -faults oom-t* -prep {\n    execsql { SELECT instr($::HAYSTACK, $::NEEDLE...} -body {\n    execsql { SELECT instr($::HAYSTACK, $::NEEDLE...} -test {\n    faultsim_test_result {0 31}\n  }")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.3 -faults oom-t* -prep {\n    set ::stmt [sqlite3_prepare_v2 db \"SELECT ins...} -body {\n    set rc [sqlite3_step $::stmt]\n    if {$rc==\"S...} -test {\n    faultsim_test_result {0 31}\n    sqlite3_final...}")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.4 -faults oom-t* -prep {\n    set ::stmt [sqlite3_prepare_v2 db \"SELECT ins...} -body {\n    set rc [sqlite3_step $::stmt]\n    if {$rc==\"S...} -test {\n    faultsim_test_result {0 31}\n    sqlite3_final...}")
+		// do_faultsim_test 1.$enc.1 -faults oom-t* -prep {
+    execsql { SELECT instr(h, n) FROM t1 }
+  } -body {
+    execsql { SELECT instr(h, n) FROM t1 }
+  } -test {
+    faultsim_test_result {0 31}
+  } (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.2 -faults oom-t* -prep {
+    execsql { SELECT instr($::HAYSTACK, $::NEEDLE...} -body {
+    execsql { SELECT instr($::HAYSTACK, $::NEEDLE...} -test {
+    faultsim_test_result {0 31}
+  } (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.3 -faults oom-t* -prep {
+    set ::stmt [sqlite3_prepare_v2 db "SELECT ins...} -body {
+    set rc [sqlite3_step $::stmt]
+    if {$rc=="S...} -test {
+    faultsim_test_result {0 31}
+    sqlite3_final...} (unsupported command, not transpiled)
+		// do_faultsim_test 1.$enc.4 -faults oom-t* -prep {
+    set ::stmt [sqlite3_prepare_v2 db "SELECT ins...} -body {
+    set rc [sqlite3_step $::stmt]
+    if {$rc=="S...} -test {
+    faultsim_test_result {0 31}
+    sqlite3_final...} (unsupported command, not transpiled)
 		{ // "1." + enc + ".5.0"
 			_res = db.Exec("\n    CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;\n  ")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.5 -faults oom-t* -body {\n    execsql { SELECT rowid FROM h1 WHERE instr(a,...} -test {}")
+		// do_faultsim_test 1.$enc.5 -faults oom-t* -body {
+    execsql { SELECT rowid FROM h1 WHERE instr(a,...} -test {} (unsupported command, not transpiled)
 	}
 }

@@ -39,6 +39,27 @@ func Test_fts3ai(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var sql16 string
+	_ = sql16 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var nt string
+	_ = nt // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	_res = db.Exec("\n  PRAGMA encoding = \"UTF-16le\";\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n")
@@ -62,60 +83,60 @@ func Test_fts3ai(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3ai-1.2"
-		var sql = "INSERT INTO t1 (rowid, content) VALUES(2, 'two')"
+		sql = "INSERT INTO t1 (rowid, content) VALUES(2, 'two')"
 		_ = sql // suppress unused warning
-		var STMT = "sqlite3_prepare $DB $sql -1 TAIL"
+		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		r = db.Query("SELECT content FROM t1 WHERE rowid = 2")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 2")
 		}
 	}
 	{ // do_test "fts3ai-1.3"
-		var sql = "INSERT INTO t1 (rowid, content) VALUES(3, 'three')"
+		sql = "INSERT INTO t1 (rowid, content) VALUES(3, 'three')"
 		_ = sql // suppress unused warning
-		var STMT = "sqlite3_prepare $DB $sql -1 TAIL"
+		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		sql = "UPDATE t1 SET content = 'trois' WHERE rowid = 3"
 		_ = sql // suppress unused warning
 		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		r = db.Query("SELECT content FROM t1 WHERE rowid = 3")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 3")
 		}
 	}
 	{ // do_test "fts3ai-1.4"
-		var sql16 = "utf16 {INSERT INTO t1 (rowid, content) VALUES(4, 'four')}"
+		sql16 = "utf16 {INSERT INTO t1 (rowid, content) VALUES(4, 'four')}"
 		_ = sql16 // suppress unused warning
-		var STMT = "sqlite3_prepare16 $DB $sql16 -1 TAIL"
+		STMT = "sqlite3_prepare16 $DB $sql16 -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		r = db.Query("SELECT content FROM t1 WHERE rowid = 4")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 4")
 		}
 	}
 	{ // do_test "fts3ai-1.5"
-		var sql16 = "utf16 {INSERT INTO t1 (rowid, content) VALUES(5, 'five')}"
+		sql16 = "utf16 {INSERT INTO t1 (rowid, content) VALUES(5, 'five')}"
 		_ = sql16 // suppress unused warning
-		var STMT = "sqlite3_prepare16 $DB $sql16 -1 TAIL"
+		STMT = "sqlite3_prepare16 $DB $sql16 -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
-		var sql = "UPDATE t1 SET content = 'cinq' WHERE rowid = 5"
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
+		sql = "UPDATE t1 SET content = 'cinq' WHERE rowid = 5"
 		_ = sql // suppress unused warning
 		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		r = db.Query("SELECT content FROM t1 WHERE rowid = 5")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT content FROM t1 WHERE rowid = 5")

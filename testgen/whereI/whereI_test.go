@@ -39,9 +39,16 @@ func Test_whereI(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "whereI" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "whereI" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 'a', 'z');\n  INSERT INTO t1 VALUES(2, 'b', 'y');\n  INSERT INTO t1 VALUES(3, 'c', 'x');\n  INSERT INTO t1 VALUES(4, 'd', 'w');\n  CREATE INDEX i1 ON t1(b);\n  CREATE INDEX i2 ON t1(c);\n")
 		if _res.Error != nil {

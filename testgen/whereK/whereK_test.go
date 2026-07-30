@@ -39,9 +39,16 @@ func Test_whereK(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "whereK" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "whereK" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<99)\n    INSERT INTO t1(a,b,c) SELECT x, x/10, x%10 FROM c;\n  CREATE INDEX t1bc ON t1(b,c);\n  SELECT a FROM t1 WHERE b>9 OR b=9 ORDER BY +a;\n")
 		if r.Error != nil {

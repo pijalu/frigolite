@@ -39,6 +39,13 @@ func Test_where5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "where5-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(x TEXT);\n    CREATE TABLE t2(x INTEGER);\n    CREATE TABLE t3(x INTEGER PRIMARY KEY);\n    INSERT INTO t1 VALUES(-1);\n    INSERT INTO t1 VALUES(0);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t2 SELECT * FROM t1;\n    INSERT INTO t3 SELECT * FROM t2;\n  ")

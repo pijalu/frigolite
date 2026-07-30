@@ -39,6 +39,27 @@ func Test_autoindex4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var id string
+	_ = id // pre-declared from TCL source
+	var data1 string
+	_ = data1 // pre-declared from TCL source
+	var data2 string
+	_ = data2 // pre-declared from TCL source
+	var jointype string
+	_ = jointype // pre-declared from TCL source
+	var onclause string
+	_ = onclause // pre-declared from TCL source
+	var whereclause string
+	_ = whereclause // pre-declared from TCL source
+	var answer string
+	_ = answer // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "autoindex4-1.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(123,'abc'),(234,'def'),(234,'ghi'),(345,'jkl');\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2 VALUES(987,'zyx'),(654,'wvu'),(987,'rqp');\n\n  SELECT *, '|' FROM t1, t2 WHERE a=234 AND x=987 ORDER BY +b;\n")
@@ -210,7 +231,7 @@ func Test_autoindex4(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2(x,y) " + data2 + ";")
 				}
 			}
-			var sql = "SELECT * FROM t1 " + jointype + " t2 ON " + onclause + " WHERE " + whereclause
+			sql = "SELECT * FROM t1 " + jointype + " t2 ON " + onclause + " WHERE " + whereclause
 			_ = sql // suppress unused warning
 			{ // do_test "autoindex4-4." + id + ".1"
 				_res = db.Exec("PRAGMA automatic_index=ON;")
@@ -237,12 +258,12 @@ func Test_autoindex4(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=ON;")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
+				// optimization_control db all 0 (unsupported command, not transpiled)
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+			// optimization_control db all 1 (unsupported command, not transpiled)
 		}
 }

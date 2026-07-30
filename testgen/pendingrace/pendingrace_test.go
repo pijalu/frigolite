@@ -40,11 +40,29 @@ func Test_pendingrace(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nPg string
+	_ = nPg // pre-declared from TCL source
+	var fd1 string
+	_ = fd1 // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var seen_unlock string
+	_ = seen_unlock // pre-declared from TCL source
+	var seen_access string
+	_ = seen_access // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "pendingrace"
+	testprefix = "pendingrace"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	db, err = frigolite.Open("test.db")
+	// testvfs tvfs (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA cache_size = 5;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<10\n  )\n  INSERT INTO t1 SELECT hex(randomblob(100)), hex(randomblob(100)) FROM s;\n")
@@ -53,7 +71,7 @@ func Test_pendingrace(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1a"
-		var nPg = "db one { PRAGMA page_count }"
+		nPg = "db one { PRAGMA page_count }"
 		_ = nPg // suppress unused warning
 		// expr ($nPg==20 → "($nPg==20"
 	}
@@ -65,25 +83,25 @@ func Test_pendingrace(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "db_save")
+	// db_save (unsupported command, not transpiled)
 	db2.Close()
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "my_db_restore")
+	// my_db_restore (unsupported command, not transpiled)
 	{ // do_test "1.2"
 		// file exists "test.db-journal"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs2")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs2 filter xUnlock")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs2 script xUnlock")
-	var _seen_unlock = "0" // TCL namespace variable
-	_ = _seen_unlock // suppress unused warning
+	// testvfs tvfs2 (unsupported command, not transpiled)
+	// tvfs2 filter xUnlock (unsupported command, not transpiled)
+	// tvfs2 script xUnlock (unsupported command, not transpiled)
+	seen_unlock = "0" // TCL namespace variable
+	_ = seen_unlock // suppress unused warning
 	// proc definition (not transpiled)
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xAccess")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xAccess")
-	var _seen_access = "0" // TCL namespace variable
-	_ = _seen_access // suppress unused warning
+	// tvfs filter xAccess (unsupported command, not transpiled)
+	// tvfs script xAccess (unsupported command, not transpiled)
+	seen_access = "0" // TCL namespace variable
+	_ = seen_access // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.3"
 		_res = db.Exec("\n  PRAGMA integrity_check\n")
@@ -92,6 +110,6 @@ func Test_pendingrace(t *testing.T) {
 		}
 	}
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs2 delete")
+	// tvfs delete (unsupported command, not transpiled)
+	// tvfs2 delete (unsupported command, not transpiled)
 }

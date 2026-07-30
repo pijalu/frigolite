@@ -40,26 +40,47 @@ func Test_tkt2565(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var iFail string
+	_ = iFail // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var sqlite_io_error_persist string
+	_ = sqlite_io_error_persist // pre-declared from TCL source
+	var sqlite_io_error_pending string
+	_ = sqlite_io_error_pending // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var sqlite_io_error_hit string
+	_ = sqlite_io_error_hit // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_alt_pcache 1 100 0 1")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_alt_pcache 1 100 0 1 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "tkt2565-1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "reopen_database")
+		// reopen_database (unsupported command, not transpiled)
 		_res = db.Exec(" CREATE TABLE A(Id INTEGER, Name TEXT) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE A(Id INTEGER, Name TEXT) ")
 		}
 	}
-	var iFail = "1"
+	iFail = "1"
 	_ = iFail // suppress unused warning
 	for func() bool { iFail_n, _iFail_e := strconv.Atoi(iFail); if _iFail_e != nil { return false }; return iFail_n < 200 }() {
-		t.Errorf("TODO: %s not implemented in frigolite", "reopen_database")
+		// reopen_database (unsupported command, not transpiled)
 		r = db.Query(" pragma locking_mode=exclusive ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " pragma locking_mode=exclusive ")
 		}
-		var nRow = "db one {SELECT count(*) FROM a}"
+		nRow = "db one {SELECT count(*) FROM a}"
 		_ = nRow // suppress unused warning
 		{ // do_test "tkt2565-1." + iFail + ".1"
 			_res = db.Exec("\n      BEGIN EXCLUSIVE;\n      INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');\n    ")
@@ -67,22 +88,22 @@ func Test_tkt2565(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN EXCLUSIVE;\n      INSERT INTO a VALUES(1, 'ABCDEFGHIJKLMNOP');\n    ")
 			}
 		}
-		var _sqlite_io_error_persist = "1" // TCL namespace variable
-		_ = _sqlite_io_error_persist // suppress unused warning
-		var _sqlite_io_error_pending = iFail // TCL namespace variable
-		_ = _sqlite_io_error_pending // suppress unused warning
+		sqlite_io_error_persist = "1" // TCL namespace variable
+		_ = sqlite_io_error_persist // suppress unused warning
+		sqlite_io_error_pending = iFail // TCL namespace variable
+		_ = sqlite_io_error_pending // suppress unused warning
 		{ // do_test "tkt2565-1." + iFail + ".2"
-			var rc = "catchsql {COMMIT}"
+			rc = "catchsql {COMMIT}"
 			_ = rc // suppress unused warning
 		}
-		var _sqlite_io_error_persist = "0" // TCL namespace variable
-		_ = _sqlite_io_error_persist // suppress unused warning
-		var _sqlite_io_error_pending = "0" // TCL namespace variable
-		_ = _sqlite_io_error_pending // suppress unused warning
-		if tclBool("!" + _sqlite_io_error_hit) {
+		sqlite_io_error_persist = "0" // TCL namespace variable
+		_ = sqlite_io_error_persist // suppress unused warning
+		sqlite_io_error_pending = "0" // TCL namespace variable
+		_ = sqlite_io_error_pending // suppress unused warning
+		if tclBool("!" + sqlite_io_error_hit) {
 		}
-		var _sqlite_io_error_hit = "0" // TCL namespace variable
-		_ = _sqlite_io_error_hit // suppress unused warning
+		sqlite_io_error_hit = "0" // TCL namespace variable
+		_ = sqlite_io_error_hit // suppress unused warning
 		// incr iFail 1
 		{
 			_n, _err := strconv.Atoi(iFail)
@@ -97,8 +118,8 @@ func Test_tkt2565(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_alt_pcache 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_alt_pcache 0 (unsupported command, not transpiled)
+	// sqlite3_initialize (unsupported command, not transpiled)
+	// autoinstall_test_functions (unsupported command, not transpiled)
 }

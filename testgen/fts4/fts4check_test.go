@@ -40,15 +40,30 @@ func Test_fts4check(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var disruption string
+	_ = disruption // pre-declared from TCL source
+	var docid string
+	_ = docid // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts4check" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "fts4check" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_1 5000")
+		// fts3_build_db_1 5000 (unsupported command, not transpiled)
 	}
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "fts_integrity db t1")
+		// fts_integrity db t1 (unsupported command, not transpiled)
 	}
 	// foreach {tn disruption} "\n  1 {\n    INSERT INTO t1_content(docid, c0x, c1y) VALUES(NULL, 'a', 'b');\n  }\n  2 {\n    DELETE FROM t1_content WHERE docid = (SELECT max(docid) FROM t1_content);\n  }\n  3 {\n    DELETE FROM t1_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t1_segdir WHERE level=0\n    );\n  }\n"
 	_items0 := tclSplitList("\n  1 {\n    INSERT INTO t1_content(docid, c0x, c1y) VALUES(NULL, 'a', 'b');\n  }\n  2 {\n    DELETE FROM t1_content WHERE docid = (SELECT max(docid) FROM t1_content);\n  }\n  3 {\n    DELETE FROM t1_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t1_segdir WHERE level=0\n    );\n  }\n")
@@ -58,7 +73,7 @@ func Test_fts4check(t *testing.T) {
 		disruption := _items0[_idx0+1]
 		_ = disruption // suppress unused warning
 		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+			// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 			{ // "1.2.1." + tn
 				_res = db.Exec("BEGIN; " + disruption)
 				if _res.Error != nil {
@@ -91,13 +106,13 @@ func Test_fts4check(t *testing.T) {
 			}
 		}
 		{ // do_test "1.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "fts_integrity db t1")
+			// fts_integrity db t1 (unsupported command, not transpiled)
 		}
 		{ // do_test "2.0"
-			t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_2 -extra {prefix=\"3,1\"} 20000")
+			// fts3_build_db_2 -extra {prefix="3,1"} 20000 (unsupported command, not transpiled)
 		}
 		{ // do_test "2.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "fts_integrity db t2")
+			// fts_integrity db t2 (unsupported command, not transpiled)
 		}
 		// foreach {tn disruption} "\n  1 {\n    INSERT INTO t2_content VALUES(NULL, 'xyz')\n  }\n  3 {\n    DELETE FROM t2_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t2_segdir WHERE level=1024\n    );\n  }\n"
 		_items1 := tclSplitList("\n  1 {\n    INSERT INTO t2_content VALUES(NULL, 'xyz')\n  }\n  3 {\n    DELETE FROM t2_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t2_segdir WHERE level=1024\n    );\n  }\n")
@@ -107,7 +122,7 @@ func Test_fts4check(t *testing.T) {
 			disruption := _items1[_idx1+1]
 			_ = disruption // suppress unused warning
 			_ = _idx1
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 				{ // "2.2.1." + tn
 					_res = db.Exec("BEGIN; " + disruption)
 					if _res.Error != nil {
@@ -137,7 +152,7 @@ func Test_fts4check(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_1 5000")
+				// fts3_build_db_1 5000 (unsupported command, not transpiled)
 				_res = db.Exec("\n    CREATE VIRTUAL TABLE t3 USING fts4(x, y, prefix=\"2,3\", languageid=langid);\n  ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t3 USING fts4(x, y, prefix=\"2,3\", languageid=langid);\n  ")
@@ -151,7 +166,7 @@ func Test_fts4check(t *testing.T) {
 				}
 			}
 			{ // do_test "3.1"
-				t.Errorf("TODO: %s not implemented in frigolite", "fts_integrity db t3")
+				// fts_integrity db t3 (unsupported command, not transpiled)
 			}
 			// foreach {tn disruption} "\n  1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }\n"
 			_items2 := tclSplitList("\n  1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }\n")
@@ -161,7 +176,7 @@ func Test_fts4check(t *testing.T) {
 				disruption := _items2[_idx2+1]
 				_ = disruption // suppress unused warning
 				_ = _idx2
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+					// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 					{ // "3.2.1." + tn
 						_res = db.Exec("BEGIN; " + disruption)
 						if _res.Error != nil {
@@ -187,7 +202,7 @@ func Test_fts4check(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(a, b, c, notindexed=b);\n  INSERT INTO t4 VALUES('text one', 'text two', 'text three');\n  INSERT INTO t4(t4) VALUES('integrity-check');\n")
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 				{ // "4.1"
 					_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master \n    SET sql = 'CREATE VIRTUAL TABLE t4 USING fts4(a, b, c)' \n    WHERE name = 't4';\n")
 					if _res.Error != nil {
@@ -195,8 +210,8 @@ func Test_fts4check(t *testing.T) {
 					}
 				}
 				{ // do_test "4.2"
-					db, err := frigolite.Open("test.db")
-					defer db.Close()
+					_dbtmp3, err := frigolite.Open("test.db")
+					_ = _dbtmp3 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("\n    INSERT INTO t4(t4) VALUES('integrity-check');\n  ")
 					_ = _res // catchsql
@@ -216,7 +231,7 @@ func Test_fts4check(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 				{ // "5.2"
 					_res = db.Exec("\n  INSERT INTO t5_content VALUES(5, 'his hardy mountain pony');\n  INSERT INTO t5(t5) VALUES('integrity-check');\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {

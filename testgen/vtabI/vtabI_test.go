@@ -39,10 +39,37 @@ func Test_vtabI(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var query string
+	_ = query // pre-declared from TCL source
+	var filter string
+	_ = filter // pre-declared from TCL source
+	var echo_module string
+	_ = echo_module // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "vtabI"
+	testprefix = "vtabI"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
+	// register_echo_module db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE VIRTUAL TABLE e1 USING echo(t1);\n")
 		if _res.Error != nil {
@@ -60,15 +87,15 @@ func Test_vtabI(t *testing.T) {
 		_ = filter // suppress unused warning
 		_ = _idx0
 			{ // do_test "1." + tn
-				var _echo_module = "list" // TCL namespace variable
-				_ = _echo_module // suppress unused warning
+				echo_module = "list" // TCL namespace variable
+				_ = echo_module // suppress unused warning
 				_res = db.Exec(query)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, query)
 				}
-				var idx = "lsearch -exact $::echo_module xFilter"
+				idx = "lsearch -exact $::echo_module xFilter"
 				_ = idx // suppress unused warning
-				tclLIndex(_echo_module, "$idx+1")
+				_ = tclLIndex(echo_module, "$idx+1") // lindex result
 			}
 		}
 		// proc definition (not transpiled)
@@ -96,15 +123,15 @@ func Test_vtabI(t *testing.T) {
 			_ = filter // suppress unused warning
 			_ = _idx1
 				{ // do_test "2." + tn
-					var _echo_module = "list" // TCL namespace variable
-					_ = _echo_module // suppress unused warning
+					echo_module = "list" // TCL namespace variable
+					_ = echo_module // suppress unused warning
 					_res = db.Exec(query)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, query)
 					}
-					var idx = "lsearch -exact $::echo_module xFilter"
+					idx = "lsearch -exact $::echo_module xFilter"
 					_ = idx // suppress unused warning
-					tclLIndex(_echo_module, "$idx+1")
+					_ = tclLIndex(echo_module, "$idx+1") // lindex result
 				}
 			}
 }

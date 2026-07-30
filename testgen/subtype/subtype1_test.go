@@ -39,6 +39,17 @@ func Test_subtype1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var st string
+	_ = st // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "subtype1-100"
 		r = db.Query("\n  SELECT test_getsubtype('hello');\n")

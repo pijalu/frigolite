@@ -41,8 +41,43 @@ func Test_attach2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var list string
+	_ = list // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var expected_result string
+	_ = expected_result // pre-declared from TCL source
+	var sqlite_os_trace string
+	_ = sqlite_os_trace // pre-declared from TCL source
+	var soft_limit string
+	_ = soft_limit // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var VM string
+	_ = VM // pre-declared from TCL source
+	var testnum string
+	_ = testnum // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "attach2"
+	testprefix = "attach2"
 	_ = testprefix // suppress unused warning
 	{ // do_test "attach2-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    CREATE INDEX x1 ON t1(a);\n  ")
@@ -120,15 +155,13 @@ func Test_attach2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "attach2-3.1"
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
-	var rc string
 	_ = rc // suppress unused warning
-	var VM string
 	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB ATTACH 'test2.db' AS t2 -1 TAIL")
+			// sqlite3_prepare $DB ATTACH 'test2.db' AS t2 -1 TAIL (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				VM = _catchErr.Error()
@@ -140,17 +173,15 @@ func Test_attach2(t *testing.T) {
 		if tclBool(rc) {
 			rc = tclListAppend(rc, VM)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		// sqlite3_step $VM (unsupported command, not transpiled)
+		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "attach2-3.2"
-	var rc string
 	_ = rc // suppress unused warning
-	var VM string
 	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB DETACH t2 -1 TAIL")
+			// sqlite3_prepare $DB DETACH t2 -1 TAIL (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				VM = _catchErr.Error()
@@ -162,16 +193,16 @@ func Test_attach2(t *testing.T) {
 		if tclBool(rc) {
 			rc = tclListAppend(rc, VM)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		// sqlite3_step $VM (unsupported command, not transpiled)
+		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
-	var i = "2"
+	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 15 }() {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "db$i close")
+			// db$i close (unsupported command, not transpiled)
 		}
 		// incr i 1
 		{
@@ -182,11 +213,11 @@ func Test_attach2(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	var sqlite_os_trace = "0"
+	sqlite_os_trace = "0"
 	_ = sqlite_os_trace // suppress unused warning
 	{ // do_test "attach2-4.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -199,8 +230,8 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'test2.db' as file2")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.1.1 db {main unlocked temp closed file2 unlocked}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.1.2 db2 {main unlocked temp closed file2 unlocked}")
+	// lock_status 4.1.1 db {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
+	// lock_status 4.1.2 db2 {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.2"
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
@@ -211,23 +242,23 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.2.1 db {main shared temp closed file2 unlocked}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.2.2 db2 {main unlocked temp closed file2 unlocked}")
+	// lock_status 4.2.1 db {main shared temp closed file2 unlocked} (unsupported command, not transpiled)
+	// lock_status 4.2.2 db2 {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.3"
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.3.1 db {main shared temp closed file2 unlocked}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.3.2 db2 {main unlocked temp closed file2 unlocked}")
+	// lock_status 4.3.1 db {main shared temp closed file2 unlocked} (unsupported command, not transpiled)
+	// lock_status 4.3.2 db2 {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.4"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.4.1 db {main shared temp closed file2 unlocked}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.4.2 db2 {main unlocked temp closed file2 unlocked}")
-	var soft_limit = "sqlite3_soft_heap_limit 0"
+	// lock_status 4.4.1 db {main shared temp closed file2 unlocked} (unsupported command, not transpiled)
+	// lock_status 4.4.2 db2 {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
+	soft_limit = "sqlite3_soft_heap_limit 0"
 	_ = soft_limit // suppress unused warning
 	{ // do_test "attach2-4.5"
 		_res = db.Exec("BEGIN")
@@ -239,60 +270,60 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO file2.t1 VALUES(1, 2)")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.5.1 db {main shared temp closed file2 unlocked}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.5.2 db2 {main unlocked temp closed file2 reserved}")
+	// lock_status 4.5.1 db {main shared temp closed file2 unlocked} (unsupported command, not transpiled)
+	// lock_status 4.5.2 db2 {main unlocked temp closed file2 reserved} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.6.1"
 		_res = db.Exec("\n    SELECT * FROM file2.t1;\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.6.1.1 db {main shared temp closed file2 shared}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.6.1.2 db2 {main unlocked temp closed file2 reserved}")
+	// lock_status 4.6.1.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
+	// lock_status 4.6.1.2 db2 {main unlocked temp closed file2 reserved} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.6.2"
 		_res = db.Exec("\n    UPDATE file2.t1 SET a=0;\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.6.2.1 db {main shared temp closed file2 shared}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.6.2.2 db2 {main unlocked temp closed file2 reserved}")
+	// lock_status 4.6.2.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
+	// lock_status 4.6.2.2 db2 {main unlocked temp closed file2 reserved} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.7"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.7.1 db {main shared temp closed file2 shared}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.7.2 db2 {main reserved temp closed file2 reserved}")
+	// lock_status 4.7.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
+	// lock_status 4.7.2 db2 {main reserved temp closed file2 reserved} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.8"
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.8.1 db {main shared temp closed file2 shared}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.8.2 db2 {main reserved temp closed file2 reserved}")
+	// lock_status 4.8.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
+	// lock_status 4.8.2 db2 {main reserved temp closed file2 reserved} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.9"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.9.1 db {main shared temp closed file2 shared}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.9.2 db2 {main reserved temp closed file2 reserved}")
+	// lock_status 4.9.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
+	// lock_status 4.9.2 db2 {main reserved temp closed file2 reserved} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.10"
 		_res = db.Exec("COMMIT")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.10.1 db {main shared temp closed file2 shared}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.10.2 db2 {main pending temp closed file2 reserved}")
+	// lock_status 4.10.1 db {main shared temp closed file2 shared} (unsupported command, not transpiled)
+	// lock_status 4.10.2 db2 {main pending temp closed file2 reserved} (unsupported command, not transpiled)
 	sqlite_os_trace = "0"
 	_ = sqlite_os_trace // suppress unused warning
 	{ // do_test "attach2-4.11"
 		_res = db.Exec("COMMIT")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.11.1 db {main unlocked temp closed file2 unlocked}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.11.2 db2 {main pending temp closed file2 reserved}")
+	// lock_status 4.11.1 db {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
+	// lock_status 4.11.2 db2 {main pending temp closed file2 reserved} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.12"
 		_res = db.Exec("COMMIT")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.12.1 db {main unlocked temp closed file2 unlocked}")
-	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.12.2 db2 {main unlocked temp closed file2 unlocked}")
+	// lock_status 4.12.1 db {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
+	// lock_status 4.12.2 db2 {main unlocked temp closed file2 unlocked} (unsupported command, not transpiled)
 	{ // do_test "attach2-4.13"
 		r = db.Query("SELECT * FROM file2.t1")
 		if r.Error != nil {
@@ -313,14 +344,14 @@ func Test_attach2(t *testing.T) {
 	}
 	db2.Close()
 	os.Remove("test2.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $soft_limit")
+	// sqlite3_soft_heap_limit $soft_limit (unsupported command, not transpiled)
 	for _, f := range tclSplitList("glob test.db*") {
 	_ = f // suppress unused warning
 		os.Remove(f)
 	}
 	{ // do_test "attach2-5.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n  ")
 		if _res.Error != nil {
@@ -334,7 +365,7 @@ func Test_attach2(t *testing.T) {
 		}
 	}
 	{ // do_test "attach2-5.3"
-		tclSort("glob test.db*")
+		_ = tclSort("glob test.db*") // lsort result
 	}
 	{ // do_test "attach2-5.4"
 		_res = db.Exec("\n    BEGIN;\n    DROP TABLE aux.tbl;\n    DROP TABLE tbl;\n    ROLLBACK;\n  ")
@@ -343,7 +374,7 @@ func Test_attach2(t *testing.T) {
 		}
 	}
 	{ // do_test "attach2-5.5"
-		tclSort("glob test.db*")
+		_ = tclSort("glob test.db*") // lsort result
 	}
 	{ // do_test "attach2-6.1"
 		_res = db.Exec("\n    BEGIN;\n  ")

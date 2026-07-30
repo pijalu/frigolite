@@ -39,6 +39,11 @@ func Test_autoanalyze1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "autoanalyze1-100"
 		_res = db.Exec("\n  -- Build up a test table with some indexes\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE UNIQUE INDEX t1bc ON t1(b,c);\n  CREATE INDEX t1d ON t1(d);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c,d) SELECT x, x, x, x FROM c;\n  -- Verify that the hasStat1 flag is clear on on indexes\n  SELECT idx, flgs FROM pragma_stats\n   WHERE idx IS NOT NULL\n   ORDER BY idx;\n  -- Verify that the TF_HasStat1 flag is clear on the table\n  SELECT tbl, (flgs & 0x10)!=0 FROM pragma_stats WHERE tbl='t1' AND idx IS NULL;\n")
@@ -130,7 +135,8 @@ func Test_autoanalyze1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "autoanalyze1-300"
 		r = db.Query("\n  SELECT * FROM t1 WHERE d=45;\n")
@@ -156,7 +162,8 @@ func Test_autoanalyze1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "autoanalyze1-310"
 		r = db.Query("\n  SELECT * FROM t1 WHERE d=45 AND a=45;\n")
@@ -182,7 +189,8 @@ func Test_autoanalyze1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "autoanalyze1-320"
 		r = db.Query("\n  SELECT * FROM t1 WHERE d=45 AND a IN (45,46);\n")
@@ -208,7 +216,8 @@ func Test_autoanalyze1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp3, err := frigolite.Open("test.db")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "autoanalyze1-400"
 		r = db.Query("\n  SELECT * FROM t1 WHERE b=45;\n")
@@ -234,7 +243,8 @@ func Test_autoanalyze1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp4, err := frigolite.Open("test.db")
+	_ = _dbtmp4 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "autoanalyze1-500"
 		r = db.Query("\n  SELECT (flgs & 0x0100)!=0 FROM pragma_stats WHERE tbl='t1' AND idx IS NULL;\n")

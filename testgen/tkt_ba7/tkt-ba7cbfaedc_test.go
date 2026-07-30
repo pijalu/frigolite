@@ -39,8 +39,25 @@ func Test_tkt_ba7cbfaedc(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tkt-ba7cbfaedc"
+	testprefix = "tkt-ba7cbfaedc"
 	_ = testprefix // suppress unused warning
 	{ // "1"
 		_res = db.Exec("\n  CREATE TABLE t1 (x, y);\n  INSERT INTO t1 VALUES (3, 'a');\n  INSERT INTO t1 VALUES (1, 'a'); \n  INSERT INTO t1 VALUES (2, 'b');\n  INSERT INTO t1 VALUES (2, 'a');\n  INSERT INTO t1 VALUES (3, 'b');\n  INSERT INTO t1 VALUES (1, 'b'); \n")

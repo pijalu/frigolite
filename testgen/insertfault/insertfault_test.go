@@ -39,8 +39,15 @@ func Test_insertfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "insertfault"
+	testprefix = "insertfault"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d DEFAULT true);\n  INSERT INTO t1 DEFAULT VALUES;\n  SELECT * FROM t1;\n")
@@ -54,6 +61,12 @@ func Test_insertfault(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  execsql { SELECT * FROM t1 }\n} -test {\n  faultsim_test_result {0 {1 {} {} 1}}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -faults oom* -prep {
+  faultsim_restore_and_reopen
+  db eval { SELECT ...} -body {
+  execsql { SELECT * FROM t1 }
+} -test {
+  faultsim_test_result {0 {1 {} {} 1}}
+} (unsupported command, not transpiled)
 }

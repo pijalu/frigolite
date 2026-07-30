@@ -39,10 +39,39 @@ func Test_fts3offsets(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var off string
+	_ = off // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var s string
+	_ = s // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var iOff string
+	_ = iOff // pre-declared from TCL source
+	var e string
+	_ = e // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var offsets string
+	_ = offsets // pre-declared from TCL source
+	var text string
+	_ = text // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3offsets"
+	testprefix = "fts3offsets"
 	_ = testprefix // suppress unused warning
-	var sqlite_fts3_enable_parentheses = "1"
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.1.0"

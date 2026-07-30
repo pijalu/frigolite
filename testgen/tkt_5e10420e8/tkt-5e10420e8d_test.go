@@ -39,6 +39,11 @@ func Test_tkt_5e10420e8d(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "tkt-5e10420e8d.1"
 		_res = db.Exec("\n  PRAGMA page_size = 1024;\n  PRAGMA auto_vacuum = incremental;\n\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(x);\n  CREATE TABLE t3(x);\n")
@@ -64,7 +69,8 @@ func Test_tkt_5e10420e8d(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA incremental_vacuum(1)\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "tkt-5e10420e8d.5"
 		r = db.Query("\n  PRAGMA integrity_check;\n")

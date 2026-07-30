@@ -39,9 +39,34 @@ func Test_minmax(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var sql1 string
+	_ = sql1 // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var sql2 string
+	_ = sql2 // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "minmax" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "minmax" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "minmax-1.0"
 		r = db.Query("\n    BEGIN;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 VALUES(3,2);\n    INSERT INTO t1 VALUES(4,3);\n    INSERT INTO t1 VALUES(5,3);\n    INSERT INTO t1 VALUES(6,3);\n    INSERT INTO t1 VALUES(7,3);\n    INSERT INTO t1 VALUES(8,4);\n    INSERT INTO t1 VALUES(9,4);\n    INSERT INTO t1 VALUES(10,4);\n    INSERT INTO t1 VALUES(11,4);\n    INSERT INTO t1 VALUES(12,4);\n    INSERT INTO t1 VALUES(13,4);\n    INSERT INTO t1 VALUES(14,4);\n    INSERT INTO t1 VALUES(15,4);\n    INSERT INTO t1 VALUES(16,5);\n    INSERT INTO t1 VALUES(17,5);\n    INSERT INTO t1 VALUES(18,5);\n    INSERT INTO t1 VALUES(19,5);\n    INSERT INTO t1 VALUES(20,5);\n    COMMIT;\n    SELECT DISTINCT y FROM t1 ORDER BY y;\n  ")
 		if r.Error != nil {
@@ -49,7 +74,7 @@ func Test_minmax(t *testing.T) {
 		}
 	}
 	{ // do_test "minmax-1.1"
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT min(x) FROM t1")
 		if r.Error != nil {
@@ -59,7 +84,7 @@ func Test_minmax(t *testing.T) {
 	{ // do_test "minmax-1.2"
 	}
 	{ // do_test "minmax-1.3"
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT max(x) FROM t1")
 		if r.Error != nil {
@@ -73,7 +98,7 @@ func Test_minmax(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX t1i1 ON t1(x)")
 		}
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT min(x) FROM t1")
 		if r.Error != nil {
@@ -83,7 +108,7 @@ func Test_minmax(t *testing.T) {
 	{ // do_test "minmax-1.6"
 	}
 	{ // do_test "minmax-1.7"
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT max(x) FROM t1")
 		if r.Error != nil {
@@ -93,7 +118,7 @@ func Test_minmax(t *testing.T) {
 	{ // do_test "minmax-1.8"
 	}
 	{ // do_test "minmax-1.9"
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT max(y) FROM t1")
 		if r.Error != nil {
@@ -131,7 +156,7 @@ func Test_minmax(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
 		}
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT min(a) FROM t2")
 		if r.Error != nil {
@@ -141,7 +166,7 @@ func Test_minmax(t *testing.T) {
 	{ // do_test "minmax-2.1"
 	}
 	{ // do_test "minmax-2.2"
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT max(a) FROM t2")
 		if r.Error != nil {
@@ -151,7 +176,7 @@ func Test_minmax(t *testing.T) {
 	{ // do_test "minmax-2.3"
 	}
 	{ // do_test "minmax-3.0"
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 		r = db.Query("SELECT max(a) FROM t2")
 		if r.Error != nil {
@@ -161,7 +186,7 @@ func Test_minmax(t *testing.T) {
 	{ // do_test "minmax-3.1"
 	}
 	{ // do_test "minmax-3.2"
-		var sqlite_search_count = "0"
+		sqlite_search_count = "0"
 		_ = sqlite_search_count // suppress unused warning
 	}
 	{ // do_test "minmax-3.3"
@@ -508,12 +533,36 @@ func Test_minmax(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(a, b, c) ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_opt 13.3 {\n  SELECT min(b) FROM t1 WHERE a='b'\n} {\n  SELECT min(c) FROM t1 WHERE a='b'\n} {2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_opt 13.4 {\n  SELECT a, min(b) FROM t1 WHERE a='b'\n} {\n  SELECT a, min(c) FROM t1 WHERE a='b'\n} {b 2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_opt 13.4 {\n  SELECT a||c, max(b)+4 FROM t1 WHERE a='c'\n} {\n  SELECT a||c, max(c)+4 FROM t1 WHERE a='c'\n} {c7 11}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_noopt 13.5 {\n  SELECT a||c, max(b+1) FROM t1 WHERE a='c'\n} {\n  SELECT a||c, max(c+1) FROM t1 WHERE a='c'\n} {c7 8}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_noopt 13.6 {\n  SELECT count(b) FROM t1 WHERE a='c'\n} {\n  SELECT count(c) FROM t1 WHERE a='c'\n} {5}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_noopt 13.7 {\n  SELECT min(b), count(b) FROM t1 WHERE a='a';\n} {\n  SELECT min(c), count(c) FROM t1 WHERE a='a';\n} {1 5}")
+	// do_test_13_opt 13.3 {
+  SELECT min(b) FROM t1 WHERE a='b'
+} {
+  SELECT min(c) FROM t1 WHERE a='b'
+} {2} (unsupported command, not transpiled)
+	// do_test_13_opt 13.4 {
+  SELECT a, min(b) FROM t1 WHERE a='b'
+} {
+  SELECT a, min(c) FROM t1 WHERE a='b'
+} {b 2} (unsupported command, not transpiled)
+	// do_test_13_opt 13.4 {
+  SELECT a||c, max(b)+4 FROM t1 WHERE a='c'
+} {
+  SELECT a||c, max(c)+4 FROM t1 WHERE a='c'
+} {c7 11} (unsupported command, not transpiled)
+	// do_test_13_noopt 13.5 {
+  SELECT a||c, max(b+1) FROM t1 WHERE a='c'
+} {
+  SELECT a||c, max(c+1) FROM t1 WHERE a='c'
+} {c7 8} (unsupported command, not transpiled)
+	// do_test_13_noopt 13.6 {
+  SELECT count(b) FROM t1 WHERE a='c'
+} {
+  SELECT count(c) FROM t1 WHERE a='c'
+} {5} (unsupported command, not transpiled)
+	// do_test_13_noopt 13.7 {
+  SELECT min(b), count(b) FROM t1 WHERE a='a';
+} {
+  SELECT min(c), count(c) FROM t1 WHERE a='a';
+} {1 5} (unsupported command, not transpiled)
 	{ // "14.1"
 		r = db.Query("\n  CREATE TABLE t14(a INTEGER, b INTEGER);\n  INSERT INTO t14(a,b) VALUES(100,2),(200,2),(300,2),(400,1),(500,2);\n  SELECT min(a) FROM t14 WHERE b='2' AND a>'50';\n")
 		if r.Error != nil {

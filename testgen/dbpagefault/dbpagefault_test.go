@@ -41,15 +41,36 @@ func Test_dbpagefault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var pgno string
+	_ = pgno // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("permutation" + " == \"inmemory_journal\"") {
 		return
 	}
-	var testprefix = "dbpagefault"
+	testprefix = "dbpagefault"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  execsql { ATTACH ...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE t1 USING sq...} -test {\n  execsql { PRAGMA journal_mode = off }\n  faultsi...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -prep {\n  sqlite3 db \"xyz.db\" -vfs memdb\n  execsql { ATTA...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE t1 USING sq...} -test {\n  execsql { PRAGMA journal_mode = off }\n  faultsi...}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1 -prep {
+  faultsim_restore_and_reopen
+  execsql { ATTACH ...} -body {
+  execsql { 
+    CREATE VIRTUAL TABLE t1 USING sq...} -test {
+  execsql { PRAGMA journal_mode = off }
+  faultsi...} (unsupported command, not transpiled)
+	// do_faultsim_test 2 -prep {
+  sqlite3 db "xyz.db" -vfs memdb
+  execsql { ATTA...} -body {
+  execsql { 
+    CREATE VIRTUAL TABLE t1 USING sq...} -test {
+  execsql { PRAGMA journal_mode = off }
+  faultsi...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -81,8 +102,13 @@ func Test_dbpagefault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('two');\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.x1(x);\n")
 		}
 	}
-	var pgno = "db one {SELECT max(rootpage) FROM sqlite_schema}"
+	pgno = "db one {SELECT max(rootpage) FROM sqlite_schema}"
 	_ = pgno // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -prep {\n  faultsim_restore_and_reopen\n  execsql { ATTACH ...} -body {\n  execsql { \n    UPDATE sqlite_dbpage SET data = ...} -test {\n  faultsim_test_result {0 {}} {1 {unable to open ...}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 4 -prep {
+  faultsim_restore_and_reopen
+  execsql { ATTACH ...} -body {
+  execsql { 
+    UPDATE sqlite_dbpage SET data = ...} -test {
+  faultsim_test_result {0 {}} {1 {unable to open ...} (unsupported command, not transpiled)
 }

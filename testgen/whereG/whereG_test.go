@@ -40,8 +40,17 @@ func Test_whereG(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "whereG"
+	testprefix = "whereG"
 	_ = testprefix // suppress unused warning
 	{ // "whereG-1.0"
 		_res = db.Exec("\n  CREATE TABLE composer(\n    cid INTEGER PRIMARY KEY,\n    cname TEXT\n  );\n  CREATE TABLE album(\n    aid INTEGER PRIMARY KEY,\n    aname TEXT\n  );\n  CREATE TABLE track(\n    tid INTEGER PRIMARY KEY,\n    cid INTEGER REFERENCES composer,\n    aid INTEGER REFERENCES album,\n    title TEXT\n  );\n  CREATE INDEX track_i1 ON track(cid);\n  CREATE INDEX track_i2 ON track(aid);\n  INSERT INTO composer VALUES(1, 'W. A. Mozart');\n  INSERT INTO composer VALUES(2, 'Beethoven');\n  INSERT INTO composer VALUES(3, 'Thomas Tallis');\n  INSERT INTO composer VALUES(4, 'Joseph Hayden');\n  INSERT INTO composer VALUES(5, 'Thomas Weelkes');\n  INSERT INTO composer VALUES(6, 'J. S. Bach');\n  INSERT INTO composer VALUES(7, 'Orlando Gibbons');\n  INSERT INTO composer VALUES(8, 'Josquin des Prés');\n  INSERT INTO composer VALUES(9, 'Byrd');\n  INSERT INTO composer VALUES(10, 'Francis Poulenc');\n  INSERT INTO composer VALUES(11, 'Mendelsshon');\n  INSERT INTO composer VALUES(12, 'Zoltán Kodály');\n  INSERT INTO composer VALUES(13, 'Handel');\n  INSERT INTO album VALUES(100, 'Kodály: Missa Brevis');\n  INSERT INTO album VALUES(101, 'Messiah');\n  INSERT INTO album VALUES(102, 'Missa Brevis in D-, K.65');\n  INSERT INTO album VALUES(103, 'The complete English anthems');\n  INSERT INTO album VALUES(104, 'Mass in B Minor, BWV 232');\n  INSERT INTO track VALUES(10005, 12, 100, 'Sanctus');\n  INSERT INTO track VALUES(10007, 12, 100, 'Agnus Dei');\n  INSERT INTO track VALUES(10115, 13, 101, 'Surely He Hath Borne Our Griefs');\n  INSERT INTO track VALUES(10129, 13, 101, 'Since By Man Came Death');\n  INSERT INTO track VALUES(10206, 1, 102, 'Agnus Dei');\n  INSERT INTO track VALUES(10301, 3, 103, 'If Ye Love Me');\n  INSERT INTO track VALUES(10402, 6, 104, 'Domine Deus');\n  INSERT INTO track VALUES(10403, 6, 104, 'Qui tollis');\n")
@@ -203,7 +212,7 @@ func Test_whereG(t *testing.T) {
 		}
 	}
 	{ // do_test "5.2"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES('abc', $i, $i); ")

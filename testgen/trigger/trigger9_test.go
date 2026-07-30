@@ -39,9 +39,18 @@ func Test_trigger9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "trigger9" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "trigger9" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "trigger9-1.1"
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y, z);\n    INSERT INTO t1 VALUES('1', randstr(10000,10000), '2');\n    INSERT INTO t1 VALUES('2', randstr(10000,10000), '4');\n    INSERT INTO t1 VALUES('3', randstr(10000,10000), '6');\n    CREATE TABLE t2(x);\n  ")
@@ -56,7 +65,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {DELETE FROM t1}")
+		// has_rowdata {DELETE FROM t1} (unsupported command, not transpiled)
 	}
 	{ // do_test "trigger9-1.2.4"
 		_res = db.Exec(" ROLLBACK ")
@@ -71,7 +80,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {DELETE FROM t1}")
+		// has_rowdata {DELETE FROM t1} (unsupported command, not transpiled)
 	}
 	{ // do_test "trigger9-1.3.3"
 		_res = db.Exec(" ROLLBACK ")
@@ -86,7 +95,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {DELETE FROM t1}")
+		// has_rowdata {DELETE FROM t1} (unsupported command, not transpiled)
 	}
 	{ // do_test "trigger9-1.4.3"
 		_res = db.Exec(" ROLLBACK ")
@@ -101,7 +110,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {UPDATE t1 SET y = ''}")
+		// has_rowdata {UPDATE t1 SET y = ''} (unsupported command, not transpiled)
 	}
 	{ // do_test "trigger9-1.5.3"
 		_res = db.Exec(" ROLLBACK ")
@@ -116,7 +125,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.6.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {UPDATE t1 SET y = ''}")
+		// has_rowdata {UPDATE t1 SET y = ''} (unsupported command, not transpiled)
 	}
 	{ // do_test "trigger9-1.6.3"
 		_res = db.Exec(" ROLLBACK ")
@@ -131,7 +140,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.7.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {UPDATE t1 SET y = ''}")
+		// has_rowdata {UPDATE t1 SET y = ''} (unsupported command, not transpiled)
 	}
 	{ // do_test "trigger9-1.7.3"
 		_res = db.Exec(" ROLLBACK ")

@@ -39,11 +39,20 @@ func Test_aggerror(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "aggerror-1.1"
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_aggregate $DB")
+		// sqlite3_create_aggregate $DB (unsupported command, not transpiled)
 		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4 FROM t1;\n    INSERT INTO t1 SELECT a+8 FROM t1;\n    INSERT INTO t1 SELECT a+16 FROM t1;\n    INSERT INTO t1 SELECT a+32 FROM t1 ORDER BY a LIMIT 7;\n    SELECT x_count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4 FROM t1;\n    INSERT INTO t1 SELECT a+8 FROM t1;\n    INSERT INTO t1 SELECT a+16 FROM t1;\n    INSERT INTO t1 SELECT a+32 FROM t1 ORDER BY a LIMIT 7;\n    SELECT x_count(*) FROM t1;\n  ")

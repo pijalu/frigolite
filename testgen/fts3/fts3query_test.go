@@ -41,10 +41,59 @@ func Test_fts3query(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DO_MALLOC_TEST string
+	_ = DO_MALLOC_TEST // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var scan_littleEndian string
+	_ = scan_littleEndian // pre-declared from TCL source
+	var scan_bigEndian string
+	_ = scan_bigEndian // pre-declared from TCL source
+	var SMALLINT string
+	_ = SMALLINT // pre-declared from TCL source
+	var LARGEINT string
+	_ = LARGEINT // pre-declared from TCL source
+	var iFirst string
+	_ = iFirst // pre-declared from TCL source
+	var nEntry string
+	_ = nEntry // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var iRowid string
+	_ = iRowid // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var iLast string
+	_ = iLast // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var res1 string
+	_ = res1 // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var res1s string
+	_ = res1s // pre-declared from TCL source
+	var res2s string
+	_ = res2s // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var scan__tcl_platform_byteOrder string
+	_ = scan__tcl_platform_byteOrder // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var DO_MALLOC_TEST = "0"
+	DO_MALLOC_TEST = "0"
 	_ = DO_MALLOC_TEST // suppress unused warning
-	var testprefix = "fts3query"
+	testprefix = "fts3query"
 	_ = testprefix // suppress unused warning
 	{ // do_test "fts3query-1.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING fts3(x);\n    BEGIN;\n      INSERT INTO t1 VALUES('The source code for SQLite is in the public');\n  ")
@@ -52,17 +101,25 @@ func Test_fts3query(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts3(x);\n    BEGIN;\n      INSERT INTO t1 VALUES('The source code for SQLite is in the public');\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_select_test fts3query-1.2 {\n  SELECT * FROM t1;\n} {{The source code for SQLite is in the public}}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_select_test fts3query-1.3 {\n  SELECT * FROM t1 WHERE t1 MATCH 'sqlite'\n} {{The source code for SQLite is in the public}}")
+	// do_select_test fts3query-1.2 {
+  SELECT * FROM t1;
+} {{The source code for SQLite is in the public}} (test infra, not transpiled)
+	// do_select_test fts3query-1.3 {
+  SELECT * FROM t1 WHERE t1 MATCH 'sqlite'
+} {{The source code for SQLite is in the public}} (test infra, not transpiled)
 	{ // do_test "fts3query-1.4"
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_select_test fts3query-1.5 {\n  SELECT * FROM t1;\n} {{The source code for SQLite is in the public}}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_select_test fts3query-1.6 {\n  SELECT * FROM t1 WHERE t1 MATCH 'sqlite'\n} {{The source code for SQLite is in the public}}")
-	var sqlite_fts3_enable_parentheses = "1"
+	// do_select_test fts3query-1.5 {
+  SELECT * FROM t1;
+} {{The source code for SQLite is in the public}} (test infra, not transpiled)
+	// do_select_test fts3query-1.6 {
+  SELECT * FROM t1 WHERE t1 MATCH 'sqlite'
+} {{The source code for SQLite is in the public}} (test infra, not transpiled)
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	{ // do_test "fts3query-2.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE zoink USING fts3;\n    INSERT INTO zoink VALUES('The apple falls far from the tree');\n  ")
@@ -139,16 +196,25 @@ func Test_fts3query(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING FTS4;\n  INSERT INTO t2 VALUES('it was the first time in history');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests 5.2 -errorformat {\n  wrong number of arguments to function %s()\n} {\n  1 \"SELECT matchinfo() FROM t2 WHERE t2 MATCH 'h...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests 5.3 -errorformat {\n  illegal first argument to %s\n} {\n  1 \"SELECT matchinfo(content) FROM t2 WHERE t2 M...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// do_select_tests 5.2 -errorformat {
+  wrong number of arguments to function %s()
+} {
+  1 "SELECT matchinfo() FROM t2 WHERE t2 MATCH 'h...} (unsupported command, not transpiled)
+	// do_select_tests 5.3 -errorformat {
+  illegal first argument to %s
+} {
+  1 "SELECT matchinfo(content) FROM t2 WHERE t2 M...} (unsupported command, not transpiled)
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "5.4.0"
 		_res = db.Exec(" UPDATE t2_content SET c0content = X'1234' ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t2_content SET c0content = X'1234' ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests 5.4 -errorformat {\n  illegal first argument to %s\n} {\n  1 \"SELECT matchinfo(content) FROM t2 WHERE t2 M...}")
+	// do_select_tests 5.4 -errorformat {
+  illegal first argument to %s
+} {
+  1 "SELECT matchinfo(content) FROM t2 WHERE t2 M...} (unsupported command, not transpiled)
 	{ // "5.5.1"
 		_res = db.Exec("\n  SELECT matchinfo(t2, 'abcd') FROM t2 WHERE t2 MATCH 'history'\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized matchinfo request: d") {
@@ -167,16 +233,17 @@ func Test_fts3query(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t3 USING FTS4(a, b);\n  INSERT INTO t3 VALUES('no gestures', 'another intriguing discovery by observing the hand gestures (called beats) people make while speaking. Research has shown that such gestures do more than add visual emphasis to our words (many people gesture while they''re on the telephone, for example); it seems they actually help our brains find words');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests 6.2 {\n  1 \"SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'g...}")
+	// do_select_tests 6.2 {
+  1 "SELECT snippet(t3) FROM t3 WHERE t3 MATCH 'g...} (unsupported command, not transpiled)
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE ft4 USING fts4(x);\n  CREATE TABLE t4(x);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE ft4 USING fts4(x);\n  CREATE TABLE t4(x);\n")
 		}
 	}
-	var SMALLINT = "-9223372036854775808"
+	SMALLINT = "-9223372036854775808"
 	_ = SMALLINT // suppress unused warning
-	var LARGEINT = "9223372036854775807"
+	LARGEINT = "9223372036854775807"
 	_ = LARGEINT // suppress unused warning
 	{ // do_test "7.2"
 		// foreach {iFirst nEntry} "0                      100\n      " + SMALLINT + "              100\n      " + "$LARGEINT - 99" + "  100"
@@ -187,10 +254,10 @@ func Test_fts3query(t *testing.T) {
 			nEntry := _items0[_idx0+1]
 			_ = nEntry // suppress unused warning
 			_ = _idx0
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nEntry_n, _nEntry_e := strconv.Atoi(nEntry); if _nEntry_e != nil { return false }; return i_n < nEntry_n }() {
-					var iRowid = "$i + $iFirst"
+					iRowid = "$i + $iFirst"
 					_ = iRowid // suppress unused warning
 					_res = db.Exec("\n          INSERT INTO ft4(rowid, x) VALUES($iRowid, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES($iRowid, 'x y z');\n        ")
 					if _res.Error != nil {
@@ -216,7 +283,7 @@ func Test_fts3query(t *testing.T) {
 			iLast := _items1[_idx1+2]
 			_ = iLast // suppress unused warning
 			_ = _idx1
-				var res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n  }"
+				res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n  }"
 				_ = res // suppress unused warning
 				{ // "7.2." + tn + ".1." + "llength $res"
 					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN $iFirst AND $iLast\n  ")

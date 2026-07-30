@@ -39,6 +39,11 @@ func Test_resolver01(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "resolver01-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y); INSERT INTO t1 VALUES(11,22);\n    CREATE TABLE t2(y, z); INSERT INTO t2 VALUES(33,44);\n    SELECT 1 AS y FROM t1, t2 ORDER BY y;\n  ")

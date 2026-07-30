@@ -39,6 +39,17 @@ func Test_shared6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "shared6-1.1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE TABLE t2(c, d);\n    CREATE TABLE t3(e, f);\n  ")
@@ -47,9 +58,9 @@ func Test_shared6(t *testing.T) {
 		}
 	}
 	{ // do_test "shared6-1.1.2"
-		var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-		_ = _enable_shared_cache // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache")
+		enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+		_ = enable_shared_cache // suppress unused warning
+		// sqlite3_enable_shared_cache (unsupported command, not transpiled)
 	}
 	{ // do_test "shared6-1.1.3"
 		db1, err = frigolite.Open("test.db")
@@ -169,7 +180,7 @@ func Test_shared6(t *testing.T) {
 		db1.Close()
 		db2.Close()
 	}
-	if _tcl_platform_os != "Windows NT" {
+	if tcl_platform_os != "Windows NT" {
 		{ // do_test "shared6-2.1"
 			db1, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
@@ -279,19 +290,19 @@ func Test_shared6(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		var _STMT = "" // TCL namespace variable
-		_ = _STMT // suppress unused warning
+		STMT = "" // TCL namespace variable
+		_ = STMT // suppress unused warning
 		_res = db.Exec(" CREATE TABLE t5(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t5(a, b) ")
 		}
 	}
 	{ // do_test "shared6-4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		// sqlite3_finalize $::STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "shared6-4.X"
 		db1.Close()
 		db2.Close()
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

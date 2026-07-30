@@ -40,8 +40,31 @@ func Test_cse(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var colset string
+	_ = colset // pre-declared from TCL source
+	var answer string
+	_ = answer // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "cse"
+	testprefix = "cse"
 	_ = testprefix // suppress unused warning
 	{ // do_test "cse-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d, e, f);\n    INSERT INTO t1 VALUES(1,11,12,13,14,15);\n    INSERT INTO t1 VALUES(2,21,22,23,24,25);\n  ")
@@ -149,22 +172,22 @@ func Test_cse(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t2(a0,a1,a2,a3,a4,a5,a6,a7,a8,a9,\n                    a10,a11,a12,a13,a14,a15,a16,a17,a18,a19,\n                    a20,a21,a22,a23,a24,a25,a26,a27,a28,a29,\n                    a30,a31,a32,a33,a34,a35,a36,a37,a38,a39,\n                    a40,a41,a42,a43,a44,a45,a46,a47,a48,a49);\n    INSERT INTO t2 VALUES(0,1,2,3,4,5,6,7,8,9,\n                    10,11,12,13,14,15,16,17,18,19,\n                    20,21,22,23,24,25,26,27,28,29,\n                    30,31,32,33,34,35,36,37,38,39,\n                    40,41,42,43,44,45,46,47,48,49);\n    SELECT * FROM t2;\n  ")
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-		var n = "5"
+		n = "5"
 		_ = n // suppress unused warning
-		var colset = ""
+		colset = ""
 		_ = colset // suppress unused warning
-		var answer = ""
+		answer = ""
 		_ = answer // suppress unused warning
-		var j = "0"
+		j = "0"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return j_n < n_n }() {
-			var _r = "$j+int(rand()*5)"
+			_r = "$j+int(rand()*5)"
 			_ = _r // suppress unused warning
 			if func() bool { _r_n, __r_e := strconv.Atoi(_r); if __r_e != nil { return false }; return _r_n > 49 }() {
-				var _r = "99-$r"
+				_r = "99-$r"
 				_ = _r // suppress unused warning
 			}
 			colset = tclListAppend(colset, "a" + j, "a" + _r)
@@ -177,12 +200,12 @@ func Test_cse(t *testing.T) {
 				}
 			}
 		}
-		var sql = "SELECT " + "join $colset ," + " FROM t2"
+		sql = "SELECT " + "join $colset ," + " FROM t2"
 		_ = sql // suppress unused warning
 		{ // do_test "cse-2.2." + i
-			_res = db.Exec(_sql)
+			_res = db.Exec(sql)
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, _sql)
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 			}
 		}
 		// incr i 1

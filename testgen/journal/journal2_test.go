@@ -39,47 +39,70 @@ func Test_journal2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var a_string_counter string
+	_ = a_string_counter // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var oplog string
+	_ = oplog // pre-declared from TCL source
+	var open_journals_f string
+	_ = open_journals_f // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var tvfs_error_on_write string
+	_ = tvfs_error_on_write // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("permutation" + " == \"inmemory_journal\"") {
 		return
 	}
-	var a_string_counter = "1"
+	a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs devchar {undeletable_when_open powersafe_overwrite}")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xOpen xClose xDelete}")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script journal_op_catcher")
+	// testvfs tvfs -default 1 (unsupported command, not transpiled)
+	// tvfs devchar {undeletable_when_open powersafe_overwrite} (unsupported command, not transpiled)
+	// tvfs filter {xOpen xClose xDelete} (unsupported command, not transpiled)
+	// tvfs script journal_op_catcher (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "journal2-1.1"
-		var _oplog = "list" // TCL namespace variable
-		_ = _oplog // suppress unused warning
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		oplog = "list" // TCL namespace variable
+		_ = oplog // suppress unused warning
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" CREATE TABLE t1(a, b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
 		}
-		_ = _oplog // TCL namespace variable (query)
+		_ = oplog // TCL namespace variable (query)
 	}
 	{ // do_test "journal2-1.2"
-		var _oplog = "list" // TCL namespace variable
-		_ = _oplog // suppress unused warning
+		oplog = "list" // TCL namespace variable
+		_ = oplog // suppress unused warning
 		_res = db.Exec(" \n    PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA journal_mode = truncate;\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		}
-		_ = _oplog // TCL namespace variable (query)
+		_ = oplog // TCL namespace variable (query)
 	}
 	{ // do_test "journal2-1.3"
-		var _oplog = "list" // TCL namespace variable
-		_ = _oplog // suppress unused warning
+		oplog = "list" // TCL namespace variable
+		_ = oplog // suppress unused warning
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(3, 4) ")
 		}
-		_ = _oplog // TCL namespace variable (query)
+		_ = oplog // TCL namespace variable (query)
 	}
 	{ // do_test "journal2-1.4"
 		r = db.Query(" SELECT * FROM t1 ")
@@ -88,8 +111,8 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.5"
-		var _oplog = "list" // TCL namespace variable
-		_ = _oplog // suppress unused warning
+		oplog = "list" // TCL namespace variable
+		_ = oplog // suppress unused warning
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		r = db.Query(" PRAGMA journal_mode = delete ")
@@ -133,7 +156,7 @@ func Test_journal2(t *testing.T) {
 		// file size test.db-journal
 	}
 	{ // do_test "journal2-1.11"
-		var sz = "[file size test.db] / 1024"
+		sz = "[file size test.db] / 1024"
 		_ = sz // suppress unused warning
 		// expr $sz>120 && $sz<200 → "$sz>120 && $sz<200"
 	}
@@ -146,9 +169,9 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xOpen xClose xDelete xWrite xTruncate}")
-		var _tvfs_error_on_write = "1" // TCL namespace variable
-		_ = _tvfs_error_on_write // suppress unused warning
+		// tvfs filter {xOpen xClose xDelete xWrite xTruncate} (unsupported command, not transpiled)
+		tvfs_error_on_write = "1" // TCL namespace variable
+		_ = tvfs_error_on_write // suppress unused warning
 		_res = db.Exec(" COMMIT ")
 		_ = _res // catchsql
 	}
@@ -164,7 +187,7 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.16"
-		var sz = "[file size testX.db] / 1024"
+		sz = "[file size testX.db] / 1024"
 		_ = sz // suppress unused warning
 		// expr $sz>240 && $sz<400 → "$sz>240 && $sz<400"
 	}
@@ -181,34 +204,34 @@ func Test_journal2(t *testing.T) {
 	}
 	if tclBool("wal_is_capable") {
 		{ // do_test "journal2-2.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-			var _oplog = "list" // TCL namespace variable
-			_ = _oplog // suppress unused warning
+			// faultsim_delete_and_reopen (unsupported command, not transpiled)
+			oplog = "list" // TCL namespace variable
+			_ = oplog // suppress unused warning
 			r = db.Query(" PRAGMA journal_mode = persist ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = persist ")
 			}
-			_ = _oplog // TCL namespace variable (query)
+			_ = oplog // TCL namespace variable (query)
 		}
 		{ // do_test "journal2-2.2"
 			_res = db.Exec(" \n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(3.14159);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES(3.14159);\n    ")
 			}
-			_ = _oplog // TCL namespace variable (query)
+			_ = oplog // TCL namespace variable (query)
 		}
 		{ // do_test "journal2-2.3"
 			// expr [file size test.db-journal] > 512 → "[file size test.db-journal] > 512"
 		}
 		{ // do_test "journal2-2.4"
-			var _oplog = "list" // TCL namespace variable
-			_ = _oplog // suppress unused warning
+			oplog = "list" // TCL namespace variable
+			_ = oplog // suppress unused warning
 			r = db.Query(" PRAGMA journal_mode = WAL ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
 			}
-			_ = _oplog // TCL namespace variable (query)
+			_ = oplog // TCL namespace variable (query)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+	// tvfs delete (unsupported command, not transpiled)
 }

@@ -40,8 +40,15 @@ func Test_tkt_4ef7e3cfca(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tkt-4ef7e3cfca"
+	testprefix = "tkt-4ef7e3cfca"
 	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE x(a);\n  CREATE TRIGGER t AFTER INSERT ON x BEGIN\n    SELECT * FROM x WHERE abc.a = 1;\n  END;\n  INSERT INTO x VALUES('assert');\n")

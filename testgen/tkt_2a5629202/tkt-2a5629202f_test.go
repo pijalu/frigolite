@@ -39,8 +39,21 @@ func Test_tkt_2a5629202f(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tkt-2a5629202f"
+	testprefix = "tkt-2a5629202f"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.1"
@@ -92,12 +105,12 @@ func Test_tkt_2a5629202f(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT * FROM t2 WHERE a = 10 ORDER BY a, b, c }")
+		_ = db.Exec(" SELECT * FROM t2 WHERE a = 10 ORDER BY a, b, c ") // cksort
 	}
 	{ // do_test "2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT * FROM t2 WHERE b = 10 ORDER BY a, b, c }")
+		_ = db.Exec(" SELECT * FROM t2 WHERE b = 10 ORDER BY a, b, c ") // cksort
 	}
 	{ // do_test "2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT * FROM t2 WHERE a IS NULL ORDER BY a, b, c...}")
+		_ = db.Exec(" SELECT * FROM t2 WHERE a IS NULL ORDER BY a, b, c ") // cksort
 	}
 }

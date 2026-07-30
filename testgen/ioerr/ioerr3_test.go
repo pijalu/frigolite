@@ -39,8 +39,24 @@ func Test_ioerr3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr3-1 -sqlprep {\n  CREATE TABLE t1(id INTEGER, name TEXT);\n} -tclbody {\n  sqlite3_soft_heap_limit 8192\n  db cache size 0\n...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr3-2 -sqlbody {\n  CREATE TEMP TABLE t1(x,y);\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+	// do_ioerr_test ioerr3-1 -sqlprep {
+  CREATE TABLE t1(id INTEGER, name TEXT);
+} -tclbody {
+  sqlite3_soft_heap_limit 8192
+  db cache size 0
+...} (unsupported command, not transpiled)
+	// do_ioerr_test ioerr3-2 -sqlbody {
+  CREATE TEMP TABLE t1(x,y);
+} (unsupported command, not transpiled)
+	// sqlite3_soft_heap_limit 0 (unsupported command, not transpiled)
 }

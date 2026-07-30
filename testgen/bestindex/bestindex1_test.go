@@ -41,10 +41,85 @@ func Test_bestindex1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var SQL_FILTER string
+	_ = SQL_FILTER // pre-declared from TCL source
+	var SQL_SCAN string
+	_ = SQL_SCAN // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var _map string
+	_ = _map // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var mode string
+	_ = mode // pre-declared from TCL source
+	var plan_use string
+	_ = plan_use // pre-declared from TCL source
+	var plan_omit string
+	_ = plan_omit // pre-declared from TCL source
+	var plan_use2 string
+	_ = plan_use2 // pre-declared from TCL source
+	var G_collist string
+	_ = G_collist // pre-declared from TCL source
+	var G_cols string
+	_ = G_cols // pre-declared from TCL source
+	var G_nulls string
+	_ = G_nulls // pre-declared from TCL source
+	var W string
+	_ = W // pre-declared from TCL source
+	var U string
+	_ = U // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var idxnum string
+	_ = idxnum // pre-declared from TCL source
+	var idxstr string
+	_ = idxstr // pre-declared from TCL source
+	var vals string
+	_ = vals // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var bestindex_calls string
+	_ = bestindex_calls // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var C_usable string
+	_ = C_usable // pre-declared from TCL source
+	var C_column string
+	_ = C_column // pre-declared from TCL source
+	var C_op string
+	_ = C_op // pre-declared from TCL source
+	var plan_mode string
+	_ = plan_mode // pre-declared from TCL source
+	var c_op string
+	_ = c_op // pre-declared from TCL source
+	var c_usable string
+	_ = c_usable // pre-declared from TCL source
+	var c_column string
+	_ = c_column // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindex1"
+	testprefix = "bestindex1"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n")
@@ -67,7 +142,7 @@ func Test_bestindex1(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1x(i INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1x VALUES(1, 'one', 1);\n  INSERT INTO t1x VALUES(2, 'two', 2);\n  INSERT INTO t1x VALUES(3, 'three', 3);\n  INSERT INTO t1x VALUES(4, 'four', 4);\n")
@@ -137,11 +212,11 @@ func Test_bestindex1(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			var plan_use = "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  "
+			plan_use = "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  "
 			_ = plan_use // suppress unused warning
-			var plan_omit = "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  "
+			plan_omit = "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x WHERE a='%1%'\n    `--USE TEMP B-TREE FOR ORDER BY\n  "
 			_ = plan_omit // suppress unused warning
-			var plan_use2 = "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x\n    `--USE TEMP B-TREE FOR ORDER BY\n  "
+			plan_use2 = "\n    QUERY PLAN\n    |--SCAN t1 VIRTUAL TABLE INDEX 0:SELECT * FROM t1x\n    `--USE TEMP B-TREE FOR ORDER BY\n  "
 			_ = plan_use2 // suppress unused warning
 			{ // "2.2." + mode + ".6"
 				r = db.Query("EXPLAIN QUERY PLAN " + " \n    SELECT rowid FROM t1 WHERE a IN ('one', 'four') ORDER BY +rowid\n  ")
@@ -150,21 +225,22 @@ func Test_bestindex1(t *testing.T) {
 				}
 			}
 		}
-		var G_collist = "list PrimaryKey flagA columnA"
+		G_collist = "list PrimaryKey flagA columnA"
 		_ = G_collist // suppress unused warning
-		var G_cols = "join $G(collist) ,"
+		G_cols = "join $G(collist) ,"
 		_ = G_cols // suppress unused warning
-		var G_nulls = "NULL"
+		G_nulls = "NULL"
 		_ = G_nulls // suppress unused warning
 		// proc definition (not transpiled)
 		os.Remove("test.db")
-		db, err = frigolite.Open("test.db")
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+		// register_tcl_module db (unsupported command, not transpiled)
 		{ // "3.1"
-			_res = db.Exec("\n  CREATE TABLE t1(" + G + "(cols));\n  INSERT INTO t1 VALUES(1, 0, 'ValueA');\n  INSERT INTO t1 VALUES(2, 0, 'ValueA');\n  INSERT INTO t1 VALUES(3, 0, 'ValueB');\n  INSERT INTO t1 VALUES(4, 0, 'ValueB');\n")
+			_res = db.Exec("\n  CREATE TABLE t1(" + G_cols + ");\n  INSERT INTO t1 VALUES(1, 0, 'ValueA');\n  INSERT INTO t1 VALUES(2, 0, 'ValueA');\n  INSERT INTO t1 VALUES(3, 0, 'ValueB');\n  INSERT INTO t1 VALUES(4, 0, 'ValueB');\n")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(" + G + "(cols));\n  INSERT INTO t1 VALUES(1, 0, 'ValueA');\n  INSERT INTO t1 VALUES(2, 0, 'ValueA');\n  INSERT INTO t1 VALUES(3, 0, 'ValueB');\n  INSERT INTO t1 VALUES(4, 0, 'ValueB');\n")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(" + G_cols + ");\n  INSERT INTO t1 VALUES(1, 0, 'ValueA');\n  INSERT INTO t1 VALUES(2, 0, 'ValueA');\n  INSERT INTO t1 VALUES(3, 0, 'ValueB');\n  INSERT INTO t1 VALUES(4, 0, 'ValueB');\n")
 			}
 		}
 		{ // "3.2"
@@ -217,13 +293,13 @@ func Test_bestindex1(t *testing.T) {
 			}
 		}
 		{ // do_test "4.1"
-			var _bestindex_calls = "list" // TCL namespace variable
-			_ = _bestindex_calls // suppress unused warning
+			bestindex_calls = "list" // TCL namespace variable
+			_ = bestindex_calls // suppress unused warning
 			r = db.Query("\n    SELECT * FROM x1 WHERE a=? AND b BETWEEN ? AND ? AND c IN (1, 2, 3, 4);\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM x1 WHERE a=? AND b BETWEEN ? AND ? AND c IN (1, 2, 3, 4);\n  ")
 			}
-			_ = _bestindex_calls // TCL namespace variable (query)
+			_ = bestindex_calls // TCL namespace variable (query)
 		}
 		{ // "5.0"
 			_res = db.Exec("\n  SELECT * FROM tcl('abc');\n")

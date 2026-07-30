@@ -39,9 +39,28 @@ func Test_collate2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ra string
+	_ = ra // pre-declared from TCL source
+	var rb string
+	_ = rb // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "collate2" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "collate2" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "collate2-1.0"
 		_res = db.Exec("\n    CREATE TABLE collate2t1(\n      a COLLATE BINARY, \n      b COLLATE NOCASE, \n      c COLLATE BACKWARDS\n    );\n    INSERT INTO collate2t1 VALUES( NULL, NULL, NULL );\n\n    INSERT INTO collate2t1 VALUES( 'aa', 'aa', 'aa' );\n    INSERT INTO collate2t1 VALUES( 'ab', 'ab', 'ab' );\n    INSERT INTO collate2t1 VALUES( 'ba', 'ba', 'ba' );\n    INSERT INTO collate2t1 VALUES( 'bb', 'bb', 'bb' );\n\n    INSERT INTO collate2t1 VALUES( 'aA', 'aA', 'aA' );\n    INSERT INTO collate2t1 VALUES( 'aB', 'aB', 'aB' );\n    INSERT INTO collate2t1 VALUES( 'bA', 'bA', 'bA' );\n    INSERT INTO collate2t1 VALUES( 'bB', 'bB', 'bB' );\n\n    INSERT INTO collate2t1 VALUES( 'Aa', 'Aa', 'Aa' );\n    INSERT INTO collate2t1 VALUES( 'Ab', 'Ab', 'Ab' );\n    INSERT INTO collate2t1 VALUES( 'Ba', 'Ba', 'Ba' );\n    INSERT INTO collate2t1 VALUES( 'Bb', 'Bb', 'Bb' );\n\n    INSERT INTO collate2t1 VALUES( 'AA', 'AA', 'AA' );\n    INSERT INTO collate2t1 VALUES( 'AB', 'AB', 'AB' );\n    INSERT INTO collate2t1 VALUES( 'BA', 'BA', 'BA' );\n    INSERT INTO collate2t1 VALUES( 'BB', 'BB', 'BB' );\n  ")

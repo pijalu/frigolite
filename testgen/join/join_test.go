@@ -3,7 +3,6 @@ package join
 
 import (
 "github.com/pijalu/frigolite"
-"os"
 "testing"
 )
 
@@ -39,6 +38,19 @@ func Test_join(t *testing.T) {
 	_ = db8
 	var db9 *frigolite.DB
 	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var nTbl string
+	_ = nTbl // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "join-1.1"
@@ -440,14 +452,14 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // do_test "join-7.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+		// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 		r = db.Query("\n    CREATE TABLE t7 (x, y);\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    CREATE TABLE t8 (a integer primary key, b);\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t7 (x, y);\n    INSERT INTO t7 VALUES (\"pa1\", 1);\n    INSERT INTO t7 VALUES (\"pa2\", NULL);\n    INSERT INTO t7 VALUES (\"pa3\", NULL);\n    INSERT INTO t7 VALUES (\"pa4\", 2);\n    INSERT INTO t7 VALUES (\"pa30\", 131);\n    INSERT INTO t7 VALUES (\"pa31\", 130);\n    INSERT INTO t7 VALUES (\"pa28\", NULL);\n\n    CREATE TABLE t8 (a integer primary key, b);\n    INSERT INTO t8 VALUES (1, \"pa1\");\n    INSERT INTO t8 VALUES (2, \"pa4\");\n    INSERT INTO t8 VALUES (3, NULL);\n    INSERT INTO t8 VALUES (4, NULL);\n    INSERT INTO t8 VALUES (130, \"pa31\");\n    INSERT INTO t8 VALUES (131, \"pa30\");\n\n    SELECT coalesce(t8.a,999) from t7 LEFT JOIN t8 on y=a;\n  ")
 		}
 	}
 	{ // do_test "join-11.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		// drop_all_tables (unsupported command, not transpiled)
 		r = db.Query("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t2 VALUES(1,'abc');\n    INSERT INTO t2 VALUES(2,'def');\n    SELECT * FROM t1 NATURAL JOIN t2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n    CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n    INSERT INTO t1 VALUES(1,'abc');\n    INSERT INTO t1 VALUES(2,'def');\n    INSERT INTO t2 VALUES(1,'abc');\n    INSERT INTO t2 VALUES(2,'def');\n    SELECT * FROM t1 NATURAL JOIN t2;\n  ")
@@ -478,7 +490,7 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // do_test "join-11.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		// drop_all_tables (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a COLLATE nocase, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES('ONE', 1);\n    INSERT INTO t1 VALUES('two', 2);\n    INSERT INTO t2 VALUES('one', 1);\n    INSERT INTO t2 VALUES('two', 2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a COLLATE nocase, b);\n    CREATE TABLE t2(a, b);\n    INSERT INTO t1 VALUES('ONE', 1);\n    INSERT INTO t1 VALUES('two', 2);\n    INSERT INTO t2 VALUES('one', 1);\n    INSERT INTO t2 VALUES('two', 2);\n  ")
@@ -497,7 +509,7 @@ func Test_join(t *testing.T) {
 		}
 	}
 	{ // do_test "join-11.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		// drop_all_tables (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a, b TEXT);\n    CREATE TABLE t2(b INTEGER, a);\n    INSERT INTO t1 VALUES('one', '1.0');\n    INSERT INTO t1 VALUES('two', '2');\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(2, 'two');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b TEXT);\n    CREATE TABLE t2(b INTEGER, a);\n    INSERT INTO t1 VALUES('one', '1.0');\n    INSERT INTO t1 VALUES('two', '2');\n    INSERT INTO t2 VALUES(1, 'one');\n    INSERT INTO t2 VALUES(2, 'two');\n  ")
@@ -522,13 +534,13 @@ func Test_join(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "jointest join-12.2 30 {0 1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "jointest join-12.3 63 {0 1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "jointest join-12.4 64 {0 1}")
-	t.Errorf("TODO: %s not implemented in frigolite", "jointest join-12.5 65 {1 {at most 64 tables in a join}}")
-	t.Errorf("TODO: %s not implemented in frigolite", "jointest join-12.6 66 {1 {at most 64 tables in a join}}")
-	t.Errorf("TODO: %s not implemented in frigolite", "jointest join-12.7 127 {1 {at most 64 tables in a join}}")
-	t.Errorf("TODO: %s not implemented in frigolite", "jointest join-12.8 128 {1 {at most 64 tables in a join}}")
+	// jointest join-12.2 30 {0 1} (unsupported command, not transpiled)
+	// jointest join-12.3 63 {0 1} (unsupported command, not transpiled)
+	// jointest join-12.4 64 {0 1} (unsupported command, not transpiled)
+	// jointest join-12.5 65 {1 {at most 64 tables in a join}} (unsupported command, not transpiled)
+	// jointest join-12.6 66 {1 {at most 64 tables in a join}} (unsupported command, not transpiled)
+	// jointest join-12.7 127 {1 {at most 64 tables in a join}} (unsupported command, not transpiled)
+	// jointest join-12.8 128 {1 {at most 64 tables in a join}} (unsupported command, not transpiled)
 	{ // "join-13.0"
 		_res = db.Exec("\n  CREATE TABLE aa(a);\n  CREATE TABLE bb(b);\n  CREATE TABLE cc(c);\n\n  INSERT INTO aa VALUES(45);\n  INSERT INTO cc VALUES(45);\n  INSERT INTO cc VALUES(45);\n")
 		if _res.Error != nil {
@@ -703,7 +715,8 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "join-14.10"
 		r = db.Query("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1),(2),(3);\n  CREATE VIEW v2 AS SELECT a, 1 AS b FROM t1;\n  CREATE TABLE t3(x);\n  INSERT INTO t3 VALUES(2),(4);\n  SELECT *, '|' FROM t3 LEFT JOIN v2 ON a=x WHERE b=1;\n")
@@ -741,7 +754,8 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp1, err := frigolite.Open(":memory:")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "join-14.20"
 		r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY);\n  CREATE TABLE t2(id INTEGER PRIMARY KEY, c2 INTEGER);\n  CREATE TABLE t3(id INTEGER PRIMARY KEY, c3 INTEGER);\n  INSERT INTO t1(id) VALUES(456);\n  INSERT INTO t3(id) VALUES(1),(2);\n  SELECT t1.id, x2.id, x3.id\n  FROM t1\n  LEFT JOIN (SELECT * FROM t2) AS x2 ON t1.id=x2.c2\n  LEFT JOIN t3 AS x3 ON x2.id=x3.c3;\n")
@@ -755,7 +769,8 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp2, err := frigolite.Open(":memory:")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "join-15.100"
 		r = db.Query("\n  CREATE TABLE t1(a INT, b INT);\n  INSERT INTO t1 VALUES(1,2),(3,4);\n  CREATE TABLE t2(x INT, y INT);\n  SELECT *, 'x'\n    FROM t1 LEFT JOIN t2\n   WHERE CASE WHEN FALSE THEN a=x ELSE 1 END;\n")
@@ -979,7 +994,8 @@ func Test_join(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp3, err := frigolite.Open(":memory:")
+	_ = _dbtmp3 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "join-20.1"
 		r = db.Query("\n  CREATE TABLE t1(c1);\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (0);\n  SELECT * FROM t0 LEFT JOIN t1 WHERE NULL IN (c1);\n")

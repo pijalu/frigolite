@@ -39,9 +39,16 @@ func Test_rowvalue8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "rowvalue8" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "rowvalue8" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY,b,c,d);\n  INSERT INTO t1(a,b,c,d) VALUES\n     (1,1,2,3),\n     (2,2,3,4),\n     (3,1,2,4),\n     (4,2,3,5),\n     (5,3,4,6),\n     (6,4,5,9);\n  SELECT a, CASE (b,c) WHEN (1,2) THEN 'aleph'\n                       WHEN (2,3) THEN 'bet'\n                       WHEN (3,4) THEN 'gimel'\n                       ELSE '-' END,\n         '|'\n    FROM t1\n   ORDER BY a;\n")
 		if r.Error != nil {

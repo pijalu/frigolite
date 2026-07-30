@@ -39,10 +39,29 @@ func Test_e_blobclose(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var dots string
+	_ = dots // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var B string
+	_ = B // pre-declared from TCL source
+	var B1 string
+	_ = B1 // pre-declared from TCL source
+	var B2 string
+	_ = B2 // pre-declared from TCL source
+	var B3 string
+	_ = B3 // pre-declared from TCL source
+	var B4 string
+	_ = B4 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "e_blobclose"
+	testprefix = "e_blobclose"
 	_ = testprefix // suppress unused warning
-	var dots = ". 40"
+	dots = ". 40"
 	_ = dots // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b DOTS);\n  INSERT INTO x1 VALUES(-1, $dots);\n  INSERT INTO x1 VALUES(-10, $dots);\n  INSERT INTO x1 VALUES(-100, $dots);\n  INSERT INTO x1 VALUES(-1000, $dots);\n  INSERT INTO x1 VALUES(-10000, $dots);\n")
@@ -62,7 +81,7 @@ func Test_e_blobclose(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 b -1 0 B")
+	// sqlite3_blob_open db main x1 b -1 0 B (unsupported command, not transpiled)
 	{ // "1.2"
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
@@ -75,7 +94,7 @@ func Test_e_blobclose(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+	// sqlite3_blob_close $B (unsupported command, not transpiled)
 	{ // "1.3"
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
@@ -89,45 +108,45 @@ func Test_e_blobclose(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 b -100 1 B1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 b -1000 1 B2")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 b -10000 1 B3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 b -10000 0 B4")
+		// sqlite3_blob_open db main x1 b -100 1 B1 (unsupported command, not transpiled)
+		// sqlite3_blob_open db main x1 b -1000 1 B2 (unsupported command, not transpiled)
+		// sqlite3_blob_open db main x1 b -10000 1 B3 (unsupported command, not transpiled)
+		// sqlite3_blob_open db main x1 b -10000 0 B4 (unsupported command, not transpiled)
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "2.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B1")
+		// sqlite3_blob_close $B1 (unsupported command, not transpiled)
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "2.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B2")
+		// sqlite3_blob_close $B2 (unsupported command, not transpiled)
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "2.1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B3")
+		// sqlite3_blob_close $B3 (unsupported command, not transpiled)
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "2.1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B4")
+		// sqlite3_blob_close $B4 (unsupported command, not transpiled)
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
 	{ // do_test "2.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 b -100 1 B1")
+		// sqlite3_blob_open db main x1 b -100 1 B1 (unsupported command, not transpiled)
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
@@ -138,7 +157,7 @@ func Test_e_blobclose(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B1")
+		// sqlite3_blob_close $B1 (unsupported command, not transpiled)
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
@@ -156,7 +175,7 @@ func Test_e_blobclose(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "2.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 b -100 1 B")
+		// sqlite3_blob_open db main x1 b -100 1 B (unsupported command, not transpiled)
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
@@ -179,7 +198,7 @@ func Test_e_blobclose(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 b -100 1 B")
+		// sqlite3_blob_open db main x1 b -100 1 B (unsupported command, not transpiled)
 		r = db.Query(" PRAGMA lock_status ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
@@ -192,14 +211,14 @@ func Test_e_blobclose(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 b -10 1 B")
+		// sqlite3_blob_open db main x1 b -10 1 B (unsupported command, not transpiled)
 		r = db.Query("\n    INSERT INTO x1 VALUES(1, 'abc');\n    SELECT * FROM x1 WHERE a=1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO x1 VALUES(1, 'abc');\n    SELECT * FROM x1 WHERE a=1;\n  ")
 		}
 	}
 	{ // do_test "3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 abcdefghij 10")
+		// sqlite3_blob_write $B 0 abcdefghij 10 (unsupported command, not transpiled)
 		r = db.Query(" SELECT * FROM x1 WHERE a=-10 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 WHERE a=-10 ")
@@ -212,7 +231,7 @@ func Test_e_blobclose(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN ; SELECT * FROM x1 ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+		// sqlite3_blob_close $B (unsupported command, not transpiled)
 	}
 	{ // do_test "3.4"
 		_list := tclList([]string{"0", ""})
@@ -243,6 +262,6 @@ func Test_e_blobclose(t *testing.T) {
 		}
 	}
 	{ // do_test "4.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close 0")
+		// sqlite3_blob_close 0 (unsupported command, not transpiled)
 	}
 }

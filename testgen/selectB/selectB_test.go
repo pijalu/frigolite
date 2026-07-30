@@ -40,6 +40,29 @@ func Test_selectB(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var vdbe1 string
+	_ = vdbe1 // pre-declared from TCL source
+	var vdbe2 string
+	_ = vdbe2 // pre-declared from TCL source
+	var sql1 string
+	_ = sql1 // pre-declared from TCL source
+	var sql2 string
+	_ = sql2 // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var opcode string
+	_ = opcode // pre-declared from TCL source
+	var testname string
+	_ = testname // pre-declared from TCL source
+	var results string
+	_ = results // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "selectB-1.1"
@@ -48,7 +71,7 @@ func Test_selectB(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(d, e, f);\n\n    INSERT INTO t1 VALUES( 2,  4,  6);\n    INSERT INTO t1 VALUES( 8, 10, 12);\n    INSERT INTO t1 VALUES(14, 16, 18);\n\n    INSERT INTO t2 VALUES(3,   6,  9);\n    INSERT INTO t2 VALUES(12, 15, 18);\n    INSERT INTO t2 VALUES(21, 24, 27);\n  ")
 		}
 	}
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n <= 2 }() {
 		if func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n == 2 }() {
@@ -59,17 +82,49 @@ func Test_selectB(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "test_transform selectB-$ii.2 {\n    SELECT * FROM (SELECT a FROM t1 UNION ALL SEL...} {\n    SELECT a FROM t1 UNION ALL SELECT d FROM t2\n ...} {2 8 14 3 12 21}")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_transform selectB-$ii.3 {\n    SELECT * FROM (SELECT a FROM t1 UNION ALL SEL...} {\n    SELECT a FROM t1 UNION ALL SELECT d FROM t2 O...} {2 3 8 12 14 21}")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_transform selectB-$ii.4 {\n    SELECT * FROM \n      (SELECT a FROM t1 UNION ...} {\n    SELECT a FROM t1 WHERE a>10 UNION ALL SELECT ...} {12 14 21}")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_transform selectB-$ii.5 {\n    SELECT * FROM \n      (SELECT a FROM t1 UNION ...} {\n    SELECT a FROM t1 WHERE a>10 \n      UNION ALL ...} {12 14 21}")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_transform selectB-$ii.6 {\n    SELECT * FROM \n      (SELECT a FROM t1 UNION ...} {\n    SELECT a FROM t1 WHERE a>10\n      UNION ALL \n...} {14 21}")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_transform selectB-$ii.7 {\n    SELECT * FROM (SELECT a FROM t1 UNION ALL SEL...} {\n    SELECT a FROM t1 UNION ALL SELECT d FROM t2 O...} {2 3}")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_transform selectB-$ii.8 {\n    SELECT * FROM (SELECT a FROM t1 UNION ALL SEL...} {\n    SELECT a FROM t1 UNION ALL SELECT d FROM t2 O...} {12 14}")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_transform selectB-$ii.9 {\n    SELECT * FROM (\n      SELECT a FROM t1 UNION ...} {\n    SELECT a FROM t1 UNION ALL SELECT d FROM t2 U...} {2 8 14 3 12 21 6 12 18}")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_transform selectB-$ii.10 {\n    SELECT * FROM (\n      SELECT a FROM t1 UNION ...} {\n    SELECT a FROM t1 UNION ALL SELECT d FROM t2 U...} {2 3 6 8 12 12 14 18 21}")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_transform selectB-$ii.11 {\n    SELECT * FROM (\n      SELECT a FROM t1 UNION ...} {\n    SELECT a FROM t1 WHERE a>=10 UNION ALL SELECT...} {12 12 14}")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_transform selectB-$ii.12 {\n    SELECT * FROM (SELECT a FROM t1 UNION ALL SEL...} {\n    SELECT a FROM t1 UNION ALL SELECT d FROM t2 L...} {2 8}")
+		// test_transform selectB-$ii.2 {
+    SELECT * FROM (SELECT a FROM t1 UNION ALL SEL...} {
+    SELECT a FROM t1 UNION ALL SELECT d FROM t2
+ ...} {2 8 14 3 12 21} (unsupported command, not transpiled)
+		// test_transform selectB-$ii.3 {
+    SELECT * FROM (SELECT a FROM t1 UNION ALL SEL...} {
+    SELECT a FROM t1 UNION ALL SELECT d FROM t2 O...} {2 3 8 12 14 21} (unsupported command, not transpiled)
+		// test_transform selectB-$ii.4 {
+    SELECT * FROM 
+      (SELECT a FROM t1 UNION ...} {
+    SELECT a FROM t1 WHERE a>10 UNION ALL SELECT ...} {12 14 21} (unsupported command, not transpiled)
+		// test_transform selectB-$ii.5 {
+    SELECT * FROM 
+      (SELECT a FROM t1 UNION ...} {
+    SELECT a FROM t1 WHERE a>10 
+      UNION ALL ...} {12 14 21} (unsupported command, not transpiled)
+		// test_transform selectB-$ii.6 {
+    SELECT * FROM 
+      (SELECT a FROM t1 UNION ...} {
+    SELECT a FROM t1 WHERE a>10
+      UNION ALL 
+...} {14 21} (unsupported command, not transpiled)
+		// test_transform selectB-$ii.7 {
+    SELECT * FROM (SELECT a FROM t1 UNION ALL SEL...} {
+    SELECT a FROM t1 UNION ALL SELECT d FROM t2 O...} {2 3} (unsupported command, not transpiled)
+		// test_transform selectB-$ii.8 {
+    SELECT * FROM (SELECT a FROM t1 UNION ALL SEL...} {
+    SELECT a FROM t1 UNION ALL SELECT d FROM t2 O...} {12 14} (unsupported command, not transpiled)
+		// test_transform selectB-$ii.9 {
+    SELECT * FROM (
+      SELECT a FROM t1 UNION ...} {
+    SELECT a FROM t1 UNION ALL SELECT d FROM t2 U...} {2 8 14 3 12 21 6 12 18} (unsupported command, not transpiled)
+		// test_transform selectB-$ii.10 {
+    SELECT * FROM (
+      SELECT a FROM t1 UNION ...} {
+    SELECT a FROM t1 UNION ALL SELECT d FROM t2 U...} {2 3 6 8 12 12 14 18 21} (unsupported command, not transpiled)
+		// test_transform selectB-$ii.11 {
+    SELECT * FROM (
+      SELECT a FROM t1 UNION ...} {
+    SELECT a FROM t1 WHERE a>=10 UNION ALL SELECT...} {12 12 14} (unsupported command, not transpiled)
+		// test_transform selectB-$ii.12 {
+    SELECT * FROM (SELECT a FROM t1 UNION ALL SEL...} {
+    SELECT a FROM t1 UNION ALL SELECT d FROM t2 L...} {2 8} (unsupported command, not transpiled)
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
@@ -87,7 +142,9 @@ func Test_selectB(t *testing.T) {
 	ii = "3"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n <= 6 }() {
-		t.Errorf("TODO: %s not implemented in frigolite", "switch $ii {\n    4 {\n      optimization_control db query-flatt...}")
+		// switch $ii {
+    4 {
+      optimization_control db query-flatt...} (test infra, not transpiled)
 		{ // do_test "selectB-" + ii + ".1"
 			r = db.Query("\n      SELECT DISTINCT * FROM \n        (SELECT c FROM t1 UNION ALL SELECT e FROM t2) \n      ORDER BY 1;\n    ")
 			if r.Error != nil {

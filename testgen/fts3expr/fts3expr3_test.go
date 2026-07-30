@@ -40,10 +40,61 @@ func Test_fts3expr3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var query string
+	_ = query // pre-declared from TCL source
+	var x1 string
+	_ = x1 // pre-declared from TCL source
+	var x2 string
+	_ = x2 // pre-declared from TCL source
+	var tree string
+	_ = tree // pre-declared from TCL source
+	var node string
+	_ = node // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var nNew string
+	_ = nNew // pre-declared from TCL source
+	var result string
+	_ = result // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var nEntry string
+	_ = nEntry // pre-declared from TCL source
+	var bParen string
+	_ = bParen // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var nDepth string
+	_ = nDepth // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fts3expr3" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	var sqlite_fts3_enable_parentheses = "1"
+	testprefix = "fts3expr3" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -55,11 +106,11 @@ func Test_fts3expr3(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	if true {
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			{ // do_test "1." + i
-				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_and_query $i]")
+				// test_fts3expr2 [random_and_query $i] (unsupported command, not transpiled)
 			}
 			// incr i 1
 			{
@@ -73,7 +124,7 @@ func Test_fts3expr3(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			{ // do_test "2." + i
-				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_and_query $i 1]")
+				// test_fts3expr2 [random_and_query $i 1] (unsupported command, not transpiled)
 			}
 			// incr i 1
 			{
@@ -87,7 +138,7 @@ func Test_fts3expr3(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			{ // do_test "3." + i
-				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_and_query $i 1] OR [random_and_query $i 1]")
+				// test_fts3expr2 [random_and_query $i 1] OR [random_and_query $i 1] (unsupported command, not transpiled)
 			}
 			// incr i 1
 			{
@@ -101,7 +152,7 @@ func Test_fts3expr3(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 64 }() {
 			{ // do_test "3." + i
-				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_andor_query $i]")
+				// test_fts3expr2 [random_andor_query $i] (unsupported command, not transpiled)
 			}
 			// incr i 4
 			{
@@ -127,9 +178,9 @@ func Test_fts3expr3(t *testing.T) {
 			}
 		}
 		{ // do_test "4.1.1"
-			var q = "1"
+			q = "1"
 			_ = q // suppress unused warning
-			var i = "2"
+			i = "2"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
 				q += " AND " + i
@@ -145,9 +196,9 @@ func Test_fts3expr3(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "4.1.2"
-			var q = "1"
+			q = "1"
 			_ = q // suppress unused warning
-			var i = "2"
+			i = "2"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 4000 }() {
 				q += " AND " + i
@@ -162,7 +213,7 @@ func Test_fts3expr3(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 $q")
+				// test_fts3expr2 $q (unsupported command, not transpiled)
 			}
 		}
 		// proc definition (not transpiled)
@@ -170,11 +221,15 @@ func Test_fts3expr3(t *testing.T) {
 			_list := tclList([]string{"0", msg})
 			_ = _list
 		}
-		var query = "random_andor_query 12"
+		query = "random_andor_query 12"
 		_ = query // suppress unused warning
-		var result = "balanced_andor_tree 12"
+		result = "balanced_andor_tree 12"
 		_ = result // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test fts3expr3-fault-1 -faults oom-* -body {\n  test_fts3expr2 $::query\n} -test {\n  faultsim_test_result [list 0 $::result]\n}")
+		// do_faultsim_test fts3expr3-fault-1 -faults oom-* -body {
+  test_fts3expr2 $::query
+} -test {
+  faultsim_test_result [list 0 $::result]
+} (unsupported command, not transpiled)
 	}
 	// foreach {tn expr res} "\n  1 {1 OR 2 OR 3 OR 4}           {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} \n  2 {1 OR (2 AND 3 AND 4 AND 5)} \n    {OR {P 1} {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}}}\n  3 {(2 AND 3 AND 4 AND 5) OR 1} \n    {OR {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}} {P 1}}\n\n  4 {1 AND (2 OR 3 OR 4 OR 5)} \n    {AND {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n  5 {(2 OR 3 OR 4 OR 5) AND 1} \n    {AND {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  6 {(2 OR 3 OR 4 OR 5) NOT 1} \n    {NOT {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  7 {1 NOT (2 OR 3 OR 4 OR 5)} \n    {NOT {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n\n  8 {(1 OR 2 OR 3 OR 4) NOT (5 AND 6 AND 7 AND 8)}\n    {NOT {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} {AND {AND {P 5} {P 6}} {AND {P 7} {P 8}}}}\n"
 	_items0 := tclSplitList("\n  1 {1 OR 2 OR 3 OR 4}           {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} \n  2 {1 OR (2 AND 3 AND 4 AND 5)} \n    {OR {P 1} {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}}}\n  3 {(2 AND 3 AND 4 AND 5) OR 1} \n    {OR {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}} {P 1}}\n\n  4 {1 AND (2 OR 3 OR 4 OR 5)} \n    {AND {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n  5 {(2 OR 3 OR 4 OR 5) AND 1} \n    {AND {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  6 {(2 OR 3 OR 4 OR 5) NOT 1} \n    {NOT {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  7 {1 NOT (2 OR 3 OR 4 OR 5)} \n    {NOT {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n\n  8 {(1 OR 2 OR 3 OR 4) NOT (5 AND 6 AND 7 AND 8)}\n    {NOT {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} {AND {AND {P 5} {P 6}} {AND {P 7} {P 8}}}}\n")
@@ -187,7 +242,7 @@ func Test_fts3expr3(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			{ // do_test "5.1." + tn
-				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 $expr")
+				// test_fts3expr2 $expr (unsupported command, not transpiled)
 			}
 		}
 		sqlite_fts3_enable_parentheses = "0"

@@ -41,6 +41,15 @@ func Test_aggorderby(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var lExpr string
+	_ = lExpr // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "aggorderby-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a TEXT,b INT,c INT,d INT);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<9)\n  INSERT INTO t1(a,b,c,d) SELECT printf('%d',(x*7)%10),1,x,10-x FROM c;\n  INSERT INTO t1(a,b,c,d) SELECT a, 2, c, 10-d FROM t1;\n  CREATE INDEX t1b ON t1(b);\n")
@@ -357,7 +366,7 @@ func Test_aggorderby(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(w, x);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 70000 }() {
 		lExpr = tclListAppend(lExpr, "x")

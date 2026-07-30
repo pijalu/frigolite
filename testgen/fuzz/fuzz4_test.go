@@ -39,6 +39,11 @@ func Test_fuzz4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "fuzz4-100"
 		r = db.Query("\n  CREATE TABLE Table0 (Col0  NOT NULL DEFAULT (CURRENT_TIME IS 1 > 1));\n  INSERT OR REPLACE INTO Table0 DEFAULT VALUES ;\n  SELECT * FROM Table0;\n")

@@ -40,15 +40,27 @@ func Test_tempdb2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var unlocked string
+	_ = unlocked // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tempdb2"
+	testprefix = "tempdb2"
 	_ = testprefix // suppress unused warning
-	db, err = frigolite.Open("")
+	_dbtmp0, err := frigolite.Open("")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	var unlocked = "unlocked"
+	unlocked = "unlocked"
 	_ = unlocked // suppress unused warning
-	if func() bool { _TEMP_STORE_n, __TEMP_STORE_e := strconv.Atoi(_TEMP_STORE); if __TEMP_STORE_e != nil { return false }; return _TEMP_STORE_n >= 2 }() {
-		var unlocked = "unknown"
+	if func() bool { TEMP_STORE_n, _TEMP_STORE_e := strconv.Atoi(TEMP_STORE); if _TEMP_STORE_e != nil { return false }; return TEMP_STORE_n >= 2 }() {
+		unlocked = "unknown"
 		_ = unlocked // suppress unused warning
 	}
 	// proc definition (not transpiled)
@@ -94,7 +106,8 @@ func Test_tempdb2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open("")
+	_dbtmp1, err := frigolite.Open("")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "2.0"
 		r = db.Query("\n  PRAGMA cache_size = -100;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  WITH c(x) AS ( VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100 ) \n    INSERT INTO t1 SELECT x, int2str(x) FROM c;\n")

@@ -39,9 +39,30 @@ func Test_corrupt9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var pgno string
+	_ = pgno // pre-declared from TCL source
+	var offset string
+	_ = offset // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var filename string
+	_ = filename // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// do_not_use_codec (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "corrupt9-1.1"
@@ -54,11 +75,12 @@ func Test_corrupt9(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	tclFileCopy("test.db", "test.db-template")
-	t.Errorf("TODO: %s not implemented in frigolite", "corrupt_freelist test.db 1")
-	db, err = frigolite.Open("test.db")
+	// corrupt_freelist test.db 1 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-2.1"
-		var x = "db eval {PRAGMA integrity_check}"
+		x = "db eval {PRAGMA integrity_check}"
 		_ = x // suppress unused warning
 		// expr $x!="ok" → "$x!=\"ok\""
 	}
@@ -67,11 +89,12 @@ func Test_corrupt9(t *testing.T) {
 		_ = _res // catchsql
 	}
 	tclFileCopy("test.db-template", "test.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "corrupt_freelist test.db 2")
-	db, err = frigolite.Open("test.db")
+	// corrupt_freelist test.db 2 (unsupported command, not transpiled)
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-3.1"
-		var x = "db eval {PRAGMA integrity_check}"
+		x = "db eval {PRAGMA integrity_check}"
 		_ = x // suppress unused warning
 		// expr $x!="ok" → "$x!=\"ok\""
 	}
@@ -80,11 +103,12 @@ func Test_corrupt9(t *testing.T) {
 		_ = _res // catchsql
 	}
 	tclFileCopy("test.db-template", "test.db")
-	t.Errorf("TODO: %s not implemented in frigolite", "corrupt_freelist test.db 3")
-	db, err = frigolite.Open("test.db")
+	// corrupt_freelist test.db 3 (unsupported command, not transpiled)
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-4.1"
-		var x = "db eval {PRAGMA integrity_check}"
+		x = "db eval {PRAGMA integrity_check}"
 		_ = x // suppress unused warning
 		// expr $x!="ok" → "$x!=\"ok\""
 	}

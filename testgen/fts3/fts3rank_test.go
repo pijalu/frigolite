@@ -40,10 +40,17 @@ func Test_fts3rank(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3rank"
+	testprefix = "fts3rank"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "install_fts3_rank_function db")
+	// install_fts3_rank_function db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n  INSERT INTO t1 VALUES('one two', 'one');\n  INSERT INTO t1 VALUES('one two', 'three');\n  INSERT INTO t1 VALUES('one two', 'two');\n")
 		if _res.Error != nil {

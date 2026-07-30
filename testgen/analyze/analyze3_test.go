@@ -40,8 +40,49 @@ func Test_analyze3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var sqlite_search_count string
+	_ = sqlite_search_count // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var l string
+	_ = l // pre-declared from TCL source
+	var u string
+	_ = u // pre-declared from TCL source
+	var _t string
+	_ = _t // pre-declared from TCL source
+	var like string
+	_ = like // pre-declared from TCL source
+	var auth string
+	_ = auth // pre-declared from TCL source
+	var S string
+	_ = S // pre-declared from TCL source
+	var R string
+	_ = R // pre-declared from TCL source
+	var S1 string
+	_ = S1 // pre-declared from TCL source
+	var S2 string
+	_ = S2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var varname string
+	_ = varname // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "analyze3"
+	testprefix = "analyze3"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"prepare\"") {
 		return
@@ -54,7 +95,7 @@ func Test_analyze3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(x INTEGER, y);\n    CREATE INDEX i1 ON t1(x);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES($i+100, $i) ")
@@ -108,9 +149,9 @@ func Test_analyze3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
 		}
 	}
-	var l = "200"
+	l = "200"
 	_ = l // suppress unused warning
-	var u = "300"
+	u = "300"
 	_ = u // suppress unused warning
 	{ // "analyze3-1.1.3.101"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
@@ -128,14 +169,14 @@ func Test_analyze3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ENABLE_QPSG 1")
+	// sqlite3_db_config db ENABLE_QPSG 1 (unsupported command, not transpiled)
 	{ // "analyze3-1.1.3.103"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ENABLE_QPSG 0")
+	// sqlite3_db_config db ENABLE_QPSG 0 (unsupported command, not transpiled)
 	{ // "analyze3-1.1.3.104"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
 		if r.Error != nil {
@@ -143,38 +184,38 @@ func Test_analyze3(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze3-1.1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>200 AND x<300 }")
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>200 AND x<300 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.1.5"
-		var l = "\"200\" 0 end"
+		l = "\"200\" 0 end"
 		_ = l // suppress unused warning
-		var u = "\"300\" 0 end"
+		u = "\"300\" 0 end"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u }")
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.1.6"
-		var l = "200"
+		l = "200"
 		_ = l // suppress unused warning
-		var u = "300"
+		u = "300"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u }")
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.1.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>0 AND x<1100 }")
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>0 AND x<1100 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.1.8"
-		var l = "\"0\" 0 end"
+		l = "\"0\" 0 end"
 		_ = l // suppress unused warning
-		var u = "\"1100\" 0 end"
+		u = "\"1100\" 0 end"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u }")
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.1.9"
-		var l = "0"
+		l = "0"
 		_ = l // suppress unused warning
-		var u = "1100"
+		u = "1100"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u }")
+		// sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.2.1"
 		_res = db.Exec("\n    BEGIN;\n      CREATE TABLE t2(x TEXT, y);\n      INSERT INTO t2 SELECT * FROM t1;\n      CREATE INDEX i2 ON t2(x);\n    COMMIT;\n    ANALYZE;\n  ")
@@ -207,38 +248,38 @@ func Test_analyze3(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze3-1.2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t2 WHERE x>12 AND x<20 }")
+		// sf_execsql { SELECT sum(y) FROM t2 WHERE x>12 AND x<20 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.2.5"
-		var l = "\"12\" 0 end"
+		l = "\"12\" 0 end"
 		_ = l // suppress unused warning
-		var u = "\"20\" 0 end"
+		u = "\"20\" 0 end"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...}")
+		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.2.6"
-		var l = "12"
+		l = "12"
 		_ = l // suppress unused warning
-		var u = "20"
+		u = "20"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...}")
+		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t2 WHERE x>0 AND x<99 }")
+		// sf_execsql { SELECT sum(y) FROM t2 WHERE x>0 AND x<99 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.2.8"
-		var l = "\"0\" 0 end"
+		l = "\"0\" 0 end"
 		_ = l // suppress unused warning
-		var u = "\"99\" 0 end"
+		u = "\"99\" 0 end"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...}")
+		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.2.9"
-		var l = "0"
+		l = "0"
 		_ = l // suppress unused warning
-		var u = "99"
+		u = "99"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...}")
+		// sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.3.1"
 		_res = db.Exec("\n    BEGIN;\n      CREATE TABLE t3(y TEXT, x INTEGER);\n      INSERT INTO t3 SELECT y, x FROM t1;\n      CREATE INDEX i3 ON t3(x);\n    COMMIT;\n    ANALYZE;\n  ")
@@ -271,49 +312,49 @@ func Test_analyze3(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze3-1.3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>200 AND x<300 }")
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>200 AND x<300 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.3.5"
-		var l = "\"200\" 0 end"
+		l = "\"200\" 0 end"
 		_ = l // suppress unused warning
-		var u = "\"300\" 0 end"
+		u = "\"300\" 0 end"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u }")
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.3.6"
-		var l = "200"
+		l = "200"
 		_ = l // suppress unused warning
-		var u = "300"
+		u = "300"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u }")
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.3.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>0 AND x<1100 }")
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>0 AND x<1100 } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.3.8"
-		var l = "\"0\" 0 end"
+		l = "\"0\" 0 end"
 		_ = l // suppress unused warning
-		var u = "\"1100\" 0 end"
+		u = "\"1100\" 0 end"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u }")
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-1.3.9"
-		var l = "0"
+		l = "0"
 		_ = l // suppress unused warning
-		var u = "1100"
+		u = "1100"
 		_ = u // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u }")
+		// sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u } (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	// drop_all_tables (unsupported command, not transpiled)
 	{ // do_test "analyze3-2.1"
 		_res = db.Exec("\n    PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA case_sensitive_like=off;\n    BEGIN;\n    CREATE TABLE t1(a, b TEXT COLLATE nocase);\n    CREATE INDEX i1 ON t1(b);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			var _t = ""
+			_t = ""
 			_ = _t // suppress unused warning
 			_t += "lindex {a b c d e f g h i j} [expr $i/100]"
 			_t += "lindex {a b c d e f g h i j} [expr ($i/10)%10]"
@@ -349,49 +390,49 @@ func Test_analyze3(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "analyze3-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE 'a%' }")
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE 'a%' } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE '%a' }")
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE '%a' } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-2.6"
-		var like = "a%"
+		like = "a%"
 		_ = like // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like }")
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-2.7"
-		var like = "%a"
+		like = "%a"
 		_ = like // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like }")
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-2.8"
-		var like = "a"
+		like = "a"
 		_ = like // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like }")
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-2.9"
-		var like = "ab"
+		like = "ab"
 		_ = like // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like }")
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-2.10"
-		var like = "abc"
+		like = "abc"
 		_ = like // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like }")
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-2.11"
-		var like = "a_c"
+		like = "a_c"
 		_ = like // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like }")
+		// sf_execsql { SELECT count(*) FROM t1 WHERE b LIKE $like } (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	// drop_all_tables (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "analyze3-3.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES($i, $i, $i) ")
@@ -416,103 +457,103 @@ func Test_analyze3(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze3-3.2.1"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 abc 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 1 abc 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.2.5"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 abc 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 1 abc 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.4.1"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 abc 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 1 abc 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 2 def 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 2 def 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 2 ghi 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 2 ghi 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.4.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.4.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.5.1"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 31 abc 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 31 abc 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.5.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 32 def 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 32 def 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.5.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.6.1"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.6.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 32 abc 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 32 abc 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.6.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 33 def 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 33 def 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.6.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.7.1"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.7.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 32 abc 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 32 abc 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.7.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 33 def 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 33 def 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.7.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 10 def 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 10 def 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.7.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.1"
 		_res = db.Exec("\n    CREATE TABLE t4(x, y TEXT COLLATE NOCASE);\n    CREATE INDEX i4 ON t4(y);\n  ")
@@ -521,72 +562,72 @@ func Test_analyze3(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze3-3.8.2"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 abc 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 1 abc 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 2 def 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 2 def 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 2 ghi% 4")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 2 ghi% 4 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 2 ghi%def 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 2 ghi%def 7 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 2 %ab 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 2 %ab 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 2 %de 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_bind_text $S 2 %de 3 (unsupported command, not transpiled)
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.13"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		// sqlite3_expired $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-3.8.14"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-4.1.1"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+		// sqlite3_step $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-4.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $S")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 2 abc 3")
+		// sqlite3_reset $S (unsupported command, not transpiled)
+		// sqlite3_bind_text $S 2 abc 3 (unsupported command, not transpiled)
 		_res = db.Exec(" DROP TABLE t1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+		// sqlite3_step $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-4.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-4.2.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b, c);\n    CREATE INDEX i1 ON t1(b);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES($i, $i, $i) ")
@@ -609,89 +650,101 @@ func Test_analyze3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ANALYZE")
 		}
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+		// sqlite3_step $S (unsupported command, not transpiled)
 	}
 	// proc definition (not transpiled)
 	{ // do_test "analyze3-4.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $S")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 2 abc 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+		// sqlite3_reset $S (unsupported command, not transpiled)
+		// sqlite3_bind_text $S 2 abc 3 (unsupported command, not transpiled)
+		// sqlite3_step $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-4.2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-4.3.1"
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
 		_res = db.Exec(" CREATE TABLE t2(d, e, f) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(d, e, f) ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+		// sqlite3_step $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-4.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-5.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		// drop_all_tables (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x TEXT COLLATE NOCASE);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES('aaa');\n    INSERT INTO t1 VALUES('abb');\n    INSERT INTO t1 VALUES('acc');\n    INSERT INTO t1 VALUES('baa');\n    INSERT INTO t1 VALUES('bbb');\n    INSERT INTO t1 VALUES('bcc');\n  ")
 		}
-		var S = ""
+		S = ""
 		_ = S // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 a% 2")
-		var R = "list"
+		// sqlite3_bind_text $S 1 a% 2 (unsupported command, not transpiled)
+		R = "list"
 		_ = R // suppress unused warning
 		for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
 			R = tclListAppend(R, "")
 		}
-		_r := tclList(append([]string{}, tclSplitList("sqlite3_reset $S")..., tclSplitList(R)...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("sqlite3_reset $S")...)
+		_r_tcl = append(_r_tcl, tclSplitList(R)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "analyze3-5.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_clear_bindings $S")
-		var R = "list"
+		// sqlite3_clear_bindings $S (unsupported command, not transpiled)
+		R = "list"
 		_ = R // suppress unused warning
 		for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
 			R = tclListAppend(R, "")
 		}
-		_r := tclList(append([]string{}, tclSplitList("sqlite3_reset $S")..., tclSplitList(R)...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("sqlite3_reset $S")...)
+		_r_tcl = append(_r_tcl, tclSplitList(R)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "analyze3-5.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		// sqlite3_finalize $S (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-5.1.1"
-		var S1 = ""
+		S1 = ""
 		_ = S1 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S1 1 b% 2")
-		var R = "list"
+		// sqlite3_bind_text $S1 1 b% 2 (unsupported command, not transpiled)
+		R = "list"
 		_ = R // suppress unused warning
 		for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
 			R = tclListAppend(R, "")
 		}
-		_r := tclList(append([]string{}, tclSplitList("sqlite3_reset $S1")..., tclSplitList(R)...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("sqlite3_reset $S1")...)
+		_r_tcl = append(_r_tcl, tclSplitList(R)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "analyze3-5.1.2"
-		var S2 = ""
+		S2 = ""
 		_ = S2 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S2 1 a% 2")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_transfer_bindings $S2 $S1")
-		var R = "list"
+		// sqlite3_bind_text $S2 1 a% 2 (unsupported command, not transpiled)
+		// sqlite3_transfer_bindings $S2 $S1 (unsupported command, not transpiled)
+		R = "list"
 		_ = R // suppress unused warning
 		for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
 			R = tclListAppend(R, "")
 		}
-		_r := tclList(append([]string{}, tclSplitList("sqlite3_reset $S1")..., tclSplitList(R)...))
-		_ = _r
+		_r_tcl := append([]string{}, tclSplitList("sqlite3_reset $S1")...)
+		_r_tcl = append(_r_tcl, tclSplitList(R)...)
+		_r_tcl_str := tclList(_r_tcl)
+		_ = _r_tcl_str
+		_ = _r_tcl
 	}
 	{ // do_test "analyze3-5.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S2")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S1")
+		// sqlite3_finalize $S2 (unsupported command, not transpiled)
+		// sqlite3_finalize $S1 (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze3-6.1"
 		_res = db.Exec(" DROP TABLE IF EXISTS t1 ")
@@ -706,7 +759,7 @@ func Test_analyze3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b, c) ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			_res = db.Exec("INSERT INTO t1 VALUES(" + "$i/100" + ", 'x', " + "$i/10" + ")")

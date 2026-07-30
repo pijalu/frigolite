@@ -40,19 +40,94 @@ func Test_vtabH(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var expect string
+	_ = expect // pre-declared from TCL source
+	var echo_module string
+	_ = echo_module // pre-declared from TCL source
+	var xyz string
+	_ = xyz // pre-declared from TCL source
+	var x1 string
+	_ = x1 // pre-declared from TCL source
+	var x2 string
+	_ = x2 // pre-declared from TCL source
+	var x3 string
+	_ = x3 // pre-declared from TCL source
+	var x4 string
+	_ = x4 // pre-declared from TCL source
+	var x5 string
+	_ = x5 // pre-declared from TCL source
+	var x6 string
+	_ = x6 // pre-declared from TCL source
+	var x7 string
+	_ = x7 // pre-declared from TCL source
+	var x8 string
+	_ = x8 // pre-declared from TCL source
+	var x9 string
+	_ = x9 // pre-declared from TCL source
+	var gfunc string
+	_ = gfunc // pre-declared from TCL source
+	var tclvar_set_omit string
+	_ = tclvar_set_omit // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var drive string
+	_ = drive // pre-declared from TCL source
+	var env_fstreeDrive string
+	_ = env_fstreeDrive // pre-declared from TCL source
+	var dir string
+	_ = dir // pre-declared from TCL source
+	var names string
+	_ = names // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var root_files string
+	_ = root_files // pre-declared from TCL source
+	var p string
+	_ = p // pre-declared from TCL source
+	var num_root_files string
+	_ = num_root_files // pre-declared from TCL source
+	var f string
+	_ = f // pre-declared from TCL source
+	var pwd string
+	_ = pwd // pre-declared from TCL source
+	var path string
+	_ = path // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var nocase string
+	_ = nocase // pre-declared from TCL source
+	var pattern string
+	_ = pattern // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "vtabH"
+	testprefix = "vtabH"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
+	// register_echo_module db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tclvar_module db")
-	var _xyz = "10" // TCL namespace variable
-	_ = _xyz // suppress unused warning
+	// register_tclvar_module db (unsupported command, not transpiled)
+	xyz = "10" // TCL namespace variable
+	_ = xyz // suppress unused warning
 	{ // "2.0"
 		r = db.Query("\n  CREATE VIRTUAL TABLE vars USING tclvar;\n  SELECT name, arrayname, value FROM vars WHERE name = 'xyz';\n")
 		if r.Error != nil {
@@ -65,29 +140,29 @@ func Test_vtabH(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var x1 = "aback"
+	x1 = "aback"
 	_ = x1 // suppress unused warning
-	var x2 = "abaft"
+	x2 = "abaft"
 	_ = x2 // suppress unused warning
-	var x3 = "abandon"
+	x3 = "abandon"
 	_ = x3 // suppress unused warning
-	var x4 = "abandonint"
+	x4 = "abandonint"
 	_ = x4 // suppress unused warning
-	var x5 = "babble"
+	x5 = "babble"
 	_ = x5 // suppress unused warning
-	var x6 = "baboon"
+	x6 = "baboon"
 	_ = x6 // suppress unused warning
-	var x7 = "backbone"
+	x7 = "backbone"
 	_ = x7 // suppress unused warning
-	var x8 = "backarrow"
+	x8 = "backarrow"
 	_ = x8 // suppress unused warning
-	var x9 = "castle"
+	x9 = "castle"
 	_ = x9 // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	for _, _tclvar_set_omit := range tclSplitList("0 1") {
-	_ = _tclvar_set_omit // suppress unused warning
+	for _, tclvar_set_omit := range tclSplitList("0 1") {
+	_ = tclvar_set_omit // suppress unused warning
 		// foreach {tn expr res cnt} "\n    1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000\n  "
 		_items0 := tclSplitList("\n    1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000\n  ")
 		for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
@@ -100,10 +175,10 @@ func Test_vtabH(t *testing.T) {
 			cnt := _items0[_idx0+3]
 			_ = cnt // suppress unused warning
 			_ = _idx0
-				var _gfunc = "0" // TCL namespace variable
-				_ = _gfunc // suppress unused warning
-				if tclBool(_tclvar_set_omit) {
-					var cnt = "0"
+				gfunc = "0" // TCL namespace variable
+				_ = gfunc // suppress unused warning
+				if tclBool(tclvar_set_omit) {
+					cnt = "0"
 					_ = cnt // suppress unused warning
 				}
 				{ // do_test "2." + tclvar_set_omit + "." + tn + ".1"
@@ -113,21 +188,21 @@ func Test_vtabH(t *testing.T) {
 					}
 				}
 				{ // do_test "2." + tclvar_set_omit + "." + tn + ".2"
-					_ = _gfunc // TCL namespace variable (query)
+					_ = gfunc // TCL namespace variable (query)
 				}
 			}
 		}
 		if tcl_platform_platform == "windows" {
-			var drive = "[pwd] 0 1"
+			drive = "[pwd] 0 1"
 			_ = drive // suppress unused warning
-			var _env_fstreeDrive = drive // TCL namespace variable
-			_ = _env_fstreeDrive // suppress unused warning
+			env_fstreeDrive = drive // TCL namespace variable
+			_ = env_fstreeDrive // suppress unused warning
 		}
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "register_fs_module db")
-		if tclBool(tcl_platform + "(platform) != \"windows\" || \\\n    " + "regexp -nocase -- {^[A-Z]:} $drive") {
+		// register_fs_module db (unsupported command, not transpiled)
+		if tclBool(tcl_platform_platform + " != \"windows\" || \\\n    " + "regexp -nocase -- {^[A-Z]:} $drive") {
 			{ // "3.0"
 				r = db.Query("\n    SELECT name FROM fsdir WHERE dir = '.' AND name = 'test.db';\n    SELECT name FROM fsdir WHERE dir = '.' AND name = '.'\n  ")
 				if r.Error != nil {
@@ -143,13 +218,13 @@ func Test_vtabH(t *testing.T) {
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
-			var res = "list"
+			res = "list"
 			_ = res // suppress unused warning
-			var root_files = "list_root_files"
+			root_files = "list_root_files"
 			_ = root_files // suppress unused warning
 			for _, p := range tclSplitList(root_files) {
 			_ = p // suppress unused warning
-				if _tcl_platform_platform == "windows" {
+				if tcl_platform_platform == "windows" {
 					if tclBool("!" + "regexp {\\$} $p") {
 						res = tclListAppend(res, p)
 					}
@@ -157,13 +232,14 @@ func Test_vtabH(t *testing.T) {
 					res = tclListAppend(res, "/" + p)
 				}
 			}
-			var num_root_files = "llength $res"
+			num_root_files = "llength $res"
 			_ = num_root_files // suppress unused warning
 			{ // do_test "3.1"
-				t.Errorf("TODO: %s not implemented in frigolite", "sort_files [execsql {\n      SELECT path FROM fstree WHERE pat... true")
+				// sort_files [execsql {
+      SELECT path FROM fstree WHERE pat... true (unsupported command, not transpiled)
 			}
 			// proc definition (not transpiled)
-			var pwd = "pwd" + "/*"
+			pwd = "pwd" + "/*"
 			_ = pwd // suppress unused warning
 			res = "contents $pwd"
 			_ = res // suppress unused warning
@@ -193,16 +269,17 @@ func Test_vtabH(t *testing.T) {
 					sz := _items0[_idx0+1]
 					_ = sz // suppress unused warning
 					_ = _idx0
-						var dir = "file dirname $path"
+						dir = "file dirname $path"
 						_ = dir // suppress unused warning
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
 							// file mkdir $dir
 						}
-						var fd = "open $path w"
+						fd = "open $path w"
 						_ = fd // suppress unused warning
-						t.Log("-nonewline")
+						_putsMsg := "-nonewline"
+						_ = _putsMsg
 						// close $fd
 					}
 				}

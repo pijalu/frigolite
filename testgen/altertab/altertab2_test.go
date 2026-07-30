@@ -40,8 +40,21 @@ func Test_altertab2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var schema string
+	_ = schema // pre-declared from TCL source
+	var expect string
+	_ = expect // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "altertab2"
+	testprefix = "altertab2"
 	_ = testprefix // suppress unused warning
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE TABLE p1(a PRIMARY KEY, b);\n  CREATE TABLE c1(x REFERENCES p1);\n  CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES p1);\n  CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES p1(a));\n")
@@ -102,9 +115,9 @@ func Test_altertab2(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
 			}
-			var expect = "db eval \"SELECT sql FROM sqlite_master\""
+			expect = "db eval \"SELECT sql FROM sqlite_master\""
 			_ = expect // suppress unused warning
-			expect = "{log_entry {\"newname\"}} $expect"
+			expect = strings.ReplaceAll(expect, "log_entry", "{\"newname\"}")
 			_ = expect // suppress unused warning
 			{ // "3." + tn + ".2"
 				r = db.Query("\n    ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;\n  ")
@@ -129,7 +142,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			expect = "db eval \"SELECT sql FROM sqlite_master\""
 			_ = expect // suppress unused warning
-			expect = "{col1 newname} $expect"
+			expect = strings.ReplaceAll(expect, "col1", "newname")
 			_ = expect // suppress unused warning
 			{ // "3." + tn + ".4"
 				r = db.Query("\n    ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;\n  ")

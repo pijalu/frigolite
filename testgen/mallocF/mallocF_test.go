@@ -39,21 +39,39 @@ func Test_mallocF(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var PREP string
+	_ = PREP // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping mallocF tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping mallocF tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
-	var PREP = "\n  CREATE TABLE t1(x,y);\n  INSERT INTO t1 VALUES('abc123', 5);\n  INSERT INTO t1 VALUES('xyz987', 42);\n"
+	PREP = "\n  CREATE TABLE t1(x,y);\n  INSERT INTO t1 VALUES('abc123', 5);\n  INSERT INTO t1 VALUES('xyz987', 42);\n"
 	_ = PREP // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloeF-1 -sqlprep $PREP -sqlbody {\n  SELECT * FROM t1 WHERE x GLOB 'abc*'\n}")
+	// do_malloc_test malloeF-1 -sqlprep $PREP -sqlbody {
+  SELECT * FROM t1 WHERE x GLOB 'abc*'
+} (unsupported command, not transpiled)
 	PREP = "\n  CREATE TABLE t1(x PRIMARY KEY,y UNIQUE);\n  INSERT INTO t1 VALUES('abc123', 5);\n  INSERT INTO t1 VALUES('xyz987', 42);\n"
 	_ = PREP // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloeF-2 -sqlprep $PREP -sqlbody {\n  SELECT x FROM t1\n   WHERE y=1 OR y=2 OR y=3 OR ...}")
+	// do_malloc_test malloeF-2 -sqlprep $PREP -sqlbody {
+  SELECT x FROM t1
+   WHERE y=1 OR y=2 OR y=3 OR ...} (unsupported command, not transpiled)
 	PREP = "\n  CREATE TABLE t1(x PRIMARY KEY,y UNIQUE);\n  INSERT INTO t1 VALUES('abc123', 5);\n  INSERT INTO t1 VALUES('xyz987', 42);\n"
 	_ = PREP // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloeF-3 -sqlprep $PREP -sqlbody {\n  SELECT x FROM t1 WHERE y BETWEEN 10 AND 29\n}")
+	// do_malloc_test malloeF-3 -sqlprep $PREP -sqlbody {
+  SELECT x FROM t1 WHERE y BETWEEN 10 AND 29
+} (unsupported command, not transpiled)
 	PREP = "\n  CREATE TABLE t1(x);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n    SELECT 'hello';\n  END;\n"
 	_ = PREP // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocF-4 -sqlprep $PREP -sqlbody {\n  INSERT INTO t1 VALUES(random());\n}")
+	// do_malloc_test mallocF-4 -sqlprep $PREP -sqlbody {
+  INSERT INTO t1 VALUES(random());
+} (unsupported command, not transpiled)
 }

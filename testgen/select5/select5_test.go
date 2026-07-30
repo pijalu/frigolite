@@ -40,15 +40,26 @@ func Test_select5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE t1(x int, y int);\n  BEGIN;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x int, y int);\n  BEGIN;\n")
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 32 }() {
-		var j = "0"
+		j = "0"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return (1<<j_n) < i_n }() {
 			// incr j 1
@@ -108,7 +119,6 @@ func Test_select5(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "select5-2.2"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -126,7 +136,6 @@ func Test_select5(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select5-2.3"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -144,7 +153,6 @@ func Test_select5(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select5-2.4"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -162,7 +170,6 @@ func Test_select5(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select5-2.5"
-	var v string
 	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block

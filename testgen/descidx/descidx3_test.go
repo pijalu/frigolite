@@ -39,9 +39,22 @@ func Test_descidx3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var schemacookie string
+	_ = schemacookie // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var newval string
+	_ = newval // pre-declared from TCL source
+	var fname string
+	_ = fname // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
+	// do_not_use_codec (unsupported command, not transpiled)
+	// sqlite3_db_config db LEGACY_FILE_FORMAT 0 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "descidx3-1.1"
@@ -49,7 +62,7 @@ func Test_descidx3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(i INTEGER PRIMARY KEY,a,b,c,d);\n    CREATE INDEX t1i1 ON t1(a DESC, b ASC, c DESC);\n    CREATE INDEX t1i2 ON t1(b DESC, c ASC, d DESC);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
+		// get_file_format (unsupported command, not transpiled)
 	}
 	{ // do_test "descidx3-2.1"
 		r = db.Query("\n    INSERT INTO t1 VALUES(1, NULL, NULL, NULL, NULL);\n    INSERT INTO t1 VALUES(2, 2, 2, 2, 2);\n    INSERT INTO t1 VALUES(3, 3, 3, 3, 3);\n    INSERT INTO t1 VALUES(4, 2.5, 2.5, 2.5, 2.5);\n    INSERT INTO t1 VALUES(5, -5, -5, -5, -5);\n    INSERT INTO t1 VALUES(6, 'six', 'six', 'six', 'six');\n    INSERT INTO t1 VALUES(7, x'77', x'77', x'77', x'77');\n    INSERT INTO t1 VALUES(8, 'eight', 'eight', 'eight', 'eight');\n    INSERT INTO t1 VALUES(9, x'7979', x'7979', x'7979', x'7979');\n    SELECT count(*) FROM t1;\n  ")

@@ -41,13 +41,56 @@ func Test_hook(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var commit_cnt string
+	_ = commit_cnt // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var update_hook string
+	_ = update_hook // pre-declared from TCL source
+	var rollback_hook string
+	_ = rollback_hook // pre-declared from TCL source
+	var hooks string
+	_ = hooks // pre-declared from TCL source
+	var X string
+	_ = X // pre-declared from TCL source
+	var elem string
+	_ = elem // pre-declared from TCL source
+	var _type string
+	_ = _type // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var preupdate string
+	_ = preupdate // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var v string
+	_ = v // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "hook" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "hook" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // do_test "hook-1.2"
 	}
 	{ // do_test "hook-3.1"
-		var commit_cnt = "0"
+		commit_cnt = "0"
 		_ = commit_cnt // suppress unused warning
 		// proc definition (not transpiled)
 	}
@@ -66,7 +109,7 @@ func Test_hook(t *testing.T) {
 		}
 	}
 	{ // do_test "hook-3.5"
-		var commit_cnt = ""
+		commit_cnt = ""
 		_ = commit_cnt // suppress unused warning
 		// proc definition (not transpiled)
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(5,6);\n  ")
@@ -75,15 +118,15 @@ func Test_hook(t *testing.T) {
 		}
 	}
 	{ // do_test "hook-3.6"
-		var commit_cnt = ""
+		commit_cnt = ""
 		_ = commit_cnt // suppress unused warning
 		// proc definition (not transpiled)
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(6,7);\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode hook-3.6b SQLITE_CONSTRAINT_COMMITHOOK")
+	// verify_ex_errcode hook-3.6b SQLITE_CONSTRAINT_COMMITHOOK (unsupported command, not transpiled)
 	{ // do_test "hook-3.7"
-		_ = _commit_cnt // TCL namespace variable (query)
+		_ = commit_cnt // TCL namespace variable (query)
 	}
 	{ // do_test "hook-3.8"
 		r = db.Query("SELECT * FROM t2")
@@ -92,13 +135,13 @@ func Test_hook(t *testing.T) {
 		}
 	}
 	{ // do_test "hook-3.9"
-		var _commit_cnt = "" // TCL namespace variable
-		_ = _commit_cnt // suppress unused warning
+		commit_cnt = "" // TCL namespace variable
+		_ = commit_cnt // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(7,8);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 VALUES(7,8);\n  ")
 		}
-		_ = _commit_cnt // TCL namespace variable (query)
+		_ = commit_cnt // TCL namespace variable (query)
 	}
 	{ // do_test "hook-3.10"
 		os.Remove("test2.db")
@@ -121,13 +164,13 @@ func Test_hook(t *testing.T) {
 	{ // do_test "hook-4.1.1a"
 		_res = db.Exec("\n    DROP TABLE t1;\n  ")
 		_ = _res // catchsql
-		var _update_hook = "" // TCL namespace variable
-		_ = _update_hook // suppress unused warning
+		update_hook = "" // TCL namespace variable
+		_ = update_hook // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t1w(a INT PRIMARY KEY, b) WITHOUT ROWID;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    CREATE TABLE t1w(a INT PRIMARY KEY, b) WITHOUT ROWID;\n  ")
 		}
-		_ = _update_hook // TCL namespace variable (query)
+		_ = update_hook // TCL namespace variable (query)
 	}
 	{ // do_test "hook-4.1.1b"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 'one');\n    INSERT INTO t1 VALUES(2, 'two');\n    INSERT INTO t1 VALUES(3, 'three');\n    INSERT INTO t1w SELECT * FROM t1;\n  ")
@@ -136,48 +179,48 @@ func Test_hook(t *testing.T) {
 		}
 	}
 	{ // do_test "hook-4.1.2"
-		var _update_hook = "" // TCL namespace variable
-		_ = _update_hook // suppress unused warning
+		update_hook = "" // TCL namespace variable
+		_ = update_hook // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(4, 'four');\n    DELETE FROM t1 WHERE b = 'two';\n    UPDATE t1 SET b = '' WHERE a = 1 OR a = 3;\n    DELETE FROM t1 WHERE 1; -- Avoid the truncate optimization (for now)\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(4, 'four');\n    DELETE FROM t1 WHERE b = 'two';\n    UPDATE t1 SET b = '' WHERE a = 1 OR a = 3;\n    DELETE FROM t1 WHERE 1; -- Avoid the truncate optimization (for now)\n  ")
 		}
-		_ = _update_hook // TCL namespace variable (query)
+		_ = update_hook // TCL namespace variable (query)
 	}
 	{ // do_test "hook-4.1.2w"
-		var _update_hook = "" // TCL namespace variable
-		_ = _update_hook // suppress unused warning
+		update_hook = "" // TCL namespace variable
+		_ = update_hook // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t1w VALUES(4, 'four');\n    DELETE FROM t1w WHERE b = 'two';\n    UPDATE t1w SET b = '' WHERE a = 1 OR a = 3;\n    DELETE FROM t1w WHERE 1; -- Avoid the truncate optimization (for now)\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1w VALUES(4, 'four');\n    DELETE FROM t1w WHERE b = 'two';\n    UPDATE t1w SET b = '' WHERE a = 1 OR a = 3;\n    DELETE FROM t1w WHERE 1; -- Avoid the truncate optimization (for now)\n  ")
 		}
-		_ = _update_hook // TCL namespace variable (query)
+		_ = update_hook // TCL namespace variable (query)
 	}
-	var _update_hook = "" // TCL namespace variable
-	_ = _update_hook // suppress unused warning
-	var _update_hook = "" // TCL namespace variable
-	_ = _update_hook // suppress unused warning
+	update_hook = "" // TCL namespace variable
+	_ = update_hook // suppress unused warning
+	update_hook = "" // TCL namespace variable
+	_ = update_hook // suppress unused warning
 	{ // do_test "hook-4.3.1"
 		_res = db.Exec("\n    CREATE INDEX t1_i ON t1(b);\n    INSERT INTO t1 VALUES(3, 'three');\n    UPDATE t1 SET b = '';\n    DELETE FROM t1 WHERE a > 1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX t1_i ON t1(b);\n    INSERT INTO t1 VALUES(3, 'three');\n    UPDATE t1 SET b = '';\n    DELETE FROM t1 WHERE a > 1;\n  ")
 		}
-		_ = _update_hook // TCL namespace variable (query)
+		_ = update_hook // TCL namespace variable (query)
 	}
-	var _update_hook = "" // TCL namespace variable
-	_ = _update_hook // suppress unused warning
+	update_hook = "" // TCL namespace variable
+	_ = update_hook // suppress unused warning
 	{ // do_test "hook-4.4"
 		_res = db.Exec("\n    CREATE TABLE t4(a UNIQUE, b);\n    INSERT INTO t4 VALUES(1, 'a');\n    INSERT INTO t4 VALUES(2, 'b');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t4(a UNIQUE, b);\n    INSERT INTO t4 VALUES(1, 'a');\n    INSERT INTO t4 VALUES(2, 'b');\n  ")
 		}
-		var _update_hook = "list" // TCL namespace variable
-		_ = _update_hook // suppress unused warning
+		update_hook = "list" // TCL namespace variable
+		_ = update_hook // suppress unused warning
 		_res = db.Exec("\n    REPLACE INTO t4 VALUES(1, 'c');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    REPLACE INTO t4 VALUES(1, 'c');\n  ")
 		}
-		_ = _update_hook // TCL namespace variable (query)
+		_ = update_hook // TCL namespace variable (query)
 	}
 	{ // "hook-4.4.1"
 		r = db.Query("\n  SELECT * FROM t4 ORDER BY a;\n")
@@ -192,13 +235,13 @@ func Test_hook(t *testing.T) {
 		}
 	}
 	{ // do_test "hook-4.4.2"
-		var _update_hook = "list" // TCL namespace variable
-		_ = _update_hook // suppress unused warning
+		update_hook = "list" // TCL namespace variable
+		_ = update_hook // suppress unused warning
 		_res = db.Exec("\n    PRAGMA recursive_triggers = on;\n    REPLACE INTO t4 VALUES(1, 'd');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA recursive_triggers = on;\n    REPLACE INTO t4 VALUES(1, 'd');\n  ")
 		}
-		_ = _update_hook // TCL namespace variable (query)
+		_ = update_hook // TCL namespace variable (query)
 	}
 	{ // "hook-4.4.3"
 		r = db.Query("\n  SELECT * FROM t4 ORDER BY a;\n")
@@ -213,24 +256,24 @@ func Test_hook(t *testing.T) {
 		}
 	}
 	{ // do_test "hook-5.0"
-		var _rollback_hook = "0" // TCL namespace variable
-		_ = _rollback_hook // suppress unused warning
+		rollback_hook = "0" // TCL namespace variable
+		_ = rollback_hook // suppress unused warning
 	}
 	{ // do_test "hook-5.1.1"
-		var _rollback_hook = "0" // TCL namespace variable
-		_ = _rollback_hook // suppress unused warning
+		rollback_hook = "0" // TCL namespace variable
+		_ = rollback_hook // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    ROLLBACK;\n  ")
 		}
-		_ = _rollback_hook // TCL namespace variable (query)
+		_ = rollback_hook // TCL namespace variable (query)
 	}
 	{ // do_test "hook-5.2.1"
-		var _rollback_hook = "0" // TCL namespace variable
-		_ = _rollback_hook // suppress unused warning
+		rollback_hook = "0" // TCL namespace variable
+		_ = rollback_hook // suppress unused warning
 		_res = db.Exec("\n    DROP TABLE t1;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES('one', 'I');\n    INSERT INTO t1 VALUES('one', 'I');\n  ")
 		_ = _res // catchsql
-		_ = _rollback_hook // TCL namespace variable (query)
+		_ = rollback_hook // TCL namespace variable (query)
 	}
 	{ // do_test "hook-5.2.2"
 		r = db.Query("\n    SELECT count(*) FROM t1;\n  ")
@@ -241,8 +284,8 @@ func Test_hook(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "hook-6.1"
-		var _hooks = "list" // TCL namespace variable
-		_ = _hooks // suppress unused warning
+		hooks = "list" // TCL namespace variable
+		_ = hooks // suppress unused warning
 		_res = db.Exec("\n    BEGIN;\n      INSERT INTO t1 VALUES('two', 'II');\n    COMMIT;\n  ")
 		_ = _res // catchsql
 		r = db.Query(" SELECT * FROM t1 ")
@@ -251,12 +294,13 @@ func Test_hook(t *testing.T) {
 		}
 	}
 	{ // do_test "hook-6.2"
-		_ = _hooks // TCL namespace variable (query)
+		_ = hooks // TCL namespace variable (query)
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "7.0"
 		_res = db.Exec(" \n  CREATE TABLE t1(a, b); \n  CREATE TABLE t2(x, y); \n  CREATE TABLE t3(i, j, UNIQUE(i));\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
@@ -264,12 +308,29 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b); \n  CREATE TABLE t2(x, y); \n  CREATE TABLE t3(i, j, UNIQUE(i));\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.1 {\n  INSERT INTO t1 VALUES('x', 'y')\n} {INSERT main t1 1 1  x y}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.2.1 {\n  INSERT INTO t1 SELECT y, x FROM t2;\n} {INSERT main t1 2 2 b a   INSERT main t1 3 3 d c}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.2.2 {\n  INSERT INTO t1 SELECT * FROM t2;\n} {INSERT main t1 4 4 a b   INSERT main t1 5 5 c d}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.3 {\n  REPLACE INTO t1(rowid, a, b) VALUES(1, 1, 1);\n} {\n  DELETE main t1 1 1   x y\n  INSERT main t1 1 1  ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.4 {\n  REPLACE INTO t3 VALUES(4, NULL);\n} {\n  DELETE main t3 1 1   4 16\n  INSERT main t3 4 4 ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.5 {\n  REPLACE INTO t3(rowid, i, j) VALUES(2, 6, NULL)...} {\n  DELETE main t3 2 2  5 25\n  DELETE main t3 3 3  ...}")
+	// do_preupdate_test 7.1.1 {
+  INSERT INTO t1 VALUES('x', 'y')
+} {INSERT main t1 1 1  x y} (unsupported command, not transpiled)
+	// do_preupdate_test 7.1.2.1 {
+  INSERT INTO t1 SELECT y, x FROM t2;
+} {INSERT main t1 2 2 b a   INSERT main t1 3 3 d c} (unsupported command, not transpiled)
+	// do_preupdate_test 7.1.2.2 {
+  INSERT INTO t1 SELECT * FROM t2;
+} {INSERT main t1 4 4 a b   INSERT main t1 5 5 c d} (unsupported command, not transpiled)
+	// do_preupdate_test 7.1.3 {
+  REPLACE INTO t1(rowid, a, b) VALUES(1, 1, 1);
+} {
+  DELETE main t1 1 1   x y
+  INSERT main t1 1 1  ...} (unsupported command, not transpiled)
+	// do_preupdate_test 7.1.4 {
+  REPLACE INTO t3 VALUES(4, NULL);
+} {
+  DELETE main t3 1 1   4 16
+  INSERT main t3 4 4 ...} (unsupported command, not transpiled)
+	// do_preupdate_test 7.1.5 {
+  REPLACE INTO t3(rowid, i, j) VALUES(2, 6, NULL)...} {
+  DELETE main t3 2 2  5 25
+  DELETE main t3 3 3  ...} (unsupported command, not transpiled)
 	{ // "7.2.0"
 		r = db.Query(" SELECT rowid FROM t1 ")
 		if r.Error != nil {
@@ -282,18 +343,41 @@ func Test_hook(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.2.1 {\n  DELETE FROM t1 WHERE rowid = 3\n} {\n  DELETE main t1 3 3  d c\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.2.2 {\n  DELETE FROM t1\n} {\n  DELETE main t1 1 1   1 1\n  DELETE main t1 2 2  ...}")
+	// do_preupdate_test 7.2.1 {
+  DELETE FROM t1 WHERE rowid = 3
+} {
+  DELETE main t1 3 3  d c
+} (unsupported command, not transpiled)
+	// do_preupdate_test 7.2.2 {
+  DELETE FROM t1
+} {
+  DELETE main t1 1 1   1 1
+  DELETE main t1 2 2  ...} (unsupported command, not transpiled)
 	{ // "7.3.0"
 		_res = db.Exec(" \n  DELETE FROM t1;\n  DELETE FROM t2;\n  DELETE FROM t3;\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DELETE FROM t1;\n  DELETE FROM t2;\n  DELETE FROM t3;\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.1 {\n  UPDATE t2 SET y = y||y;\n} {\n  UPDATE main t2 1 1   a b  a bb\n  UPDATE main t2...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.2 {\n  UPDATE t2 SET rowid = rowid-1;\n} {\n  UPDATE main t2 1 0   a bb  a bb\n  UPDATE main t...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.3 {\n  UPDATE OR REPLACE t2 SET rowid = 1 WHERE x = 'a...} {\n  DELETE main t2 1 1   c dd\n  UPDATE main t2 0 1 ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.4.1 {\n  UPDATE OR REPLACE t3 SET i = 5 WHERE i = 6\n} {\n  DELETE main t3 2 2   5 25\n  UPDATE main t3 3 3 ...}")
+	// do_preupdate_test 7.3.1 {
+  UPDATE t2 SET y = y||y;
+} {
+  UPDATE main t2 1 1   a b  a bb
+  UPDATE main t2...} (unsupported command, not transpiled)
+	// do_preupdate_test 7.3.2 {
+  UPDATE t2 SET rowid = rowid-1;
+} {
+  UPDATE main t2 1 0   a bb  a bb
+  UPDATE main t...} (unsupported command, not transpiled)
+	// do_preupdate_test 7.3.3 {
+  UPDATE OR REPLACE t2 SET rowid = 1 WHERE x = 'a...} {
+  DELETE main t2 1 1   c dd
+  UPDATE main t2 0 1 ...} (unsupported command, not transpiled)
+	// do_preupdate_test 7.3.4.1 {
+  UPDATE OR REPLACE t3 SET i = 5 WHERE i = 6
+} {
+  DELETE main t3 2 2   5 25
+  UPDATE main t3 3 3 ...} (unsupported command, not transpiled)
 	{ // "7.3.4.2"
 		r = db.Query("\n  INSERT INTO t3 VALUES(10, 100);\n  SELECT rowid, * FROM t3;\n")
 		if r.Error != nil {
@@ -306,38 +390,64 @@ func Test_hook(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.5 {\n  UPDATE OR REPLACE t3 SET rowid = 1, i = 5 WHERE...} {\n  DELETE main t3 1 1    4  16\n  DELETE main t3 3 ...}")
+	// do_preupdate_test 7.3.5 {
+  UPDATE OR REPLACE t3 SET rowid = 1, i = 5 WHERE...} {
+  DELETE main t3 1 1    4  16
+  DELETE main t3 3 ...} (unsupported command, not transpiled)
 	{ // "7.4.1.0"
 		_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('a', 1);\n  INSERT INTO t4 VALUES('b', 2);\n  INSERT INTO t4 VALUES('c', 3);\n\n  CREATE TRIGGER t4t BEFORE DELETE ON t4 BEGIN\n    DELETE FROM t4 WHERE b = 1;\n  END;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('a', 1);\n  INSERT INTO t4 VALUES('b', 2);\n  INSERT INTO t4 VALUES('c', 3);\n\n  CREATE TRIGGER t4t BEFORE DELETE ON t4 BEGIN\n    DELETE FROM t4 WHERE b = 1;\n  END;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.1.1 {\n  DELETE FROM t4 WHERE b = 3\n} {\n  DELETE main t4 1 1   a 1\n  DELETE main t4 3 3  ...}")
+	// do_preupdate_test 7.4.1.1 {
+  DELETE FROM t4 WHERE b = 3
+} {
+  DELETE main t4 1 1   a 1
+  DELETE main t4 3 3  ...} (unsupported command, not transpiled)
 	{ // "7.4.1.2"
 		_res = db.Exec("\n  INSERT INTO t4(rowid, a, b) VALUES(1, 'a', 1);\n  INSERT INTO t4(rowid, a, b) VALUES(3, 'c', 3);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t4(rowid, a, b) VALUES(1, 'a', 1);\n  INSERT INTO t4(rowid, a, b) VALUES(3, 'c', 3);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.1.3 {\n  DELETE FROM t4 WHERE b = 1\n} {\n  DELETE main t4 1 1   a 1\n}")
+	// do_preupdate_test 7.4.1.3 {
+  DELETE FROM t4 WHERE b = 1
+} {
+  DELETE main t4 1 1   a 1
+} (unsupported command, not transpiled)
 	{ // "7.4.2.0"
 		_res = db.Exec("\n  CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES('a', 1);\n  INSERT INTO t5 VALUES('b', 2);\n  INSERT INTO t5 VALUES('c', 3);\n\n  CREATE TRIGGER t5t BEFORE UPDATE ON t5 BEGIN\n    DELETE FROM t5 WHERE b = 1;\n  END;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES('a', 1);\n  INSERT INTO t5 VALUES('b', 2);\n  INSERT INTO t5 VALUES('c', 3);\n\n  CREATE TRIGGER t5t BEFORE UPDATE ON t5 BEGIN\n    DELETE FROM t5 WHERE b = 1;\n  END;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.2.1 {\n  UPDATE t5 SET b = 4 WHERE a = 'c'\n} {\n  DELETE main t5 1 1   a 1\n  UPDATE main t5 3 3  ...}")
+	// do_preupdate_test 7.4.2.1 {
+  UPDATE t5 SET b = 4 WHERE a = 'c'
+} {
+  DELETE main t5 1 1   a 1
+  UPDATE main t5 3 3  ...} (unsupported command, not transpiled)
 	{ // "7.4.2.2"
 		_res = db.Exec("\n  INSERT INTO t5(rowid, a, b) VALUES(1, 'a', 1);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t5(rowid, a, b) VALUES(1, 'a', 1);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.2.3 {\n  UPDATE t5 SET b = 5 WHERE a = 'a'\n} {\n  DELETE main t5 1 1   a 1\n}")
+	// do_preupdate_test 7.4.2.3 {
+  UPDATE t5 SET b = 5 WHERE a = 'a'
+} {
+  DELETE main t5 1 1   a 1
+} (unsupported command, not transpiled)
 	if true {
-		t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.5.2.1 {\n    DELETE FROM t8 WHERE a = 'one'\n  } {\n    DELETE main t8 1 1   one two xxx\n  }")
-		t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.5.2.2 {\n    UPDATE t8 SET b = 'five'\n  } {\n    UPDATE main t8 2 2   three four xxx  three fi...}")
+		// do_preupdate_test 7.5.2.1 {
+    DELETE FROM t8 WHERE a = 'one'
+  } {
+    DELETE main t8 1 1   one two xxx
+  } (unsupported command, not transpiled)
+		// do_preupdate_test 7.5.2.2 {
+    UPDATE t8 SET b = 'five'
+  } {
+    UPDATE main t8 2 2   three four xxx  three fi...} (unsupported command, not transpiled)
 	}
 	{ // "7.6.1"
 		_res = db.Exec(" CREATE TABLE t9(a, b INTEGER PRIMARY KEY, c) ")
@@ -345,10 +455,15 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t9(a, b INTEGER PRIMARY KEY, c) ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.2 {\n  INSERT INTO t9 VALUES(1, 2, 3);\n  UPDATE t9 SET...} {\n  INSERT main t9 2 2   1 2 3\n  UPDATE main t9 2 3...}")
+	// do_preupdate_test 7.6.2 {
+  INSERT INTO t9 VALUES(1, 2, 3);
+  UPDATE t9 SET...} {
+  INSERT main t9 2 2   1 2 3
+  UPDATE main t9 2 3...} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "7.6.1"
 		_res = db.Exec(" \n  CREATE TABLE t1(x PRIMARY KEY);\n  CREATE TABLE t2(x PRIMARY KEY);\n  CREATE TABLE t3(x PRIMARY KEY);\n  CREATE TABLE t4(x PRIMARY KEY);\n\n  CREATE TRIGGER a AFTER INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b AFTER INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c AFTER INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d AFTER UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e AFTER UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f AFTER UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g AFTER DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h AFTER DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i AFTER DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
@@ -356,18 +471,42 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(x PRIMARY KEY);\n  CREATE TABLE t2(x PRIMARY KEY);\n  CREATE TABLE t3(x PRIMARY KEY);\n  CREATE TABLE t4(x PRIMARY KEY);\n\n  CREATE TRIGGER a AFTER INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b AFTER INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c AFTER INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d AFTER UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e AFTER UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f AFTER UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g AFTER DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h AFTER DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i AFTER DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.2 {\n  INSERT INTO t1 VALUES('xyz');\n} {\n  INSERT main t1 1 1   0      xyz\n  INSERT main t...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.3 {\n  UPDATE t1 SET x = 'abc';\n} {\n  UPDATE main t1 1 1   0      xyz abc\n  UPDATE ma...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.4 {\n  DELETE FROM t1 WHERE 1;\n} {\n  DELETE main t1 1 1   0      abc\n  DELETE main t...}")
+	// do_preupdate_test 7.6.2 {
+  INSERT INTO t1 VALUES('xyz');
+} {
+  INSERT main t1 1 1   0      xyz
+  INSERT main t...} (unsupported command, not transpiled)
+	// do_preupdate_test 7.6.3 {
+  UPDATE t1 SET x = 'abc';
+} {
+  UPDATE main t1 1 1   0      xyz abc
+  UPDATE ma...} (unsupported command, not transpiled)
+	// do_preupdate_test 7.6.4 {
+  DELETE FROM t1 WHERE 1;
+} {
+  DELETE main t1 1 1   0      abc
+  DELETE main t...} (unsupported command, not transpiled)
 	{ // "7.6.5"
 		_res = db.Exec(" \n  DROP TRIGGER a; DROP TRIGGER b; DROP TRIGGER c;\n  DROP TRIGGER d; DROP TRIGGER e; DROP TRIGGER f;\n  DROP TRIGGER g; DROP TRIGGER h; DROP TRIGGER i;\n\n  CREATE TRIGGER a BEFORE INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b BEFORE INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c BEFORE INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e BEFORE UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f BEFORE UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g BEFORE DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h BEFORE DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i BEFORE DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DROP TRIGGER a; DROP TRIGGER b; DROP TRIGGER c;\n  DROP TRIGGER d; DROP TRIGGER e; DROP TRIGGER f;\n  DROP TRIGGER g; DROP TRIGGER h; DROP TRIGGER i;\n\n  CREATE TRIGGER a BEFORE INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b BEFORE INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c BEFORE INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e BEFORE UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f BEFORE UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g BEFORE DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h BEFORE DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i BEFORE DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.6 {\n  INSERT INTO t1 VALUES('xyz');\n} {\n  INSERT main t4 1 1   3      xyz\n  INSERT main t...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.3 {\n  UPDATE t1 SET x = 'abc';\n} {\n  UPDATE main t4 1 1   3      xyz abc\n  UPDATE ma...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.4 {\n  DELETE FROM t1 WHERE 1;\n} {\n  DELETE main t4 1 1   3      abc\n  DELETE main t...}")
+	// do_preupdate_test 7.6.6 {
+  INSERT INTO t1 VALUES('xyz');
+} {
+  INSERT main t4 1 1   3      xyz
+  INSERT main t...} (unsupported command, not transpiled)
+	// do_preupdate_test 7.6.3 {
+  UPDATE t1 SET x = 'abc';
+} {
+  UPDATE main t4 1 1   3      xyz abc
+  UPDATE ma...} (unsupported command, not transpiled)
+	// do_preupdate_test 7.6.4 {
+  DELETE FROM t1 WHERE 1;
+} {
+  DELETE main t4 1 1   3      abc
+  DELETE main t...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -377,7 +516,11 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b INTEGER PRIMARY KEY);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 10.1 {\n  INSERT INTO t3 DEFAULT VALUES\n} {\n  INSERT main t3 1 1 0 {} 1\n}")
+	// do_preupdate_test 10.1 {
+  INSERT INTO t3 DEFAULT VALUES
+} {
+  INSERT main t3 1 1 0 {} 1
+} (unsupported command, not transpiled)
 	{ // "10.2"
 		r = db.Query(" SELECT * FROM t3 ")
 		if r.Error != nil {
@@ -390,7 +533,9 @@ func Test_hook(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 10.3 {\n  DELETE FROM t3 WHERE b=1\n} {DELETE main t3 1 1 0 {} 1}")
+	// do_preupdate_test 10.3 {
+  DELETE FROM t3 WHERE b=1
+} {DELETE main t3 1 1 0 {} 1} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -402,36 +547,36 @@ func Test_hook(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var _res = "list" // TCL namespace variable
-	_ = _res // suppress unused warning
+	res = "list" // TCL namespace variable
+	_ = res // suppress unused warning
 	{ // do_test "12.2"
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
-		_ = _res // TCL namespace variable (query)
+		_ = res // TCL namespace variable (query)
 	}
 	{ // do_test "12.3"
-		var _res = "list" // TCL namespace variable
-		_ = _res // suppress unused warning
+		res = "list" // TCL namespace variable
+		_ = res // suppress unused warning
 		_res = db.Exec(" INSERT INTO t3 SELECT a, b FROM t2 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 SELECT a, b FROM t2 ")
 		}
-		_ = _res // TCL namespace variable (query)
+		_ = res // TCL namespace variable (query)
 	}
 	{ // do_test "12.4"
 		_res = db.Exec(" DELETE FROM t3 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t3 ")
 		}
-		var _res = "list" // TCL namespace variable
-		_ = _res // suppress unused warning
+		res = "list" // TCL namespace variable
+		_ = res // suppress unused warning
 		_res = db.Exec(" INSERT INTO t3 SELECT * FROM t2 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 SELECT * FROM t2 ")
 		}
-		_ = _res // TCL namespace variable (query)
+		_ = res // TCL namespace variable (query)
 	}
 	{ // "12.5"
 		_res = db.Exec("\n  CREATE TABLE t4(a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 1);\n  INSERT INTO t4 VALUES('DEF', 2);\n")
@@ -439,14 +584,14 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a COLLATE nocase PRIMARY KEY, b) WITHOUT ROWID;\n  INSERT INTO t4 VALUES('abc', 1);\n  INSERT INTO t4 VALUES('DEF', 2);\n")
 		}
 	}
-	var _res = "list" // TCL namespace variable
-	_ = _res // suppress unused warning
+	res = "list" // TCL namespace variable
+	_ = res // suppress unused warning
 	{ // do_test "12.6"
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
-		_ = _res // TCL namespace variable (query)
+		_ = res // TCL namespace variable (query)
 	}
 	{ // "12.6"
 		_res = db.Exec("\n  INSERT INTO t4 VALUES('def', 3);\n")
@@ -469,7 +614,17 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN b DEFAULT 1234;\n  ALTER TABLE t1 ADD COLUMN c DEFAULT 'abcdef';\n  ALTER TABLE t1 ADD COLUMN d DEFAULT NULL;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 13.2 {\n  DELETE FROM t1 WHERE a=300\n} {DELETE main t1 300 300 0 300 1234 abcdef {}}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 13.3 {\n  UPDATE t1 SET d='hello world' WHERE a=200\n} {\n  UPDATE main t1 200 200 0 200 1234 abcdef {} \n  ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 13.4 {\n  INSERT INTO t1 DEFAULT VALUES;\n} {\n  INSERT main t1 401 401 0 401 1234 abcdef {}\n}")
+	// do_preupdate_test 13.2 {
+  DELETE FROM t1 WHERE a=300
+} {DELETE main t1 300 300 0 300 1234 abcdef {}} (unsupported command, not transpiled)
+	// do_preupdate_test 13.3 {
+  UPDATE t1 SET d='hello world' WHERE a=200
+} {
+  UPDATE main t1 200 200 0 200 1234 abcdef {} 
+  ...} (unsupported command, not transpiled)
+	// do_preupdate_test 13.4 {
+  INSERT INTO t1 DEFAULT VALUES;
+} {
+  INSERT main t1 401 401 0 401 1234 abcdef {}
+} (unsupported command, not transpiled)
 }

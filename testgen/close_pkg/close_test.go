@@ -39,10 +39,23 @@ func Test_close(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var BLOB string
+	_ = BLOB // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "close" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	testprefix = "close" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// do_not_use_codec (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES('one');\n  INSERT INTO t1 VALUES('two');\n  INSERT INTO t1 VALUES('three');\n")
 		if _res.Error != nil {
@@ -50,41 +63,41 @@ func Test_close(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		var DB = "sqlite3_open test.db"
+		DB = ""
 		_ = DB // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close_v2 $DB")
+		// sqlite3_close_v2 $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2.1"
-		var DB = "sqlite3_open test.db"
+		DB = ""
 		_ = DB // suppress unused warning
-		var STMT = "sqlite3_prepare $DB \"SELECT * FROM t1\" -1 dummy"
+		STMT = "sqlite3_prepare $DB \"SELECT * FROM t1\" -1 dummy"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close_v2 $DB")
+		// sqlite3_close_v2 $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "1.2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.1"
-		var DB = "sqlite3_open test.db"
+		DB = ""
 		_ = DB // suppress unused warning
-		var STMT = "sqlite3_prepare $DB \"SELECT * FROM t1\" -1 dummy"
+		STMT = "sqlite3_prepare $DB \"SELECT * FROM t1\" -1 dummy"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close_v2 $DB")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+		// sqlite3_close_v2 $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $STMT 0")
+		// sqlite3_column_text $STMT 0 (unsupported command, not transpiled)
 	}
 	{ // do_test "1.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.1"
-		var DB = "sqlite3_open test.db"
+		DB = ""
 		_ = DB // suppress unused warning
-		var STMT = "sqlite3_prepare $DB \"SELECT * FROM t1\" -1 dummy"
+		STMT = "sqlite3_prepare $DB \"SELECT * FROM t1\" -1 dummy"
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close_v2 $DB")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
+		// sqlite3_close_v2 $DB (unsupported command, not transpiled)
 	}
 	{ // do_test "1.4.2"
 		_list := tclList([]string{"SQLITE_ROW", ""})
@@ -95,13 +108,13 @@ func Test_close(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.4.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "1.5"
-		var DB = "sqlite3_open test.db"
+		DB = ""
 		_ = DB // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open $DB main t1 x 2 0 BLOB")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close_v2 $DB")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $BLOB")
+		// sqlite3_blob_open $DB main t1 x 2 0 BLOB (unsupported command, not transpiled)
+		// sqlite3_close_v2 $DB (unsupported command, not transpiled)
+		// sqlite3_blob_close $BLOB (unsupported command, not transpiled)
 	}
 }

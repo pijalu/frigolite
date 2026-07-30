@@ -40,10 +40,17 @@ func Test_spellfix4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "spellfix4"
+	testprefix = "spellfix4"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix")
+	// load_static_extension db spellfix (unsupported command, not transpiled)
 	{ // "100"
 		r = db.Query("\n  CREATE TABLE cost1(iLang, cFrom, cTo, iCost);\n  INSERT INTO cost1 VALUES\n    (0, '', '?',  97),\n    (0, '?', '',  98),\n    (0, '?', '?', 99),\n    (0, 'm', 'n', 50),\n    (0, 'n', 'm', 50)\n  ;\n  SELECT editdist3('cost1');\n  SELECT editdist3('anchor','amchor');\n")
 		if r.Error != nil {

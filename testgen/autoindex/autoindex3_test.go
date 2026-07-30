@@ -39,8 +39,15 @@ func Test_autoindex3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "autoindex3"
+	testprefix = "autoindex3"
 	_ = testprefix // suppress unused warning
 	{ // "autoindex3-100"
 		r = db.Query("\n  CREATE TABLE t1(a,b,x);\n  CREATE TABLE t2(c,d,y);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX t2d ON t2(d);\n  ANALYZE sqlite_master;\n  INSERT INTO sqlite_stat1 VALUES('t1','t1b','10000 500');\n  INSERT INTO sqlite_stat1 VALUES('t2','t2d','10000 500');\n  ANALYZE sqlite_master;\n  EXPLAIN QUERY PLAN SELECT * FROM t1, t2 WHERE d=b;\n")

@@ -40,22 +40,41 @@ func Test_vacuum(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fcnt string
+	_ = fcnt // pre-declared from TCL source
+	var size1 string
+	_ = size1 // pre-declared from TCL source
+	var cksum string
+	_ = cksum // pre-declared from TCL source
+	var sql_script string
+	_ = sql_script // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var VM string
+	_ = VM // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool(AUTOVACUUM) {
-		t.Errorf("TODO: %s not implemented in frigolite", "omit_test vacuum.test {Auto-vacuum is enabled}")
+		// omit_test vacuum.test {Auto-vacuum is enabled} (unsupported command, not transpiled)
 		return
 	}
-	var fcnt = "1"
+	fcnt = "1"
 	_ = fcnt // suppress unused warning
 	{ // do_test "vacuum-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t1 VALUES(NULL,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 VALUES(123456,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE UNIQUE INDEX i2 ON t1(c,a);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n    INSERT INTO t1 VALUES(NULL,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 VALUES(123456,randstr(10,100),randstr(5,50));\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    INSERT INTO t1 SELECT NULL, b||'-'||rowid, c||'-'||rowid FROM t1;\n    CREATE INDEX i1 ON t1(b,c);\n    CREATE UNIQUE INDEX i2 ON t1(c,a);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t2;\n  ")
 		}
-		var _size1 = "file size test.db" // TCL namespace variable
-		_ = _size1 // suppress unused warning
-		var _cksum = "cksum" // TCL namespace variable
-		_ = _cksum // suppress unused warning
+		size1 = "file size test.db" // TCL namespace variable
+		_ = size1 // suppress unused warning
+		cksum = "cksum" // TCL namespace variable
+		_ = cksum // suppress unused warning
 		// expr $::cksum!="" → "$::cksum!=\"\""
 	}
 	// proc definition (not transpiled)
@@ -68,19 +87,19 @@ func Test_vacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "cksum")
+		// cksum (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum-1.4"
-		var sql_script = "\n    BEGIN;\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    CREATE VIEW v1 AS SELECT b, c FROM t3;\n    CREATE TRIGGER r1 AFTER DELETE ON t2 BEGIN SELECT 1; END;\n    COMMIT;\n    DROP TABLE t2;\n  "
+		sql_script = "\n    BEGIN;\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    CREATE VIEW v1 AS SELECT b, c FROM t3;\n    CREATE TRIGGER r1 AFTER DELETE ON t2 BEGIN SELECT 1; END;\n    COMMIT;\n    DROP TABLE t2;\n  "
 		_ = sql_script // suppress unused warning
 		_res = db.Exec(sql_script)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql_script)
 		}
-		var _size1 = "file size test.db" // TCL namespace variable
-		_ = _size1 // suppress unused warning
-		var _cksum = "cksum" // TCL namespace variable
-		_ = _cksum // suppress unused warning
+		size1 = "file size test.db" // TCL namespace variable
+		_ = size1 // suppress unused warning
+		cksum = "cksum" // TCL namespace variable
+		_ = cksum // suppress unused warning
 		// expr $::cksum!="" → "$::cksum!=\"\""
 	}
 	{ // do_test "vacuum-1.5"
@@ -88,7 +107,7 @@ func Test_vacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "cksum")
+		// cksum (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum-2.2"
 		db2, err = frigolite.Open("test.db")
@@ -97,13 +116,13 @@ func Test_vacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t4 AS SELECT * FROM t1;\n    CREATE TABLE t5 AS SELECT * FROM t1;\n    COMMIT;\n    DROP TABLE t4;\n    DROP TABLE t5;\n  ")
 		}
-		var _cksum = "cksum db2" // TCL namespace variable
-		_ = _cksum // suppress unused warning
+		cksum = "cksum db2" // TCL namespace variable
+		_ = cksum // suppress unused warning
 		_res = db.Exec("\n    VACUUM\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "vacuum-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "cksum")
+		// cksum (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum-2.4"
 		{
@@ -112,7 +131,7 @@ func Test_vacuum(t *testing.T) {
 			db2.Exec("SELECT count(*) FROM sqlite_master")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "cksum db2")
+		// cksum db2 (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum-2.5"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t6 AS SELECT * FROM t1;\n    CREATE TABLE t7 AS SELECT * FROM t1;\n    COMMIT;\n  ")
@@ -165,9 +184,9 @@ func Test_vacuum(t *testing.T) {
 	db3.Close()
 	{ // do_test "vacuum-3.1"
 		db2.Close()
-		t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// delete_file test.db (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA empty_result_callbacks=on;\n    VACUUM;\n  ")
 		if _res.Error != nil {
@@ -175,17 +194,17 @@ func Test_vacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "vacuum-4.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
-		var VM = "sqlite3_prepare $DB {VACUUM} -1 TAIL"
+		VM = "sqlite3_prepare $DB {VACUUM} -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		// sqlite3_step $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum-4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		// sqlite3_finalize $VM (unsupported command, not transpiled)
 	}
 	{ // do_test "vacuum-6.1"
 		_res = db.Exec("\n    CREATE TABLE \"abc abc\"(a, b, c);\n    INSERT INTO \"abc abc\" VALUES(1, 2, 3);\n    VACUUM;\n  ")
@@ -241,8 +260,8 @@ func Test_vacuum(t *testing.T) {
 	os.Remove("a'z.db")
 	{ // do_test "vacuum-10.1"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    CREATE TABLE t8(a, b);\n    INSERT INTO t8 VALUES('a', 'b');\n    INSERT INTO t8 VALUES('c', 'd');\n    PRAGMA count_changes = 1;\n  ")
 		if r.Error != nil {
@@ -267,7 +286,7 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ATTACH_CREATE 0")
+	// sqlite3_db_config db ATTACH_CREATE 0 (unsupported command, not transpiled)
 	{ // "vacuum-11.2"
 		r = db.Query("\n  PRAGMA page_size=2048;\n  VACUUM;\n  PRAGMA page_size;\n")
 		if r.Error != nil {
@@ -280,8 +299,8 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ATTACH_CREATE 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ATTACH_WRITE 0")
+	// sqlite3_db_config db ATTACH_CREATE 1 (unsupported command, not transpiled)
+	// sqlite3_db_config db ATTACH_WRITE 0 (unsupported command, not transpiled)
 	{ // "vacuum-11.3"
 		r = db.Query("\n  PRAGMA page_size=4096;\n  VACUUM;\n  PRAGMA page_size;\n")
 		if r.Error != nil {

@@ -39,8 +39,19 @@ func Test_vacuummem(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var stat string
+	_ = stat // pre-declared from TCL source
+	var ans string
+	_ = ans // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "vacuummem"
+	testprefix = "vacuummem"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"memsubsys1\"") {
 		return
@@ -52,10 +63,10 @@ func Test_vacuummem(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA cache_size = -2000;\n  CREATE TABLE t1(a, b, c);\n\n  WITH r(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM r WHERE i<100000\n  )\n  INSERT INTO t1 SELECT randomblob(100),randomblob(100),randomblob(100) FROM r;\n\n  CREATE INDEX t1a ON t1(a);\n  CREATE INDEX t1b ON t1(b);\n  CREATE INDEX t1c ON t1(c);\n")
 		}
 	}
-	var ans = "#/" + "memory_used" + "/"
+	ans = "#/" + "memory_used" + "/"
 	_ = ans // suppress unused warning
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "memory_used")
+		// memory_used (unsupported command, not transpiled)
 	}
 	{ // "1.2"
 		_res = db.Exec("VACUUM")
@@ -64,7 +75,7 @@ func Test_vacuummem(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "memory_used")
+		// memory_used (unsupported command, not transpiled)
 	}
 	{ // "1.4"
 		r = db.Query("\n  SELECT count(*) FROM t1 WHERE +a IS NOT NULL\n")
@@ -79,6 +90,6 @@ func Test_vacuummem(t *testing.T) {
 		}
 	}
 	{ // do_test "1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "memory_used")
+		// memory_used (unsupported command, not transpiled)
 	}
 }

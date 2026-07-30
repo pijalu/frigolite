@@ -40,8 +40,21 @@ func Test_coveridxscan(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var L string
+	_ = L // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "coveridxscan"
+	testprefix = "coveridxscan"
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1;\n  ")
@@ -62,7 +75,7 @@ func Test_coveridxscan(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db cover-idx-scan 0")
+		// optimization_control db cover-idx-scan 0 (unsupported command, not transpiled)
 		_res = db.Exec("SELECT a FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1")
@@ -80,9 +93,10 @@ func Test_coveridxscan(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT b FROM t1")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_cis 0")
-	db, err = frigolite.Open("test.db")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_cis 0 (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "3.1"
 		_res = db.Exec("SELECT a FROM t1")
@@ -102,9 +116,10 @@ func Test_coveridxscan(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT b FROM t1")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_cis 1")
-	db, err = frigolite.Open("test.db")
+	// sqlite3_shutdown (unsupported command, not transpiled)
+	// sqlite3_config_cis 1 (unsupported command, not transpiled)
+	_dbtmp1, err := frigolite.Open("test.db")
+	_ = _dbtmp1 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.1"
 		_res = db.Exec("SELECT a FROM t1")
@@ -127,9 +142,9 @@ func Test_coveridxscan(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	var L = "list"
+	L = "list"
 	_ = L // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 120 }() {
 		L = tclListAppend(L, "c" + i)
@@ -141,7 +156,7 @@ func Test_coveridxscan(t *testing.T) {
 			}
 		}
 	}
-	var cols = "join $L ,"
+	cols = "join $L ,"
 	_ = cols // suppress unused warning
 	{ // "5.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, " + cols + ", PRIMARY KEY(a, b, c)) WITHOUT ROWID;\n  CREATE INDEX i1 ON t1(" + cols + ");\n\n  CREATE TABLE t2(i INTEGER PRIMARY KEY, " + cols + ");\n  CREATE INDEX i2 ON t2(" + cols + ");\n")

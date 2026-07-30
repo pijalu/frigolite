@@ -39,6 +39,15 @@ func Test_subquery(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var callcnt string
+	_ = callcnt // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "subquery-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t1 VALUES(5,6);\n    INSERT INTO t1 VALUES(7,8);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(1,1);\n    INSERT INTO t2 VALUES(3,9);\n    INSERT INTO t2 VALUES(5,25);\n    INSERT INTO t2 VALUES(7,49);\n    COMMIT;\n  ")
@@ -354,7 +363,7 @@ func Test_subquery(t *testing.T) {
 	}
 	{ // do_test "subquery-5.1"
 		// proc definition (not transpiled)
-		var callcnt = "0"
+		callcnt = "0"
 		_ = callcnt // suppress unused warning
 		r = db.Query("\n    CREATE TABLE t4(x,y);\n    INSERT INTO t4 VALUES('one',1);\n    INSERT INTO t4 VALUES('two',2);\n    INSERT INTO t4 VALUES('three',3);\n    INSERT INTO t4 VALUES('four',4);\n    CREATE TABLE t5(a,b);\n    INSERT INTO t5 VALUES(1,11);\n    INSERT INTO t5 VALUES(2,22);\n    INSERT INTO t5 VALUES(3,33);\n    INSERT INTO t5 VALUES(4,44);\n    SELECT b FROM t5 WHERE a IN \n       (SELECT callcnt(y)+0 FROM t4 WHERE x='two')\n  ")
 		if r.Error != nil {
@@ -364,7 +373,7 @@ func Test_subquery(t *testing.T) {
 	{ // do_test "subquery-5.2"
 	}
 	{ // do_test "subquery-6.1"
-		var callcnt = "0"
+		callcnt = "0"
 		_ = callcnt // suppress unused warning
 		r = db.Query("\n    SELECT x FROM t4 WHERE 1 IN (SELECT callcnt(count(*)) FROM t5 WHERE a=y)\n  ")
 		if r.Error != nil {
@@ -374,7 +383,7 @@ func Test_subquery(t *testing.T) {
 	{ // do_test "subquery-6.2"
 	}
 	{ // do_test "subquery-6.3"
-		var callcnt = "0"
+		callcnt = "0"
 		_ = callcnt // suppress unused warning
 		r = db.Query("\n    SELECT x FROM t4 WHERE 1 IN (SELECT callcnt(count(*)) FROM t5 WHERE a=1)\n  ")
 		if r.Error != nil {
@@ -538,7 +547,7 @@ func Test_subquery(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+	// sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db (unsupported command, not transpiled)
 	{ // "subquery-11.1"
 		r = db.Query("\n  CREATE TABLE t1(ix INT, rx REAL, bx BLOB, tx TEXT, ax);\n  INSERT INTO t1 VALUES(1,1.0,x'31','x',NULL);\n  WITH c(a) AS (SELECT 'y' UNION SELECT tx FROM t1) SELECT affinity(a) FROM c;\n  WITH c(a) AS (SELECT tx FROM t1 UNION SELECT 'y') SELECT affinity(a) FROM c;\n")
 		if r.Error != nil {

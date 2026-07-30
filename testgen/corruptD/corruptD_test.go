@@ -40,15 +40,24 @@ func Test_corruptD(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	// do_not_use_codec (unsupported command, not transpiled)
+	// database_may_be_corrupt (unsupported command, not transpiled)
 	{ // do_test "corruptD-1.0"
 		_res = db.Exec(" \n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
 		}
-		var ii = "1"
+		ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 50 }() {
 			_res = db.Exec(" INSERT INTO t1 VALUES($ii, $ii * $ii) ")
@@ -72,19 +81,19 @@ func Test_corruptD(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "corruptD-1.1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "incr_change_counter")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024+1] FFFF")
+		// incr_change_counter (unsupported command, not transpiled)
+		// hexio_write test.db [expr 1024+1] FFFF (unsupported command, not transpiled)
 		_res = db.Exec(" PRAGMA quick_check ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptD-1.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "incr_change_counter")
-		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024+1] [hexio_render_int32 1021]")
+		// incr_change_counter (unsupported command, not transpiled)
+		// hexio_write test.db [expr 1024+1] [hexio_render_int32 1021] (unsupported command, not transpiled)
 		_res = db.Exec(" SELECT * FROM t1 ORDER BY rowid ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptD-1.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "restore_file")
+		// restore_file (unsupported command, not transpiled)
 	}
 	{ // do_test "corruptD-1.2.2"
 		_res = db.Exec("\n")

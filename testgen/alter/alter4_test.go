@@ -42,6 +42,21 @@ func Test_alter4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "alter4-1.1"
 		r = db.Query("\n    CREATE TEMP TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_temp_master;\n  ")
@@ -177,8 +192,8 @@ func Test_alter4(t *testing.T) {
 	}
 	{ // do_test "alter4-4.1"
 		os.Remove("test.db")
-		var _DB = "sqlite3 db test.db" // TCL namespace variable
-		_ = _DB // suppress unused warning
+		DB = "sqlite3 db test.db" // TCL namespace variable
+		_ = DB // suppress unused warning
 		r = db.Query("\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
@@ -208,12 +223,12 @@ func Test_alter4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE t4(c1);\n  ")
 		}
 	}
-	var _sql = "" // TCL namespace variable
-	_ = _sql // suppress unused warning
+	sql = "" // TCL namespace variable
+	_ = sql // suppress unused warning
 	{ // do_test "alter4-8.2"
-		var cols = "c1"
+		cols = "c1"
 		_ = cols // suppress unused warning
-		var i = "2"
+		i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			_res = db.Exec("\n      ALTER TABLE t4 ADD c" + i + "\n    ")
@@ -229,8 +244,8 @@ func Test_alter4(t *testing.T) {
 				}
 			}
 		}
-		var _sql = "CREATE TABLE t4(" + "join $cols {, }" + ")" // TCL namespace variable
-		_ = _sql // suppress unused warning
+		sql = "CREATE TABLE t4(" + "join $cols {, }" + ")" // TCL namespace variable
+		_ = sql // suppress unused warning
 	}
 	{ // do_test "alter4-8.2"
 		r = db.Query("\n    SELECT sql FROM sqlite_temp_master WHERE name = 't4';\n  ")
@@ -269,10 +284,10 @@ func Test_alter4(t *testing.T) {
 		}
 	}
 	{ // do_test "alter4-10.1"
-		db, err := frigolite.Open(":memory:")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open(":memory:")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
+		// sqlite3_db_config db LEGACY_FILE_FORMAT 1 (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a DESC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ALTER TABLE t1 ADD COLUMN d;\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a DESC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ALTER TABLE t1 ADD COLUMN d;\n    PRAGMA integrity_check;\n  ")

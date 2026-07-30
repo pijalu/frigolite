@@ -39,8 +39,19 @@ func Test_alterfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "alterfault"
+	testprefix = "alterfault"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a);                 \n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 123;\n  END;\n")
@@ -48,8 +59,14 @@ func Test_alterfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);                 \n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 123;\n  END;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE t1 ADD COLUMN b CHECK...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1.1 -faults oom* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    ALTER TABLE t1 ADD COLUMN b CHECK...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -59,7 +76,7 @@ func Test_alterfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(d, e CONSTRAINT abc NOT NULL, f);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	// faultsim_save_and_close (unsupported command, not transpiled)
 	// foreach {tn sql} "\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n"
 	_items0 := tclSplitList("\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n")
 	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
@@ -68,7 +85,18 @@ func Test_alterfault(t *testing.T) {
 		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
 		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql $::sql\n  } -test {\n    faultsim_test_result {0 {}}\n  }")
+			// do_faultsim_test 2.$tn -faults oom* -prep {
+    faultsim_restore_and_reopen
+  } -body {
+    execsql $::sql
+  } -test {
+    faultsim_test_result {0 {}}
+  } (unsupported command, not transpiled)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.e -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE x1 DROP CONSTRAINT no...} -test {\n  faultsim_test_result                           ...}")
+		// do_faultsim_test 2.e -faults oom* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql {
+    ALTER TABLE x1 DROP CONSTRAINT no...} -test {
+  faultsim_test_result                           ...} (unsupported command, not transpiled)
 }

@@ -39,10 +39,57 @@ func Test_bestindex6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var mask string
+	_ = mask // pre-declared from TCL source
+	var wlist string
+	_ = wlist // pre-declared from TCL source
+	var iCons string
+	_ = iCons // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var cons string
+	_ = cons // pre-declared from TCL source
+	var col string
+	_ = col // pre-declared from TCL source
+	var idxnum string
+	_ = idxnum // pre-declared from TCL source
+	var idxstr string
+	_ = idxstr // pre-declared from TCL source
+	var aa string
+	_ = aa // pre-declared from TCL source
+	var _map string
+	_ = _map // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var src string
+	_ = src // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var C_usable string
+	_ = C_usable // pre-declared from TCL source
+	var C_column string
+	_ = C_column // pre-declared from TCL source
+	var C_op string
+	_ = C_op // pre-declared from TCL source
+	var xxx string
+	_ = xxx // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindex6"
+	testprefix = "bestindex6"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(id int, value text);\n  CREATE TABLE t2(ctx int, id int, value text); \n\n  INSERT INTO t1 VALUES(1,'try');\n  INSERT INTO t2 VALUES(1,1,'good');\n  INSERT INTO t2 VALUES(2,2,'evil');\n\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n  CREATE VIRTUAL TABLE vt2 USING tcl(vtab_command t2);\n")

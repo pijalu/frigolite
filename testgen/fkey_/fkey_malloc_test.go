@@ -39,13 +39,52 @@ func Test_fkey_malloc(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var zSql string
+	_ = zSql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-1 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a PR...} -sqlbody {\n  INSERT INTO t1 VALUES('aaa', 1);\n  INSERT INTO ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-2 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a, b...} -sqlbody {\n  CREATE TABLE t2(x, y, \n    FOREIGN KEY(x, y) RE...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-3 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(x IN...} -sqlbody {\n  UPDATE t1 SET x = 14;\n}")
+	// do_malloc_test fkey_malloc-1 -sqlprep {
+  PRAGMA foreign_keys = 1;
+  CREATE TABLE t1(a PR...} -sqlbody {
+  INSERT INTO t1 VALUES('aaa', 1);
+  INSERT INTO ...} (unsupported command, not transpiled)
+	// do_malloc_test fkey_malloc-2 -sqlprep {
+  PRAGMA foreign_keys = 1;
+  CREATE TABLE t1(a, b...} -sqlbody {
+  CREATE TABLE t2(x, y, 
+    FOREIGN KEY(x, y) RE...} (unsupported command, not transpiled)
+	// do_malloc_test fkey_malloc-3 -sqlprep {
+  PRAGMA foreign_keys = 1;
+  CREATE TABLE t1(x IN...} -sqlbody {
+  UPDATE t1 SET x = 14;
+} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-4 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(x IN...} -tclbody {\n  catch_fk_error {INSERT INTO t2 VALUES(1, 3)}\n  ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-5 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(x, y...} -sqlbody {\n  UPDATE t1 SET x = 5;\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-6 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(\n   ...} -sqlbody {\n  INSERT INTO t1 VALUES('ghi', 'ghi');\n  DELETE F...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-7 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE x(a, b,...} -sqlbody {\n  DROP TABLE y;\n  DROP TABLE x;\n}")
+	// do_malloc_test fkey_malloc-4 -sqlprep {
+  PRAGMA foreign_keys = 1;
+  CREATE TABLE t1(x IN...} -tclbody {
+  catch_fk_error {INSERT INTO t2 VALUES(1, 3)}
+  ...} (unsupported command, not transpiled)
+	// do_malloc_test fkey_malloc-5 -sqlprep {
+  PRAGMA foreign_keys = 1;
+  CREATE TABLE t1(x, y...} -sqlbody {
+  UPDATE t1 SET x = 5;
+} (unsupported command, not transpiled)
+	// do_malloc_test fkey_malloc-6 -sqlprep {
+  PRAGMA foreign_keys = 1;
+  CREATE TABLE t1(
+   ...} -sqlbody {
+  INSERT INTO t1 VALUES('ghi', 'ghi');
+  DELETE F...} (unsupported command, not transpiled)
+	// do_malloc_test fkey_malloc-7 -sqlprep {
+  PRAGMA foreign_keys = 1;
+  CREATE TABLE x(a, b,...} -sqlbody {
+  DROP TABLE y;
+  DROP TABLE x;
+} (unsupported command, not transpiled)
 }

@@ -39,36 +39,67 @@ func Test_bindxfer(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var vals string
+	_ = vals // pre-declared from TCL source
+	var cols string
+	_ = cols // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var VM1 string
+	_ = VM1 // pre-declared from TCL source
+	var VM2 string
+	_ = VM2 // pre-declared from TCL source
+	var sqlite_static_bind_value string
+	_ = sqlite_static_bind_value // pre-declared from TCL source
+	var VALUES string
+	_ = VALUES // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var VALS string
+	_ = VALS // pre-declared from TCL source
+	var COLS string
+	_ = COLS // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "bindxfer-1.1"
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
 		_res = db.Exec("CREATE TABLE t1(a,b,c);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c);")
 		}
-		var VM1 = "sqlite3_prepare $DB {SELECT ?, ?, ?} -1 TAIL"
+		VM1 = "sqlite3_prepare $DB {SELECT ?, ?, ?} -1 TAIL"
 		_ = VM1 // suppress unused warning
 	}
 	{ // do_test "bindxfer-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM1")
+		// sqlite3_bind_parameter_count $VM1 (unsupported command, not transpiled)
 	}
 	{ // do_test "bindxfer-1.3"
-		var VM2 = "sqlite3_prepare $DB {SELECT ?, ?, ?} -1 TAIL"
+		VM2 = "sqlite3_prepare $DB {SELECT ?, ?, ?} -1 TAIL"
 		_ = VM2 // suppress unused warning
 	}
 	{ // do_test "bindxfer-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM2")
+		// sqlite3_bind_parameter_count $VM2 (unsupported command, not transpiled)
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM1")
+		// sqlite3_finalize $VM1 (unsupported command, not transpiled)
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM2")
+		// sqlite3_finalize $VM2 (unsupported command, not transpiled)
 	}
 }

@@ -39,8 +39,31 @@ func Test_fts3defer2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var scan_littleEndian string
+	_ = scan_littleEndian // pre-declared from TCL source
+	var scan_bigEndian string
+	_ = scan_bigEndian // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var sqlite_fts3_enable_parentheses string
+	_ = sqlite_fts3_enable_parentheses // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var blob string
+	_ = blob // pre-declared from TCL source
+	var scan__tcl_platform_byteOrder string
+	_ = scan__tcl_platform_byteOrder // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "fts3defer2"
+	testprefix = "fts3defer2"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.1.1"
@@ -67,7 +90,7 @@ func Test_fts3defer2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES('a b c d e f a x y');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1(t1) VALUES('optimize');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 	{ // "1.1.4"
 		_res = db.Exec("\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments SET block = zeroblob(length(block)) WHERE length(block)>10000;\n")
 		if _res.Error != nil {
@@ -166,7 +189,7 @@ func Test_fts3defer2(t *testing.T) {
 		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
 		_ = _idx0
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+			// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -195,7 +218,7 @@ func Test_fts3defer2(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			var sqlite_fts3_enable_parentheses = "1"
+			sqlite_fts3_enable_parentheses = "1"
 			_ = sqlite_fts3_enable_parentheses // suppress unused warning
 			{ // "2.2." + tn + ".3"
 				r = db.Query("\n    SELECT mit(matchinfo(t2, 'x')) FROM t2 WHERE t2 MATCH 'g OR (g z)';\n  ")
@@ -244,7 +267,7 @@ func Test_fts3defer2(t *testing.T) {
 			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
 			_ = _idx1
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+				// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)

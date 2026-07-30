@@ -39,12 +39,33 @@ func Test_stmtvtab1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var y string
+	_ = y // pre-declared from TCL source
+	var z string
+	_ = z // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var mem string
+	_ = mem // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var x = "giraffe"
+	x = "giraffe"
 	_ = x // suppress unused warning
-	var y = "mango"
+	y = "mango"
 	_ = y // suppress unused warning
-	var z = "alabama"
+	z = "alabama"
 	_ = z // suppress unused warning
 	{ // "stmtvtab1-100"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES($a,$b,$c);\n  CREATE INDEX t1a ON t1(a);\n  SELECT run, sql FROM sqlite_stmt ORDER BY 1;\n")

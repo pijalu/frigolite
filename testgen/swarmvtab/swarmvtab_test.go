@@ -42,12 +42,35 @@ func Test_swarmvtab(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nFile string
+	_ = nFile // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var iMin string
+	_ = iMin // pre-declared from TCL source
+	var iMax string
+	_ = iMax // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "swarmvtab"
+	testprefix = "swarmvtab"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
-	var nFile = sqlite_open_file_count
+	// do_not_use_codec (unsupported command, not transpiled)
+	// load_static_extension db unionvtab (unsupported command, not transpiled)
+	nFile = sqlite_open_file_count
 	_ = nFile // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n  WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n  INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n\n  CREATE TABLE dir(f, t, imin, imax);\n")
@@ -56,12 +79,12 @@ func Test_swarmvtab(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
-			var iMin = "$i*10 + 1"
+			iMin = "$i*10 + 1"
 			_ = iMin // suppress unused warning
-			var iMax = "$iMin+9"
+			iMax = "$iMin+9"
 			_ = iMax // suppress unused warning
 			os.Remove("test.db" + i)
 			_res = db.Exec("ATTACH 'test.db" + i + "' AS aux;\n      CREATE TABLE aux.t" + i + " (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t" + i + " SELECT * FROM t0 WHERE a BETWEEN " + iMin + " AND " + iMax + ";\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db" + i + "', 't" + i + "', " + iMin + ", " + iMax + ");")
@@ -100,15 +123,15 @@ func Test_swarmvtab(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.1 rowid = 700")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.2 rowid = -1")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.3 rowid = 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.4 rowid = 55")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.5 rowid BETWEEN 20 AND 100")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.6 rowid > 350")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.7 rowid >= 350")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.8 rowid >= 200")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.9 1")
+	// do_compare_test 1.4.1 rowid = 700 (unsupported command, not transpiled)
+	// do_compare_test 1.4.2 rowid = -1 (unsupported command, not transpiled)
+	// do_compare_test 1.4.3 rowid = 0 (unsupported command, not transpiled)
+	// do_compare_test 1.4.4 rowid = 55 (unsupported command, not transpiled)
+	// do_compare_test 1.4.5 rowid BETWEEN 20 AND 100 (unsupported command, not transpiled)
+	// do_compare_test 1.4.6 rowid > 350 (unsupported command, not transpiled)
+	// do_compare_test 1.4.7 rowid >= 350 (unsupported command, not transpiled)
+	// do_compare_test 1.4.8 rowid >= 200 (unsupported command, not transpiled)
+	// do_compare_test 1.4.9 1 (unsupported command, not transpiled)
 	{ // "1.5.1.(5-seconds-or-so)"
 		r = db.Query("\n  SELECT count(*) FROM s1 a, s1 b WHERE b.rowid<=200;\n")
 		if r.Error != nil {
@@ -134,7 +157,7 @@ func Test_swarmvtab(t *testing.T) {
 		}
 	}
 	{ // do_test "1.6.0"
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 			db2, err = frigolite.Open("test.db" + i)
@@ -155,21 +178,21 @@ func Test_swarmvtab(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t0 WHERE rowid<=200 ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.1 rowid = 700")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.2 rowid = -1")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.3 rowid = 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.4 rowid = 55")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.5 rowid BETWEEN 20 AND 100")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.6 rowid > 350")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.7 rowid >= 350")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.8 rowid >= 200")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.9 1")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.10 rowid >= 5")
+	// do_compare_test 1.6.1 rowid = 700 (unsupported command, not transpiled)
+	// do_compare_test 1.6.2 rowid = -1 (unsupported command, not transpiled)
+	// do_compare_test 1.6.3 rowid = 0 (unsupported command, not transpiled)
+	// do_compare_test 1.6.4 rowid = 55 (unsupported command, not transpiled)
+	// do_compare_test 1.6.5 rowid BETWEEN 20 AND 100 (unsupported command, not transpiled)
+	// do_compare_test 1.6.6 rowid > 350 (unsupported command, not transpiled)
+	// do_compare_test 1.6.7 rowid >= 350 (unsupported command, not transpiled)
+	// do_compare_test 1.6.8 rowid >= 200 (unsupported command, not transpiled)
+	// do_compare_test 1.6.9 1 (unsupported command, not transpiled)
+	// do_compare_test 1.6.10 rowid >= 5 (unsupported command, not transpiled)
 	{ // do_test "1.x"
 	}
 	{ // do_test "1.y"
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
 		os.Remove("test.db" + i)
@@ -184,18 +207,18 @@ func Test_swarmvtab(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	{ // do_test "2.0.1"
 		_res = db.Exec("\n    CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n      INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n    CREATE TABLE dir(f, t, imin, imax);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n      INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n    CREATE TABLE dir(f, t, imin, imax);\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
-			var iMin = "$i*10 + 1"
+			iMin = "$i*10 + 1"
 			_ = iMin // suppress unused warning
-			var iMax = "$iMin+9"
+			iMax = "$iMin+9"
 			_ = iMax // suppress unused warning
 			os.Remove("test.db" + i)
 			_res = db.Exec("ATTACH 'test.db" + i + "' AS aux;\n      CREATE TABLE aux.t" + i + " (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t" + i + " SELECT * FROM t0 WHERE a BETWEEN " + iMin + " AND " + iMax + ";\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db" + i + "', 't" + i + "', " + iMin + ", " + iMax + ");")

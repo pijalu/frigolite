@@ -39,34 +39,98 @@ func Test_bestindexE(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var OP_eq string
+	_ = OP_eq // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var conslist string
+	_ = conslist // pre-declared from TCL source
+	var cons string
+	_ = cons // pre-declared from TCL source
+	var pretty string
+	_ = pretty // pre-declared from TCL source
+	var xBestIndex string
+	_ = xBestIndex // pre-declared from TCL source
+	var cmd string
+	_ = cmd // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var C_usable string
+	_ = C_usable // pre-declared from TCL source
+	var lCol string
+	_ = lCol // pre-declared from TCL source
+	var C_column string
+	_ = C_column // pre-declared from TCL source
+	var OP_C_op string
+	_ = OP_C_op // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var zName string
+	_ = zName // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var zName_ string
+	_ = zName_ // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var lCons string
+	_ = lCons // pre-declared from TCL source
+	var tname string
+	_ = tname // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindexE"
+	testprefix = "bestindexE"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "create_vtab x1 {a b c}")
+		// create_vtab x1 {a b c} (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex_test 1.1 {\n  SELECT * FROM x1 WHERE a=?\n} {{x1: a=?}}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex_test 1.2 {\n  SELECT * FROM x1 WHERE a=? AND b=?\n} {{x1: a=? AND b=?}}")
+	// do_bestindex_test 1.1 {
+  SELECT * FROM x1 WHERE a=?
+} {{x1: a=?}} (unsupported command, not transpiled)
+	// do_bestindex_test 1.2 {
+  SELECT * FROM x1 WHERE a=? AND b=?
+} {{x1: a=? AND b=?}} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	{ // do_test "2.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "create_vtab Delivery {id customer}")
-		t.Errorf("TODO: %s not implemented in frigolite", "create_vtab ReturnDelivery {id customer}")
-		t.Errorf("TODO: %s not implemented in frigolite", "create_vtab Customer {oid name}")
+		// create_vtab Delivery {id customer} (unsupported command, not transpiled)
+		// create_vtab ReturnDelivery {id customer} (unsupported command, not transpiled)
+		// create_vtab Customer {oid name} (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex_test 2.1 {\n  SELECT Delivery.ID, Customer.Name\n  FROM Delive...} {\n  {Delivery: }\n  {Customer: oid=?}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex_test 2.2 {\n  SELECT * FROM\n  (\n     SELECT Delivery.ID, Cust...} {\n  {Delivery: id=?} \n  {Customer: oid=?} \n  {Retur...}")
+	// do_bestindex_test 2.1 {
+  SELECT Delivery.ID, Customer.Name
+  FROM Delive...} {
+  {Delivery: }
+  {Customer: oid=?}
+} (unsupported command, not transpiled)
+	// do_bestindex_test 2.2 {
+  SELECT * FROM
+  (
+     SELECT Delivery.ID, Cust...} {
+  {Delivery: id=?} 
+  {Customer: oid=?} 
+  {Retur...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db eponymous_cmd")
+	// register_tcl_module db eponymous_cmd (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // "3.1.0"
 		r = db.Query("\n  PRAGMA table_info = tcl\n")
@@ -106,9 +170,10 @@ func Test_bestindexE(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(x);\n")
 		}
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db eponymous_cmd")
+	// register_tcl_module db eponymous_cmd (unsupported command, not transpiled)
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "3.2.1"

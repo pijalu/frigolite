@@ -39,6 +39,33 @@ func Test_auth2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var flist string
+	_ = flist // pre-declared from TCL source
+	var authargs string
+	_ = authargs // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var code string
+	_ = code // pre-declared from TCL source
+	var arg2 string
+	_ = arg2 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var op string
+	_ = op // pre-declared from TCL source
+	var a0 string
+	_ = a0 // pre-declared from TCL source
+	var a1 string
+	_ = a1 // pre-declared from TCL source
+	var a2 string
+	_ = a2 // pre-declared from TCL source
+	var a3 string
+	_ = a3 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if false {
 		return
@@ -48,97 +75,98 @@ func Test_auth2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(1,2,3);\n  ")
 		}
-		var _flist = "" // TCL namespace variable
-		_ = _flist // suppress unused warning
+		flist = "" // TCL namespace variable
+		_ = flist // suppress unused warning
 		// proc definition (not transpiled)
 		_res = db.Exec("SELECT max(a,b,c) FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "auth2-1.2"
-		_ = _flist // TCL namespace variable (query)
+		_ = flist // TCL namespace variable (query)
 	}
 	{ // do_test "auth2-1.3"
-		var _flist = "" // TCL namespace variable
-		_ = _flist // suppress unused warning
+		flist = "" // TCL namespace variable
+		_ = flist // suppress unused warning
 		_res = db.Exec("SELECT min(a,b,c) FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "auth2-1.4"
-		_ = _flist // TCL namespace variable (query)
+		_ = flist // TCL namespace variable (query)
 	}
 	{ // do_test "auth2-1.5"
-		var _flist = "" // TCL namespace variable
-		_ = _flist // suppress unused warning
+		flist = "" // TCL namespace variable
+		_ = flist // suppress unused warning
 		_res = db.Exec("SELECT coalesce(min(a,b,c),999) FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "auth2-1.6"
-		_ = _flist // TCL namespace variable (query)
+		_ = flist // TCL namespace variable (query)
 	}
 	{ // do_test "auth2-1.7"
-		var _flist = "" // TCL namespace variable
-		_ = _flist // suppress unused warning
+		flist = "" // TCL namespace variable
+		_ = flist // suppress unused warning
 		_res = db.Exec("SELECT coalesce(a,b,c) FROM t1")
 		_ = _res // catchsql
 	}
 	{ // do_test "auth2-1.8"
-		_ = _flist // TCL namespace variable (query)
+		_ = flist // TCL namespace variable (query)
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
 	{ // do_test "auth2-2.1"
-		var _authargs = "" // TCL namespace variable
-		_ = _authargs // suppress unused warning
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE t2(x,y,z);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x,y,z);\n  ")
 		}
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth2-2.2"
-		var _authargs = "" // TCL namespace variable
-		_ = _authargs // suppress unused warning
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
 		_res = db.Exec("\n    CREATE VIEW v2 AS SELECT x+y AS a, y+z AS b from t2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIEW v2 AS SELECT x+y AS a, y+z AS b from t2;\n  ")
 		}
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth2-2.3"
-		var _authargs = "" // TCL namespace variable
-		_ = _authargs // suppress unused warning
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
 		_res = db.Exec("\n    SELECT a, b FROM v2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT a, b FROM v2;\n  ")
 		}
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	{ // do_test "auth2-2.4"
 		db2.Exec("\n    CREATE TABLE t3(p,q,r);\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		var _authargs = "" // TCL namespace variable
-		_ = _authargs // suppress unused warning
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
 		_res = db.Exec("\n    SELECT b, a FROM v2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b, a FROM v2;\n  ")
 		}
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	db2.Close()
 	{ // do_test "auth2-3.1"
-		var _authargs = "" // TCL namespace variable
-		_ = _authargs // suppress unused warning
+		authargs = "" // TCL namespace variable
+		_ = authargs // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t2 SELECT * FROM t1;\n  ")
 		}
-		_ = _authargs // TCL namespace variable (query)
+		_ = authargs // TCL namespace variable (query)
 	}
 	// proc definition (not transpiled)
-	var authargs = ""
+	authargs = ""
 	_ = authargs // suppress unused warning
 	{ // "auth2-3.2"
 		r = db.Query("\n  DELETE FROM t1;\n  INSERT INTO t1 VALUES(1,2,3),('a','b','c');\n  DELETE FROM t2;\n  INSERT INTO t2 SELECT * FROM t1;\n  SELECT * FROM t2;\n")

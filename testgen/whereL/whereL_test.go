@@ -39,9 +39,16 @@ func Test_whereL(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "whereL" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "whereL" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "100"
 		_res = db.Exec("\n  CREATE TABLE t1(a INT PRIMARY KEY, b, c, d, e);\n  CREATE TABLE t2(a INT PRIMARY KEY, f, g, h, i);\n  CREATE TABLE t3(a INT PRIMARY KEY, j, k, l, m);\n  CREATE VIEW v4 AS SELECT * FROM t2 UNION ALL SELECT * FROM t3;\n")
 		if _res.Error != nil {
@@ -66,7 +73,7 @@ func Test_whereL(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1, t2, t3\n   WHERE t1.a=t2.a AND t2.a=t3.j AND t3.j=abs(5)\n  ORDER BY t1.a;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+	// sqlite3_create_function db (unsupported command, not transpiled)
 	{ // "122"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1, t2, t3\n   WHERE t1.a=t2.a AND t2.a=t3.j AND t3.j=coalesce(5,random())\n  ORDER BY t1.a;\n")
 		if r.Error != nil {

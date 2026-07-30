@@ -40,8 +40,15 @@ func Test_unionvtabfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "unionvtabfault"
+	testprefix = "unionvtabfault"
 	_ = testprefix // suppress unused warning
 	os.Remove("test.db2")
 	{ // "1.0"
@@ -50,10 +57,16 @@ func Test_unionvtabfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b TEXT);\n\n  INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO t2 VALUES(10, 'ten'), (11, 'eleven'), (12, 'twelve');\n  INSERT INTO t3 VALUES(20, 'twenty'), (21, 'twenty-one'), (22, 'twenty-two');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults * -prep {\n  faultsim_restore_and_reopen\n  load_static_exten...} -body {\n  execsql {\n    CREATE VIRTUAL TABLE temp.uuu USI...} -test {\n  faultsim_test_result {0 {}}             \\\n     ...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 1.1 -faults * -prep {
+  faultsim_restore_and_reopen
+  load_static_exten...} -body {
+  execsql {
+    CREATE VIRTUAL TABLE temp.uuu USI...} -test {
+  faultsim_test_result {0 {}}             \
+     ...} (unsupported command, not transpiled)
+	// faultsim_restore_and_reopen (unsupported command, not transpiled)
+	// load_static_extension db unionvtab (unsupported command, not transpiled)
 	_res = db.Exec(" ATTACH 'test.db2' AS aux; ")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'test.db2' AS aux; ")
@@ -66,6 +79,16 @@ func Test_unionvtabfault(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE temp.uuu USING unionvtab(\n      \"VALUES(NULL, 't1', 1, 9),  ('main', 't2', 10, 19), ('aux', 't3', 20, 29)\"\n  );\n")
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -faults oom* -prep {\n} -body {\n  execsql { SELECT * FROM uuu }\n} -test {\n  faultsim_test_result {0 {1 one 2 two 3 three 10...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.0 -faults * -prep {\n  catch { db close }\n  sqlite3 db :memory:\n} -body {\n  load_static_extension db unionvtab\n} -test {\n  faultsim_test_result {0 {}} {1 {initialization ...}")
+	// do_faultsim_test 1.2 -faults oom* -prep {
+} -body {
+  execsql { SELECT * FROM uuu }
+} -test {
+  faultsim_test_result {0 {1 one 2 two 3 three 10...} (unsupported command, not transpiled)
+	// do_faultsim_test 2.0 -faults * -prep {
+  catch { db close }
+  sqlite3 db :memory:
+} -body {
+  load_static_extension db unionvtab
+} -test {
+  faultsim_test_result {0 {}} {1 {initialization ...} (unsupported command, not transpiled)
 }

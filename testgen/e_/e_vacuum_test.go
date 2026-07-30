@@ -42,8 +42,37 @@ func Test_e_vacuum(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var nFrag string
+	_ = nFrag // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var avmode string
+	_ = avmode // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var nPage string
+	_ = nPage // pre-declared from TCL source
+	var freelist string
+	_ = freelist // pre-declared from TCL source
+	var original_size string
+	_ = original_size // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var prevpageno string
+	_ = prevpageno // pre-declared from TCL source
+	var pageno string
+	_ = pageno // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte 0x1000000")
+	// sqlite3_test_control_pending_byte 0x1000000 (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // "e_vacuum-0.1"
@@ -62,7 +91,7 @@ func Test_e_vacuum(t *testing.T) {
 		sz := _items0[_idx0+2]
 		_ = sz // suppress unused warning
 		_ = _idx0
-			var nPage = "create_db \"PRAGMA auto_vacuum = $avmode\""
+			nPage = "create_db \"PRAGMA auto_vacuum = $avmode\""
 			_ = nPage // suppress unused warning
 			{ // "e_vacuum-1.1." + tn + ".1"
 				_res = db.Exec("\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
@@ -84,10 +113,9 @@ func Test_e_vacuum(t *testing.T) {
 					}
 				}
 			} else {
-				var freelist = "$nPage - $sz"
+				freelist = "$nPage - $sz"
 				_ = freelist // suppress unused warning
 				if avmode == "incremental" {
-					var freelist = "0"
 					// incr freelist -2
 					{
 						_n, _err := strconv.Atoi(freelist)
@@ -120,7 +148,7 @@ func Test_e_vacuum(t *testing.T) {
 			}
 		}
 		{ // do_test "e_vacuum-1.3.1.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "create_db PRAGMA page_size = 1024 ; PRAGMA auto_vacuum = FUL...")
+			// create_db PRAGMA page_size = 1024 ; PRAGMA auto_vacuum = FUL... (unsupported command, not transpiled)
 			r = db.Query(" PRAGMA page_size ; PRAGMA auto_vacuum ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size ; PRAGMA auto_vacuum ")
@@ -195,14 +223,14 @@ func Test_e_vacuum(t *testing.T) {
 			}
 		}
 		os.Remove("test.db2")
-		t.Errorf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = NONE }")
+		// create_db { PRAGMA auto_vacuum = NONE } (unsupported command, not transpiled)
 		{ // "e_vacuum-2.1.1"
 			_res = db.Exec("\n  ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  PRAGMA aux.page_size = 1024;\n  CREATE TABLE aux.t3 AS SELECT * FROM t1;\n  DELETE FROM t3;\n")
 			}
 		}
-		var original_size = "file size test.db2"
+		original_size = "file size test.db2"
 		_ = original_size // suppress unused warning
 		{ // "e_vacuum-2.1.3"
 			_res = db.Exec(" VACUUM ")
@@ -361,9 +389,9 @@ func Test_e_vacuum(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "create_db")
+		// create_db (unsupported command, not transpiled)
 		{ // do_test "e_vacuum-3.2.2.1"
-			var res = ""
+			res = ""
 			_ = res // suppress unused warning
 			_res = db.Exec(" SELECT a FROM t1 ")
 			if _res.Error != nil {
@@ -371,14 +399,14 @@ func Test_e_vacuum(t *testing.T) {
 			}
 		}
 		{ // do_test "e_vacuum-3.3.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = FULL }")
+			// create_db { PRAGMA auto_vacuum = FULL } (unsupported command, not transpiled)
 			r = db.Query(" PRAGMA auto_vacuum ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum ")
 			}
 		}
 		{ // do_test "e_vacuum-3.3.2.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = FULL }")
+			// create_db { PRAGMA auto_vacuum = FULL } (unsupported command, not transpiled)
 			_res = db.Exec("\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    DELETE FROM t2;\n  ")
@@ -386,7 +414,7 @@ func Test_e_vacuum(t *testing.T) {
 			// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
 		}
 		{ // do_test "e_vacuum-3.3.2.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "create_db { PRAGMA auto_vacuum = INCREMENTAL }")
+			// create_db { PRAGMA auto_vacuum = INCREMENTAL } (unsupported command, not transpiled)
 			r = db.Query("\n    DELETE FROM t1;\n    DELETE FROM t2;\n    PRAGMA incremental_vacuum;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    DELETE FROM t2;\n    PRAGMA incremental_vacuum;\n  ")

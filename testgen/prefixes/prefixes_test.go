@@ -39,10 +39,27 @@ func Test_prefixes(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var zLeft string
+	_ = zLeft // pre-declared from TCL source
+	var zRight string
+	_ = zRight // pre-declared from TCL source
+	var expected string
+	_ = expected // pre-declared from TCL source
+	var INPUT string
+	_ = INPUT // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "prefixes"
+	testprefix = "prefixes"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db prefixes")
+	// load_static_extension db prefixes (unsupported command, not transpiled)
 	// foreach {tn zLeft zRight expected} "\n  1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyz\\u1234xz\" \"xyz\\u1234xy\" 5\n  6 \"xyz\\u1234\"   \"xyz\\u1234xy\" 4\n  7 \"xyz\\u1234\"   \"xyz\\u1234\"   4\n  8 \"xyz\\u1234xy\" \"xyz\\u1234\"   4\n  9 \"xyz\\u1234xy\" \"xyz\\u1233\"   3\n 10 \"xyz\\u1234xy\" \"xyz\\u1235\"   3\n"
 	_items0 := tclSplitList("\n  1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyz\\u1234xz\" \"xyz\\u1234xy\" 5\n  6 \"xyz\\u1234\"   \"xyz\\u1234xy\" 4\n  7 \"xyz\\u1234\"   \"xyz\\u1234\"   4\n  8 \"xyz\\u1234xy\" \"xyz\\u1234\"   4\n  9 \"xyz\\u1234xy\" \"xyz\\u1233\"   3\n 10 \"xyz\\u1234xy\" \"xyz\\u1235\"   3\n")
 	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {

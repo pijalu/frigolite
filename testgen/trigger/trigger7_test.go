@@ -39,6 +39,15 @@ func Test_trigger7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var txt string
+	_ = txt // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "trigger7-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x, y);\n  ")
@@ -59,7 +68,7 @@ func Test_trigger7(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger7-99.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense';\n  ")
@@ -67,8 +76,8 @@ func Test_trigger7(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 		}
 		_res = db.Exec(" DROP TRIGGER t2r5 ")

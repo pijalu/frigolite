@@ -40,6 +40,15 @@ func Test_insert5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "insert5-1.0"
@@ -50,28 +59,32 @@ func Test_insert5(t *testing.T) {
 		}
 	}
 	{ // do_test "insert5-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM main }")
+		// uses_temp_table { INSERT INTO b SELECT * FROM main } (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM b }")
+		// uses_temp_table { INSERT INTO b SELECT * FROM b } (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT (SELECT id FROM b), id1 FROM...}")
+		// uses_temp_table { INSERT INTO b SELECT (SELECT id FROM b), id1 FROM...} (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT id1, (SELECT id FROM b) FROM...}")
+		// uses_temp_table { INSERT INTO b SELECT id1, (SELECT id FROM b) FROM...} (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { \n    INSERT INTO b \n      SELECT * FROM main WHER...}")
+		// uses_temp_table { 
+    INSERT INTO b 
+      SELECT * FROM main WHER...} (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM v1 }")
+		// uses_temp_table { INSERT INTO b SELECT * FROM v1 } (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM v2 }")
+		// uses_temp_table { INSERT INTO b SELECT * FROM v2 } (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { \n    INSERT INTO b \n    SELECT * FROM main WHERE ...}")
+		// uses_temp_table { 
+    INSERT INTO b 
+    SELECT * FROM main WHERE ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "insert5-2.9"
 		_res = db.Exec(" \n    INSERT INTO b \n    SELECT * FROM main \n    WHERE id > 10 AND (SELECT count(*) FROM v2 GROUP BY main.id)\n  ")

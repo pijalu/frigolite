@@ -40,8 +40,19 @@ func Test_memjournal2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nRow string
+	_ = nRow // pre-declared from TCL source
+	var jj string
+	_ = jj // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "memjournal2"
+	testprefix = "memjournal2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n")
@@ -49,7 +60,7 @@ func Test_memjournal2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE);\n")
 		}
 	}
-	var nRow = "2000"
+	nRow = "2000"
 	_ = nRow // suppress unused warning
 	{ // "1.1"
 		r = db.Query("\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(700) FROM s;\n")
@@ -57,7 +68,7 @@ func Test_memjournal2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(700) FROM s;\n")
 		}
 	}
-	var jj = "200"
+	jj = "200"
 	_ = jj // suppress unused warning
 	for func() bool { jj_n, _jj_e := strconv.Atoi(jj); if _jj_e != nil { return false }; return jj_n <= 300 }() {
 		{ // "1.2." + jj + ".1"

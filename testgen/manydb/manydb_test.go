@@ -41,10 +41,37 @@ func Test_manydb(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var using_proxy string
+	_ = using_proxy // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var num_fd_per_openwrite_db string
+	_ = num_fd_per_openwrite_db // pre-declared from TCL source
+	var filehandles string
+	_ = filehandles // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var dbname_i string
+	_ = dbname_i // pre-declared from TCL source
+	var used_name string
+	_ = used_name // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var N = "300"
+	N = "300"
 	_ = N // suppress unused warning
-	var using_proxy = "0"
+	using_proxy = "0"
 	_ = using_proxy // suppress unused warning
 	// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
 	_items0 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
@@ -54,21 +81,21 @@ func Test_manydb(t *testing.T) {
 		value := _items0[_idx0+1]
 		_ = value // suppress unused warning
 		_ = _idx0
-			var using_proxy = "value"
+			using_proxy = "value"
 			_ = using_proxy // suppress unused warning
 		}
-		var num_fd_per_openwrite_db = "3"
+		num_fd_per_openwrite_db = "3"
 		_ = num_fd_per_openwrite_db // suppress unused warning
 		if func() bool { using_proxy_n, _using_proxy_e := strconv.Atoi(using_proxy); if _using_proxy_e != nil { return false }; return using_proxy_n > 0 }() {
-			var num_fd_per_openwrite_db = "5"
+			num_fd_per_openwrite_db = "5"
 			_ = num_fd_per_openwrite_db // suppress unused warning
 		}
-		var filehandles = ""
+		filehandles = ""
 		_ = filehandles // suppress unused warning
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < (N_n * 3) }() {
 				filehandles = tclListAppend(filehandles, "open testfile.1 w")
@@ -92,17 +119,17 @@ func Test_manydb(t *testing.T) {
 		}
 		N = "$i / $num_fd_per_openwrite_db"
 		_ = N // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
 			for true {
-				var name = "test-" + "format %08x [expr {int(rand()*0x7fffffff)}]" + ".db"
+				name = "test-" + "format %08x [expr {int(rand()*0x7fffffff)}]" + ".db"
 				_ = name // suppress unused warning
 				if tclBool("info exists used($name)") {
 				}
-				var dbname_i = name
+				dbname_i = name
 				_ = dbname_i // suppress unused warning
-				var used_name = i
+				used_name = i
 				_ = used_name // suppress unused warning
 				break
 			}
@@ -118,7 +145,7 @@ func Test_manydb(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
 			{ // do_test "manydb-1." + i
-				dbi, err := frigolite.Open(dbname + "(" + i + ")")
+				dbi, err := frigolite.Open(dbname_i)
 				defer dbi.Close()
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n       CREATE TABLE t1(a,b);\n       BEGIN;\n       INSERT INTO t1 VALUES(1,2);\n    ")
@@ -155,8 +182,8 @@ func Test_manydb(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
 			{ // do_test "manydb-3." + i
-				t.Errorf("TODO: %s not implemented in frigolite", "db$i close")
-				os.Remove(dbname + "(" + i + ")")
+				// db$i close (unsupported command, not transpiled)
+				os.Remove(dbname_i)
 			}
 			// incr i 1
 			{

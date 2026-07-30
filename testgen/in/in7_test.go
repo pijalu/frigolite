@@ -39,8 +39,41 @@ func Test_in7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var nNext string
+	_ = nNext // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var nSeen string
+	_ = nSeen // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var rootpage string
+	_ = rootpage // pre-declared from TCL source
+	var tbl_name string
+	_ = tbl_name // pre-declared from TCL source
+	var opcode string
+	_ = opcode // pre-declared from TCL source
+	var p1 string
+	_ = p1 // pre-declared from TCL source
+	var p2 string
+	_ = p2 // pre-declared from TCL source
+	var csr_to_root_p1 string
+	_ = csr_to_root_p1 // pre-declared from TCL source
+	var root_to_tbl_root string
+	_ = root_to_tbl_root // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "in7"
+	testprefix = "in7"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c PRIMARY KEY);\n  CREATE TABLE t2(x, y, z);\n")
@@ -81,7 +114,7 @@ func Test_in7(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT rootpage, tbl_name FROM sqlite_schema")
 				}
-				var nSeen = "0"
+				nSeen = "0"
 				_ = nSeen // suppress unused warning
 				_res = db.Exec("explain " + sql)
 				if _res.Error != nil {

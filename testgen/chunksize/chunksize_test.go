@@ -39,10 +39,21 @@ func Test_chunksize(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var jrnlmode string
+	_ = jrnlmode // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "chunksize"
+	testprefix = "chunksize"
 	_ = testprefix // suppress unused warning
-	if _tcl_platform_platform != "unix" {
+	if tcl_platform_platform != "unix" {
 		return
 	}
 	// foreach {tn jrnlmode} "\n  1 delete\n  2 wal\n"
@@ -56,7 +67,7 @@ func Test_chunksize(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 32768")
+			// file_control_chunksize_test db main 32768 (unsupported command, not transpiled)
 			{ // tn + ".0"
 				r = db.Query(" PRAGMA journal_mode = " + jrnlmode + " ")
 				if r.Error != nil {

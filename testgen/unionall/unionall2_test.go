@@ -39,8 +39,15 @@ func Test_unionall2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "unionall2"
+	testprefix = "unionall2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(c, d);\n\n  CREATE VIEW v1 AS SELECT * FROM t1, t2;\n  CREATE VIEW v2 AS SELECT * FROM t1, t2;\n\n  CREATE VIEW vA AS\n    SELECT * FROM v1, (\n      SELECT * FROM t1 LEFT JOIN t2 ON (a=c)\n    )\n    UNION ALL\n    SELECT * FROM v1, v2\n")

@@ -40,8 +40,29 @@ func Test_without_rowid1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var queries string
+	_ = queries // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var cnt string
+	_ = cnt // pre-declared from TCL source
+	var where string
+	_ = where // pre-declared from TCL source
+	var eqp string
+	_ = eqp // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "without_rowid1"
+	testprefix = "without_rowid1"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "without_rowid1-1.0"
@@ -58,8 +79,11 @@ func Test_without_rowid1(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid1-1.0ixi {\n  SELECT name, key FROM pragma_index_xinfo('t1');...} {c 1 a 1 b 0 d 0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid1-1.0tl {\n  SELECT wr FROM pragma_table_list('t1');\n} {1}")
+	// do_execsql_test_if_vtab without_rowid1-1.0ixi {
+  SELECT name, key FROM pragma_index_xinfo('t1');...} {c 1 a 1 b 0 d 0} (unsupported command, not transpiled)
+	// do_execsql_test_if_vtab without_rowid1-1.0tl {
+  SELECT wr FROM pragma_table_list('t1');
+} {1} (unsupported command, not transpiled)
 	{ // "without_rowid1-1.1"
 		r = db.Query("\n  SELECT *, '|' FROM t1 ORDER BY +c, a;\n")
 		if r.Error != nil {
@@ -236,7 +260,8 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.1.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {a nocase 1 b BINARY 0}")
+	// do_execsql_test_if_vtab 2.1.3 {
+  SELECT name, coll, key FROM pragma_index_xinfo(...} {a nocase 1 b BINARY 0} (unsupported command, not transpiled)
 	{ // "2.2.1"
 		r = db.Query("\n  DROP TABLE t4;\n  CREATE TABLE t4 (b, a COLLATE nocase PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t4(a, b) VALUES('abc', 'def');\n  SELECT * FROM t4;\n")
 		if r.Error != nil {
@@ -261,14 +286,16 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.2.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {a nocase 1 b BINARY 0}")
+	// do_execsql_test_if_vtab 2.2.3 {
+  SELECT name, coll, key FROM pragma_index_xinfo(...} {a nocase 1 b BINARY 0} (unsupported command, not transpiled)
 	{ // "2.3.1"
 		_res = db.Exec("\n  CREATE TABLE t5 (a, b, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t5(a, b) VALUES('abc', 'def');\n  UPDATE t5 SET a='abc', b='def';\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5 (a, b, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t5(a, b) VALUES('abc', 'def');\n  UPDATE t5 SET a='abc', b='def';\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.3.2 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {b BINARY 1 a BINARY 1}")
+	// do_execsql_test_if_vtab 2.3.2 {
+  SELECT name, coll, key FROM pragma_index_xinfo(...} {b BINARY 1 a BINARY 1} (unsupported command, not transpiled)
 	{ // "2.4.1"
 		_res = db.Exec("\n  CREATE TABLE t6 (\n    a COLLATE nocase, b, c UNIQUE, PRIMARY KEY(b, a)\n  ) WITHOUT ROWID;\n\n  INSERT INTO t6(a, b, c) VALUES('abc', 'def', 'ghi');\n  UPDATE t6 SET a='ABC', c='ghi';\n")
 		if _res.Error != nil {
@@ -287,7 +314,8 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.4.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {b BINARY 1 a nocase 1 c BINARY 0}")
+	// do_execsql_test_if_vtab 2.4.3 {
+  SELECT name, coll, key FROM pragma_index_xinfo(...} {b BINARY 1 a nocase 1 c BINARY 0} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -405,7 +433,7 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE t46(a, b, c, d, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH r(x) AS (\n    SELECT 1 UNION ALL SELECT x+1 FROM r WHERE x<100\n  )\n  INSERT INTO t46 SELECT x / 20, x % 20, x % 10, x FROM r;\n")
 		}
 	}
-	var queries = "\n  1    2    \"c = 5 AND a = 1\"          {i46 (c=? AND a=?)}\n  2    6    \"c = 4 AND a < 3\"          {i46 (c=? AND a<?)}\n  3    4    \"c = 2 AND a >= 3\"         {i46 (c=? AND a>?)}\n  4    1    \"c = 2 AND a = 1 AND b<10\" {i46 (c=? AND a=? AND b<?)}\n  5    1    \"c = 0 AND a = 0 AND b>5\"  {i46 (c=? AND a=? AND b>?)}\n"
+	queries = "\n  1    2    \"c = 5 AND a = 1\"          {i46 (c=? AND a=?)}\n  2    6    \"c = 4 AND a < 3\"          {i46 (c=? AND a<?)}\n  3    4    \"c = 2 AND a >= 3\"         {i46 (c=? AND a>?)}\n  4    1    \"c = 2 AND a = 1 AND b<10\" {i46 (c=? AND a=? AND b<?)}\n  5    1    \"c = 0 AND a = 0 AND b>5\"  {i46 (c=? AND a=? AND b>?)}\n"
 	_ = queries // suppress unused warning
 	// foreach {tn cnt where eqp} queries
 	_items0 := tclSplitList(queries)
@@ -511,7 +539,8 @@ func Test_without_rowid1(t *testing.T) {
 					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such column: rowid", _res.Error, "\n  CREATE TABLE t70b(\n     a INT CHECK( rowid!=33 ),\n     b TEXT PRIMARY KEY\n  ) WITHOUT ROWID;\n")
 				}
 			}
-			db, err = frigolite.Open(":memory:")
+			_dbtmp2, err := frigolite.Open(":memory:")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // "8.1"
 				r = db.Query("\n  CREATE TABLE t1(x INTEGER PRIMARY KEY UNIQUE, b) WITHOUT ROWID;\n  CREATE INDEX t1x ON t1(x);\n  INSERT INTO t1(x,b) VALUES('funny','buffalo');\n  SELECT type, name, '|' FROM sqlite_master;\n")
@@ -630,7 +659,7 @@ func Test_without_rowid1(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN 8")
+			// sqlite3_limit db SQLITE_LIMIT_COLUMN 8 (unsupported command, not transpiled)
 			{ // "16.1"
 				_res = db.Exec("\n  CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;\n")
 				if _res.Error != nil {

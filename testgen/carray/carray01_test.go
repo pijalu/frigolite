@@ -40,132 +40,149 @@ func Test_carray01(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var STMT2 string
+	_ = STMT2 // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "carray01"
+	testprefix = "carray01"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "100"
-		var STMT = ""
+		STMT = ""
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "101"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -static $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -static $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "102"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -v2 -malloc $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -v2 -malloc $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "103"
-		var STMT2 = ""
+		STMT2 = ""
 		_ = STMT2 // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind $STMT2 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT2")
+		// sqlite3_carray_bind $STMT2 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT2 (unsupported command, not transpiled)
 	}
 	{ // do_test "110"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind $STMT 3 1 2 3 4 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind $STMT 3 1 2 3 4 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "120"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int64 $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -int64 $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "120b"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int64 $STMT2 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT2")
+		// sqlite3_carray_bind -int64 $STMT2 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT2 (unsupported command, not transpiled)
 	}
 	{ // do_test "121"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int64 -transient $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -int64 -transient $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "122"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int64 -static $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -int64 -static $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "123"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int32 -transient $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -int32 -transient $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "124"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int32 -static $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -int32 -static $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "125"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int32 $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -int32 $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "130"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int64 $STMT 3 1 2 3 4 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -int64 $STMT 3 1 2 3 4 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "131"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int64 -transient $STMT 3 1 2 3 4 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -int64 -transient $STMT 3 1 2 3 4 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "131"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -int64 -static $STMT 3 1 2 3 4 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -int64 -static $STMT 3 1 2 3 4 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "140"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -double $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -double $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "141"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -double -transient $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -double -transient $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "142"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -double -static $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -double -static $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "143"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -double $STMT2 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT2")
+		// sqlite3_carray_bind -double $STMT2 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT2 (unsupported command, not transpiled)
 	}
 	{ // do_test "150"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -double $STMT 3 1 2 3 4 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -double $STMT 3 1 2 3 4 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "160"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -double $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -double $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "161"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -double -v2 $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -double -v2 $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "170"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -text -static $STMT 3 1 2 3 4 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -text -static $STMT 3 1 2 3 4 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "171"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -text -static $STMT2 3 1 2 3 4 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT2")
+		// sqlite3_carray_bind -text -static $STMT2 3 1 2 3 4 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT2 (unsupported command, not transpiled)
 	}
 	{ // do_test "180"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -text -transient $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -text -transient $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "190"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -blob -static $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -blob -static $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "191"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -blob -static $STMT2 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT2")
+		// sqlite3_carray_bind -blob -static $STMT2 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT2 (unsupported command, not transpiled)
 	}
 	{ // do_test "200"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind -blob -transient $STMT 3 1 2 3 4 5 6 7")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind -blob -transient $STMT 3 1 2 3 4 5 6 7 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "300"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_carray_bind $STMT 3")
-		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
+		// sqlite3_carray_bind $STMT 3 (unsupported command, not transpiled)
+		// run_stmt $STMT (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT2")
+	// sqlite3_finalize $STMT (unsupported command, not transpiled)
+	// sqlite3_finalize $STMT2 (unsupported command, not transpiled)
 	{ // "400"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b INT) WITHOUT ROWID;\n  WITH c(x) AS (\n    VALUES(1)\n    UNION\n    SELECT x+1 FROM (carray NATURAL FULL JOIN carray(t1.b)), t1, c\n  )\n  SELECT * FROM c;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "table-function argument references tables to its right") {

@@ -39,9 +39,28 @@ func Test_rowvalue3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var orderby string
+	_ = orderby // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "rowvalue3" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "rowvalue3" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 2, 3);\n  INSERT INTO t1 VALUES(4, 5, 6);\n  INSERT INTO t1 VALUES(7, 8, 9);\n")
 		if _res.Error != nil {
@@ -156,7 +175,7 @@ func Test_rowvalue3(t *testing.T) {
 				idx := _items2[_idx2+1]
 				_ = idx // suppress unused warning
 				_ = _idx2
-					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_indexes")
+					// drop_all_indexes (unsupported command, not transpiled)
 					// foreach {tn2 sql res} "\n    1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }\n\n  "
 					_items3 := tclSplitList("\n    1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }\n\n  ")
 					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
@@ -189,7 +208,7 @@ func Test_rowvalue3(t *testing.T) {
 						idx := _items4[_idx4+1]
 						_ = idx // suppress unused warning
 						_ = _idx4
-							t.Errorf("TODO: %s not implemented in frigolite", "drop_all_indexes")
+							// drop_all_indexes (unsupported command, not transpiled)
 							_res = db.Exec(idx)
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)

@@ -39,6 +39,11 @@ func Test_join6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "join6-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a);\n    CREATE TABLE t2(a);\n    CREATE TABLE t3(a,b);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t3 VALUES(1,2);\n\n    SELECT * FROM t1 LEFT JOIN t2 USING(a) LEFT JOIN t3 USING(a);\n  ")

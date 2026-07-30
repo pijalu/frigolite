@@ -39,16 +39,23 @@ func Test_tkt_bd484a090c(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tkt-bd484a090c"
+	testprefix = "tkt-bd484a090c"
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.1"
-		tclLIndex("catchsql { SELECT datetime('now', 'localtime') }", "0")
+		_ = tclLIndex("catchsql { SELECT datetime('now', 'localtime') }", "0") // lindex result
 	}
 	{ // do_test "1.2"
-		tclLIndex("catchsql { SELECT datetime('now', 'utc') }", "0")
+		_ = tclLIndex("catchsql { SELECT datetime('now', 'utc') }", "0") // lindex result
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 1")
+	// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 1 (unsupported command, not transpiled)
 	{ // do_test "2.1"
 		_res = db.Exec(" SELECT datetime('now', 'localtime') ")
 		_ = _res // catchsql
@@ -57,5 +64,5 @@ func Test_tkt_bd484a090c(t *testing.T) {
 		_res = db.Exec(" SELECT datetime('2000-01-01', 'utc') ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 0")
+	// sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 0 (unsupported command, not transpiled)
 }

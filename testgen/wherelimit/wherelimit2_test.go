@@ -39,8 +39,19 @@ func Test_wherelimit2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var log string
+	_ = log // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "wherelimit2"
+	testprefix = "wherelimit2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 'f');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'd');\n  INSERT INTO t1 VALUES(4, 'c');\n  INSERT INTO t1 VALUES(5, 'b');\n  INSERT INTO t1 VALUES(6, 'a');\n\n  CREATE VIEW v1 AS SELECT a,b FROM t1;\n  CREATE TABLE log(op, a);\n\n  CREATE TRIGGER v1del INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete', old.a);\n  END;\n\n  CREATE TRIGGER v1upd INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update', old.a);\n  END;\n")
@@ -170,22 +181,22 @@ func Test_wherelimit2(t *testing.T) {
 		}
 	}
 	{ // do_test "5.4"
-		var _log = "" // TCL namespace variable
-		_ = _log // suppress unused warning
+		log = "" // TCL namespace variable
+		_ = log // suppress unused warning
 		_res = db.Exec(" DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3 ")
 		}
-		_ = _log // TCL namespace variable (query)
+		_ = log // TCL namespace variable (query)
 	}
 	{ // do_test "5.5"
-		var _log = "" // TCL namespace variable
-		_ = _log // suppress unused warning
+		log = "" // TCL namespace variable
+		_ = log // suppress unused warning
 		_res = db.Exec(" UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5; ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5; ")
 		}
-		_ = _log // TCL namespace variable (query)
+		_ = log // TCL namespace variable (query)
 	}
 	db.Close()
 	db, err = frigolite.Open("")

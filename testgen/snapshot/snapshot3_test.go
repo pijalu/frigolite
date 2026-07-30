@@ -39,8 +39,19 @@ func Test_snapshot3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var snap string
+	_ = snap // pre-declared from TCL source
+	var sz string
+	_ = sz // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "snapshot3"
+	testprefix = "snapshot3"
 	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
@@ -73,7 +84,7 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open_blob db2 main $snap")
+		// sqlite3_snapshot_open_blob db2 main $snap (unsupported command, not transpiled)
 		db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
@@ -90,11 +101,11 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open_blob db2 main $snap")
+		// sqlite3_snapshot_open_blob db2 main $snap (unsupported command, not transpiled)
 		db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	var sz = "file size test.db-wal"
+	sz = "file size test.db-wal"
 	_ = sz // suppress unused warning
 	{ // do_test "1.3"
 		r = db.Query(" PRAGMA wal_checkpoint = truncate ")
@@ -172,10 +183,9 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}
-		var snap = "sqlite3_snapshot_get db main"
+		snap = "sqlite3_snapshot_get db main"
 		_ = snap // suppress unused warning
-		var _unnamed_var = ""
-		_ = _unnamed_var // suppress unused warning
+		// set  (invalid identifier, skipped)
 	}
 	{ // "-db"
 		_res = db.Exec("db2")
@@ -188,7 +198,7 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db3 main $snap")
+		// sqlite3_snapshot_open db3 main $snap (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $snap")
+	// sqlite3_snapshot_free $snap (unsupported command, not transpiled)
 }

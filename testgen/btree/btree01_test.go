@@ -40,8 +40,17 @@ func Test_btree01(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "btree01"
+	testprefix = "btree01"
 	_ = testprefix // suppress unused warning
 	{ // "btree01-1.1"
 		r = db.Query("\n  PRAGMA page_size=65536;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n  WITH RECURSIVE\n     c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<30)\n  INSERT INTO t1(a,b) SELECT i, zeroblob(6500) FROM c;\n  UPDATE t1 SET b=zeroblob(3000);\n  UPDATE t1 SET b=zeroblob(64000) WHERE a=2;\n  PRAGMA integrity_check;\n")
@@ -55,7 +64,7 @@ func Test_btree01(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.2." + i
@@ -174,7 +183,8 @@ func Test_btree01(t *testing.T) {
 			}
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "btree01-2.1"
 		r = db.Query("\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INT PRIMARY KEY, b BLOB, c INT) WITHOUT ROWID;\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a,b,c) SELECT x*2, zeroblob(100), x FROM c;\n  UPDATE t1 SET b=zeroblob(1000) WHERE a=198;\n  CREATE TABLE t2(x INTEGER PRIMARY KEY, y INT);\n  INSERT INTO t2(y) VALUES(198),(187),(100);\n  SELECT y, c FROM t2 LEFT JOIN t1 ON y=a ORDER BY x;\n")

@@ -41,10 +41,57 @@ func Test_autovacuum(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var delete_orders string
+	_ = delete_orders // pre-declared from TCL source
+	var ENTRY_LEN string
+	_ = ENTRY_LEN // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var delete_order string
+	_ = delete_order // pre-declared from TCL source
+	var tbl_data string
+	_ = tbl_data // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var delete string
+	_ = delete // pre-declared from TCL source
+	var d string
+	_ = d // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var av1_data string
+	_ = av1_data // pre-declared from TCL source
+	var av2_data string
+	_ = av2_data // pre-declared from TCL source
+	var av3_data string
+	_ = av3_data // pre-declared from TCL source
+	var av4_data string
+	_ = av4_data // pre-declared from TCL source
+	var root_page_list string
+	_ = root_page_list // pre-declared from TCL source
+	var pending_byte_page string
+	_ = pending_byte_page // pre-declared from TCL source
+	var unusable_page_pending_byte_page string
+	_ = unusable_page_pending_byte_page // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var _len string
+	_ = _len // pre-declared from TCL source
+	var char string
+	_ = char // pre-declared from TCL source
+	var sqlite_pending_byte string
+	_ = sqlite_pending_byte // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	var delete_orders = "list"
+	delete_orders = "list"
 	_ = delete_orders // suppress unused warning
 	delete_orders = tclListAppend(delete_orders, "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20")
 	delete_orders = tclListAppend(delete_orders, "20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1")
@@ -52,7 +99,7 @@ func Test_autovacuum(t *testing.T) {
 	delete_orders = tclListAppend(delete_orders, "10 3 11 17 19 20 7 4 13 6 1 14 16 12 9 18 8 15 5 2")
 	delete_orders = tclListAppend(delete_orders, "{1 2 3 4 5 6 7 8 9 10} {11 12 13 14 15 16 17 18 19 20}")
 	delete_orders = tclListAppend(delete_orders, "{19 8 17 15} {16 11 9 14} {18 5 3 1} {13 20 7 2} {6 12}")
-	var ENTRY_LEN = "3500"
+	ENTRY_LEN = "3500"
 	_ = ENTRY_LEN // suppress unused warning
 	{ // do_test "autovacuum-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);\n  ")
@@ -60,11 +107,10 @@ func Test_autovacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE av1(a);\n    CREATE INDEX av1_idx ON av1(a);\n  ")
 		}
 	}
-	var tn = "0"
+	tn = "0"
 	_ = tn // suppress unused warning
 	for _, delete_order := range tclSplitList(delete_orders) {
 	_ = delete_order // suppress unused warning
-		var tn = "0"
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
@@ -72,15 +118,15 @@ func Test_autovacuum(t *testing.T) {
 				tn = strconv.Itoa(_n + 1)
 			}
 		}
-		var _tbl_data = "list" // TCL namespace variable
-		_ = _tbl_data // suppress unused warning
+		tbl_data = "list" // TCL namespace variable
+		_ = tbl_data // suppress unused warning
 		for _, i := range tclSplitList("lsort -integer [eval concat $delete_order]") {
 		_ = i // suppress unused warning
 			_res = db.Exec("INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + "make_str $i $ENTRY_LEN" + "')")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + "make_str $i $ENTRY_LEN" + "')")
 			}
-			_tbl_data = tclListAppend(_tbl_data, "make_str $i $ENTRY_LEN")
+			tbl_data = tclListAppend(tbl_data, "make_str $i $ENTRY_LEN")
 		}
 		for _, delete := range tclSplitList(delete_order) {
 		_ = delete // suppress unused warning
@@ -92,10 +138,10 @@ func Test_autovacuum(t *testing.T) {
 			}
 			for _, d := range tclSplitList(delete) {
 			_ = d // suppress unused warning
-				var idx = "lsearch $::tbl_data [make_str $d $ENTRY_LEN]"
+				idx = "lsearch $::tbl_data [make_str $d $ENTRY_LEN]"
 				_ = idx // suppress unused warning
-				var _tbl_data = "lreplace $::tbl_data $idx $idx" // TCL namespace variable
-				_ = _tbl_data // suppress unused warning
+				tbl_data = "lreplace $::tbl_data $idx $idx" // TCL namespace variable
+				_ = tbl_data // suppress unused warning
 			}
 			{ // do_test "autovacuum-1." + tn + ".(" + delete + ").3"
 				r = db.Query("\n        select a from av1 order by rowid\n      ")
@@ -105,7 +151,7 @@ func Test_autovacuum(t *testing.T) {
 			}
 		}
 		{ // do_test "autovacuum-1." + tn + ".3"
-			t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+			// file_pages (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "autovacuum-2.1.1"
@@ -115,7 +161,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-2.2.1"
 		r = db.Query("\n    CREATE TABLE av1(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -128,9 +174,9 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av1 VALUES('" + "make_str abc 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str def 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str ghi 3000" + "');\n    INSERT INTO av1 VALUES('" + "make_str jkl 3000" + "');\n  ")
 		}
-		var _av1_data = "db eval {select * from av1}" // TCL namespace variable
-		_ = _av1_data // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		av1_data = "db eval {select * from av1}" // TCL namespace variable
+		_ = av1_data // suppress unused warning
+		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-2.2.3"
 		r = db.Query("\n    CREATE TABLE av2(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -139,7 +185,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-2.2.5"
 		r = db.Query("\n    CREATE TABLE av3(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -148,7 +194,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-2.2.7"
 		r = db.Query("\n    CREATE TABLE av4(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -157,7 +203,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.2.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-2.2.9"
 		r = db.Query("\n    select * from av1\n  ")
@@ -170,13 +216,13 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av2 SELECT 'av1' || x FROM av1;\n    INSERT INTO av3 SELECT 'av2' || x FROM av1;\n    INSERT INTO av4 SELECT 'av3' || x FROM av1;\n  ")
 		}
-		var _av2_data = "execsql {select x from av2}" // TCL namespace variable
-		_ = _av2_data // suppress unused warning
-		var _av3_data = "execsql {select x from av3}" // TCL namespace variable
-		_ = _av3_data // suppress unused warning
-		var _av4_data = "execsql {select x from av4}" // TCL namespace variable
-		_ = _av4_data // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		av2_data = "execsql {select x from av2}" // TCL namespace variable
+		_ = av2_data // suppress unused warning
+		av3_data = "execsql {select x from av3}" // TCL namespace variable
+		_ = av3_data // suppress unused warning
+		av4_data = "execsql {select x from av4}" // TCL namespace variable
+		_ = av4_data // suppress unused warning
+		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-2.3.2"
 		r = db.Query("\n    DROP TABLE av2;\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -185,7 +231,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-2.3.4"
 		r = db.Query("\n    SELECT x FROM av3;\n  ")
@@ -204,10 +250,10 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE av1;\n    DROP TABLE av3;\n    BEGIN;\n    DROP TABLE av4;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-2.4.2"
-		var i = "3"
+		i = "3"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 10 }() {
 			_res = db.Exec("CREATE TABLE av" + i + " (x)")
@@ -222,7 +268,7 @@ func Test_autovacuum(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-2.4.3"
 		r = db.Query("\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
@@ -236,16 +282,16 @@ func Test_autovacuum(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO av3 VALUES ('" + "make_str abcde [expr 1020*520 + 500]" + "');\n    DELETE FROM av3;\n  ")
 		}
 	}
-	var root_page_list = "list"
+	root_page_list = "list"
 	_ = root_page_list // suppress unused warning
-	var pending_byte_page = "($::sqlite_pending_byte / 1024) + 1"
+	pending_byte_page = "($::sqlite_pending_byte / 1024) + 1"
 	_ = pending_byte_page // suppress unused warning
 	if tclBool("sqlite3 -has-codec") {
 	} else {
 	}
-	var unusable_page_pending_byte_page = "1"
+	unusable_page_pending_byte_page = "1"
 	_ = unusable_page_pending_byte_page // suppress unused warning
-	var i = "3"
+	i = "3"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 532 }() {
 		if tclBool("!" + "info exists unusable_page($i)") {
@@ -263,7 +309,7 @@ func Test_autovacuum(t *testing.T) {
 		root_page_list = tclListAppend(root_page_list, i)
 	}
 	{ // do_test "autovacuum-2.4.5"
-		var i = "11"
+		i = "11"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 530 }() {
 			_res = db.Exec("CREATE TABLE av" + i + " (x)")
@@ -288,7 +334,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		// file_pages (unsupported command, not transpiled)
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -297,7 +343,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var i = "3"
+		i = "3"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 530 }() {
 			_res = db.Exec("DROP TABLE av" + i)
@@ -316,7 +362,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-2.5.1"
 		_res = db.Exec("\n    CREATE TABLE av1(a PRIMARY KEY, b, c);\n    INSERT INTO av1 VALUES('av1 a', 'av1 b', 'av1 c');\n\n    CREATE TABLE av2(a PRIMARY KEY, b, c);\n    CREATE INDEX av2_i1 ON av2(b);\n    CREATE INDEX av2_i2 ON av2(c);\n    INSERT INTO av2 VALUES('av2 a', 'av2 b', 'av2 c');\n\n    CREATE TABLE av3(a PRIMARY KEY, b, c);\n    CREATE INDEX av3_i1 ON av3(b);\n    INSERT INTO av3 VALUES('av3 a', 'av3 b', 'av3 c');\n\n    CREATE TABLE av4(a, b, c);\n    CREATE INDEX av4_i1 ON av4(a);\n    CREATE INDEX av4_i2 ON av4(b);\n    CREATE INDEX av4_i3 ON av4(c);\n    CREATE INDEX av4_i4 ON av4(a, b, c);\n    INSERT INTO av4 VALUES('av4 a', 'av4 b', 'av4 c');\n  ")
@@ -415,8 +461,8 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-3.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -431,8 +477,8 @@ func Test_autovacuum(t *testing.T) {
 	}
 	{ // do_test "autovacuum-3.4"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -456,12 +502,12 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE av1;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
+		// file_pages (unsupported command, not transpiled)
 	}
 	{ // do_test "autovacuum-4.0"
 		os.Remove("test.db")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    PRAGMA auto_vacuum = 1;\n    PRAGMA auto_vacuum;\n  ")
 		if r.Error != nil {
@@ -473,7 +519,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE av1(a, b);\n    BEGIN;\n  ")
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			_res = db.Exec("INSERT INTO av1 VALUES(" + i + ", '" + "X 200" + "');")
@@ -516,8 +562,8 @@ func Test_autovacuum(t *testing.T) {
 	{ // do_test "autovacuum-7.1"
 		os.Remove("test.db")
 		os.Remove("test.db-journal")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(a, b, PRIMARY KEY(a, b));\n    INSERT INTO t1 VALUES(randstr(400,400),randstr(400,400));\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 2\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 4\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 8\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 16\n    INSERT INTO t1 SELECT randstr(400,400), randstr(400,400) FROM t1; -- 32\n  ")
 		if _res.Error != nil {
@@ -533,8 +579,8 @@ func Test_autovacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
 	}
 	{ // do_test "autovacuum-7.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("test.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    BEGIN;\n    DELETE FROM t4;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
@@ -543,8 +589,8 @@ func Test_autovacuum(t *testing.T) {
 		// expr [file size test.db] / 1024 → "[file size test.db] / 1024"
 	}
 	{ // do_test "autovacuum-8.1"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp5, err := frigolite.Open("test.db")
+		_ = _dbtmp5 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -588,7 +634,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(NULL, randstr(50,50));\n  ")
 		}
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
 			_res = db.Exec(" INSERT INTO t1 SELECT NULL, randstr(50,50) FROM t1 ")

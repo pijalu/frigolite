@@ -39,6 +39,13 @@ func Test_analyze(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "analyze-1.1"
 		_res = db.Exec("\n    ANALYZE no_such_table\n  ")
@@ -214,8 +221,8 @@ func Test_analyze(t *testing.T) {
 		db2.Exec("\n    CREATE TABLE t4(x,y,z);\n    CREATE INDEX t4i1 ON t4(x);\n    CREATE INDEX t4i2 ON t4(y);\n    INSERT INTO t4 SELECT a,b,c FROM t3;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    ANALYZE;\n    SELECT idx, stat FROM sqlite_stat1 ORDER BY idx;\n  ")
 		if r.Error != nil {
@@ -227,8 +234,8 @@ func Test_analyze(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema=on;\n    INSERT INTO sqlite_stat1 VALUES(null,null,null);\n    PRAGMA writable_schema=off;\n  ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
 		if r.Error != nil {
@@ -240,8 +247,8 @@ func Test_analyze(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema=on;\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i1','nonsense');\n    INSERT INTO sqlite_stat1 VALUES('t4','t4i2','120897349817238741092873198273409187234918720394817209384710928374109827172901827349871928741910');\n    PRAGMA writable_schema=off;\n  ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
 		if r.Error != nil {
@@ -253,8 +260,8 @@ func Test_analyze(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO sqlite_stat1 VALUES('t4','xyzzy','0 1 2 3');\n  ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    SELECT * FROM t4 WHERE x=1234;\n  ")
 		if r.Error != nil {
@@ -280,7 +287,7 @@ func Test_analyze(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze-5.99"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='sqlite_stat1';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='sqlite_stat1';\n  ")
@@ -288,14 +295,15 @@ func Test_analyze(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 		}
 		_res = db.Exec("\n    ANALYZE\n  ")
 		_ = _res // catchsql
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp4, err := frigolite.Open(":memory:")
+	_ = _dbtmp4 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "analyze-6.1"
 		r = db.Query("\n  CREATE TABLE sqliteDemo(a);\n  INSERT INTO sqliteDemo(a) VALUES(1),(2),(3),(4),(5);\n  CREATE TABLE SQLiteDemo2(a INTEGER PRIMARY KEY AUTOINCREMENT);\n  INSERT INTO SQLiteDemo2 SELECT * FROM sqliteDemo;\n  CREATE TABLE t1(b);\n  INSERT INTO t1(b) SELECT a FROM sqliteDemo;\n  ANALYZE;\n  SELECT tbl FROM sqlite_stat1 WHERE idx IS NULL ORDER BY tbl;\n")

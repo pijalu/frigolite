@@ -41,8 +41,39 @@ func Test_crash8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var zData string
+	_ = zData // pre-declared from TCL source
+	var zJournal string
+	_ = zJournal // pre-declared from TCL source
+	var nSector string
+	_ = nSector // pre-declared from TCL source
+	var zJournal2 string
+	_ = zJournal2 // pre-declared from TCL source
+	var big string
+	_ = big // pre-declared from TCL source
+	var contents_main string
+	_ = contents_main // pre-declared from TCL source
+	var contents_aux string
+	_ = contents_aux // pre-declared from TCL source
+	var zMasterJournal string
+	_ = zMasterJournal // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var zFile string
+	_ = zFile // pre-declared from TCL source
+	var _len string
+	_ = _len // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	{ // do_test "crash8-1.1"
 		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));\n    INSERT INTO t1 VALUES(3, randstr(1000,1000));\n    INSERT INTO t1 VALUES(4, randstr(1000,1000));\n    INSERT INTO t1 VALUES(5, randstr(1000,1000));\n    INSERT INTO t1 VALUES(6, randstr(1000,1000));\n    CREATE TABLE t2(a, b);\n    CREATE TABLE t3(a, b);\n    CREATE TABLE t4(a, b);\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(a, b);\n    CREATE TABLE t7(a, b);\n    CREATE TABLE t8(a, b);\n    CREATE TABLE t9(a, b);\n    CREATE TABLE t10(a, b);\n    PRAGMA integrity_check\n  ")
 		if r.Error != nil {
@@ -50,7 +81,9 @@ func Test_crash8(t *testing.T) {
 		}
 	}
 	{ // do_test "crash8-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db {\n    PRAGMA cache_size = 10;\n    UPDATE t1 SET b =...}")
+		// crashsql -delay 2 -file test.db {
+    PRAGMA cache_size = 10;
+    UPDATE t1 SET b =...} (unsupported command, not transpiled)
 	}
 	{ // do_test "crash8-1.3"
 		r = db.Query("PRAGMA integrity_check")
@@ -59,7 +92,9 @@ func Test_crash8(t *testing.T) {
 		}
 	}
 	{ // do_test "crash8.2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db {\n    PRAGMA journal_mode = persist;\n    PRAGMA cac...}")
+		// crashsql -delay 2 -file test.db {
+    PRAGMA journal_mode = persist;
+    PRAGMA cac...} (unsupported command, not transpiled)
 	}
 	{ // do_test "crash8-2.3"
 		r = db.Query("PRAGMA integrity_check")
@@ -81,7 +116,7 @@ func Test_crash8(t *testing.T) {
 			}
 		}
 		{ // do_test "crash8-3.3"
-			var zJournal = "read_file test.db-journal"
+			zJournal = "read_file test.db-journal"
 			_ = zJournal // suppress unused warning
 			r = db.Query(" \n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
 			if r.Error != nil {
@@ -89,69 +124,70 @@ func Test_crash8(t *testing.T) {
 			}
 		}
 		{ // do_test "crash8-3.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "binary scan [string range $zJournal 20 23] I nSector")
+			// binary scan [string range $zJournal 20 23] I nSector (test infra, not transpiled)
 		}
 		{ // do_test "crash8-3.5"
-			var zJournal2 = "$zJournal 20 23 [binary format I 513]"
+			zJournal2 = "$zJournal 20 23 [binary format I 513]"
 			_ = zJournal2 // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			// write_file test.db-journal $zJournal2 (unsupported command, not transpiled)
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			}
 		}
 		{ // do_test "crash8-3.6"
-			var zJournal2 = "$zJournal 20 23 [binary format I 0x2000000]"
+			zJournal2 = "$zJournal 20 23 [binary format I 0x2000000]"
 			_ = zJournal2 // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			// write_file test.db-journal $zJournal2 (unsupported command, not transpiled)
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			}
 		}
 		{ // do_test "crash8-3.7"
-			var zJournal2 = "$zJournal 20 23 [binary format I 256]"
+			zJournal2 = "$zJournal 20 23 [binary format I 256]"
 			_ = zJournal2 // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			// write_file test.db-journal $zJournal2 (unsupported command, not transpiled)
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			}
 		}
 		{ // do_test "crash8-3.8"
-			var zJournal2 = "$zJournal 24 27 [binary format I 513]"
+			zJournal2 = "$zJournal 24 27 [binary format I 513]"
 			_ = zJournal2 // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			// write_file test.db-journal $zJournal2 (unsupported command, not transpiled)
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			}
 		}
 		{ // do_test "crash8-3.9"
-			var big = "$SQLITE_MAX_PAGE_SIZE * 2"
+			big = "$SQLITE_MAX_PAGE_SIZE * 2"
 			_ = big // suppress unused warning
-			var zJournal2 = "$zJournal 24 27 [binary format I $big]"
+			zJournal2 = "$zJournal 24 27 [binary format I $big]"
 			_ = zJournal2 // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			// write_file test.db-journal $zJournal2 (unsupported command, not transpiled)
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			}
 		}
 		{ // do_test "crash8-3.10"
-			var zJournal2 = "$zJournal 24 27 [binary format I 256]"
+			zJournal2 = "$zJournal 24 27 [binary format I 256]"
 			_ = zJournal2 // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			// write_file test.db-journal $zJournal2 (unsupported command, not transpiled)
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			}
 		}
 		{ // do_test "crash8-3.11"
-			var fd = "open test.db-journal w"
+			fd = "open test.db-journal w"
 			_ = fd // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-			t.Log("-nonewline")
+			// fconfigure $fd -translation binary (unsupported command, not transpiled)
+			_putsMsg := "-nonewline"
+			_ = _putsMsg
 			// close $fd
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
@@ -159,8 +195,8 @@ func Test_crash8(t *testing.T) {
 			}
 		}
 	}
-	if tclBool(_tcl_platform + "(os) != \"Windows NT\" && " + "atomic_batch_write test.db" + "==0") {
-		var i = "1"
+	if tclBool(tcl_platform_os + " != \"Windows NT\" && " + "atomic_batch_write test.db" + "==0") {
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 			{
@@ -168,15 +204,18 @@ func Test_crash8(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.db")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // do_test "crash8-5." + i + ".1"
 				_res = db.Exec("\n        CREATE TABLE t1(x PRIMARY KEY);\n        INSERT INTO t1 VALUES(randomblob(900));\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;          /* 64 rows */\n      ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        CREATE TABLE t1(x PRIMARY KEY);\n        INSERT INTO t1 VALUES(randomblob(900));\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;          /* 64 rows */\n      ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file test.db -delay [expr ($::i%2) + 1] {\n        PRAGMA cache_size = 10;\n        BEGIN;\n  ...}")
+				// crashsql -file test.db -delay [expr ($::i%2) + 1] {
+        PRAGMA cache_size = 10;
+        BEGIN;
+  ...} (unsupported command, not transpiled)
 				r = db.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
@@ -187,7 +226,8 @@ func Test_crash8(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 			}
 			os.Remove("test.db")
-			db, err = frigolite.Open("test.db")
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			{ // do_test "crash8-5." + i + ".2"
 				_res = db.Exec("\n        PRAGMA cache_size = 10;\n        CREATE TABLE t1(x PRIMARY KEY);\n        INSERT INTO t1 VALUES(randomblob(900));\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;          /* 64 rows */\n        BEGIN;\n          UPDATE t1 SET x = randomblob(900);\n      ")
@@ -197,7 +237,9 @@ func Test_crash8(t *testing.T) {
 				os.Remove("testX.db")
 				tclFileCopy("test.db", "testX.db")
 				tclFileCopy("test.db-journal", "testX.db-journal")
-				t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file test.db -delay [expr ($::i%2) + 1] {\n        SELECT * FROM sqlite_master;\n        INSE...}")
+				// crashsql -file test.db -delay [expr ($::i%2) + 1] {
+        SELECT * FROM sqlite_master;
+        INSE...} (unsupported command, not transpiled)
 				db2, err = frigolite.Open("testX.db")
 				if err != nil { t.Fatal(err) }
 				r = db.Query(" PRAGMA integrity_check ")

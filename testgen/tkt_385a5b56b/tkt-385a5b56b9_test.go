@@ -39,8 +39,15 @@ func Test_tkt_385a5b56b9(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "tkt-385a5b56b9"
+	testprefix = "tkt-385a5b56b9"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		_res = db.Exec(" \n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, NULL);\n  INSERT INTO t1 VALUES(2, NULL);\n  INSERT INTO t1 VALUES(1, NULL);\n")

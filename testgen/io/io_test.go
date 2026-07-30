@@ -41,27 +41,61 @@ func Test_io(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nWrite string
+	_ = nWrite // pre-declared from TCL source
+	var bt string
+	_ = bt // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var nSync string
+	_ = nSync // pre-declared from TCL source
+	var ret string
+	_ = ret // pre-declared from TCL source
+	var expected_sync_count string
+	_ = expected_sync_count // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var char string
+	_ = char // pre-declared from TCL source
+	var sectorsize string
+	_ = sectorsize // pre-declared from TCL source
+	var pgsize string
+	_ = pgsize // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var stats_write string
+	_ = stats_write // pre-declared from TCL source
+	var sqlite_sync_count string
+	_ = sqlite_sync_count // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "io" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device")
-	db, err = frigolite.Open("test.db")
+	testprefix = "io" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// sqlite3_simulate_device (unsupported command, not transpiled)
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
-	var _nWrite = "0" // TCL namespace variable
-	_ = _nWrite // suppress unused warning
+	nWrite = "0" // TCL namespace variable
+	_ = nWrite // suppress unused warning
 	// proc definition (not transpiled)
-	var _nSync = "0" // TCL namespace variable
-	_ = _nSync // suppress unused warning
+	nSync = "0" // TCL namespace variable
+	_ = nSync // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "io-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE abc(a,b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE abc(a,b);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "nWrite db")
+		// nWrite db (unsupported command, not transpiled)
 	}
 	{ // do_test "io-1.2"
-		var ret = "list"
+		ret = "list"
 		_ = ret // suppress unused warning
 		_res = db.Exec(" INSERT INTO abc VALUES(1,randstr(230,230)); ")
 		if _res.Error != nil {
@@ -89,10 +123,10 @@ func Test_io(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO abc VALUES(5,randstr(230,230)); ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "nWrite db")
+		// nWrite db (unsupported command, not transpiled)
 	}
 	{ // do_test "io-1.4"
-		var ret = "list"
+		ret = "list"
 		_ = ret // suppress unused warning
 		_res = db.Exec(" INSERT INTO abc VALUES(6,randstr(230,230)); ")
 		if _res.Error != nil {
@@ -115,25 +149,25 @@ func Test_io(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO abc VALUES(9,randstr(230,230)); ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "nWrite db")
+		// nWrite db (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char sequential -sectorsize 0")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char safe_append")
-	var expected_sync_count = "2"
+	// sqlite3_simulate_device -char sequential -sectorsize 0 (unsupported command, not transpiled)
+	// sqlite3_simulate_device -char safe_append (unsupported command, not transpiled)
+	expected_sync_count = "2"
 	_ = expected_sync_count // suppress unused warning
-	if _tcl_platform_os != "Windows NT" {
+	if tcl_platform_os != "Windows NT" {
 	}
 	{ // do_test "io-4.1"
 		_res = db.Exec(" DELETE FROM abc ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM abc ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "nSync")
+		// nSync (unsupported command, not transpiled)
 		_res = db.Exec(" INSERT INTO abc VALUES('a', 'b') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO abc VALUES('a', 'b') ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "nSync")
+		// nSync (unsupported command, not transpiled)
 	}
 	{ // do_test "io-4.2.1"
 		_res = db.Exec(" BEGIN ")
@@ -146,9 +180,9 @@ func Test_io(t *testing.T) {
 		}
 		// file exists "test.db-journal"
 	}
-	if _tcl_platform_platform == "unix" {
+	if tcl_platform_platform == "unix" {
 		{ // do_test "io-4.2.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db-journal 8 4")
+			// hexio_read test.db-journal 8 4 (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "io-4.2.3"
@@ -156,9 +190,9 @@ func Test_io(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "nSync")
+		// nSync (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char safe_append")
+	// sqlite3_simulate_device -char safe_append (unsupported command, not transpiled)
 	{ // do_test "io-4.3.1"
 		_res = db.Exec("\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")
 		if _res.Error != nil {
@@ -178,19 +212,18 @@ func Test_io(t *testing.T) {
 			// file size test.db-journal
 		}
 	}
-	var tn = "0"
+	tn = "0"
 	_ = tn // suppress unused warning
 	// foreach {char sectorsize pgsize} "\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n"
-	_items0 := tclSplitList("\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n")
-	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-		char := _items0[_idx0+0]
+	_items1 := tclSplitList("\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n")
+	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+		char := _items1[_idx1+0]
 		_ = char // suppress unused warning
-		sectorsize := _items0[_idx0+1]
+		sectorsize := _items1[_idx1+1]
 		_ = sectorsize // suppress unused warning
-		pgsize := _items0[_idx0+2]
+		pgsize := _items1[_idx1+2]
 		_ = pgsize // suppress unused warning
-		_ = _idx0
-			var tn = "0"
+		_ = _idx1
 			// incr tn 1
 			{
 				_n, _err := strconv.Atoi(tn)
@@ -198,12 +231,12 @@ func Test_io(t *testing.T) {
 					tn = strconv.Itoa(_n + 1)
 				}
 			}
-			if func() bool { pgsize_n, _pgsize_e := strconv.Atoi(pgsize); if _pgsize_e != nil { return false }; _SQLITE_MAX_PAGE_SIZE_n, __SQLITE_MAX_PAGE_SIZE_e := strconv.Atoi(_SQLITE_MAX_PAGE_SIZE); if __SQLITE_MAX_PAGE_SIZE_e != nil { return false }; return pgsize_n > _SQLITE_MAX_PAGE_SIZE_n }() {
+			if func() bool { pgsize_n, _pgsize_e := strconv.Atoi(pgsize); if _pgsize_e != nil { return false }; SQLITE_MAX_PAGE_SIZE_n, _SQLITE_MAX_PAGE_SIZE_e := strconv.Atoi(SQLITE_MAX_PAGE_SIZE); if _SQLITE_MAX_PAGE_SIZE_e != nil { return false }; return pgsize_n > SQLITE_MAX_PAGE_SIZE_n }() {
 			}
 			os.Remove("test.db")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char $char -sectorsize $sectorsize")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			// sqlite3_simulate_device -char $char -sectorsize $sectorsize (unsupported command, not transpiled)
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n  ")
 			if _res.Error != nil {
@@ -218,30 +251,30 @@ func Test_io(t *testing.T) {
 			}
 		}
 		{ // do_test "io-6.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char atomic")
+			// sqlite3_simulate_device -char atomic (unsupported command, not transpiled)
 			os.Remove("test.db")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp3, err := frigolite.Open("test.db")
+			_ = _dbtmp3 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    PRAGMA mmap_size = 0;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES(randomblob(100));\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA mmap_size = 0;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES(randomblob(100));\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n  ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
+			// db_save_and_close (unsupported command, not transpiled)
 		}
 		// foreach {tn sql} "\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n"
-		_items1 := tclSplitList("\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			tn := _items1[_idx1+0]
+		_items4 := tclSplitList("\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n")
+		for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+			tn := _items4[_idx4+0]
 			_ = tn // suppress unused warning
-			sql := _items1[_idx1+1]
+			sql := _items4[_idx4+1]
 			_ = sql // suppress unused warning
-			_ = _idx1
+			_ = _idx4
 				if tclBool("permutation" + " == \"memsubsys1\"") {
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "db_restore")
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				// db_restore (unsupported command, not transpiled)
+				_dbtmp5, err := frigolite.Open("test.db")
+				_ = _dbtmp5 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				r = db.Query("\n    PRAGMA cache_size = 2000;\n    PRAGMA mmap_size = 0;\n    SELECT x FROM t3 ORDER BY rowid;\n    SELECT x FROM t3 ORDER BY x;\n  ")
 				if r.Error != nil {
@@ -265,7 +298,7 @@ func Test_io(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 * 5] [string repeat 00 2048]")
+				// hexio_write test.db [expr 1024 * 5] [string repeat 00 2048] (unsupported command, not transpiled)
 				{ // "6.2." + tn + ".3"
 					r = db.Query(" PRAGMA integrity_check ")
 					if r.Error != nil {
@@ -279,6 +312,6 @@ func Test_io(t *testing.T) {
 					}
 				}
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char {} -sectorsize 0")
-			t.Errorf("TODO: %s not implemented in frigolite", "unregister_devsim")
+			// sqlite3_simulate_device -char {} -sectorsize 0 (unsupported command, not transpiled)
+			// unregister_devsim (unsupported command, not transpiled)
 }

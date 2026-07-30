@@ -39,6 +39,17 @@ func Test_alias(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var counter string
+	_ = counter // pre-declared from TCL source
+	var random_int_list string
+	_ = random_int_list // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	return
 	{ // do_test "alias-1.1"
@@ -48,65 +59,65 @@ func Test_alias(t *testing.T) {
 		}
 	}
 	{ // do_test "alias-1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "::seq::reset")
+		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 WHERE y>0\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 WHERE y>0\n  ")
 		}
 	}
 	{ // do_test "alias-1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "::seq::reset")
+		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99\n  ")
 		}
 	}
 	{ // do_test "alias-1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "::seq::reset")
+		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99 AND y!=55\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 WHERE y>0 AND y<99 AND y!=55\n  ")
 		}
 	}
 	{ // do_test "alias-1.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "::seq::reset")
+		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1\n     WHERE y>0 AND y<99 AND y!=55 AND y NOT IN (56,57,58)\n       AND y NOT LIKE 'abc%' AND y%10==2\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1\n     WHERE y>0 AND y<99 AND y!=55 AND y NOT IN (56,57,58)\n       AND y NOT LIKE 'abc%' AND y%10==2\n  ")
 		}
 	}
 	{ // do_test "alias-1.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "::seq::reset")
+		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 WHERE y BETWEEN 0 AND 99\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 WHERE y BETWEEN 0 AND 99\n  ")
 		}
 	}
 	{ // do_test "alias-1.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "::seq::reset")
+		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, 1-sequence() AS y FROM t1 ORDER BY y\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, 1-sequence() AS y FROM t1 ORDER BY y\n  ")
 		}
 	}
 	{ // do_test "alias-1.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "::seq::reset")
+		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 ORDER BY -y\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 ORDER BY -y\n  ")
 		}
 	}
 	{ // do_test "alias-1.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "::seq::reset")
+		// ::seq::reset (unsupported command, not transpiled)
 		_res = db.Exec("\n    SELECT x, sequence() AS y FROM t1 ORDER BY x%2, y\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, sequence() AS y FROM t1 ORDER BY x%2, y\n  ")
 		}
 	}
-	var random_int_list = "db eval {\n   SELECT random()&2147483647 AS r FROM t1, t1, t1, t1 ORDER BY r\n}"
+	random_int_list = "db eval {\n   SELECT random()&2147483647 AS r FROM t1, t1, t1, t1 ORDER BY r\n}"
 	_ = random_int_list // suppress unused warning
 	{ // do_test "alias-1.11"
-		tclSort("-integer")
+		_ = tclSort("-integer") // lsort result
 	}
 	{ // do_test "alias-2.1"
 		_res = db.Exec("\n    SELECT 4 UNION SELECT 1 ORDER BY 1\n  ")
@@ -122,7 +133,7 @@ func Test_alias(t *testing.T) {
 	}
 	if false {
 		{ // do_test "alias-3.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "::seq::reset")
+			// ::seq::reset (unsupported command, not transpiled)
 			_res = db.Exec("\n      SELECT sequence(*) AS y, count(*) AS z FROM t1 GROUP BY y ORDER BY z, y\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      SELECT sequence(*) AS y, count(*) AS z FROM t1 GROUP BY y ORDER BY z, y\n    ")

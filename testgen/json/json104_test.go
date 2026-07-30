@@ -39,8 +39,15 @@ func Test_json104(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "json104"
+	testprefix = "json104"
 	_ = testprefix // suppress unused warning
 	{ // "json104-100"
 		r = db.Query("\n  SELECT json_patch('{\n       \"a\": \"b\",\n       \"c\": {\n         \"d\": \"e\",\n         \"f\": \"g\"\n       }\n     }','{\n       \"a\":\"z\",\n       \"c\": {\n         \"f\": null\n       }\n     }');\n")

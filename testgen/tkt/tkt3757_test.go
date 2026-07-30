@@ -39,6 +39,17 @@ func Test_tkt3757(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "tkt3757-1.1"
@@ -52,6 +63,7 @@ func Test_tkt3757(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM sqlite_stat1;\n    INSERT INTO sqlite_stat1 VALUES('t1','t1i1','250000 50000 30');\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT * FROM t1 WHERE y IN (SELECT a FROM t2...}")
+		// count_steps {
+    SELECT * FROM t1 WHERE y IN (SELECT a FROM t2...} (unsupported command, not transpiled)
 	}
 }

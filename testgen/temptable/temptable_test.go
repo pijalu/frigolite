@@ -40,11 +40,22 @@ func Test_temptable(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var dummy string
+	_ = dummy // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "temptable-1.0"
 		db2, err = frigolite.Open("./test.db")
 		if err != nil { t.Fatal(err) }
-		var dummy = ""
+		dummy = ""
 		_ = dummy // suppress unused warning
 	}
 	{ // do_test "temptable-1.1"
@@ -126,7 +137,6 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-1.12"
 		db2.Exec("DROP TABLE t2;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -172,7 +182,6 @@ func Test_temptable(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-2.5"
-	var _r string
 	_ = _r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
@@ -390,8 +399,8 @@ func Test_temptable(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			// file attributes test.db -readonly 1
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		if tclBool("file writable test.db") {
 			t.Errorf("TCL error: %s", "Unable to make the database file test.db readonly - rerun this test as an unprivileged user")
@@ -428,8 +437,8 @@ func Test_temptable(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-6.8"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM t8,t9;\n  ")
 		_ = _res // catchsql
@@ -446,8 +455,8 @@ func Test_temptable(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test.db")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "temptable-8.1"

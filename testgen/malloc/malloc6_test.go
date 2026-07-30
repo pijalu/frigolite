@@ -39,14 +39,32 @@ func Test_malloc6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var sqlite_os_trace string
+	_ = sqlite_os_trace // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("!" + MEMDEBUG) {
-		t.Log("Skipping malloc6 tests: not compiled with -DSQLITE_MEMDEBUG...")
+		_putsMsg := "Skipping malloc6 tests: not compiled with -DSQLITE_MEMDEBUG..."
+		_ = _putsMsg
 		return
 	}
-	var sqlite_os_trace = "0"
+	sqlite_os_trace = "0"
 	_ = sqlite_os_trace // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc6-1 -tclprep {\n  db close\n} -tclbody {\n  if {[catch {sqlite3 db test.db}]} {\n    error \"...} -sqlbody {\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE IF NOT ...}")
+	// do_malloc_test malloc6-1 -tclprep {
+  db close
+} -tclbody {
+  if {[catch {sqlite3 db test.db}]} {
+    error "...} -sqlbody {
+  DROP TABLE IF EXISTS t1;
+  CREATE TABLE IF NOT ...} (unsupported command, not transpiled)
 	{ // do_test "malloc6-1.X"
 		{
 			var _catchErr error

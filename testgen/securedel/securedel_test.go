@@ -40,8 +40,15 @@ func Test_securedel(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var DEFAULT_SECDEL string
+	_ = DEFAULT_SECDEL // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var DEFAULT_SECDEL = "0"
+	DEFAULT_SECDEL = "0"
 	_ = DEFAULT_SECDEL // suppress unused warning
 	{ // do_test "securedel-1.0"
 		_res = db.Exec("PRAGMA secure_delete;")

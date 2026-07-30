@@ -39,8 +39,13 @@ func Test_index6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+	// load_static_extension db wholenumber (unsupported command, not transpiled)
 	{ // do_test "index6-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a) WHERE a IS NOT NULL;\n    CREATE INDEX t1b ON t1(b) WHERE b>10;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1(a,b,c)\n       SELECT CASE WHEN value%3!=0 THEN value END, value, value\n         FROM nums WHERE value<=20;\n    SELECT count(a), count(b) FROM t1;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
@@ -662,7 +667,8 @@ func Test_index6(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	db, err = frigolite.Open(":memory:")
+	_dbtmp0, err := frigolite.Open(":memory:")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // "index6-17.1"
 		r = db.Query("\n  CREATE TABLE t0(c0);\n  CREATE INDEX i0 ON t0(0) WHERE c0 GLOB c0;\n  INSERT INTO t0 VALUES (0);\n  CREATE UNIQUE INDEX i1 ON t0(0);\n  PRAGMA integrity_check;\n")

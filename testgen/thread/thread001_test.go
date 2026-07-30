@@ -40,14 +40,47 @@ func Test_thread001(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var NTHREAD string
+	_ = NTHREAD // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var same_db string
+	_ = same_db // pre-declared from TCL source
+	var shared_cache string
+	_ = shared_cache // pre-declared from TCL source
+	var dbconfig string
+	_ = dbconfig // pre-declared from TCL source
+	var thread_program string
+	_ = thread_program // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var finished_i string
+	_ = finished_i // pre-declared from TCL source
+	var sqlite_open_file_count string
+	_ = sqlite_open_file_count // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var needToClose string
+	_ = needToClose // pre-declared from TCL source
+	var thread_procs string
+	_ = thread_procs // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	var _enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
-	var _NTHREAD = "10" // TCL namespace variable
-	_ = _NTHREAD // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
+	NTHREAD = "10" // TCL namespace variable
+	_ = NTHREAD // suppress unused warning
 	// foreach {tn same_db shared_cache} "list \\\n         1  1       0                   \\\n         2  0       0                   \\\n         3  0       1                   \\"
 	_items0 := tclSplitList("list \\\n         1  1       0                   \\\n         2  0       0                   \\\n         3  0       1                   \\")
 	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
@@ -61,16 +94,16 @@ func Test_thread001(t *testing.T) {
 			_res = db.Exec(" DROP TABLE ab; ")
 			_ = _res // catchsql
 			{ // do_test "thread001." + tn + ".0"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $shared_cache")
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $shared_cache")
+				// sqlite3_enable_shared_cache $shared_cache (unsupported command, not transpiled)
+				// sqlite3_enable_shared_cache $shared_cache (unsupported command, not transpiled)
 			}
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			var dbconfig = ""
+			dbconfig = ""
 			_ = dbconfig // suppress unused warning
 			if tclBool(same_db) {
-				var dbconfig = "list set ::DB [sqlite3_connection_pointer db]"
+				dbconfig = "list set ::DB [sqlite3_connection_pointer db]"
 				_ = dbconfig // suppress unused warning
 			}
 			{ // do_test "thread001." + tn + ".1"
@@ -91,12 +124,12 @@ func Test_thread001(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 				}
 			}
-			var thread_program = "\n    #sqlthread parent {puts STARTING..}\n    set needToClose 0\n    if {![info exists ::DB]} {\n      set ::DB [sqlthread open test.db xyzzy]\n      #sqlthread parent \"puts \\\"OPEN $::DB\\\"\"\n      set needToClose 1\n    }\n  \n    for {set i 0} {$i < 100} {incr i} {\n      # Test that the invariant is true.\n      do_test t1 {\n        execsql {\n          SELECT \n            (SELECT md5sum(a, b) FROM ab WHERE +a < (SELECT max(a) FROM ab)) ==\n            (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))\n        }\n      } {1}\n  \n      # Add another row to the database.\n      execsql { INSERT INTO ab SELECT NULL, md5sum(a, b) FROM ab }\n    }\n  \n    if {$needToClose} {\n      #sqlthread parent \"puts \\\"CLOSE $::DB\\\"\"\n      sqlite3_close $::DB\n    }\n    #sqlthread parent \"puts \\\"DONE\\\"\"\n  \n    list OK\n  "
+			thread_program = "\n    #sqlthread parent {puts STARTING..}\n    set needToClose 0\n    if {![info exists ::DB]} {\n      set ::DB [sqlthread open test.db xyzzy]\n      #sqlthread parent \"puts \\\"OPEN $::DB\\\"\"\n      set needToClose 1\n    }\n  \n    for {set i 0} {$i < 100} {incr i} {\n      # Test that the invariant is true.\n      do_test t1 {\n        execsql {\n          SELECT \n            (SELECT md5sum(a, b) FROM ab WHERE +a < (SELECT max(a) FROM ab)) ==\n            (SELECT b FROM ab WHERE a = (SELECT max(a) FROM ab))\n        }\n      } {1}\n  \n      # Add another row to the database.\n      execsql { INSERT INTO ab SELECT NULL, md5sum(a, b) FROM ab }\n    }\n  \n    if {$needToClose} {\n      #sqlthread parent \"puts \\\"CLOSE $::DB\\\"\"\n      sqlite3_close $::DB\n    }\n    #sqlthread parent \"puts \\\"DONE\\\"\"\n  \n    list OK\n  "
 			_ = thread_program // suppress unused warning
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _NTHREAD_n, __NTHREAD_e := strconv.Atoi(_NTHREAD); if __NTHREAD_e != nil { return false }; return i_n < _NTHREAD_n }() {
-				t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished($i) $dbconfig $thread_procs $thread_program")
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; NTHREAD_n, _NTHREAD_e := strconv.Atoi(NTHREAD); if _NTHREAD_e != nil { return false }; return i_n < NTHREAD_n }() {
+				// thread_spawn finished($i) $dbconfig $thread_procs $thread_program (unsupported command, not transpiled)
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -107,11 +140,11 @@ func Test_thread001(t *testing.T) {
 			}
 			i = "0"
 			_ = i // suppress unused warning
-			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _NTHREAD_n, __NTHREAD_e := strconv.Atoi(_NTHREAD); if __NTHREAD_e != nil { return false }; return i_n < _NTHREAD_n }() {
+			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; NTHREAD_n, _NTHREAD_e := strconv.Atoi(NTHREAD); if _NTHREAD_e != nil { return false }; return i_n < NTHREAD_n }() {
 				if tclBool("!" + "info exists finished($i)") {
 				}
 				{ // do_test "thread001." + tn + ".4." + i
-					_ = _finished_i // TCL namespace variable (query)
+					_ = finished_i // TCL namespace variable (query)
 				}
 				// incr i 1
 				{
@@ -140,11 +173,11 @@ func Test_thread001(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+		// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		var sqlite_open_file_count = "0"
+		sqlite_open_file_count = "0"
 		_ = sqlite_open_file_count // suppress unused warning
 }

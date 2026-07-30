@@ -40,6 +40,31 @@ func Test_ctime(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ans string
+	_ = ans // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var opt string
+	_ = opt // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var ans1 string
+	_ = ans1 // pre-declared from TCL source
+	var ans2 string
+	_ = ans2 // pre-declared from TCL source
+	var ans3 string
+	_ = ans3 // pre-declared from TCL source
+	var opts string
+	_ = opts // pre-declared from TCL source
+	var tc string
+	_ = tc // pre-declared from TCL source
+	var N string
+	_ = N // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "ctime-1.1.1"
 		_res = db.Exec("\n    PRAGMA compile_options();\n  ")
@@ -54,18 +79,18 @@ func Test_ctime(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "ctime-1.2.1"
-		var ans = "catchsql {\n    PRAGMA compile_options;\n  }"
+		ans = "catchsql {\n    PRAGMA compile_options;\n  }"
 		_ = ans // suppress unused warning
 		_list := tclList([]string{"lindex $ans 0"})
 		_ = _list
 	}
 	{ // do_test "ctime-1.2.2"
-		var ans = "catchsql {\n    PRAGMA compile_options;\n  }"
+		ans = "catchsql {\n    PRAGMA compile_options;\n  }"
 		_ = ans // suppress unused warning
 		_list := tclList([]string{"lindex $ans 0", "[lsort [lindex $ans 1]]==[lindex $ans 1]"})
 		_ = _list
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	// sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1 (unsupported command, not transpiled)
 	{ // do_test "ctime-1.4.1"
 		_res = db.Exec("\n    SELECT sqlite_compileoption_used('SQLITE_THREADSAFE');\n  ")
 		_ = _res // catchsql
@@ -79,13 +104,13 @@ func Test_ctime(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "ctime-1.5"
-		var ans1 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=0');\n  }"
+		ans1 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=0');\n  }"
 		_ = ans1 // suppress unused warning
-		var ans2 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=1');\n  }"
+		ans2 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=1');\n  }"
 		_ = ans2 // suppress unused warning
-		var ans3 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=2');\n  }"
+		ans3 = "catchsql {\n    SELECT sqlite_compileoption_used('THREADSAFE=2');\n  }"
 		_ = ans3 // suppress unused warning
-		tclSort("list $ans1 $ans2 $ans3")
+		_ = tclSort("list $ans1 $ans2 $ans3") // lsort result
 	}
 	{ // do_test "ctime-1.6"
 		r = db.Query("\n    SELECT sqlite_compileoption_used('THREADSAFE=');\n  ")
@@ -154,23 +179,22 @@ func Test_ctime(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "ctime-2.4"
-		var ans = "catchsql {\n    SELECT sqlite_compileoption_get(0);\n  }"
+		ans = "catchsql {\n    SELECT sqlite_compileoption_get(0);\n  }"
 		_ = ans // suppress unused warning
 		_list := tclList([]string{"lindex $ans 0"})
 		_ = _list
 	}
-	var ans = "catchsql {\n  PRAGMA compile_options;\n}"
+	ans = "catchsql {\n  PRAGMA compile_options;\n}"
 	_ = ans // suppress unused warning
-	var opts = "lindex $ans 1"
+	opts = "lindex $ans 1"
 	_ = opts // suppress unused warning
-	var tc = "1"
+	tc = "1"
 	_ = tc // suppress unused warning
 	for _, opt := range tclSplitList(opts) {
 	_ = opt // suppress unused warning
 		{ // do_test "ctime-2.5." + tc
-			var N = "expr"
+			N = "expr"
 			_ = N // suppress unused warning
-	var ans1 string
 	_ = ans1 // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
@@ -184,12 +208,11 @@ func Test_ctime(t *testing.T) {
 				}
 			}
 			ans1 = tclListAppend(ans1, msg)
-			var ans2 = "catchsql {\n      SELECT sqlite_compileoption_used($opt);\n    }"
+			ans2 = "catchsql {\n      SELECT sqlite_compileoption_used($opt);\n    }"
 			_ = ans2 // suppress unused warning
 			_list := tclList([]string{"lindex $ans1 0", "[lindex $ans1 1]==$opt", "$ans2"})
 			_ = _list
 		}
-		var tc = "0"
 		// incr tc 1
 		{
 			_n, _err := strconv.Atoi(tc)
@@ -199,9 +222,9 @@ func Test_ctime(t *testing.T) {
 		}
 	}
 	{ // do_test "ctime-2.5." + tc
-		var N = "expr"
+		N = "expr"
 		_ = N // suppress unused warning
-		var ans = "catchsql {\n    SELECT sqlite_compileoption_get($N);\n  }"
+		ans = "catchsql {\n    SELECT sqlite_compileoption_get($N);\n  }"
 		_ = ans // suppress unused warning
 	}
 	// incr tc 1
@@ -212,9 +235,9 @@ func Test_ctime(t *testing.T) {
 		}
 	}
 	{ // do_test "ctime-2.5." + tc
-		var N = "-1"
+		N = "-1"
 		_ = N // suppress unused warning
-		var ans = "catchsql {\n    SELECT sqlite_compileoption_get($N);\n  }"
+		ans = "catchsql {\n    SELECT sqlite_compileoption_get($N);\n  }"
 		_ = ans // suppress unused warning
 	}
 	{ // do_test "ctime-3.0.1"

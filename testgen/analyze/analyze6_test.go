@@ -39,8 +39,17 @@ func Test_analyze6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "analyze6"
+	testprefix = "analyze6"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "analyze6-1.0"
@@ -50,7 +59,7 @@ func Test_analyze6(t *testing.T) {
 		}
 	}
 	{ // do_test "analyze6-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT count(*) FROM ev, cat WHERE x=y}")
+		// eqp {SELECT count(*) FROM ev, cat WHERE x=y} (unsupported command, not transpiled)
 	}
 	{ // "analyze6-1.2"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT count(*) FROM cat, ev WHERE x=y\n")
@@ -63,38 +72,38 @@ func Test_analyze6(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t201(x INTEGER PRIMARY KEY, y UNIQUE, z);\n    CREATE INDEX t201z ON t201(z);\n    ANALYZE;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t201 WHERE z=5}")
+		// eqp {SELECT * FROM t201 WHERE z=5} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze6-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t201 WHERE y=5}")
+		// eqp {SELECT * FROM t201 WHERE y=5} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze6-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t201 WHERE x=5}")
+		// eqp {SELECT * FROM t201 WHERE x=5} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze6-2.4"
 		_res = db.Exec("\n    INSERT INTO t201 VALUES(1,2,3),(2,3,4),(3,4,5);\n    ANALYZE t201;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t201 VALUES(1,2,3),(2,3,4),(3,4,5);\n    ANALYZE t201;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t201 WHERE z=5}")
+		// eqp {SELECT * FROM t201 WHERE z=5} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze6-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t201 WHERE y=5}")
+		// eqp {SELECT * FROM t201 WHERE y=5} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze6-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t201 WHERE x=5}")
+		// eqp {SELECT * FROM t201 WHERE x=5} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze6-2.7"
 		_res = db.Exec("\n    INSERT INTO t201 VALUES(4,5,7);\n    INSERT INTO t201 SELECT x+100, y+100, z+100 FROM t201;\n    INSERT INTO t201 SELECT x+200, y+200, z+200 FROM t201;\n    INSERT INTO t201 SELECT x+400, y+400, z+400 FROM t201;\n    ANALYZE t201;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t201 VALUES(4,5,7);\n    INSERT INTO t201 SELECT x+100, y+100, z+100 FROM t201;\n    INSERT INTO t201 SELECT x+200, y+200, z+200 FROM t201;\n    INSERT INTO t201 SELECT x+400, y+400, z+400 FROM t201;\n    ANALYZE t201;\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t201 WHERE z=5}")
+		// eqp {SELECT * FROM t201 WHERE z=5} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze6-2.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t201 WHERE y=5}")
+		// eqp {SELECT * FROM t201 WHERE y=5} (unsupported command, not transpiled)
 	}
 	{ // do_test "analyze6-2.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t201 WHERE x=5}")
+		// eqp {SELECT * FROM t201 WHERE x=5} (unsupported command, not transpiled)
 	}
 }

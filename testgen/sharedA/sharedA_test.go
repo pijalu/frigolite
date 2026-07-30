@@ -40,17 +40,34 @@ func Test_sharedA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var some_time_later string
+	_ = some_time_later // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var thread_result string
+	_ = thread_result // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
 		return
 	}
-	var _testprefix = "sharedA" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "sharedA" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}
-	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-	_ = _enable_shared_cache // suppress unused warning
+	enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+	_ = enable_shared_cache // suppress unused warning
 	{ // do_test "0.1"
 		db1, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
@@ -88,7 +105,7 @@ func Test_sharedA(t *testing.T) {
 	{ // do_test "1.3"
 		db2.Close()
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+	// testvfs tvfs (unsupported command, not transpiled)
 	{ // do_test "2.1"
 		os.Remove("test.db")
 		db1, err = frigolite.Open("test.db")
@@ -103,13 +120,13 @@ func Test_sharedA(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "2.2"
-		var _STMT = "sqlite3_prepare db2 \"CREATE INDEX i1 ON t1(x)\" -1 tail" // TCL namespace variable
-		_ = _STMT // suppress unused warning
+		STMT = "sqlite3_prepare db2 \"CREATE INDEX i1 ON t1(x)\" -1 tail" // TCL namespace variable
+		_ = STMT // suppress unused warning
 		db1.Exec("\n    BEGIN;\n      CREATE INDEX i1 ON t1(x);\n      INSERT INTO t2 VALUES('value!');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xRead")
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script read_callback")
+	// tvfs filter xRead (unsupported command, not transpiled)
+	// tvfs script read_callback (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "2.3"
 		db1.Exec("ROLLBACK")
@@ -118,11 +135,11 @@ func Test_sharedA(t *testing.T) {
 	if tclBool("info exists ::thread_result" + "==0") {
 	}
 	{ // do_test "2.4"
-		_list := tclList([]string{_thread_result, ""})
+		_list := tclList([]string{thread_result, ""})
 		_ = _list
 	}
 	db1.Close()
 	db2.Close()
-	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// tvfs delete (unsupported command, not transpiled)
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

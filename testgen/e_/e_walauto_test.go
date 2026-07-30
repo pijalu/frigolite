@@ -39,8 +39,37 @@ func Test_e_walauto(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var nBackfill string
+	_ = nBackfill // pre-declared from TCL source
+	var mxFrame string
+	_ = mxFrame // pre-declared from TCL source
+	var nBackfillSaved string
+	_ = nBackfillSaved // pre-declared from TCL source
+	var nBackfillNew string
+	_ = nBackfillNew // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var code string
+	_ = code // pre-declared from TCL source
+	var shmfd string
+	_ = shmfd // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var wal_hook_callback string
+	_ = wal_hook_callback // pre-declared from TCL source
+	var busy_callback_count string
+	_ = busy_callback_count // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "e_walauto"
+	testprefix = "e_walauto"
 	_ = testprefix // suppress unused warning
 	if tcl_platform_os == "OpenBSD" {
 		return

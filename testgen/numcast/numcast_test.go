@@ -39,33 +39,50 @@ func Test_numcast(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enc string
+	_ = enc // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var idx string
+	_ = idx // pre-declared from TCL source
+	var str string
+	_ = str // pre-declared from TCL source
+	var rval string
+	_ = rval // pre-declared from TCL source
+	var ival string
+	_ = ival // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	for _, enc := range tclSplitList("utf8 utf16le utf16be") {
 	_ = enc // suppress unused warning
 		{ // do_test "numcast-" + enc + ".0"
-			db, err := frigolite.Open(":memory:")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open(":memory:")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA encoding='" + enc + "'")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding='" + enc + "'")
 			}
-			var x = "db eval {PRAGMA encoding}"
+			x = "db eval {PRAGMA encoding}"
 			_ = x // suppress unused warning
 			// string map {- {}} [string tolower $x]
 		}
 		// foreach {idx str rval ival} "\n     1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0\n  "
-		_items0 := tclSplitList("\n     1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0\n  ")
-		for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-			idx := _items0[_idx0+0]
+		_items1 := tclSplitList("\n     1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0\n  ")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			idx := _items1[_idx1+0]
 			_ = idx // suppress unused warning
-			str := _items0[_idx0+1]
+			str := _items1[_idx1+1]
 			_ = str // suppress unused warning
-			rval := _items0[_idx0+2]
+			rval := _items1[_idx1+2]
 			_ = rval // suppress unused warning
-			ival := _items0[_idx0+3]
+			ival := _items1[_idx1+3]
 			_ = ival // suppress unused warning
-			_ = _idx0
+			_ = _idx1
 				{ // do_test "numcast-" + enc + "." + idx + ".1"
 					_res = db.Exec("SELECT CAST($str AS real)")
 					if _res.Error != nil {

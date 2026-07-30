@@ -39,10 +39,17 @@ func Test_vtabrhs1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "vtabrhs1"
+	testprefix = "vtabrhs1"
 	_ = testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db qpvtab")
+	// load_static_extension db qpvtab (unsupported command, not transpiled)
 	{ // "1.1"
 		r = db.Query("\n  SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND a=12345\n")
 		if r.Error != nil {

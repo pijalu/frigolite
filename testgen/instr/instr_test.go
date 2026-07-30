@@ -3,6 +3,7 @@ package instr
 
 import (
 "github.com/pijalu/frigolite"
+"strings"
 "testing"
 )
 
@@ -38,6 +39,13 @@ func Test_instr(t *testing.T) {
 	_ = db8
 	var db9 *frigolite.DB
 	_ = db9
+
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var longstr string
+	_ = longstr // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "instr-1.1"
@@ -310,7 +318,7 @@ func Test_instr(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr('abcdefg','');")
 		}
 	}
-	var longstr = "abcdefghijklmonpqrstuvwxyz"
+	longstr = "abcdefghijklmonpqrstuvwxyz"
 	_ = longstr // suppress unused warning
 	longstr += longstr
 	longstr += longstr
@@ -349,7 +357,7 @@ func Test_instr(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr($longstr,'zXa');")
 		}
 	}
-	longstr = "{a ä} $longstr"
+	longstr = strings.ReplaceAll(longstr, "a", "ä")
 	_ = longstr // suppress unused warning
 	{ // do_test "instr-1.50"
 		_res = db.Exec("SELECT instr($longstr,'X');")

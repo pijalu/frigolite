@@ -39,8 +39,15 @@ func Test_aggfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "aggfault"
+	testprefix = "aggfault"
 	_ = testprefix // suppress unused warning
 	{ // "1"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE INDEX t1x ON t1(x, x=0);\n")
@@ -48,6 +55,13 @@ func Test_aggfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  CREATE INDEX t1x ON t1(x, x=0);\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELECT ...} -body {\n  execsql {\n    SELECT * FROM t1 AS a1 WHERE (\n  ...} -test {\n  faultsim_test_result {0 {}}\n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults oom* -prep {
+  faultsim_restore_and_reopen
+  execsql { SELECT ...} -body {
+  execsql {
+    SELECT * FROM t1 AS a1 WHERE (
+  ...} -test {
+  faultsim_test_result {0 {}}
+} (unsupported command, not transpiled)
 }

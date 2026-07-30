@@ -39,16 +39,25 @@ func Test_tkt_c694113d5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var answer string
+	_ = answer // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-c694113d5.100"
-		db, err := frigolite.Open(":memory:")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open(":memory:")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    CREATE TABLE t2(d INTEGER PRIMARY KEY,e,f);\n    INSERT INTO t1(a) VALUES(1),(2),(3),(4);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY);\n    CREATE TABLE t2(d INTEGER PRIMARY KEY,e,f);\n    INSERT INTO t1(a) VALUES(1),(2),(3),(4);\n  ")
 		}
-		var answer = ""
+		answer = ""
 		_ = answer // suppress unused warning
 		_res = db.Exec("SELECT a FROM t1 WHERE NOT EXISTS(SELECT 1 FROM t2 WHERE d=a)")
 		if _res.Error != nil {

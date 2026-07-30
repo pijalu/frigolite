@@ -39,6 +39,13 @@ func Test_eval(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "eval-1.1"
 		r = db.Query("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY); \n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT x+2 FROM t1;\n    INSERT INTO t1 SELECT x+4 FROM t1;\n    INSERT INTO t1 SELECT x+8 FROM t1;\n    INSERT INTO t1 SELECT x+16 FROM t1;\n    INSERT INTO t1 SELECT x+32 FROM t1;\n    INSERT INTO t1 SELECT x+64 FROM t1;\n    INSERT INTO t1 SELECT x+128 FROM t1;\n    INSERT INTO t1 SELECT x+256 FROM t1;\n    SELECT count(*), max(x) FROM t1;\n  ")

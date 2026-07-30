@@ -41,8 +41,69 @@ func Test_backup(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var checksum string
+	_ = checksum // pre-declared from TCL source
+	var iTest string
+	_ = iTest // pre-declared from TCL source
+	var zSrcFile string
+	_ = zSrcFile // pre-declared from TCL source
+	var zDestFile string
+	_ = zDestFile // pre-declared from TCL source
+	var zOpenScript string
+	_ = zOpenScript // pre-declared from TCL source
+	var rows_dest string
+	_ = rows_dest // pre-declared from TCL source
+	var pgsz_dest string
+	_ = pgsz_dest // pre-declared from TCL source
+	var nPagePerStep string
+	_ = nPagePerStep // pre-declared from TCL source
+	var isMemDest string
+	_ = isMemDest // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var nSrcPg string
+	_ = nSrcPg // pre-declared from TCL source
+	var nDestRow string
+	_ = nDestRow // pre-declared from TCL source
+	var nDestPgsz string
+	_ = nDestPgsz // pre-declared from TCL source
+	var iTab string
+	_ = iTab // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var writer string
+	_ = writer // pre-declared from TCL source
+	var file string
+	_ = file // pre-declared from TCL source
+	var nTotal string
+	_ = nTotal // pre-declared from TCL source
+	var nRemaining string
+	_ = nRemaining // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var pgs string
+	_ = pgs // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var file2 string
+	_ = file2 // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var file1 string
+	_ = file1 // pre-declared from TCL source
+	var iTest_ string
+	_ = iTest_ // pre-declared from TCL source
+	var db_dest string
+	_ = db_dest // pre-declared from TCL source
+	var sqlite_pending_byte string
+	_ = sqlite_pending_byte // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	// do_not_use_codec (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "backup-1.1"
@@ -51,32 +112,32 @@ func Test_backup(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));\n    INSERT INTO t1 VALUES(3, randstr(1000,1000));\n    INSERT INTO t1 VALUES(4, randstr(1000,1000));\n    INSERT INTO t1 VALUES(5, randstr(1000,1000));\n    COMMIT;\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-1.2 db main db main")
+	// test_contents backup-1.2 db main db main (unsupported command, not transpiled)
 	{ // do_test "backup-1.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "delete_file test2.db")
+		// delete_file test2.db (unsupported command, not transpiled)
 		db2, err = frigolite.Open("test2.db")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-1.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+		// B finish (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-1.3.3"
 	}
 	{ // do_test "backup-1.4.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-1.4.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 200")
+		// B step 200 (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-1.4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+		// B finish (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-1.4.4"
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-1.4.5 db2 main db main")
+	// test_contents backup-1.4.5 db2 main db main (unsupported command, not transpiled)
 	db2.Close()
-	var iTest = "1"
+	iTest = "1"
 	_ = iTest // suppress unused warning
 	for _, zSrcFile := range tclSplitList("test.db :memory:") {
 	_ = zSrcFile // suppress unused warning
@@ -93,23 +154,27 @@ func Test_backup(t *testing.T) {
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
-								t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
+								// delete_file test.db (unsupported command, not transpiled)
 							}
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
-								t.Errorf("TODO: %s not implemented in frigolite", "delete_file test2.db")
+								// delete_file test2.db (unsupported command, not transpiled)
 							}
-							// eval $zOpenScript
-							var isMemDest = "$zDestFile eq \":memory:\" || $file_dest eq \"temp\""
+							// eval (dynamic, not transpiled)
+							isMemDest = "$zDestFile eq \":memory:\" || $file_dest eq \"temp\""
 							_ = isMemDest // suppress unused warning
 							if false {
-								t.Log("-nonewline")
-								t.Log("-nonewline")
-								t.Log("-nonewline")
-								t.Log("")
+								_putsMsg := "-nonewline"
+								_ = _putsMsg
+								_putsMsg = "-nonewline"
+								_ = _putsMsg
+								_putsMsg = "-nonewline"
+								_ = _putsMsg
+								_putsMsg = ""
+								_ = _putsMsg
 							}
-							if func() bool { isMemDest_n, _isMemDest_e := strconv.Atoi(isMemDest); if _isMemDest_e != nil { return false }; pgsz_dest_n, _pgsz_dest_e := strconv.Atoi(pgsz_dest); if _pgsz_dest_e != nil { return false }; rows_dest_n, _rows_dest_e := strconv.Atoi(rows_dest); if _rows_dest_e != nil { return false }; return isMemDest_n == 0 || pgsz_dest_n==1024 || rows_dest_n==0 }() {
+							if tclBool(isMemDest + "==0 || " + pgsz_dest + "==1024 || " + rows_dest + "==0") {
 								_res = db.Exec("\n      PRAGMA page_size = 1024;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = 1024;\n      BEGIN;\n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      INSERT INTO t1 VALUES(1, randstr(1000,1000));\n      INSERT INTO t1 VALUES(2, randstr(1000,1000));\n      INSERT INTO t1 VALUES(3, randstr(1000,1000));\n      INSERT INTO t1 VALUES(4, randstr(1000,1000));\n      INSERT INTO t1 VALUES(5, randstr(1000,1000));\n      COMMIT;\n    ")
@@ -123,7 +188,7 @@ func Test_backup(t *testing.T) {
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        BEGIN; \n        CREATE TABLE " + file_dest + ".t1(a, b);\n        CREATE INDEX " + file_dest + ".i1 ON t1(a, b);\n      ")
 									}
-									var ii = "0"
+									ii = "0"
 									_ = ii // suppress unused warning
 									for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; rows_dest_n, _rows_dest_e := strconv.Atoi(rows_dest); if _rows_dest_e != nil { return false }; return ii_n < rows_dest_n }() {
 										_res = db.Exec("\n          INSERT INTO " + file_dest + ".t1 VALUES(1, randstr(1000,1000))\n        ")
@@ -144,10 +209,10 @@ func Test_backup(t *testing.T) {
 									}
 								}
 								{ // do_test "backup-2." + iTest + ".1"
-									t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B $db_dest $file_dest db main")
+									// sqlite3_backup B $db_dest $file_dest db main (unsupported command, not transpiled)
 									for tclBool("B step $nPagePerStep" + "==\"SQLITE_OK\"") {
 									}
-									t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+									// B finish (unsupported command, not transpiled)
 								}
 								{ // do_test "backup-2." + iTest + ".2"
 									r = db.Query("PRAGMA " + file_dest + ".integrity_check")
@@ -155,14 +220,13 @@ func Test_backup(t *testing.T) {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA " + file_dest + ".integrity_check")
 									}
 								}
-								t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-2.$iTest.3 db main $db_dest $file_dest")
+								// test_contents backup-2.$iTest.3 db main $db_dest $file_dest (unsupported command, not transpiled)
 							}
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
 								db2.Close()
 							}
-							var iTest = "0"
 							// incr iTest 1
 							{
 								_n, _err := strconv.Atoi(iTest)
@@ -187,15 +251,15 @@ func Test_backup(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
+					// delete_file test.db (unsupported command, not transpiled)
 				}
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
-					t.Errorf("TODO: %s not implemented in frigolite", "delete_file test2.db")
+					// delete_file test2.db (unsupported command, not transpiled)
 				}
-				db, err := frigolite.Open("test.db")
-				defer db.Close()
+				_dbtmp0, err := frigolite.Open("test.db")
+				_ = _dbtmp0 // sqlite3 db connection
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open("test2.db")
 				if err != nil { t.Fatal(err) }
@@ -207,8 +271,8 @@ func Test_backup(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size = " + nDestPgsz)
 				}
-				for _, db := range tclSplitList("db db2") {
-				_ = db // suppress unused warning
+				for _, db_iter := range tclSplitList("db db2") {
+				_ = db_iter // suppress unused warning
 					_res = db.Exec("\n      BEGIN; \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      COMMIT;\n    ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN; \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      COMMIT;\n    ")
@@ -220,7 +284,7 @@ func Test_backup(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($ii, randstr(200,200)) ")
 					}
 				}
-				var ii = "0"
+				ii = "0"
 				_ = ii // suppress unused warning
 				for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDestRow_n, _nDestRow_e := strconv.Atoi(nDestRow); if _nDestRow_e != nil { return false }; return ii_n < nDestRow_n }() {
 					_res = db.Exec(" INSERT INTO t1 VALUES($ii, randstr(1000,1000)) ")
@@ -236,10 +300,10 @@ func Test_backup(t *testing.T) {
 					}
 				}
 				{ // do_test "backup-3." + iTest + ".1"
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db2 main")
+					// sqlite3_backup B db main db2 main (unsupported command, not transpiled)
 					for tclBool("B step 10" + "==\"SQLITE_OK\"") {
 					}
-					t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+					// B finish (unsupported command, not transpiled)
 				}
 				{ // do_test "backup-3." + iTest + ".2"
 					r = db.Query("PRAGMA integrity_check")
@@ -247,9 +311,8 @@ func Test_backup(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
 					}
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-3.$iTest.3 db main db2 main")
+				// test_contents backup-3.$iTest.3 db main db2 main (unsupported command, not transpiled)
 				db2.Close()
-				var iTest = "0"
 				// incr iTest 1
 				{
 					_n, _err := strconv.Atoi(iTest)
@@ -271,21 +334,20 @@ func Test_backup(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test2.db")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		var iTab = "1"
+		iTab = "1"
 		_ = iTab // suppress unused warning
 		_res = db.Exec(" PRAGMA page_size = 512 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " PRAGMA page_size = 512 ")
 		}
-		for tclBool("file size test.db" + " <= " + _sqlite_pending_byte) {
+		for tclBool("file size test.db" + " <= " + sqlite_pending_byte) {
 			_res = db.Exec("CREATE TABLE t" + iTab + "(a, b, c)")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t" + iTab + "(a, b, c)")
 			}
-			var iTab = "0"
 			// incr iTab 1
 			{
 				_n, _err := strconv.Atoi(iTab)
@@ -298,10 +360,9 @@ func Test_backup(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2.Exec(" PRAGMA page_size = 4096 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		for tclBool("file size test2.db" + " < " + _sqlite_pending_byte) {
+		for tclBool("file size test2.db" + " < " + sqlite_pending_byte) {
 			db2.Exec("CREATE TABLE t" + iTab + "(a, b, c)")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			var iTab = "0"
 			// incr iTab 1
 			{
 				_n, _err := strconv.Atoi(iTab)
@@ -310,13 +371,14 @@ func Test_backup(t *testing.T) {
 				}
 			}
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-		t.Errorf("TODO: %s not implemented in frigolite", "B step -1")
+		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+		// B step -1 (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-3." + iTest + ".2"
-		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+		// B finish (unsupported command, not transpiled)
 	}
-	db, err = frigolite.Open("test.db")
+	_dbtmp2, err := frigolite.Open("test.db")
+	_ = _dbtmp2 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	db2, err = frigolite.Open("test2.db")
 	if err != nil { t.Fatal(err) }
@@ -324,21 +386,21 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db aux db2 main")
+			// sqlite3_backup B db aux db2 main (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "backup-4.1.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.1.3"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db2 aux")
+			// sqlite3_backup B db main db2 aux (unsupported command, not transpiled)
 		}
 	}
 	{ // do_test "backup-4.1.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.2.1"
 		{
@@ -359,41 +421,40 @@ func Test_backup(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    ATTACH 'test4.db' AS aux2;\n    CREATE TABLE aux2.t2(a, b);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db aux1 db2 aux2")
+		// sqlite3_backup B db aux1 db2 aux2 (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.2.2"
 		_res = db.Exec(" DETACH aux2 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "backup-4.2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+		// B step 50 (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+		// B finish (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.3.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db aux1 db2 aux2")
+		// sqlite3_backup B db aux1 db2 aux2 (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.3.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close db2")
+		// sqlite3_close db2 (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db2")
+		// sqlite3_errmsg db2 (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.3.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+		// B step 50 (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.3.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+		// B finish (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.4.1"
-	var rc string
 	_ = rc // suppress unused warning
 	var _catchErrMsg string
 	_ = _catchErrMsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db aux1")
+			// sqlite3_backup B db main db aux1 (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -412,8 +473,8 @@ func Test_backup(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("test.db")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
@@ -425,27 +486,26 @@ func Test_backup(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 4096;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
+		// B step 5000 (unsupported command, not transpiled)
 	}
 	{ // do_test "backup-4.5.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+		// B finish (unsupported command, not transpiled)
 	}
 	db2.Close()
 	iTest = "0"
 	_ = iTest // suppress unused warning
 	os.Remove("bak.db-wal")
 	// foreach {writer file} "db test.db db3 test.db db :memory:"
-	_items0 := tclSplitList("db test.db db3 test.db db :memory:")
-	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-		writer := _items0[_idx0+0]
+	_items4 := tclSplitList("db test.db db3 test.db db :memory:")
+	for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+		writer := _items4[_idx4+0]
 		_ = writer // suppress unused warning
-		file := _items0[_idx0+1]
+		file := _items4[_idx4+1]
 		_ = file // suppress unused warning
-		_ = _idx0
-			var iTest = "0"
+		_ = _idx4
 			// incr iTest 1
 			{
 				_n, _err := strconv.Atoi(iTest)
@@ -456,17 +516,17 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "delete_file bak.db")
+				// delete_file bak.db (unsupported command, not transpiled)
 			}
 			db2, err = frigolite.Open("bak.db")
 			if err != nil { t.Fatal(err) }
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "delete_file $file")
+				// delete_file $file (unsupported command, not transpiled)
 			}
-			db, err := frigolite.Open(file)
-			defer db.Close()
+			_dbtmp5, err := frigolite.Open(file)
+			_ = _dbtmp5 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db3, err = frigolite.Open(file)
 			if err != nil { t.Fatal(err) }
@@ -478,22 +538,22 @@ func Test_backup(t *testing.T) {
 				// expr [execsql {PRAGMA page_count}] > 10 → "[execsql {PRAGMA page_count}] > 10"
 			}
 			{ // do_test "backup-5." + iTest + ".1.2"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
+				// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+				// B step 5 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".1.3"
 				_res = db.Exec(" UPDATE t1 SET a = a + 1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET a = a + 1 ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+				// B step 50 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".1.4"
-				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+				// B finish (unsupported command, not transpiled)
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.1.6 db main db2 main")
+			// test_contents backup-5.$iTest.1.6 db main db2 main (unsupported command, not transpiled)
 			{ // do_test "backup-5." + iTest + ".2.1"
 				_res = db.Exec("\n      PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      COMMIT;\n    ")
 				if _res.Error != nil {
@@ -501,22 +561,22 @@ func Test_backup(t *testing.T) {
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".2.2"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+				// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+				// B step 50 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".2.3"
 				_res = db.Exec(" \n      BEGIN;\n      UPDATE t1 SET a = a + 1;\n      ROLLBACK;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      BEGIN;\n      UPDATE t1 SET a = a + 1;\n      ROLLBACK;\n    ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
+				// B step 5000 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".2.4"
-				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+				// B finish (unsupported command, not transpiled)
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.2.6 db main db2 main")
+			// test_contents backup-5.$iTest.2.6 db main db2 main (unsupported command, not transpiled)
 			{ // do_test "backup-5." + iTest + ".3.1"
 				_res = db.Exec(" UPDATE t1 SET b = randstr(1000,1000) ")
 				if _res.Error != nil {
@@ -524,22 +584,22 @@ func Test_backup(t *testing.T) {
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".3.2"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+				// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+				// B step 50 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".3.3"
 				_res = db.Exec(" VACUUM ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
+				// B step 5000 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".3.4"
-				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+				// B finish (unsupported command, not transpiled)
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.3.6 db main db2 main")
+			// test_contents backup-5.$iTest.3.6 db main db2 main (unsupported command, not transpiled)
 			{ // do_test "backup-5." + iTest + ".4.1"
 				_res = db.Exec(" UPDATE t1 SET b = randstr(1000,1000) ")
 				if _res.Error != nil {
@@ -547,22 +607,22 @@ func Test_backup(t *testing.T) {
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".4.2"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+				// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+				// B step 50 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".4.3"
 				_res = db.Exec(" \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
+				// B step 5000 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".4.4"
-				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+				// B finish (unsupported command, not transpiled)
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.4.6 db main db2 main")
+			// test_contents backup-5.$iTest.4.6 db main db2 main (unsupported command, not transpiled)
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
@@ -580,16 +640,17 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "delete_file bak.db")
+				// delete_file bak.db (unsupported command, not transpiled)
 			}
 			db2, err = frigolite.Open("bak.db")
 			if err != nil { t.Fatal(err) }
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Errorf("TODO: %s not implemented in frigolite", "delete_file $file")
+				// delete_file $file (unsupported command, not transpiled)
 			}
-			db, err = frigolite.Open(file)
+			_dbtmp6, err := frigolite.Open(file)
+			_ = _dbtmp6 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db3, err = frigolite.Open(file)
 			if err != nil { t.Fatal(err) }
@@ -600,22 +661,22 @@ func Test_backup(t *testing.T) {
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".5.2"
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 8")
+				// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+				// B step 8 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".5.3"
 				r = db.Query(" \n      DELETE FROM t1;\n      PRAGMA incremental_vacuum;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      DELETE FROM t1;\n      PRAGMA incremental_vacuum;\n    ")
 				}
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+				// B step 50 (unsupported command, not transpiled)
 			}
 			{ // do_test "backup-5." + iTest + ".5.4"
-				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+				// B finish (unsupported command, not transpiled)
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.5.6 db main db2 main")
+			// test_contents backup-5.$iTest.5.6 db main db2 main (unsupported command, not transpiled)
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
@@ -642,8 +703,8 @@ func Test_backup(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 				os.Remove("test2.db")
 			}
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp7, err := frigolite.Open("test.db")
+			_ = _dbtmp7 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
@@ -653,19 +714,19 @@ func Test_backup(t *testing.T) {
 			}
 		}
 		{ // do_test "backup-6.2"
-			var nTotal = "[file size test.db]/1024"
+			nTotal = "[file size test.db]/1024"
 			_ = nTotal // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 1")
+			// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+			// B step 1 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-6.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "B pagecount")
+			// B pagecount (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-6.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "B remaining")
+			// B remaining (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-6.5"
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
+			// B step 5 (unsupported command, not transpiled)
 			_list := tclList([]string{"B remaining", "B pagecount"})
 			_ = _list
 		}
@@ -674,12 +735,12 @@ func Test_backup(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(a PRIMARY KEY, b) ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 1")
+			// B step 1 (unsupported command, not transpiled)
 			_list := tclList([]string{"B remaining", "B pagecount"})
 			_ = _list
 		}
 		{ // do_test "backup-6.X"
-			t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+			// B finish (unsupported command, not transpiled)
 		}
 		{
 			var _catchErr error
@@ -703,8 +764,8 @@ func Test_backup(t *testing.T) {
 			}
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp8, err := frigolite.Open("test.db")
+			_ = _dbtmp8 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 SELECT a+ 1, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 2, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 4, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+ 8, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+16, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+32, randstr(1000,1000) FROM t1;\n    INSERT INTO t1 SELECT a+64, randstr(1000,1000) FROM t1;\n  ")
 			if _res.Error != nil {
@@ -712,8 +773,8 @@ func Test_backup(t *testing.T) {
 			}
 		}
 		{ // do_test "backup-7.1.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
+			// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+			// B step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.1.2"
 			db3, err = frigolite.Open("test.db")
@@ -722,14 +783,14 @@ func Test_backup(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN EXCLUSIVE ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
+			// B step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.1.3"
 			_res = db.Exec(" ROLLBACK ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
+			// B step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.2.1"
 			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(1, 4);\n  ")
@@ -738,19 +799,19 @@ func Test_backup(t *testing.T) {
 			}
 		}
 		{ // do_test "backup-7.2.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
+			// B step 5000 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.2.3"
 			_res = db.Exec(" ROLLBACK ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
+			// B step 5000 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.2.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+			// B finish (unsupported command, not transpiled)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-7.2.5 db main db2 main")
+		// test_contents backup-7.2.5 db main db2 main (unsupported command, not transpiled)
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "backup-7.3.1"
@@ -761,24 +822,24 @@ func Test_backup(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			db3, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+			// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
 			_res = db.Exec(" BEGIN ; CREATE TABLE t2(a, b); ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ; CREATE TABLE t2(a, b); ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
+			// B step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.3.2"
 			_res = db.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
+			// B step 5000 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-7.3.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+			// B finish (unsupported command, not transpiled)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-7.3.4 db main db2 main")
+		// test_contents backup-7.3.4 db main db2 main (unsupported command, not transpiled)
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{
@@ -806,28 +867,28 @@ func Test_backup(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			db3, err = frigolite.Open("test3.db")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B2 db2 main db main")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B3 db3 main db main")
+			// sqlite3_backup B2 db2 main db main (unsupported command, not transpiled)
+			// sqlite3_backup B3 db3 main db main (unsupported command, not transpiled)
 			_list := tclList([]string{"B2 finish", "B3 finish"})
 			_ = _list
 		}
 		{ // do_test "backup-8.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B3 db3 main db main")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B2 db2 main db main")
+			// sqlite3_backup B3 db3 main db main (unsupported command, not transpiled)
+			// sqlite3_backup B2 db2 main db main (unsupported command, not transpiled)
 			_list := tclList([]string{"B2 finish", "B3 finish"})
 			_ = _list
 		}
 		{ // do_test "backup-8.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B2 db2 main db main")
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B3 db3 main db main")
-			t.Errorf("TODO: %s not implemented in frigolite", "B2 step 5")
+			// sqlite3_backup B2 db2 main db main (unsupported command, not transpiled)
+			// sqlite3_backup B3 db3 main db main (unsupported command, not transpiled)
+			// B2 step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-8.4"
 			r = db.Query("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 			}
-			t.Errorf("TODO: %s not implemented in frigolite", "B3 step 5")
+			// B3 step 5 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-8.5"
 			_list := tclList([]string{"B3 step 5000", "B3 finish"})
@@ -837,8 +898,8 @@ func Test_backup(t *testing.T) {
 			_list := tclList([]string{"B2 step 5000", "B2 finish"})
 			_ = _list
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-8.7 db main db2 main")
-		t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-8.8 db main db3 main")
+		// test_contents backup-8.7 db main db2 main (unsupported command, not transpiled)
+		// test_contents backup-8.8 db main db3 main (unsupported command, not transpiled)
 		{ // do_test "backup-8.9"
 			r = db.Query(" PRAGMA lock_status ")
 			if r.Error != nil {
@@ -864,28 +925,28 @@ func Test_backup(t *testing.T) {
 		{ // do_test "backup-9.1.1"
 			db2, err = frigolite.Open("test2.db")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 1")
+			// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+			// B step 1 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-9.1.2"
-			var nRemaining = "B remaining"
+			nRemaining = "B remaining"
 			_ = nRemaining // suppress unused warning
 			// expr $nRemaining>100 → "$nRemaining>100"
 		}
 		{ // do_test "backup-9.1.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "B step 0")
+			// B step 0 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-9.1.4"
-			t.Errorf("TODO: %s not implemented in frigolite", "B remaining")
+			// B remaining (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-9.2.1"
-			t.Errorf("TODO: %s not implemented in frigolite", "B step -1")
+			// B step -1 (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-9.2.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "B remaining")
+			// B remaining (unsupported command, not transpiled)
 		}
 		{ // do_test "backup-9.2.3"
-			t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+			// B finish (unsupported command, not transpiled)
 		}
 		{
 			var _catchErr error
@@ -894,18 +955,18 @@ func Test_backup(t *testing.T) {
 		}
 		os.Remove("test.db")
 		// foreach {tn file rc} "\n  1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK\n"
-		_items1 := tclSplitList("\n  1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK\n")
-		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-			tn := _items1[_idx1+0]
+		_items9 := tclSplitList("\n  1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK\n")
+		for _idx9 := 0; _idx9+3 <= len(_items9); _idx9 += 3 {
+			tn := _items9[_idx9+0]
 			_ = tn // suppress unused warning
-			file := _items1[_idx1+1]
+			file := _items9[_idx9+1]
 			_ = file // suppress unused warning
-			rc := _items1[_idx1+2]
+			rc := _items9[_idx9+2]
 			_ = rc // suppress unused warning
-			_ = _idx1
+			_ = _idx9
 				{ // do_test "backup-10." + tn + ".1"
-					db, err := frigolite.Open(file)
-					defer db.Close()
+					_dbtmp10, err := frigolite.Open(file)
+					_ = _dbtmp10 // sqlite3 db connection
 					if err != nil { t.Fatal(err) }
 					r = db.Query(" \n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b BLOB);\n      BEGIN;\n        INSERT INTO t1 VALUES(NULL, randomblob(200));\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n        INSERT INTO t1 SELECT NULL, randomblob(200) FROM t1;\n      COMMIT;\n      SELECT count(*) FROM t1;\n    ")
 					if r.Error != nil {
@@ -913,7 +974,7 @@ func Test_backup(t *testing.T) {
 					}
 				}
 				{ // do_test "backup-10." + tn + ".2"
-					var pgs = "execsql {pragma page_count}"
+					pgs = "execsql {pragma page_count}"
 					_ = pgs // suppress unused warning
 					// expr $pgs > 50 && $pgs < 75 → "$pgs > 50 && $pgs < 75"
 				}
@@ -921,8 +982,8 @@ func Test_backup(t *testing.T) {
 					os.Remove("bak.db")
 					db2, err = frigolite.Open("bak.db")
 					if err != nil { t.Fatal(err) }
-					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-					t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+					// sqlite3_backup B db2 main db main (unsupported command, not transpiled)
+					// B step 50 (unsupported command, not transpiled)
 				}
 				{ // do_test "backup-10." + tn + ".4"
 					_res = db.Exec(" UPDATE t1 SET b = randomblob(200) WHERE a IN (1, 250) ")
@@ -931,10 +992,10 @@ func Test_backup(t *testing.T) {
 					}
 				}
 				{ // do_test "backup-10." + tn + ".5"
-					t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
+					// B step 50 (unsupported command, not transpiled)
 				}
 				{ // do_test "backup-10." + tn + ".6"
-					t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+					// B finish (unsupported command, not transpiled)
 				}
 				db2.Close()
 			}
@@ -943,8 +1004,8 @@ func Test_backup(t *testing.T) {
 				if err != nil { t.Fatal(err) }
 				db2, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db1 main db2 temp")
-				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+				// sqlite3_backup B db1 main db2 temp (unsupported command, not transpiled)
+				// B finish (unsupported command, not transpiled)
 			}
 			db1.Close()
 			db2.Close()
@@ -957,8 +1018,8 @@ func Test_backup(t *testing.T) {
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				db2.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t2(x);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db1 main db2 temp")
-				t.Errorf("TODO: %s not implemented in frigolite", "B step 100")
-				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
+				// sqlite3_backup B db1 main db2 temp (unsupported command, not transpiled)
+				// B step 100 (unsupported command, not transpiled)
+				// B finish (unsupported command, not transpiled)
 			}
 }

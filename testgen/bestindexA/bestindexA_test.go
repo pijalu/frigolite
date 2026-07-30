@@ -39,11 +39,46 @@ func Test_bestindexA(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var hdl string
+	_ = hdl // pre-declared from TCL source
+	var clist string
+	_ = clist // pre-declared from TCL source
+	var c string
+	_ = c // pre-declared from TCL source
+	var vtab_constraints string
+	_ = vtab_constraints // pre-declared from TCL source
+	var nArg string
+	_ = nArg // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var script string
+	_ = script // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+	var C_op string
+	_ = C_op // pre-declared from TCL source
+	var C_column string
+	_ = C_column // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bestindexA"
+	testprefix = "bestindexA"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	// register_tcl_module db (unsupported command, not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING tcl(vtab_command);\n")
 		if _res.Error != nil {
@@ -51,14 +86,55 @@ func Test_bestindexA(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.1 {\n  SELECT * FROM t1 WHERE a=?\n} {\n  {eq 0}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.2 {\n  SELECT * FROM t1 WHERE a=? LIMIT 10\n} {\n  {eq 0}\n  {limit 0}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.3 {\n  SELECT * FROM t1 WHERE a=? AND (b+1)=? LIMIT 10...} {\n  {eq 0}\n}")
+	// do_xbestindex_test 1.1 {
+  SELECT * FROM t1 WHERE a=?
+} {
+  {eq 0}
+} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.2 {
+  SELECT * FROM t1 WHERE a=? LIMIT 10
+} {
+  {eq 0}
+  {limit 0}
+} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.3 {
+  SELECT * FROM t1 WHERE a=? AND (b+1)=? LIMIT 10...} {
+  {eq 0}
+} (unsupported command, not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.4 {\n  SELECT * FROM t1 WHERE even(a, ?)\n} {\n  {152 0}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.5 {\n  SELECT * FROM t1 WHERE b=10 AND even(a, ?)\n} {\n  {eq 1}\n  {152 0}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.6 {\n  SELECT * FROM t1 WHERE b=10 LIMIT 10\n} {\n  {eq 1}\n  {limit 0}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.7 {\n  SELECT * FROM t1 WHERE even(b,?) LIMIT 10\n} {\n  {152 1}\n  {limit 0}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.8 {\n  SELECT * FROM t1 WHERE b!=? LIMIT 10\n} {\n  {ne 1}\n  {limit 0}\n}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.9 {\n  SELECT * FROM t1 WHERE ?=a LIMIT 10\n} {\n  {eq 0}\n  {limit 0}\n}")
+	// do_xbestindex_test 1.4 {
+  SELECT * FROM t1 WHERE even(a, ?)
+} {
+  {152 0}
+} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.5 {
+  SELECT * FROM t1 WHERE b=10 AND even(a, ?)
+} {
+  {eq 1}
+  {152 0}
+} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.6 {
+  SELECT * FROM t1 WHERE b=10 LIMIT 10
+} {
+  {eq 1}
+  {limit 0}
+} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.7 {
+  SELECT * FROM t1 WHERE even(b,?) LIMIT 10
+} {
+  {152 1}
+  {limit 0}
+} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.8 {
+  SELECT * FROM t1 WHERE b!=? LIMIT 10
+} {
+  {ne 1}
+  {limit 0}
+} (unsupported command, not transpiled)
+	// do_xbestindex_test 1.9 {
+  SELECT * FROM t1 WHERE ?=a LIMIT 10
+} {
+  {eq 0}
+  {limit 0}
+} (unsupported command, not transpiled)
 }

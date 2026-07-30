@@ -39,6 +39,13 @@ func Test_fts3ad(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "fts3ad-1.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE t1 USING fts3(content, tokenize porter);\n    INSERT INTO t1(rowid, content) VALUES(1, 'running and jumping');\n    SELECT rowid FROM t1 WHERE content MATCH 'run jump';\n  ")

@@ -39,6 +39,11 @@ func Test_coalesce(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "coalesce-1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n    INSERT INTO t1 VALUES(1, null, null, null);\n    INSERT INTO t1 VALUES(2, 2, 99, 99);\n    INSERT INTO t1 VALUES(3, null, 3, 99);\n    INSERT INTO t1 VALUES(4, null, null, 4);\n    INSERT INTO t1 VALUES(5, null, null, null);\n    INSERT INTO t1 VALUES(6, 22, 99, 99);\n    INSERT INTO t1 VALUES(7, null, 33, 99);\n    INSERT INTO t1 VALUES(8, null, null, 44);\n\n    SELECT coalesce(b,c,d) FROM t1 ORDER BY a;\n  ")

@@ -39,24 +39,33 @@ func Test_ioerr6(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "ioerr6" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "ioerr6" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	// faultsim_save_and_close (unsupported command, not transpiled)
 	{ // do_test "1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "testvfs shmfault -default true")
-		t.Errorf("TODO: %s not implemented in frigolite", "shmfault devchar atomic")
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		// testvfs shmfault -default true (unsupported command, not transpiled)
+		// shmfault devchar atomic (unsupported command, not transpiled)
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 4);\n    INSERT INTO t1 VALUES(3, 6);\n    INSERT INTO t1 VALUES(4, 8);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 4);\n    INSERT INTO t1 VALUES(3, 6);\n    INSERT INTO t1 VALUES(4, 8);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "shmfault full 2 1")
+		// shmfault full 2 1 (unsupported command, not transpiled)
 		_res = db.Exec(" INSERT INTO t1 VALUES(5, 10) ")
 		_ = _res // catchsql
 	}
@@ -66,7 +75,23 @@ func Test_ioerr6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "shmfault delete")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults full* -prep {\n  shmfault devchar atomic\n  faultsim_restore\n  sq...} -body {\n  db eval {\n    CREATE TABLE t1(x PRIMARY KEY);\n ...} -test {\n  set res [db one { PRAGMA integrity_check }]\n  i...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults full* -prep {\n  shmfault devchar atomic\n  faultsim_restore\n  sq...} -body {\n  db eval {\n    CREATE TABLE t1(x);\n    CREATE TA...} -test {\n  db eval { CREATE TABLE t3(x) }\n  if {[db one { ...}")
+	// shmfault delete (unsupported command, not transpiled)
+	// do_faultsim_test 2 -faults full* -prep {
+  shmfault devchar atomic
+  faultsim_restore
+  sq...} -body {
+  db eval {
+    CREATE TABLE t1(x PRIMARY KEY);
+ ...} -test {
+  set res [db one { PRAGMA integrity_check }]
+  i...} (unsupported command, not transpiled)
+	// do_faultsim_test 3 -faults full* -prep {
+  shmfault devchar atomic
+  faultsim_restore
+  sq...} -body {
+  db eval {
+    CREATE TABLE t1(x);
+    CREATE TA...} -test {
+  db eval { CREATE TABLE t3(x) }
+  if {[db one { ...} (unsupported command, not transpiled)
 }

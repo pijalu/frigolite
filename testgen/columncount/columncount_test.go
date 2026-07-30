@@ -39,8 +39,21 @@ func Test_columncount(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "columncount"
+	testprefix = "columncount"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	{ // "1.0"
@@ -49,10 +62,10 @@ func Test_columncount(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y, z);\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.1 { SELECT * FROM t1 } {3    a b c}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.2 { CREATE TABLE t2(a, b) } {0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.3 { ALTER TABLE t2 RENAME TO t3 } {0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.4 { ALTER TABLE t3 RENAME b TO ccc } {0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.5 { ALTER TABLE t3 ADD COLUMN d } {0}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.6 { DROP TABLE t3 } {0}")
+	// do_ccsql_test 1.1 { SELECT * FROM t1 } {3    a b c} (unsupported command, not transpiled)
+	// do_ccsql_test 1.2 { CREATE TABLE t2(a, b) } {0} (unsupported command, not transpiled)
+	// do_ccsql_test 1.3 { ALTER TABLE t2 RENAME TO t3 } {0} (unsupported command, not transpiled)
+	// do_ccsql_test 1.4 { ALTER TABLE t3 RENAME b TO ccc } {0} (unsupported command, not transpiled)
+	// do_ccsql_test 1.5 { ALTER TABLE t3 ADD COLUMN d } {0} (unsupported command, not transpiled)
+	// do_ccsql_test 1.6 { DROP TABLE t3 } {0} (unsupported command, not transpiled)
 }

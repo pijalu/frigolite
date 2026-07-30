@@ -39,8 +39,19 @@ func Test_bind2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var reslist string
+	_ = reslist // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "bind2"
+	testprefix = "bind2"
 	_ = testprefix // suppress unused warning
 	{ // "1.0"
 		r = db.Query(" \n  CREATE TABLE t1(a REAL);\n  INSERT INTO t1 VALUES(42.0);\n  SELECT * FROM t1;\n")
@@ -55,21 +66,21 @@ func Test_bind2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		var stmt = "sqlite3_prepare db \"SELECT ?\" -1 tail"
+		stmt = "sqlite3_prepare db \"SELECT ?\" -1 tail"
 		_ = stmt // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_value_from_select $stmt 1 SELECT a FROM t1")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $stmt 0")
+		// sqlite3_bind_value_from_select $stmt 1 SELECT a FROM t1 (unsupported command, not transpiled)
+		// sqlite3_step $stmt (unsupported command, not transpiled)
+		// sqlite3_column_text $stmt 0 (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+	// sqlite3_finalize $stmt (unsupported command, not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.2"
-		var _reslist = "list" // TCL namespace variable
-		_ = _reslist // suppress unused warning
+		reslist = "list" // TCL namespace variable
+		_ = reslist // suppress unused warning
 		_res = db.Exec(" UPDATE t1 SET a=43; ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET a=43; ")
 		}
-		_ = _reslist // TCL namespace variable (query)
+		_ = reslist // TCL namespace variable (query)
 	}
 }

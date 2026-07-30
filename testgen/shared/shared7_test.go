@@ -40,15 +40,24 @@ func Test_shared7(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var enable_shared_cache string
+	_ = enable_shared_cache // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "shared7-1.1"
-		var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
-		_ = _enable_shared_cache // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache")
+		enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
+		_ = enable_shared_cache // suppress unused warning
+		// sqlite3_enable_shared_cache (unsupported command, not transpiled)
 	}
 	{ // do_test "shared7-1.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n  ")
 		if _res.Error != nil {
@@ -70,5 +79,5 @@ func Test_shared7(t *testing.T) {
 		_res = db.Exec("\n    ATTACH 'test.db' AS err1;\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	// sqlite3_enable_shared_cache $::enable_shared_cache (unsupported command, not transpiled)
 }

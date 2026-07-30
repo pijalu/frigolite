@@ -40,6 +40,11 @@ func Test_trigger4(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "trigger4-1.1"
 		r = db.Query("\n    create table test1(id integer primary key,a);\n    create table test2(id integer,b);\n    create view test as\n      select test1.id as id,a as a,b as b\n      from test1 join test2 on test2.id =  test1.id;\n    create trigger I_test instead of insert on test\n      begin\n        insert into test1 (id,a) values (NEW.id,NEW.a);\n        insert into test2 (id,b) values (NEW.id,NEW.b);\n      end;\n    insert into test values(1,2,3);\n    select * from test1;\n  ")
@@ -54,8 +59,8 @@ func Test_trigger4(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger4-1.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    insert into test values(4,5,6);\n    select * from test1;\n  ")
 		if r.Error != nil {
@@ -81,8 +86,8 @@ func Test_trigger4(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger4-2.3"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    update test set b=66 where id=4;\n    select * from test1;\n  ")
 		if r.Error != nil {
@@ -100,8 +105,8 @@ func Test_trigger4(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "trigger4-3.2"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    insert into test values(7,8,9);\n  ")
 		_ = _res // catchsql
@@ -129,8 +134,8 @@ func Test_trigger4(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger4-3.7"
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		r = db.Query("\n    update test set b=99 where id=7;\n    select * from test2;\n  ")
 		if r.Error != nil {
@@ -140,8 +145,8 @@ func Test_trigger4(t *testing.T) {
 	{ // do_test "trigger4-4.1"
 		os.Remove("trigtest.db")
 		os.Remove("trigtest.db-journal")
-		db, err := frigolite.Open("trigtest.db")
-		defer db.Close()
+		_dbtmp4, err := frigolite.Open("trigtest.db")
+		_ = _dbtmp4 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("drop table tbl; drop view vw")
 		_ = _res // catchsql

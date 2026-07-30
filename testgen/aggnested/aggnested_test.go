@@ -40,8 +40,15 @@ func Test_aggnested(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "aggnested"
+	testprefix = "aggnested"
 	_ = testprefix // suppress unused warning
 	{ // do_test "aggnested-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a1 INTEGER);\n    INSERT INTO t1 VALUES(1), (2), (3);\n    CREATE TABLE t2(b1 INTEGER);\n    INSERT INTO t2 VALUES(4), (5);\n    SELECT (SELECT string_agg(a1,'x') FROM t2) FROM t1;\n  ")

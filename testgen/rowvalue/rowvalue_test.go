@@ -41,9 +41,64 @@ func Test_rowvalue(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var v1 string
+	_ = v1 // pre-declared from TCL source
+	var v2 string
+	_ = v2 // pre-declared from TCL source
+	var eq string
+	_ = eq // pre-declared from TCL source
+	var ne string
+	_ = ne // pre-declared from TCL source
+	var is string
+	_ = is // pre-declared from TCL source
+	var isnot string
+	_ = isnot // pre-declared from TCL source
+	var lt string
+	_ = lt // pre-declared from TCL source
+	var gt string
+	_ = gt // pre-declared from TCL source
+	var le string
+	_ = le // pre-declared from TCL source
+	var ge string
+	_ = ge // pre-declared from TCL source
+	var tn2 string
+	_ = tn2 // pre-declared from TCL source
+	var expr string
+	_ = expr // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var map_0 string
+	_ = map_0 // pre-declared from TCL source
+	var _map_arr string
+	_ = _map_arr // pre-declared from TCL source
+	var map_1 string
+	_ = map_1 // pre-declared from TCL source
+	var _r string
+	_ = _r // pre-declared from TCL source
+	var order string
+	_ = order // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var eqp string
+	_ = eqp // pre-declared from TCL source
+	var q string
+	_ = q // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var map_res string
+	_ = map_res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "rowvalue" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "rowvalue" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "0.0"
 		_res = db.Exec("\n  CREATE TABLE one(o);\n  INSERT INTO one VALUES(1);\n")
 		if _res.Error != nil {
@@ -181,11 +236,11 @@ func Test_rowvalue(t *testing.T) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
-						var map_0 = "list"
+						map_0 = "list"
 						_ = map_0 // suppress unused warning
-						var _map_arr = "list"
+						_map_arr = "list"
 						_ = _map_arr // suppress unused warning
-						var map_1 = "list 1"
+						map_1 = "list 1"
 						_ = map_1 // suppress unused warning
 						{ // tn2 + ".where1"
 							r = db.Query("SELECT * FROM one WHERE " + expr)
@@ -194,7 +249,7 @@ func Test_rowvalue(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := _map + "(" + res + ")"
+							want := map_res
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -212,7 +267,7 @@ func Test_rowvalue(t *testing.T) {
 								return
 							}
 							got := flatten(r)
-							want := _map + "(" + res + ")"
+							want := map_res
 							if got != want {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
@@ -716,11 +771,13 @@ func Test_rowvalue(t *testing.T) {
 											_ = sql // suppress unused warning
 											_ = _idx9
 												if func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n == 0 }() {
-													var err = "row value misused"
-													_ = err // suppress unused warning
+													var _err_tcl string
+													_err_tcl = "row value misused"
+													_ = _err_tcl // suppress unused warning
 												} else {
-													var err = "sub-select returns " + n + " columns - expected 1"
-													_ = err // suppress unused warning
+													var _err_tcl string
+													_err_tcl = "sub-select returns " + n + " columns - expected 1"
+													_ = _err_tcl // suppress unused warning
 												}
 												{ // "14.2." + tn
 													_res = db.Exec(sql)
@@ -1407,7 +1464,8 @@ func Test_rowvalue(t *testing.T) {
 													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
 											}
-											db, err = frigolite.Open(":memory:")
+											_dbtmp10, err := frigolite.Open(":memory:")
+											_ = _dbtmp10 // sqlite3 db connection
 											if err != nil { t.Fatal(err) }
 											{ // "26.10"
 												r = db.Query("\n  CREATE TABLE t0(c0);\n  CREATE TABLE t1(c1);\n  INSERT INTO t1(c1) VALUES (0);\n  SELECT (c0, x'') != (NULL, 0) FROM t1 LEFT JOIN t0;\n")

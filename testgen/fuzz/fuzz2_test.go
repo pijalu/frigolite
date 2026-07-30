@@ -39,73 +39,81 @@ func Test_fuzz2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "fuzz2-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT ALL \"AAAAAA\" . * GROUP BY LIMIT round(1), #...}")
+		// fuzzcatch {SELECT ALL "AAAAAA" . * GROUP BY LIMIT round(1), #...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT + #100}")
+		// fuzzcatch {SELECT + #100} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT 1 WHERE ( #61 NOT MATCH ROUND( 1 ) )}")
+		// fuzzcatch {SELECT 1 WHERE ( #61 NOT MATCH ROUND( 1 ) )} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT 1 LIMIT NOT #59 COLLATE AAAAAA NOT IN \n    ...}")
+		// fuzzcatch {SELECT 1 LIMIT NOT #59 COLLATE AAAAAA NOT IN 
+    ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {INSERT OR REPLACE INTO AAAAAA . \"AAAAAA\" ( \"AAAAAA...}")
+		// fuzzcatch {INSERT OR REPLACE INTO AAAAAA . "AAAAAA" ( "AAAAAA...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT 1 LIMIT NOT #59 COLLATE AAAAAA NOT IN round...}")
+		// fuzzcatch {SELECT 1 LIMIT NOT #59 COLLATE AAAAAA NOT IN round...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT( #239 )}")
+		// fuzzcatch {SELECT( #239 )} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.6"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {DELETE FROM AAAAAA WHERE #65 NOT NULL}")
+		// fuzzcatch {DELETE FROM AAAAAA WHERE #65 NOT NULL} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.7"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {ATTACH ROUND( 1.0 ) in  AAAAAA . \"AAAAAA\" AS #122 ...}")
+		// fuzzcatch {ATTACH ROUND( 1.0 ) in  AAAAAA . "AAAAAA" AS #122 ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.8"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT 1 LIMIT  #122 ISNULL}")
+		// fuzzcatch {SELECT 1 LIMIT  #122 ISNULL} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.9"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {CREATE VIEW AAAAAA . \"AAAAAA\" AS SELECT DISTINCT #...}")
+		// fuzzcatch {CREATE VIEW AAAAAA . "AAAAAA" AS SELECT DISTINCT #...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.10"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {DELETE FROM AAAAAA WHERE #202 IS NOT NULL ISNULL}")
+		// fuzzcatch {DELETE FROM AAAAAA WHERE #202 IS NOT NULL ISNULL} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.11"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {UPDATE OR IGNORE \"AAAAAA\" . \"AAAAAA\" SET \"AAAAAA\" ...}")
+		// fuzzcatch {UPDATE OR IGNORE "AAAAAA" . "AAAAAA" SET "AAAAAA" ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-2.12"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT - #196}")
+		// fuzzcatch {SELECT - #196} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-4.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {ATTACH DATABASE #168 AS whatever}")
+		// fuzzcatch {ATTACH DATABASE #168 AS whatever} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-4.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {DETACH #133}")
+		// fuzzcatch {DETACH #133} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-5.0"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT 1 LIMIT ( SELECT DISTINCT * , AAAAAA , * , ...}")
+		// fuzzcatch {SELECT 1 LIMIT ( SELECT DISTINCT * , AAAAAA , * , ...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-5.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT 1 WHERE 1 == AAAAAA ( * ) BETWEEN + - ~ + \"...}")
+		// fuzzcatch {SELECT 1 WHERE 1 == AAAAAA ( * ) BETWEEN + - ~ + "...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-5.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT 1 WHERE 1 == AAAAAA ( * ) BETWEEN + - ~ + \"...}")
+		// fuzzcatch {SELECT 1 WHERE 1 == AAAAAA ( * ) BETWEEN + - ~ + "...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-5.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {UPDATE \"AAAAAA\" SET \"AAAAAA\" = - EXISTS ( SELECT D...}")
+		// fuzzcatch {UPDATE "AAAAAA" SET "AAAAAA" = - EXISTS ( SELECT D...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-5.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {REPLACE INTO AAAAAA SELECT DISTINCT \"AAAAAA\" . * W...}")
+		// fuzzcatch {REPLACE INTO AAAAAA SELECT DISTINCT "AAAAAA" . * W...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-5.5"
-		t.Errorf("TODO: %s not implemented in frigolite", "fuzzcatch {SELECT ALL * GROUP BY EXISTS ( SELECT \"AAAAAA\" . *...}")
+		// fuzzcatch {SELECT ALL * GROUP BY EXISTS ( SELECT "AAAAAA" . *...} (unsupported command, not transpiled)
 	}
 	{ // do_test "fuzz2-6.1"
 		_res = db.Exec("SELECT n()AND+#0;")

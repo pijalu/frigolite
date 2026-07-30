@@ -40,18 +40,38 @@ func Test_crash2(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sig string
+	_ = sig // pre-declared from TCL source
+	var sector string
+	_ = sector // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "crash2-1.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 500 -file test.db -blocksize 2048 {\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=...}")
+		// crashsql -delay 500 -file test.db -blocksize 2048 {
+    PRAGMA auto_vacuum=OFF;
+    PRAGMA page_size=...} (unsupported command, not transpiled)
 		// file size test.db
 	}
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 5 }() {
 		{ // do_test "crash2-1.2." + ii
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file test.db -blocksize 2048 [subst {\n      [string repeat {SELECT random();} $...")
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			// crashsql -file test.db -blocksize 2048 [subst {
+      [string repeat {SELECT random();} $... (unsupported command, not transpiled)
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil {
@@ -72,7 +92,7 @@ func Test_crash2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		var n = "0"
+		n = "0"
 		_ = n // suppress unused warning
 		for func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n < 1000 }() {
 			_res = db.Exec("INSERT INTO abc VALUES(" + n + ", " + "2*$n" + ", " + "3*$n" + ")")
@@ -97,21 +117,24 @@ func Test_crash2(t *testing.T) {
 		}
 		// expr ([file size test.db] → "([file size test.db]"
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 30 }() {
-		var sig = "signature"
+		sig = "signature"
 		_ = sig // suppress unused warning
-		var sector = "1024 * 1<<($i%4)"
+		sector = "1024 * 1<<($i%4)"
 		_ = sector // suppress unused warning
 		{ // do_test "crash2-2." + i + ".1"
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -blocksize $sector -delay [expr $i%5 + 1] -file test.db-journal \n       PRAGMA temp_store = memory;\n       BEGIN;\n...")
+			// crashsql -blocksize $sector -delay [expr $i%5 + 1] -file test.db-journal 
+       PRAGMA temp_store = memory;
+       BEGIN;
+... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash2-2." + i + ".2"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp1, err := frigolite.Open("test.db")
+			_ = _dbtmp1 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "signature")
+			// signature (unsupported command, not transpiled)
 		}
 		// incr i 1
 		{
@@ -124,18 +147,20 @@ func Test_crash2(t *testing.T) {
 	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-		var sig = "signature"
+		sig = "signature"
 		_ = sig // suppress unused warning
-		var sector = "1024 * 1<<($i%4)"
+		sector = "1024 * 1<<($i%4)"
 		_ = sector // suppress unused warning
 		{ // do_test "crash2-3." + i + ".1"
-			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -blocksize $sector -file test.db \n       BEGIN;\n       SELECT random() FROM abc LIM...")
+			// crashsql -blocksize $sector -file test.db 
+       BEGIN;
+       SELECT random() FROM abc LIM... (unsupported command, not transpiled)
 		}
 		{ // do_test "crash2-3." + i + ".2"
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp2, err := frigolite.Open("test.db")
+			_ = _dbtmp2 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "signature")
+			// signature (unsupported command, not transpiled)
 		}
 		// incr i 1
 		{

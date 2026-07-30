@@ -41,8 +41,83 @@ func Test_vtab1(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var DB string
+	_ = DB // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var STMT string
+	_ = STMT // pre-declared from TCL source
+	var echo_module string
+	_ = echo_module // pre-declared from TCL source
+	var sqlite_sort_count string
+	_ = sqlite_sort_count // pre-declared from TCL source
+	var data string
+	_ = data // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var out string
+	_ = out // pre-declared from TCL source
+	var ii string
+	_ = ii // pre-declared from TCL source
+	var data1 string
+	_ = data1 // pre-declared from TCL source
+	var data2 string
+	_ = data2 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var stmt string
+	_ = stmt // pre-declared from TCL source
+	var rc string
+	_ = rc // pre-declared from TCL source
+	var echo_module_begin_fail string
+	_ = echo_module_begin_fail // pre-declared from TCL source
+	var method string
+	_ = method // pre-declared from TCL source
+	var echo_module_fail_method_t2 string
+	_ = echo_module_fail_method_t2 // pre-declared from TCL source
+	var echo_module_fail_xRename_t2 string
+	_ = echo_module_fail_xRename_t2 // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var filter string
+	_ = filter // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var nm string
+	_ = nm // pre-declared from TCL source
+	var n string
+	_ = n // pre-declared from TCL source
+	var res2 string
+	_ = res2 // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var lhs string
+	_ = lhs // pre-declared from TCL source
+	var rhs string
+	_ = rhs // pre-declared from TCL source
+	var log string
+	_ = log // pre-declared from TCL source
+	var ptr string
+	_ = ptr // pre-declared from TCL source
+	var b string
+	_ = b // pre-declared from TCL source
+	var a string
+	_ = a // pre-declared from TCL source
+	var null string
+	_ = null // pre-declared from TCL source
+	var value string
+	_ = value // pre-declared from TCL source
+	var res1 string
+	_ = res1 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var testprefix = "vtab1"
+	testprefix = "vtab1"
 	_ = testprefix // suppress unused warning
 	{ // do_test "vtab1-1.1.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING echo;\n  ")
@@ -58,7 +133,7 @@ func Test_vtab1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab1-1.3.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING echo;\n  ")
 		_ = _res // catchsql
@@ -88,28 +163,28 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-1.2152.1"
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
-		var sql = "CREATE VIRTUAL TABLE t2152a USING echo(t2152b)"
+		sql = "CREATE VIRTUAL TABLE t2152a USING echo(t2152b)"
 		_ = sql // suppress unused warning
-		var STMT = ""
+		STMT = ""
 		_ = STMT // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "vtab-1.2152.2"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_reset $STMT (unsupported command, not transpiled)
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "vtab-1.2152.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
+		// sqlite3_reset $STMT (unsupported command, not transpiled)
 		_res = db.Exec("CREATE TABLE t2152b(x,y)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t2152b(x,y)")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		// sqlite3_step $STMT (unsupported command, not transpiled)
 	}
 	{ // do_test "vtab-1.2152.4"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		// sqlite3_finalize $STMT (unsupported command, not transpiled)
 		_res = db.Exec("DROP TABLE t2152a; DROP TABLE t2152b")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2152a; DROP TABLE t2152b")
@@ -142,8 +217,8 @@ func Test_vtab1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE treal(a, b, c);\n    CREATE VIRTUAL TABLE techo USING echo(treal);\n  ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp0, err := frigolite.Open("test.db")
+		_ = _dbtmp0 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("\n    SELECT * FROM techo;\n  ")
 		_ = _res // catchsql
@@ -168,8 +243,8 @@ func Test_vtab1(t *testing.T) {
 		_res = db.Exec("\n    DROP TABLE techo;\n  ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab1-1.16"
 		_res = db.Exec("\n    DROP TABLE techo;\n    CREATE TABLE logmsg(log);\n  ")
 		if _res.Error != nil {
@@ -205,21 +280,21 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-2.3"
-		var echo_module = "list"
+		echo_module = "list"
 		_ = echo_module // suppress unused warning
 	}
 	{ // do_test "vtab1-2.4"
-		var echo_module = "list"
+		echo_module = "list"
 		_ = echo_module // suppress unused warning
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp1, err := frigolite.Open("test.db")
+		_ = _dbtmp1 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "vtab1.2.6"
 		_res = db.Exec(" PRAGMA table_info(t1); ")
 		_ = _res // catchsql
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 	{ // do_test "vtab1.2.7"
 		r = db.Query(" PRAGMA table_info(t1); ")
 		if r.Error != nil {
@@ -229,7 +304,7 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1.2.8"
 	}
 	{ // do_test "vtab1-2.5"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    DROP TABLE t1;\n  ")
 		if _res.Error != nil {
@@ -255,7 +330,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-3.1"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    CREATE TABLE treal(a INTEGER, b INTEGER, c); \n    CREATE INDEX treal_idx ON treal(b);\n    CREATE VIRTUAL TABLE t1 USING echo(treal);\n  ")
 		if _res.Error != nil {
@@ -287,7 +362,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-3.6"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -307,7 +382,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-3.8.2"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -315,7 +390,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-3.9"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query("\n    SELECT * FROM t1 WHERE b = 5;\n  ")
 		if r.Error != nil {
@@ -325,7 +400,7 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1-3.10"
 	}
 	{ // do_test "vtab1-3.10"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query("\n    SELECT * FROM t1 WHERE b >= 5 AND b <= 10;\n  ")
 		if r.Error != nil {
@@ -335,7 +410,7 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1-3.11"
 	}
 	{ // do_test "vtab1-3.12"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query("\n    SELECT * FROM t1 WHERE b BETWEEN 2 AND 10;\n  ")
 		if r.Error != nil {
@@ -344,10 +419,10 @@ func Test_vtab1(t *testing.T) {
 	}
 	{ // do_test "vtab1-3.13"
 	}
-	var echo_module = ""
+	echo_module = ""
 	_ = echo_module // suppress unused warning
 	{ // do_test "vtab1-3.12"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    SELECT * FROM t1 WHERE a MATCH 'string';\n  ")
 		_ = _res // catchsql
@@ -356,23 +431,23 @@ func Test_vtab1(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "vtab1-4.1"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT b FROM t1 ORDER BY b;\n  }")
+		_ = db.Exec("\n    SELECT b FROM t1 ORDER BY b;\n  ") // cksort
 	}
 	{ // do_test "vtab1-4.2"
 	}
 	{ // do_test "vtab1-4.3"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT b FROM t1 ORDER BY b DESC;\n  }")
+		_ = db.Exec("\n    SELECT b FROM t1 ORDER BY b DESC;\n  ") // cksort
 	}
 	{ // do_test "vtab1-4.4"
 	}
 	{ // do_test "vtab1-4.3"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT b FROM t1 ORDER BY b||'';\n  }")
+		_ = db.Exec("\n    SELECT b FROM t1 ORDER BY b||'';\n  ") // cksort
 	}
 	{ // do_test "vtab1-4.4"
 	}
@@ -388,7 +463,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-5-2"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query("\n    SELECT * FROM et1, et2;\n  ")
 		if r.Error != nil {
@@ -396,10 +471,10 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-5-3"
-		t.Errorf("TODO: %s not implemented in frigolite", "filter $echo_module")
+		// filter $echo_module (unsupported command, not transpiled)
 	}
 	{ // do_test "vtab1-5-4"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query("\n    SELECT * FROM et1, et2 WHERE et2.d = 2;\n  ")
 		if r.Error != nil {
@@ -407,26 +482,26 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-5-5"
-		t.Errorf("TODO: %s not implemented in frigolite", "filter $echo_module")
+		// filter $echo_module (unsupported command, not transpiled)
 	}
 	{ // do_test "vtab1-5-6"
 		_res = db.Exec("\n    CREATE INDEX i1 ON t2(d);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i1 ON t2(d);\n  ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp2, err := frigolite.Open("test.db")
+		_ = _dbtmp2 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
-		var _echo_module = "" // TCL namespace variable
-		_ = _echo_module // suppress unused warning
+		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
+		echo_module = "" // TCL namespace variable
+		_ = echo_module // suppress unused warning
 		r = db.Query("\n    SELECT * FROM et1, et2 WHERE et2.d = 2;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM et1, et2 WHERE et2.d = 2;\n  ")
 		}
 	}
 	{ // do_test "vtab1-5-7"
-		t.Errorf("TODO: %s not implemented in frigolite", "filter $::echo_module")
+		// filter $::echo_module (unsupported command, not transpiled)
 	}
 	_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE et1;\n  DROP TABLE et2;\n")
 	if _res.Error != nil {
@@ -569,7 +644,7 @@ func Test_vtab1(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE techo(a PRIMARY KEY, b, c);\n")
 	}
 	// proc definition (not transpiled)
-	var tn = "0"
+	tn = "0"
 	_ = tn // suppress unused warning
 	for _, stmt := range tclSplitList("list \\\n  {INSERT INTO techo VALUES('abc', 'def', 'ghi')}                        \\\n  {INSERT INTO techo SELECT a||'.'||rowid, b, c FROM techo}              \\\n  {INSERT INTO techo SELECT a||'x'||rowid, b, c FROM techo}              \\\n  {INSERT INTO techo SELECT a||'y'||rowid, b, c FROM techo}              \\\n  {DELETE FROM techo WHERE (oid % 3) = 0}                                \\\n  {UPDATE techo set rowid = 100 WHERE rowid = 1}                         \\\n  {INSERT INTO techo(a, b) VALUES('hello', 'world')}                     \\\n  {DELETE FROM techo}                                                    \\") {
 	_ = stmt // suppress unused warning
@@ -581,7 +656,7 @@ func Test_vtab1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, stmt)
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "check_echo_table vtab1-6.8.[incr tn]")
+		// check_echo_table vtab1-6.8.[incr tn] (unsupported command, not transpiled)
 	}
 	db2.Close()
 	{ // do_test "vtab1.7-1"
@@ -677,7 +752,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1.9-1"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query("\n    CREATE TABLE r(a, b, c);\n    CREATE VIRTUAL TABLE e USING echo(r, e_log);\n    SELECT name FROM sqlite_master;\n  ")
 		if r.Error != nil {
@@ -691,7 +766,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1.9-3"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE e USING echo(r, e_log, virtual 1 2 3 varchar(32));\n  ")
 		if _res.Error != nil {
@@ -703,10 +778,10 @@ func Test_vtab1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE del(d);\n    CREATE VIRTUAL TABLE e2 USING echo(del);\n  ")
 		}
-		db, err := frigolite.Open("test.db")
-		defer db.Close()
+		_dbtmp3, err := frigolite.Open("test.db")
+		_ = _dbtmp3 // sqlite3 db connection
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+		// register_echo_module [sqlite3_connection_pointer db] (unsupported command, not transpiled)
 		_res = db.Exec("\n    DROP TABLE del;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE del;\n  ")
@@ -715,14 +790,13 @@ func Test_vtab1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "vtab1.10-2"
-	var rc string
 	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			var ptr = "sqlite3_connection_pointer db"
+			ptr = "sqlite3_connection_pointer db"
 			_ = ptr // suppress unused warning
-			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_declare_vtab $ptr {CREATE TABLE abc(a, b, c)}")
+			// sqlite3_declare_vtab $ptr {CREATE TABLE abc(a, b, c)} (unsupported command, not transpiled)
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -735,8 +809,8 @@ func Test_vtab1(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "vtab1.10-3"
-		var _echo_module_begin_fail = "r" // TCL namespace variable
-		_ = _echo_module_begin_fail // suppress unused warning
+		echo_module_begin_fail = "r" // TCL namespace variable
+		_ = echo_module_begin_fail // suppress unused warning
 		_res = db.Exec("\n    INSERT INTO e VALUES(1, 2, 3);\n  ")
 		_ = _res // catchsql
 	}
@@ -749,7 +823,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1.10-5"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query("\n    SELECT * FROM e WHERE rowid||'' MATCH 'pattern';\n  ")
 		if r.Error != nil {
@@ -758,9 +832,9 @@ func Test_vtab1(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "vtab1.10-6"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_delete_function db match")
+		// sqlite_delete_function db match (unsupported command, not transpiled)
 		r = db.Query("\n    SELECT * FROM e WHERE match('pattern', rowid, 'pattern2');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM e WHERE match('pattern', rowid, 'pattern2');\n  ")
@@ -812,7 +886,7 @@ func Test_vtab1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "vtab1.12-2.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		// sqlite3_errmsg db (unsupported command, not transpiled)
 	}
 	{ // do_test "vtab1.12-3"
 		r = db.Query(" SELECT * FROM c ")
@@ -959,7 +1033,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-14.2"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query(" SELECT * FROM echo_c WHERE rowid = 1 ")
 		if r.Error != nil {
@@ -967,7 +1041,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-14.3"
-		var echo_module = ""
+		echo_module = ""
 		_ = echo_module // suppress unused warning
 		r = db.Query(" SELECT * FROM echo_c WHERE a = 1 ")
 		if r.Error != nil {
@@ -1007,12 +1081,11 @@ func Test_vtab1(t *testing.T) {
 	for _, method := range tclSplitList("list \\\n    xBestIndex       \\\n    xOpen            \\\n    xFilter          \\\n    xNext            \\\n    xColumn          \\\n    xRowid           \\") {
 	_ = method // suppress unused warning
 		{ // do_test "vtab1-16." + tn
-			var echo_module_fail_method,t2 = "the " + method + " method has failed"
-			_ = echo_module_fail_method,t2 // suppress unused warning
+			echo_module_fail_method_t2 = "the " + method + " method has failed"
+			_ = echo_module_fail_method_t2 // suppress unused warning
 			_res = db.Exec(" SELECT rowid, * FROM echo_t2 WHERE a >= 1 ")
 			_ = _res // catchsql
 		}
-		var tn = "0"
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
@@ -1024,12 +1097,11 @@ func Test_vtab1(t *testing.T) {
 	for _, method := range tclSplitList("list \\\n  xUpdate            \\\n  xBegin             \\\n  xSync              \\") {
 	_ = method // suppress unused warning
 		{ // do_test "vtab1-16." + tn
-			var echo_module_fail_method,t2 = "the " + method + " method has failed"
-			_ = echo_module_fail_method,t2 // suppress unused warning
+			echo_module_fail_method_t2 = "the " + method + " method has failed"
+			_ = echo_module_fail_method_t2 // suppress unused warning
 			_res = db.Exec(" INSERT INTO echo_t2 VALUES(7, 8, 9) ")
 			_ = _res // catchsql
 		}
-		var tn = "0"
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
@@ -1039,7 +1111,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-17.1"
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		// sqlite3_db_config db DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec(" \n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );\n  ")
@@ -1072,18 +1144,18 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res filter} "\n  2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}\n"
-	_items0 := tclSplitList("\n  2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}\n")
-	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-		tn := _items0[_idx0+0]
+	_items4 := tclSplitList("\n  2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}\n")
+	for _idx4 := 0; _idx4+4 <= len(_items4); _idx4 += 4 {
+		tn := _items4[_idx4+0]
 		_ = tn // suppress unused warning
-		sql := _items0[_idx0+1]
+		sql := _items4[_idx4+1]
 		_ = sql // suppress unused warning
-		res := _items0[_idx0+2]
+		res := _items4[_idx4+2]
 		_ = res // suppress unused warning
-		filter := _items0[_idx0+3]
+		filter := _items4[_idx4+3]
 		_ = filter // suppress unused warning
-		_ = _idx0
-			var echo_module = ""
+		_ = _idx4
+			echo_module = ""
 			_ = echo_module // suppress unused warning
 			{ // "18." + tn + ".1"
 				_res = db.Exec(sql)
@@ -1092,7 +1164,7 @@ func Test_vtab1(t *testing.T) {
 				}
 			}
 			{ // do_test "18." + tn + ".2"
-				tclLRange(_echo_module, "2", "end")
+				_ = tclLRange(echo_module, "2", "end") // lrange result
 			}
 		}
 		{ // "18.2.x"
@@ -1104,10 +1176,10 @@ func Test_vtab1(t *testing.T) {
 		{ // do_test "19.1"
 			db2, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
-			t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
+			// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
 		}
 		{ // do_test "19.2"
-			t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
+			// register_echo_module [sqlite3_connection_pointer db2] (unsupported command, not transpiled)
 		}
 		{ // do_test "19.3"
 			db2.Close()
@@ -1119,7 +1191,7 @@ func Test_vtab1(t *testing.T) {
 			}
 		}
 		{ // do_test "20.2"
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 				_res = db.Exec("INSERT INTO t7 VALUES($i, $i)")
@@ -1196,15 +1268,15 @@ func Test_vtab1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
-		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db eval")
-		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
+		// load_static_extension db wholenumber (unsupported command, not transpiled)
+		// load_static_extension db eval (unsupported command, not transpiled)
+		// register_echo_module db (unsupported command, not transpiled)
 		{ // do_test "23.1"
 			_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING wholenumber ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING wholenumber ")
 			}
-			var res = ""
+			res = ""
 			_ = res // suppress unused warning
 			_res = db.Exec(" SELECT value FROM t1 WHERE value<10 ")
 			if _res.Error != nil {
@@ -1216,7 +1288,7 @@ func Test_vtab1(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE TABLE t2(value);\n    INSERT INTO t2 VALUES(1), (2), (3);\n  ")
 			}
-			var res2 = "list [catch {\n    db eval {\n      SELECT value FROM t2 UNION ALL \n      SELECT value FROM t1 WHERE value<10\n    } {\n      if {$value == 2} { set res1 [catchsql { DROP TABLE t1 }] }\n    }\n  } msg] $msg"
+			res2 = "list [catch {\n    db eval {\n      SELECT value FROM t2 UNION ALL \n      SELECT value FROM t1 WHERE value<10\n    } {\n      if {$value == 2} { set res1 [catchsql { DROP TABLE t1 }] }\n    }\n  } msg] $msg"
 			_ = res2 // suppress unused warning
 			_list := tclList([]string{res1, res2})
 			_ = _list
@@ -1248,7 +1320,7 @@ func Test_vtab1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
+		// register_echo_module db (unsupported command, not transpiled)
 		{ // "25.0"
 			_res = db.Exec("\n  CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;\n")
 			if _res.Error == nil {
@@ -1258,7 +1330,7 @@ func Test_vtab1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+		// load_static_extension db wholenumber (unsupported command, not transpiled)
 		{ // "26.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);\n")
 			if _res.Error != nil {

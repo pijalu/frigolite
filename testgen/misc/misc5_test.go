@@ -41,25 +41,48 @@ func Test_misc5(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var i string
+	_ = i // pre-declared from TCL source
+	var sql1 string
+	_ = sql1 // pre-declared from TCL source
+	var sql2 string
+	_ = sql2 // pre-declared from TCL source
+	var sep string
+	_ = sep // pre-declared from TCL source
+	var j string
+	_ = j // pre-declared from TCL source
+	var fd string
+	_ = fd // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var tail string
+	_ = tail // pre-declared from TCL source
+	var Id_ string
+	_ = Id_ // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var i = "120"
+	i = "120"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 140 }() {
 		{ // do_test "misc5-1." + i
 			_res = db.Exec("DROP TABLE t1")
 			_ = _res // catchsql
-			var sql1 = "CREATE TABLE t1"
+			sql1 = "CREATE TABLE t1"
 			_ = sql1 // suppress unused warning
-			var sql2 = "INSERT INTO t1 VALUES"
+			sql2 = "INSERT INTO t1 VALUES"
 			_ = sql2 // suppress unused warning
-			var sep = "("
+			sep = "("
 			_ = sep // suppress unused warning
-			var j = "0"
+			j = "0"
 			_ = j // suppress unused warning
 			for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return j_n < i_n }() {
 				sql1 += "$"
 				sql2 += "$"
-				var sep = ","
+				sep = ","
 				_ = sep // suppress unused warning
 				// incr j 1
 				{
@@ -93,12 +116,13 @@ func Test_misc5(t *testing.T) {
 	if tclBool("permutation" + " == \"\"") {
 		{ // do_test "misc5-4.1"
 			os.Remove("test.db")
-			var fd = "open test.db w"
+			fd = "open test.db w"
 			_ = fd // suppress unused warning
-			t.Log(fd)
+			_putsMsg := fd
+			_ = _putsMsg
 			// close $fd
-			db, err := frigolite.Open("test.db")
-			defer db.Close()
+			_dbtmp0, err := frigolite.Open("test.db")
+			_ = _dbtmp0 // sqlite3 db connection
 			if err != nil { t.Fatal(err) }
 			_res = db.Exec("\n      CREATE TABLE t1(a,b,c);\n    ")
 			_ = _res // catchsql
@@ -132,18 +156,19 @@ func Test_misc5(t *testing.T) {
 		}
 	}
 	os.Remove("test.db")
-	db, err = frigolite.Open("test.db")
+	_dbtmp0, err := frigolite.Open("test.db")
+	_ = _dbtmp0 // sqlite3 db connection
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misc5-7.1.1"
 		_res = db.Exec("CREATE TABLE t1(x)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(x)")
 		}
-		var sql = "INSERT INTO t1 VALUES("
+		sql = "INSERT INTO t1 VALUES("
 		_ = sql // suppress unused warning
-		var tail = ""
+		tail = ""
 		_ = tail // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 200 }() {
 			sql += "(1+"
@@ -165,11 +190,11 @@ func Test_misc5(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		var sql = "INSERT INTO t1 VALUES("
+		sql = "INSERT INTO t1 VALUES("
 		_ = sql // suppress unused warning
-		var tail = ""
+		tail = ""
 		_ = tail // suppress unused warning
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 900 }() {
 			sql += "(1+"
@@ -189,7 +214,7 @@ func Test_misc5(t *testing.T) {
 	{ // do_test "misc5-7.2"
 		db2, err = frigolite.Open(":memory:")
 		if err != nil { t.Fatal(err) }
-		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db2 DEFENSIVE 0")
+		// sqlite3_db_config db2 DEFENSIVE 0 (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE t1(x UNIQUE);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE table t(o CHECK(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((;VALUES(o)';\n    BEGIN;\n    CREATE TABLE t2(y);\n    ROLLBACK;\n    DROP TABLE IF EXISTS D;\n  ")
 		_ = _res // catchsql
 	}

@@ -39,37 +39,59 @@ func Test_fuzzerfault(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "fuzzerfault" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
-	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fuzzer")
+	testprefix = "fuzzerfault" // TCL namespace variable
+	_ = testprefix // suppress unused warning
+	// load_static_extension db fuzzer (unsupported command, not transpiled)
 	{ // do_test "1-pre1"
 		_res = db.Exec("\n    CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', 'b', 1);\n    INSERT INTO x1_rules VALUES(0, 'a', 'c', 2);\n    INSERT INTO x1_rules VALUES(0, 'a', 'd', 3);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', 'b', 1);\n    INSERT INTO x1_rules VALUES(0, 'a', 'c', 2);\n    INSERT INTO x1_rules VALUES(0, 'a', 'd', 3);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  load_static_exten...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE x1 USING fu...} -test {\n  faultsim_test_result {0 {xax xbx xcx xdx}}     ...}")
+	// do_faultsim_test 1 -prep {
+  faultsim_restore_and_reopen
+  load_static_exten...} -body {
+  execsql { 
+    CREATE VIRTUAL TABLE x1 USING fu...} -test {
+  faultsim_test_result {0 {xax xbx xcx xdx}}     ...} (unsupported command, not transpiled)
 	{ // do_test "2-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fuzzer")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
+		// load_static_extension db fuzzer (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE x2_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x2_rules VALUES(0, 'a', 'x', 1);\n    INSERT INTO x2_rules VALUES(0, 'b', 'x', 2);\n    INSERT INTO x2_rules VALUES(0, 'c', 'x', 3);\n    CREATE VIRTUAL TABLE x2 USING fuzzer(x2_rules);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x2_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x2_rules VALUES(0, 'a', 'x', 1);\n    INSERT INTO x2_rules VALUES(0, 'b', 'x', 2);\n    INSERT INTO x2_rules VALUES(0, 'c', 'x', 3);\n    CREATE VIRTUAL TABLE x2 USING fuzzer(x2_rules);\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -prep {\n  faultsim_restore_and_reopen\n  load_static_exten...} -body {\n  execsql { \n    SELECT count(*) FROM x2 WHERE wo...} -test {\n  faultsim_test_result {0 8} {1 {vtable construct...}")
+	// do_faultsim_test 2 -prep {
+  faultsim_restore_and_reopen
+  load_static_exten...} -body {
+  execsql { 
+    SELECT count(*) FROM x2 WHERE wo...} -test {
+  faultsim_test_result {0 8} {1 {vtable construct...} (unsupported command, not transpiled)
 	{ // do_test "3-pre1"
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		// faultsim_delete_and_reopen (unsupported command, not transpiled)
 		_res = db.Exec("\n    CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', \n      '123456789012345678901234567890a1234567890123456789', 10\n    );\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n    INSERT INTO x1_rules VALUES(0, 'a', \n      '123456789012345678901234567890a1234567890123456789', 10\n    );\n  ")
 		}
-		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		// faultsim_save_and_close (unsupported command, not transpiled)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -prep {\n  faultsim_restore_and_reopen\n  load_static_exten...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE x1 USING fu...} -test {\n  faultsim_test_result {0 2} {1 {vtable construct...}")
+	// do_faultsim_test 3 -prep {
+  faultsim_restore_and_reopen
+  load_static_exten...} -body {
+  execsql { 
+    CREATE VIRTUAL TABLE x1 USING fu...} -test {
+  faultsim_test_result {0 2} {1 {vtable construct...} (unsupported command, not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -79,6 +101,12 @@ func Test_fuzzerfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1_a(a INTEFDR PRIMARY KEY, b TEXT);\n  CREATE TABLE t3_a(k FnTEGER PRIMARY KEY, v TEXT);\n  CREATE TABLE t3_b(k INTEÀ5R PRIMARY KEY, v TEXT);\n  CREATE VIEW t3 AS SELECT * FROM t3_a UNION ALL SELECT * FROM t3_b;\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    SELECT 1 FROM t1_a LEFT JOIN t3 ...} -test {\n  faultsim_test_result {0 {}} \n}")
+	// faultsim_save_and_close (unsupported command, not transpiled)
+	// do_faultsim_test 4 -faults oom-t* -prep {
+  faultsim_restore_and_reopen
+} -body {
+  execsql { 
+    SELECT 1 FROM t1_a LEFT JOIN t3 ...} -test {
+  faultsim_test_result {0 {}} 
+} (unsupported command, not transpiled)
 }

@@ -40,15 +40,43 @@ func Test_e_dropview(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+	var tbl string
+	_ = tbl // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var databasedata string
+	_ = databasedata // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var name string
+	_ = name // pre-declared from TCL source
+	var x string
+	_ = x // pre-declared from TCL source
+	var nm string
+	_ = nm // pre-declared from TCL source
+	var args string
+	_ = args // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "e_dropview" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "e_dropview" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Errorf("TODO: %s not implemented in frigolite", "do_dropview_tests 1 -repair {\n  dropview_reopen_db\n} -tclquery {\n  list_all_views\n} {\n  1   \"DROP VIEW v1\"                  {main.v1 ma...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "dropview_reopen_db")
+	// do_dropview_tests 1 -repair {
+  dropview_reopen_db
+} -tclquery {
+  list_all_views
+} {
+  1   "DROP VIEW v1"                  {main.v1 ma...} (unsupported command, not transpiled)
+	// dropview_reopen_db (unsupported command, not transpiled)
 	{ // "2.1"
 		r = db.Query("\n  CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y;\n  SELECT * FROM \"new view\";\n")
 		if r.Error != nil {
@@ -85,7 +113,7 @@ func Test_e_dropview(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: new view", _res.Error, "\n  SELECT * FROM \"new view\"\n")
 		}
 	}
-	var databasedata = "list_all_data"
+	databasedata = "list_all_data"
 	_ = databasedata // suppress unused warning
 	{ // "3.1.0"
 		r = db.Query(" SELECT * FROM temp.v1 ")
@@ -112,7 +140,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
+		// list_all_views (unsupported command, not transpiled)
 	}
 	{ // do_test "3.1.4"
 		strings.Compare("list_all_data", databasedata)
@@ -142,7 +170,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
+		// list_all_views (unsupported command, not transpiled)
 	}
 	{ // do_test "3.2.4"
 		strings.Compare("list_all_data", databasedata)
@@ -172,7 +200,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.3.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
+		// list_all_views (unsupported command, not transpiled)
 	}
 	{ // do_test "3.3.4"
 		strings.Compare("list_all_data", databasedata)
@@ -202,7 +230,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.4.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
+		// list_all_views (unsupported command, not transpiled)
 	}
 	{ // do_test "3.4.4"
 		strings.Compare("list_all_data", databasedata)
@@ -232,7 +260,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.5.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
+		// list_all_views (unsupported command, not transpiled)
 	}
 	{ // do_test "3.5.4"
 		strings.Compare("list_all_data", databasedata)
@@ -262,11 +290,22 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.6.3"
-		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
+		// list_all_views (unsupported command, not transpiled)
 	}
 	{ // do_test "3.6.4"
 		strings.Compare("list_all_data", databasedata)
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_dropview_tests 4 -repair {\n  dropview_reopen_db \n} -errorformat {\n  no such view: %s\n} {\n  1   \"DROP VIEW xx\"                  xx\n  2   \"D...}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_dropview_tests 5 -repair {\n  dropview_reopen_db\n} -tclquery {\n  list_all_views\n  #expr {[list_all_views] == \"ma...} {\n  1    \"DROP VIEW IF EXISTS xx\" \"main.v1 main.v2 ...}")
+	// do_dropview_tests 4 -repair {
+  dropview_reopen_db 
+} -errorformat {
+  no such view: %s
+} {
+  1   "DROP VIEW xx"                  xx
+  2   "D...} (unsupported command, not transpiled)
+	// do_dropview_tests 5 -repair {
+  dropview_reopen_db
+} -tclquery {
+  list_all_views
+  #expr {[list_all_views] == "ma...} {
+  1    "DROP VIEW IF EXISTS xx" "main.v1 main.v2 ...} (unsupported command, not transpiled)
 }

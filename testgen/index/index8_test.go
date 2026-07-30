@@ -39,6 +39,11 @@ func Test_index8(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c,d);\n  WITH RECURSIVE c(x) AS (VALUES(0) UNION ALL SELECT x+1 FROM c WHERE x<100)\n  INSERT INTO t1(a,b,c,d)\n     SELECT x/10, x%10, x%19, x FROM c;\n  CREATE INDEX t1abc ON t1(a,b,c);\n  SELECT * FROM t1 WHERE c=4 ORDER BY a, b LIMIT 2;\n")

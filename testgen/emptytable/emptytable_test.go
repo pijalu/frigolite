@@ -39,6 +39,11 @@ func Test_emptytable(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "emptytable-100"
 		r = db.Query("\n  CREATE TABLE t1(a);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n    INSERT INTO t1(a) SELECT x FROM c;\n  CREATE TABLE empty(x);\n  SELECT count(*) FROM t1;\n")

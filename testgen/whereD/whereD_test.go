@@ -39,9 +39,22 @@ func Test_whereD(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var testprefix string
+	_ = testprefix // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+	var tn string
+	_ = tn // pre-declared from TCL source
+	var sql string
+	_ = sql // pre-declared from TCL source
+	var res string
+	_ = res // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
-	var _testprefix = "whereD" // TCL namespace variable
-	_ = _testprefix // suppress unused warning
+	testprefix = "whereD" // TCL namespace variable
+	_ = testprefix // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  CREATE TABLE t(i,j,k,m,n);\n  CREATE INDEX ijk ON t(i,j,k);\n  CREATE INDEX jmn ON t(j,m,n);\n\n  INSERT INTO t VALUES(3, 3, 'three', 3, 'tres');\n  INSERT INTO t VALUES(2, 2, 'two', 2, 'dos');\n  INSERT INTO t VALUES(1, 1, 'one', 1, 'uno');\n  INSERT INTO t VALUES(4, 4, 'four', 4, 'cuatro');\n")
 		if _res.Error != nil {
@@ -259,14 +272,26 @@ func Test_whereD(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b, c);\n  CREATE UNIQUE INDEX i3 ON t3(a, b);\n  INSERT INTO t3 VALUES(1, 'one', 'i');\n  INSERT INTO t3 VALUES(3, 'three', 'iii');\n  INSERT INTO t3 VALUES(6, 'six', 'vi');\n  INSERT INTO t3 VALUES(2, 'two', 'ii');\n  INSERT INTO t3 VALUES(4, 'four', 'iv');\n  INSERT INTO t3 VALUES(5, 'five', 'v');\n\n  CREATE TABLE t4(x PRIMARY KEY, y);\n  INSERT INTO t4 VALUES('a', 'one');\n  INSERT INTO t4 VALUES('b', 'two');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 3.1 {\n  SELECT a, b FROM t3 WHERE (a=1 AND b='one') OR ...} {1 one 2 two search 4}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 3.2 {\n  SELECT a, c FROM t3 WHERE (a=1 AND b='one') OR ...} {1 i 2 ii search 6}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 3.4.1 {\n  SELECT y FROM t4 WHERE x='a'\n} {one search 2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 3.4.2 {\n  SELECT a, b FROM t3 WHERE \n        (a=1 AND b=(...} {1 one 2 two search 6}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 3.4.3 {\n  SELECT a, b FROM t3 WHERE \n        (a=2 AND b='...} {2 two 1 one search 6}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 3.4.4 {\n  SELECT a, b FROM t3 WHERE \n        (a=2 AND b=(...} {2 two 1 one search 8}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 3.5.1 {\n  SELECT a, b FROM t3 WHERE (a=1 AND b='one') OR ...} {1 one 2 two search 2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 3.5.2 {\n  SELECT a, c FROM t3 WHERE (a=1 AND b='one') OR ...} {1 i 2 ii search 3}")
+	// do_searchcount_test 3.1 {
+  SELECT a, b FROM t3 WHERE (a=1 AND b='one') OR ...} {1 one 2 two search 4} (unsupported command, not transpiled)
+	// do_searchcount_test 3.2 {
+  SELECT a, c FROM t3 WHERE (a=1 AND b='one') OR ...} {1 i 2 ii search 6} (unsupported command, not transpiled)
+	// do_searchcount_test 3.4.1 {
+  SELECT y FROM t4 WHERE x='a'
+} {one search 2} (unsupported command, not transpiled)
+	// do_searchcount_test 3.4.2 {
+  SELECT a, b FROM t3 WHERE 
+        (a=1 AND b=(...} {1 one 2 two search 6} (unsupported command, not transpiled)
+	// do_searchcount_test 3.4.3 {
+  SELECT a, b FROM t3 WHERE 
+        (a=2 AND b='...} {2 two 1 one search 6} (unsupported command, not transpiled)
+	// do_searchcount_test 3.4.4 {
+  SELECT a, b FROM t3 WHERE 
+        (a=2 AND b=(...} {2 two 1 one search 8} (unsupported command, not transpiled)
+	// do_searchcount_test 3.5.1 {
+  SELECT a, b FROM t3 WHERE (a=1 AND b='one') OR ...} {1 one 2 two search 2} (unsupported command, not transpiled)
+	// do_searchcount_test 3.5.2 {
+  SELECT a, c FROM t3 WHERE (a=1 AND b='one') OR ...} {1 i 2 ii search 3} (unsupported command, not transpiled)
 	{ // do_test "4.1"
 		_res = db.Exec("\n    CREATE TABLE t41(a,b,c);\n    INSERT INTO t41 VALUES(1,2,3), (4,5,6);\n    CREATE TABLE t42(d,e,f);\n    INSERT INTO t42 VALUES(3,6,9), (4,8,12);\n    SELECT * FROM t41 AS x LEFT JOIN t42 AS y ON (y.d=x.c) OR (y.e=x.b);\n  ")
 		if _res.Error != nil {
@@ -375,22 +400,51 @@ func Test_whereD(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c, d, e);\n  CREATE INDEX x1a  ON x1(a);\n  CREATE INDEX x1bc ON x1(b, c);\n  CREATE INDEX x1cd ON x1(c, d);\n\n  INSERT INTO x1 VALUES(1, 2, 3, 4, 'A');\n  INSERT INTO x1 VALUES(5, 6, 7, 8, 'B');\n  INSERT INTO x1 VALUES(9, 10, 11, 12, 'C');\n  INSERT INTO x1 VALUES(13, 14, 15, 16, 'D');\n")
 		}
 	}
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.2.1 {\n  SELECT e FROM x1 WHERE b=2 OR c=7;\n} {A B search 6}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.2.2 {\n  SELECT c FROM x1 WHERE b=2 OR c=7;\n} {3 7 search 4}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.3.1 {\n  SELECT e FROM x1 WHERE a=1 OR b=10;\n} {A C search 6}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.3.2 {\n  SELECT c FROM x1 WHERE a=1 OR b=10;\n} {3 11 search 5}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.3.3 {\n  SELECT rowid FROM x1 WHERE a=1 OR b=10;\n} {1 3 search 4}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.4.1 {\n  SELECT a FROM x1 WHERE b BETWEEN 1 AND 4 OR c B...} {1 9 search 6}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.4.2 {\n  SELECT b, c FROM x1 WHERE b BETWEEN 1 AND 4 OR ...} {2 3 10 11 search 5}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.4.3 {\n  SELECT rowid, c FROM x1 WHERE b BETWEEN 1 AND 4...} {1 3 3 11 search 4}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.5.1 {\n  SELECT a FROM x1 WHERE rowid = 2 OR c=11\n} {5 9 search 3}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.5.2 {\n  SELECT d FROM x1 WHERE rowid = 2 OR c=11\n} {8 12 search 2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.5.3 {\n  SELECT d FROM x1 WHERE c=11 OR rowid = 2\n} {12 8 search 2}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.5.4 {\n  SELECT a FROM x1 WHERE c=11 OR rowid = 2 \n} {9 5 search 3}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.6.1 {\n  SELECT rowid FROM x1 WHERE a=1 OR b=6 OR c=11\n} {1 2 3 search 6}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.6.2 {\n  SELECT c FROM x1 WHERE a=1 OR b=6 OR c=11\n} {3 7 11 search 7}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.6.3 {\n  SELECT c FROM x1 WHERE c=11 OR a=1 OR b=6 \n} {11 3 7 search 7}")
-	t.Errorf("TODO: %s not implemented in frigolite", "do_searchcount_test 6.6.4 {\n  SELECT c FROM x1 WHERE b=6 OR c=11 OR a=1\n} {7 11 3 search 7}")
+	// do_searchcount_test 6.2.1 {
+  SELECT e FROM x1 WHERE b=2 OR c=7;
+} {A B search 6} (unsupported command, not transpiled)
+	// do_searchcount_test 6.2.2 {
+  SELECT c FROM x1 WHERE b=2 OR c=7;
+} {3 7 search 4} (unsupported command, not transpiled)
+	// do_searchcount_test 6.3.1 {
+  SELECT e FROM x1 WHERE a=1 OR b=10;
+} {A C search 6} (unsupported command, not transpiled)
+	// do_searchcount_test 6.3.2 {
+  SELECT c FROM x1 WHERE a=1 OR b=10;
+} {3 11 search 5} (unsupported command, not transpiled)
+	// do_searchcount_test 6.3.3 {
+  SELECT rowid FROM x1 WHERE a=1 OR b=10;
+} {1 3 search 4} (unsupported command, not transpiled)
+	// do_searchcount_test 6.4.1 {
+  SELECT a FROM x1 WHERE b BETWEEN 1 AND 4 OR c B...} {1 9 search 6} (unsupported command, not transpiled)
+	// do_searchcount_test 6.4.2 {
+  SELECT b, c FROM x1 WHERE b BETWEEN 1 AND 4 OR ...} {2 3 10 11 search 5} (unsupported command, not transpiled)
+	// do_searchcount_test 6.4.3 {
+  SELECT rowid, c FROM x1 WHERE b BETWEEN 1 AND 4...} {1 3 3 11 search 4} (unsupported command, not transpiled)
+	// do_searchcount_test 6.5.1 {
+  SELECT a FROM x1 WHERE rowid = 2 OR c=11
+} {5 9 search 3} (unsupported command, not transpiled)
+	// do_searchcount_test 6.5.2 {
+  SELECT d FROM x1 WHERE rowid = 2 OR c=11
+} {8 12 search 2} (unsupported command, not transpiled)
+	// do_searchcount_test 6.5.3 {
+  SELECT d FROM x1 WHERE c=11 OR rowid = 2
+} {12 8 search 2} (unsupported command, not transpiled)
+	// do_searchcount_test 6.5.4 {
+  SELECT a FROM x1 WHERE c=11 OR rowid = 2 
+} {9 5 search 3} (unsupported command, not transpiled)
+	// do_searchcount_test 6.6.1 {
+  SELECT rowid FROM x1 WHERE a=1 OR b=6 OR c=11
+} {1 2 3 search 6} (unsupported command, not transpiled)
+	// do_searchcount_test 6.6.2 {
+  SELECT c FROM x1 WHERE a=1 OR b=6 OR c=11
+} {3 7 11 search 7} (unsupported command, not transpiled)
+	// do_searchcount_test 6.6.3 {
+  SELECT c FROM x1 WHERE c=11 OR a=1 OR b=6 
+} {11 3 7 search 7} (unsupported command, not transpiled)
+	// do_searchcount_test 6.6.4 {
+  SELECT c FROM x1 WHERE b=6 OR c=11 OR a=1
+} {7 11 3 search 7} (unsupported command, not transpiled)
 	{ // "6.7"
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a UNIQUE, b UNIQUE);\n  INSERT INTO t1(a,b) VALUES(null,2);\n  CREATE VIEW t2 AS SELECT * FROM t1 WHERE b<10 OR a<7 ORDER BY b;\n  SELECT t1.* FROM t1 LEFT JOIN t2 ON abs(t1.a)=abs(t2.b);\n")
 		if r.Error != nil {

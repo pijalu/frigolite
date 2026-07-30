@@ -39,6 +39,11 @@ func Test_skipscan3(t *testing.T) {
 	var db9 *frigolite.DB
 	_ = db9
 
+	var testdir string
+	_ = testdir // pre-declared from TCL source
+	var argv0 string
+	_ = argv0 // pre-declared from TCL source
+
 	// set testdir: test directory (not used in Go test context)
 	{ // "skipscan3-1.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a,b,c,d,PRIMARY KEY(a,b,c));\n  WITH RECURSIVE\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n  INSERT INTO t1(a,b,c,d)\n    SELECT 1, 1, x, printf('x%04d',x) FROM c;\n  ANALYZE;\n")
