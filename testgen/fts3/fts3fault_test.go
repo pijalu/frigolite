@@ -24,15 +24,15 @@ func Test_fts3fault(t *testing.T) {
 	_ = _testprefix // suppress unused warning
 	var _TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = _TMPDBERROR // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -body { \n  sqlite3 db test.db \n  expr 0\n} -test {\n  catch { db close }\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -body { \n  sqlite3 db test.db \n  expr 0\n} -test {\n  catch { db close }\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3;\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -prep { \n  sqlite3 db test.db\n  execsql {\n    BEGIN;\n    ...} -body {\n  execsql { ALTER TABLE t1 RENAME TO t2 }\n} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -prep { \n  sqlite3 db test.db\n  execsql {\n    BEGIN;\n    ...} -body {\n  execsql { ALTER TABLE t1 RENAME TO t2 }\n} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
 	{ // do_test "fts3fault-3.0"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -69,40 +69,40 @@ func Test_fts3fault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom-transient -prep { \n  sqlite3 db test.db\n  execsql { SELECT * FROM t...} -body {\n  execsql { SELECT count(rowid) FROM t3 WHERE t3 ...} -test {\n  faultsim_test_result {0 1000} \n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom-transient -prep { \n  sqlite3 db test.db\n  execsql { SELECT * FROM t...} -body {\n  execsql { SELECT count(rowid) FROM t3 WHERE t3 ...} -test {\n  faultsim_test_result {0 1000} \n}")
 	{ // do_test "fts3fault-4.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec(" \n    CREATE VIRTUAL TABLE t4 USING fts4; \n    INSERT INTO t4 VALUES('The British Government called on');\n    INSERT INTO t4 VALUES('as pesetas then became much');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE VIRTUAL TABLE t4 USING fts4; \n    INSERT INTO t4 VALUES('The British Government called on');\n    INSERT INTO t4 VALUES('as pesetas then became much');\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -prep { \n  faultsim_restore_and_reopen\n  execsql { SELECT...} -body {\n  execsql { SELECT optimize(t4) FROM t4 LIMIT 1 }...} -test {\n  faultsim_test_result {0 {{Index optimized}}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -prep { \n  faultsim_restore_and_reopen\n  execsql { SELECT...} -body {\n  execsql { SELECT optimize(t4) FROM t4 LIMIT 1 }...} -test {\n  faultsim_test_result {0 {{Index optimized}}}\n}")
 	{ // do_test "fts3fault-5.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec(" \n    CREATE VIRTUAL TABLE t5 USING fts4; \n    INSERT INTO t5 VALUES('The British Government called on');\n    INSERT INTO t5 VALUES('as pesetas then became much');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    CREATE VIRTUAL TABLE t5 USING fts4; \n    INSERT INTO t5 VALUES('The British Government called on');\n    INSERT INTO t5 VALUES('as pesetas then became much');\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -prep { \n  faultsim_restore_and_reopen\n  execsql { \n    B...} -body {\n  execsql { SELECT rowid FROM t5 WHERE t5 MATCH '...} -test {\n  faultsim_test_result {0 {1 4}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -prep { \n  faultsim_restore_and_reopen\n  execsql { \n    B...} -body {\n  execsql { SELECT rowid FROM t5 WHERE t5 MATCH '...} -test {\n  faultsim_test_result {0 {1 4}}\n}")
 	{ // do_test "fts3fault-6.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec(" CREATE VIRTUAL TABLE t6 USING fts4 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t6 USING fts4 ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 6 -prep { \n  faultsim_restore_and_reopen\n  execsql { SELECT...} -body {\n  execsql { DROP TABLE t6 }\n} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 7.1 -prep { \n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 7.2 -prep { \n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {\n  faultsim_test_result {1 {unrecognized matchinfo...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 7.3 -prep { \n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {\n  faultsim_test_result {1 {unrecognized parameter...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 6 -prep { \n  faultsim_restore_and_reopen\n  execsql { SELECT...} -body {\n  execsql { DROP TABLE t6 }\n} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 7.1 -prep { \n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 7.2 -prep { \n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {\n  faultsim_test_result {1 {unrecognized matchinfo...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 7.3 -prep { \n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {\n  faultsim_test_result {1 {unrecognized parameter...}")
 	// proc definition (not transpiled)
 	{ // do_test "8.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec(" CREATE VIRTUAL TABLE t8 USING fts4 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t8 USING fts4 ")
@@ -131,22 +131,22 @@ func Test_fts3fault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t8(t8) VALUES('optimize')")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 8.2 -faults oom-t* -prep { \n  faultsim_restore_and_reopen\n  db func mit mit\n} -body {\n  execsql { SELECT mit(matchinfo(t8, 's')) FROM t...} -test {\n  faultsim_test_result {0 3} $::TMPDBERROR\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 8.3 -prep { \n  faultsim_restore_and_reopen\n  db func mit mit\n} -body {\n  execsql { SELECT mit(matchinfo(t8, 'a')) FROM t...} -test {\n  faultsim_test_result {0 10002}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 8.4 -prep { \n  faultsim_restore_and_reopen\n  db func mit mit\n} -body {\n  execsql { SELECT mit(matchinfo(t8, 'l')) FROM t...} -test {\n  faultsim_test_result {0 3}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 8.5 -prep { \n  faultsim_restore_and_reopen\n  db func mit mit\n} -body {\n  execsql { SELECT mit(matchinfo(t8, 'l')) FROM t...} -test {\n  faultsim_test_result {0 3}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 8.2 -faults oom-t* -prep { \n  faultsim_restore_and_reopen\n  db func mit mit\n} -body {\n  execsql { SELECT mit(matchinfo(t8, 's')) FROM t...} -test {\n  faultsim_test_result {0 3} $::TMPDBERROR\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 8.3 -prep { \n  faultsim_restore_and_reopen\n  db func mit mit\n} -body {\n  execsql { SELECT mit(matchinfo(t8, 'a')) FROM t...} -test {\n  faultsim_test_result {0 10002}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 8.4 -prep { \n  faultsim_restore_and_reopen\n  db func mit mit\n} -body {\n  execsql { SELECT mit(matchinfo(t8, 'l')) FROM t...} -test {\n  faultsim_test_result {0 3}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 8.5 -prep { \n  faultsim_restore_and_reopen\n  db func mit mit\n} -body {\n  execsql { SELECT mit(matchinfo(t8, 'l')) FROM t...} -test {\n  faultsim_test_result {0 3}\n}")
 	{ // do_test "9.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		r = db.Query("\n    CREATE VIRTUAL TABLE t9 USING fts4(tokenize=porter);\n    INSERT INTO t9 VALUES(\n      'this record is used toooooooooooooooooooooooooooooooooooooo try to'\n    );\n    SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to*';\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE VIRTUAL TABLE t9 USING fts4(tokenize=porter);\n    INSERT INTO t9 VALUES(\n      'this record is used toooooooooooooooooooooooooooooooooooooo try to'\n    );\n    SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to*';\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 9.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT offsets(t9) FROM t9 WHERE t9 M...} -test {\n  faultsim_test_result {0 {{0 0 20 39 0 0 64 2}}}...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 10.1 -prep {\n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 9.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT offsets(t9) FROM t9 WHERE t9 M...} -test {\n  faultsim_test_result {0 {{0 0 20 39 0 0 64 2}}}...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 10.1 -prep {\n  faultsim_delete_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts4(a,...} -test {\n  faultsim_test_result {0 {}}\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -156,6 +156,6 @@ func Test_fts3fault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(a, b);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 11 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { DROP TABLE t1 }\n} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 11 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { DROP TABLE t1 }\n} -test {\n  faultsim_test_result {0 {}}\n}")
 }

@@ -29,7 +29,7 @@ func Test_tkt_9d68c883(t *testing.T) {
 	var i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize 8192")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize 8192")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -38,10 +38,10 @@ func Test_tkt_9d68c883(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN;\n        DELETE FROM t5;\n        INSERT INTO t8 VALUES('hello world');\n    ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail $i -repeat 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail $i -repeat 0")
 			_res = db.Exec(" DROP TABLE t7; ")
 			_ = _res // catchsql
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail -1")
 			_res = db.Exec(" ROLLBACK ")
 			_ = _res // catchsql
 			r = db.Query(" PRAGMA integrity_check ")
@@ -61,5 +61,5 @@ func Test_tkt_9d68c883(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "unregister_devsim")
+	t.Errorf("TODO: %s not implemented in frigolite", "unregister_devsim")
 }

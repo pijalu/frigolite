@@ -57,9 +57,9 @@ func Test_index5(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    CREATE INDEX i1 ON t1(x);\n    DROP INDEX I1;\n    PRAGMA main.page_size;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xWrite")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script write_cb")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xWrite")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script write_cb")
 	// proc definition (not transpiled)
 	{ // do_test "1.2"
 		db, err := frigolite.Open("test.db")
@@ -126,5 +126,5 @@ func Test_index5(t *testing.T) {
 		}
 		// expr $nForward > 2*($nBackward + $nNoncont) → "$nForward > 2*($nBackward + $nNoncont)"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
 }

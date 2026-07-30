@@ -26,7 +26,7 @@ func Test_corrupt4(t *testing.T) {
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "corrupt4-1.1"
 		var bigstring = "0123456789 200"
 		_ = bigstring // suppress unused warning
@@ -47,10 +47,10 @@ func Test_corrupt4(t *testing.T) {
 	baseaddr := "($trunkpgno-1)*1024"
 	_ = baseaddr // suppress unused warning
 	{ // do_test "corrupt4-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db [expr {$::baseaddr+4}] 4]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db [expr {$::baseaddr+4}] 4]")
 	}
 	{ // do_test "corrupt4-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {$::baseaddr+4}] [hexio_render_int32 -100000000]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {$::baseaddr+4}] [hexio_render_int32 -100000000]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -98,14 +98,14 @@ func Test_corrupt4(t *testing.T) {
 	// proc definition (not transpiled)
 	var fd = "open test.db r+"
 	_ = fd // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+	t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
 	var nChild = "get2byte $fd 103"
 	_ = nChild // suppress unused warning
 	var offChild = "get2byte $fd [expr 100+12+($nChild-2)*2]"
 	_ = offChild // suppress unused warning
 	var pgnoChild = "get4byte $fd $offChild"
 	_ = pgnoChild // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "put4byte $fd $offChild 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "put4byte $fd $offChild 1")
 	// close $fd
 	if tclBool("!" + "info exists ::G(perm:presql)") {
 		db, err := frigolite.Open("test.db")

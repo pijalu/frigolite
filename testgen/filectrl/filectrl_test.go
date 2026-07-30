@@ -21,32 +21,32 @@ func Test_filectrl(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "filectrl-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_test db")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_test db")
 	}
 	{ // do_test "filectrl-1.2"
 		_res = db.Exec("CREATE TEMP TABLE x(y);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TEMP TABLE x(y);")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_test db")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_test db")
 	}
 	{ // do_test "filectrl-1.3"
 		db, err := frigolite.Open(":memory:")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_test db")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_test db")
 	}
 	{ // do_test "filectrl-1.4"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_lasterrno_test db")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_lasterrno_test db")
 	}
 	{ // do_test "filectrl-1.5"
 		db, err := frigolite.Open("test_control_lockproxy.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_lockproxy_test db [get_pwd]")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_lockproxy_test db [get_pwd]")
 	}
 	{ // do_test "filectrl-1.6"
 		db, err := frigolite.Open("test.db")

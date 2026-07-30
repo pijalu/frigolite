@@ -19,7 +19,7 @@ func Test_vtab5(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 	{ // do_test "vtab5-1.1"
 		_res = db.Exec("\n    CREATE TABLE treal(a VARCHAR(16), b INTEGER, c FLOAT);\n    INSERT INTO treal VALUES('a', 'b', 'c');\n    CREATE VIRTUAL TABLE techo USING echo(treal);\n  ")
 		if _res.Error != nil {
@@ -36,7 +36,7 @@ func Test_vtab5(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 		r = db.Query("\n    INSERT INTO techo VALUES('c', 'd', 'e');\n    SELECT * FROM techo;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO techo VALUES('c', 'd', 'e');\n    SELECT * FROM techo;\n  ")
@@ -46,7 +46,7 @@ func Test_vtab5(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 		r = db.Query("\n    UPDATE techo SET a = 10;\n    SELECT * FROM techo;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    UPDATE techo SET a = 10;\n    SELECT * FROM techo;\n  ")
@@ -56,7 +56,7 @@ func Test_vtab5(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 		r = db.Query("\n    DELETE FROM techo WHERE b > 'c';\n    SELECT * FROM techo;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM techo WHERE b > 'c';\n    SELECT * FROM techo;\n  ")

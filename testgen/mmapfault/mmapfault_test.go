@@ -29,7 +29,7 @@ func Test_mmapfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a UNIQUE, b UNIQUE);\n    INSERT INTO t1 VALUES(a_string(200), a_string(300));\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n    INSERT INTO t1 SELECT a_string(200), a_string(300) FROM t1;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  db func a_string ...} -body {\n  execsql { INSERT INTO t1 VALUES(a_string(200), ...} -test {\n  faultsim_test_result {0 {}} \n\n  if {[sqlite3_ge...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  db func a_string ...} -body {\n  execsql { INSERT INTO t1 VALUES(a_string(200), ...} -test {\n  faultsim_test_result {0 {}} \n\n  if {[sqlite3_ge...}")
 }

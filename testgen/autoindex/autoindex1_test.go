@@ -21,8 +21,8 @@ func Test_autoindex1(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log [list lappend ::log]")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log [list lappend ::log]")
 	var _log = "list" // TCL namespace variable
 	_ = _log // suppress unused warning
 	db, err = frigolite.Open("test.db")
@@ -54,9 +54,9 @@ func Test_autoindex1(t *testing.T) {
 	{ // do_test "autoindex1-113"
 		_ = _log // TCL namespace variable (query)
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "autoindex1-200"

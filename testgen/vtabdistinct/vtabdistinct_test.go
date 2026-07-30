@@ -21,7 +21,7 @@ func Test_vtabdistinct(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtabdistinct"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db qpvtab")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db qpvtab")
 	{ // "1.1"
 		r = db.Query("\n  SELECT ix FROM qpvtab WHERE vn='sqlite3_vtab_distinct';\n")
 		if r.Error != nil {

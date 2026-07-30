@@ -32,23 +32,23 @@ func Test_expridx2(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t1 SET b = json_set(b, '$.a', b->>'a' + 1)...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t1 SET b = json_set(b, '$.a', b->>'a' + 1)...}")
 	}
 	{ // do_test "1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "nWrite { \n    UPDATE t1 SET b = json_set( \n        json_se...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { \n    UPDATE t1 SET b = json_set( \n        json_se...}")
 	}
 	{ // do_test "1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "nWrite { \n    UPDATE t1 SET b = '{a:1, b:2, c:3}' WHERE ro...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { \n    UPDATE t1 SET b = '{a:1, b:2, c:3}' WHERE ro...}")
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t2 SET b = b+1, c=c+1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t2 SET b = b+1, c=c+1 }")
 	}
 	{ // do_test "1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t2 SET b = b, c=c+1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t2 SET b = b, c=c+1 }")
 	}
 	{ // do_test "1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t2 SET c=c+1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "nWrite { UPDATE t2 SET c=c+1 }")
 	}
 }

@@ -4,6 +4,7 @@ package update
 import (
 "github.com/pijalu/frigolite"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -989,13 +990,34 @@ func Test_update(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // "update-20.10"
-		// skip: UNIQUE constraint not yet enforced on UPDATE
+		r = db.Query("\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t1(a UNIQUE ON CONFLICT REPLACE, b);\n  INSERT INTO t1(a,b) VALUES(4,12),(9,13);\n  CREATE INDEX i0 ON t1(b);\n  CREATE TRIGGER tr0 DELETE ON t1 BEGIN\n    UPDATE t1 SET b = a;\n  END;\n  PRAGMA integrity_check;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA recursive_triggers = true;\n  CREATE TABLE t1(a UNIQUE ON CONFLICT REPLACE, b);\n  INSERT INTO t1(a,b) VALUES(4,12),(9,13);\n  CREATE INDEX i0 ON t1(b);\n  CREATE TRIGGER tr0 DELETE ON t1 BEGIN\n    UPDATE t1 SET b = a;\n  END;\n  PRAGMA integrity_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // "update-20.20"
-		// skip: UNIQUE constraint not yet enforced on UPDATE
+		_res = db.Exec("\n  UPDATE t1 SET a=0;\n")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "constraint failed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "constraint failed", _res.Error, "\n  UPDATE t1 SET a=0;\n")
+		}
 	}
 	{ // "update-20.30"
-		// skip: UNIQUE constraint not yet enforced on UPDATE
+		r = db.Query("\n  PRAGMA integrity_check;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA integrity_check;\n")
+			return
+		}
+		got := flatten(r)
+		want := "ok"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	db.Close()
 	db, err = frigolite.Open("")
@@ -1037,6 +1059,15 @@ func Test_update(t *testing.T) {
 		}
 	}
 	{ // "update-22.0"
-		// skip: UPDATE with subquery in WHERE and BETWEEN expression interaction
+		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INT, y INT);\n  INSERT INTO t1(x) VALUES(1),(2),(3),(4),(5);\n  UPDATE t1 SET x=x+100, y=x<=(SELECT min(x) FROM t1)\n   WHERE x<3 OR (1 BETWEEN 0 AND x<=(SELECT min(x)+2 FROM t1));\n  SELECT x FROM t1 WHERE x<100 ORDER BY x;\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x INT, y INT);\n  INSERT INTO t1(x) VALUES(1),(2),(3),(4),(5);\n  UPDATE t1 SET x=x+100, y=x<=(SELECT min(x) FROM t1)\n   WHERE x<3 OR (1 BETWEEN 0 AND x<=(SELECT min(x)+2 FROM t1));\n  SELECT x FROM t1 WHERE x<100 ORDER BY x;\n")
+			return
+		}
+		got := flatten(r)
+		want := "4 5"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 }

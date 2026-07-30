@@ -22,28 +22,28 @@ func Test_zerodamage(t *testing.T) {
 	var testprefix = "zerodamage"
 	_ = testprefix // suppress unused warning
 	{ // do_test "zerodamage-1.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db -1")
 	}
 	{ // do_test "zerodamage-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db -1")
 	}
 	{ // do_test "zerodamage-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_powersafe_overwrite db -1")
 	}
 	{ // do_test "zerodamage-2.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "tv sectorsize 8192")
+		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "tv sectorsize 8192")
 		db, err := frigolite.Open("file:test.db?psow=TRUE")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 		var _max_journal_size = "0" // TCL namespace variable
 		_ = _max_journal_size // suppress unused warning
 		// proc definition (not transpiled)
-		t.Skipf("TODO: %s not implemented in frigolite", "tv filter xDelete")
-		t.Skipf("TODO: %s not implemented in frigolite", "tv script xDeleteCallback")
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+		t.Errorf("TODO: %s not implemented in frigolite", "tv filter xDelete")
+		t.Errorf("TODO: %s not implemented in frigolite", "tv script xDeleteCallback")
+		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
 		_res = db.Exec("\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA cache_size=5;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 SELECT value, randomblob(100) FROM nums\n                    WHERE value BETWEEN 1 AND 400;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=1024;\n    PRAGMA journal_mode=DELETE;\n    PRAGMA cache_size=5;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 SELECT value, randomblob(100) FROM nums\n                    WHERE value BETWEEN 1 AND 400;\n  ")

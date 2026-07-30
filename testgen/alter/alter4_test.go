@@ -251,7 +251,7 @@ func Test_alter4(t *testing.T) {
 		db, err := frigolite.Open(":memory:")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a DESC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ALTER TABLE t1 ADD COLUMN d;\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b,c);\n    CREATE INDEX t1a ON t1(a DESC);\n    INSERT INTO t1 VALUES(1,2,3);\n    INSERT INTO t1 VALUES(2,3,4);\n    ALTER TABLE t1 ADD COLUMN d;\n    PRAGMA integrity_check;\n  ")

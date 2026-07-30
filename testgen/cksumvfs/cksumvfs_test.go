@@ -22,13 +22,13 @@ func Test_cksumvfs(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "cksumvfs"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_register_cksumvfs")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_register_cksumvfs")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 8")
+	t.Errorf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 8")
 	r = db.Query("\n  PRAGMA page_size = 4096;\n")
 	if r.Error != nil {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 4096;\n")
@@ -126,8 +126,8 @@ func Test_cksumvfs(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
 	{ // "1.8"
 		r = db.Query("\n  SELECT count(*) FROM t1;\n")
 		if r.Error != nil {

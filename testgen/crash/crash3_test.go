@@ -58,7 +58,7 @@ func Test_crash3(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "crashsql -file " + crashfile + " -char atomic {" + rand + " " + sql + "}\n      sqlite3 db test.db\n      execsql { PRAGMA integrity_check; }")
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "do_test2 crash3-1.$tn.3 {\n      execsql { SELECT * FROM abc }\n    } {1 2 3} $res2")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_test2 crash3-1.$tn.3 {\n      execsql { SELECT * FROM abc }\n    } {1 2 3} $res2")
 				// incr tn 1
 				{
 					_n, _err := strconv.Atoi(tn)
@@ -102,7 +102,7 @@ func Test_crash3(t *testing.T) {
 					var _SQL = "SELECT randstr(" + ii + "," + ii + "+10);\n      BEGIN;\n      DELETE FROM abc WHERE random()%5;\n      INSERT INTO abc \n        SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) \n        FROM abc\n        WHERE (random()%5)==0;\n      DELETE FROM def WHERE random()%5;\n      INSERT INTO def \n        SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) \n        FROM def\n        WHERE (random()%5)==0;\n      COMMIT;" // TCL namespace variable
 					_ = _SQL // suppress unused warning
 					{ // do_test "crash3-2." + tn + "." + ii
-						t.Skipf("TODO: %s not implemented in frigolite", "crashsql -file $::crashfile -delay $::delay -char $::char $::SQL")
+						t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file $::crashfile -delay $::delay -char $::char $::SQL")
 						db, err := frigolite.Open("test.db")
 						defer db.Close()
 						if err != nil { t.Fatal(err) }
@@ -131,7 +131,7 @@ func Test_crash3(t *testing.T) {
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
 				os.Remove("test.db")
-				t.Skipf("TODO: %s not implemented in frigolite", "crashsql -file test.db -char {sequential atomic} {\n    CREATE TABLE abc(a, b, c);\n  }")
+				t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file test.db -char {sequential atomic} {\n    CREATE TABLE abc(a, b, c);\n  }")
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }

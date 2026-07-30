@@ -27,6 +27,6 @@ func Test_upsertfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c, d, UNIQUE(b, c));\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2, 2);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  execsql {\n     INSERT INTO t1 VALUES(3, 2, 2, N...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  execsql {\n     INSERT INTO t1 VALUES(3, 2, 2, N...} -test {\n  faultsim_test_result {0 {}}\n}")
 }

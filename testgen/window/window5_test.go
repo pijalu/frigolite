@@ -26,10 +26,10 @@ func Test_window5(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_window_function db median m_step m_value m_value m_inverse")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_window_function db win m_step w_value w_value m_inverse")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_window_function db median m_step m_value m_value m_inverse")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_window_function db win m_step w_value w_value m_inverse")
 	{ // do_test "0.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_create_window_function_misuse db")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_create_window_function_misuse db")
 	}
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(4, 'a');\n  INSERT INTO t1 VALUES(6, 'b');\n  INSERT INTO t1 VALUES(1, 'c');\n  INSERT INTO t1 VALUES(5, 'd');\n  INSERT INTO t1 VALUES(2, 'e');\n  INSERT INTO t1 VALUES(3, 'f');\n")
@@ -49,7 +49,7 @@ func Test_window5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_create_sumint db")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_create_sumint db")
 	{ // "2.0"
 		r = db.Query("\n  SELECT sumint(a) OVER (ORDER BY rowid) FROM t1 ORDER BY rowid;\n")
 		if r.Error != nil {
@@ -74,7 +74,7 @@ func Test_window5(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_override_sum db")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_override_sum db")
 	{ // "3.0"
 		_res = db.Exec("\n  SELECT sum(a) OVER \n  (ORDER BY b ROWS BETWEEN 1 PRECEDING AND CURRENT ROW) \n  FROM t1;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "sum() may not be used as a window function") {

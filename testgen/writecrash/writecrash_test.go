@@ -22,7 +22,7 @@ func Test_writecrash(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "writecrash"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	if tcl_platform(platform) == "windows" {
 		return
 	}

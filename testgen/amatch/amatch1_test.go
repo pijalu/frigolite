@@ -24,7 +24,7 @@ func Test_amatch1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(words); --, tokenize porter);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+		t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 		_res = db.Exec("\n    INSERT INTO t1(t1) VALUES('optimize');\n    CREATE VIRTUAL TABLE temp.t1aux USING fts4aux(main, t1);\n    SELECT term FROM t1aux WHERE col=0 ORDER BY 1 LIMIT 5\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(t1) VALUES('optimize');\n    CREATE VIRTUAL TABLE temp.t1aux USING fts4aux(main, t1);\n    SELECT term FROM t1aux WHERE col=0 ORDER BY 1 LIMIT 5\n  ")
@@ -42,7 +42,7 @@ func Test_amatch1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT term FROM t1aux WHERE term>'b' AND col=0 LIMIT 5\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db amatch")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db amatch")
 	{ // "amatch1-2.0"
 		_res = db.Exec("\n    CREATE TABLE costs(iLang, cFrom, cTo, Cost);\n    INSERT INTO costs VALUES(0, '', '?', 100);\n    INSERT INTO costs VALUES(0, '?', '', 100);\n    INSERT INTO costs VALUES(0, '?', '?', 150);\n    CREATE TABLE vocab(w TEXT UNIQUE);\n    INSERT OR IGNORE INTO vocab SELECT term FROM t1aux;\n    CREATE VIRTUAL TABLE t2 USING approximate_match(\n      vocabulary_table=t1aux,\n      vocabulary_word=term,\n      edit_distances=costs\n    );\n    CREATE VIRTUAL TABLE t3 USING approximate_match(\n      vocabulary_table=vocab,\n      vocabulary_word=w,\n      edit_distances=costs\n    );\n    CREATE VIRTUAL TABLE t4 USING approximate_match(\n        vocabulary_table=vtemp,\n        vocabulary_word=w,\n        edit_distances=costs\n      );\n")
 		if _res.Error != nil {
@@ -92,7 +92,7 @@ func Test_amatch1(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db amatch")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db amatch")
 	{ // "amatch1-3.0"
 		r = db.Query("\n  CREATE TABLE cost(iLang,cFrom,cTo,Cost);\n  INSERT INTO cost VALUES(0,'?','?',1);\n  CREATE TABLE vocab(word TEXT PRIMARY KEY);\n  CREATE VIRTUAL TABLE am USING approximate_match(\n      vocabulary_table=vocab,\n      vocabulary_word=word,\n      edit_distances=cost\n  );\n  INSERT INTO vocab(word) VALUES(format('%.81c','a'));\n  SELECT length(word) FROM am WHERE word MATCH format('%.81c','a');\n")
 		if r.Error != nil {

@@ -126,7 +126,7 @@ func Test_trigger1(t *testing.T) {
 		_res = db.Exec("DELETE FROM t2")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode trigger1-6.3b SQLITE_CONSTRAINT_TRIGGER")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode trigger1-6.3b SQLITE_CONSTRAINT_TRIGGER")
 	{ // do_test "trigger1-6.4"
 		r = db.Query("SELECT * FROM t2")
 		if r.Error != nil {

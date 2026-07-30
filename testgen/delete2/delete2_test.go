@@ -38,7 +38,7 @@ func Test_delete2(t *testing.T) {
 	{ // do_test "delete2-1.4"
 		var STMT = "sqlite3_prepare $DB {SELECT * FROM q} -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -55,7 +55,7 @@ func Test_delete2(t *testing.T) {
 		}
 	}
 	{ // do_test "delete2-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 		_res = db.Exec("\n    DELETE FROM q WHERE rowid=1\n  ")
 		_ = _res // catchsql
 	}

@@ -27,7 +27,7 @@ func Test_tkt_bd484a090c(t *testing.T) {
 	{ // do_test "1.2"
 		tclLIndex("catchsql { SELECT datetime('now', 'utc') }", "0")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 1")
 	{ // do_test "2.1"
 		_res = db.Exec(" SELECT datetime('now', 'localtime') ")
 		_ = _res // catchsql
@@ -36,5 +36,5 @@ func Test_tkt_bd484a090c(t *testing.T) {
 		_res = db.Exec(" SELECT datetime('2000-01-01', 'utc') ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_LOCALTIME_FAULT 0")
 }

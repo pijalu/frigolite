@@ -36,11 +36,11 @@ func Test_bind2(t *testing.T) {
 	{ // do_test "1.1"
 		var stmt = "sqlite3_prepare db \"SELECT ?\" -1 tail"
 		_ = stmt // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_value_from_select $stmt 1 SELECT a FROM t1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $stmt 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_value_from_select $stmt 1 SELECT a FROM t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $stmt 0")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 	// proc definition (not transpiled)
 	{ // do_test "1.2"
 		var _reslist = "list" // TCL namespace variable

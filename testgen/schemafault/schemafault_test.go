@@ -27,5 +27,5 @@ func Test_schemafault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(aaa INTTT);\n  CREATE VIEW v2(xxx , yyy) AS SELECT aaa, aaa+1 FROM t2;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom-* -prep {\n} -body {\n  execsql { SELECT * FROM v2 }\n} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom-* -prep {\n} -body {\n  execsql { SELECT * FROM v2 }\n} -test {\n  faultsim_test_result {0 {}}\n}")
 }

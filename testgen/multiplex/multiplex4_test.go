@@ -22,12 +22,12 @@ func Test_multiplex4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "multiplex4" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize {} 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize {} 0")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "multiplex4-1.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete_db mx4test")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete_db mx4test")
 		db, err := frigolite.Open("file:mx4test.db?chunksize=10&truncate=1")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -35,14 +35,14 @@ func Test_multiplex4(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(randomblob(250000));\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_file_list mx4test")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_file_list mx4test")
 	}
 	{ // do_test "multiplex4-1.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    VACUUM;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    VACUUM;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_file_list mx4test")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_file_list mx4test")
 	}
 	{ // do_test "multiplex4-1.2"
 		_res = db.Exec("PRAGMA multiplex_truncate")
@@ -103,26 +103,26 @@ func Test_multiplex4(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1(x) VALUES(randomblob(250000));\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_file_list mx4test")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_file_list mx4test")
 	}
 	{ // do_test "multiplex4-1.11"
 		_res = db.Exec("\n    DELETE FROM t1;\n    VACUUM;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1;\n    VACUUM;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_file_list mx4test")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_file_list mx4test")
 	}
 	{ // do_test "multiplex4-1.12"
 		_res = db.Exec("\n    PRAGMA multiplex_truncate=ON;\n    DROP TABLE t1;\n    VACUUM;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA multiplex_truncate=ON;\n    DROP TABLE t1;\n    VACUUM;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_file_list mx4test")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_file_list mx4test")
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("mx4test.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 }

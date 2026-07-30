@@ -22,7 +22,7 @@ func Test_backup4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "backup4"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(x, y, UNIQUE(x, y));\n  INSERT INTO t1 VALUES('one', 'two');\n  SELECT * FROM t1 WHERE x='one';\n  PRAGMA integrity_check;\n")
 		if r.Error != nil {

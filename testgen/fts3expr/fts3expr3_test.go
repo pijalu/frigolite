@@ -38,7 +38,7 @@ func Test_fts3expr3(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			{ // do_test "1." + i
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_and_query $i]")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_and_query $i]")
 			}
 			// incr i 1
 			{
@@ -52,7 +52,7 @@ func Test_fts3expr3(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			{ // do_test "2." + i
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_and_query $i 1]")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_and_query $i 1]")
 			}
 			// incr i 1
 			{
@@ -66,7 +66,7 @@ func Test_fts3expr3(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			{ // do_test "3." + i
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_and_query $i 1] OR [random_and_query $i 1]")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_and_query $i 1] OR [random_and_query $i 1]")
 			}
 			// incr i 1
 			{
@@ -80,7 +80,7 @@ func Test_fts3expr3(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 64 }() {
 			{ // do_test "3." + i
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_andor_query $i]")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 [random_andor_query $i]")
 			}
 			// incr i 4
 			{
@@ -141,7 +141,7 @@ func Test_fts3expr3(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 $q")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 $q")
 			}
 		}
 		// proc definition (not transpiled)
@@ -153,7 +153,7 @@ func Test_fts3expr3(t *testing.T) {
 		_ = query // suppress unused warning
 		var result = "balanced_andor_tree 12"
 		_ = result // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test fts3expr3-fault-1 -faults oom-* -body {\n  test_fts3expr2 $::query\n} -test {\n  faultsim_test_result [list 0 $::result]\n}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test fts3expr3-fault-1 -faults oom-* -body {\n  test_fts3expr2 $::query\n} -test {\n  faultsim_test_result [list 0 $::result]\n}")
 	}
 	// foreach {tn expr res} "\n  1 {1 OR 2 OR 3 OR 4}           {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} \n  2 {1 OR (2 AND 3 AND 4 AND 5)} \n    {OR {P 1} {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}}}\n  3 {(2 AND 3 AND 4 AND 5) OR 1} \n    {OR {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}} {P 1}}\n\n  4 {1 AND (2 OR 3 OR 4 OR 5)} \n    {AND {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n  5 {(2 OR 3 OR 4 OR 5) AND 1} \n    {AND {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  6 {(2 OR 3 OR 4 OR 5) NOT 1} \n    {NOT {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  7 {1 NOT (2 OR 3 OR 4 OR 5)} \n    {NOT {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n\n  8 {(1 OR 2 OR 3 OR 4) NOT (5 AND 6 AND 7 AND 8)}\n    {NOT {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} {AND {AND {P 5} {P 6}} {AND {P 7} {P 8}}}}\n"
 	_items := tclSplitList("\n  1 {1 OR 2 OR 3 OR 4}           {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} \n  2 {1 OR (2 AND 3 AND 4 AND 5)} \n    {OR {P 1} {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}}}\n  3 {(2 AND 3 AND 4 AND 5) OR 1} \n    {OR {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}} {P 1}}\n\n  4 {1 AND (2 OR 3 OR 4 OR 5)} \n    {AND {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n  5 {(2 OR 3 OR 4 OR 5) AND 1} \n    {AND {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  6 {(2 OR 3 OR 4 OR 5) NOT 1} \n    {NOT {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  7 {1 NOT (2 OR 3 OR 4 OR 5)} \n    {NOT {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n\n  8 {(1 OR 2 OR 3 OR 4) NOT (5 AND 6 AND 7 AND 8)}\n    {NOT {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} {AND {AND {P 5} {P 6}} {AND {P 7} {P 8}}}}\n")
@@ -166,7 +166,7 @@ func Test_fts3expr3(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx
 			{ // do_test "5.1." + tn
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 $expr")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 $expr")
 			}
 		}
 		var sqlite_fts3_enable_parentheses = "0"

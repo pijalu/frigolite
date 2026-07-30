@@ -57,10 +57,10 @@ func Test_subjournal(t *testing.T) {
 		db2, err := frigolite.Open("test2.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 		var nPage = "db one {PRAGMA page_count}"
 		_ = nPage // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "B step [expr $nPage-10]")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step [expr $nPage-10]")
 	}
 	{ // "2.2"
 		r = db.Query("\n  BEGIN;\n    UPDATE t2 SET a=randomblob(499);\n    SAVEPOINT two;\n      UPDATE t2 SET a=randomblob(498);\n    ROLLBACK TO two;\n  COMMIT;\n  PRAGMA integrity_check;\n")
@@ -75,10 +75,10 @@ func Test_subjournal(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 1000")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 1000")
 	}
 	{ // do_test "2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 		r = db.Query(" PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")

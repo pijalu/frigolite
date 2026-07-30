@@ -20,8 +20,8 @@ func Test_t_8_3_names(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
 	{ // do_test "8_3_names-1.0"
 		os.Remove("test.db")
 		db, err := frigolite.Open("test.db")
@@ -57,8 +57,8 @@ func Test_t_8_3_names(t *testing.T) {
 		// file exists "test.nal"
 	}
 	os.Remove("test2.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.nal test2.nal")
+	t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.nal test2.nal")
 	{ // do_test "8_3_names-2.2"
 		_res = db.Exec("\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
 		if _res.Error != nil {
@@ -87,8 +87,8 @@ func Test_t_8_3_names(t *testing.T) {
 		// file exists "test.nal"
 	}
 	os.Remove("test2.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db-journal test2.db-journal")
+	t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-journal test2.db-journal")
 	{ // do_test "8_3_names-3.2"
 		_res = db.Exec("\n    COMMIT;\n    SELECT length(x) FROM t1\n  ")
 		if _res.Error != nil {
@@ -117,7 +117,7 @@ func Test_t_8_3_names(t *testing.T) {
 		db, err := frigolite.Open("file:./test.db?8_3_names=1")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
 		_res = db.Exec("\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value FROM nums WHERE value BETWEEN 1 AND 1000;\n    BEGIN;\n    UPDATE t1 SET x=x*2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value FROM nums WHERE value BETWEEN 1 AND 1000;\n    BEGIN;\n    UPDATE t1 SET x=x*2;\n  ")
@@ -125,7 +125,7 @@ func Test_t_8_3_names(t *testing.T) {
 		db2, err := frigolite.Open("file:./test.db?8_3_names=1")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db2 wholenumber")
+		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db2 wholenumber")
 		db2.Exec("\n    BEGIN;\n    SELECT sum(x) FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}

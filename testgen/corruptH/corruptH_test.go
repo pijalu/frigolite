@@ -24,7 +24,7 @@ func Test_corruptH(t *testing.T) {
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	if tclBool("permutation" + "==\"mmap\"") {
 		return
 	}
@@ -39,7 +39,7 @@ func Test_corruptH(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($r(t2)-1)*1024 + 11}] [format %.2X $r(t1)]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($r(t2)-1)*1024 + 11}] [format %.2X $r(t1)]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -68,10 +68,10 @@ func Test_corruptH(t *testing.T) {
 		}
 		var fl = "hexio_get_int [hexio_read test.db 32 4]"
 		_ = fl // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($fl-1) * 1024 + 0}] 00000000")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($fl-1) * 1024 + 4}] 00000001")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($fl-1) * 1024 + 8}] [format %.8X $r(t1)]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 36 00000002")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($fl-1) * 1024 + 0}] 00000000")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($fl-1) * 1024 + 4}] 00000001")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($fl-1) * 1024 + 8}] [format %.8X $r(t1)]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 36 00000002")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -96,7 +96,7 @@ func Test_corruptH(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT name, rootpage FROM sqlite_master ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($r(t2)-1) * 1024 + 1020}] 00000002")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {($r(t2)-1) * 1024 + 1020}] 00000002")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }

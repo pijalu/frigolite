@@ -60,7 +60,7 @@ func Test_snapshot4(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    COMMIT;\n    SELECT * FROM sqlite_master;\n    BEGIN;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open_blob db main $::snap")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open_blob db main $::snap")
 		r = db.Query("\n    SELECT count(*) FROM t1\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM t1\n  ")

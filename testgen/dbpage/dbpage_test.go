@@ -24,7 +24,7 @@ func Test_dbpage(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "dbpage"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // do_test "100"
 		r = db.Query("\n    PRAGMA auto_vacuum=0;\n    PRAGMA page_size=4096;\n    PRAGMA journal_mode=WAL;\n  ")
 		if r.Error != nil {

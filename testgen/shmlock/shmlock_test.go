@@ -103,22 +103,22 @@ func Test_shmlock(t *testing.T) {
 						}
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main shared lock 4 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main shared lock 4 1")
 			}
 			{ // do_test "2.1"
-				t.Skipf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive lock 4 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive lock 4 1")
 			}
 			{ // do_test "2.2"
-				t.Skipf("TODO: %s not implemented in frigolite", "vfs_shmlock db0 main shared unlock 4 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db0 main shared unlock 4 1")
 			}
 			{ // do_test "2.3"
-				t.Skipf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main shared lock 4 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main shared lock 4 1")
 			}
 			{ // do_test "2.4"
-				t.Skipf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main shared unlock 4 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main shared unlock 4 1")
 			}
 			{ // do_test "2.5"
-				t.Skipf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive lock 4 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive lock 4 1")
 			}
 			{ // do_test "2.6"
 				var i = "1"
@@ -142,13 +142,13 @@ func Test_shmlock(t *testing.T) {
 						}
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive lock 4 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive lock 4 1")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive unlock 4 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "vfs_shmlock db255 main exclusive unlock 4 1")
 			var i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 256 }() {
-				t.Skipf("TODO: %s not implemented in frigolite", "db$i close")
+				t.Errorf("TODO: %s not implemented in frigolite", "db$i close")
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -193,8 +193,8 @@ func Test_shmlock(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nStep_n, _nStep_e := strconv.Atoi(nStep); if _nStep_e != nil { return false }; return i_n < nStep_n }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "random_lock_test 0")
-			t.Skipf("TODO: %s not implemented in frigolite", "random_lock_test 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "random_lock_test 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "random_lock_test 1")
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

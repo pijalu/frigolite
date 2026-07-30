@@ -19,5 +19,5 @@ func Test_extraquick(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "run_test_suite extraquick")
+	t.Errorf("TODO: %s not implemented in frigolite", "run_test_suite extraquick")
 }

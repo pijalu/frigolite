@@ -25,7 +25,7 @@ func Test_avfs(t *testing.T) {
 	_ = _testprefix // suppress unused warning
 	var CLI = "test_find_cli"
 	_ = CLI // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db appendvfs")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db appendvfs")
 	var _fa = "avfs.adb" // TCL namespace variable
 	_ = _fa // suppress unused warning
 	var _fza = "avfs.sdb" // TCL namespace variable
@@ -46,8 +46,8 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + _fza + "?mode=rwc" + _vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=...} { lappend results $pets }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    PRAGMA page_size=1024;\n    PRAGMA cache_size=...} { lappend results $pets }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		results = tclListAppend(results, "fosAvfs $fza")
 		var _result = "join $results \" | \"" // TCL namespace variable
 		_ = _result // suppress unused warning
@@ -58,8 +58,8 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + _fza + "?mode=rw" + _vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT group_concat(a) as pets FROM (SELECT a...} { lappend results $pets }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT group_concat(a) as pets FROM (SELECT a...} { lappend results $pets }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		var _result = "join $results \" | \"" // TCL namespace variable
 		_ = _result // suppress unused warning
 	}
@@ -77,8 +77,8 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + _fa + "?mode=rwc" + _vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size=...} { lappend results $pets }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size=...} { lappend results $pets }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		var adaSz = "file size $::fa"
 		_ = adaSz // suppress unused warning
 		results = tclListAppend(results, "Bytes before/after " + adbSz + "/" + adaSz)
@@ -91,8 +91,8 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT group_concat(a) as pets FROM (SELECT a...} { lappend results $pets }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT group_concat(a) as pets FROM (SELECT a...} { lappend results $pets }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		var _result = "join $results \" | \"" // TCL namespace variable
 		_ = _result // suppress unused warning
 	}
@@ -148,7 +148,7 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    DROP TABLE t1;\n    PRAGMA cache_size=10;\n    ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    DROP TABLE t1;\n    PRAGMA cache_size=10;\n    ...}")
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _nrint_n, __nrint_e := strconv.Atoi(_nrint); if __nrint_e != nil { return false }; return i_n < _nrint_n }() {
@@ -162,7 +162,7 @@ func Test_avfs(t *testing.T) {
 			_ = u // suppress unused warning
 			var v = _randints + "(" + "incr i" + ")"
 			_ = v // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n      INSERT INTO ri VALUES ($r),($s),($t),($u),(...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n      INSERT INTO ri VALUES ($r),($s),($t),($u),(...}")
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -171,13 +171,13 @@ func Test_avfs(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    COMMIT;\n    SELECT integrity_check as ic FROM...} { lappend results $ic }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    COMMIT;\n    SELECT integrity_check as ic FROM...} { lappend results $ic }")
 		var adbSz = "file size $::fa"
 		_ = adbSz // suppress unused warning
 		var qr = ""
 		_ = qr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT count(*) as ic FROM ri;\n    DELETE FRO...} { lappend qr $ic }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT count(*) as ic FROM ri;\n    DELETE FRO...} { lappend qr $ic }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		var adaSz = "file size $::fa"
 		_ = adaSz // suppress unused warning
 		adba := "($adbSz + 0.1)/$adaSz"
@@ -194,8 +194,8 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		var _result = "join $results \" | \"" // TCL namespace variable
 		_ = _result // suppress unused warning
 	}
@@ -207,9 +207,9 @@ func Test_avfs(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		var npages = "300"
 		_ = npages // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval { BEGIN }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval { BEGIN }")
 		for func() bool { npages_n, _npages_e := strconv.Atoi(npages); if _npages_e != nil { return false }; return npages_n > 0 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "adb eval { INSERT INTO ri VALUES (randomblob(1500)) }")
+			t.Errorf("TODO: %s not implemented in frigolite", "adb eval { INSERT INTO ri VALUES (randomblob(1500)) }")
 			// incr npages -1
 			{
 				_n, _err := strconv.Atoi(npages)
@@ -218,9 +218,9 @@ func Test_avfs(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval { COMMIT }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval { COMMIT }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		adaSzr := "[file size $::fa] / 300.0 / 1500"
 		_ = adaSzr // suppress unused warning
 		okSzr := "$adaSzr > 1.0 && $adaSzr < 1.3"
@@ -235,8 +235,8 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		var _result = ic // TCL namespace variable
 		_ = _result // suppress unused warning
 	}
@@ -248,15 +248,15 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    DELETE FROM ri WHERE rowid % 8 <> 0;\n    SELE...} { lappend results $ic }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    DELETE FROM ri WHERE rowid % 8 <> 0;\n    SELE...} { lappend results $ic }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		var adasz = "file size $::fa"
 		_ = adasz // suppress unused warning
 		results = tclListAppend(results, "$adbsz/$adasz > 5")
 		adb, err = frigolite.Open("file:" + _fa + "?mode=rw" + _vf)
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		var _result = "join $results \" | \"" // TCL namespace variable
 		_ = _result // suppress unused warning
 	}
@@ -341,8 +341,8 @@ func Test_avfs(t *testing.T) {
 		adb, err := frigolite.Open("file:" + shod + "?mode=rw" + _vf)
 		defer adb.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT count(*) as n FROM sqlar\n  } { lappend res $n }")
-		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT count(*) as n FROM sqlar\n  } { lappend res $n }")
+		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		os.Remove(shdo)
 		var _result = "join $res \" | \"" // TCL namespace variable
 		_ = _result // suppress unused warning
@@ -362,7 +362,7 @@ func Test_avfs(t *testing.T) {
 			var res = "Open failed."
 			_ = res // suppress unused warning
 		} else {
-			t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+			t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 			var res = "Opened when should not."
 			_ = res // suppress unused warning
 		}
@@ -388,7 +388,7 @@ func Test_avfs(t *testing.T) {
 			var res = "Open failed."
 			_ = res // suppress unused warning
 		} else {
-			t.Skipf("TODO: %s not implemented in frigolite", "adb close")
+			t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 			var res = "Opened when should not."
 			_ = res // suppress unused warning
 		}

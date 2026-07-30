@@ -79,7 +79,7 @@ func Test_autovacuum(t *testing.T) {
 			}
 		}
 		{ // do_test "autovacuum-1." + tn + ".3"
-			t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+			t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 		}
 	}
 	{ // do_test "autovacuum-2.1.1"
@@ -89,7 +89,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	{ // do_test "autovacuum-2.2.1"
 		r = db.Query("\n    CREATE TABLE av1(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -104,7 +104,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 		var _av1_data = "db eval {select * from av1}" // TCL namespace variable
 		_ = _av1_data // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	{ // do_test "autovacuum-2.2.3"
 		r = db.Query("\n    CREATE TABLE av2(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -113,7 +113,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	{ // do_test "autovacuum-2.2.5"
 		r = db.Query("\n    CREATE TABLE av3(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -122,7 +122,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	{ // do_test "autovacuum-2.2.7"
 		r = db.Query("\n    CREATE TABLE av4(x);\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -131,7 +131,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	{ // do_test "autovacuum-2.2.9"
 		r = db.Query("\n    select * from av1\n  ")
@@ -150,7 +150,7 @@ func Test_autovacuum(t *testing.T) {
 		_ = _av3_data // suppress unused warning
 		var _av4_data = "execsql {select x from av4}" // TCL namespace variable
 		_ = _av4_data // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	{ // do_test "autovacuum-2.3.2"
 		r = db.Query("\n    DROP TABLE av2;\n    SELECT rootpage FROM sqlite_master ORDER BY rootpage;\n  ")
@@ -159,7 +159,7 @@ func Test_autovacuum(t *testing.T) {
 		}
 	}
 	{ // do_test "autovacuum-2.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	{ // do_test "autovacuum-2.3.4"
 		r = db.Query("\n    SELECT x FROM av3;\n  ")
@@ -178,7 +178,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE av1;\n    DROP TABLE av3;\n    BEGIN;\n    DROP TABLE av4;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	{ // do_test "autovacuum-2.4.2"
 		var i = "3"
@@ -196,7 +196,7 @@ func Test_autovacuum(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	{ // do_test "autovacuum-2.4.3"
 		r = db.Query("\n    SELECT rootpage FROM sqlite_master ORDER by rootpage\n  ")
@@ -262,7 +262,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -290,7 +290,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	{ // do_test "autovacuum-2.5.1"
 		_res = db.Exec("\n    CREATE TABLE av1(a PRIMARY KEY, b, c);\n    INSERT INTO av1 VALUES('av1 a', 'av1 b', 'av1 c');\n\n    CREATE TABLE av2(a PRIMARY KEY, b, c);\n    CREATE INDEX av2_i1 ON av2(b);\n    CREATE INDEX av2_i2 ON av2(c);\n    INSERT INTO av2 VALUES('av2 a', 'av2 b', 'av2 c');\n\n    CREATE TABLE av3(a PRIMARY KEY, b, c);\n    CREATE INDEX av3_i1 ON av3(b);\n    INSERT INTO av3 VALUES('av3 a', 'av3 b', 'av3 c');\n\n    CREATE TABLE av4(a, b, c);\n    CREATE INDEX av4_i1 ON av4(a);\n    CREATE INDEX av4_i2 ON av4(b);\n    CREATE INDEX av4_i3 ON av4(c);\n    CREATE INDEX av4_i4 ON av4(a, b, c);\n    INSERT INTO av4 VALUES('av4 a', 'av4 b', 'av4 c');\n  ")
@@ -430,7 +430,7 @@ func Test_autovacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE av1;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "file_pages")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_pages")
 	}
 	{ // do_test "autovacuum-4.0"
 		os.Remove("test.db")

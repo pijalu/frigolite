@@ -51,22 +51,22 @@ func Test_walpersist(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "walpersist-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_persist_wal db -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db -1")
 	}
 	{ // do_test "walpersist-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
 	}
 	{ // do_test "walpersist-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_persist_wal db -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db -1")
 	}
 	{ // do_test "walpersist-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 0")
 	}
 	{ // do_test "walpersist-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_persist_wal db -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db -1")
 	}
 	{ // do_test "walpersist-1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
 	}
 	{ // do_test "walpersist-1.11"
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal", "file exists test.db-shm"})
@@ -84,7 +84,7 @@ func Test_walpersist(t *testing.T) {
 		// expr [file size test.db-wal]>100000 → "[file size test.db-wal]>100000"
 	}
 	{ // do_test "walpersist-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
 		_r := tclList(append([]string{}, tclSplitList("file exists test.db-wal")..., tclSplitList("file size test.db-wal")...))
 		_ = _r
 	}
@@ -127,7 +127,7 @@ func Test_walpersist(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
 	}
 	{ // do_test "walpersist-3.3"
 		// file size test.db-wal
@@ -149,7 +149,7 @@ func Test_walpersist(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode=WAL;\n    CREATE TABLE t1(x);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
 		_res = db.Exec("\n    PRAGMA journal_mode=TRUNCATE;\n    PRAGMA journal_mode=MEMORY;\n    PRAGMA journal_mode=WAL;\n    PRAGMA journal_mode=PERSIST;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode=TRUNCATE;\n    PRAGMA journal_mode=MEMORY;\n    PRAGMA journal_mode=WAL;\n    PRAGMA journal_mode=PERSIST;\n  ")

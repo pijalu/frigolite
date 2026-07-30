@@ -25,8 +25,8 @@ func Test_oserror(t *testing.T) {
 	}
 	var _testprefix = "oserror" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	if tclBool("!" + "clang_sanitize_address") {
@@ -55,7 +55,7 @@ func Test_oserror(t *testing.T) {
 				var i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _nOpen_n, __nOpen_e := strconv.Atoi(_nOpen); if __nOpen_e != nil { return false }; return i_n < _nOpen_n }() {
-					t.Skipf("TODO: %s not implemented in frigolite", "dbh_$i close")
+					t.Errorf("TODO: %s not implemented in frigolite", "dbh_$i close")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -67,7 +67,7 @@ func Test_oserror(t *testing.T) {
 			}
 		}
 		if tclBool(rc) {
-			t.Skipf("TODO: %s not implemented in frigolite", "do_re_test 1.1.3 { \n      lindex $::log 0 \n    } {^os_unix.c:\\d+: \\(\\d+\\) (open|getcwd)\\(.*test.db\\)...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_re_test 1.1.3 { \n      lindex $::log 0 \n    } {^os_unix.c:\\d+: \\(\\d+\\) (open|getcwd)\\(.*test.db\\)...}")
 		}
 	}
 	{ // do_test "1.2.1"
@@ -77,23 +77,23 @@ func Test_oserror(t *testing.T) {
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_re_test 1.2.2 { lindex $::log 0 } {^os_unix.c:\\d+: \\(\\d+\\) open\\(.*dir.db\\) - }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_re_test 1.2.2 { lindex $::log 0 } {^os_unix.c:\\d+: \\(\\d+\\) open\\(.*dir.db\\) - }")
 	{ // do_test "1.3.1"
 		var _log = "list" // TCL namespace variable
 		_ = _log // suppress unused warning
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_re_test 1.3.2 { lindex $::log 0 } {^os_unix.c:\\d+: \\(\\d+\\) open\\(.*test.db\\) - }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_re_test 1.3.2 { lindex $::log 0 } {^os_unix.c:\\d+: \\(\\d+\\) open\\(.*test.db\\) - }")
 	{ // do_test "1.4.1"
 		var _log = "list" // TCL namespace variable
 		_ = _log // suppress unused warning
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_re_test 1.4.2 { \n  lindex $::log 0\n} {^os_unix.c:\\d*: \\(\\d+\\) (open|readlink|lstat)\\(.*t...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_syscall reset")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_re_test 1.4.2 { \n  lindex $::log 0\n} {^os_unix.c:\\d*: \\(\\d+\\) (open|readlink|lstat)\\(.*t...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall reset")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 }

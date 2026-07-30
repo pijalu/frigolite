@@ -44,7 +44,7 @@ func Test_ctime(t *testing.T) {
 		_list := tclList([]string{"lindex $ans 0", "[lsort [lindex $ans 1]]==[lindex $ans 1]"})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
 	{ // do_test "ctime-1.4.1"
 		_res = db.Exec("\n    SELECT sqlite_compileoption_used('SQLITE_THREADSAFE');\n  ")
 		_ = _res // catchsql

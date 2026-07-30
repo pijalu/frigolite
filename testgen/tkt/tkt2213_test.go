@@ -20,7 +20,7 @@ func Test_tkt2213(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2213-1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
 		_res = db.Exec("\n    SELECT tkt2213func(tkt2213func('abcd'));\n  ")
 		_ = _res // catchsql
 	}

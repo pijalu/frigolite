@@ -41,7 +41,7 @@ func Test_coveridxscan(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db cover-idx-scan 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db cover-idx-scan 0")
 		_res = db.Exec("SELECT a FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT a FROM t1")
@@ -59,8 +59,8 @@ func Test_coveridxscan(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT b FROM t1")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_cis 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_cis 0")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "3.1"
@@ -81,8 +81,8 @@ func Test_coveridxscan(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT b FROM t1")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_cis 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_cis 1")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "4.1"

@@ -23,7 +23,7 @@ func Test_memdb2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "memdb2"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	// foreach {tn fname} "\n    1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb\n"
 	_items := tclSplitList("\n    1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {

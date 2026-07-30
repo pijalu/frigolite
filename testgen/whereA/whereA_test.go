@@ -136,23 +136,23 @@ func Test_whereA(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX t2x ON t2(x);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2;\n  }")
 	}
 	{ // do_test "whereA-4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x;\n  }")
 	}
 	{ // do_test "whereA-4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x DESC;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x DESC;\n  }")
 	}
 	{ // do_test "whereA-4.5"
 		_res = db.Exec("DROP INDEX t2x;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX t2x;")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x;\n  }")
 	}
 	{ // do_test "whereA-4.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x DESC;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT x FROM t2 ORDER BY x DESC;\n  }")
 	}
 	{ // "whereA-5.1"
 		r = db.Query("\n  PRAGMA reverse_unordered_selects=on;\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1,2);\n  CREATE INDEX t1b ON t1(b);\n  SELECT a FROM t1 WHERE b=-99 OR b>1;\n")

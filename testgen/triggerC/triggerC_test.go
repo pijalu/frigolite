@@ -209,7 +209,7 @@ func Test_triggerC(t *testing.T) {
 			}
 		}
 		{ // do_test "triggerC-3.5.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH [expr $SQLITE_MAX_TRIGGER_DEPTH / 10]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH [expr $SQLITE_MAX_TRIGGER_DEPTH / 10]")
 			_res = db.Exec("\n    INSERT INTO t3b VALUES(" + "($SQLITE_MAX_TRIGGER_DEPTH * 2) - ($SQLITE_MAX_TRIGGER_DEPTH / 10) + 1" + ");\n  ")
 			_ = _res // catchsql
 		}
@@ -230,7 +230,7 @@ func Test_triggerC(t *testing.T) {
 			}
 		}
 		{ // do_test "triggerC-3.6.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 1")
 			_res = db.Exec("\n    INSERT INTO t3b VALUES(" + "$SQLITE_MAX_TRIGGER_DEPTH * 2" + ");\n  ")
 			_ = _res // catchsql
 		}
@@ -250,7 +250,7 @@ func Test_triggerC(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT count(*), max(x), min(x) FROM t3b")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH $SQLITE_MAX_TRIGGER_DEPTH")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH $SQLITE_MAX_TRIGGER_DEPTH")
 		{ // do_test "triggerC-4.1.1"
 			_res = db.Exec(" DROP TABLE log ")
 			_ = _res // catchsql
@@ -581,7 +581,7 @@ func Test_triggerC(t *testing.T) {
 							db.Close()
 							db, err = frigolite.Open("")
 							if err != nil { t.Fatal(err) }
-							t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
+							t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
 							{ // "triggerC-14.2"
 								_res = db.Exec(SQL)
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "2 3") {
@@ -679,7 +679,7 @@ func Test_triggerC(t *testing.T) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 4")
+							t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH 4")
 							{ // "18.3"
 								_res = db.Exec("\n  INSERT INTO t1(a) VALUES(2);\n")
 								if _res.Error == nil || !strings.Contains(_res.Error.Error(), "triggers nested too deep") {

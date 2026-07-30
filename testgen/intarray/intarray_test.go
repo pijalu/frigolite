@@ -71,7 +71,7 @@ func Test_intarray(t *testing.T) {
 	_ = ia1 // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_intarray_create db ia1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_intarray_create db ia1")
 			if _catchErr != nil {
 				rc = "1"
 				ia1 = _catchErr.Error()
@@ -89,7 +89,7 @@ func Test_intarray(t *testing.T) {
 		}
 	}
 	{ // do_test "intarray-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_intarray_bind $ia3 45 123 678")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_intarray_bind $ia3 45 123 678")
 		_res = db.Exec("\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t1 WHERE a IN ia3 ORDER BY a\n  ")

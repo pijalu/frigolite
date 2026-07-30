@@ -27,11 +27,11 @@ func Test_tkt_18458b1a(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 0")
-			t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db push-down 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db push-down 0")
 		} else {
-			t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 1")
-			t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db push-down 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db push-down 1")
 		}
 		{ // tn + ".1.1"
 			_res = db.Exec("\n    CREATE TABLE t0(c0 COLLATE NOCASE);\n    INSERT INTO t0(c0) VALUES ('B');\n    CREATE VIEW v0(c0, c1) AS SELECT DISTINCT t0.c0, 'a' FROM t0;\n  ")

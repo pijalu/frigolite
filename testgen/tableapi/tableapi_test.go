@@ -26,27 +26,27 @@ func Test_tableapi(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite_exec_printf $::dbx {DROP TABLE xyz} {}")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite_exec_printf $::dbx {DROP TABLE xyz} {}")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf $::dbx {CREATE TABLE %s(a int, b text)} xyz")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf $::dbx {CREATE TABLE %s(a int, b text)} xyz")
 	}
 	{ // do_test "tableapi-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf $::dbx {\n    INSERT INTO xyz VALUES(1,'%q')\n  } {Hi Y'all}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf $::dbx {\n    INSERT INTO xyz VALUES(1,'%q')\n  } {Hi Y'all}")
 	}
 	{ // do_test "tableapi-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf $::dbx {SELECT * FROM xyz} {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf $::dbx {SELECT * FROM xyz} {}")
 	}
 	{ // do_test "tableapi-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    BEGIN TRANSACTION;\n    SELECT * FROM xyz WHER...} {Hi Y'all}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    BEGIN TRANSACTION;\n    SELECT * FROM xyz WHER...} {Hi Y'all}")
 	}
 	{ // do_test "tableapi-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz\n  } {}")
 	}
 	{ // do_test "tableapi-2.3"
 		var i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx INSERT INTO xyz VALUES($i,'(%s)') $i")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx INSERT INTO xyz VALUES($i,'(%s)') $i")
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -55,19 +55,19 @@ func Test_tableapi(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz ORDER BY a\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz ORDER BY a\n  } {}")
 	}
 	{ // do_test "tableapi-2.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz  WHERE a>49 ORDER BY a\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz  WHERE a>49 ORDER BY a\n  } {}")
 	}
 	{ // do_test "tableapi-2.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {}")
 	}
 	{ // do_test "tableapi-2.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a; inva...} {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a; inva...} {}")
 	}
 	{ // do_test "tableapi-2.3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {} 8")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {} 8")
 	}
 	{ // do_test "tableapi-2.4"
 		var manyquote = "''''''''"
@@ -80,28 +80,28 @@ func Test_tableapi(t *testing.T) {
 		manyquote += manyquote
 		var _big_str = manyquote + " Hello " + manyquote // TCL namespace variable
 		_ = _big_str // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(51,'%q')\n  } $::big_str")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(51,'%q')\n  } $::big_str")
 	}
 	{ // do_test "tableapi-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>49 ORDER BY a;\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>49 ORDER BY a;\n  } {}")
 	}
 	{ // do_test "tableapi-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(52,NULL)\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(52,NULL)\n  } {}")
 	}
 	{ // do_test "tableapi-2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>1000\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>1000\n  } {}")
 	}
 	{ // do_test "tableapi-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    ROLLBACK;\n    PRAGMA empty_result_callbacks =...} {Hi Y'all}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    ROLLBACK;\n    PRAGMA empty_result_callbacks =...} {Hi Y'all}")
 	}
 	{ // do_test "tableapi-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz\n  } {}")
 	}
 	{ // do_test "tableapi-3.3"
 		var i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx INSERT INTO xyz VALUES($i,'(%s)') $i")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx INSERT INTO xyz VALUES($i,'(%s)') $i")
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -110,32 +110,32 @@ func Test_tableapi(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz ORDER BY a\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz ORDER BY a\n  } {}")
 	}
 	{ // do_test "tableapi-3.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz  WHERE a>49 ORDER BY a\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz  WHERE a>49 ORDER BY a\n  } {}")
 	}
 	{ // do_test "tableapi-3.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>47 ORDER BY a\n  } {}")
 	}
 	{ // do_test "tableapi-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(51,'%q')\n  } $::big_str")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(51,'%q')\n  } $::big_str")
 	}
 	{ // do_test "tableapi-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>49 ORDER BY a;\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>49 ORDER BY a;\n  } {}")
 	}
 	{ // do_test "tableapi-3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(52,NULL)\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    INSERT INTO xyz VALUES(52,NULL)\n  } {}")
 	}
 	{ // do_test "tableapi-3.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>1000\n  } {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>1000\n  } {}")
 	}
 	{ // do_test "tableapi-4.1"
 	var rc string
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n      SELECT * FROM xyz;  SELECT * FROM sqlite_ma...} {}")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n      SELECT * FROM xyz;  SELECT * FROM sqlite_ma...} {}")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -167,7 +167,7 @@ func Test_tableapi(t *testing.T) {
 			}
 		}
 		sql += ")"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx $sql {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx $sql {}")
 		var sql = "INSERT INTO t2 VALUES("
 		_ = sql // suppress unused warning
 		var sep = ""
@@ -187,8 +187,8 @@ func Test_tableapi(t *testing.T) {
 			}
 		}
 		sql += ")"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx $sql {}")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {SELECT * FROM t2} {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx $sql {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {SELECT * FROM t2} {}")
 	}
 	{ // do_test "tableapi-5.2"
 		var sql = "INSERT INTO t2 VALUES("
@@ -210,11 +210,11 @@ func Test_tableapi(t *testing.T) {
 			}
 		}
 		sql += ")"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx $sql {}")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {SELECT * FROM t2} {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx $sql {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {SELECT * FROM t2} {}")
 	}
 	{ // do_test "tableapi-99.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_close $::dbx")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $::dbx")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test tableapi-7 -sqlprep {\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b)...} -tclbody {\n  set r [sqlite3_get_table_printf db {SELECT rowi...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test tableapi-7 -sqlprep {\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b)...} -tclbody {\n  set r [sqlite3_get_table_printf db {SELECT rowi...}")
 }

@@ -25,7 +25,7 @@ func Test_win32longpath(t *testing.T) {
 	var testprefix = "win32longpath"
 	_ = testprefix // suppress unused warning
 	{ // do_test "1.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_vfsname db")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_vfsname db")
 	}
 	var rawPath = "get_pwd"
 	_ = rawPath // suppress unused warning
@@ -34,7 +34,7 @@ func Test_win32longpath(t *testing.T) {
 	db, err = frigolite.Open("file join $path test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_vfsname db")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_vfsname db")
 	}
 	{ // do_test "1.2"
 		_res = db.Exec("\n    BEGIN EXCLUSIVE;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT x FROM t1 ORDER BY x;\n    COMMIT;\n  ")

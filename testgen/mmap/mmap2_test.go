@@ -25,11 +25,11 @@ func Test_mmap2(t *testing.T) {
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
 	// proc definition (not transpiled)
 	for _, syscall := range tclSplitList("mmap mremap") {
-		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall uninstall")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall uninstall")
 		if false {
 		}
 		var i = "1"
@@ -42,8 +42,8 @@ func Test_mmap2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA mmap_size = 8000000 ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "test_syscall fault $i 1")
-			t.Skipf("TODO: %s not implemented in frigolite", "test_syscall errno $syscall ENOMEM")
+			t.Errorf("TODO: %s not implemented in frigolite", "test_syscall fault $i 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "test_syscall errno $syscall ENOMEM")
 			var _log = "" // TCL namespace variable
 			_ = _log // suppress unused warning
 			{ // "1." + syscall + "." + i + ".1"
@@ -81,8 +81,8 @@ func Test_mmap2(t *testing.T) {
 			}
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_syscall uninstall")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall uninstall")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 }

@@ -29,9 +29,9 @@ func Test_btreefault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = incremental;\n    PRAGMA journal_mode = DELETE;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(randomblob(1000), randomblob(100));\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    INSERT INTO t1 SELECT randomblob(1000), randomblob(1000) FROM t1;\n    DELETE FROM t1 WHERE rowid%2;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  set ::STMT [sqlit...} -body {\n  execsql { PRAGMA incremental_vacuum = 10 }\n} -test {\n  sqlite3_finalize $::STMT\n  faultsim_test_result...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  set ::STMT [sqlit...} -body {\n  execsql { PRAGMA incremental_vacuum = 10 }\n} -test {\n  sqlite3_finalize $::STMT\n  faultsim_test_result...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -47,7 +47,7 @@ func Test_btreefault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(25, 25, 25);\n  INSERT INTO t2 VALUES(25, 'a'), (25, 'b'), (25, 'c');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save")
 	{ // do_test "2.2"
 		var res = "list"
 		_ = res // suppress unused warning
@@ -56,5 +56,5 @@ func Test_btreefault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT x, y FROM t1 CROSS JOIN t2 WHERE t2.x=t1.i AND +t1.i=25 ORDER BY b\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT *...} -body {\n  set ::myres [list]\n  db eval {\n    SELECT x, y ...} -test {\n  faultsim_test_result {0 {25 a 25 b}} \n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT *...} -body {\n  set ::myres [list]\n  db eval {\n    SELECT x, y ...} -test {\n  faultsim_test_result {0 {25 a 25 b}} \n}")
 }

@@ -23,7 +23,7 @@ func Test_wal(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "wal"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
 	// proc definition (not transpiled)
 	var _blobcnt = "0" // TCL namespace variable
 	_ = _blobcnt // suppress unused warning
@@ -101,7 +101,7 @@ func Test_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "wal-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal db2 ./test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal db2 ./test.db")
 		r = db.Query(" BEGIN; SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " BEGIN; SELECT * FROM t1 ")
@@ -247,7 +247,7 @@ func Test_wal(t *testing.T) {
 	}
 	db2.Close()
 	{ // do_test "wal-4.5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "reopen_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "reopen_db")
 		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES('a', 'b');\n  ")
@@ -317,7 +317,7 @@ func Test_wal(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "reopen_db")
+	t.Errorf("TODO: %s not implemented in frigolite", "reopen_db")
 	{ // do_test "wal-5.1"
 		_res = db.Exec("\n    CREATE TEMP TABLE t2(a, b);\n    INSERT INTO t2 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
@@ -351,7 +351,7 @@ func Test_wal(t *testing.T) {
 		}
 	}
 	for _, sector := range tclSplitList("512 4096") {
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize $sector")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize $sector")
 		for _, pgsz := range tclSplitList("512 1024 2048 4096") {
 			os.Remove("test.db")
 			{ // do_test "wal-6." + sector + "." + pgsz + ".1"
@@ -369,13 +369,13 @@ func Test_wal(t *testing.T) {
 				// file size test.db
 			}
 			{ // do_test "wal-6." + sector + "." + pgsz + ".2"
-				t.Skipf("TODO: %s not implemented in frigolite", "log_deleted test.db-wal")
+				t.Errorf("TODO: %s not implemented in frigolite", "log_deleted test.db-wal")
 			}
 		}
 	}
 	{ // do_test "wal-7.1"
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal db test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal db test.db")
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
@@ -392,7 +392,7 @@ func Test_wal(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "wal-8.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "reopen_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "reopen_db")
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
@@ -421,7 +421,7 @@ func Test_wal(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "wal-9.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "reopen_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "reopen_db")
 		_res = db.Exec("\n    PRAGMA cache_size=2000;\n    CREATE TABLE t1(x PRIMARY KEY);\n    INSERT INTO t1 VALUES(blob(900));\n    INSERT INTO t1 VALUES(blob(900));\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /*  4 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /*  8 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 16 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 32 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 64 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 128 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 256 */\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=2000;\n    CREATE TABLE t1(x PRIMARY KEY);\n    INSERT INTO t1 VALUES(blob(900));\n    INSERT INTO t1 VALUES(blob(900));\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /*  4 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /*  8 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 16 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 32 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 64 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 128 */\n    INSERT INTO t1 SELECT blob(900) FROM t1;       /* 256 */\n  ")
@@ -429,7 +429,7 @@ func Test_wal(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "wal-9.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal db2 test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal db2 test.db")
 		r = db.Query("PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check ")
@@ -437,9 +437,9 @@ func Test_wal(t *testing.T) {
 	}
 	{ // do_test "wal-9.3"
 		os.Remove("test2.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db-wal test2.db-wal")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal db3 test2.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-wal test2.db-wal")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal db3 test2.db")
 		r = db.Query("PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check ")
@@ -452,7 +452,7 @@ func Test_wal(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 		}
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal db2 test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal db2 test.db")
 		r = db.Query("PRAGMA integrity_check ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check ")
@@ -462,12 +462,12 @@ func Test_wal(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "$handle close")
+			t.Errorf("TODO: %s not implemented in frigolite", "$handle close")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  # Initialize the database schema and contents....}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  # Initialize the database schema and contents....}")
 	{ // do_test "wal-11.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "reopen_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "reopen_db")
 		_res = db.Exec("\n    PRAGMA cache_size = 10;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x PRIMARY KEY);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size = 10;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x PRIMARY KEY);\n  ")
@@ -531,7 +531,7 @@ func Test_wal(t *testing.T) {
 		_list := tclList([]string{"[file size test.db]/1024", "log_deleted test.db-wal"})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal db test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal db test.db")
 	var nWal = "34"
 	_ = nWal // suppress unused warning
 	{ // do_test "wal-11.10"
@@ -562,7 +562,7 @@ func Test_wal(t *testing.T) {
 		_list := tclList([]string{"[file size test.db]/1024", "file size test.db-wal"})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "reopen_db")
+	t.Errorf("TODO: %s not implemented in frigolite", "reopen_db")
 	{ // do_test "wal-12.1"
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(x, y);\n    CREATE TABLE t2(x, y);\n    INSERT INTO t1 VALUES('A', 1);\n  ")
 		if _res.Error != nil {
@@ -593,7 +593,7 @@ func Test_wal(t *testing.T) {
 	{ // do_test "wal-12.4"
 		tclFileCopy("test.db", "test2.db")
 		tclFileCopy("test.db-wal", "test2.db-wal")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal db2 test2.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal db2 test2.db")
 		r = db.Query(" SELECT * FROM t2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
@@ -613,7 +613,7 @@ func Test_wal(t *testing.T) {
 	{ // do_test "wal-12.6"
 		tclFileCopy("test.db", "test2.db")
 		tclFileCopy("test.db-wal", "test2.db-wal")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal db2 test2.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal db2 test2.db")
 		r = db.Query(" SELECT * FROM t2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t2 ")
@@ -675,26 +675,26 @@ func Test_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "wal-15.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint db aux")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint db aux")
 	}
 	{ // do_test "wal-15.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "wal-15.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "wal-15.3.1"
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint db main")
 	}
 	{ // do_test "wal-15.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "wal-15.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -709,20 +709,20 @@ func Test_wal(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint db")
 	}
 	{ // do_test "wal-15.4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "wal-15.4.4"
 		_res = db.Exec(" COMMIT ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint db")
 	}
 	{ // do_test "wal-15.4.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "wal-15.4.6"
 		// file size test.db
@@ -754,7 +754,7 @@ func Test_wal(t *testing.T) {
 		_ = logsize // suppress unused warning
 		_ = _idx
 			os.Remove("test.db")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize $sectorsize")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize $sectorsize")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -795,7 +795,7 @@ func Test_wal(t *testing.T) {
 				// file size test.db
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte $old_pending_byte")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte $old_pending_byte")
 		os.Remove("test.db")
 		{ // do_test "wal-18.0"
 			db, err := frigolite.Open("test.db")
@@ -821,7 +821,7 @@ func Test_wal(t *testing.T) {
 				{ // do_test "wal-18.1." + nFrame
 					tclFileCopy("testX.db", "test.db")
 					tclFileCopy("testX.db-wal", "test.db-wal")
-					t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db-wal [expr 24 + $nFrame*(24+1024) + 20] 00000000")
+					t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-wal [expr 24 + $nFrame*(24+1024) + 20] 00000000")
 					db, err := frigolite.Open("test.db")
 					defer db.Close()
 					if err != nil { t.Fatal(err) }
@@ -873,15 +873,15 @@ func Test_wal(t *testing.T) {
 							_ = c1 // suppress unused warning
 							var c2 = "0"
 							_ = c2 // suppress unused warning
-							t.Skipf("TODO: %s not implemented in frigolite", "logcksum c1 c2 $walhdr")
+							t.Errorf("TODO: %s not implemented in frigolite", "logcksum c1 c2 $walhdr")
 							walhdr += "binary format II $c1 $c2"
-							t.Skipf("TODO: %s not implemented in frigolite", "logcksum c1 c2 [string range $framehdr 0 7]")
-							t.Skipf("TODO: %s not implemented in frigolite", "logcksum c1 c2 $framebody")
+							t.Errorf("TODO: %s not implemented in frigolite", "logcksum c1 c2 [string range $framehdr 0 7]")
+							t.Errorf("TODO: %s not implemented in frigolite", "logcksum c1 c2 $framebody")
 							var framehdr = "binary format IIIIII $pg 5 22 23 $c1 $c2"
 							_ = framehdr // suppress unused warning
 							var fd = "open test.db-wal w"
 							_ = fd // suppress unused warning
-							t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+							t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
 							t.Log("-nonewline")
 							t.Log("-nonewline")
 							t.Log("-nonewline")
@@ -969,7 +969,7 @@ func Test_wal(t *testing.T) {
 					{ // do_test "wal-20.2"
 						var _buddy = "launch_testfixture" // TCL namespace variable
 						_ = _buddy // suppress unused warning
-						t.Skipf("TODO: %s not implemented in frigolite", "testfixture $::buddy {\n      sqlite3 db test.db\n      db transaction { d...}")
+						t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::buddy {\n      sqlite3 db test.db\n      db transaction { d...}")
 					}
 					{ // do_test "wal-20.3"
 						// close $::buddy
@@ -1004,7 +1004,7 @@ func Test_wal(t *testing.T) {
 					_ = _catchErr // suppress unused warning
 				}
 				{ // do_test "wal-21.1"
-					t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+					t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 					_res = db.Exec(" \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n  ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA journal_mode = WAL;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t1 VALUES(9, 10);\n    INSERT INTO t1 VALUES(11, 12);\n  ")
@@ -1034,7 +1034,7 @@ func Test_wal(t *testing.T) {
 					}
 				}
 				for _, pgsz := range tclSplitList("512 1024 2048 4096 8192 16384 32768 65536") {
-					t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn [string map [list %PGSZ% $pgsz] {\n    do_test wal-...")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn [string map [list %PGSZ% $pgsz] {\n    do_test wal-...")
 				}
 				// incr _do_not_use_codec -1
 				{
@@ -1049,14 +1049,14 @@ func Test_wal(t *testing.T) {
 				}
 				os.Remove("test.db")
 				{ // do_test "wal-23.1"
-					t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+					t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 					_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-					t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log [list lappend ::log]")
+					t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+					t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log [list lappend ::log]")
 					var _log = "list" // TCL namespace variable
 					_ = _log // suppress unused warning
 					db, err := frigolite.Open("test.db")
@@ -1073,7 +1073,7 @@ func Test_wal(t *testing.T) {
 				{ // do_test "wal-23.3"
 					var _log = "list" // TCL namespace variable
 					_ = _log // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+					t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 					r = db.Query(" SELECT * FROM t1 ")
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -1082,11 +1082,11 @@ func Test_wal(t *testing.T) {
 				{ // do_test "wal-23.4"
 					_ = _log // TCL namespace variable (query)
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-				t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 				for _, mode := range tclSplitList("OFF MEMORY PERSIST DELETE TRUNCATE WAL") {
-					t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db test2.db")
+					t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db test2.db")
 					db, err := frigolite.Open("test.db")
 					defer db.Close()
 					if err != nil { t.Fatal(err) }
@@ -1179,5 +1179,5 @@ func Test_wal(t *testing.T) {
 						}
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
 }

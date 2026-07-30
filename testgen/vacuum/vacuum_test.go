@@ -21,7 +21,7 @@ func Test_vacuum(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool(AUTOVACUUM) {
-		t.Skipf("TODO: %s not implemented in frigolite", "omit_test vacuum.test {Auto-vacuum is enabled}")
+		t.Errorf("TODO: %s not implemented in frigolite", "omit_test vacuum.test {Auto-vacuum is enabled}")
 		return
 	}
 	var fcnt = "1"
@@ -47,7 +47,7 @@ func Test_vacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "cksum")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksum")
 	}
 	{ // do_test "vacuum-1.4"
 		var sql_script = "\n    BEGIN;\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    CREATE TABLE t3 AS SELECT * FROM t1;\n    CREATE VIEW v1 AS SELECT b, c FROM t3;\n    CREATE TRIGGER r1 AFTER DELETE ON t2 BEGIN SELECT 1; END;\n    COMMIT;\n    DROP TABLE t2;\n  "
@@ -67,7 +67,7 @@ func Test_vacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "cksum")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksum")
 	}
 	{ // do_test "vacuum-2.2"
 		db2, err := frigolite.Open("test.db")
@@ -83,7 +83,7 @@ func Test_vacuum(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "vacuum-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksum")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksum")
 	}
 	{ // do_test "vacuum-2.4"
 		{
@@ -92,7 +92,7 @@ func Test_vacuum(t *testing.T) {
 			db2.Exec("SELECT count(*) FROM sqlite_master")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "cksum db2")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksum db2")
 	}
 	{ // do_test "vacuum-2.5"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t6 AS SELECT * FROM t1;\n    CREATE TABLE t7 AS SELECT * FROM t1;\n    COMMIT;\n  ")
@@ -146,7 +146,7 @@ func Test_vacuum(t *testing.T) {
 	db3.Close()
 	{ // do_test "vacuum-3.1"
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -163,10 +163,10 @@ func Test_vacuum(t *testing.T) {
 		_ = DB // suppress unused warning
 		var VM = "sqlite3_prepare $DB {VACUUM} -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 	}
 	{ // do_test "vacuum-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	{ // do_test "vacuum-6.1"
 		_res = db.Exec("\n    CREATE TABLE \"abc abc\"(a, b, c);\n    INSERT INTO \"abc abc\" VALUES(1, 2, 3);\n    VACUUM;\n  ")
@@ -250,7 +250,7 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ATTACH_CREATE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ATTACH_CREATE 0")
 	{ // "vacuum-11.2"
 		r = db.Query("\n  PRAGMA page_size=2048;\n  VACUUM;\n  PRAGMA page_size;\n")
 		if r.Error != nil {
@@ -263,8 +263,8 @@ func Test_vacuum(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ATTACH_CREATE 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ATTACH_WRITE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ATTACH_CREATE 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ATTACH_WRITE 0")
 	{ // "vacuum-11.3"
 		r = db.Query("\n  PRAGMA page_size=4096;\n  VACUUM;\n  PRAGMA page_size;\n")
 		if r.Error != nil {

@@ -23,7 +23,7 @@ func Test_shared7(t *testing.T) {
 	{ // do_test "shared7-1.1"
 		var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 		_ = _enable_shared_cache // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache")
 	}
 	{ // do_test "shared7-1.2"
 		db, err := frigolite.Open("test.db")
@@ -49,5 +49,5 @@ func Test_shared7(t *testing.T) {
 		_res = db.Exec("\n    ATTACH 'test.db' AS err1;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

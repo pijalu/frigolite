@@ -33,6 +33,6 @@ func Test_insertfault(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  execsql { SELECT * FROM t1 }\n} -test {\n  faultsim_test_result {0 {1 {} {} 1}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  execsql { SELECT * FROM t1 }\n} -test {\n  faultsim_test_result {0 {1 {} {} 1}}\n}")
 }

@@ -46,7 +46,7 @@ func Test_fts3shared(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "fts3shared-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
 	}
 	{ // "fts3shared-1.5"
 		_res = db.Exec(" COMMIT ")
@@ -55,10 +55,10 @@ func Test_fts3shared(t *testing.T) {
 		}
 	}
 	{ // do_test "fts3shared-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
 	}
 	{ // do_test "fts3shared-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db2")
 	}
 	db2.Close()
 	var LOCKED = "1 {database table is locked}"
@@ -218,7 +218,7 @@ func Test_fts3shared(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK")
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "dbW close")
-			t.Skipf("TODO: %s not implemented in frigolite", "dbR close")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+			t.Errorf("TODO: %s not implemented in frigolite", "dbW close")
+			t.Errorf("TODO: %s not implemented in frigolite", "dbR close")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

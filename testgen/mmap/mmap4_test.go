@@ -32,6 +32,6 @@ func Test_mmap4(t *testing.T) {
 		mmap2 := _items[_idx+2]
 		_ = mmap2 // suppress unused warning
 		_ = _idx
-			t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    sql1 {\n      CREATE TABLE t1(a PRIMARY KEY);\n...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    sql1 {\n      CREATE TABLE t1(a PRIMARY KEY);\n...}")
 		}
 }

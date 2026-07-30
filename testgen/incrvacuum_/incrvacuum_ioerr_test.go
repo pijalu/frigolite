@@ -19,7 +19,7 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-1 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 'incremental';\n  CREATE TA...} -sqlbody {\n  BEGIN;\n  CREATE TABLE abc2(a);\n  DELETE FROM ab...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-2 -start 1 -cksum 1 -tclprep {\n  db eval {\n    PRAGMA auto_vacuum = 'full';\n    ...} -sqlbody {\n  BEGIN;\n  PRAGMA incremental_vacuum;\n  DELETE FR...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-3 -start 1 -cksum 1 -tclprep {\n  db eval {\n    PRAGMA auto_vacuum = 'incremental...} -sqlbody {\n  PRAGMA incremental_vacuum(5);\n} -cleanup {\n  sqlite3 db test.db\n  integrity_check incrvacuum...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-1 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 'incremental';\n  CREATE TA...} -sqlbody {\n  BEGIN;\n  CREATE TABLE abc2(a);\n  DELETE FROM ab...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-2 -start 1 -cksum 1 -tclprep {\n  db eval {\n    PRAGMA auto_vacuum = 'full';\n    ...} -sqlbody {\n  BEGIN;\n  PRAGMA incremental_vacuum;\n  DELETE FR...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-3 -start 1 -cksum 1 -tclprep {\n  db eval {\n    PRAGMA auto_vacuum = 'incremental...} -sqlbody {\n  PRAGMA incremental_vacuum(5);\n} -cleanup {\n  sqlite3 db test.db\n  integrity_check incrvacuum...}")
 }

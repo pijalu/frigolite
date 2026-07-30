@@ -53,8 +53,8 @@ func Test_upfromfault(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$tn -prep {\n    faultsim_restore_and_reopen\n    execsql { SEL...} -body {\n    execsql {\n      WITH data(k, v) AS (\n        ...} -test {\n    faultsim_test_result {0 {}} {1 {vtable constr...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$tn -prep {\n    faultsim_restore_and_reopen\n    execsql { SEL...} -body {\n    execsql {\n      WITH data(k, v) AS (\n        ...} -test {\n    faultsim_test_result {0 {}} {1 {vtable constr...}")
 		}
 		db.Close()
 		db, err = frigolite.Open("")
@@ -65,15 +65,15 @@ func Test_upfromfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    CREATE TRIGGER tr1 AFTER INSERT O...} -test {\n    faultsim_test_result {0 {}}\n}")
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    CREATE TRIGGER tr1 AFTER INSERT O...} -test {\n    faultsim_test_result {0 {}}\n}")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 		{ // "2.2"
 			_res = db.Exec("\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=x FROM t2 WHERE c=z;\n  END;\n\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    UPDATE t1 SET a=x FROM t2 WHERE c=z;\n  END;\n\n  INSERT INTO t2 VALUES(1, 1, 1);\n  INSERT INTO t2 VALUES(2, 2, 2);\n  INSERT INTO t2 VALUES(3, 3, 3);\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    INSERT INTO t1 VALUES(NULL, NULL,...} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc==0} {...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    INSERT INTO t1 VALUES(NULL, NULL,...} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc==0} {...}")
 }

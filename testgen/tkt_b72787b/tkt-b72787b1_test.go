@@ -36,5 +36,5 @@ func Test_tkt_b72787b1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT CASE WHEN y=3 THEN y+100 WHEN y==4 THEN runsql()+200\n                ELSE 300+y END FROM t2\n    UNION ALL\n    SELECT * FROM t1;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
 }

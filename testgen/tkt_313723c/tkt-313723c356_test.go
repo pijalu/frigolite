@@ -28,6 +28,6 @@ func Test_tkt_313723c356(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = WAL;\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(randomblob(400), randomblob(400));\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT randomblob(400), randomblob(400) FROM t1;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test tkt-313723c356.2 -faults shmerr* -prep {\n  faultsim_restore_and_reopen\n  sqlite3 db2 test....} -body {\n  # At this point, the cache contains all of tabl...} -test {\n  faultsim_test_result {0 1}\n  faultsim_integrity...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test tkt-313723c356.2 -faults shmerr* -prep {\n  faultsim_restore_and_reopen\n  sqlite3 db2 test....} -body {\n  # At this point, the cache contains all of tabl...} -test {\n  faultsim_test_result {0 1}\n  faultsim_integrity...}")
 }

@@ -28,7 +28,7 @@ func Test_laststmtchanges(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "laststmtchanges-1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf db {update t0 set x=4 where x=3; select 1;} {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec_printf db {update t0 set x=4 where x=3; select 1;} {}")
 		r = db.Query("select changes()")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select changes()")

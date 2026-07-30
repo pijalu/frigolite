@@ -299,13 +299,13 @@ func Test_intpkey(t *testing.T) {
 		}
 	}
 	{ // do_test "intpkey-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a=5;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a=5;\n  }")
 	}
 	{ // do_test "intpkey-3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a>4 AND a<6;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a>4 AND a<6;\n  }")
 	}
 	{ // do_test "intpkey-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE b>='hello' AND b<'hell...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE b>='hello' AND b<'hell...}")
 	}
 	{ // do_test "intpkey-3.5"
 		_res = db.Exec("\n    CREATE INDEX i3 ON t1(c,a);\n  ")
@@ -314,63 +314,63 @@ func Test_intpkey(t *testing.T) {
 		}
 	}
 	{ // do_test "intpkey-3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE c=='world';\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE c=='world';\n  }")
 	}
 	{ // do_test "intpkey-3.7"
 		_res = db.Exec("INSERT INTO t1 VALUES(11,'hello','world')")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(11,'hello','world')")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE c=='world';\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE c=='world';\n  }")
 	}
 	{ // do_test "intpkey-3.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE c=='world' AND a>7;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE c=='world' AND a>7;\n  }")
 	}
 	{ // do_test "intpkey-3.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 7<a;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 7<a;\n  }")
 	}
 	{ // do_test "intpkey-4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 11=rowid\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 11=rowid\n  }")
 	}
 	{ // do_test "intpkey-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 11=rowid AND b=='hello...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 11=rowid AND b=='hello...}")
 	}
 	{ // do_test "intpkey-4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 11=rowid AND b=='hello...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 11=rowid AND b=='hello...}")
 	}
 	{ // do_test "intpkey-4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE rowid==11\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE rowid==11\n  }")
 	}
 	{ // do_test "intpkey-4.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE oid==11 AND b=='hello'...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE oid==11 AND b=='hello'...}")
 	}
 	{ // do_test "intpkey-4.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a==11 AND b=='hello' A...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a==11 AND b=='hello' A...}")
 	}
 	{ // do_test "intpkey-4.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 8<rowid;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 8<rowid;\n  }")
 	}
 	{ // do_test "intpkey-4.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 8<rowid AND 11>=oid;\n ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 8<rowid AND 11>=oid;\n ...}")
 	}
 	{ // do_test "intpkey-4.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 11<=_rowid_ AND 12>=a;...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 11<=_rowid_ AND 12>=a;...}")
 	}
 	{ // do_test "intpkey-4.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 0>=_rowid_;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE 0>=_rowid_;\n  }")
 	}
 	{ // do_test "intpkey-4.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a<0;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a<0;\n  }")
 	}
 	{ // do_test "intpkey-4.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a<0 AND a>10;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a<0 AND a>10;\n  }")
 	}
 	{ // do_test "intpkey-5.1"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(0,'zero','entry');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(0,'zero','entry');\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a=0;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM t1 WHERE a=0;\n  }")
 	}
 	{ // do_test "intpkey-5.2"
 		r = db.Query("\n    SELECT rowid, a FROM t1 ORDER BY rowid\n  ")

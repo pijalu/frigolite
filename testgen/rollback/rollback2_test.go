@@ -41,16 +41,16 @@ func Test_rollback2(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_rollback_test 2.1 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0\n} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_rollback_test 2.2 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n    S...} -rollback {\n  ROLLBACK TO one;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0\n} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 2.1 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0\n} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 2.2 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n    S...} -rollback {\n  ROLLBACK TO one;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0\n} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
 	{ // "3.1"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC;\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_rollback_test 3.2 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC...} -result {\n  40 38 36 34 32 30 28 26 24 22 20 18 16 14 12 10...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_rollback_test 3.3 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n    S...} -rollback {\n  ROLLBACK TO one;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC...} -result {\n  40 38 36 34 32 30 28 26 24 22 20 18 16 14 12 10...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 3.2 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC...} -result {\n  40 38 36 34 32 30 28 26 24 22 20 18 16 14 12 10...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 3.3 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n    S...} -rollback {\n  ROLLBACK TO one;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h DESC...} -result {\n  40 38 36 34 32 30 28 26 24 22 20 18 16 14 12 10...}")
 	var leader = "\"abcdefghij\" 70"
 	_ = leader // suppress unused warning
 	{ // "4.1"
@@ -65,6 +65,6 @@ func Test_rollback2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_rollback_test 4.3 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;...} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_rollback_test 4.4 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n    S...} -rollback {\n  ROLLBACK TO one;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;...} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 4.3 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%2)==1;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;...} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_rollback_test 4.4 -setup {\n  BEGIN;\n    DELETE FROM t1 WHERE (i%4)==1;\n    S...} -rollback {\n  ROLLBACK TO one;\n} -select {\n  SELECT i FROM t1 WHERE (i%2)==0 ORDER BY h ASC;...} -result {\n  2 4 6 8 10 12 14 16 18 20 22 24 26 28 30 32 34 ...}")
 }

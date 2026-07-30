@@ -336,13 +336,13 @@ func Test_with2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xfer_test 5.2 1 { INSERT INTO t1 SELECT * FROM t2 }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xfer_test 5.3 0 { INSERT INTO t1 SELECT a, b FROM t2 }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xfer_test 5.4 0 { INSERT INTO t1 SELECT b, a FROM t2 }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xfer_test 5.5 0 { \n  WITH x AS (SELECT a, b FROM t2) INSERT INTO t1...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xfer_test 5.6 0 { \n  WITH x AS (SELECT a, b FROM t2) INSERT INTO t1...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xfer_test 5.7 0 { \n INSERT INTO t1 WITH x AS ( SELECT * FROM t2 ) S...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xfer_test 5.8 0 { \n INSERT INTO t1 WITH x(a,b) AS ( SELECT * FROM t...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.2 1 { INSERT INTO t1 SELECT * FROM t2 }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.3 0 { INSERT INTO t1 SELECT a, b FROM t2 }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.4 0 { INSERT INTO t1 SELECT b, a FROM t2 }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.5 0 { \n  WITH x AS (SELECT a, b FROM t2) INSERT INTO t1...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.6 0 { \n  WITH x AS (SELECT a, b FROM t2) INSERT INTO t1...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.7 0 { \n INSERT INTO t1 WITH x AS ( SELECT * FROM t2 ) S...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xfer_test 5.8 0 { \n INSERT INTO t1 WITH x(a,b) AS ( SELECT * FROM t...}")
 	{ // "6.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n")
 		if _res.Error != nil {

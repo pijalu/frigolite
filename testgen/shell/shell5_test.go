@@ -25,25 +25,25 @@ func Test_shell5(t *testing.T) {
 	_ = CLI // suppress unused warning
 	os.Remove("test.db")
 	{ // do_test "shell5-1.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .import")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .import")
 	}
 	{ // do_test "shell5-1.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .import FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .import FOO")
 	}
 	{ // do_test "shell5-1.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .import FOO BAR BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .import FOO BAR BAD")
 	}
 	{ // do_test "shell5-1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator")
 	}
 	{ // do_test "shell5-1.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator ONE")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator ONE")
 	}
 	{ // do_test "shell5-1.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator ONE TWO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator ONE TWO")
 	}
 	{ // do_test "shell5-1.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator ONE TWO THREE")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator ONE TWO THREE")
 	}
 	{ // do_test "shell5-1.3.1.1"
 		var res = "catchcmd \"test.db\" \".mode list\\n.show\""
@@ -126,7 +126,7 @@ func Test_shell5(t *testing.T) {
 		_ = res // suppress unused warning
 	}
 	{ // do_test "shell5-1.4.8.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db -list {SELECT b FROM t1 WHERE a='5';}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db -list {SELECT b FROM t1 WHERE a='5';}")
 	}
 	{ // do_test "shell5-1.4.9.1"
 		var in = "open shell5.csv w"
@@ -137,7 +137,7 @@ func Test_shell5(t *testing.T) {
 		_ = res // suppress unused warning
 	}
 	{ // do_test "shell5-1.4.9.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db -list {SELECT b FROM t1 WHERE a='6';}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db -list {SELECT b FROM t1 WHERE a='6';}")
 	}
 	{ // do_test "shell5-1.4.10.1"
 		var in = "open shell5.csv w"
@@ -148,7 +148,7 @@ func Test_shell5(t *testing.T) {
 		_ = res // suppress unused warning
 	}
 	{ // do_test "shell5-1.4.10.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db -list {SELECT b FROM t1 WHERE a='7';}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db -list {SELECT b FROM t1 WHERE a='7';}")
 	}
 	{ // do_test "shell5-1.4.11"
 		var in = "open shell5.csv wb"
@@ -244,13 +244,13 @@ func Test_shell5(t *testing.T) {
 	if tcl_platform(platform) == "unix" {
 		{ // do_test "shell5-1.8"
 			os.Remove("test.db")
-			t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db {.mode csv\n.import \"|awk 'END{print \\\"x,y\\\";for(i=1...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db {.mode csv\n.import \"|awk 'END{print \\\"x,y\\\";for(i=1...}")
 		}
 	}
 	{ // do_test "shell5-1.9"
 		var out = "open shell5.csv w"
 		_ = out // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
 		t.Log(out)
 		t.Log(out)
 		t.Log(out)
@@ -269,7 +269,7 @@ func Test_shell5(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db {.mode csv\n    CREATE TABLE t1(a,b,c);\n.import shel...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db {.mode csv\n    CREATE TABLE t1(a,b,c);\n.import shel...}")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -281,13 +281,13 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.10"
 		var out = "open shell5.csv w"
 		_ = out // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
 		t.Log(out)
 		t.Log(out)
 		t.Log(out)
 		// close $out
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db {.mode csv\n    CREATE TABLE t1(a,b,c,d);\n.import sh...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db {.mode csv\n    CREATE TABLE t1(a,b,c,d);\n.import sh...}")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -299,12 +299,12 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.10.1"
 		var out = "open shell5.csv w"
 		_ = out // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
 		t.Log(out)
 		t.Log(out)
 		// close $out
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db {\n    CREATE TABLE t1(a,b,c,d);\n.import --csv --qes...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db {\n    CREATE TABLE t1(a,b,c,d);\n.import --csv --qes...}")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -316,7 +316,7 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-1.11"
 		var out = "open shell5.csv w"
 		_ = out // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $out -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $out -translation binary")
 		t.Log(out)
 		t.Log(out)
 		t.Log(out)
@@ -327,7 +327,7 @@ func Test_shell5(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db {.mode csv\n.import shell5.csv t1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db {.mode csv\n.import shell5.csv t1\n  }")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -346,7 +346,7 @@ func Test_shell5(t *testing.T) {
 		_ = fd // suppress unused warning
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t1(a, b);\n.i...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t1(a, b);\n.i...")
 		_res = db.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t1 ")
@@ -357,7 +357,7 @@ func Test_shell5(t *testing.T) {
 		_ = fd // suppress unused warning
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t2(a, b);\n.i...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t2(a, b);\n.i...")
 		_res = db.Exec(" SELECT * FROM t2 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t2 ")
@@ -368,7 +368,7 @@ func Test_shell5(t *testing.T) {
 		_ = fd // suppress unused warning
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t3(a, b);\n.i...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t3(a, b);\n.i...")
 		_res = db.Exec(" SELECT * FROM t3 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t3 ")
@@ -379,7 +379,7 @@ func Test_shell5(t *testing.T) {
 		_ = fd // suppress unused warning
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t4(a, b);\n.i...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t4(a, b);\n.i...")
 		_res = db.Exec(" SELECT * FROM t4 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t4 ")
@@ -391,7 +391,7 @@ func Test_shell5(t *testing.T) {
 		t.Log(fd)
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t4(a, b);\n.i...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t4(a, b);\n.i...")
 		_res = db.Exec(" SELECT * FROM t4 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t4 ")
@@ -400,11 +400,11 @@ func Test_shell5(t *testing.T) {
 	{ // do_test "shell5-3.1"
 		var fd = "open shell5.csv w"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
 		t.Log("-nonewline")
 		t.Log("-nonewline")
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db {\n.mode ascii\nCREATE TABLE t5(a, b);\n.import shell5...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db {\n.mode ascii\nCREATE TABLE t5(a, b);\n.import shell5...}")
 		_res = db.Exec(" SELECT * FROM t5 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t5 ")
@@ -424,7 +424,7 @@ func Test_shell5(t *testing.T) {
 		t.Log(fd)
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t6(a, b, c);...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t6(a, b, c);...")
 		_res = db.Exec(" SELECT * FROM t6 ORDER BY a ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t6 ORDER BY a ")
@@ -438,7 +438,7 @@ func Test_shell5(t *testing.T) {
 		t.Log(fd)
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t7(a, b, c);...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t7(a, b, c);...")
 		_res = db.Exec(" SELECT * FROM t7 ORDER BY a ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t7 ORDER BY a ")
@@ -451,7 +451,7 @@ func Test_shell5(t *testing.T) {
 		t.Log(fd)
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t8(a, b, c);...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TABLE t8(a, b, c);...")
 		_res = db.Exec(" SELECT * FROM t8 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM t8 ")
@@ -463,51 +463,51 @@ func Test_shell5(t *testing.T) {
 		_ = fd // suppress unused warning
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TEMP TABLE t8(a, b...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [string trim {\n.mode csv\nCREATE TEMP TABLE t8(a, b...")
 	}
 	{ // do_test "shell5-5.1"
 		var out = "open shell5.csv w"
 		_ = out // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
 		t.Log(out)
 		t.Log(out)
 		// close $out
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db {.import -csv shell5.csv t1\n.mode line --colsep ' =...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db {.import -csv shell5.csv t1\n.mode line --colsep ' =...}")
 	}
 	{ // do_test "shell5-5.1b"
 		var out = "open shell5.csv w"
 		_ = out // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
 		t.Log(out)
 		t.Log(out)
 		// close $out
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db {.import -csv shell5.csv t1\n.mode line\nSELECT * FRO...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db {.import -csv shell5.csv t1\n.mode line\nSELECT * FRO...}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell5-6.1 {\n  set out [open shell5.csv w]\n  fconfigure $out -...} {0 {   あい = 1\nうえお = 2}}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell5-6.2 {\n  set out [open shell5.csv w]\n  fconfigure $out -...} {0 {1: あい\n2: うえお}}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell5-6.1 {\n  set out [open shell5.csv w]\n  fconfigure $out -...} {0 {   あい = 1\nうえお = 2}}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell5-6.2 {\n  set out [open shell5.csv w]\n  fconfigure $out -...} {0 {1: あい\n2: うえお}}")
 	{ // do_test "shell5-7.1"
 		var out = "open shell5.csv w"
 		_ = out // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
 		t.Log(out)
 		// close $out
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: -list {CREATE TABLE t1(a TEXT, b TEXT, c AS (a||b));\n.imp...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: -list {CREATE TABLE t1(a TEXT, b TEXT, c AS (a||b));\n.imp...}")
 	}
 	{ // do_test "shell5-8.1"
 		var out = "open shell5.csv w"
 		_ = out // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $out -translation lf")
 		t.Log(out)
 		// close $out
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: {.import --csv shell5.csv '\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {.import --csv shell5.csv '\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"\"...}")
 	}
 	{ // do_test "shell5-9.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n    CREATE TABLE t1(a,b,c INT CHECK(c<>5));\n.bail...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n    CREATE TABLE t1(a,b,c INT CHECK(c<>5));\n.bail...}")
 	}
 	{ // do_test "shell5-9.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n    CREATE TABLE t1(a,b,c INT CHECK(c<>5));\n.bail...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n    CREATE TABLE t1(a,b,c INT CHECK(c<>5));\n.bail...}")
 	}
 }

@@ -21,9 +21,9 @@ func Test_tkt2820(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "test_schema_change 1 {\n  CREATE TABLE t1(a);\n} {\n  DROP TABLE t1\n} {t1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_schema_change 2 {\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n} {\n  DROP TABLE t2\n} {t1 t2}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_schema_change 3 {\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);...} {\n  DROP INDEX i1\n} {i1 t1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_schema_change 1 {\n  CREATE TABLE t1(a);\n} {\n  DROP TABLE t1\n} {t1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_schema_change 2 {\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(b);\n} {\n  DROP TABLE t2\n} {t1 t2}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_schema_change 3 {\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);...} {\n  DROP INDEX i1\n} {i1 t1}")
 	{ // do_test "tkt2820-4.1"
 		os.Remove("test.db")
 		db, err := frigolite.Open("test.db")

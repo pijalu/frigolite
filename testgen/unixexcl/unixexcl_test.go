@@ -24,7 +24,7 @@ func Test_unixexcl(t *testing.T) {
 	}
 	var testprefix = "unixexcl"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test unixexcl-1.$tn.1 {\n    sql1 {\n      CRE...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test unixexcl-2.$tn.1 {\n    sql1 {\n      CRE...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test unixexcl-3.$tn.1 {\n    code1 { db close...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test unixexcl-1.$tn.1 {\n    sql1 {\n      CRE...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test unixexcl-2.$tn.1 {\n    sql1 {\n      CRE...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test unixexcl-3.$tn.1 {\n    code1 { db close...}")
 }

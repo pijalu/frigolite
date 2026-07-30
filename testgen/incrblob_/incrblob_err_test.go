@@ -26,19 +26,19 @@ func Test_incrblob_err(t *testing.T) {
 	var _data = "read $::fd" // TCL namespace variable
 	_ = _data // suppress unused warning
 	// close $::fd
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 1 -tclprep {\n  set bytes [file size $::cmdlinearg(INFO_SCRIPT)...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  fconfigure...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 2 -tclprep {\n  execsql {\n    CREATE TABLE blobs(k, v BLOB);\n  ...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  set rc [ca...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 3 -tclprep {\n  execsql {\n    CREATE TABLE blobs(k, v BLOB);\n  ...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  set rc [ca...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test incrblob_err-4 -cksum 1 -sqlprep {\n  CREATE TABLE blobs(k, v BLOB);\n  INSERT INTO bl...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  read $::bl...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test incrblob_err-5 -cksum 1 -sqlprep {\n  CREATE TABLE blobs(k, v BLOB);\n  INSERT INTO bl...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  fconfigure...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test incrblob_err-6 -cksum 1 -sqlprep {\n  CREATE TABLE blobs(k, v BLOB);\n  INSERT INTO bl...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  fconfigure...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test incrblob_err-7 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE blobs(k ...} -tclbody {\n  # Read some data from the end of the large blob...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 1 -tclprep {\n  set bytes [file size $::cmdlinearg(INFO_SCRIPT)...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  fconfigure...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 2 -tclprep {\n  execsql {\n    CREATE TABLE blobs(k, v BLOB);\n  ...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  set rc [ca...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 3 -tclprep {\n  execsql {\n    CREATE TABLE blobs(k, v BLOB);\n  ...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  set rc [ca...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrblob_err-4 -cksum 1 -sqlprep {\n  CREATE TABLE blobs(k, v BLOB);\n  INSERT INTO bl...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  read $::bl...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrblob_err-5 -cksum 1 -sqlprep {\n  CREATE TABLE blobs(k, v BLOB);\n  INSERT INTO bl...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  fconfigure...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrblob_err-6 -cksum 1 -sqlprep {\n  CREATE TABLE blobs(k, v BLOB);\n  INSERT INTO bl...} -tclbody {\n  set ::blob [db incrblob blobs v 1]\n  fconfigure...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrblob_err-7 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE blobs(k ...} -tclbody {\n  # Read some data from the end of the large blob...}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test incrblob_err-8 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE blobs(k ...} -tclbody {\n  # Read some data from the end of the large blob...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test incrblob_err-8 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE blobs(k ...} -tclbody {\n  # Read some data from the end of the large blob...}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

@@ -46,19 +46,19 @@ func Test_syscall(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall reset")
 	}
 	{ // do_test "1.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall install {open getcwd access}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall install {open getcwd access}")
 	}
 	{ // do_test "1.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall reset")
 	}
 	{ // do_test "2.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall exists open")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall exists open")
 	}
 	{ // do_test "2.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall exists nosuchcall")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall exists nosuchcall")
 	}
 	for _, s := range tclSplitList("\n    open close access getcwd stat fstat ftruncate\n    fcntl read pread write pwrite fchmod fallocate\n    pread64 pwrite64 unlink openDirectory mkdir rmdir \n    statvfs fchown geteuid umask mmap munmap mremap\n    getpagesize readlink lstat ioctl\n") {
 		if tclBool("test_syscall exists $s") {
@@ -68,7 +68,7 @@ func Test_syscall(t *testing.T) {
 	{ // do_test "3.1"
 		tclSort("test_syscall list")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_syscall reset")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall reset")
 	os.Remove("test.db2")
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(x, y);\n  INSERT INTO t2 VALUES(3, 4);\n")
@@ -76,15 +76,15 @@ func Test_syscall(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE aux.t2(x, y);\n  INSERT INTO t2 VALUES(3, 4);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_syscall install open")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall install open")
 	for _, jrnl := range tclSplitList("list wal delete") {
 		var i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
-			t.Skipf("TODO: %s not implemented in frigolite", "test_syscall fault $i 0")
-			t.Skipf("TODO: %s not implemented in frigolite", "test_syscall errno open EINTR")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+			t.Errorf("TODO: %s not implemented in frigolite", "test_syscall fault $i 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "test_syscall errno open EINTR")
 			{ // do_test "4.2." + jrnl + "." + i
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
@@ -130,7 +130,7 @@ func Test_syscall(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	os.Remove("test.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  code1 {\n    sqlite3 dbX1 test.db\n    sqlite3 db...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  code1 {\n    sqlite3 dbX1 test.db\n    sqlite3 db...}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -150,7 +150,7 @@ func Test_syscall(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2.Close()
 		db3.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "dbM close")
+		t.Errorf("TODO: %s not implemented in frigolite", "dbM close")
 		db1.Close()
 	}
 	{ // do_test "6.2"
@@ -177,7 +177,7 @@ func Test_syscall(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx
 			{ // do_test "7." + nByte
-				t.Skipf("TODO: %s not implemented in frigolite", "create_db_file $nByte")
+				t.Errorf("TODO: %s not implemented in frigolite", "create_db_file $nByte")
 				_list := tclList([]string{"0", msg})
 				_ = _list
 			}
@@ -195,7 +195,7 @@ func Test_syscall(t *testing.T) {
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 4096")
+			t.Errorf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 4096")
 			// file size test.db
 		}
 		// foreach {tn hint size} "\n  1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192 \n"
@@ -209,7 +209,7 @@ func Test_syscall(t *testing.T) {
 			_ = size // suppress unused warning
 			_ = _idx
 				{ // do_test "8.2." + tn
-					t.Skipf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")
+					t.Errorf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")
 					// file size test.db
 				}
 			}
@@ -218,7 +218,7 @@ func Test_syscall(t *testing.T) {
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 16")
+				t.Errorf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 16")
 				// file size test.db
 			}
 			// foreach {tn hint size} "\n  1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64 \n"
@@ -232,9 +232,9 @@ func Test_syscall(t *testing.T) {
 				_ = size // suppress unused warning
 				_ = _idx
 					{ // do_test "8.4." + tn
-						t.Skipf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")
+						t.Errorf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")
 						// file size test.db
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "test_syscall reset")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_syscall reset")
 }

@@ -19,7 +19,7 @@ func Test_capi3b(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
 	var DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	db2, err := frigolite.Open("test.db")
@@ -48,23 +48,23 @@ func Test_capi3b(t *testing.T) {
 	{ // do_test "capi3b-1.4"
 		var VM = "sqlite3_prepare $DB2 {INSERT INTO t1 VALUES(3)} -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 	}
 	{ // do_test "capi3b-1.5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 	}
 	{ // do_test "capi3b-1.5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 	}
 	{ // do_test "capi3b-1.6"
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 	}
 	{ // do_test "capi3b-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	{ // do_test "capi3b-1.8"
 		r = db.Query("SELECT * FROM t1")
@@ -81,43 +81,43 @@ func Test_capi3b(t *testing.T) {
 	{ // do_test "capi3b-2.1"
 		var VM1 = "sqlite3_prepare $DB {SELECT * FROM t1} -1 TAIL"
 		_ = VM1 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM1")
 	}
 	{ // do_test "capi3b-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $VM1 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $VM1 0")
 	}
 	{ // do_test "capi3b-2.3"
 		var VM2 = "sqlite3_prepare $DB2 {INSERT INTO t1 VALUES(4)} -1 TAIL"
 		_ = VM2 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM2")
 	}
 	{ // do_test "capi3b-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM1")
 	}
 	{ // do_test "capi3b-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $VM1 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $VM1 0")
 	}
 	{ // do_test "capi3b-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM2")
 	}
 	{ // do_test "capi3b-2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM1")
 	}
 	{ // do_test "capi3b-2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $VM1 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $VM1 0")
 	}
 	{ // do_test "capi3b-2.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM2")
 	}
 	{ // do_test "capi3b-2.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM1")
 	}
 	{ // do_test "capi3b-2.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM2")
 	}
 	{ // do_test "capi3b-2.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM2")
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
@@ -128,5 +128,5 @@ func Test_capi3b(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
 }

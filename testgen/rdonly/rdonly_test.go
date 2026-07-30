@@ -19,7 +19,7 @@ func Test_rdonly(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // do_test "rdonly-1.1"
 		r = db.Query("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -27,13 +27,13 @@ func Test_rdonly(t *testing.T) {
 		}
 	}
 	{ // do_test "rdonly-1.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_readonly db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_readonly db main")
 	}
 	{ // do_test "rdonly-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 18 1]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 18 1]")
 	}
 	{ // do_test "rdonly-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 18 03")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 18 03")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -43,14 +43,14 @@ func Test_rdonly(t *testing.T) {
 		}
 	}
 	{ // do_test "rdonly-1.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_readonly db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_readonly db main")
 	}
 	{ // do_test "rdonly-1.4"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2)\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "rdonly-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 18 01")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 18 01")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -60,8 +60,8 @@ func Test_rdonly(t *testing.T) {
 	var ro_version = "02"
 	_ = ro_version // suppress unused warning
 	{ // do_test "rdonly-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 18 $ro_version")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 24 11223344")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 18 $ro_version")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 24 11223344")
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(2);\n  ")
 		_ = _res // catchsql
 	}

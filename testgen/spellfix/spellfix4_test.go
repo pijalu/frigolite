@@ -22,7 +22,7 @@ func Test_spellfix4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "spellfix4"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix")
 	{ // "100"
 		r = db.Query("\n  CREATE TABLE cost1(iLang, cFrom, cTo, iCost);\n  INSERT INTO cost1 VALUES\n    (0, '', '?',  97),\n    (0, '?', '',  98),\n    (0, '?', '?', 99),\n    (0, 'm', 'n', 50),\n    (0, 'n', 'm', 50)\n  ;\n  SELECT editdist3('cost1');\n  SELECT editdist3('anchor','amchor');\n")
 		if r.Error != nil {

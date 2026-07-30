@@ -30,10 +30,10 @@ func Test_fkey7(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.2 { UPDATE par SET b=? WHERE a=? } {par s1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.3 { UPDATE par SET a=? WHERE b=? } {c1 c2 par}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.4 { UPDATE par SET c=? WHERE b=? } {c3 par}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.5 { UPDATE par SET a=?,b=?,c=? WHERE b=? } {c1 c2 c3 par s1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.2 { UPDATE par SET b=? WHERE a=? } {par s1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.3 { UPDATE par SET a=? WHERE b=? } {c1 c2 par}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.4 { UPDATE par SET c=? WHERE b=? } {c3 par}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_tblsread_test 1.5 { UPDATE par SET a=?,b=?,c=? WHERE b=? } {c1 c2 c3 par s1}")
 	{ // "4.0"
 		_res = db.Exec("\n  PRAGMA foreign_keys = true;\n  CREATE TABLE parent(\n    p PRIMARY KEY\n  );\n  CREATE TABLE child(\n    c UNIQUE REFERENCES parent(p)\n  );\n")
 		if _res.Error != nil {

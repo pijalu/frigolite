@@ -38,7 +38,7 @@ func Test_shell7(t *testing.T) {
 			}
 		}
 		{ // do_test "2.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db SELECT length( diskused('main') ) > 1000")
+			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db SELECT length( diskused('main') ) > 1000")
 		}
 		{ // "2.2"
 			_res = db.Exec("\n    CREATE TABLE \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(a, b);\n    INSERT INTO  \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\" VALUES(10, 10), (20, 20);\n    CREATE INDEX i2 ON \"t2_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q_%q\"(b);\n  ")
@@ -47,7 +47,7 @@ func Test_shell7(t *testing.T) {
 			}
 		}
 		{ // do_test "2.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db SELECT length( diskused('main') ) > 1000")
+			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db SELECT length( diskused('main') ) > 1000")
 		}
 	}
 }

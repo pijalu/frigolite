@@ -21,7 +21,7 @@ func Test_busy2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "busy2"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test 1.$tn.0 {\n    sql2 {\n      CREATE TABLE...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  # Make the db a WAL mode db. And add a table an...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  code1 {\n    set ::busy_called 0\n    proc busy {...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test 1.$tn.0 {\n    sql2 {\n      CREATE TABLE...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  # Make the db a WAL mode db. And add a table an...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  code1 {\n    set ::busy_called 0\n    proc busy {...}")
 }

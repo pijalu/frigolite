@@ -28,13 +28,13 @@ func Test_tkt_26ff0c2d1e(t *testing.T) {
 		_ = STMT // suppress unused warning
 	}
 	{ // do_test "bug-20100512-2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $STMT")
 	}
 	{ // do_test "bug-20100512-3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $STMT 1 123")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $STMT 2 456")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_int $STMT 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $STMT 1 123")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $STMT 2 456")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $STMT 0")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 }

@@ -71,15 +71,15 @@ func Test_stmt(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "filecount stmt-2.1 { INSERT INTO t1 VALUES(9, 9)  } 2")
-	t.Skipf("TODO: %s not implemented in frigolite", "filecount stmt-2.2 { REPLACE INTO t1 VALUES(9, 9) } 2")
-	t.Skipf("TODO: %s not implemented in frigolite", "filecount stmt-2.3 { INSERT INTO t1 SELECT 9, 9   } 2")
-	t.Skipf("TODO: %s not implemented in frigolite", "filecount stmt-2.4 { \n    INSERT INTO t1 SELECT 9, 9;\n    INSERT INTO ...} 2")
+	t.Errorf("TODO: %s not implemented in frigolite", "filecount stmt-2.1 { INSERT INTO t1 VALUES(9, 9)  } 2")
+	t.Errorf("TODO: %s not implemented in frigolite", "filecount stmt-2.2 { REPLACE INTO t1 VALUES(9, 9) } 2")
+	t.Errorf("TODO: %s not implemented in frigolite", "filecount stmt-2.3 { INSERT INTO t1 SELECT 9, 9   } 2")
+	t.Errorf("TODO: %s not implemented in frigolite", "filecount stmt-2.4 { \n    INSERT INTO t1 SELECT 9, 9;\n    INSERT INTO ...} 2")
 	{ // do_test "stmt-2.5"
 		_res = db.Exec(" CREATE INDEX i1 ON t1(b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(b) ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "filecount stmt-2.6 { \n  REPLACE INTO t1 VALUES(5, 5);\n  REPLACE INTO t...} 2")
+	t.Errorf("TODO: %s not implemented in frigolite", "filecount stmt-2.6 { \n  REPLACE INTO t1 VALUES(5, 5);\n  REPLACE INTO t...} 2")
 }

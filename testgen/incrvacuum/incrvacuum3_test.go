@@ -74,7 +74,7 @@ func Test_incrvacuum3(t *testing.T) {
 						}
 					}
 					{ // do_test T + ".1." + tn + ".3"
-						t.Skipf("TODO: %s not implemented in frigolite", "check_on_disk")
+						t.Errorf("TODO: %s not implemented in frigolite", "check_on_disk")
 					}
 				}
 				{ // T + ".1.x.1"

@@ -19,7 +19,7 @@ func Test_ioerr3(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr3-1 -sqlprep {\n  CREATE TABLE t1(id INTEGER, name TEXT);\n} -tclbody {\n  sqlite3_soft_heap_limit 8192\n  db cache size 0\n...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr3-2 -sqlbody {\n  CREATE TEMP TABLE t1(x,y);\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr3-1 -sqlprep {\n  CREATE TABLE t1(id INTEGER, name TEXT);\n} -tclbody {\n  sqlite3_soft_heap_limit 8192\n  db cache size 0\n...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr3-2 -sqlbody {\n  CREATE TEMP TABLE t1(x,y);\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
 }

@@ -29,7 +29,7 @@ func Test_interrupt(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a,b);\n    SELECT name FROM sqlite_master;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "interrupt_test interrupt-1.2 {DROP TABLE t1} {}")
+	t.Errorf("TODO: %s not implemented in frigolite", "interrupt_test interrupt-1.2 {DROP TABLE t1} {}")
 	{ // do_test "interrupt-1.3"
 		r = db.Query("\n    SELECT name FROM sqlite_master;\n  ")
 		if r.Error != nil {
@@ -57,7 +57,7 @@ func Test_interrupt(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "interrupt-2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_is_interrupted $DB")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_is_interrupted $DB")
 	}
 	_res = db.Exec("\n  CREATE TABLE t2(a,b,c);\n  INSERT INTO t2 SELECT round(a/10), randstr(50,80), randstr(50,60) FROM t1;\n")
 	if _res.Error != nil {

@@ -24,5 +24,5 @@ func Test_tkt_5d863f876e(t *testing.T) {
 	if tclBool("!" + "wal_is_capable") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test $tn.1 {\n    sql1 {\n      CREATE TABLE t...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  do_test $tn.1 {\n    sql1 {\n      CREATE TABLE t...}")
 }

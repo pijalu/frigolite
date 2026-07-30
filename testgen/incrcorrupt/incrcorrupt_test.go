@@ -40,61 +40,61 @@ func Test_incrcorrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_save")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 36 00000019")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_save")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 36 00000019")
 		_res = db.Exec(" PRAGMA incremental_vacuum; ")
 		_ = _res // catchsql
 	}
 	{ // do_test "1.3"
 		var stmt = ""
 		_ = stmt // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
 	}
 	{ // do_test "1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 	}
 	{ // do_test "1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "1.9"
 		var stmt = ""
 		_ = stmt // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
 	}
 	{ // do_test "1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "1.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "1.12"
 		var stmt2 = ""
 		_ = stmt2 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt2")
 	}
 	{ // do_test "1.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "1.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "1.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 	}
 	{ // do_test "1.16"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "1.17"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	db.Close()
 	db, err = frigolite.Open("")
@@ -112,10 +112,10 @@ func Test_incrcorrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_save")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_save")
 		var fd = "open test.db r+"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "chan truncate $fd [expr 22*1024]")
+		t.Errorf("TODO: %s not implemented in frigolite", "chan truncate $fd [expr 22*1024]")
 		// close $fd
 		_res = db.Exec(" PRAGMA incremental_vacuum; ")
 		_ = _res // catchsql
@@ -123,52 +123,52 @@ func Test_incrcorrupt(t *testing.T) {
 	{ // do_test "2.3"
 		var stmt = ""
 		_ = stmt // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
 	}
 	{ // do_test "2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 	}
 	{ // do_test "2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "2.9"
 		var stmt = ""
 		_ = stmt // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
 	}
 	{ // do_test "2.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "2.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "2.12"
 		var stmt2 = ""
 		_ = stmt2 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt2")
 	}
 	{ // do_test "2.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "2.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "2.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 	}
 	{ // do_test "2.16"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "2.17"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 }

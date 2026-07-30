@@ -457,15 +457,15 @@ func Test_with1(t *testing.T) {
 	var I = "list 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20"
 	_ = I // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "limit_test 9.1 20 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "limit_test 9.2 0 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "limit_test 9.3 19 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "limit_test 9.4 20 -1")
-	t.Skipf("TODO: %s not implemented in frigolite", "limit_test 9.5 5 5")
-	t.Skipf("TODO: %s not implemented in frigolite", "limit_test 9.6 0 -1")
-	t.Skipf("TODO: %s not implemented in frigolite", "limit_test 9.7 40 -1")
-	t.Skipf("TODO: %s not implemented in frigolite", "limit_test 9.8 -1 -1")
-	t.Skipf("TODO: %s not implemented in frigolite", "limit_test 9.9 -1 -1")
+	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.1 20 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.2 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.3 19 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.4 20 -1")
+	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.5 5 5")
+	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.6 0 -1")
+	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.7 40 -1")
+	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.8 -1 -1")
+	t.Errorf("TODO: %s not implemented in frigolite", "limit_test 9.9 -1 -1")
 	{ // "10.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS tree;\n  CREATE TABLE tree(id INTEGER PRIMARY KEY, parentid, payload);\n")
 		if _res.Error != nil {
@@ -473,7 +473,7 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "insert_into_tree {\n  /a/a/a\n  /a/b/c\n  /a/b/c/d\n  /a/b/d\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "insert_into_tree {\n  /a/a/a\n  /a/b/c\n  /a/b/c/d\n  /a/b/d\n}")
 	{ // "10.2"
 		r = db.Query("\n  WITH flat(fid, p) AS (\n    SELECT id, '/' || payload FROM tree WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, p || '/' || payload FROM flat, tree WHERE parentid=fid\n  )\n  SELECT p FROM flat ORDER BY p;\n")
 		if r.Error != nil {
@@ -487,18 +487,18 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "insert_into_tree {\n  /a/b\n  /a/b/c\n  /a/d\n  /a/d/e\n  /a/d/f\n  /g/h\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "insert_into_tree {\n  /a/b\n  /a/b/c\n  /a/d\n  /a/d/e\n  /a/d/f\n  /g/h\n}")
 	{ // do_test "10.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "scan_tree 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "scan_tree 0 0")
 	}
 	{ // do_test "10.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "scan_tree 1 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "scan_tree 1 0")
 	}
 	{ // do_test "10.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "scan_tree 0 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "scan_tree 0 1")
 	}
 	{ // do_test "10.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "scan_tree 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "scan_tree 1 1")
 	}
 	{ // "10.7.1"
 		_res = db.Exec("\n  WITH t(a) AS (\n    SELECT 1 AS b UNION ALL SELECT a+1 AS c FROM t WHERE a<5 ORDER BY a\n  ) \n  SELECT * FROM t\n")
@@ -530,7 +530,7 @@ func Test_with1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "insert_into_tree {\n  /a/b\n  /a/C\n  /a/d\n  /B/e\n  /B/F\n  /B/g\n  /c/h\n...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "insert_into_tree {\n  /a/b\n  /a/C\n  /a/d\n  /B/e\n  /B/F\n  /B/g\n  /c/h\n...}")
 	{ // "10.8.1"
 		r = db.Query("\n  WITH flat(fid, depth, p) AS (\n    SELECT id, 1, '/' || payload FROM tree WHERE parentid IS NULL\n    UNION ALL\n    SELECT id, depth+1, p||'/'||payload FROM flat, tree WHERE parentid=fid\n    ORDER BY 2, 3 COLLATE nocase\n  )\n  SELECT p FROM flat;\n")
 		if r.Error != nil {

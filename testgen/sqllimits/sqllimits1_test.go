@@ -27,221 +27,221 @@ func Test_sqllimits1(t *testing.T) {
 	defer db2.Close()
 	if err != nil { t.Fatal(err) }
 	{ // do_test "sqllimits1-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH -1")
 	}
 	{ // do_test "sqllimits1-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH -1")
 	}
 	{ // do_test "sqllimits1-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN -1")
 	}
 	{ // do_test "sqllimits1-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH -1")
 	}
 	{ // do_test "sqllimits1-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT -1")
 	}
 	{ // do_test "sqllimits1-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VDBE_OP -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VDBE_OP -1")
 	}
 	{ // do_test "sqllimits1-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1")
 	}
 	{ // do_test "sqllimits1-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED -1")
 	}
 	{ // do_test "sqllimits1-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1")
 	}
 	{ // do_test "sqllimits1-1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER -1")
 	}
 	{ // do_test "sqllimits1-1.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TRIGGER_DEPTH -1")
 	}
 	{ // do_test "sqllimits1-1.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS 99999")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS 99999")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS -1")
 	}
 	{ // do_test "sqllimits1-1.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SCHEMA 999999999")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SCHEMA -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SCHEMA 999999999")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SCHEMA -1")
 	}
 	{ // do_test "sqllimits1-1.20"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TOOSMALL 123")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TOOSMALL 123")
 	}
 	{ // do_test "sqllimits1-1.21"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TOOSMALL 123")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TOOSMALL 123")
 	}
 	{ // do_test "sqllimits1-1.22"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TOOBIG 123")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TOOBIG 123")
 	}
 	{ // do_test "sqllimits1-1.23"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TOOBIG 123")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_TOOBIG 123")
 	}
 	{ // do_test "sqllimits1-1.30"
 		var prior = "sqlite3_limit db SQLITE_LIMIT_LENGTH 1"
 		_ = prior // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH $prior")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH $prior")
 	}
 	if func() bool { SQLITE_MAX_LENGTH_n, _SQLITE_MAX_LENGTH_e := strconv.Atoi(SQLITE_MAX_LENGTH); if _SQLITE_MAX_LENGTH_e != nil { return false }; return SQLITE_MAX_LENGTH_n >= 2 }() {
 		{ // do_test "sqllimits1-2.1.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH [expr {$::SQLITE_MAX_LENGTH/2}]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH [expr {$::SQLITE_MAX_LENGTH/2}]")
 		}
 		{ // do_test "sqllimits1-2.1.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH -1")
 		}
 	}
 	if func() bool { SQLITE_MAX_SQL_LENGTH_n, _SQLITE_MAX_SQL_LENGTH_e := strconv.Atoi(SQLITE_MAX_SQL_LENGTH); if _SQLITE_MAX_SQL_LENGTH_e != nil { return false }; return SQLITE_MAX_SQL_LENGTH_n >= 2 }() {
 		{ // do_test "sqllimits1-2.2.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH [expr {$::SQLITE_MAX_SQL_LENGTH/2}]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH [expr {$::SQLITE_MAX_SQL_LENGTH/2}]")
 		}
 		{ // do_test "sqllimits1-2.2.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH -1")
 		}
 	}
 	if func() bool { SQLITE_MAX_COLUMN_n, _SQLITE_MAX_COLUMN_e := strconv.Atoi(SQLITE_MAX_COLUMN); if _SQLITE_MAX_COLUMN_e != nil { return false }; return SQLITE_MAX_COLUMN_n >= 2 }() {
 		{ // do_test "sqllimits1-2.3.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN [expr {$::SQLITE_MAX_COLUMN/2}]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN [expr {$::SQLITE_MAX_COLUMN/2}]")
 		}
 		{ // do_test "sqllimits1-2.3.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN -1")
 		}
 	}
 	if func() bool { SQLITE_MAX_EXPR_DEPTH_n, _SQLITE_MAX_EXPR_DEPTH_e := strconv.Atoi(SQLITE_MAX_EXPR_DEPTH); if _SQLITE_MAX_EXPR_DEPTH_e != nil { return false }; return SQLITE_MAX_EXPR_DEPTH_n >= 2 }() {
 		{ // do_test "sqllimits1-2.4.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH [expr {$::SQLITE_MAX_EXPR_DEPTH/2}]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH [expr {$::SQLITE_MAX_EXPR_DEPTH/2}]")
 		}
 		{ // do_test "sqllimits1-2.4.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH -1")
 		}
 	}
 	if func() bool { SQLITE_MAX_COMPOUND_SELECT_n, _SQLITE_MAX_COMPOUND_SELECT_e := strconv.Atoi(SQLITE_MAX_COMPOUND_SELECT); if _SQLITE_MAX_COMPOUND_SELECT_e != nil { return false }; return SQLITE_MAX_COMPOUND_SELECT_n >= 2 }() {
 		{ // do_test "sqllimits1-2.5.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT [expr {$::SQLITE_MAX_COMPOUND_SELECT/2}]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT [expr {$::SQLITE_MAX_COMPOUND_SELECT/2}]")
 		}
 		{ // do_test "sqllimits1-2.5.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT -1")
 		}
 	}
 	if func() bool { SQLITE_MAX_VDBE_OP_n, _SQLITE_MAX_VDBE_OP_e := strconv.Atoi(SQLITE_MAX_VDBE_OP); if _SQLITE_MAX_VDBE_OP_e != nil { return false }; return SQLITE_MAX_VDBE_OP_n >= 2 }() {
 		{ // do_test "sqllimits1-2.6.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VDBE_OP [expr {$::SQLITE_MAX_VDBE_OP/2}]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VDBE_OP [expr {$::SQLITE_MAX_VDBE_OP/2}]")
 		}
 		{ // do_test "sqllimits1-2.6.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VDBE_OP -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VDBE_OP -1")
 		}
 	}
 	if func() bool { SQLITE_MAX_FUNCTION_ARG_n, _SQLITE_MAX_FUNCTION_ARG_e := strconv.Atoi(SQLITE_MAX_FUNCTION_ARG); if _SQLITE_MAX_FUNCTION_ARG_e != nil { return false }; return SQLITE_MAX_FUNCTION_ARG_n >= 2 }() {
 		{ // do_test "sqllimits1-2.7.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG [expr {$::SQLITE_MAX_FUNCTION_ARG/2}]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG [expr {$::SQLITE_MAX_FUNCTION_ARG/2}]")
 		}
 		{ // do_test "sqllimits1-2.7.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1")
 		}
 	}
 	if func() bool { SQLITE_MAX_ATTACHED_n, _SQLITE_MAX_ATTACHED_e := strconv.Atoi(SQLITE_MAX_ATTACHED); if _SQLITE_MAX_ATTACHED_e != nil { return false }; return SQLITE_MAX_ATTACHED_n >= 2 }() {
 		{ // do_test "sqllimits1-2.8.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED [expr {$::SQLITE_MAX_ATTACHED/2}]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED [expr {$::SQLITE_MAX_ATTACHED/2}]")
 		}
 		{ // do_test "sqllimits1-2.8.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED -1")
 		}
 	}
 	if func() bool { SQLITE_MAX_LIKE_PATTERN_LENGTH_n, _SQLITE_MAX_LIKE_PATTERN_LENGTH_e := strconv.Atoi(SQLITE_MAX_LIKE_PATTERN_LENGTH); if _SQLITE_MAX_LIKE_PATTERN_LENGTH_e != nil { return false }; return SQLITE_MAX_LIKE_PATTERN_LENGTH_n >= 2 }() {
 		{ // do_test "sqllimits1-2.9.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH [expr {$::SQLITE_MAX_LIKE_PATTERN_LENGTH/2}]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH [expr {$::SQLITE_MAX_LIKE_PATTERN_LENGTH/2}]")
 		}
 		{ // do_test "sqllimits1-2.9.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1")
 		}
 	}
 	if func() bool { SQLITE_MAX_VARIABLE_NUMBER_n, _SQLITE_MAX_VARIABLE_NUMBER_e := strconv.Atoi(SQLITE_MAX_VARIABLE_NUMBER); if _SQLITE_MAX_VARIABLE_NUMBER_e != nil { return false }; return SQLITE_MAX_VARIABLE_NUMBER_n >= 2 }() {
 		{ // do_test "sqllimits1-2.10.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER [expr {$::SQLITE_MAX_VARIABLE_NUMBER/2}]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER [expr {$::SQLITE_MAX_VARIABLE_NUMBER/2}]")
 		}
 		{ // do_test "sqllimits1-2.10.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER -1")
 		}
 	}
 	if func() bool { SQLITE_MAX_SCHEMA_n, _SQLITE_MAX_SCHEMA_e := strconv.Atoi(SQLITE_MAX_SCHEMA); if _SQLITE_MAX_SCHEMA_e != nil { return false }; return SQLITE_MAX_SCHEMA_n >= 2 }() {
 		{ // do_test "sqllimits1-2.11.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SCHEMA [expr {$::SQLITE_MAX_SCHEMA/2}]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SCHEMA [expr {$::SQLITE_MAX_SCHEMA/2}]")
 		}
 		{ // do_test "sqllimits1-2.11.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SCHEMA -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SCHEMA -1")
 		}
 	}
 	{ // do_test "sqllimits1-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_LENGTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_LENGTH -1")
 	}
 	{ // do_test "sqllimits1-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_SQL_LENGTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_SQL_LENGTH -1")
 	}
 	{ // do_test "sqllimits1-3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_COLUMN -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_COLUMN -1")
 	}
 	{ // do_test "sqllimits1-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_EXPR_DEPTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_EXPR_DEPTH -1")
 	}
 	{ // do_test "sqllimits1-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_COMPOUND_SELECT -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_COMPOUND_SELECT -1")
 	}
 	{ // do_test "sqllimits1-3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_VDBE_OP -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_VDBE_OP -1")
 	}
 	{ // do_test "sqllimits1-3.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_FUNCTION_ARG -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_FUNCTION_ARG -1")
 	}
 	{ // do_test "sqllimits1-3.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_ATTACHED -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_ATTACHED -1")
 	}
 	{ // do_test "sqllimits1-3.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1")
 	}
 	{ // do_test "sqllimits1-3.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_VARIABLE_NUMBER -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db2 SQLITE_LIMIT_VARIABLE_NUMBER -1")
 	}
 	db2.Close()
 	{ // do_test "sqllimits1-4.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 0x7fffffff")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 0x7fffffff")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH -1")
 	}
 	{ // do_test "sqllimits1-4.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 0x7fffffff")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 0x7fffffff")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH -1")
 	}
 	{ // do_test "sqllimits1-4.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN 0x7fffffff")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN 0x7fffffff")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN -1")
 	}
 	{ // do_test "sqllimits1-4.4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH 0x7fffffff")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH 0x7fffffff")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_EXPR_DEPTH -1")
 	}
 	{ // do_test "sqllimits1-4.5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 0x7fffffff")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 0x7fffffff")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT -1")
 	}
 	{ // do_test "sqllimits1-4.6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VDBE_OP 0x7fffffff")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VDBE_OP -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VDBE_OP 0x7fffffff")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VDBE_OP -1")
 	}
 	{ // do_test "sqllimits1-4.7.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG 0x7fffffff")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG 0x7fffffff")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG -1")
 	}
 	{ // do_test "sqllimits1-4.8.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED 0x7fffffff")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED 0x7fffffff")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED -1")
 	}
 	{ // do_test "sqllimits1-4.9.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH 0x7fffffff")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH 0x7fffffff")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH -1")
 	}
 	{ // do_test "sqllimits1-4.10.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER 0x7fffffff")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER 0x7fffffff")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_VARIABLE_NUMBER -1")
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -249,7 +249,7 @@ func Test_sqllimits1(t *testing.T) {
 	_ = LARGESIZE // suppress unused warning
 	var SQLITE_LIMIT_LENGTH = "100000"
 	_ = SQLITE_LIMIT_LENGTH // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH $SQLITE_LIMIT_LENGTH")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH $SQLITE_LIMIT_LENGTH")
 	{ // do_test "sqllimits1-5.1.1"
 		_res = db.Exec(" SELECT randomblob(2147483647) ")
 		_ = _res // catchsql
@@ -315,13 +315,13 @@ func Test_sqllimits1(t *testing.T) {
 	{ // do_test "sqllimits1-5.14.1"
 		var _STMT = "sqlite3_prepare db \"SELECT ?\" -1 TAIL" // TCL namespace variable
 		_ = _STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_zeroblob $::STMT 1 [expr {$SQLITE_LIMIT_LENGTH + 1}]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_zeroblob $::STMT 1 [expr {$SQLITE_LIMIT_LENGTH + 1}]")
 	}
 	{ // do_test "sqllimits1-5.14.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
 	}
 	{ // do_test "sqllimits1-5.14.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
 	}
 	{ // do_test "sqllimits1-5.14.4"
 		np1 := "$SQLITE_LIMIT_LENGTH + 1"
@@ -332,7 +332,7 @@ func Test_sqllimits1(t *testing.T) {
 			var res string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $::STMT 1 $::str1 -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $::STMT 1 $::str1 -1")
 			if _catchErr != nil {
 				res = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -347,7 +347,7 @@ func Test_sqllimits1(t *testing.T) {
 			var res string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $::STMT 1 $::str1 $np1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $::STMT 1 $::str1 $np1")
 			if _catchErr != nil {
 				res = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -364,7 +364,7 @@ func Test_sqllimits1(t *testing.T) {
 			var res string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $::STMT 1 $::str1 $n")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $::STMT 1 $::str1 $n")
 			if _catchErr != nil {
 				res = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -379,7 +379,7 @@ func Test_sqllimits1(t *testing.T) {
 			var res string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text16 $::STMT 1 $::str1 $n")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text16 $::STMT 1 $::str1 $n")
 			if _catchErr != nil {
 				res = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -389,7 +389,7 @@ func Test_sqllimits1(t *testing.T) {
 			}
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
 	{ // do_test "sqllimits1-5.15"
 		_res = db.Exec("\n    CREATE TABLE t4(x);\n    INSERT INTO t4 VALUES(1);\n    INSERT INTO t4 VALUES(2);\n    INSERT INTO t4 SELECT 2+x FROM t4;\n  ")
 		if _res.Error != nil {
@@ -402,7 +402,7 @@ func Test_sqllimits1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t4")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 0x7fffffff")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 0x7fffffff")
 	var strvalue = "A $::SQLITE_LIMIT_LENGTH"
 	_ = strvalue // suppress unused warning
 	{ // do_test "sqllimits1-5.16"
@@ -414,12 +414,12 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.17.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 0x7fffffff")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 0x7fffffff")
 		_res = db.Exec("SELECT 'A' || $::strvalue")
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-5.17.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH $SQLITE_LIMIT_LENGTH")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH $SQLITE_LIMIT_LENGTH")
 		_res = db.Exec("SELECT 'A' || $::strvalue")
 		_ = _res // catchsql
 	}
@@ -434,7 +434,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 50000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 50000")
 		var sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
 		var tail = " /* A comment to take up space in order to make the string\\\n                longer without increasing the expression depth */\\\n                AND   1  ==  1"
@@ -446,7 +446,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "sqllimits1-6.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 50000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_SQL_LENGTH 50000")
 		var sql = "SELECT 1 WHERE 1==1"
 		_ = sql // suppress unused warning
 		var tail = " /* A comment to take up space in order to make the string\\\n                longer without increasing the expression depth */\\\n                AND   1  ==  1"
@@ -462,7 +462,7 @@ func Test_sqllimits1(t *testing.T) {
 	_ = STMT // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare db $sql $nbytes TAIL")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare db $sql $nbytes TAIL")
 			if _catchErr != nil {
 				rc = "1"
 				STMT = _catchErr.Error()
@@ -474,7 +474,7 @@ func Test_sqllimits1(t *testing.T) {
 		rc = tclListAppend(rc, STMT)
 	}
 	{ // do_test "sqllimits1-6.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "sqllimits1-7.1"
 		r = db.Query("\n    PRAGMA max_page_count = 1000;\n  ")
@@ -553,7 +553,7 @@ func Test_sqllimits1(t *testing.T) {
 	}
 	var SQLITE_LIMIT_COLUMN = "200"
 	_ = SQLITE_LIMIT_COLUMN // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN $SQLITE_LIMIT_COLUMN")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN $SQLITE_LIMIT_COLUMN")
 	{ // do_test "sqllimits1-8.1"
 		var cols = "list"
 		_ = cols // suppress unused warning
@@ -814,7 +814,7 @@ func Test_sqllimits1(t *testing.T) {
 		{ // do_test "sqllimits1-11." + max + ".1"
 			var vals = "list"
 			_ = vals // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG $::max")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_FUNCTION_ARG $::max")
 			var i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _max_n, __max_e := strconv.Atoi(_max); if __max_e != nil { return false }; return i_n < _max_n }() {
@@ -903,7 +903,7 @@ func Test_sqllimits1(t *testing.T) {
 	}
 	var SQLITE_LIMIT_LIKE_PATTERN = "1000"
 	_ = SQLITE_LIMIT_LIKE_PATTERN // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH $SQLITE_LIMIT_LIKE_PATTERN")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LIKE_PATTERN_LENGTH $SQLITE_LIMIT_LIKE_PATTERN")
 	{ // do_test "sqllimits1-15.1"
 		var max = _SQLITE_LIMIT_LIKE_PATTERN
 		_ = max // suppress unused warning
@@ -947,7 +947,7 @@ func Test_sqllimits1(t *testing.T) {
 				_ = key // suppress unused warning
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 10000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 10000")
 		var nm = "x 10000"
 		_ = nm // suppress unused warning
 		{ // "sqllimits1-17.1"
@@ -956,7 +956,7 @@ func Test_sqllimits1(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  CREATE TABLE " + nm + " (x PRIMARY KEY)\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 10")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 10")
 		{ // "sqllimits1-18.1"
 			_res = db.Exec("\n  CREATE TABLE b1(x);\n  INSERT INTO b1 VALUES(1), (2), (3), (4), (5), (6), (7), (8), (9), (10), (11);\n")
 			if _res.Error == nil {

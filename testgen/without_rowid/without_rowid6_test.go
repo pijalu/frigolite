@@ -27,7 +27,7 @@ func Test_without_rowid6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,a,b,c,d,a,b,c)) WITHOUT ROWID;\n  CREATE INDEX t1a ON t1(b, b);\n  WITH RECURSIVE\n    c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<1000)\n  INSERT INTO t1(a,b,c,d,e) SELECT i, i+1000, printf('x%dy',i), 0, 0 FROM c;\n  ANALYZE;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid6-101 {\n  SELECT name, key FROM pragma_index_xinfo('t1');...} {a 1 b 1 c 1 d 1 e 0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid6-101 {\n  SELECT name, key FROM pragma_index_xinfo('t1');...} {a 1 b 1 c 1 d 1 e 0}")
 	{ // "without_rowid6-110"
 		r = db.Query("\n  SELECT c FROM t1 WHERE a=123;\n")
 		if r.Error != nil {
@@ -88,7 +88,7 @@ func Test_without_rowid6(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid6-201 {\n  SELECT name, key FROM pragma_index_xinfo('t1');...} {b 1 a 0 c 0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid6-201 {\n  SELECT name, key FROM pragma_index_xinfo('t1');...} {b 1 a 0 c 0}")
 	{ // "without_rowid6-210"
 		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;\n")
 		if r.Error != nil {
@@ -197,7 +197,7 @@ func Test_without_rowid6(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid6-501 {\n  SELECT name, key FROM pragma_index_xinfo('t1');...} {b 1 c 1 a 0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid6-501 {\n  SELECT name, key FROM pragma_index_xinfo('t1');...} {b 1 c 1 a 0}")
 	{ // "without_rowid6-510"
 		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT a FROM t1 WHERE b>3 ORDER BY b;\n")
 		if r.Error != nil {

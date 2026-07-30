@@ -35,7 +35,7 @@ func Test_fts3sort(t *testing.T) {
 			var nRow = "1000"
 			_ = nRow // suppress unused warning
 			{ // do_test "1.0"
-				t.Skipf("TODO: %s not implemented in frigolite", "build_database $nRow $param")
+				t.Errorf("TODO: %s not implemented in frigolite", "build_database $nRow $param")
 				r = db.Query(" SELECT count(*) FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 ")

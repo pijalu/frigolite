@@ -19,5 +19,5 @@ func Test_schema3(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  # Have connections [db1] and [db2] load the cu...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  # Have connections [db1] and [db2] load the cu...}")
 }

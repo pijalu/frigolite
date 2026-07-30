@@ -29,8 +29,8 @@ func Test_fts3fault3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  INSERT INTO t1 VALUES('test renaming the table');\n  INSERT INTO t1 VALUES(' after it has been written');\n  INSERT INTO t1 VALUES(' actually other stuff instead');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep { \n  faultsim_restore_and_reopen\n  execsql {\n    BE...} -body {\n  execsql {\n    DELETE FROM t1;\n  }\n} -test {\n  catchsql { COMMIT }\n  faultsim_integrity_check\n...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep { \n  faultsim_restore_and_reopen\n  execsql {\n    BE...} -body {\n  execsql {\n    DELETE FROM t1;\n  }\n} -test {\n  catchsql { COMMIT }\n  faultsim_integrity_check\n...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -40,6 +40,6 @@ func Test_fts3fault3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n  CREATE VIRTUAL TABLE t1 USING fts3(a);\n  WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<50\n  )\n  INSERT INTO t1 SELECT 'abc def ghi jkl mno pqr' FROM s;\n  COMMIT;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults oom-t* -prep { \n  faultsim_restore_and_reopen\n  execsql {\n    BE...} -body {\n  execsql {\n    PRAGMA integrity_check;\n  }\n} -test {\n  faultsim_test_result {0 ok} $::TMPDBERROR\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults oom-t* -prep { \n  faultsim_restore_and_reopen\n  execsql {\n    BE...} -body {\n  execsql {\n    PRAGMA integrity_check;\n  }\n} -test {\n  faultsim_test_result {0 ok} $::TMPDBERROR\n}")
 }

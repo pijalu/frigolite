@@ -19,21 +19,21 @@ func Test_memsubsys1(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
 	if tclBool("permutation" + " == \"memsubsys1\"") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	var xtra_size = "290"
 	_ = xtra_size // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 0 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	t.Skipf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-1 {PRAGMA page_size=1024}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
+	t.Errorf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-1 {PRAGMA page_size=1024}")
 	{ // do_test "memsubsys1-1.3"
 		var pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
 		_ = pg_used // suppress unused warning
@@ -44,11 +44,11 @@ func Test_memsubsys1(t *testing.T) {
 	}
 	var max_pagecache = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_OVERFLOW 0] 2"
 	_ = max_pagecache // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 1024+$xtra_size] 20")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	t.Skipf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-2 {PRAGMA page_size=1024; PRAGMA mmap_size=0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 1024+$xtra_size] 20")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
+	t.Errorf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-2 {PRAGMA page_size=1024; PRAGMA mmap_size=0}")
 	var MEMORY_MANAGEMENT = sqlite_options + "(memorymanage)"
 	_ = MEMORY_MANAGEMENT // suppress unused warning
 	{ // do_test "memsubsys1-2.4"
@@ -59,12 +59,12 @@ func Test_memsubsys1(t *testing.T) {
 		var s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
 		_ = s_used // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 512+$xtra_size] 20")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	t.Skipf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-3.1 {PRAGMA page_size=1024}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 512+$xtra_size] 20")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
+	t.Errorf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-3.1 {PRAGMA page_size=1024}")
 	{ // do_test "memsubsys1-3.1.3"
 		var pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
 		_ = pg_used // suppress unused warning
@@ -78,11 +78,11 @@ func Test_memsubsys1(t *testing.T) {
 		var s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
 		_ = s_used // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 2048+$xtra_size] 20")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	t.Skipf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-3.2 {PRAGMA page_size=2048}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 2048+$xtra_size] 20")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
+	t.Errorf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-3.2 {PRAGMA page_size=2048}")
 	{ // do_test "memsubsys1-3.2.3"
 		_res = db.Exec("PRAGMA page_size")
 		if _res.Error != nil {
@@ -97,11 +97,11 @@ func Test_memsubsys1(t *testing.T) {
 		var s_used = "lindex [sqlite3_status SQLITE_STATUS_SCRATCH_USED 0] 2"
 		_ = s_used // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 1024+$xtra_size] 50")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	t.Skipf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-4 {PRAGMA page_size=1024}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache [expr 1024+$xtra_size] 50")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
+	t.Errorf("TODO: %s not implemented in frigolite", "build_test_db memsubsys1-4 {PRAGMA page_size=1024}")
 	{ // do_test "memsubsys1-4.3"
 		var pg_used = "lindex [sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0] 2"
 		_ = pg_used // suppress unused warning
@@ -116,11 +116,11 @@ func Test_memsubsys1(t *testing.T) {
 		_ = maxreq // suppress unused warning
 		// expr $maxreq<9000 → "$maxreq<9000"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config serialized")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config serialized")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
 }

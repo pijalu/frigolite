@@ -21,7 +21,7 @@ func Test_capi3e(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	var names = "t 1 t. 1. t.d 1.d t-1 1-1 t.db ä.db ë.db ö.db ü.db ÿ.db"
@@ -39,10 +39,10 @@ func Test_capi3e(t *testing.T) {
 		{ // do_test "capi3e-1.1." + i
 			var db2 = "sqlite3_open $name {}"
 			_ = db2 // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode $db2")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode $db2")
 		}
 		{ // do_test "capi3e-1.2." + i
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_close $db2")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $db2")
 		}
 		{ // do_test "capi3e-1.3." + i
 			// file isfile $name

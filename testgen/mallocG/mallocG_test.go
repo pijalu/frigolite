@@ -23,9 +23,9 @@ func Test_mallocG(t *testing.T) {
 		t.Log("Skipping mallocG tests: not compiled with -DSQLITE_MEMDEBUG...")
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-1 -tclbody {\n  db close\n  sqlite3 db test.db\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-2 -sqlprep {\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x INTE...} -sqlbody {\n  SELECT y FROM t1 WHERE x IN t2;\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-3 -sqlprep {\n  CREATE TABLE t1(x UNIQUE);\n  INSERT INTO t1 VAL...} -sqlbody {\n  SELECT * FROM t1\n   WHERE x BETWEEN 'a' AND 'z'...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-1 -tclbody {\n  db close\n  sqlite3 db test.db\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-2 -sqlprep {\n  CREATE TABLE t1(x, y);\n  CREATE TABLE t2(x INTE...} -sqlbody {\n  SELECT y FROM t1 WHERE x IN t2;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-3 -sqlprep {\n  CREATE TABLE t1(x UNIQUE);\n  INSERT INTO t1 VAL...} -sqlbody {\n  SELECT * FROM t1\n   WHERE x BETWEEN 'a' AND 'z'...}")
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-4 -tclbody {\n  set rc [sqlite3_complete16 [utf16 \"SELECT * FRO...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocG-4 -tclbody {\n  set rc [sqlite3_complete16 [utf16 \"SELECT * FRO...}")
 }

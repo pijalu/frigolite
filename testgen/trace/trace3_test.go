@@ -252,7 +252,7 @@ func Test_trace3(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "trace3-9.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 	}
 	{ // do_test "trace3-10.1"
 	}
@@ -281,23 +281,23 @@ func Test_trace3(t *testing.T) {
 	{ // do_test "12.1.0"
 		var _STMT = "" // TCL namespace variable
 		_ = _STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $::STMT")
 	}
 	{ // do_test "12.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 1 A 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 2 B 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 3 C 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 4 D 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 5 E 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 6 F 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_expanded_sql $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 1 A 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 2 B 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 3 C 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 4 D 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 5 E 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 6 F 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expanded_sql $STMT")
 	}
 	{ // do_test "12.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $STMT 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $STMT 0")
 	}
 	{ // do_test "12.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 	}
 	{ // do_test "12.2.0"
 		_res = db.Exec("\n    CREATE TABLE nameFtsFuzzySearchTable(\n      word, distance, langid, score, top, scope\n    );\n  ")
@@ -306,19 +306,19 @@ func Test_trace3(t *testing.T) {
 		}
 		var _STMT = "" // TCL namespace variable
 		_ = _STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $::STMT")
 	}
 	{ // do_test "12.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 1 A 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 2 B 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 3 C 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 4 D 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 5 E 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 6 F 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_expanded_sql $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 1 A 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 2 B 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 3 C 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 4 D 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 5 E 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $STMT 6 F 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expanded_sql $STMT")
 	}
 	{ // do_test "12.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 	}
 	db.Close()
 	db, err = frigolite.Open("")

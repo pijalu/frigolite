@@ -21,14 +21,14 @@ func Test_mallocM(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "mallocM"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -body {\n  execsql {\n    SELECT 'abc' FROM ( SELECT 'xyz' ...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -body {\n  execsql {\n    SELECT 'abc' FROM ( SELECT 'xyz' ...} -test {\n  faultsim_test_result {0 {}}\n}")
 	{ // "2.0.1"
 		r = db.Query(" SELECT instr(x'', x'') ")
 		if r.Error != nil {
@@ -65,6 +65,6 @@ func Test_mallocM(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -faults oom* -body {\n  execsql { SELECT instr (x'00', zeroblob(1)) }\n} -test {\n  faultsim_test_result {0 1}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.2 -faults oom* -body {\n  execsql { SELECT instr (zeroblob(1), x'00') }\n} -test {\n  faultsim_test_result {0 1}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -faults oom* -body {\n  execsql { SELECT instr (x'00', zeroblob(1)) }\n} -test {\n  faultsim_test_result {0 1}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.2 -faults oom* -body {\n  execsql { SELECT instr (zeroblob(1), x'00') }\n} -test {\n  faultsim_test_result {0 1}\n}")
 }

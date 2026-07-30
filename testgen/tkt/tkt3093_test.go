@@ -29,7 +29,7 @@ func Test_tkt3093(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 0")
 		}
 		db2, err := frigolite.Open("test.db")
 		defer db2.Close()

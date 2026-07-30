@@ -65,8 +65,8 @@ func Test_ioerr4(t *testing.T) {
 	}
 	db2.Close()
 	tclFileCopy("test.db", "test.db-bu")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr4-2 -tclprep {\n  catch {db2 close}\n  db close\n  forcedelete test...} -tclbody {\n  db eval {PRAGMA incremental_vacuum(5)}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr4-2 -tclprep {\n  catch {db2 close}\n  db close\n  forcedelete test...} -tclbody {\n  db eval {PRAGMA incremental_vacuum(5)}\n}")
 	db2.Close()
 	os.Remove("test.db-bu")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

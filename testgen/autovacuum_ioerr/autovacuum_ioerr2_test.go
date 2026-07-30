@@ -20,9 +20,9 @@ func Test_autovacuum_ioerr2(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a);\n...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM ab...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-2 -tclprep {\n  execsql {\n    PRAGMA auto_vacuum = 1;\n    PRAGM...} -sqlbody {\n  BEGIN;\n  DELETE FROM abc WHERE length(a)>100;\n ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-3 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a);\n...} -sqlbody {\n  BEGIN;\n  INSERT INTO abc2 VALUES(10);\n  DROP TA...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a);\n...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM ab...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-2 -tclprep {\n  execsql {\n    PRAGMA auto_vacuum = 1;\n    PRAGM...} -sqlbody {\n  BEGIN;\n  DELETE FROM abc WHERE length(a)>100;\n ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-3 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a);\n...} -sqlbody {\n  BEGIN;\n  INSERT INTO abc2 VALUES(10);\n  DROP TA...}")
 	os.Remove("backup.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a);\n...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM ab...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a);\n...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM ab...}")
 }

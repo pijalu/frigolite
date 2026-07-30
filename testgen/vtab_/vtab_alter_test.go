@@ -19,7 +19,7 @@ func Test_vtab_alter(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 	{ // do_test "vtab_alter-1.1"
 		_res = db.Exec(" CREATE TABLE t1(a, b VARCHAR, c INTEGER) ")
 		if _res.Error != nil {

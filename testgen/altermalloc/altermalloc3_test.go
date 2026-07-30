@@ -23,15 +23,15 @@ func Test_altermalloc3(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	var _TMPDBERROR = "list 1 \\\n  {unable to open a temporary database file for storing temporary tables}" // TCL namespace variable
 	_ = _TMPDBERROR // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;\n  CREATE TABLE t1(a, b, c, d, PRIMARY KEY(d, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;\n  CREATE TABLE t1(a, b, c, d, PRIMARY KEY(d, b)) WITHOUT ROWID;\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { ALTER TABLE t1 DROP COLUMN c }\n} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { ALTER TABLE t1 DROP COLUMN c }\n} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -41,13 +41,13 @@ func Test_altermalloc3(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(k,v);\n  CREATE TRIGGER r2 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET (k,v)= (\n       (WITH cte1(a) AS ( SELECT 1 FROM ( SELECT * FROM t2 ) )\n       SELECT a FROM cte1\n    ), 1);\n  END;\n\n  CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n    UPDATE t2 SET k=1 FROM t2 AS one, t2 AS two NATURAL JOIN t2 AS three \n    WHERE one.k=two.v;\n  END;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 	{ // "2.1"
 		_res = db.Exec("\n  ALTER TABLE t2 RENAME TO t2x;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t2 RENAME TO t2x;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.2 -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  execsql {\n    ALTER TABLE t2 RENAME TO t2x;\n  }...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.2 -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  execsql {\n    ALTER TABLE t2 RENAME TO t2x;\n  }...} -test {\n  faultsim_test_result {0 {}} $::TMPDBERROR\n}")
 }

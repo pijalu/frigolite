@@ -32,7 +32,7 @@ func Test_shortread1(t *testing.T) {
 		}
 	}
 	{ // do_test "shortread1-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_release_memory [expr {1024*9}]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory [expr {1024*9}]")
 		r = db.Query("\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;\n  ")

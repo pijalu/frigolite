@@ -20,7 +20,7 @@ func Test_trans(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
 	{ // do_test "trans-1.0"
 		r = db.Query("\n    CREATE TABLE one(a int PRIMARY KEY, b text);\n    INSERT INTO one VALUES(1,'one');\n    INSERT INTO one VALUES(2,'two');\n    INSERT INTO one VALUES(3,'three');\n    SELECT b FROM one ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -36,16 +36,16 @@ func Test_trans(t *testing.T) {
 		}
 	}
 	{ // do_test "trans-1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db")
 	}
 	{ // do_test "trans-1.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db main")
 	}
 	{ // do_test "trans-1.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db temp")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db temp")
 	}
 	{ // do_test "trans-1.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db no-such-schema")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db no-such-schema")
 	}
 	{ // do_test "trans-1.9"
 		altdb, err := frigolite.Open("test.db")
@@ -64,7 +64,7 @@ func Test_trans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-1.12")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-1.12")
 	{ // do_test "trans-2.1"
 	var v string
 	_ = msg // suppress unused warning
@@ -83,7 +83,7 @@ func Test_trans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "trans-2.1b"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db")
 	}
 	{ // do_test "trans-2.2"
 	var v string
@@ -178,7 +178,7 @@ func Test_trans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-2.12")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-2.12")
 	{ // do_test "trans-3.1"
 		r = db.Query("\n    BEGIN;\n    UPDATE one SET a = 0 WHERE 0;\n    SELECT a FROM one ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -186,13 +186,13 @@ func Test_trans(t *testing.T) {
 		}
 	}
 	{ // do_test "trans-3.1b"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db")
 	}
 	{ // do_test "trans-3.1c"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db main")
 	}
 	{ // do_test "trans-3.1d"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db temp")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db temp")
 	}
 	{ // do_test "trans-3.2"
 		_res = db.Exec("\n    SELECT a FROM two ORDER BY a;\n  ")
@@ -233,7 +233,7 @@ func Test_trans(t *testing.T) {
 		}
 	}
 	{ // do_test "trans-3.10b"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db")
 	}
 	{ // do_test "trans-3.11"
 	var v string
@@ -305,7 +305,7 @@ func Test_trans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-3.16")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-3.16")
 	{ // do_test "trans-4.1"
 	var v string
 	_ = msg // suppress unused warning
@@ -417,10 +417,10 @@ func Test_trans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-4.13")
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-4.14 altdb")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-4.13")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-4.14 altdb")
 	{ // do_test "trans-4.98"
-		t.Skipf("TODO: %s not implemented in frigolite", "altdb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "altdb close")
 		_res = db.Exec("\n    DROP TABLE one;\n    DROP TABLE two;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE one;\n    DROP TABLE two;\n  ")
@@ -445,13 +445,13 @@ func Test_trans(t *testing.T) {
 		}
 	}
 	{ // do_test "trans-5.2b"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db")
 	}
 	{ // do_test "trans-5.2c"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db main")
 	}
 	{ // do_test "trans-5.2d"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db temp")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_txn_state db temp")
 	}
 	{ // do_test "trans-5.3"
 		_res = db.Exec("CREATE TABLE one(a text, b int)")
@@ -918,7 +918,7 @@ func Test_trans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-7.16")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-7.16")
 	var fd = "open test.tcl w"
 	_ = fd // suppress unused warning
 	t.Log(fd)
@@ -927,7 +927,7 @@ func Test_trans(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "exec [info nameofexec] test.tcl")
+			t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] test.tcl")
 		}
 		r = db.Query("SELECT md5sum(x,y,z) FROM t2")
 		if r.Error != nil {
@@ -950,7 +950,7 @@ func Test_trans(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "exec [info nameofexec] test.tcl")
+			t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] test.tcl")
 		}
 		r = db.Query("SELECT md5sum(x,y,z) FROM t2")
 		if r.Error != nil {
@@ -965,7 +965,7 @@ func Test_trans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-8.7")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-8.7")
 	{ // do_test "trans-9.1"
 		r = db.Query("\n    PRAGMA default_cache_size=10;\n  ")
 		if r.Error != nil {
@@ -979,7 +979,7 @@ func Test_trans(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-9.1.1")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-9.1.1")
 	// proc definition (not transpiled)
 	if tclBool("info exists G(isquick)" + " || (\n  " + TEMP_STORE + "==3 && " + "regexp {^pcache[[:digit:]]*$} [permutation]" + "\n)") {
 		var limit = "20"
@@ -1018,14 +1018,14 @@ func Test_trans(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		{ // do_test "trans-9." + i + ".2-" + cnt
 			_res = db.Exec("\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
 			{ // do_test "trans-9." + i + ".3-" + cnt
@@ -1041,7 +1041,7 @@ func Test_trans(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-9.$i.6-$cnt")
+		t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-9.$i.6-$cnt")
 		var _pager_old_format = "0" // TCL namespace variable
 		_ = _pager_old_format // suppress unused warning
 		// incr i 1

@@ -24,7 +24,7 @@ func Test_e_wal(t *testing.T) {
 	var testprefix = "e_wal"
 	_ = testprefix // suppress unused warning
 	os.Remove("test.db-shm")
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs oldvfs -iversion 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs oldvfs -iversion 1")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1.1"
@@ -265,7 +265,7 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "4.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
 	}
 	{ // "4.1.3"
 		r = db.Query(" PRAGMA journal_mode = wAL ")
@@ -280,7 +280,7 @@ func Test_e_wal(t *testing.T) {
 		}
 	}
 	{ // do_test "4.1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
 	}
 	{ // "4.2.1"
 		_res = db.Exec(" INSERT INTO t1 VALUES(1, 1); ")
@@ -307,6 +307,6 @@ func Test_e_wal(t *testing.T) {
 		// file exists "test.db-wal"
 	}
 	{ // do_test "4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
 	}
 }

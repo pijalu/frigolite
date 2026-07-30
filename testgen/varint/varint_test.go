@@ -33,7 +33,7 @@ func Test_varint(t *testing.T) {
 					}
 				}
 				{ // do_test "varint-1." + cnt
-					t.Skipf("TODO: %s not implemented in frigolite", "btree_varint_test $start $mult 5000 $incr")
+					t.Errorf("TODO: %s not implemented in frigolite", "btree_varint_test $start $mult 5000 $incr")
 				}
 			}
 		}

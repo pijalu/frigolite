@@ -25,10 +25,10 @@ func Test_sqllog(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 	var _env_SQLITE_SQLLOG_DIR = "pwd" // TCL namespace variable
 	_ = _env_SQLITE_SQLLOG_DIR // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_all_sqllog_files")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_sqllog_files")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	var a = "a"
@@ -48,7 +48,7 @@ func Test_sqllog(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "readfile [lindex [glob sqllog_*.sql] 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "readfile [lindex [glob sqllog_*.sql] 0]")
 	}
 	{ // do_test "1.2"
 		// file size [lindex [glob sqllog_*_0.db] 0]
@@ -57,8 +57,8 @@ func Test_sqllog(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_all_sqllog_files")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_sqllog_files")
 	os.Remove("test.db-sqllog")
 	var _env_SQLITE_SQLLOG_CONDITIONAL = "1" // TCL namespace variable
 	_ = _env_SQLITE_SQLLOG_CONDITIONAL // suppress unused warning
@@ -79,7 +79,7 @@ func Test_sqllog(t *testing.T) {
 	{ // do_test "2.2"
 		tclGlob("-nocomplain")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "touch test.db-sqllog")
+	t.Errorf("TODO: %s not implemented in frigolite", "touch test.db-sqllog")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.3"
@@ -95,13 +95,13 @@ func Test_sqllog(t *testing.T) {
 		}
 	}
 	{ // do_test "2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "readfile [lindex [glob sqllog_*.sql] 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "readfile [lindex [glob sqllog_*.sql] 0]")
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_sqllog")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_sqllog")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 }

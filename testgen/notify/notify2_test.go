@@ -60,7 +60,7 @@ func Test_notify2(t *testing.T) {
 			var ii = "0"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nThread_n, _nThread_e := strconv.Atoi(nThread); if _nThread_e != nil { return false }; return ii_n < nThread_n }() {
-				t.Skipf("TODO: %s not implemented in frigolite", "thread_spawn finished($ii) $ThreadSetup $ThreadProgram")
+				t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished($ii) $ThreadSetup $ThreadProgram")
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
@@ -123,5 +123,5 @@ func Test_notify2(t *testing.T) {
 			t.Log("-nonewline")
 			// expr $blocking > $non → "$blocking > $non"
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

@@ -22,7 +22,7 @@ func Test_rowvalue5(t *testing.T) {
 	var _testprefix = "rowvalue5" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n")
 		if _res.Error != nil {

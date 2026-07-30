@@ -23,7 +23,7 @@ func Test_bestindex5(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING tcl('vtab_cmd');\n  CREATE TABLE t1x(a INTEGER, b TEXT, c REAL);\n  INSERT INTO t1x VALUES(1, 2, 3);\n  INSERT INTO t1x VALUES(4, 5, 6);\n  INSERT INTO t1x VALUES(7, 8, 9);\n\n  CREATE VIRTUAL TABLE t2 USING tcl('vtab_simple');\n  CREATE TABLE t2x(x INTEGER);\n  INSERT INTO t2x VALUES(1);\n")
@@ -31,19 +31,19 @@ func Test_bestindex5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING tcl('vtab_cmd');\n  CREATE TABLE t1x(a INTEGER, b TEXT, c REAL);\n  INSERT INTO t1x VALUES(1, 2, 3);\n  INSERT INTO t1x VALUES(4, 5, 6);\n  INSERT INTO t1x VALUES(7, 8, 9);\n\n  CREATE VIRTUAL TABLE t2 USING tcl('vtab_simple');\n  CREATE TABLE t2x(x INTEGER);\n  INSERT INTO t2x VALUES(1);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.1 { SELECT * FROM t1 WHERE a!='hello'; } {\n  \"WHERE a != 'hello'\"\n  1 2 3.0 4 5 6.0 7 8 9.0\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.2.1 { SELECT * FROM t1 WHERE b!=8 } {\n  \"WHERE b != '8'\"\n  1 2 3.0 4 5 6.0\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.2.2 { SELECT * FROM t1 WHERE 8!=b } {\n  \"WHERE b != '8'\"\n  1 2 3.0 4 5 6.0\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.3 { SELECT * FROM t1 WHERE c IS NOT 3 } {\n  \"WHERE c IS NOT '3'\"\n  4 5 6.0 7 8 9.0\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.3.2 { SELECT * FROM t1 WHERE 3 IS NOT c } {\n  \"WHERE c IS NOT '3'\"\n  4 5 6.0 7 8 9.0\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.4.1 { SELECT * FROM t1, t2 WHERE x != a } {\n  \"WHERE a != '1'\"\n  4 5 6.0 1   7 8 9.0 1\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.4.2 { SELECT * FROM t1, t2 WHERE a != x } {\n  \"WHERE a != '1'\"\n  4 5 6.0 1   7 8 9.0 1\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.5.1 { SELECT * FROM t1 WHERE a IS NOT NULL } {\n  \"WHERE a IS NOT NULL\"\n  1 2 3.0 4 5 6.0 7 8 9.0...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.5.2 { SELECT * FROM t1 WHERE NULL IS NOT a } {\n  \"WHERE a IS NOT ''\"\n  1 2 3.0 4 5 6.0 7 8 9.0\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.6.1 { SELECT * FROM t1 WHERE a IS NULL } {\n  \"WHERE a IS NULL\"\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.6.2 { SELECT * FROM t1 WHERE NULL IS a } {\n  \"WHERE a IS ''\"\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.7.1 { SELECT * FROM t1 WHERE (a, b) IS (1, 2) } {\n  \"WHERE a IS '1' AND b IS '2'\"\n  1 2 3.0\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.7.2 { SELECT * FROM t1 WHERE (5, 4) IS (b, a) } {\n  {WHERE b IS '5' AND a IS '4'} \n  4 5 6.0\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.1 { SELECT * FROM t1 WHERE a!='hello'; } {\n  \"WHERE a != 'hello'\"\n  1 2 3.0 4 5 6.0 7 8 9.0\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.2.1 { SELECT * FROM t1 WHERE b!=8 } {\n  \"WHERE b != '8'\"\n  1 2 3.0 4 5 6.0\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.2.2 { SELECT * FROM t1 WHERE 8!=b } {\n  \"WHERE b != '8'\"\n  1 2 3.0 4 5 6.0\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.3 { SELECT * FROM t1 WHERE c IS NOT 3 } {\n  \"WHERE c IS NOT '3'\"\n  4 5 6.0 7 8 9.0\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.3.2 { SELECT * FROM t1 WHERE 3 IS NOT c } {\n  \"WHERE c IS NOT '3'\"\n  4 5 6.0 7 8 9.0\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.4.1 { SELECT * FROM t1, t2 WHERE x != a } {\n  \"WHERE a != '1'\"\n  4 5 6.0 1   7 8 9.0 1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.4.2 { SELECT * FROM t1, t2 WHERE a != x } {\n  \"WHERE a != '1'\"\n  4 5 6.0 1   7 8 9.0 1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.5.1 { SELECT * FROM t1 WHERE a IS NOT NULL } {\n  \"WHERE a IS NOT NULL\"\n  1 2 3.0 4 5 6.0 7 8 9.0...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.5.2 { SELECT * FROM t1 WHERE NULL IS NOT a } {\n  \"WHERE a IS NOT ''\"\n  1 2 3.0 4 5 6.0 7 8 9.0\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.6.1 { SELECT * FROM t1 WHERE a IS NULL } {\n  \"WHERE a IS NULL\"\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.6.2 { SELECT * FROM t1 WHERE NULL IS a } {\n  \"WHERE a IS ''\"\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.7.1 { SELECT * FROM t1 WHERE (a, b) IS (1, 2) } {\n  \"WHERE a IS '1' AND b IS '2'\"\n  1 2 3.0\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_query_test 1.7.2 { SELECT * FROM t1 WHERE (5, 4) IS (b, a) } {\n  {WHERE b IS '5' AND a IS '4'} \n  4 5 6.0\n}")
 	{ // "2.0.0"
 		_res = db.Exec("\n  DELETE FROM t1x;\n  INSERT INTO t1x VALUES('a', 'b', 'c');\n")
 		if _res.Error != nil {

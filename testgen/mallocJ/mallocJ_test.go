@@ -19,8 +19,8 @@ func Test_mallocJ(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocJ-2 -sqlprep {\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1...} -sqlbody {\n  SELECT a, b, 'abc' FROM t1\n    UNION\n    SELECT...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocJ-3 -sqlbody {\n  EXPLAIN COMMIT\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocJ-4 -sqlprep {\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(x,y,z...} -sqlbody {\n  SELECT * FROM (SELECT a,b FROM t1 UNION ALL SEL...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocJ-5 -sqlprep {\n  CREATE TABLE t1([\"a\"]);\n} -sqlbody {\n  SELECT * FROM t1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocJ-2 -sqlprep {\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1...} -sqlbody {\n  SELECT a, b, 'abc' FROM t1\n    UNION\n    SELECT...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocJ-3 -sqlbody {\n  EXPLAIN COMMIT\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocJ-4 -sqlprep {\n  CREATE TABLE t1(a,b,c);\n  CREATE TABLE t2(x,y,z...} -sqlbody {\n  SELECT * FROM (SELECT a,b FROM t1 UNION ALL SEL...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocJ-5 -sqlprep {\n  CREATE TABLE t1([\"a\"]);\n} -sqlbody {\n  SELECT * FROM t1\n}")
 }

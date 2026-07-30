@@ -22,14 +22,14 @@ func Test_nolock(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script tvfs_callback")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter {xLock xUnlock xCheckReservedLock xAccess}")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script tvfs_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xLock xUnlock xCheckReservedLock xAccess}")
 	{ // do_test "nolock-1.0"
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite db test.db -vfs tvfs")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite db test.db -vfs tvfs")
 		_res = db.Exec("CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
@@ -39,8 +39,8 @@ func Test_nolock(t *testing.T) {
 	}
 	{ // do_test "nolock-1.1"
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=0 -vfs tvfs -uri 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=0 -vfs tvfs -uri 1")
 		_res = db.Exec("CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
@@ -50,8 +50,8 @@ func Test_nolock(t *testing.T) {
 	}
 	{ // do_test "nolock-1.2"
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=1 -vfs tvfs -uri 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=1 -vfs tvfs -uri 1")
 		_res = db.Exec("CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(a,b,c); INSERT INTO t1 VALUES(1,2,3);")
@@ -60,8 +60,8 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "nolock-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=0 -vfs tvfs -uri 1 -readonly 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=0 -vfs tvfs -uri 1 -readonly 1")
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
@@ -70,8 +70,8 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "nolock-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=1 -vfs tvfs -uri 1 -readonly 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite db file:test.db?nolock=1 -vfs tvfs -uri 1 -readonly 1")
 		_res = db.Exec("SELECT * FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1")
@@ -90,7 +90,7 @@ func Test_nolock(t *testing.T) {
 		}
 	}
 	{ // do_test "nolock-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
 		db2, err := frigolite.Open("test.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
@@ -103,7 +103,7 @@ func Test_nolock(t *testing.T) {
 	}
 	{ // do_test "nolock-2.11"
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
 		db2, err := frigolite.Open("file:test.db?immutable=0")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
@@ -116,7 +116,7 @@ func Test_nolock(t *testing.T) {
 	}
 	{ // do_test "nolock-2.21"
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
 		db2, err := frigolite.Open("file:test.db?immutable=1")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
@@ -129,7 +129,7 @@ func Test_nolock(t *testing.T) {
 	}
 	{ // do_test "nolock-2.31"
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
 		db2, err := frigolite.Open("file:test.db?immutable=1")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
@@ -142,8 +142,8 @@ func Test_nolock(t *testing.T) {
 	}
 	{ // do_test "nolock-3.1"
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs devchar immutable")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs devchar immutable")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
 		db2, err := frigolite.Open("test.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
@@ -156,7 +156,7 @@ func Test_nolock(t *testing.T) {
 	}
 	{ // do_test "nolock-3.11"
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs_reset")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs_reset")
 		db2, err := frigolite.Open("test.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
@@ -168,7 +168,7 @@ func Test_nolock(t *testing.T) {
 		_ = _list
 	}
 	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
 	if tclBool("permutation" + "!=\"inmemory_journal\"") {
 		{ // do_test "nolock-4.1"
 			os.Remove("test.db")

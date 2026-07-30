@@ -80,5 +80,5 @@ func Test_sharedlock(t *testing.T) {
 			}
 		}
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

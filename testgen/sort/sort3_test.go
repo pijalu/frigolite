@@ -37,7 +37,7 @@ func Test_sort3(t *testing.T) {
 		_ = mmap_limit // suppress unused warning
 		_ = _idx
 			{ // do_test "1." + tn
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit")
 				var prev = ""
 				_ = prev // suppress unused warning
 				_res = db.Exec(" SELECT * FROM t11 ORDER BY b ")
@@ -56,7 +56,7 @@ func Test_sort3(t *testing.T) {
 			limit := _items[_idx+1]
 			_ = limit // suppress unused warning
 			_ = _idx
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $limit")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $limit")
 				{ // "2." + itest
 					r = db.Query("\n    WITH r(x,y) AS (\n        SELECT 1, randomblob(1000)\n        UNION ALL\n        SELECT x+1, randomblob(1000) FROM r\n        LIMIT 20000\n    )\n    SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);\n  ")
 					if r.Error != nil {

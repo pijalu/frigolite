@@ -118,26 +118,26 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t4 USING fts4(x, y);\n  INSERT INTO t4 VALUES('a b c d e', 'f g h i j');\n  INSERT INTO t4 VALUES('f g h i j', 'a b c d e');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.1 t4 {t4 MATCH 'a b c'} {\n  p {3 3}\n  c {2 2}\n  x {\n    {1 1 1   0 1 1   1 ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.2 t4 {t4 MATCH '\"g h i\"'} {\n  p {1 1}\n  c {2 2}\n  x {\n    {0 1 1   1 1 1}\n   ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.3 t4 {t4 MATCH 'a b'} { s {{2 0} {0 2}} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.4 t4 {t4 MATCH '\"a b\" c'} { s {{2 0} {0 2}} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.5 t4 {t4 MATCH 'a \"b c\"'} { s {{2 0} {0 2}} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.6 t4 {t4 MATCH 'd d'} { s {{1 0} {0 1}} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.7 t4 {t4 MATCH 'f OR abcd'} {\n  x { \n    {0 1 1  1 1 1  0 0 0  0 0 0} \n    {1 1...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.8 t4 {t4 MATCH 'f -abcd'} {\n  x { \n    {0 1 1  1 1 1}\n    {1 1 1  0 1 1}\n  }\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.1 t4 {t4 MATCH 'a b c'} {\n  p {3 3}\n  c {2 2}\n  x {\n    {1 1 1   0 1 1   1 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.2 t4 {t4 MATCH '\"g h i\"'} {\n  p {1 1}\n  c {2 2}\n  x {\n    {0 1 1   1 1 1}\n   ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.3 t4 {t4 MATCH 'a b'} { s {{2 0} {0 2}} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.4 t4 {t4 MATCH '\"a b\" c'} { s {{2 0} {0 2}} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.5 t4 {t4 MATCH 'a \"b c\"'} { s {{2 0} {0 2}} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.6 t4 {t4 MATCH 'd d'} { s {{1 0} {0 1}} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.7 t4 {t4 MATCH 'f OR abcd'} {\n  x { \n    {0 1 1  1 1 1  0 0 0  0 0 0} \n    {1 1...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.1.8 t4 {t4 MATCH 'f -abcd'} {\n  x { \n    {0 1 1  1 1 1}\n    {1 1 1  0 1 1}\n  }\n}")
 	{ // "4.2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a a a a a');\n  INSERT INTO t5 VALUES('a b a b a');\n  INSERT INTO t5 VALUES('c b c b c');\n  INSERT INTO t5 VALUES('x x x x x');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t5 USING fts4;\n  INSERT INTO t5 VALUES('a a a a a');\n  INSERT INTO t5 VALUES('a b a b a');\n  INSERT INTO t5 VALUES('c b c b c');\n  INSERT INTO t5 VALUES('x x x x x');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.1 t5 {t5 MATCH 'a a'} { \n  x {{5 8 2   5 8 2} {3 8 2   3 8 2}}\n  s {2 1} ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.2 t5 {t5 MATCH 'a b'} { s {2} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.3 t5 {t5 MATCH 'a b a'} { s {3} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.4 t5 {t5 MATCH 'a a a'} { s {3 1} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.5 t5 {t5 MATCH '\"a b\" \"a b\"'} { s {2} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.6 t5 {t5 MATCH 'a OR b'} { s {1 2 1} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.1 t5 {t5 MATCH 'a a'} { \n  x {{5 8 2   5 8 2} {3 8 2   3 8 2}}\n  s {2 1} ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.2 t5 {t5 MATCH 'a b'} { s {2} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.3 t5 {t5 MATCH 'a b a'} { s {3} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.4 t5 {t5 MATCH 'a a a'} { s {3 1} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.5 t5 {t5 MATCH '\"a b\" \"a b\"'} { s {2} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.2.6 t5 {t5 MATCH 'a OR b'} { s {1 2 1} }")
 	{ // "4.3.0"
 		_res = db.Exec("INSERT INTO t5 VALUES('x y " + "{b } 50000" + "')")
 		if _res.Error != nil {
@@ -145,32 +145,32 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 	}
 	if false {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.1 t5 {t5 MATCH 'a a'} { \n    x {{5 8 2   5 5 5} {3 8 2   3 5 5}}\n    s {2...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.1 t5 {t5 MATCH 'a a'} { \n    x {{5 8 2   5 5 5} {3 8 2   3 5 5}}\n    s {2...}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.2 t5 {t5 MATCH 'a b'} { s {2} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.3 t5 {t5 MATCH 'a b a'} { s {3} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.4 t5 {t5 MATCH 'a a a'} { s {3 1} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.5 t5 {t5 MATCH '\"a b\" \"a b\"'} { s {2} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.6 t5 {t5 MATCH 'a OR b'} { s {1 2 1 1} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.2 t5 {t5 MATCH 'a b'} { s {2} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.3 t5 {t5 MATCH 'a b a'} { s {3} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.4 t5 {t5 MATCH 'a a a'} { s {3 1} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.5 t5 {t5 MATCH '\"a b\" \"a b\"'} { s {2} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.3.6 t5 {t5 MATCH 'a OR b'} { s {1 2 1 1} }")
 	{ // "4.4.0.1"
 		_res = db.Exec(" INSERT INTO t5(t5) VALUES('optimize') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t5(t5) VALUES('optimize') ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.2 t5 {t5 MATCH 'a b'} { s {2} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.1 t5 {t5 MATCH 'a a'} { s {2 1} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.2 t5 {t5 MATCH 'a b'} { s {2} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.3 t5 {t5 MATCH 'a b a'} { s {3} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.4 t5 {t5 MATCH 'a a a'} { s {3 1} }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.5 t5 {t5 MATCH '\"a b\" \"a b\"'} { s {2} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.2 t5 {t5 MATCH 'a b'} { s {2} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.1 t5 {t5 MATCH 'a a'} { s {2 1} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.2 t5 {t5 MATCH 'a b'} { s {2} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.3 t5 {t5 MATCH 'a b a'} { s {3} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.4 t5 {t5 MATCH 'a a a'} { s {3 1} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.4.5 t5 {t5 MATCH '\"a b\" \"a b\"'} { s {2} }")
 	{ // "4.5.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t6 USING fts4(a, b, c);\n  INSERT INTO t6 VALUES('a', 'b', 'c');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t6 USING fts4(a, b, c);\n  INSERT INTO t6 VALUES('a', 'b', 'c');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.5.1 t6 {t6 MATCH 'a b c'} { s {{1 1 1}} }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test 4.5.1 t6 {t6 MATCH 'a b c'} { s {{1 1 1}} }")
 	{ // "5.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t7 USING fts3(a, b);\n  INSERT INTO t7 VALUES('u v w', 'x y z');\n\n  CREATE VIRTUAL TABLE t8 USING fts4(a, b, matchinfo=fts3);\n  INSERT INTO t8 VALUES('u v w', 'x y z');\n")
 		if _res.Error != nil {
@@ -213,7 +213,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "6.2"
 		_res = db.Exec("\n  UPDATE t9_content SET c0content = 'this record is used to'; \n  SELECT offsets(t9) FROM t9 WHERE t9 MATCH 'to';\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
@@ -301,7 +301,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "8.4.1.1"
 		_res = db.Exec(" UPDATE t11_stat SET value = X'0000'; ")
 		if _res.Error != nil {

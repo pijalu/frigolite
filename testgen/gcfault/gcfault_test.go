@@ -25,7 +25,7 @@ func Test_gcfault(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
 		r = db.Query("PRAGMA encoding = " + enc)
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding = " + enc)
@@ -36,8 +36,8 @@ func Test_gcfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE s(i, s);\n    INSERT INTO s VALUES(1, ',0123456789,');\n    INSERT INTO s VALUES(2, X'2c303132333435363738392c');\n\n    CREATE TABLE e(e);\n    INSERT INTO e VALUES('v1'), ('v2');\n  ")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.1 -faults oom* -body {\n    execsql { SELECT group_concat(e, (SELECT s FR...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.2 -faults oom-t* -body {\n    execsql { SELECT string_agg(e, (SELECT s FROM...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.3 -faults oom-t* -prep {\n    set ::STMT [sqlite3_prepare db {SELECT group_...} -body {\n    while { \"SQLITE_ROW\"==[sqlite3_step $::STMT] ...} -test {\n    sqlite3_finalize $::STMT\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.1 -faults oom* -body {\n    execsql { SELECT group_concat(e, (SELECT s FR...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.2 -faults oom-t* -body {\n    execsql { SELECT string_agg(e, (SELECT s FROM...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.3 -faults oom-t* -prep {\n    set ::STMT [sqlite3_prepare db {SELECT group_...} -body {\n    while { \"SQLITE_ROW\"==[sqlite3_step $::STMT] ...} -test {\n    sqlite3_finalize $::STMT\n  }")
 	}
 }

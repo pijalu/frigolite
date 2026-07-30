@@ -25,9 +25,9 @@ func Test_interrupt2(t *testing.T) {
 	if tclBool("permutation" + "==\"journaltest\" || " + "permutation" + "==\"inmemory_journal\"") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xWrite")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script write_cb")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xWrite")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script write_cb")
 	var _trigger_interrupt = "0" // TCL namespace variable
 	_ = _trigger_interrupt // suppress unused warning
 	var _dbpointer = "" // TCL namespace variable
@@ -113,8 +113,8 @@ func Test_interrupt2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
 	{ // do_test "3.1.1"
 		var _trigger_interrupt = "10" // TCL namespace variable
 		_ = _trigger_interrupt // suppress unused warning
@@ -133,7 +133,7 @@ func Test_interrupt2(t *testing.T) {
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
 	{ // do_test "3.2.1"
 		_res = db.Exec(" SELECT * FROM sqlite_master ")
 		if _res.Error != nil {
@@ -146,7 +146,7 @@ func Test_interrupt2(t *testing.T) {
 		_list := tclList([]string{"file exists test.db", "file exists test.db-wal"})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
 	{ // do_test "4.0"
 		r = db.Query(" PRAGMA wal_autocheckpoint = 10 ")
 		if r.Error != nil {

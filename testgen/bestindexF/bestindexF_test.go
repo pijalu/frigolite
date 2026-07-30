@@ -22,7 +22,7 @@ func Test_bestindexF(t *testing.T) {
 	var testprefix = "bestindexF"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING tcl(vtab_command)\n")
 		if _res.Error != nil {
@@ -31,7 +31,7 @@ func Test_bestindexF(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_idxinsert_test 1.1.1 {\n  SELECT DISTINCT a, b FROM t1 \n} {0    1 a 1 b 2 a 2 b}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_idxinsert_test 1.1.1 {\n  SELECT DISTINCT a, b FROM t1 \n} {0    1 a 1 b 2 a 2 b}")
 	{ // do_test "1.1.2"
 		_list := tclList([]string{_vtab_distinct, _vtab_orderby})
 		_ = _list
@@ -42,7 +42,7 @@ func Test_bestindexF(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t0(c0);\n  INSERT INTO t0 VALUES(0);\n  INSERT INTO t0 VALUES(1);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_idxinsert_test 1.4.1 {\n  SELECT DISTINCT t0.c0 FROM t1, t0 ORDER BY t1.a...} {1    0 1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_idxinsert_test 1.4.1 {\n  SELECT DISTINCT t0.c0 FROM t1, t0 ORDER BY t1.a...} {1    0 1}")
 	{ // do_test "1.4.2"
 		_list := tclList([]string{_vtab_distinct, _vtab_orderby})
 		_ = _list
@@ -57,7 +57,7 @@ func Test_bestindexF(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE real_t1(a, b);\n\n  INSERT INTO real_t1 VALUES (1, 'a');\n  INSERT INTO real_t1 VALUES (2, 'a');\n  INSERT INTO real_t1 VALUES (1, 'a');\n\n  INSERT INTO real_t1 VALUES (2, 'b');\n  INSERT INTO real_t1 VALUES (1, 'b');\n  INSERT INTO real_t1 VALUES (2, 'b');\n\n  INSERT INTO real_t1 VALUES (3, 'a');\n  INSERT INTO real_t1 VALUES (4, 'b');\n  INSERT INTO real_t1 VALUES (3, 'a');\n\n  INSERT INTO real_t1 VALUES (4, 'b');\n  INSERT INTO real_t1 VALUES (3, 'a');\n  INSERT INTO real_t1 VALUES (4, 'b');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING tcl(vtab_command)\n")
 		if _res.Error != nil {
@@ -77,14 +77,14 @@ func Test_bestindexF(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.2 {\n  SELECT a, b FROM t1\n} { 0 \"{} {}\"\n  1 a 2 a 1 a \n  2 b 1 b 2 b \n  3 a 4 b...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.3 {\n  SELECT DISTINCT a FROM t1\n} { 0 \"DISTINCT {ORDER BY ((a+2)%5)}\"\n  3 4 1 2\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.4 {\n  SELECT DISTINCT a FROM t1 ORDER BY a\n} { 0 \"DISTINCT {ORDER BY a}\"\n  1 2 3 4\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.5 {\n  SELECT DISTINCT a FROM t1 ORDER BY a DESC\n} { 0 \"DISTINCT {ORDER BY a DESC}\"\n  4 3 2 1\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.6 {\n  SELECT a FROM t1 ORDER BY a\n} { 0 \"{} {ORDER BY a}\"\n  1 1 1\n  2 2 2\n  3 3 3\n  4 4...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.7 {\n  SELECT a FROM t1 ORDER BY a DESC\n} { 0 \"{} {ORDER BY a DESC}\"\n  4 4 4\n  3 3 3\n  2 2 2\n...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.8 {\n  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY ...} { 0 \"{} {ORDER BY a}\"\n  1 3\n  2 3\n  3 3\n  4 3\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.9 {\n  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY ...} { 0 \"{} {ORDER BY a DESC}\"\n  4 3\n  3 3\n  2 3\n  1 3\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.10 {\n  SELECT a, count(*) FROM t1 GROUP BY a\n} { 0 \"{} {ORDER BY ((a+2)%5)}\"\n  3 3\n  4 3\n  1 3\n  2...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.11 {\n  SELECT DISTINCT a, count(*) FROM t1 GROUP BY a\n} { 1 \"{} {ORDER BY ((a+2)%5)}\"\n  3 3\n  4 3\n  1 3\n  2...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.2 {\n  SELECT a, b FROM t1\n} { 0 \"{} {}\"\n  1 a 2 a 1 a \n  2 b 1 b 2 b \n  3 a 4 b...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.3 {\n  SELECT DISTINCT a FROM t1\n} { 0 \"DISTINCT {ORDER BY ((a+2)%5)}\"\n  3 4 1 2\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.4 {\n  SELECT DISTINCT a FROM t1 ORDER BY a\n} { 0 \"DISTINCT {ORDER BY a}\"\n  1 2 3 4\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.5 {\n  SELECT DISTINCT a FROM t1 ORDER BY a DESC\n} { 0 \"DISTINCT {ORDER BY a DESC}\"\n  4 3 2 1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.6 {\n  SELECT a FROM t1 ORDER BY a\n} { 0 \"{} {ORDER BY a}\"\n  1 1 1\n  2 2 2\n  3 3 3\n  4 4...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.7 {\n  SELECT a FROM t1 ORDER BY a DESC\n} { 0 \"{} {ORDER BY a DESC}\"\n  4 4 4\n  3 3 3\n  2 2 2\n...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.8 {\n  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY ...} { 0 \"{} {ORDER BY a}\"\n  1 3\n  2 3\n  3 3\n  4 3\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.9 {\n  SELECT a, count(*) FROM t1 GROUP BY a ORDER BY ...} { 0 \"{} {ORDER BY a DESC}\"\n  4 3\n  3 3\n  2 3\n  1 3\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.10 {\n  SELECT a, count(*) FROM t1 GROUP BY a\n} { 0 \"{} {ORDER BY ((a+2)%5)}\"\n  3 3\n  4 3\n  1 3\n  2...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vtabsorter_test 2.11 {\n  SELECT DISTINCT a, count(*) FROM t1 GROUP BY a\n} { 1 \"{} {ORDER BY ((a+2)%5)}\"\n  3 3\n  4 3\n  1 3\n  2...}")
 }

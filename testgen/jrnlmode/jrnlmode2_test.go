@@ -94,7 +94,7 @@ func Test_jrnlmode2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "jrnlmode2-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db-journal")
+		t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db-journal")
 	}
 	{ // do_test "jrnlmode2-2.6"
 		db2, err := frigolite.Open("test.db")

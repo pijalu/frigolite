@@ -22,14 +22,14 @@ func Test_vtabH(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtabH"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t6(a, b TEXT);\n  CREATE INDEX i6 ON t6(b, a);\n  CREATE VIRTUAL TABLE e6 USING echo(t6);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tclvar_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tclvar_module db")
 	var _xyz = "10" // TCL namespace variable
 	_ = _xyz // suppress unused warning
 	{ // "2.0"
@@ -104,7 +104,7 @@ func Test_vtabH(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_fs_module db")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_fs_module db")
 		if tclBool(tcl_platform + "(platform) != \"windows\" || \\\n    " + "regexp -nocase -- {^[A-Z]:} $drive") {
 			{ // "3.0"
 				r = db.Query("\n    SELECT name FROM fsdir WHERE dir = '.' AND name = 'test.db';\n    SELECT name FROM fsdir WHERE dir = '.' AND name = '.'\n  ")
@@ -137,7 +137,7 @@ func Test_vtabH(t *testing.T) {
 			var num_root_files = "llength $res"
 			_ = num_root_files // suppress unused warning
 			{ // do_test "3.1"
-				t.Skipf("TODO: %s not implemented in frigolite", "sort_files [execsql {\n      SELECT path FROM fstree WHERE pat... true")
+				t.Errorf("TODO: %s not implemented in frigolite", "sort_files [execsql {\n      SELECT path FROM fstree WHERE pat... true")
 			}
 			// proc definition (not transpiled)
 			var pwd = "pwd" + "/*"

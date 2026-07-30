@@ -140,7 +140,7 @@ func Test_pragma3(t *testing.T) {
 		_ = fd // suppress unused warning
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "exec [info nameofexec] pragma3.txt")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] pragma3.txt")
 		os.Remove("pragma3.txt")
 		_res = db.Exec("\n    PRAGMA data_version;\n    SELECT * FROM t1;\n  ")
 		if _res.Error != nil {

@@ -80,7 +80,7 @@ func Test_enc2(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "run_test_script enc2-$i $enc")
+		t.Errorf("TODO: %s not implemented in frigolite", "run_test_script enc2-$i $enc")
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -106,19 +106,19 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 1")
 		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate;}"
 		_ = res // suppress unused warning
 		res = tclListAppend(res, _test_collate_enc)
 	}
 	{ // do_test "enc2-5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate $DB 0 1 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 0 1 0")
 		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
 		res = tclListAppend(res, _test_collate_enc)
 	}
 	{ // do_test "enc2-5.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate $DB 0 0 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 0 0 1")
 		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
 		res = tclListAppend(res, _test_collate_enc)
@@ -139,19 +139,19 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-5.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 1")
 		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
 		res = tclListAppend(res, _test_collate_enc)
 	}
 	{ // do_test "enc2-5.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 0 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 0 1")
 		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
 		res = tclListAppend(res, _test_collate_enc)
 	}
 	{ // do_test "enc2-5.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 0 0")
 		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
 		res = tclListAppend(res, _test_collate_enc)
@@ -172,30 +172,30 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-5.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 1")
 		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
 		res = tclListAppend(res, _test_collate_enc)
 	}
 	{ // do_test "enc2-5.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 1 0")
 		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
 		res = tclListAppend(res, _test_collate_enc)
 	}
 	{ // do_test "enc2-5.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 1 0 0")
 		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate}"
 		_ = res // suppress unused warning
 		res = tclListAppend(res, _test_collate_enc)
 	}
 	{ // do_test "enc2-5-12"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate $DB 0 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate $DB 0 0 0")
 		_res = db.Exec("\n    SELECT * FROM t5 ORDER BY 1 COLLATE test_collate\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "enc2-5.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate_needed $DB")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate_needed $DB")
 		var res = "execsql {SELECT * FROM t5 ORDER BY 1 COLLATE test_collate; }"
 		_ = res // suppress unused warning
 		res = tclListAppend(res, _test_collate_enc)
@@ -210,7 +210,7 @@ func Test_enc2(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
 		_ = _DB // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_collate_needed $::DB")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_collate_needed $::DB")
 		_ = _sqlite_last_needed_collation // TCL namespace variable (query)
 	}
 	{ // do_test "enc2-5.16"
@@ -239,7 +239,7 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_function $DB 1 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 1 1 1")
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
@@ -250,7 +250,7 @@ func Test_enc2(t *testing.T) {
 	var DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
@@ -261,7 +261,7 @@ func Test_enc2(t *testing.T) {
 	var DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
@@ -283,7 +283,7 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-6.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_function $DB 1 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 1 1 1")
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
@@ -294,7 +294,7 @@ func Test_enc2(t *testing.T) {
 	var DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
@@ -305,7 +305,7 @@ func Test_enc2(t *testing.T) {
 	var DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
@@ -327,7 +327,7 @@ func Test_enc2(t *testing.T) {
 		}
 	}
 	{ // do_test "enc2-6.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_function $DB 1 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 1 1 1")
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
@@ -338,7 +338,7 @@ func Test_enc2(t *testing.T) {
 	var DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")
@@ -349,7 +349,7 @@ func Test_enc2(t *testing.T) {
 	var DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")
 		r = db.Query("\n    SELECT test_function('sqlite')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT test_function('sqlite')\n  ")

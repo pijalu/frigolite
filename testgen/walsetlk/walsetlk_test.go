@@ -81,13 +81,13 @@ func Test_walsetlk(t *testing.T) {
 	}
 	// close $fd
 	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  testvfs tvfs -fullshm 1\n  db close\n  sqlite3 d...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  testvfs tvfs -fullshm 1\n  db close\n  sqlite3 d...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script xSleep_callback")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xSleep")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xSleep_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xSleep")
 	var _sleep_count = "0" // TCL namespace variable
 	_ = _sleep_count // suppress unused warning
 	// proc definition (not transpiled)
@@ -127,7 +127,7 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
 	// db2.timeout (db command)
 	{ // do_test "3.4"
 		var t = "lindex [time { db2 eval { BEGIN EXCLUSIVE } }] 0"
@@ -149,7 +149,7 @@ func Test_walsetlk(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
 	// db2.timeout (db command)
 	{ // do_test "3.7"
 		var t = "lindex [time { db2 eval { BEGIN EXCLUSIVE } }] 0"
@@ -172,5 +172,5 @@ func Test_walsetlk(t *testing.T) {
 		}
 	}
 	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
 }

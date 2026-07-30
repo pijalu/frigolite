@@ -52,13 +52,13 @@ func Test_shell4(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shell4-1.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats ON")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats ON")
 	}
 	{ // do_test "shell4-1.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats OFF")
 	}
 	{ // do_test "shell4-1.3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats OFF BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats OFF BAD")
 	}
 	{ // do_test "shell4-1.4.1"
 		var res = "catchcmd \"test.db\" {.show}"
@@ -95,14 +95,14 @@ func Test_shell4(t *testing.T) {
 		_ = fd // suppress unused warning
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "exec $::CLI_ONLY --noinit :memory: --interactive .read t1.txt")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec $::CLI_ONLY --noinit :memory: --interactive .read t1.txt")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell4-3.2 {\n  set fd [open t1.txt wb]\n  puts $fd \".mode list\\...} {pound: £}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell4-3.2 {\n  set fd [open t1.txt wb]\n  puts $fd \".mode list\\...} {pound: £}")
 	{ // do_test "shell4-4.1"
 		var fd = "open t1.txt wb"
 		_ = fd // suppress unused warning
 		t.Log(fd)
 		// close $fd
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: .read t1.txt")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: .read t1.txt")
 	}
 }

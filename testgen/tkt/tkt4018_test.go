@@ -20,7 +20,7 @@ func Test_tkt4018(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	// proc definition (not transpiled)
 	{ // do_test "tkt4018-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    BEGIN;\n    SELECT * FROM t1;\n  ")
@@ -46,14 +46,14 @@ func Test_tkt4018(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt4018-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "testsql {INSERT INTO t1 VALUES(3, 4)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "testsql {INSERT INTO t1 VALUES(3, 4)}")
 	}
 	{ // do_test "tkt4018-1.4"
 		_res = db.Exec("COMMIT")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "testsql {INSERT INTO t1 VALUES(3, 4)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "testsql {INSERT INTO t1 VALUES(3, 4)}")
 	}
 	{ // do_test "tkt4018-2.1"
 		db2, err := frigolite.Open("test.db")

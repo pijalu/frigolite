@@ -578,7 +578,7 @@ func Test_decimal(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db decimal")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db decimal")
 	{ // "8100"
 		r = db.Query("\n  PRAGMA cache_size=10;\n  PRAGMA page_size=512;\n  CREATE TABLE t(x TEXT, pad TEXT);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<5000)\n    INSERT INTO t SELECT printf('%*s', 8, ''), randomblob(2000) FROM c;\n  SELECT count(*) FROM (SELECT x FROM t ORDER BY x COLLATE decimal);\n")
 		if r.Error != nil {

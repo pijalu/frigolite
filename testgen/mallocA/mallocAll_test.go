@@ -21,7 +21,7 @@ func Test_mallocAll(t *testing.T) {
 
 	// proc definition (not transpiled)
 	for tclBool("set arg [lshift argv]" + " != \"\"") {
-		t.Skipf("TODO: %s not implemented in frigolite", "switch -- $arg {\n    -sharedpagercache {\n      sqlite3_enable_shar...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "switch -- $arg {\n    -sharedpagercache {\n      sqlite3_enable_shar...}")
 	}
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -46,12 +46,12 @@ func Test_mallocAll(t *testing.T) {
 		}
 		if func() bool { sqlite_open_file_count_n, _sqlite_open_file_count_e := strconv.Atoi(sqlite_open_file_count); if _sqlite_open_file_count_e != nil { return false }; return sqlite_open_file_count_n > 0 }() {
 			t.Log(tail + " did not close all files: " + sqlite_open_file_count)
-			t.Skipf("TODO: %s not implemented in frigolite", "fail_test $tail")
+			t.Errorf("TODO: %s not implemented in frigolite", "fail_test $tail")
 			var sqlite_open_file_count = "0"
 			_ = sqlite_open_file_count // suppress unused warning
 		}
 	}
 	var sqlite_open_file_count = "0"
 	_ = sqlite_open_file_count // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "really_finish_test")
+	t.Errorf("TODO: %s not implemented in frigolite", "really_finish_test")
 }

@@ -25,7 +25,7 @@ func Test_avtrans(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA auto_vacuum=full ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
+		t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
 		r = db.Query(" \n    CREATE TABLE one(a int PRIMARY KEY, b text);\n    INSERT INTO one VALUES(1,'one');\n    INSERT INTO one VALUES(2,'two');\n    INSERT INTO one VALUES(3,'three');\n    SELECT b FROM one ORDER BY a;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    CREATE TABLE one(a int PRIMARY KEY, b text);\n    INSERT INTO one VALUES(1,'one');\n    INSERT INTO one VALUES(2,'two');\n    INSERT INTO one VALUES(3,'three');\n    SELECT b FROM one ORDER BY a;\n  ")
@@ -60,7 +60,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-1.12")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-1.12")
 	{ // do_test "avtrans-2.1"
 	var v string
 	_ = msg // suppress unused warning
@@ -171,8 +171,8 @@ func Test_avtrans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-2.12")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-2.12")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
 	{ // do_test "avtrans-3.1"
 		r = db.Query("\n    BEGIN;\n    UPDATE one SET a = 0 WHERE 0;\n    SELECT a FROM one ORDER BY a;\n  ")
 		if r.Error != nil {
@@ -285,7 +285,7 @@ func Test_avtrans(t *testing.T) {
 		}
 		v = tclListAppend(v, msg)
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "avtrans-4.1"
@@ -400,7 +400,7 @@ func Test_avtrans(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "avtrans-4.98"
-		t.Skipf("TODO: %s not implemented in frigolite", "altdb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "altdb close")
 		_res = db.Exec("\n    DROP TABLE one;\n    DROP TABLE two;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE one;\n    DROP TABLE two;\n  ")
@@ -897,7 +897,7 @@ func Test_avtrans(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "exec [info nameofexec] test.tcl")
+			t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] test.tcl")
 		}
 		r = db.Query("SELECT md5sum(x,y,z) FROM t2")
 		if r.Error != nil {
@@ -960,14 +960,14 @@ func Test_avtrans(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		{ // do_test "avtrans-9." + i + ".2-" + cnt
 			_res = db.Exec("\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       BEGIN;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       DELETE FROM t3 WHERE random()%10!=0;\n       INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n       ROLLBACK;\n     ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
 			{ // do_test "avtrans-9." + i + ".3-" + cnt
@@ -981,7 +981,7 @@ func Test_avtrans(t *testing.T) {
 					// expr $sqlite_sync_count>0 → "$sqlite_sync_count>0"
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-9.$i-6.$cnt")
+			t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-9.$i-6.$cnt")
 		}
 		var _pager_old_format = "0" // TCL namespace variable
 		_ = _pager_old_format // suppress unused warning
@@ -995,5 +995,5 @@ func Test_avtrans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-10.2")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-10.2")
 }

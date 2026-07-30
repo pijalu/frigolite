@@ -21,8 +21,8 @@ func Test_walnoshm(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "walnoshm"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfsshm")
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1 -iversion 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfsshm")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1 -iversion 1")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.1"
@@ -236,6 +236,6 @@ func Test_walnoshm(t *testing.T) {
 		_ = _res // catchsql
 	}
 	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfsshm delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfsshm delete")
 }

@@ -68,9 +68,9 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 	}
 	db2.Close()
 	if tclBool("permutation" + "!=\"inmemory_journal\"") {
-		t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs script xDelete")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xDelete")
+		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xDelete")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xDelete")
 		// proc definition (not transpiled)
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -106,7 +106,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		}
 		{ // do_test "tkt-f3e5abed55-2.5"
 			db2.Close()
-			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 			r = db.Query("\n      ATTACH 'test.db2' AS aux;\n      SELECT * FROM t1;\n      SELECT * FROM t2;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      ATTACH 'test.db2' AS aux;\n      SELECT * FROM t1;\n      SELECT * FROM t2;\n    ")

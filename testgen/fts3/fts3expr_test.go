@@ -24,210 +24,210 @@ func Test_fts3expr(t *testing.T) {
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "fts3expr-1.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr abcd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr abcd")
 	}
 	{ // do_test "fts3expr-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr  tag ")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr  tag ")
 	}
 	{ // do_test "fts3expr-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab AND cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab AND cd")
 	}
 	{ // do_test "fts3expr-1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab cd")
 	}
 	{ // do_test "fts3expr-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab OR cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab OR cd")
 	}
 	{ // do_test "fts3expr-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab NOT cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab NOT cd")
 	}
 	{ // do_test "fts3expr-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR cd")
 	}
 	{ // do_test "fts3expr-1.6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/5 cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/5 cd")
 	}
 	{ // do_test "fts3expr-1.6.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/87654321 cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/87654321 cd")
 	}
 	{ // do_test "fts3expr-1.6.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/7654321 cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/7654321 cd")
 	}
 	{ // do_test "fts3expr-1.6.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/654321 cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/654321 cd")
 	}
 	{ // do_test "fts3expr-1.6.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/54321 cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/54321 cd")
 	}
 	{ // do_test "fts3expr-1.6.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/4321 cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/4321 cd")
 	}
 	{ // do_test "fts3expr-1.6.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/321 cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/321 cd")
 	}
 	{ // do_test "fts3expr-1.6.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/21 cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ab NEAR/21 cd")
 	}
 	{ // do_test "fts3expr-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one two three\"}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one two three\"}")
 	}
 	{ // do_test "fts3expr-1.8.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {zero \"one two three\" four}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {zero \"one two three\" four}")
 	}
 	{ // do_test "fts3expr-1.8.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {zero AND \"one two three\" four}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {zero AND \"one two three\" four}")
 	}
 	{ // do_test "fts3expr-1.8.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {zero \"one two three\" AND four}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {zero \"one two three\" AND four}")
 	}
 	{ // do_test "fts3expr-1.8.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {zero AND \"one two three\" AND four}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {zero AND \"one two three\" AND four}")
 	}
 	{ // do_test "fts3expr-1.9.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one* two three\"}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one* two three\"}")
 	}
 	{ // do_test "fts3expr-1.9.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one two* three\"}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one two* three\"}")
 	}
 	{ // do_test "fts3expr-1.9.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one* two* three\"}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one* two* three\"}")
 	}
 	{ // do_test "fts3expr-1.9.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one two three*\"}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one two three*\"}")
 	}
 	{ // do_test "fts3expr-1.9.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one* two three*\"}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one* two three*\"}")
 	}
 	{ // do_test "fts3expr-1.9.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one two* three*\"}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one two* three*\"}")
 	}
 	{ // do_test "fts3expr-1.9.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one* two* three*\"}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {\"one* two* three*\"}")
 	}
 	{ // do_test "fts3expr-1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {one* two}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {one* two}")
 	}
 	{ // do_test "fts3expr-1.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {one two*}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {one two*}")
 	}
 	{ // do_test "fts3expr-1.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {a:one two}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {a:one two}")
 	}
 	{ // do_test "fts3expr-1.15.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {one b:two}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {one b:two}")
 	}
 	{ // do_test "fts3expr-1.15.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {one B:two}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {one B:two}")
 	}
 	{ // do_test "fts3expr-1.16"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {one AND two AND three AND four AND five}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {one AND two AND three AND four AND five}")
 	}
 	{ // do_test "fts3expr-1.17"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(one AND two) AND ((three AND four) AND five)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(one AND two) AND ((three AND four) AND five)}")
 	}
 	{ // do_test "fts3expr-1.18"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(one AND two) OR ((three AND four) AND five)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(one AND two) OR ((three AND four) AND five)}")
 	}
 	{ // do_test "fts3expr-1.19"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(one AND two) AND ((three AND four) OR five)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(one AND two) AND ((three AND four) OR five)}")
 	}
 	{ // do_test "fts3expr-1.20"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(one OR two) AND ((three OR four) AND five)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(one OR two) AND ((three OR four) AND five)}")
 	}
 	{ // do_test "fts3expr-1.21"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(one OR two) AND ((three NOT four) AND five)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(one OR two) AND ((three NOT four) AND five)}")
 	}
 	{ // do_test "fts3expr-1.22"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(one OR two) NOT ((three OR four) AND five)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(one OR two) NOT ((three OR four) AND five)}")
 	}
 	{ // do_test "fts3expr-1.23"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(((((one OR two))))) NOT (((((three OR four))) AND...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(((((one OR two))))) NOT (((((three OR four))) AND...}")
 	}
 	{ // do_test "fts3expr-1.24"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {one NEAR two}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {one NEAR two}")
 	}
 	{ // do_test "fts3expr-1.25"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(one NEAR two)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(one NEAR two)}")
 	}
 	{ // do_test "fts3expr-1.26"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {((((((one NEAR two))))))}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {((((((one NEAR two))))))}")
 	}
 	{ // do_test "fts3expr-1.27"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(one NEAR two) OR ((three OR four) AND five)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(one NEAR two) OR ((three OR four) AND five)}")
 	}
 	{ // do_test "fts3expr-1.28"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(one NEAR/321 two) OR ((three OR four) AND five)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(one NEAR/321 two) OR ((three OR four) AND five)}")
 	}
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "fts3expr-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 ab OR cd AND ef")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 ab OR cd AND ef")
 	}
 	{ // do_test "fts3expr-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 cd AND ef OR ab")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 cd AND ef OR ab")
 	}
 	{ // do_test "fts3expr-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 ab AND cd AND ef OR gh")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 ab AND cd AND ef OR gh")
 	}
 	{ // do_test "fts3expr-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 ab AND cd OR ef AND gh")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 ab AND cd OR ef AND gh")
 	}
 	{ // do_test "fts3expr-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 ab cd")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 ab cd")
 	}
 	{ // do_test "fts3expr-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (ab OR cd) AND ef")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (ab OR cd) AND ef")
 	}
 	{ // do_test "fts3expr-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 ef AND (ab OR cd)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 ef AND (ab OR cd)")
 	}
 	{ // do_test "fts3expr-3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (ab OR cd)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (ab OR cd)")
 	}
 	{ // do_test "fts3expr-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (((ab OR cd)))")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (((ab OR cd)))")
 	}
 	{ // do_test "fts3expr-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 one AND (two NEAR three)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 one AND (two NEAR three)")
 	}
 	{ // do_test "fts3expr-3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 one (two NEAR three)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 one (two NEAR three)")
 	}
 	{ // do_test "fts3expr-3.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) one")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) one")
 	}
 	{ // do_test "fts3expr-3.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) AND one")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) AND one")
 	}
 	{ // do_test "fts3expr-3.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) (four five)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) (four five)")
 	}
 	{ // do_test "fts3expr-3.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) AND (four five)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) AND (four five)")
 	}
 	{ // do_test "fts3expr-3.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) (four NEAR five)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) (four NEAR five)")
 	}
 	{ // do_test "fts3expr-3.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) OR (four NEAR five)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three) OR (four NEAR five)")
 	}
 	{ // do_test "fts3expr-3.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR/1a three)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR/1a three)")
 	}
 	{ // do_test "fts3expr-3.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR// three)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR// three)")
 	}
 	{ // do_test "fts3expr-3.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR/: three)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR/: three)")
 	}
 	{ // do_test "fts3expr-3.16"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three)OR(four NEAR five)")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three)OR(four NEAR five)")
 	}
 	{ // do_test "fts3expr-3.17"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three)OR\\\"four five\\\"")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 (two NEAR three)OR\\\"four five\\\"")
 	}
 	{ // do_test "fts3expr-3.18"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr2 one \\u0080wo")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 one \\u0080wo")
 	}
 	{ // do_test "fts3expr-4.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts3(a, b, c) ")
@@ -291,8 +291,8 @@ func Test_fts3expr(t *testing.T) {
 		_res = db.Exec(" SELECT * FROM t1 WHERE t1 MATCH 'one NEAR (hello OR world)' ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test fts3expr-malloc-1 -sqlbody {\n  SELECT fts3_exprtest('simple', 'a b c \"d e f\"',...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test fts3expr-malloc-2 -tclprep {\n  set sqlite_fts3_enable_parentheses 0\n} -sqlbody {\n  SELECT fts3_exprtest('simple', 'a -b', 'a', 'b'...} -cleanup {\n  set sqlite_fts3_enable_parentheses 1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fts3expr-malloc-1 -sqlbody {\n  SELECT fts3_exprtest('simple', 'a b c \"d e f\"',...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fts3expr-malloc-2 -tclprep {\n  set sqlite_fts3_enable_parentheses 0\n} -sqlbody {\n  SELECT fts3_exprtest('simple', 'a -b', 'a', 'b'...} -cleanup {\n  set sqlite_fts3_enable_parentheses 1\n}")
 	{ // do_test "fts3expr-5.1"
 		_res = db.Exec(" SELECT fts3_exprtest('simple', 'a b') ")
 		_ = _res // catchsql
@@ -392,44 +392,44 @@ func Test_fts3expr(t *testing.T) {
 				}
 			}
 			{ // do_test "fts3expr-8.0"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah)")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr (blah)")
 			}
 			{ // do_test "fts3expr-8.1"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah.)")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr (blah.)")
 			}
 			{ // do_test "fts3expr-8.2"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah,)")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr (blah,)")
 			}
 			{ // do_test "fts3expr-8.3"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah!)")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr (blah!)")
 			}
 			{ // do_test "fts3expr-8.4"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (blah-)")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr (blah-)")
 			}
 			{ // do_test "fts3expr-8.5"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ((blah.))")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ((blah.))")
 			}
 			{ // do_test "fts3expr-8.6"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (((blah,)))")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr (((blah,)))")
 			}
 			{ // do_test "fts3expr-8.7"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr ((((blah!))))")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr ((((blah!))))")
 			}
 			{ // do_test "fts3expr-8.8"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr (,(blah-),)")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr (,(blah-),)")
 			}
 			var sqlite_fts3_enable_parentheses = "0"
 			_ = sqlite_fts3_enable_parentheses // suppress unused warning
 			{ // do_test "fts3expr-9.1"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr f (e NEAR/2 a)")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr f (e NEAR/2 a)")
 			}
 			{ // do_test "fts3expr-10.1"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr abc *")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr abc *")
 			}
 			{ // do_test "fts3expr-10.2"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr *")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr *")
 			}
 			{ // do_test "fts3expr-10.3"
-				t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr abc*")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr abc*")
 			}
 }

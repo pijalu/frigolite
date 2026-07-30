@@ -19,8 +19,8 @@ func Test_descidx3(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "descidx3-1.1"
@@ -28,7 +28,7 @@ func Test_descidx3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(i INTEGER PRIMARY KEY,a,b,c,d);\n    CREATE INDEX t1i1 ON t1(a DESC, b ASC, c DESC);\n    CREATE INDEX t1i2 ON t1(b DESC, c ASC, d DESC);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "get_file_format")
+		t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
 	}
 	{ // do_test "descidx3-2.1"
 		r = db.Query("\n    INSERT INTO t1 VALUES(1, NULL, NULL, NULL, NULL);\n    INSERT INTO t1 VALUES(2, 2, 2, 2, 2);\n    INSERT INTO t1 VALUES(3, 3, 3, 3, 3);\n    INSERT INTO t1 VALUES(4, 2.5, 2.5, 2.5, 2.5);\n    INSERT INTO t1 VALUES(5, -5, -5, -5, -5);\n    INSERT INTO t1 VALUES(6, 'six', 'six', 'six', 'six');\n    INSERT INTO t1 VALUES(7, x'77', x'77', x'77', x'77');\n    INSERT INTO t1 VALUES(8, 'eight', 'eight', 'eight', 'eight');\n    INSERT INTO t1 VALUES(9, x'7979', x'7979', x'7979', x'7979');\n    SELECT count(*) FROM t1;\n  ")

@@ -67,8 +67,8 @@ func Test_unionall(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "database_never_corrupt")
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_never_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
 	{ // "1.10"
 		r = db.Query("\n  CREATE TABLE t0(c0 INT);\n  INSERT INTO t0 VALUES(0);\n  CREATE TABLE t1_a(a INTEGER PRIMARY KEY, b TEXT);\n  INSERT INTO t1_a VALUES(1,'one');\n  CREATE TABLE t1_b(c INTEGER PRIMARY KEY, d TEXT);\n  INSERT INTO t1_b VALUES(2,'two');\n  CREATE VIEW t1 AS SELECT a, b FROM t1_a UNION ALL SELECT c, c FROM t1_b;\n  SELECT * FROM (SELECT t1.a, t1.b AS b, t0.c0 FROM t0, t1);\n")
 		if r.Error != nil {
@@ -420,7 +420,7 @@ func Test_unionall(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
 	{ // "8.2"
 		r = db.Query("\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;\n")
 		if r.Error != nil {
@@ -451,7 +451,7 @@ func Test_unionall(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b='2';\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener,push-down 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener,push-down 0")
 	{ // "8.5"
 		r = db.Query("\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;\n")
 		if r.Error != nil {
@@ -482,7 +482,7 @@ func Test_unionall(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b='2';\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
 	{ // "8.8"
 		r = db.Query("\n  SELECT * FROM (SELECT t1.a, t1.b, t0.c0 AS c, v0.c0 AS d FROM t0 LEFT JOIN v0 ON v0.c0>'0',t1) WHERE b=2;\n")
 		if r.Error != nil {

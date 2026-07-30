@@ -25,7 +25,7 @@ func Test_malloc6(t *testing.T) {
 	}
 	var sqlite_os_trace = "0"
 	_ = sqlite_os_trace // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test malloc6-1 -tclprep {\n  db close\n} -tclbody {\n  if {[catch {sqlite3 db test.db}]} {\n    error \"...} -sqlbody {\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE IF NOT ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc6-1 -tclprep {\n  db close\n} -tclbody {\n  if {[catch {sqlite3 db test.db}]} {\n    error \"...} -sqlbody {\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE IF NOT ...}")
 	{ // do_test "malloc6-1.X"
 		{
 			var _catchErr error

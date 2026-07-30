@@ -53,7 +53,7 @@ func Test_orderby1(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3a"
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db order-by-idx-join 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db order-by-idx-join 0")
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
@@ -65,7 +65,7 @@ func Test_orderby1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
 	{ // do_test "1.4a"
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
 		if _res.Error != nil {
@@ -163,7 +163,7 @@ func Test_orderby1(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3a"
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db order-by-idx-join 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db order-by-idx-join 0")
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
@@ -175,7 +175,7 @@ func Test_orderby1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
 	{ // do_test "2.4a"
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
 		if _res.Error != nil {
@@ -261,7 +261,7 @@ func Test_orderby1(t *testing.T) {
 		}
 	}
 	{ // do_test "3.3a"
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db order-by-idx-join 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db order-by-idx-join 0")
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
@@ -273,7 +273,7 @@ func Test_orderby1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
 	{ // do_test "3.4a"
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		if _res.Error != nil {

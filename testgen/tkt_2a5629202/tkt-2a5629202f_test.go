@@ -71,12 +71,12 @@ func Test_tkt_2a5629202f(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT * FROM t2 WHERE a = 10 ORDER BY a, b, c }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT * FROM t2 WHERE a = 10 ORDER BY a, b, c }")
 	}
 	{ // do_test "2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT * FROM t2 WHERE b = 10 ORDER BY a, b, c }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT * FROM t2 WHERE b = 10 ORDER BY a, b, c }")
 	}
 	{ // do_test "2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT * FROM t2 WHERE a IS NULL ORDER BY a, b, c...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT * FROM t2 WHERE a IS NULL ORDER BY a, b, c...}")
 	}
 }

@@ -162,8 +162,8 @@ func Test_analyze9(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "insert_filler_rows_n 0 -ncopy 10 -nval 19")
-		t.Skipf("TODO: %s not implemented in frigolite", "insert_filler_rows_n 20 -ncopy 1 -nval 100")
+		t.Errorf("TODO: %s not implemented in frigolite", "insert_filler_rows_n 0 -ncopy 10 -nval 19")
+		t.Errorf("TODO: %s not implemented in frigolite", "insert_filler_rows_n 20 -ncopy 1 -nval 100")
 		r = db.Query("\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'a');\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'b');\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'c');\n\n    INSERT INTO t1(c, b, a) VALUES(200, 2, 'e');\n    INSERT INTO t1(c, b, a) VALUES(200, 2, 'f');\n\n    INSERT INTO t1(c, b, a) VALUES(201, 3, 'g');\n    INSERT INTO t1(c, b, a) VALUES(201, 4, 'h');\n\n    ANALYZE;\n    SELECT count(*) FROM sqlite_stat4;\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'a');\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'b');\n    INSERT INTO t1(c, b, a) VALUES(200, 1, 'c');\n\n    INSERT INTO t1(c, b, a) VALUES(200, 2, 'e');\n    INSERT INTO t1(c, b, a) VALUES(200, 2, 'f');\n\n    INSERT INTO t1(c, b, a) VALUES(201, 3, 'g');\n    INSERT INTO t1(c, b, a) VALUES(201, 4, 'h');\n\n    ANALYZE;\n    SELECT count(*) FROM sqlite_stat4;\n    SELECT count(*) FROM t1;\n  ")
@@ -296,8 +296,8 @@ func Test_analyze9(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // "7.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES(1, 1);\n  INSERT INTO t1 VALUES(2, 2);\n  INSERT INTO t1 VALUES(3, 3);\n  INSERT INTO t1 VALUES(4, 4);\n  INSERT INTO t1 VALUES(5, 5);\n  ANALYZE;\n  UPDATE sqlite_stat4 SET sample = X'' WHERE rowid = 1;\n  ANALYZE sqlite_master;\n")
 		if _res.Error != nil {
@@ -352,7 +352,7 @@ func Test_analyze9(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "database_never_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_never_corrupt")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -574,7 +574,7 @@ func Test_analyze9(t *testing.T) {
 		schema := _items[_idx+1]
 		_ = schema // suppress unused warning
 		_ = _idx
-			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 			{ // do_test "11." + tn + ".1"
 				_res = db.Exec(schema)
 				if _res.Error != nil {
@@ -653,7 +653,7 @@ func Test_analyze9(t *testing.T) {
 			schema := _items[_idx+1]
 			_ = schema // suppress unused warning
 			_ = _idx
-				t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+				t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 				{ // do_test "12." + tn + ".1"
 					_res = db.Exec(schema)
 					if _res.Error != nil {
@@ -724,7 +724,7 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 			{ // do_test "13.1"
 				_res = db.Exec("\n    CREATE TABLE t1(a, b, c, d);\n    CREATE INDEX i1 ON t1(a);\n    CREATE INDEX i2 ON t1(b, c);\n  ")
 				if _res.Error != nil {
@@ -781,7 +781,7 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='abc' AND rowid<'100' AND b<12\n")
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 			{ // do_test "14.1"
 				_res = db.Exec(" CREATE TABLE t1(a, b INTEGER, c) ")
 				if _res.Error != nil {
@@ -822,7 +822,7 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			// proc definition (not transpiled)
-			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 			{ // do_test "14.1.1"
 				_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d);\n    CREATE INDEX i1 ON t1(a,b,c,d);\n  ")
 				if _res.Error != nil {
@@ -850,7 +850,7 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.1.2")
+			t.Errorf("TODO: %s not implemented in frigolite", "check_stat4 14.1.2")
 			{ // do_test "14.2.1"
 				_res = db.Exec(" DELETE FROM t1 ")
 				if _res.Error != nil {
@@ -872,7 +872,7 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.2.2")
+			t.Errorf("TODO: %s not implemented in frigolite", "check_stat4 14.2.2")
 			{ // do_test "14.3.1"
 				var i = "0"
 				_ = i // suppress unused warning
@@ -926,7 +926,7 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.3.2")
+			t.Errorf("TODO: %s not implemented in frigolite", "check_stat4 14.3.2")
 			{ // do_test "14.4.1"
 				_res = db.Exec("DELETE FROM t1")
 				if _res.Error != nil {
@@ -954,7 +954,7 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "check_stat4 14.4.2")
+			t.Errorf("TODO: %s not implemented in frigolite", "check_stat4 14.4.2")
 			{ // "14.4.3"
 				r = db.Query("\n  SELECT lrange(test_decode(sample), 0, 1) AS s FROM sqlite_stat4\n  WHERE lindex(s, 1)=='1' ORDER BY rowid\n")
 				if r.Error != nil {
@@ -967,7 +967,7 @@ func Test_analyze9(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 			{ // "15.1"
 				_res = db.Exec("\n  CREATE TABLE x1(a, b, UNIQUE(a, b));\n  INSERT INTO x1 VALUES(1, 2);\n  INSERT INTO x1 VALUES(3, 4);\n  INSERT INTO x1 VALUES(5, 6);\n  ANALYZE;\n  INSERT INTO sqlite_stat4 VALUES(NULL, NULL, NULL, NULL, NULL, NULL);\n")
 				if _res.Error != nil {

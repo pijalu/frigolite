@@ -60,25 +60,25 @@ func Test_analyze8(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND b=55}")
+		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND b=55}")
 	}
 	{ // do_test "1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=99 AND b=55}")
+		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=99 AND b=55}")
 	}
 	{ // do_test "1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=101 AND b=55}")
+		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=101 AND b=55}")
 	}
 	{ // do_test "1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND b=56}")
+		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND b=56}")
 	}
 	{ // do_test "1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=99 AND b=56}")
+		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=99 AND b=56}")
 	}
 	{ // do_test "1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=101 AND b=56}")
+		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=101 AND b=56}")
 	}
 	{ // do_test "2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND b BETWEEN 50 AND ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND b BETWEEN 50 AND ...}")
 	}
 	{ // "3.0"
 		r = db.Query("\n  SELECT count(*) FROM t1 WHERE b BETWEEN 30 AND 34;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 0 AND 100000;\n  SELECT count(*) FROM t1 WHERE c BETWEEN 800000 AND 900000;\n")
@@ -93,15 +93,15 @@ func Test_analyze8(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE b BETWEEN 30 AND 34 AND c B...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE b BETWEEN 30 AND 34 AND c B...}")
 	}
 	{ // do_test "3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1\n       WHERE b BETWEEN 30 AND 34 ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1\n       WHERE b BETWEEN 30 AND 34 ...}")
 	}
 	{ // do_test "3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND c BETWEEN 0 AND 1...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1 WHERE a=100 AND c BETWEEN 0 AND 1...}")
 	}
 	{ // do_test "3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1\n       WHERE a=100 AND c BETWEEN ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "eqp {SELECT * FROM t1\n       WHERE a=100 AND c BETWEEN ...}")
 	}
 }

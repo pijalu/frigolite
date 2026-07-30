@@ -27,6 +27,6 @@ func Test_exprfault2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a,b,c,d,f,PRIMARY KEY(b,b));\n  CREATE TABLE t2(x INT PRIMARY KEY, y, z);\n  CREATE TABLE t3(a,b,c,d,e,PRIMARY KEY(a,b))WITHOUT ROWID;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n  UPDATE t3 SET (d,d,d,d, a )=(SELECT...} -test {\n  faultsim_test_result {1 {near \")\": syntax error...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n  UPDATE t3 SET (d,d,d,d, a )=(SELECT...} -test {\n  faultsim_test_result {1 {near \")\": syntax error...}")
 }

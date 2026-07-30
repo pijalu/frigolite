@@ -355,7 +355,7 @@ func Test_cast(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(9223372036854774800 AS numeric)")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test cast-3.3 {\n  execsql {SELECT CAST(9223372036854774800 AS rea...} 9.22337203685477e+18")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test cast-3.3 {\n  execsql {SELECT CAST(9223372036854774800 AS rea...} 9.22337203685477e+18")
 	{ // do_test "cast-3.4"
 		r = db.Query("SELECT CAST(CAST(9223372036854774800 AS real) AS integer)")
 		if r.Error != nil {
@@ -374,7 +374,7 @@ func Test_cast(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(-9223372036854774800 AS numeric)")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test cast-3.7 {\n  execsql {SELECT CAST(-9223372036854774800 AS re...} -9.22337203685477e+18")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test cast-3.7 {\n  execsql {SELECT CAST(-9223372036854774800 AS re...} -9.22337203685477e+18")
 	{ // do_test "cast-3.8"
 		r = db.Query("SELECT CAST(CAST(-9223372036854774800 AS real) AS integer)")
 		if r.Error != nil {
@@ -393,7 +393,7 @@ func Test_cast(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('9223372036854774800' AS numeric)")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test cast-3.13 {\n  execsql {SELECT CAST('9223372036854774800' AS r...} 9.22337203685477e+18")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test cast-3.13 {\n  execsql {SELECT CAST('9223372036854774800' AS r...} 9.22337203685477e+18")
 	{ // do_test "cast-3.14"
 		r = db.Query("SELECT CAST(CAST('9223372036854774800' AS real) AS integer)")
 		if r.Error != nil {
@@ -412,7 +412,7 @@ func Test_cast(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST('-9223372036854774800' AS numeric)")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test cast-3.17 {\n  execsql {SELECT CAST('-9223372036854774800' AS ...} -9.22337203685477e+18")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test cast-3.17 {\n  execsql {SELECT CAST('-9223372036854774800' AS ...} -9.22337203685477e+18")
 	{ // do_test "cast-3.18"
 		r = db.Query("SELECT CAST(CAST('-9223372036854774800' AS real) AS integer)")
 		if r.Error != nil {
@@ -432,7 +432,7 @@ func Test_cast(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT CAST(x'39323233333732303336383534373734383030' AS numeric)")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test cast-3.23 {\n    execsql {SELECT CAST(x'3932323333373230333638...} 9.22337203685477e+18")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test cast-3.23 {\n    execsql {SELECT CAST(x'3932323333373230333638...} 9.22337203685477e+18")
 		{ // do_test "cast-3.24"
 			r = db.Query("\n      SELECT CAST(CAST(x'39323233333732303336383534373734383030' AS real)\n                  AS integer)\n    ")
 			if r.Error != nil {
@@ -453,14 +453,14 @@ func Test_cast(t *testing.T) {
 		_ = DB // suppress unused warning
 		var _STMT = "sqlite3_prepare $DB {SELECT CAST(? AS real)} -1 TAIL" // TCL namespace variable
 		_ = _STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_blob -static $::STMT 1 $blob 5")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_blob -static $::STMT 1 $blob 5")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
 	}
 	{ // do_test "cast-3.32.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_int $::STMT 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $::STMT 0")
 	}
 	{ // do_test "cast-3.32.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
 	}
 	{ // do_test "cast-4.1"
 		_res = db.Exec("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES('abc');\n    SELECT a, CAST(a AS integer) FROM t1;\n  ")

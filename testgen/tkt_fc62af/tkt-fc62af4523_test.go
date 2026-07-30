@@ -33,7 +33,7 @@ func Test_tkt_fc62af4523(t *testing.T) {
 	_ = _chan // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "tkt-fc62af4523.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "testfixture $::chan {\n    sqlite3 db test.db\n    db eval {\n      PRAGMA...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::chan {\n    sqlite3 db test.db\n    db eval {\n      PRAGMA...}")
 		// file exists "test.db-journal"
 	}
 	{ // do_test "tkt-fc62af4523.3"
@@ -46,7 +46,7 @@ func Test_tkt_fc62af4523(t *testing.T) {
 		// file exists "test.db-journal"
 	}
 	{ // do_test "tkt-fc62af4523.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "testfixture $::chan sqlite_abort")
+		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::chan sqlite_abort")
 	}
 	{ // do_test "tkt-fc62af4523.6"
 		r = db.Query("\n    PRAGMA integrity_check;\n    SELECT count(*) FROM t1;\n  ")

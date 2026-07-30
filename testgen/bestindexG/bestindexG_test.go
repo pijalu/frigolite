@@ -22,7 +22,7 @@ func Test_bestindexG(t *testing.T) {
 	var testprefix = "bestindexF"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(rowid INTEGER PRIMARY KEY, id, k);\n  INSERT INTO t1 VALUES(1, 1, 1);\n  INSERT INTO t1 VALUES(2, 2, 2);\n  INSERT INTO t1 VALUES(3, 3, 3);\n  INSERT INTO t1 VALUES(4, 4, 4);\n\n  INSERT INTO t1 VALUES(5, 1, 11);\n  INSERT INTO t1 VALUES(6, 2, 22);\n  INSERT INTO t1 VALUES(7, 3, 33);\n  INSERT INTO t1 VALUES(8, 4, 44);\n\n  CREATE VIRTUAL TABLE tt USING tcl(vtab_command)\n")
 		if _res.Error != nil {

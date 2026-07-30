@@ -35,43 +35,43 @@ func Test_shell2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shell2-1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmdex {:memory: -list \"select+3\" \"select+4\"}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmdex {:memory: -list \"select+3\" \"select+4\"}")
 	}
 	{ // do_test "shell2-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -batch test.db {\n    PRAGMA recursive_triggers = ON;\n    CREATE TA...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -batch test.db {\n    PRAGMA recursive_triggers = ON;\n    CREATE TA...}")
 	}
 	{ // do_test "shell2-1.4.1"
 		os.Remove("foo.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd foo.db {.mode batch\nCREATE TABLE foo(a);\nINSERT INTO foo(a...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db {.mode batch\nCREATE TABLE foo(a);\nINSERT INTO foo(a...}")
 	}
 	{ // do_test "shell2-1.4.2"
 		os.Remove("foo.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -echo foo.db {CREATE TABLE foo(a);\nINSERT INTO foo(a) VALUES(1);...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -echo foo.db {CREATE TABLE foo(a);\nINSERT INTO foo(a) VALUES(1);...}")
 	}
 	{ // do_test "shell2-1.4.3"
 		os.Remove("foo.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo(a);\nINSERT ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo(a);\nINSERT ...}")
 	}
 	{ // do_test "shell2-1.4.4"
 		os.Remove("foo.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo(a);\n.echo O...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo(a);\n.echo O...}")
 	}
 	{ // do_test "shell2-1.4.5"
 		os.Remove("foo.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmdex foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo1(a);\nINSERT...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmdex foo.db {\n.mode batch\n.echo ON\nCREATE TABLE foo1(a);\nINSERT...}")
 	}
 	{ // do_test "shell2-1.4.6"
 		os.Remove("foo.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmdex foo.db {\n.mode batch\n.echo ON\n.headers ON\nCREATE TABLE foo...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmdex foo.db {\n.mode batch\n.echo ON\n.headers ON\nCREATE TABLE foo...}")
 	}
 	{ // do_test "shell2-1.4.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n SELECT 'unclosed;}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n SELECT 'unclosed;}")
 	}
 	{ // do_test "shell2-1.4.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -safe :memory: {\n SELECT edit('DoNotCare');}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -safe :memory: {\n SELECT edit('DoNotCare');}")
 	}
 	{ // do_test "shell2-1.4.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -safe :memory: {\n SELECT writefile('DoNotCare', x'');}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -safe :memory: {\n SELECT writefile('DoNotCare', x'');}")
 	}
 	{ // do_test "shell2-1.4.9"
 		os.Remove("clone.db")

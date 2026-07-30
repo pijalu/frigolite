@@ -38,8 +38,8 @@ func Test_journal1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db-journal-bu test.db-journal")
+		t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-journal-bu test.db-journal")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }

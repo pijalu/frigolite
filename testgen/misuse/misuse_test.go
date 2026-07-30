@@ -41,17 +41,17 @@ func Test_misuse(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {\n    SELECT * FROM t1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {\n    SELECT * FROM t1\n  }")
 	}
 	{ // do_test "misuse-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {\n    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {\n    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1\n  }")
 	}
 	{ // do_test "misuse-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function $::DB")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {\n    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function $::DB")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {\n    SELECT x_coalesce(NULL,a) AS 'xyz' FROM t1\n  }")
 	}
 	{ // do_test "misuse-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 	}
 	{ // do_test "misuse-1.6"
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
@@ -69,7 +69,7 @@ func Test_misuse(t *testing.T) {
 		}
 	}
 	{ // do_test "misuse-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 	}
 	{ // do_test "misuse-2.3"
 	var v string
@@ -89,7 +89,7 @@ func Test_misuse(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "misuse-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 	}
 	{ // do_test "misuse-2.5"
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
@@ -107,7 +107,7 @@ func Test_misuse(t *testing.T) {
 		}
 	}
 	{ // do_test "misuse-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 	}
 	{ // do_test "misuse-3.3"
 	var v string
@@ -127,7 +127,7 @@ func Test_misuse(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "misuse-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 	}
 	{ // do_test "misuse-3.5"
 		_res = db.Exec("\n    SELECT * FROM t1\n  ")
@@ -145,7 +145,7 @@ func Test_misuse(t *testing.T) {
 		}
 	}
 	{ // do_test "misuse-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 	}
 	{ // do_test "misuse-4.3"
 	var v string
@@ -166,8 +166,8 @@ func Test_misuse(t *testing.T) {
 	}
 	if tclBool("clang_sanitize_address" + "==0 && 0") {
 		{ // do_test "misuse-4.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_close $::DB")
-			t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $::DB")
+			t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 		}
 		{ // do_test "misuse-4.5"
 			_res = db.Exec("\n      SELECT * FROM t1\n    ")
@@ -185,14 +185,14 @@ func Test_misuse(t *testing.T) {
 			}
 		}
 		{ // do_test "misuse-5.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
+			t.Errorf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 		}
 		{ // do_test "misuse-5.3"
 	var r string
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $::DB {SELECT * FROM t1} -1 TAIL")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $::DB {SELECT * FROM t1} -1 TAIL")
 				if _catchErr != nil {
 					r = "1"
 					msg = _catchErr.Error()
@@ -208,12 +208,12 @@ func Test_misuse(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misuse-6.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_set_errmsg db 1 an error has occurred")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_set_errmsg db 1 an error has occurred")
 	}
 	{ // do_test "misuse-6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "misuse-6.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_set_errmsg  1 an error has occurred")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_set_errmsg  1 an error has occurred")
 	}
 }

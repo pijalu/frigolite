@@ -829,7 +829,7 @@ func Test_fts4content(t *testing.T) {
 								db.Close()
 								db, err = frigolite.Open("")
 								if err != nil { t.Fatal(err) }
-								t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+								t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 								{ // "9.1"
 									_res = db.Exec("\n  CREATE TABLE tbl1(a, b);\n  INSERT INTO tbl1 VALUES('a b', 'c d');\n  INSERT INTO tbl1 VALUES('e f', 'a b');\n  CREATE VIRTUAL TABLE e1 USING echo(tbl1);\n  CREATE VIRTUAL TABLE ft1 USING fts4(content=e1);\n  INSERT INTO ft1(ft1) VALUES('rebuild');\n")
 									if _res.Error != nil {
@@ -893,11 +893,11 @@ func Test_fts4content(t *testing.T) {
 								db.Close()
 								db, err = frigolite.Open("")
 								if err != nil { t.Fatal(err) }
-								t.Skipf("TODO: %s not implemented in frigolite", "register_fs_module [sqlite3_connection_pointer db]")
+								t.Errorf("TODO: %s not implemented in frigolite", "register_fs_module [sqlite3_connection_pointer db]")
 								// proc definition (not transpiled)
-								t.Skipf("TODO: %s not implemented in frigolite", "write_file t1.txt {a b c d e f g h i j k l m n o p q r s t u v w x y ...}")
-								t.Skipf("TODO: %s not implemented in frigolite", "write_file t2.txt {a b c d e f g h i j k l m a b c d e f g h i j k l ...}")
-								t.Skipf("TODO: %s not implemented in frigolite", "write_file t3.txt {n o p q r s t u v w x y z n o p q r s t u v w x y ...}")
+								t.Errorf("TODO: %s not implemented in frigolite", "write_file t1.txt {a b c d e f g h i j k l m n o p q r s t u v w x y ...}")
+								t.Errorf("TODO: %s not implemented in frigolite", "write_file t2.txt {a b c d e f g h i j k l m a b c d e f g h i j k l ...}")
+								t.Errorf("TODO: %s not implemented in frigolite", "write_file t3.txt {n o p q r s t u v w x y z n o p q r s t u v w x y ...}")
 								{ // "10.1"
 									r = db.Query("\n  CREATE TABLE idx(id INTEGER PRIMARY KEY, path TEXT);\n  INSERT INTO idx VALUES (1, 't1.txt');\n  INSERT INTO idx VALUES (2, 't2.txt');\n  INSERT INTO idx VALUES (3, 't3.txt');\n\n  CREATE VIRTUAL TABLE vt USING fs(idx);\n  SELECT path, data FROM vt;\n")
 									if r.Error != nil {
@@ -1049,7 +1049,7 @@ func Test_fts4content(t *testing.T) {
 									}
 								}
 								// proc definition (not transpiled)
-								t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db xyz")
+								t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db xyz")
 								{ // "13.2.0"
 									_res = db.Exec("\n  CREATE VIRTUAL TABLE aa USING tcl(vtab_command);\n")
 									if _res.Error != nil {
@@ -1065,7 +1065,7 @@ func Test_fts4content(t *testing.T) {
 								{ // do_test "13.2.2"
 									var _stmt = "sqlite3_prepare_v3 db \\\n    \"INSERT INTO aa VALUES('one two three');\" -1 0x00" // TCL namespace variable
 									_ = _stmt // suppress unused warning
-									t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+									t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
 								}
 								{ // do_test "13.2.2"
 									_list := tclList([]string{"0", msg})

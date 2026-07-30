@@ -24,76 +24,76 @@ func Test_badutf(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding=UTF8")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%80') AS x}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%80') AS x}")
 	}
 	{ // do_test "badutf-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%81') AS x}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%81') AS x}")
 	}
 	{ // do_test "badutf-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%bf') AS x}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%bf') AS x}")
 	}
 	{ // do_test "badutf-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%c0') AS x}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%c0') AS x}")
 	}
 	{ // do_test "badutf-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%e0') AS x}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%e0') AS x}")
 	}
 	{ // do_test "badutf-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%f0') AS x}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%f0') AS x}")
 	}
 	{ // do_test "badutf-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%ff') AS x}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex('%ff') AS x}")
 	}
 	db2, err := frigolite.Open("")
 	defer db2.Close()
 	if err != nil { t.Fatal(err) }
 	{ // do_test "badutf-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%80') AS x}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%80') AS x}")
 	}
 	{ // do_test "badutf-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%61%62%63') AS x}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%61%62%63') AS x}")
 	}
 	{ // do_test "badutf-3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%7f%80%81') AS x}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%7f%80%81') AS x}")
 	}
 	{ // do_test "badutf-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%61%c0') AS x}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%61%c0') AS x}")
 	}
 	{ // do_test "badutf-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%61%c0%80%80%80%80%80%80%80%80%80%8...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%61%c0%80%80%80%80%80%80%80%80%80%8...}")
 	}
 	{ // do_test "badutf-3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%c0%80%80%80%80%80%80%80%80%80%80')...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%c0%80%80%80%80%80%80%80%80%80%80')...}")
 	}
 	{ // do_test "badutf-3.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%80%80%80%80%80%80%80%80%80%80') AS...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%80%80%80%80%80%80%80%80%80%80') AS...}")
 	}
 	{ // do_test "badutf-3.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%80%80%80%80%80%f0%80%80%80%80') AS...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%80%80%80%80%80%f0%80%80%80%80') AS...}")
 	}
 	{ // do_test "badutf-3.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%80%80%80%80%80%f0%80%80%80%ff') AS...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT length('%80%80%80%80%80%f0%80%80%80%ff') AS...}")
 	}
 	{ // do_test "badutf-4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(trim('%80%80%80%f0%80%80%80%ff','%80%ff...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(trim('%80%80%80%f0%80%80%80%ff','%80%ff...}")
 	}
 	{ // do_test "badutf-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(ltrim('%80%80%80%f0%80%80%80%ff','%80%f...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(ltrim('%80%80%80%f0%80%80%80%ff','%80%f...}")
 	}
 	{ // do_test "badutf-4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(rtrim('%80%80%80%f0%80%80%80%ff','%80%f...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(rtrim('%80%80%80%f0%80%80%80%ff','%80%f...}")
 	}
 	{ // do_test "badutf-4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(trim('%80%80%80%f0%80%80%80%ff','%ff%80...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(trim('%80%80%80%f0%80%80%80%ff','%ff%80...}")
 	}
 	{ // do_test "badutf-4.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(trim('%ff%80%80%f0%80%80%80%ff','%ff%80...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(trim('%ff%80%80%f0%80%80%80%ff','%ff%80...}")
 	}
 	{ // do_test "badutf-4.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(trim('%ff%80%f0%80%80%80%ff','%ff%80'))...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(trim('%ff%80%f0%80%80%80%ff','%ff%80'))...}")
 	}
 	{ // do_test "badutf-4.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(trim('%ff%80%f0%80%80%80%ff','%ff%80%80...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT hex(trim('%ff%80%f0%80%80%80%ff','%ff%80%80...}")
 	}
 	db2.Close()
 }

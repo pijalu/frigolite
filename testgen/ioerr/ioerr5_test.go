@@ -28,7 +28,7 @@ func Test_ioerr5(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "ioerr5-1.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "opendatabases")
+		t.Errorf("TODO: %s not implemented in frigolite", "opendatabases")
 		_res = db.Exec(" CREATE TABLE A(Id INTEGER, Name TEXT) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE A(Id INTEGER, Name TEXT) ")
@@ -40,8 +40,8 @@ func Test_ioerr5(t *testing.T) {
 		var iFail = "1"
 		_ = iFail // suppress unused warning
 		for func() bool { iFail_n, _iFail_e := strconv.Atoi(iFail); if _iFail_e != nil { return false }; return iFail_n < 200 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 1048576")
-			t.Skipf("TODO: %s not implemented in frigolite", "opendatabases")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 1048576")
+			t.Errorf("TODO: %s not implemented in frigolite", "opendatabases")
 			r = db.Query(" pragma locking_mode=exclusive ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " pragma locking_mode=exclusive ")
@@ -72,19 +72,19 @@ func Test_ioerr5(t *testing.T) {
 			_ = _sqlite_io_error_pending // suppress unused warning
 			var fd = "open test.db"
 			_ = fd // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
 			var zDatabase = "read $fd"
 			_ = zDatabase // suppress unused warning
 			// close $fd
 			{ // do_test "ioerr5-1." + locking_mode + "-" + iFail + ".3"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 1024")
-				t.Skipf("TODO: %s not implemented in frigolite", "compilesql16 SELECT 10")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 1024")
+				t.Errorf("TODO: %s not implemented in frigolite", "compilesql16 SELECT 10")
 			}
 			// close $channel
 			{ // do_test "ioerr5-1." + locking_mode + "-" + iFail + ".4"
 				var fd = "open test.db"
 				_ = fd // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+				t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
 				var zDatabase2 = "read $fd"
 				_ = zDatabase2 // suppress unused warning
 				// close $fd
@@ -132,8 +132,8 @@ func Test_ioerr5(t *testing.T) {
 		var iFail = "1"
 		_ = iFail // suppress unused warning
 		for func() bool { iFail_n, _iFail_e := strconv.Atoi(iFail); if _iFail_e != nil { return false }; return iFail_n < 200 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 1048576")
-			t.Skipf("TODO: %s not implemented in frigolite", "opendatabases")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 1048576")
+			t.Errorf("TODO: %s not implemented in frigolite", "opendatabases")
 			r = db.Query(" pragma locking_mode=exclusive ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " pragma locking_mode=exclusive ")
@@ -150,7 +150,7 @@ func Test_ioerr5(t *testing.T) {
 			_ = _sqlite_io_error_persist // suppress unused warning
 			var _sqlite_io_error_pending = iFail // TCL namespace variable
 			_ = _sqlite_io_error_pending // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 10000")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory 10000")
 			var error_hit = _sqlite_io_error_hit
 			_ = error_hit // suppress unused warning
 			var _sqlite_io_error_hit = "0" // TCL namespace variable
@@ -193,6 +193,6 @@ func Test_ioerr5(t *testing.T) {
 			db2.Close()
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $::soft_limit")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $::soft_limit")
 }

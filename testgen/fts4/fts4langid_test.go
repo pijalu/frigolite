@@ -191,13 +191,13 @@ func Test_fts4langid(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "build_multilingual_db_1 db")
+		t.Errorf("TODO: %s not implemented in frigolite", "build_multilingual_db_1 db")
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.1 {delta} { rowid_list delta }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.1 {delta} { rowid_list delta }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.1.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
 	{ // "2.2"
 		r = db.Query("\n  INSERT INTO t2(t2) VALUES('optimize');\n  SELECT count(*) FROM t2_segdir;\n")
 		if r.Error != nil {
@@ -210,29 +210,29 @@ func Test_fts4langid(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.1 {delta} { rowid_list delta }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.1 {delta} { rowid_list delta }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.2.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
 	{ // do_test "2.3"
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "build_multilingual_db_1 db")
+		t.Errorf("TODO: %s not implemented in frigolite", "build_multilingual_db_1 db")
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('rebuild') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('rebuild') ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.1 {delta} { rowid_list delta }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.1 {delta} { rowid_list delta }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 2.3.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
 	{ // do_test "3.0"
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "build_multilingual_db_1 db")
+		t.Errorf("TODO: %s not implemented in frigolite", "build_multilingual_db_1 db")
 		_res = db.Exec("\n    CREATE TABLE t3_data(l, x, y);\n    INSERT INTO t3_data(rowid, l, x, y) SELECT docid, l, x, y FROM t2;\n    DROP TABLE t2;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3_data(l, x, y);\n    INSERT INTO t3_data(rowid, l, x, y) SELECT docid, l, x, y FROM t2;\n    DROP TABLE t2;\n  ")
@@ -244,10 +244,10 @@ func Test_fts4langid(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(content=t3_data, languageid=l);\n  INSERT INTO t2(t2) VALUES('rebuild');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.1 {delta} { rowid_list delta }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.1 {delta} { rowid_list delta }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.1.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
 	{ // "3.2.1"
 		_res = db.Exec("\n  DROP TABLE t2;\n  CREATE VIRTUAL TABLE t2 USING fts4(x, y, languageid=l, content=nosuchtable);\n")
 		if _res.Error != nil {
@@ -266,10 +266,10 @@ func Test_fts4langid(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t3_data;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.1 {delta} { rowid_list delta }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.1 {delta} { rowid_list delta }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.2 {\"zero one two\"} { rowid_list \"zero one two\" }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.3 {zero one two} {\n  and_merge_lists [rowid_list zero] [rowid_list o...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_query1 3.3.4 {\"zero one\" OR \"one two\"} {\n  or_merge_lists [rowid_list \"zero one\"] [rowid_l...}")
 	{ // "3.4"
 		r = db.Query("\n  CREATE TABLE t8c(a, b);\n  CREATE VIRTUAL TABLE t8 USING fts4(content=t8c, languageid=langid);\n  INSERT INTO t8(docid, a, b) VALUES(-1, 'one two three', 'x y z');\n  SELECT docid FROM t8 WHERE t8 MATCH 'one x' AND langid=0\n")
 		if r.Error != nil {
@@ -289,12 +289,12 @@ func Test_fts4langid(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		var ptr = "fts3_test_tokenizer"
 		_ = ptr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1")
 		r = db.Query(" SELECT fts3_tokenizer('testtokenizer', $ptr) ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT fts3_tokenizer('testtokenizer', $ptr) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "build_multilingual_db_2 db")
+		t.Errorf("TODO: %s not implemented in frigolite", "build_multilingual_db_2 db")
 	}
 	{ // "4.1.1"
 		r = db.Query("\n  SELECT docid FROM t4 WHERE t4 MATCH 'quick';\n")
@@ -360,7 +360,7 @@ func Test_fts4langid(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "build_multilingual_db_3 db")
+		t.Errorf("TODO: %s not implemented in frigolite", "build_multilingual_db_3 db")
 	}
 	{ // "5.1.1"
 		r = db.Query("\n  SELECT level FROM t5_segdir;\n")

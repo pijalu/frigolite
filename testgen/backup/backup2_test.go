@@ -20,7 +20,7 @@ func Test_backup2(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // do_test "backup2-1"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    INSERT INTO t1 VALUES(randstr(8000,8000));\n    CREATE VIEW v1 AS SELECT substr(x,10,10) FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 VALUES(1,2);\n    INSERT INTO t2 VALUES(2,4);\n    INSERT INTO t2 SELECT a+2, (a+2)*2 FROM t2;\n    INSERT INTO t2 SELECT a+4, (a+4)*2 FROM t2;\n    INSERT INTO t2 SELECT a+8, (a+8)*2 FROM t2;\n    INSERT INTO t2 SELECT a+16, (a+16)*2 FROM t2;\n    INSERT INTO t2 SELECT a+32, (a+32)*2 FROM t2;\n    INSERT INTO t2 SELECT a+64, (a+64)*2 FROM t2;\n    INSERT INTO t2 SELECT a+128, (a+128)*2 FROM t2;\n    CREATE INDEX t2i1 ON t2(a,b);\n    CREATE TRIGGER r1 AFTER INSERT ON t2 BEGIN\n      SELECT 'hello';\n    END;\n    ANALYZE;\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil {
@@ -34,7 +34,7 @@ func Test_backup2(t *testing.T) {
 		db2, err := frigolite.Open("bu1.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "dbcksum db2 main")
+		t.Errorf("TODO: %s not implemented in frigolite", "dbcksum db2 main")
 	}
 	{ // do_test "backup2-3.1"
 		os.Remove("test.db")
@@ -65,10 +65,10 @@ func Test_backup2(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "dbcksum db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "dbcksum db main")
 	}
 	{ // do_test "backup2-4"
-		t.Skipf("TODO: %s not implemented in frigolite", "dbcksum db temp")
+		t.Errorf("TODO: %s not implemented in frigolite", "dbcksum db temp")
 	}
 	{ // do_test "backup2-5"
 		db2.Close()
@@ -76,7 +76,7 @@ func Test_backup2(t *testing.T) {
 		db2, err := frigolite.Open("bu2.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "dbcksum db2 main")
+		t.Errorf("TODO: %s not implemented in frigolite", "dbcksum db2 main")
 	}
 	{ // do_test "backup2-6"
 		db2.Close()

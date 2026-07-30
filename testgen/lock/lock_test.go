@@ -510,7 +510,7 @@ func Test_lock(t *testing.T) {
 		}
 		var STMT = "sqlite3_prepare $DB \"SELECT * FROM sqlite_master\" -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 		_res = db.Exec(" DELETE FROM t4 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t4 ")
@@ -547,14 +547,14 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-6.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 	}
 	var temp_status = "unknown"
 	_ = temp_status // suppress unused warning
 	{ // do_test "lock-7.1"
 		var STMT = "sqlite3_prepare $DB \"SELECT * FROM sqlite_master\" -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "lock-7.2"
 		r = db.Query(" PRAGMA lock_status ")
@@ -573,7 +573,7 @@ func Test_lock(t *testing.T) {
 		}
 	}
 	{ // do_test "lock-7.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 	}
 	{ // do_test "lock-999.1"
 	}

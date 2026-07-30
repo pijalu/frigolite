@@ -57,7 +57,7 @@ func Test_walcksum(t *testing.T) {
 		_ = f // suppress unused warning
 		for func() bool { f_n, _f_e := strconv.Atoi(f); if _f_e != nil { return false }; return f_n <= 6 }() {
 			{ // do_test "walcksum-1." + endian + ".2." + f
-				t.Skipf("TODO: %s not implemented in frigolite", "log_checksum_verify test2.db-wal $f $native")
+				t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test2.db-wal $f $native")
 			}
 			// incr f 1
 			{
@@ -67,13 +67,13 @@ func Test_walcksum(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "log_checksum_writemagic test2.db-wal $endian")
+		t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_writemagic test2.db-wal $endian")
 		var f = "1"
 		_ = f // suppress unused warning
 		for func() bool { f_n, _f_e := strconv.Atoi(f); if _f_e != nil { return false }; return f_n <= 6 }() {
 			{ // do_test "walcksum-1." + endian + ".3." + f
-				t.Skipf("TODO: %s not implemented in frigolite", "log_checksum_write test2.db-wal $f $endian")
-				t.Skipf("TODO: %s not implemented in frigolite", "log_checksum_verify test2.db-wal $f $endian")
+				t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_write test2.db-wal $f $endian")
+				t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test2.db-wal $f $endian")
 			}
 			// incr f 1
 			{
@@ -106,7 +106,7 @@ func Test_walcksum(t *testing.T) {
 		_ = f // suppress unused warning
 		for func() bool { f_n, _f_e := strconv.Atoi(f); if _f_e != nil { return false }; return f_n <= 8 }() {
 			{ // do_test "walcksum-1." + endian + ".5." + f
-				t.Skipf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal $f $endian")
+				t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal $f $endian")
 			}
 			// incr f 1
 			{
@@ -137,7 +137,7 @@ func Test_walcksum(t *testing.T) {
 		_ = f // suppress unused warning
 		for func() bool { f_n, _f_e := strconv.Atoi(f); if _f_e != nil { return false }; return f_n <= 10 }() {
 			{ // do_test "walcksum-1." + endian + ".7." + f
-				t.Skipf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal $f $endian")
+				t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal $f $endian")
 			}
 			// incr f 1
 			{
@@ -164,13 +164,13 @@ func Test_walcksum(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA wal_checkpoint;\n      INSERT INTO t1 VALUES(89, 'eightynine');\n    ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal 1 $native")
+			t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal 1 $native")
 		}
 		{ // do_test "walcksum-1." + endian + ".8.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal 2 $native")
+			t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal 2 $native")
 		}
 		{ // do_test "walcksum-1." + endian + ".8.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal 3 $native")
+			t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_verify test.db-wal 3 $native")
 		}
 		{ // do_test "walcksum-1." + endian + ".9"
 			r = db.Query(" \n      PRAGMA integrity_check;\n      SELECT a FROM t1;\n    ")

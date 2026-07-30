@@ -35,8 +35,8 @@ func Test_pragma4(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "do_pragma_ncol_test 1.$tn.1 [lindex [split $sql =] 0] 1")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_pragma_ncol_test 1.$tn.2 $sql 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_pragma_ncol_test 1.$tn.1 [lindex [split $sql =] 0] 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_pragma_ncol_test 1.$tn.2 $sql 0")
 		}
 		// foreach {tn sql} "\n  1 \"PRAGMA shrink_memory\"\n  2 \"PRAGMA shrink_memory = 10\"\n  3 \"PRAGMA case_sensitive_like = 0\"\n  4 \"PRAGMA case_sensitive_like = 1\"\n  5 \"PRAGMA case_sensitive_like\"\n"
 		_items := tclSplitList("\n  1 \"PRAGMA shrink_memory\"\n  2 \"PRAGMA shrink_memory = 10\"\n  3 \"PRAGMA case_sensitive_like = 0\"\n  4 \"PRAGMA case_sensitive_like = 1\"\n  5 \"PRAGMA case_sensitive_like\"\n")
@@ -46,7 +46,7 @@ func Test_pragma4(t *testing.T) {
 			sql := _items[_idx+1]
 			_ = sql // suppress unused warning
 			_ = _idx
-				t.Skipf("TODO: %s not implemented in frigolite", "do_pragma_ncol_test 1.$tn.1 $sql 0")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_pragma_ncol_test 1.$tn.1 $sql 0")
 			}
 			{
 				var _catchErr error

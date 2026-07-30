@@ -23,9 +23,9 @@ func Test_corruptE(t *testing.T) {
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "corruptE-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    BEGIN;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT OR IGNORE INTO t1 SELECT x*2,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*3,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*5,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*7,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*11,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*13,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*17,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*19,y FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x,2 as y FROM t1 WHERE rowid%5!=0 ORDER BY rowid;\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    BEGIN;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT OR IGNORE INTO t1 SELECT x*2,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*3,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*5,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*7,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*11,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*13,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*17,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*19,y FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x,2 as y FROM t1 WHERE rowid%5!=0 ORDER BY rowid;\n    COMMIT;\n  ")
@@ -38,7 +38,7 @@ func Test_corruptE(t *testing.T) {
 	_ = fsize // suppress unused warning
 	{ // do_test "corruptE-2.1"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2041 [format %02x 0x2e]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2041 [format %02x 0x2e]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -47,7 +47,7 @@ func Test_corruptE(t *testing.T) {
 	}
 	{ // do_test "corruptE-2.2"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2047 [format %02x 0x84]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2047 [format %02x 0x84]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -56,8 +56,8 @@ func Test_corruptE(t *testing.T) {
 	}
 	{ // do_test "corruptE-2.3"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 7420 [format %02x 0xa8]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 10459 [format %02x 0x8d]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 7420 [format %02x 0xa8]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 10459 [format %02x 0x8d]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -66,7 +66,7 @@ func Test_corruptE(t *testing.T) {
 	}
 	{ // do_test "corruptE-2.4"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 10233 [format %02x 0xd0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 10233 [format %02x 0xd0]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -80,7 +80,7 @@ func Test_corruptE(t *testing.T) {
 	for _, test := range tclSplitList(tests) {
 		{ // do_test "corruptE-3." + tc
 			tclFileCopy("test.bu", "test.db")
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [lindex $test 0] [format %02x [lindex $test 1]]")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [lindex $test 0] [format %02x [lindex $test 1]]")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }

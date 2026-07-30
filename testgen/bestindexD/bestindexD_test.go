@@ -21,7 +21,7 @@ func Test_bestindexD(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "bestindexD"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n\n  CREATE TABLE t2(a, b);\n")
@@ -30,10 +30,10 @@ func Test_bestindexD(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_colsused_test 1.1 { SELECT a FROM x1 }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_colsused_test 1.2 { SELECT a,c FROM x1 }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_colsused_test 1.3 { SELECT b FROM x1 }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_colsused_test 1.4 { SELECT b FROM x1 WHERE c=? }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_colsused_test 1.5 {\n  select 1 from t2 full join x1;\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_colsused_test 1.6 {\n  select 1 from x1 WHERE (b=? AND c=?) OR (b=? AN...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_colsused_test 1.1 { SELECT a FROM x1 }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_colsused_test 1.2 { SELECT a,c FROM x1 }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_colsused_test 1.3 { SELECT b FROM x1 }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_colsused_test 1.4 { SELECT b FROM x1 WHERE c=? }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_colsused_test 1.5 {\n  select 1 from t2 full join x1;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_colsused_test 1.6 {\n  select 1 from x1 WHERE (b=? AND c=?) OR (b=? AN...}")
 }

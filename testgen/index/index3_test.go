@@ -96,7 +96,7 @@ func Test_index3(t *testing.T) {
 		}
 	}
 	{ // do_test "index3-99.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 		_res = db.Exec("\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='t1d'\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA writable_schema=on;\n    UPDATE sqlite_master SET sql='nonsense' WHERE name='t1d'\n  ")

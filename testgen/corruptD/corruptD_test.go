@@ -20,8 +20,8 @@ func Test_corruptD(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "corruptD-1.0"
 		_res = db.Exec(" \n    PRAGMA auto_vacuum = 0;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n  ")
 		if _res.Error != nil {
@@ -51,19 +51,19 @@ func Test_corruptD(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "corruptD-1.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "incr_change_counter")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024+1] FFFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "incr_change_counter")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024+1] FFFF")
 		_res = db.Exec(" PRAGMA quick_check ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptD-1.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "incr_change_counter")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024+1] [hexio_render_int32 1021]")
+		t.Errorf("TODO: %s not implemented in frigolite", "incr_change_counter")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024+1] [hexio_render_int32 1021]")
 		_res = db.Exec(" SELECT * FROM t1 ORDER BY rowid ")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptD-1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "restore_file")
+		t.Errorf("TODO: %s not implemented in frigolite", "restore_file")
 	}
 	{ // do_test "corruptD-1.2.2"
 		_res = db.Exec("\n")

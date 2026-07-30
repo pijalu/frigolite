@@ -29,7 +29,7 @@ func Test_selectD(t *testing.T) {
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 		if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 2 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener off")
+			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener off")
 		}
 		{ // do_test "selectD-" + i + ".0"
 			_res = db.Exec("\n      ATTACH ':memory:' AS aux1;\n      CREATE TABLE t1(a,b); INSERT INTO t1 VALUES(111,'x1');\n      CREATE TABLE t2(a,b); INSERT INTO t2 VALUES(222,'x2');\n      CREATE TEMP TABLE t3(a,b); INSERT INTO t3 VALUES(333,'x3');\n      CREATE TABLE main.t4(a,b); INSERT INTO main.t4 VALUES(444,'x4');\n      CREATE TABLE aux1.t4(a,b); INSERT INTO aux1.t4 VALUES(555,'x5');\n    ")

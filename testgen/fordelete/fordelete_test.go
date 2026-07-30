@@ -39,7 +39,7 @@ func Test_fordelete(t *testing.T) {
 		res := _items[_idx+2]
 		_ = res // suppress unused warning
 		_ = _idx
-			t.Skipf("TODO: %s not implemented in frigolite", "do_adp_test 1.$tn $sql $res")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_adp_test 1.$tn $sql $res")
 		}
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t2(a, b, c);\n  CREATE INDEX t2a ON t2(a);\n  CREATE INDEX t2b ON t2(b);\n  CREATE INDEX t2c ON t2(c);\n")
@@ -57,7 +57,7 @@ func Test_fordelete(t *testing.T) {
 			res := _items[_idx+2]
 			_ = res // suppress unused warning
 			_ = _idx
-				t.Skipf("TODO: %s not implemented in frigolite", "do_adp_test 2.$tn $sql $res")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_adp_test 2.$tn $sql $res")
 			}
 			{ // "3.0"
 				_res = db.Exec("\n  CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c, d);\n  CREATE TABLE x2(a INTEGER PRIMARY KEY, b, c, d);\n")
@@ -76,8 +76,8 @@ func Test_fordelete(t *testing.T) {
 				_ = bt // suppress unused warning
 				var csr = "btree_cursor $bt $root 1"
 				_ = csr // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "btree_insert $csr 5 \\000")
-				t.Skipf("TODO: %s not implemented in frigolite", "btree_close_cursor $csr")
+				t.Errorf("TODO: %s not implemented in frigolite", "btree_insert $csr 5 \\000")
+				t.Errorf("TODO: %s not implemented in frigolite", "btree_close_cursor $csr")
 				_res = db.Exec(" COMMIT ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
@@ -98,8 +98,8 @@ func Test_fordelete(t *testing.T) {
 				_ = bt // suppress unused warning
 				var csr = "btree_cursor $bt $root 1"
 				_ = csr // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "btree_insert $csr 6 \\000")
-				t.Skipf("TODO: %s not implemented in frigolite", "btree_close_cursor $csr")
+				t.Errorf("TODO: %s not implemented in frigolite", "btree_insert $csr 6 \\000")
+				t.Errorf("TODO: %s not implemented in frigolite", "btree_close_cursor $csr")
 				_res = db.Exec(" COMMIT ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")

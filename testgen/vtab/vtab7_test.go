@@ -19,8 +19,8 @@ func Test_vtab7(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
-	t.Skipf("TODO: %s not implemented in frigolite", "trace add variable ::echo_module write echo_module_trace")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	t.Errorf("TODO: %s not implemented in frigolite", "trace add variable ::echo_module write echo_module_trace")
 	// proc definition (not transpiled)
 	{ // do_test "vtab7-1.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n    CREATE VIRTUAL TABLE abc2 USING echo(abc);\n  ")
@@ -113,5 +113,5 @@ func Test_vtab7(t *testing.T) {
 		}
 		_ = _error // TCL namespace variable (query)
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "trace remove variable ::echo_module write echo_module_trace")
+	t.Errorf("TODO: %s not implemented in frigolite", "trace remove variable ::echo_module write echo_module_trace")
 }

@@ -75,7 +75,7 @@ func Test_windowE(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_aggregate db")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_aggregate db")
 	{ // "2.1"
 		_res = db.Exec("\n  SELECT min(x) OVER w1 FROM t1\n    WINDOW w1 AS (PARTITION BY x_count(x) OVER w1);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "x_count() may not be used as a window function") {

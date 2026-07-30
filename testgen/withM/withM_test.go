@@ -27,7 +27,7 @@ func Test_withM(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER, y INTEGER);\n  INSERT INTO t1 VALUES(123, 456);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test withM-1.1 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { \n    WITH tmp AS ( SELECT * FROM t1 )...} -test {\n  faultsim_test_result {0 {123 456}}\n  db close\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test withM-1.2 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { \n    WITH w1 AS ( SELECT * FROM t1 ),...} -test {\n  faultsim_test_result {0 {123 456}}\n  db close\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test withM-1.3 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { \n    WITH w1(a,b) AS ( \n      SELECT ...} -test {\n  faultsim_test_result {0 {1 1 2 4 3 9 4 16 5 25}...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test withM-1.1 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { \n    WITH tmp AS ( SELECT * FROM t1 )...} -test {\n  faultsim_test_result {0 {123 456}}\n  db close\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test withM-1.2 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { \n    WITH w1 AS ( SELECT * FROM t1 ),...} -test {\n  faultsim_test_result {0 {123 456}}\n  db close\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test withM-1.3 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { \n    WITH w1(a,b) AS ( \n      SELECT ...} -test {\n  faultsim_test_result {0 {1 1 2 4 3 9 4 16 5 25}...}")
 }

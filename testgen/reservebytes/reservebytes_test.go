@@ -24,7 +24,7 @@ func Test_reservebytes(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 0")
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b, c);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t1 SELECT NULL, i, hex(randomblob(500)) FROM s;\n")
 		if r.Error != nil {
@@ -42,9 +42,9 @@ func Test_reservebytes(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 8")
+	t.Errorf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 8")
 	{ // do_test "1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
 	}
 	{ // "-db"
 		_res = db.Exec("db2")
@@ -65,11 +65,11 @@ func Test_reservebytes(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 16")
+	t.Errorf("TODO: %s not implemented in frigolite", "file_control_reservebytes db 16")
 	{ // do_test "1.4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
 	}
 	{ // "1.4.2"
 		_res = db.Exec(" VACUUM ")
@@ -84,6 +84,6 @@ func Test_reservebytes(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 20 1")
 	}
 }

@@ -27,8 +27,8 @@ func Test_alterfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);                 \n  CREATE TEMP TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 123;\n  END;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE t1 ADD COLUMN b CHECK...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE t1 ADD COLUMN b CHECK...} -test {\n  faultsim_test_result {0 {}}\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -38,7 +38,7 @@ func Test_alterfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(d, e CONSTRAINT abc NOT NULL, f);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	// foreach {tn sql} "\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n"
 	_items := tclSplitList("\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
@@ -47,7 +47,7 @@ func Test_alterfault(t *testing.T) {
 		sql := _items[_idx+1]
 		_ = sql // suppress unused warning
 		_ = _idx
-			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql $::sql\n  } -test {\n    faultsim_test_result {0 {}}\n  }")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql $::sql\n  } -test {\n    faultsim_test_result {0 {}}\n  }")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.e -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE x1 DROP CONSTRAINT no...} -test {\n  faultsim_test_result                           ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.e -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE x1 DROP CONSTRAINT no...} -test {\n  faultsim_test_result                           ...}")
 }

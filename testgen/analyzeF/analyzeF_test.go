@@ -98,7 +98,7 @@ func Test_analyzeF(t *testing.T) {
 					t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  SELECT * FROM t1 WHERE x = zeroblob(2200000000) AND y = 4;\n")
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 1000000")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 1000000")
 			// proc definition (not transpiled)
 			{ // "4.3"
 				_res = db.Exec("\n  SELECT * FROM t1 WHERE x = dstr() AND y = 11;\n")

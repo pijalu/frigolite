@@ -21,7 +21,7 @@ func Test_misc8(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db eval")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db eval")
 	{ // "misc8-1.0"
 		r = db.Query("\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1 VALUES(1,2,3),(4,5,6);\n  SELECT quote(eval('SELECT * FROM t1 ORDER BY a','-abc-'));\n")
 		if r.Error != nil {
@@ -143,7 +143,7 @@ func Test_misc8(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "dbconfig_maindbname_icecube db")
+	t.Errorf("TODO: %s not implemented in frigolite", "dbconfig_maindbname_icecube db")
 	{ // "misc8-4.2"
 		r = db.Query("\n  SELECT name FROM icecube.sqlite_master;\n")
 		if r.Error != nil {

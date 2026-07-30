@@ -27,8 +27,8 @@ func Test_e_delete(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-0.1 {\n  1  \"DELETE FROM t1\"                            ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-0.1 {\n  1  \"DELETE FROM t1\"                            ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	{ // do_test "e_delete-1.0"
 		for _, t := range tclSplitList("t1 t2 t3 t4 t5 t6") {
 			_res = db.Exec("[list %T% $t] {\n        CREATE TABLE %T%(x, y);\n        INSERT INTO %T% VALUES(1, 'one');\n        INSERT INTO %T% VALUES(2, 'two');\n        INSERT INTO %T% VALUES(3, 'three');\n        INSERT INTO %T% VALUES(4, 'four');\n        INSERT INTO %T% VALUES(5, 'five');\n      }")
@@ -37,8 +37,8 @@ func Test_e_delete(t *testing.T) {
 			}
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-1.1 {\n  1  \"DELETE FROM t1       ; SELECT * FROM t1\"   ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-1.2 {\n  1  \"DELETE FROM t3 WHERE 1       ; SELECT x FRO...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-1.1 {\n  1  \"DELETE FROM t1       ; SELECT * FROM t1\"   ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-1.2 {\n  1  \"DELETE FROM t3 WHERE 1       ; SELECT x FRO...}")
 	os.Remove("test.db2")
 	os.Remove("test.db3")
 	{ // "e_delete-2.0"
@@ -47,15 +47,15 @@ func Test_e_delete(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  ATTACH 'test.db3' AS aux2;\n\n  CREATE TABLE temp.t7(a, b);   INSERT INTO temp.t7 VALUES(1, 2);\n  CREATE TABLE main.t7(a, b);   INSERT INTO main.t7 VALUES(3, 4);\n  CREATE TABLE aux.t7(a, b);    INSERT INTO aux.t7 VALUES(5, 6);\n  CREATE TABLE aux2.t7(a, b);   INSERT INTO aux2.t7 VALUES(7, 8);\n\n  CREATE TABLE main.t8(a, b);   INSERT INTO main.t8 VALUES(1, 2);\n  CREATE TABLE aux.t8(a, b);    INSERT INTO aux.t8 VALUES(3, 4);\n  CREATE TABLE aux2.t8(a, b);   INSERT INTO aux2.t8 VALUES(5, 6);\n\n  CREATE TABLE aux.t9(a, b);    INSERT INTO aux.t9 VALUES(1, 2);\n  CREATE TABLE aux2.t9(a, b);   INSERT INTO aux2.t9 VALUES(3, 4);\n\n  CREATE TABLE aux2.t10(a, b);  INSERT INTO aux2.t10 VALUES(1, 2);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-2.1 -error {\n  qualified table names are not allowed on INSERT...} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON t1...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-2.2.1 -error { no such table: %s } {\n  1 {\n      CREATE TRIGGER main.tr1 AFTER INSERT ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-2.1 -error {\n  qualified table names are not allowed on INSERT...} {\n  1 {\n      CREATE TRIGGER tr1 AFTER INSERT ON t1...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-2.2.1 -error { no such table: %s } {\n  1 {\n      CREATE TRIGGER main.tr1 AFTER INSERT ...}")
 	{ // "e_delete-2.2.X"
 		_res = db.Exec("\n  DROP TRIGGER main.tr1;\n  DROP TRIGGER aux.tr2;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TRIGGER main.tr1;\n  DROP TRIGGER aux.tr2;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-2.2.2 {\n  1 {\n      CREATE TRIGGER aux.tr1 AFTER INSERT O...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-2.2.2 {\n  1 {\n      CREATE TRIGGER aux.tr1 AFTER INSERT O...}")
 	{ // "e_delete-2.3.0"
 		_res = db.Exec("\n  DROP TRIGGER aux.tr1;\n  DROP TRIGGER main.tr1;\n  DELETE FROM main.t8 WHERE oid>1;\n  DELETE FROM aux.t8 WHERE oid>1;\n  INSERT INTO aux.t9 VALUES(1, 2);\n  INSERT INTO main.t7 VALUES(3, 4);\n")
 		if _res.Error != nil {
@@ -98,5 +98,5 @@ func Test_e_delete(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i8 ON t8(a, b);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-2.4 -error {\n  the %s %s clause is not allowed on UPDATE or DE...} {\n  1 {\n    CREATE TRIGGER tr3 AFTER INSERT ON t8 B...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_delete_tests e_delete-2.4 -error {\n  the %s %s clause is not allowed on UPDATE or DE...} {\n  1 {\n    CREATE TRIGGER tr3 AFTER INSERT ON t8 B...}")
 }

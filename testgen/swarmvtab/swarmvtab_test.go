@@ -24,8 +24,8 @@ func Test_swarmvtab(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "swarmvtab"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
 	var nFile = sqlite_open_file_count
 	_ = nFile // suppress unused warning
 	{ // "1.0"
@@ -79,15 +79,15 @@ func Test_swarmvtab(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.1 rowid = 700")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.2 rowid = -1")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.3 rowid = 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.4 rowid = 55")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.5 rowid BETWEEN 20 AND 100")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.6 rowid > 350")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.7 rowid >= 350")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.8 rowid >= 200")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.9 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.1 rowid = 700")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.2 rowid = -1")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.3 rowid = 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.4 rowid = 55")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.5 rowid BETWEEN 20 AND 100")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.6 rowid > 350")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.7 rowid >= 350")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.8 rowid >= 200")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.4.9 1")
 	{ // "1.5.1.(5-seconds-or-so)"
 		r = db.Query("\n  SELECT count(*) FROM s1 a, s1 b WHERE b.rowid<=200;\n")
 		if r.Error != nil {
@@ -135,16 +135,16 @@ func Test_swarmvtab(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t0 WHERE rowid<=200 ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.1 rowid = 700")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.2 rowid = -1")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.3 rowid = 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.4 rowid = 55")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.5 rowid BETWEEN 20 AND 100")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.6 rowid > 350")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.7 rowid >= 350")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.8 rowid >= 200")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.9 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.10 rowid >= 5")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.1 rowid = 700")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.2 rowid = -1")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.3 rowid = 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.4 rowid = 55")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.5 rowid BETWEEN 20 AND 100")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.6 rowid > 350")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.7 rowid >= 350")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.8 rowid >= 200")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.9 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_compare_test 1.6.10 rowid >= 5")
 	{ // do_test "1.x"
 	}
 	{ // do_test "1.y"
@@ -164,7 +164,7 @@ func Test_swarmvtab(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
 	{ // do_test "2.0.1"
 		_res = db.Exec("\n    CREATE TABLE t0(a INTEGER PRIMARY KEY, b TEXT);\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<400) \n      INSERT INTO t0 SELECT i, hex(randomblob(50)) FROM s;\n    CREATE TABLE dir(f, t, imin, imax);\n  ")
 		if _res.Error != nil {

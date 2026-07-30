@@ -32,7 +32,7 @@ func Test_autovacuum2(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_autovacuum_pages db autovac_page_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_autovacuum_pages db autovac_page_callback")
 	var autovac_callback_data = ""
 	_ = autovac_callback_data // suppress unused warning
 	{ // "autovacuum2-1.1"
@@ -79,7 +79,7 @@ func Test_autovacuum2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_autovacuum_pages db")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_autovacuum_pages db")
 	{ // "autovacuum2-1.10"
 		r = db.Query("\n  CREATE TABLE t2(x);\n  PRAGMA freelist_count;\n")
 		if r.Error != nil {
@@ -93,7 +93,7 @@ func Test_autovacuum2(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_autovacuum_pages db autovac_page_callback_off")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_autovacuum_pages db autovac_page_callback_off")
 	{ // "autovacuum2-1.20"
 		r = db.Query("\n  BEGIN;\n  INSERT INTO t1(x) VALUES(zeroblob(10000));\n  DELETE FROM t1;\n  PRAGMA freelist_count;\n  COMMIT;\n  PRAGMA freelist_count;\n")
 		if r.Error != nil {

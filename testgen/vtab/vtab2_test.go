@@ -21,7 +21,7 @@ func Test_vtab2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtab2"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "register_schema_module [sqlite3_connection_pointer db]")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_schema_module [sqlite3_connection_pointer db]")
 	{ // do_test "vtab2-1.1"
 		r = db.Query("\n    CREATE VIRTUAL TABLE schema USING schema;\n    SELECT * FROM schema;\n  ")
 		if r.Error != nil {
@@ -46,7 +46,7 @@ func Test_vtab2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT length(tablename) FROM schema GROUP by length(tablename);\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tclvar_module [sqlite3_connection_pointer db]")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tclvar_module [sqlite3_connection_pointer db]")
 	{ // do_test "vtab2-2.1"
 		var _abc = "123" // TCL namespace variable
 		_ = _abc // suppress unused warning

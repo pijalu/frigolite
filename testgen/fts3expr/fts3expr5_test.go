@@ -61,10 +61,10 @@ func Test_fts3expr5(t *testing.T) {
 	var sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	{ // do_test "2.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(a:123)(b:234)()(c:456)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(a:123)(b:234)()(c:456)}")
 	}
 	{ // do_test "2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "test_fts3expr {(a:123)(b:234)(c:456)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr {(a:123)(b:234)(c:456)}")
 	}
 	{ // do_test "2.2"
 		_list := tclList([]string{"0", msg})

@@ -32,7 +32,7 @@ func Test_soak(t *testing.T) {
 			value := _items[_idx+1]
 			_ = value // suppress unused warning
 			_ = _idx
-				t.Skipf("TODO: %s not implemented in frigolite", "switch -- $name {\n      -timeout {\n        set TIMEOUT $value\n     ...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "switch -- $name {\n      -timeout {\n        set TIMEOUT $value\n     ...}")
 			}
 		}
 		var argv = "list"
@@ -56,7 +56,7 @@ func Test_soak(t *testing.T) {
 			}
 			if func() bool { sqlite_open_file_count_n, _sqlite_open_file_count_e := strconv.Atoi(sqlite_open_file_count); if _sqlite_open_file_count_e != nil { return false }; return sqlite_open_file_count_n > 0 }() {
 				t.Log(tail + " did not close all files: " + sqlite_open_file_count)
-				t.Skipf("TODO: %s not implemented in frigolite", "fail_test $tail")
+				t.Errorf("TODO: %s not implemented in frigolite", "fail_test $tail")
 				var sqlite_open_file_count = "0"
 				_ = sqlite_open_file_count // suppress unused warning
 			}
@@ -70,5 +70,5 @@ func Test_soak(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "really_finish_test")
+		t.Errorf("TODO: %s not implemented in frigolite", "really_finish_test")
 }

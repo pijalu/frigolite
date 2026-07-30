@@ -21,7 +21,7 @@ func Test_regexp1(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "regexp1-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db regexp")
+		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db regexp")
 		_res = db.Exec("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n    INSERT INTO t1 VALUES(1, 'For since by man came death,');\n    INSERT INTO t1 VALUES(2, 'by man came also the resurrection of the dead.');\n    INSERT INTO t1 VALUES(3, 'For as in Adam all die,');\n    INSERT INTO t1 VALUES(4, 'even so in Christ shall all be made alive.');\n\n    SELECT x FROM t1 WHERE y REGEXP '^For ' ORDER BY x;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y TEXT);\n    INSERT INTO t1 VALUES(1, 'For since by man came death,');\n    INSERT INTO t1 VALUES(2, 'by man came also the resurrection of the dead.');\n    INSERT INTO t1 VALUES(3, 'For as in Adam all die,');\n    INSERT INTO t1 VALUES(4, 'even so in Christ shall all be made alive.');\n\n    SELECT x FROM t1 WHERE y REGEXP '^For ' ORDER BY x;\n  ")
@@ -612,7 +612,7 @@ func Test_regexp1(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db regexp")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db regexp")
 	{ // "regexp1-3.1"
 		r = db.Query("\n  CREATE TABLE t1(id INTEGER PRIMARY KEY, a TEXT);\n  INSERT INTO t1(id, a) VALUES(1, '日本語');\n  SELECT a, hex(a), length(a) FROM t1;\n")
 		if r.Error != nil {

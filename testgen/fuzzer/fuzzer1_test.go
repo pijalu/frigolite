@@ -23,7 +23,7 @@ func Test_fuzzer1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fuzzer1" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db fuzzer")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fuzzer")
 	{ // "fuzzer1-1.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE f USING fuzzer;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "fuzzer: wrong number of CREATE VIRTUAL TABLE arguments") {

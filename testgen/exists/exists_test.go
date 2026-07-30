@@ -24,8 +24,8 @@ func Test_exists(t *testing.T) {
 		}
 		var testprefix = "exists-" + jm
 		_ = testprefix // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    # TABLE objects.\n    #\n    do_test 1.$tn.1.1...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    # TABLE objects.\n    #\n    do_test 2.$tn.1 {...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    forcedelete test.db2\n    do_test 3.$tn.0 {\n ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    # TABLE objects.\n    #\n    do_test 1.$tn.1.1...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    # TABLE objects.\n    #\n    do_test 2.$tn.1 {...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    forcedelete test.db2\n    do_test 3.$tn.0 {\n ...}")
 	}
 }

@@ -21,14 +21,14 @@ func Test_crash2(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "crash2-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 500 -file test.db -blocksize 2048 {\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 500 -file test.db -blocksize 2048 {\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=...}")
 		// file size test.db
 	}
 	var ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 5 }() {
 		{ // do_test "crash2-1.2." + ii
-			t.Skipf("TODO: %s not implemented in frigolite", "crashsql -file test.db -blocksize 2048 [subst {\n      [string repeat {SELECT random();} $...")
+			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file test.db -blocksize 2048 [subst {\n      [string repeat {SELECT random();} $...")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -84,13 +84,13 @@ func Test_crash2(t *testing.T) {
 		sector := "1024 * 1<<($i%4)"
 		_ = sector // suppress unused warning
 		{ // do_test "crash2-2." + i + ".1"
-			t.Skipf("TODO: %s not implemented in frigolite", "crashsql -blocksize $sector -delay [expr $i%5 + 1] -file test.db-journal \n       PRAGMA temp_store = memory;\n       BEGIN;\n...")
+			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -blocksize $sector -delay [expr $i%5 + 1] -file test.db-journal \n       PRAGMA temp_store = memory;\n       BEGIN;\n...")
 		}
 		{ // do_test "crash2-2." + i + ".2"
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		// incr i 1
 		{
@@ -108,13 +108,13 @@ func Test_crash2(t *testing.T) {
 		sector := "1024 * 1<<($i%4)"
 		_ = sector // suppress unused warning
 		{ // do_test "crash2-3." + i + ".1"
-			t.Skipf("TODO: %s not implemented in frigolite", "crashsql -blocksize $sector -file test.db \n       BEGIN;\n       SELECT random() FROM abc LIM...")
+			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -blocksize $sector -file test.db \n       BEGIN;\n       SELECT random() FROM abc LIM...")
 		}
 		{ // do_test "crash2-3." + i + ".2"
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		// incr i 1
 		{

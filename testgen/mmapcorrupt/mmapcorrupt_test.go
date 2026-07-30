@@ -21,10 +21,10 @@ func Test_mmapcorrupt(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "mmapcorrupt"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -36,7 +36,7 @@ func Test_mmapcorrupt(t *testing.T) {
 	}
 	var sz = "file size test.db"
 	_ = sz // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $sz-3] 800380")
+	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $sz-3] 800380")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "2.1"

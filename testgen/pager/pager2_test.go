@@ -22,7 +22,7 @@ func Test_pager2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var otn = "0"
 	_ = otn // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
 	for _, code := range tclSplitList("list {\n  set s 512\n} {\n  set s 1024\n  set sql { PRAGMA journal_mode = memory }\n} {\n  set s 1024\n  set sql { \n    PRAGMA journal_mode = memory;\n    PRAGMA locking_mode = exclusive;\n  }\n} {\n  set s 2048\n  tv devchar safe_append\n} {\n  set s 4096\n} {\n  set s 4096\n  set sql { PRAGMA journal_mode = WAL }\n} {\n  set s 4096\n  set sql { PRAGMA auto_vacuum = 1 }\n} {\n  set s 8192\n  set sql { PRAGMA synchronous = off }\n}") {
 		// incr otn 1
 		{
@@ -33,11 +33,11 @@ func Test_pager2(t *testing.T) {
 		}
 		var sql = ""
 		_ = sql // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "tv devchar {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "tv devchar {}")
 		// eval $code
-		t.Skipf("TODO: %s not implemented in frigolite", "tv sectorsize $s")
+		t.Errorf("TODO: %s not implemented in frigolite", "tv sectorsize $s")
 		{ // do_test "pager2-1." + otn + ".0"
-			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -129,16 +129,16 @@ func Test_pager2(t *testing.T) {
 			}
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tv delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tv delete")
 	{ // do_test "pager2-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = off;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    PRAGMA journal_mode = off;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n    ROLLBACK;\n    SELECT * FROM t1;\n  ")
 		}
 	}
 	{ // do_test "pager2-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		r = db.Query("\n    PRAGMA auto_vacuum = incremental;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(zeroblob(5000), zeroblob(5000));\n    DELETE FROM t1;\n    PRAGMA incremental_vacuum;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = incremental;\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(zeroblob(5000), zeroblob(5000));\n    DELETE FROM t1;\n    PRAGMA incremental_vacuum;\n  ")

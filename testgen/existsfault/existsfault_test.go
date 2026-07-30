@@ -21,10 +21,10 @@ func Test_existsfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "existsfault"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
@@ -33,5 +33,5 @@ func Test_existsfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b);\n  INSERT INTO x1 VALUES(1, 2), (3, 4), (5, 6);\n  CREATE UNIQUE INDEX x1a ON x1(a);\n  CREATE INDEX x1b ON x1(b);\n\n  CREATE TABLE x2(x, y);\n  INSERT INTO x2 VALUES(1, 2), (3, 4), (5, 6);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep {\n  sqlite3 db test.db\n  execsql { SELECT * FROM sq...} -body {\n  execsql {\n    SELECT count(*) FROM x2 WHERE EXI...} -test {\n  faultsim_test_result {0 3}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep {\n  sqlite3 db test.db\n  execsql { SELECT * FROM sq...} -body {\n  execsql {\n    SELECT count(*) FROM x2 WHERE EXI...} -test {\n  faultsim_test_result {0 3}\n}")
 }

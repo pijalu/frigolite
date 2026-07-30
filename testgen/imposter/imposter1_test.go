@@ -32,17 +32,17 @@ func Test_imposter1(t *testing.T) {
 		_ = t1b_root // suppress unused warning
 		var t1c_root = "db one {SELECT rootpage FROM sqlite_master WHERE name='t1c'}"
 		_ = t1c_root // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $t1_root")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $t1_root")
 		_res = db.Exec("CREATE TABLE xt1(a,b,c,d)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE xt1(a,b,c,d)")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $t1c_root")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $t1c_root")
 		_res = db.Exec("CREATE TABLE xt1c(c,rowid,PRIMARY KEY(c,rowid))WITHOUT ROWID;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE xt1c(c,rowid,PRIMARY KEY(c,rowid))WITHOUT ROWID;")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 0")
 		_res = db.Exec("\n    CREATE TEMP TABLE chnglog(desc TEXT);\n    CREATE TEMP TRIGGER xt1_del AFTER DELETE ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('DELETE t1: rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  old.rowid, quote(old.a), quote(old.b), quote(old.c),\n                  quote(old.d)));\n    END;\n    CREATE TEMP TRIGGER xt1_ins AFTER INSERT ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('INSERT t1:  rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  new.rowid, quote(new.a), quote(new.b), quote(new.c),\n                  quote(new.d)));\n    END;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE chnglog(desc TEXT);\n    CREATE TEMP TRIGGER xt1_del AFTER DELETE ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('DELETE t1: rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  old.rowid, quote(old.a), quote(old.b), quote(old.c),\n                  quote(old.d)));\n    END;\n    CREATE TEMP TRIGGER xt1_ins AFTER INSERT ON xt1 BEGIN\n      INSERT INTO chnglog VALUES(\n           printf('INSERT t1:  rowid=%d, a=%s, b=%s, c=%s, d=%s',\n                  new.rowid, quote(new.a), quote(new.b), quote(new.c),\n                  quote(new.d)));\n    END;\n  ")
@@ -145,7 +145,7 @@ func Test_imposter1(t *testing.T) {
 		}
 	}
 	{ // do_test "imposter-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 0 1")
 		_res = db.Exec("\n    DELETE FROM t1 WHERE rowid IN (5,7,9);\n    PRAGMA integrity_check;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t1 WHERE rowid IN (5,7,9);\n    PRAGMA integrity_check;\n  ")

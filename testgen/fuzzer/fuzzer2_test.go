@@ -21,7 +21,7 @@ func Test_fuzzer2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fuzzer2" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db fuzzer")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fuzzer")
 	{ // "1.1.1"
 		_res = db.Exec("\n  DROP TABLE IF EXISTS x1;\n  DROP TABLE IF EXISTS x1_rules;\n  CREATE TABLE x1_rules(ruleset, cFrom, cTo, cost);\n")
 		if _res.Error != nil {

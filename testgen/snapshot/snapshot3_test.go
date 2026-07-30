@@ -54,7 +54,7 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open_blob db2 main $snap")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open_blob db2 main $snap")
 		db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
@@ -71,7 +71,7 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open_blob db2 main $snap")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open_blob db2 main $snap")
 		db2.Exec(" SELECT * FROM t1 ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
@@ -171,7 +171,7 @@ func Test_snapshot3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db3 main $snap")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db3 main $snap")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $snap")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $snap")
 }

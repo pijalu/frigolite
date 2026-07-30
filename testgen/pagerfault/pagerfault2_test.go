@@ -23,12 +23,12 @@ func Test_pagerfault2(t *testing.T) {
 	if tclBool("permutation" + " == \"inmemory_journal\"") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 0")
 	var a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "pagerfault2-1-pre1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(a_string(401), a_string(402));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = DELETE;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(a_string(401), a_string(402));\n  ")
@@ -48,18 +48,18 @@ func Test_pagerfault2(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 		// file size test.db
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault2-1 -faults oom-transient -prep {\n  faultsim_restore_and_reopen\n  sqlite3_db_config...} -body {\n  execsql { UPDATE t1 SET a = a||'x' WHERE rowid>...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault2-1 -faults oom-transient -prep {\n  faultsim_restore_and_reopen\n  sqlite3_db_config...} -body {\n  execsql { UPDATE t1 SET a = a||'x' WHERE rowid>...} -test {\n  faultsim_test_result {0 {}}\n}")
 	{ // do_test "pagerfault2-2-pre1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 		_res = db.Exec(" DELETE FROM t1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault2-2 -faults oom-transient -prep {\n  faultsim_restore_and_reopen\n  sqlite3_db_config...} -body {\n  execsql { INSERT INTO t1 VALUES (a_string(20000...} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault2-2 -faults oom-transient -prep {\n  faultsim_restore_and_reopen\n  sqlite3_db_config...} -body {\n  execsql { INSERT INTO t1 VALUES (a_string(20000...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 1")
 }

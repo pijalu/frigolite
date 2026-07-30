@@ -77,15 +77,15 @@ func Test_trace(t *testing.T) {
 		// proc definition (not transpiled)
 		var TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "trace-2.2"
 		var TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
 	}
 	{ // do_test "trace-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "trace-2.4"
 		var TRACE_OUT = ""
@@ -100,7 +100,7 @@ func Test_trace(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 	}
 	{ // do_test "trace-2.6"
 		var TRACE_OUT = ""
@@ -151,15 +151,15 @@ func Test_trace(t *testing.T) {
 		// proc definition (not transpiled)
 		var TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "trace-4.2"
 		var TRACE_OUT = ""
 		_ = TRACE_OUT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
 	}
 	{ // do_test "trace-4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "trace-4.4"
 		var TRACE_OUT = ""
@@ -174,7 +174,7 @@ func Test_trace(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 	}
 	{ // do_test "trace-4.6"
 		var TRACE_OUT = ""

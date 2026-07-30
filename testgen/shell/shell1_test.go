@@ -43,10 +43,10 @@ func Test_shell1(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shell1-1.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db \\\"select+3\\\" \\\"select+4\\\" ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db \\\"select+3\\\" \\\"select+4\\\" ")
 	}
 	{ // do_test "shell1-1.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db FOO test.db BAD .quit")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db FOO test.db BAD .quit")
 	}
 	{ // do_test "shell1-1.2.1"
 		var res = "catchcmd \"-help test.db\" \"\""
@@ -62,25 +62,25 @@ func Test_shell1(t *testing.T) {
 	t.Log(out)
 	// close $out
 	{ // do_test "shell1-1.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -init FOO test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -init FOO test.db ")
 	}
 	{ // do_test "shell1-1.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -init FOO test.db .quit BAD ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -init FOO test.db .quit BAD ")
 	}
 	{ // do_test "shell1-1.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -init FOO test.db BAD .quit ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -init FOO test.db BAD .quit ")
 	}
 	{ // do_test "shell1-1.4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -echo test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -echo test.db ")
 	}
 	{ // do_test "shell1-1.5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -header test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -header test.db ")
 	}
 	{ // do_test "shell1-1.5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -noheader test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -noheader test.db ")
 	}
 	{ // do_test "shell1-1.6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -bail test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -bail test.db ")
 	}
 	{ // do_test "shell1-1.7.1"
 		var res = "catchcmd \"-interactive test.db\" \".quit\""
@@ -91,38 +91,38 @@ func Test_shell1(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shell1-1.8.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -batch test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -batch test.db ")
 	}
 	{ // do_test "shell1-1.9.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -column test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -column test.db ")
 	}
 	{ // do_test "shell1-1.10.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -csv test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -csv test.db ")
 	}
 	{ // do_test "shell1-1.10.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db CREATE TABLE t1(a,b,c);INSERT INTO t1 VALUES(1,2,3...")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -csv test.db .mode --rowsep \\\"\\\\012\\\"\\nSELECT * FROM t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db CREATE TABLE t1(a,b,c);INSERT INTO t1 VALUES(1,2,3...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -csv test.db .mode --rowsep \\\"\\\\012\\\"\\nSELECT * FROM t1")
 	}
 	{ // do_test "shell1-1.10.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -header -csv test.db .mode --rowsep \\\"\\\\012\\\"\\nSELECT * FROM t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -header -csv test.db .mode --rowsep \\\"\\\\012\\\"\\nSELECT * FROM t1")
 	}
 	{ // do_test "shell1-1.10.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -csv -header test.db .mode --rowsep \\\"\\\\012\\\"\\nSELECT * FROM t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -csv -header test.db .mode --rowsep \\\"\\\\012\\\"\\nSELECT * FROM t1")
 	}
 	{ // do_test "shell1-1.11.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -html test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -html test.db ")
 	}
 	{ // do_test "shell1-1.12.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -line test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -line test.db ")
 	}
 	{ // do_test "shell1-1.13.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -list test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -list test.db ")
 	}
 	{ // do_test "shell1-1.14.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -separator 'x' test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -separator 'x' test.db ")
 	}
 	{ // do_test "shell1-1.14.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -separator x test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -separator x test.db ")
 	}
 	{ // do_test "shell1-1.14.3"
 		var res = "catchcmd \"-separator\" \"\""
@@ -133,13 +133,13 @@ func Test_shell1(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shell1-1.14b.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -stats test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -stats test.db ")
 	}
 	{ // do_test "shell1-1.15.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -nullvalue 'x' test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -nullvalue 'x' test.db ")
 	}
 	{ // do_test "shell1-1.15.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd -nullvalue x test.db ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd -nullvalue x test.db ")
 	}
 	{ // do_test "shell1-1.15.3"
 		var res = "catchcmd \"-nullvalue\" \"\""
@@ -155,96 +155,96 @@ func Test_shell1(t *testing.T) {
 	}
 	os.Remove("./--db")
 	{ // do_test "shell1-1.17.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd {-- --db \"CREATE TABLE T(c1);\"}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd {-- --db \"CREATE TABLE T(c1);\"}")
 	}
 	{ // do_test "shell1-1.17.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd {-- --db \"SELECT name from sqlite_schema;\"}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd {-- --db \"SELECT name from sqlite_schema;\"}")
 	}
 	os.Remove("./--db")
 	{ // do_test "shell1-2.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .foo")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .foo")
 	}
 	{ // do_test "shell1-2.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\\"foo OFF\\\"")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\\"foo OFF\\\"")
 	}
 	{ // do_test "shell1-2.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'foo OFF\\'")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'foo OFF\\'")
 	}
 	{ // do_test "shell1-2.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\\"foo OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\\"foo OFF")
 	}
 	{ // do_test "shell1-2.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'foo OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'foo OFF")
 	}
 	{ // do_test "shell1-2.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\\"OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\\"OFF")
 	}
 	{ // do_test "shell1-2.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\'OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\'OFF")
 	}
 	{ // do_test "shell1-2.2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode \\\"insert FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode \\\"insert FOO")
 	}
 	{ // do_test "shell1-2.2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode \\'insert FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode \\'insert FOO")
 	}
 	{ // do_test "shell1-2.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain 1")
 	}
 	{ // do_test "shell1-2.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain on")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain on")
 	}
 	{ // do_test "shell1-2.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\\"1 2 3\\\"")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\\"1 2 3\\\"")
 	}
 	{ // do_test "shell1-2.3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\\"OFF\\\"")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\\"OFF\\\"")
 	}
 	{ // do_test "shell1-2.3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'explain\\' \\'OFF\\'")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'explain\\' \\'OFF\\'")
 	}
 	{ // do_test "shell1-2.3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\'OFF\\'")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain \\'OFF\\'")
 	}
 	{ // do_test "shell1-2.3.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'explain\\' \\'OFF\\'")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .\\'explain\\' \\'OFF\\'")
 	}
 	{ // do_test "shell1-2.4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode FOO")
 	}
 	{ // do_test "shell1-2.4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode csv")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode csv")
 	}
 	{ // do_test "shell1-2.4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode \\\"csv\\\"")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode \\\"csv\\\"")
 	}
 	{ // do_test "shell1-2.5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: .print \\\"\\\\060\\\\077 \\\\x3f\\\\x30 \\\\a\\\\t\\\"")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: .print \\\"\\\\060\\\\077 \\\\x3f\\\\x30 \\\\a\\\\t\\\"")
 	}
 	{ // do_test "shell1-3.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup")
 	}
 	os.Remove("FOO")
 	{ // do_test "shell1-3.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup FOO")
 	}
 	{ // do_test "shell1-3.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup FOO BAR")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup FOO BAR")
 	}
 	{ // do_test "shell1-3.1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup FOO BAR BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .backup FOO BAR BAD")
 	}
 	{ // do_test "shell1-3.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail")
 	}
 	{ // do_test "shell1-3.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail ON")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail ON")
 	}
 	{ // do_test "shell1-3.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail OFF")
 	}
 	{ // do_test "shell1-3.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail OFF BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .bail OFF BAD")
 	}
 	{ // do_test "shell1-3.4.1"
 		var res = "catchcmd \"test.db\" \".dump\""
@@ -259,55 +259,55 @@ func Test_shell1(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shell1-3.5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo")
 	}
 	{ // do_test "shell1-3.5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo ON")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo ON")
 	}
 	{ // do_test "shell1-3.5.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo OFF")
 	}
 	{ // do_test "shell1-3.5.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo OFF BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .echo OFF BAD")
 	}
 	{ // do_test "shell1-3.6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .exit")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .exit")
 	}
 	{ // do_test "shell1-3.7.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain")
 	}
 	{ // do_test "shell1-3.7.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain ON")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain ON")
 	}
 	{ // do_test "shell1-3.7.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain OFF")
 	}
 	{ // do_test "shell1-3.7.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain OFF BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .explain OFF BAD")
 	}
 	{ // do_test "shell1-3.9.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .header")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .header")
 	}
 	{ // do_test "shell1-3.9.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .header ON")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .header ON")
 	}
 	{ // do_test "shell1-3.9.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .header OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .header OFF")
 	}
 	{ // do_test "shell1-3.9.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .header OFF BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .header OFF BAD")
 	}
 	{ // do_test "shell1-3.9.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers")
 	}
 	{ // do_test "shell1-3.9.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers ON")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers ON")
 	}
 	{ // do_test "shell1-3.9.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers OFF")
 	}
 	{ // do_test "shell1-3.9.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers OFF BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .headers OFF BAD")
 	}
 	{ // do_test "shell1-3.10.1"
 		var res = "catchcmd \"test.db\" \".help\""
@@ -322,143 +322,143 @@ func Test_shell1(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shell1-3.11.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .import")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .import")
 	}
 	{ // do_test "shell1-3.11.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .import FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .import FOO")
 	}
 	{ // do_test "shell1-3.11.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .import FOO BAR BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .import FOO BAR BAD")
 	}
 	{ // do_test "shell1-3.11.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .import <<END t1\\na,b,c\\n1,2,3")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .import <<END t1\\na,b,c\\n1,2,3")
 	}
 	{ // do_test "shell1-3.12.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .indexes")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .indexes")
 	}
 	{ // do_test "shell1-3.12.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .indexes FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .indexes FOO")
 	}
 	{ // do_test "shell1-3.12.2-legacy"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .indices FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .indices FOO")
 	}
 	{ // do_test "shell1-3.12.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .indexes FOO BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .indexes FOO BAD")
 	}
 	{ // do_test "shell1-3.13.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode batch\\n.mode")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode batch\\n.mode")
 	}
 	{ // do_test "shell1-3.13.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode FOO")
 	}
 	{ // do_test "shell1-3.13.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode csv")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode csv")
 	}
 	{ // do_test "shell1-3.13.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode column")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode column")
 	}
 	{ // do_test "shell1-3.13.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode html")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode html")
 	}
 	{ // do_test "shell1-3.13.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert")
 	}
 	{ // do_test "shell1-3.13.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode line")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode line")
 	}
 	{ // do_test "shell1-3.13.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode list")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode list")
 	}
 	{ // do_test "shell1-3.13.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tabs")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tabs")
 	}
 	{ // do_test "shell1-3.13.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl")
 	}
 	{ // do_test "shell1-3.13.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl BAD")
 	}
 	{ // do_test "shell1-3.14.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .nullvalue")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .nullvalue")
 	}
 	{ // do_test "shell1-3.14.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .nullvalue FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .nullvalue FOO")
 	}
 	{ // do_test "shell1-3.14.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .nullvalue FOO BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .nullvalue FOO BAD")
 	}
 	{ // do_test "shell1-3.15.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .output\n.print x")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .output\n.print x")
 	}
 	{ // do_test "shell1-3.15.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode batch\\n.output FOO\n.print x\n.output\nSELECT r...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode batch\\n.output FOO\n.print x\n.output\nSELECT r...")
 	}
 	{ // do_test "shell1-3.15.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .output FOO BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .output FOO BAD")
 	}
 	{ // do_test "shell1-3.16.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .output stdout")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .output stdout")
 	}
 	{ // do_test "shell1-3.16.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .output stdout BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .output stdout BAD")
 	}
 	{ // do_test "shell1-3.17.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt")
 	}
 	{ // do_test "shell1-3.17.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt FOO")
 	}
 	{ // do_test "shell1-3.17.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt FOO BAR")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt FOO BAR")
 	}
 	{ // do_test "shell1-3.17.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt FOO BAR BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .prompt FOO BAR BAD")
 	}
 	{ // do_test "shell1-3.18.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .quit")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .quit")
 	}
 	{ // do_test "shell1-3.18.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .quit BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .quit BAD")
 	}
 	{ // do_test "shell1-3.19.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .read")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read")
 	}
 	{ // do_test "shell1-3.19.2"
 		os.Remove("FOO")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .read FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read FOO")
 	}
 	{ // do_test "shell1-3.19.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .read FOO BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read FOO BAD")
 	}
 	{ // do_test "shell1-3.20.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore")
 	}
 	{ // do_test "shell1-3.20.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore FOO")
 	}
 	{ // do_test "shell1-3.20.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore FOO BAR")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore FOO BAR")
 	}
 	{ // do_test "shell1-3.20.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore FOO BAR BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .restore FOO BAR BAD")
 	}
 	{ // do_test "shell1-3.21.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {CREATE TABLE t2(a INTEGER PRIMARY KEY, b BLOB DEFA...} {.schema -indent t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {CREATE TABLE t2(a INTEGER PRIMARY KEY, b BLOB DEFA...} {.schema -indent t2}")
 	}
 	{ // do_test "shell1-3.21.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {DROP TABLE t2;} {.schema -indent t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {DROP TABLE t2;} {.schema -indent t2}")
 	}
 	{ // do_test "shell1-3.22.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator")
 	}
 	{ // do_test "shell1-3.22.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator FOO")
 	}
 	{ // do_test "shell1-3.22.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator ABC XYZ")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator ABC XYZ")
 	}
 	{ // do_test "shell1-3.22.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator FOO BAD BAD2")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .separator FOO BAD BAD2")
 	}
 	{ // do_test "shell1-3.23.1"
 		var res = "catchcmd \"test.db\" \".mode batch\\n.show\""
@@ -467,82 +467,82 @@ func Test_shell1(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shell1-3.23.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .show BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .show BAD")
 	}
 	{ // do_test "shell1-3.23b.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats ON")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats ON")
 	}
 	{ // do_test "shell1-3.23b.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats OFF")
 	}
 	{ // do_test "shell1-3.23b.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats OFF BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .stats OFF BAD")
 	}
 	{ // do_test "shell1-3.23b.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db [string map {\"\\n    \" \"\\n\"} {.mode batch\n    CREAT...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [string map {\"\\n    \" \"\\n\"} {.mode batch\n    CREAT...")
 	}
 	{ // do_test "shell1-3.24.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .tables")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .tables")
 	}
 	{ // do_test "shell1-3.24.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .tables FOO")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .tables FOO")
 	}
 	{ // do_test "shell1-3.24.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .tables FOO BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .tables FOO BAD")
 	}
 	{ // do_test "shell1-3.25.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout")
 	}
 	{ // do_test "shell1-3.25.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout zzz")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout zzz")
 	}
 	{ // do_test "shell1-3.25.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout 1")
 	}
 	{ // do_test "shell1-3.25.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout 1 BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timeout 1 BAD")
 	}
 	{ // do_test "shell1-3.26.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .width")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .width")
 	}
 	{ // do_test "shell1-3.26.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .width xxx")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .width xxx")
 	}
 	{ // do_test "shell1-3.26.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .width xxx yyy")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .width xxx yyy")
 	}
 	{ // do_test "shell1-3.26.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .width 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .width 1 1")
 	}
 	{ // do_test "shell1-3.26.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode column\\n.header off\\n.width 10 -10\\nSELECT '...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode column\\n.header off\\n.width 10 -10\\nSELECT '...")
 	}
 	{ // do_test "shell1-3.26.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode column\\n.header off\\n.width -10 10\\nSELECT '...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode column\\n.header off\\n.width -10 10\\nSELECT '...")
 	}
 	{ // do_test "shell1-3.27.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer")
 	}
 	{ // do_test "shell1-3.27.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer ON")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer ON")
 	}
 	{ // do_test "shell1-3.27.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer OFF")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer OFF")
 	}
 	{ // do_test "shell1-3.27.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer OFF BAD")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .timer OFF BAD")
 	}
 	{ // do_test "shell1-3.28.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode batch\\n.log stdout\\nSELECT coalesce(sqlite_l...")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode batch\\n.log stdout\\nSELECT coalesce(sqlite_l...")
 	}
 	{ // do_test "shell1-3-29.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .print this is a test")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .print this is a test")
 	}
 	{ // do_test "shell1-3-30.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd {test.db} {.print \"this\\\"is'a\\055test\" 'this\\\"is\\\\a\\055test'}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd {test.db} {.print \"this\\\"is'a\\055test\" 'this\\\"is\\\\a\\055test'}")
 	}
 	{ // do_test "shell1-3-31.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd {test.db} {.print \"this\\nis\\ta\\\\test\" 'this\\nis\\ta\\\\test'}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd {test.db} {.print \"this\\nis\\ta\\\\test\" 'this\\nis\\ta\\\\test'}")
 	}
 	{ // do_test "shell1-4.1"
 		os.Remove("test.db")
@@ -553,7 +553,7 @@ func Test_shell1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(null), (''), (1), (2.25), ('hello'), (x'807f');\n    CREATE TABLE t3(x,y);\n    INSERT INTO t3 VALUES(1,null), (2,''), (3,1),\n                         (4,2.25), (5,'hello'), (6,x'807f');\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db {.dump}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db {.dump}")
 	}
 	{ // do_test "shell1-4.1.7"
 		os.Remove("test2.db")
@@ -564,7 +564,7 @@ func Test_shell1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test2.db {.dump}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test2.db {.dump}")
 	}
 	{ // do_test "shell1-4.1.8"
 		os.Remove("test2.db")
@@ -575,7 +575,7 @@ func Test_shell1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    DROP TABLE t1;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test2.db {.dump}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test2.db {.dump}")
 	}
 	{ // do_test "shell1-4.1.9"
 		os.Remove("test2.db")
@@ -586,19 +586,19 @@ func Test_shell1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b);\n    INSERT INTO t1 VALUES(1,2),(20,21),(15,16);\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(99,88);\n    INSERT INTO sqlite_sequence VALUES('extra',999);\n    DROP TABLE t1;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test2.db {.dump}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test2.db {.dump}")
 	}
 	{ // do_test "shell1-4.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t1\\nselect * from t1;")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t1\\nselect * from t1;")
 	}
 	{ // do_test "shell1-4.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t1\\n.headers on\\nselect * from t1;")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t1\\n.headers on\\nselect * from t1;")
 	}
 	{ // do_test "shell1-4.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t3\\nselect * from t3;")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t3\\nselect * from t3;")
 	}
 	{ // do_test "shell1-4.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t3\\n.headers on\\nselect * from t3;")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode insert t3\\n.headers on\\nselect * from t3;")
 	}
 	{ // do_test "shell1-4.3"
 		os.Remove("test.db")
@@ -609,17 +609,17 @@ func Test_shell1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding=UTF8;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(null), (''), (1), (2.25), ('hello'), (x'807f');\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl\\nselect * from t1;")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl\\nselect * from t1;")
 	}
 	{ // do_test "shell1-4.4"
 		_res = db.Exec("\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(null, ''), (1, 2.25), ('hello', x'807f');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x,y);\n    INSERT INTO t2 VALUES(null, ''), (1, 2.25), ('hello', x'807f');\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl\\nselect * from t2;")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl\\nselect * from t2;")
 	}
 	{ // do_test "shell1-4.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl\\n.nullvalue NULL\\nselect * from t2;")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode tcl\\n.nullvalue NULL\\nselect * from t2;")
 	}
 	{ // do_test "shell1-4.6"
 		_res = db.Exec("\n    CREATE TABLE tcl1(x);\n    INSERT INTO tcl1 VALUES('\"'), ('['), (']'), ('\\{'), ('\\}'), (';'), ('$');\n  ")
@@ -631,7 +631,7 @@ func Test_shell1(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "shell1-4.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode quote\\nselect x'0123456789ABCDEF';")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .mode quote\\nselect x'0123456789ABCDEF';")
 	}
 	if false {
 		{ // do_test "shell1-5.0"
@@ -751,33 +751,33 @@ func Test_shell1(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "shell1-8.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: {.mode batch\n    -- The pow2 table will hold all th...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {.mode batch\n    -- The pow2 table will hold all th...}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell1-8.2 {\n  catchcmd :memory: {\n.mode box\nSELECT ieee754(47...} {0 {╭──────────────\xe2\x94...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell1-8.3 {\n  catchcmd \":memory: --box\" {\n    select ieee754(...} {0 {╭───────╮\n│   x   │\n╞\xe2\x95...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell1-8.2 {\n  catchcmd :memory: {\n.mode box\nSELECT ieee754(47...} {0 {╭──────────────\xe2\x94...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell1-8.3 {\n  catchcmd \":memory: --box\" {\n    select ieee754(...} {0 {╭───────╮\n│   x   │\n╞\xe2\x95...}")
 	{ // do_test "shell1-8.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: --table {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: --table {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...}")
 	}
 	{ // do_test "shell1-8.4b"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: --psql {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: --psql {SELECT ieee754_mantissa(47.49) AS M, ieee754_expon...}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell1-8.5 {\n  catchcmd \":memory: --box\" {\ncreate table t(a te...} {0 {╭────────────┬─\xe2\x94...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shell1-8.5 {\n  catchcmd \":memory: --box\" {\ncreate table t(a te...} {0 {╭────────────┬─\xe2\x94...}")
 	{ // do_test "shell1-9.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode csv --rowsep \"\\n\"\n/*\nx */ select 1,2; --x\n ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode csv --rowsep \"\\n\"\n/*\nx */ select 1,2; --x\n ...}")
 	}
 	{ // do_test "shell1-10.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode list\n.header off\nselect base64(base64(cast(...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode list\n.header off\nselect base64(base64(cast(...}")
 	}
 	{ // do_test "shell1-11.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode list\n.header off\nselect base64(zeroblob(200...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode list\n.header off\nselect base64(zeroblob(200...}")
 	}
 	{ // do_test "shell1-11.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode list\n.header off\nselect base85(zeroblob(200...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {\n.mode list\n.header off\nselect base85(zeroblob(200...}")
 	}
 	{ // do_test "shell1-12.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: {.mode tty -quote sql\n.print\nSELECT jsonb(1234) AS ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {.mode tty -quote sql\n.print\nSELECT jsonb(1234) AS ...}")
 	}
 	{ // do_test "shell1-12.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: {.mode box --textjsonb on\n.print\nSELECT jsonb(1234)...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: {.mode box --textjsonb on\n.print\nSELECT jsonb(1234)...}")
 	}
 }

@@ -24,5 +24,5 @@ func Test_fts4merge3(t *testing.T) {
 	if tclBool("\"\" == " + "bc_find_binaries backcompat.test") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_all_bc_test {\n\n  sql2 { PRAGMA page_size = 512 }\n  if { 0==[cat...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_all_bc_test {\n\n  sql2 { PRAGMA page_size = 512 }\n  if { 0==[cat...}")
 }

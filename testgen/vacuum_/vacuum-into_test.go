@@ -183,9 +183,9 @@ func Test_vacuum_into(t *testing.T) {
 			}
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xSync")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script xSyncCb")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xSync")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xSyncCb")
 	// proc definition (not transpiled)
 	db.Close()
 	db, err = frigolite.Open("")
@@ -216,5 +216,5 @@ func Test_vacuum_into(t *testing.T) {
 			{ // do_test "vacuum-into-" + tn + ".2"
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
 }

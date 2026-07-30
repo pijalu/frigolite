@@ -21,7 +21,7 @@ func Test_json108(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "json108"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db randomjson")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db randomjson")
 	_res = db.Exec("\n  CREATE TEMP TABLE t1(j0,j5);\n  WITH RECURSIVE c(n) AS (VALUES(0) UNION ALL SELECT n+1 FROM c WHERE n<9)\n  INSERT INTO t1 SELECT random_json(n), random_json5(n) FROM c;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TEMP TABLE t1(j0,j5);\n  WITH RECURSIVE c(n) AS (VALUES(0) UNION ALL SELECT n+1 FROM c WHERE n<9)\n  INSERT INTO t1 SELECT random_json(n), random_json5(n) FROM c;\n")

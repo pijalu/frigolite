@@ -21,7 +21,7 @@ func Test_spellfix3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "spellfix3"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix")
 	{ // "100"
 		r = db.Query("\n  SELECT spellfix1_scriptcode('And God said, “Let there be light”');\n")
 		if r.Error != nil {

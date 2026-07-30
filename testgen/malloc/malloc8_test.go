@@ -23,11 +23,11 @@ func Test_malloc8(t *testing.T) {
 		t.Log("Skipping malloc8 tests: not compiled with -DSQLITE_MEMDEBUG...")
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-1 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT lower(a), upper(a), quote(a), trim(a), t...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-2 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT replace(a,'x','y'), replace('x',a,'y'), ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-3 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT length(a), substr(a, 4, 4) FROM t1;\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-5 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT 1 FROM t1 WHERE a LIKE 'hello' ESCAPE NU...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-6 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT hex(randomblob(100));\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-1 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT lower(a), upper(a), quote(a), trim(a), t...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-2 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT replace(a,'x','y'), replace('x',a,'y'), ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-3 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT length(a), substr(a, 4, 4) FROM t1;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-5 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT 1 FROM t1 WHERE a LIKE 'hello' ESCAPE NU...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc8-6 -sqlprep {\n  PRAGMA encoding='UTF-16';\n  CREATE TABLE t1(a);...} -sqlbody {\n  SELECT hex(randomblob(100));\n}")
 	{ // do_test "malloc-99.X"
 		{
 			var _catchErr error

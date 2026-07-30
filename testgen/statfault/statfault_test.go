@@ -21,14 +21,14 @@ func Test_statfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "statfault"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "register_dbstat_vtab db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_dbstat_vtab db")
 	{ // "statfault-1"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 VALUES(randomblob(500), 1);\n  INSERT INTO t1 VALUES(2, randomblob(250));\n  INSERT INTO t1 VALUES(randomblob(250), 2);\n  CREATE VIRTUAL TABLE sss USING dbstat;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b UNIQUE);\n  INSERT INTO t1 VALUES(1, randomblob(500));\n  INSERT INTO t1 VALUES(randomblob(500), 1);\n  INSERT INTO t1 VALUES(2, randomblob(250));\n  INSERT INTO t1 VALUES(randomblob(250), 2);\n  CREATE VIRTUAL TABLE sss USING dbstat;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults * -prep {\n  faultsim_restore_and_reopen\n  register_dbstat_v...} -body {\n  execsql { SELECT count(*) FROM sss }\n} -test {\n  faultsim_test_result {0 8} \n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults * -prep {\n  faultsim_restore_and_reopen\n  register_dbstat_v...} -body {\n  db eval { SELECT * FROM sss } { db eval { SELEC...} -test {\n  faultsim_test_result {0 {}} \n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults * -prep {\n  faultsim_restore_and_reopen\n  register_dbstat_v...} -body {\n  execsql { SELECT count(*) FROM sss }\n} -test {\n  faultsim_test_result {0 8} \n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults * -prep {\n  faultsim_restore_and_reopen\n  register_dbstat_v...} -body {\n  db eval { SELECT * FROM sss } { db eval { SELEC...} -test {\n  faultsim_test_result {0 {}} \n}")
 }

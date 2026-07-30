@@ -22,8 +22,8 @@ func Test_corrupt2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "corrupt2"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	var presql = ""
 	_ = presql // suppress unused warning
 	{
@@ -44,7 +44,7 @@ func Test_corrupt2(t *testing.T) {
 		tclFileCopy("test.db", "corrupt.db")
 		var f = "open corrupt.db RDWR"
 		_ = f // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $f 8 start")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $f 8 start")
 		t.Log(f)
 		// close $f
 		db2, err := frigolite.Open("corrupt.db")
@@ -60,8 +60,8 @@ func Test_corrupt2(t *testing.T) {
 		tclFileCopy("test.db", "corrupt.db")
 		var f = "open corrupt.db RDWR"
 		_ = f // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $f 16 start")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $f 16 start")
 		t.Log("-nonewline")
 		// close $f
 		db2, err := frigolite.Open("corrupt.db")
@@ -77,8 +77,8 @@ func Test_corrupt2(t *testing.T) {
 		tclFileCopy("test.db", "corrupt.db")
 		var f = "open corrupt.db RDWR"
 		_ = f // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $f 101 start")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $f 101 start")
 		t.Log("-nonewline")
 		// close $f
 		db2, err := frigolite.Open("corrupt.db")
@@ -94,10 +94,10 @@ func Test_corrupt2(t *testing.T) {
 		tclFileCopy("test.db", "corrupt.db")
 		var f = "open corrupt.db RDWR"
 		_ = f // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $f 101 start")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $f 101 start")
 		t.Log("-nonewline")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $f 200 start")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $f 200 start")
 		t.Log("-nonewline")
 		t.Log("-nonewline")
 		// close $f
@@ -115,7 +115,7 @@ func Test_corrupt2(t *testing.T) {
 		db2, err := frigolite.Open("corrupt.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db2 DEFENSIVE 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db2 DEFENSIVE 0")
 		r = db.Query("\n    " + _presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    " + _presql + "\n    CREATE INDEX a1 ON abc(a);\n    CREATE INDEX a2 ON abc(b);\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master \n      SET name = 'a3', sql = 'CREATE INDEX a3' || substr(sql, 16, 10000)\n      WHERE type = 'index';\n    PRAGMA writable_schema = 0;\n  ")
@@ -140,12 +140,12 @@ func Test_corrupt2(t *testing.T) {
 		db2.Close()
 		var fd = "open corrupt.db r+"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024*3 + 12]")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024*3 + 12]")
 		var zCelloffset = "read $fd 2"
 		_ = zCelloffset // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "binary scan $zCelloffset S iCelloffset")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024*3 + $iCelloffset]")
+		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $zCelloffset S iCelloffset")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024*3 + $iCelloffset]")
 		t.Log("-nonewline")
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
@@ -171,19 +171,19 @@ func Test_corrupt2(t *testing.T) {
 		db2.Close()
 		var fd = "open corrupt.db r+"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024 + 12]")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024 + 12]")
 		var zCelloffset = "read $fd 2"
 		_ = zCelloffset // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "binary scan $zCelloffset S iCelloffset")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024 + $iCelloffset]")
+		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $zCelloffset S iCelloffset")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 1024 + $iCelloffset]")
 		var zChildPage = "read $fd 4"
 		_ = zChildPage // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd [expr 2*1024 + 12]")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 2*1024 + 12]")
 		var zCelloffset = "read $fd 2"
 		_ = zCelloffset // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "binary scan $zCelloffset S iCelloffset")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd [expr 2*1024 + $iCelloffset]")
+		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $zCelloffset S iCelloffset")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 2*1024 + $iCelloffset]")
 		t.Log("-nonewline")
 		// close $fd
 		db2, err = frigolite.Open("corrupt.db")
@@ -197,13 +197,13 @@ func Test_corrupt2(t *testing.T) {
 	// proc definition (not transpiled)
 	var sqlprep = "\n  PRAGMA auto_vacuum = 0;\n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1(b);\n  INSERT INTO t1 VALUES(1, randomblob(50));\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n  INSERT INTO t1 SELECT NULL, randomblob(50) FROM t1;\n"
 	_ = sqlprep // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep $sqlprep -corrupt {\n  # Set the page-flags of one of the leaf pages o...} -test {\n  do_test corrupt2-7.1 {\n    catchsql \" $::presql...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep $sqlprep -corrupt {\n  # Mess up the page-header of one of the leaf pa...} -test {\n  do_test corrupt2-7.1 {\n    catchsql \" $::presql...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep $sqlprep -corrupt {\n  # Set the page-flags of one of the leaf pages o...} -test {\n  do_test corrupt2-8.1 {\n    catchsql \" $::presql...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  CREATE TABLE t1(a, b, c); CREATE TABLE t8(a, b,...} -corrupt {\n  set fd [open corrupt.db r+]\n  fconfigure $fd -t...} -test {\n  do_test corrupt2-9.1 {\n    catchsql \" $::presql...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, ...} -test {\n  do_test corrupt2-10.1 {\n    catchsql \" $::presq...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  CREATE TABL...} -corrupt {\n  set offset [expr [file size corrupt.db] - 1024]...} -test {\n  do_test corrupt2-11.1 {\n    catchsql \" $::presq...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  CREATE TABL...} -corrupt {\n  set pgno [expr [file size corrupt.db] / 1024]\n ...} -test {\n  do_test corrupt2-12.1 {\n    catchsql \" $::presq...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep $sqlprep -corrupt {\n  # Set the page-flags of one of the leaf pages o...} -test {\n  do_test corrupt2-7.1 {\n    catchsql \" $::presql...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep $sqlprep -corrupt {\n  # Mess up the page-header of one of the leaf pa...} -test {\n  do_test corrupt2-7.1 {\n    catchsql \" $::presql...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep $sqlprep -corrupt {\n  # Set the page-flags of one of the leaf pages o...} -test {\n  do_test corrupt2-8.1 {\n    catchsql \" $::presql...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  CREATE TABLE t1(a, b, c); CREATE TABLE t8(a, b,...} -corrupt {\n  set fd [open corrupt.db r+]\n  fconfigure $fd -t...} -test {\n  do_test corrupt2-9.1 {\n    catchsql \" $::presql...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(a, ...} -test {\n  do_test corrupt2-10.1 {\n    catchsql \" $::presq...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  CREATE TABL...} -corrupt {\n  set offset [expr [file size corrupt.db] - 1024]...} -test {\n  do_test corrupt2-11.1 {\n    catchsql \" $::presq...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "corruption_test -sqlprep {\n  PRAGMA auto_vacuum = incremental;\n  CREATE TABL...} -corrupt {\n  set pgno [expr [file size corrupt.db] / 1024]\n ...} -test {\n  do_test corrupt2-12.1 {\n    catchsql \" $::presq...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -226,7 +226,7 @@ func Test_corrupt2(t *testing.T) {
 		}
 	}
 	{ // do_test "14.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 36 [hexio_render_int32 2]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 36 [hexio_render_int32 2]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }

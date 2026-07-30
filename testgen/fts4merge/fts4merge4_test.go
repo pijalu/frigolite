@@ -195,5 +195,5 @@ func Test_fts4merge4(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

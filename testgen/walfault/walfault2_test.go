@@ -33,8 +33,8 @@ func Test_walfault2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  catch { db close }\n  faultsim_restore\n  sqlite3...} -body {\n  execsql { INSERT INTO t1 VALUES(1,1) }\n} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  catch { db close }\n  faultsim_restore\n  sqlite3...} -body {\n  execsql { INSERT INTO t1 VALUES(1,1) }\n} -test {\n  faultsim_test_result {0 {}}\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -50,6 +50,6 @@ func Test_walfault2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    PRA...} -body {\n  execsql COMMIT\n} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    PRA...} -body {\n  execsql COMMIT\n} -test {\n  faultsim_test_result {0 {}}\n}")
 }

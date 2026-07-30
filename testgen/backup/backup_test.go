@@ -21,7 +21,7 @@ func Test_backup(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "backup-1.1"
@@ -30,31 +30,31 @@ func Test_backup(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));\n    INSERT INTO t1 VALUES(3, randstr(1000,1000));\n    INSERT INTO t1 VALUES(4, randstr(1000,1000));\n    INSERT INTO t1 VALUES(5, randstr(1000,1000));\n    COMMIT;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-1.2 db main db main")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-1.2 db main db main")
 	{ // do_test "backup-1.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "delete_file test2.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "delete_file test2.db")
 		db2, err := frigolite.Open("test2.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 	}
 	{ // do_test "backup-1.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 	}
 	{ // do_test "backup-1.3.3"
 	}
 	{ // do_test "backup-1.4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 	}
 	{ // do_test "backup-1.4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 200")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 200")
 	}
 	{ // do_test "backup-1.4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 	}
 	{ // do_test "backup-1.4.4"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-1.4.5 db2 main db main")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-1.4.5 db2 main db main")
 	db2.Close()
 	var iTest = "1"
 	_ = iTest // suppress unused warning
@@ -67,12 +67,12 @@ func Test_backup(t *testing.T) {
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
-								t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
+								t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
 							}
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
-								t.Skipf("TODO: %s not implemented in frigolite", "delete_file test2.db")
+								t.Errorf("TODO: %s not implemented in frigolite", "delete_file test2.db")
 							}
 							// eval $zOpenScript
 							isMemDest := "$zDestFile eq \":memory:\" || $file_dest eq \"temp\""
@@ -118,10 +118,10 @@ func Test_backup(t *testing.T) {
 									}
 								}
 								{ // do_test "backup-2." + iTest + ".1"
-									t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B $db_dest $file_dest db main")
+									t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B $db_dest $file_dest db main")
 									for tclBool("B step $nPagePerStep" + "==\"SQLITE_OK\"") {
 									}
-									t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+									t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 								}
 								{ // do_test "backup-2." + iTest + ".2"
 									r = db.Query("PRAGMA " + file_dest + ".integrity_check")
@@ -129,7 +129,7 @@ func Test_backup(t *testing.T) {
 										t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA " + file_dest + ".integrity_check")
 									}
 								}
-								t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-2.$iTest.3 db main $db_dest $file_dest")
+								t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-2.$iTest.3 db main $db_dest $file_dest")
 							}
 							{
 								var _catchErr error
@@ -157,12 +157,12 @@ func Test_backup(t *testing.T) {
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
+					t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
 				}
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "delete_file test2.db")
+					t.Errorf("TODO: %s not implemented in frigolite", "delete_file test2.db")
 				}
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
@@ -206,10 +206,10 @@ func Test_backup(t *testing.T) {
 					}
 				}
 				{ // do_test "backup-3." + iTest + ".1"
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db2 main")
+					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db2 main")
 					for tclBool("B step 10" + "==\"SQLITE_OK\"") {
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+					t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 				}
 				{ // do_test "backup-3." + iTest + ".2"
 					r = db.Query("PRAGMA integrity_check")
@@ -217,7 +217,7 @@ func Test_backup(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA integrity_check")
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-3.$iTest.3 db main db2 main")
+				t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-3.$iTest.3 db main db2 main")
 				db2.Close()
 				// incr iTest 1
 				{
@@ -278,11 +278,11 @@ func Test_backup(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-		t.Skipf("TODO: %s not implemented in frigolite", "B step -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step -1")
 	}
 	{ // do_test "backup-3." + iTest + ".2"
-		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -293,21 +293,21 @@ func Test_backup(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db aux db2 main")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db aux db2 main")
 		}
 	}
 	{ // do_test "backup-4.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "backup-4.1.3"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db2 aux")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db2 aux")
 		}
 	}
 	{ // do_test "backup-4.1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "backup-4.2.1"
 		{
@@ -328,32 +328,32 @@ func Test_backup(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    ATTACH 'test4.db' AS aux2;\n    CREATE TABLE aux2.t2(a, b);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db aux1 db2 aux2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db aux1 db2 aux2")
 	}
 	{ // do_test "backup-4.2.2"
 		_res = db.Exec(" DETACH aux2 ")
 		_ = _res // catchsql
 	}
 	{ // do_test "backup-4.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 	}
 	{ // do_test "backup-4.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 	}
 	{ // do_test "backup-4.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db aux1 db2 aux2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db aux1 db2 aux2")
 	}
 	{ // do_test "backup-4.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_close db2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close db2")
 	}
 	{ // do_test "backup-4.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db2")
 	}
 	{ // do_test "backup-4.3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 	}
 	{ // do_test "backup-4.3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 	}
 	{ // do_test "backup-4.4.1"
 	var rc string
@@ -361,7 +361,7 @@ func Test_backup(t *testing.T) {
 	_ = _catchErrMsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db aux1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db aux1")
 			if _catchErr != nil {
 				rc = "1"
 				_catchErrMsg = _catchErr.Error()
@@ -394,13 +394,13 @@ func Test_backup(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 4096;\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES(3, 4);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 	}
 	{ // do_test "backup-4.5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 5000")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
 	}
 	{ // do_test "backup-4.5.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 	}
 	db2.Close()
 	var iTest = "0"
@@ -424,7 +424,7 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "delete_file bak.db")
+				t.Errorf("TODO: %s not implemented in frigolite", "delete_file bak.db")
 			}
 			db2, err := frigolite.Open("bak.db")
 			defer db2.Close()
@@ -432,7 +432,7 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "delete_file $file")
+				t.Errorf("TODO: %s not implemented in frigolite", "delete_file $file")
 			}
 			db, err := frigolite.Open(file)
 			defer db.Close()
@@ -448,22 +448,22 @@ func Test_backup(t *testing.T) {
 				// expr [execsql {PRAGMA page_count}] > 10 → "[execsql {PRAGMA page_count}] > 10"
 			}
 			{ // do_test "backup-5." + iTest + ".1.2"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 5")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
 			}
 			{ // do_test "backup-5." + iTest + ".1.3"
 				_res = db.Exec(" UPDATE t1 SET a = a + 1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET a = a + 1 ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 			}
 			{ // do_test "backup-5." + iTest + ".1.4"
-				t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.1.6 db main db2 main")
+			t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.1.6 db main db2 main")
 			{ // do_test "backup-5." + iTest + ".2.1"
 				_res = db.Exec("\n      PRAGMA cache_size = 10;\n      BEGIN;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      INSERT INTO t1 SELECT '', randstr(1000,1000) FROM t1;\n      COMMIT;\n    ")
 				if _res.Error != nil {
@@ -471,22 +471,22 @@ func Test_backup(t *testing.T) {
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".2.2"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 			}
 			{ // do_test "backup-5." + iTest + ".2.3"
 				_res = db.Exec(" \n      BEGIN;\n      UPDATE t1 SET a = a + 1;\n      ROLLBACK;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      BEGIN;\n      UPDATE t1 SET a = a + 1;\n      ROLLBACK;\n    ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 5000")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
 			}
 			{ // do_test "backup-5." + iTest + ".2.4"
-				t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.2.6 db main db2 main")
+			t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.2.6 db main db2 main")
 			{ // do_test "backup-5." + iTest + ".3.1"
 				_res = db.Exec(" UPDATE t1 SET b = randstr(1000,1000) ")
 				if _res.Error != nil {
@@ -494,22 +494,22 @@ func Test_backup(t *testing.T) {
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".3.2"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 			}
 			{ // do_test "backup-5." + iTest + ".3.3"
 				_res = db.Exec(" VACUUM ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 5000")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
 			}
 			{ // do_test "backup-5." + iTest + ".3.4"
-				t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.3.6 db main db2 main")
+			t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.3.6 db main db2 main")
 			{ // do_test "backup-5." + iTest + ".4.1"
 				_res = db.Exec(" UPDATE t1 SET b = randstr(1000,1000) ")
 				if _res.Error != nil {
@@ -517,22 +517,22 @@ func Test_backup(t *testing.T) {
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".4.2"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 			}
 			{ // do_test "backup-5." + iTest + ".4.3"
 				_res = db.Exec(" \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      PRAGMA page_size = 2048;\n      VACUUM;\n    ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 5000")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
 			}
 			{ // do_test "backup-5." + iTest + ".4.4"
-				t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.4.6 db main db2 main")
+			t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.4.6 db main db2 main")
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
@@ -550,14 +550,14 @@ func Test_backup(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "delete_file bak.db")
+				t.Errorf("TODO: %s not implemented in frigolite", "delete_file bak.db")
 			}
 			db2, err = frigolite.Open("bak.db")
 			if err != nil { t.Fatal(err) }
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "delete_file $file")
+				t.Errorf("TODO: %s not implemented in frigolite", "delete_file $file")
 			}
 			db, err = frigolite.Open(file)
 			if err != nil { t.Fatal(err) }
@@ -570,22 +570,22 @@ func Test_backup(t *testing.T) {
 				}
 			}
 			{ // do_test "backup-5." + iTest + ".5.2"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 8")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 8")
 			}
 			{ // do_test "backup-5." + iTest + ".5.3"
 				r = db.Query(" \n      DELETE FROM t1;\n      PRAGMA incremental_vacuum;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " \n      DELETE FROM t1;\n      PRAGMA incremental_vacuum;\n    ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 			}
 			{ // do_test "backup-5." + iTest + ".5.4"
-				t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-			t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.5.6 db main db2 main")
+			t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-5.$iTest.5.6 db main db2 main")
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
@@ -626,17 +626,17 @@ func Test_backup(t *testing.T) {
 		{ // do_test "backup-6.2"
 			nTotal := "[file size test.db]/1024"
 			_ = nTotal // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 1")
 		}
 		{ // do_test "backup-6.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "B pagecount")
+			t.Errorf("TODO: %s not implemented in frigolite", "B pagecount")
 		}
 		{ // do_test "backup-6.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "B remaining")
+			t.Errorf("TODO: %s not implemented in frigolite", "B remaining")
 		}
 		{ // do_test "backup-6.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 5")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
 			_list := tclList([]string{"B remaining", "B pagecount"})
 			_ = _list
 		}
@@ -645,12 +645,12 @@ func Test_backup(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(a PRIMARY KEY, b) ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 1")
 			_list := tclList([]string{"B remaining", "B pagecount"})
 			_ = _list
 		}
 		{ // do_test "backup-6.X"
-			t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+			t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 		}
 		{
 			var _catchErr error
@@ -684,8 +684,8 @@ func Test_backup(t *testing.T) {
 			}
 		}
 		{ // do_test "backup-7.1.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 5")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
 		}
 		{ // do_test "backup-7.1.2"
 			db3, err := frigolite.Open("test.db")
@@ -695,14 +695,14 @@ func Test_backup(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN EXCLUSIVE ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 5")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
 		}
 		{ // do_test "backup-7.1.3"
 			_res = db.Exec(" ROLLBACK ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 5")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
 		}
 		{ // do_test "backup-7.2.1"
 			_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(1, 4);\n  ")
@@ -711,19 +711,19 @@ func Test_backup(t *testing.T) {
 			}
 		}
 		{ // do_test "backup-7.2.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 5000")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
 		}
 		{ // do_test "backup-7.2.3"
 			_res = db.Exec(" ROLLBACK ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ROLLBACK ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 5000")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
 		}
 		{ // do_test "backup-7.2.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+			t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-7.2.5 db main db2 main")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-7.2.5 db main db2 main")
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{ // do_test "backup-7.3.1"
@@ -736,24 +736,24 @@ func Test_backup(t *testing.T) {
 			db3, err := frigolite.Open("test2.db")
 			defer db3.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 			_res = db.Exec(" BEGIN ; CREATE TABLE t2(a, b); ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN ; CREATE TABLE t2(a, b); ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 5")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
 		}
 		{ // do_test "backup-7.3.2"
 			_res = db.Exec(" COMMIT ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 5000")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 5000")
 		}
 		{ // do_test "backup-7.3.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+			t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-7.3.4 db main db2 main")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-7.3.4 db main db2 main")
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		{
@@ -783,28 +783,28 @@ func Test_backup(t *testing.T) {
 			db3, err := frigolite.Open("test3.db")
 			defer db3.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B2 db2 main db main")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B3 db3 main db main")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B2 db2 main db main")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B3 db3 main db main")
 			_list := tclList([]string{"B2 finish", "B3 finish"})
 			_ = _list
 		}
 		{ // do_test "backup-8.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B3 db3 main db main")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B2 db2 main db main")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B3 db3 main db main")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B2 db2 main db main")
 			_list := tclList([]string{"B2 finish", "B3 finish"})
 			_ = _list
 		}
 		{ // do_test "backup-8.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B2 db2 main db main")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B3 db3 main db main")
-			t.Skipf("TODO: %s not implemented in frigolite", "B2 step 5")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B2 db2 main db main")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B3 db3 main db main")
+			t.Errorf("TODO: %s not implemented in frigolite", "B2 step 5")
 		}
 		{ // do_test "backup-8.4"
 			r = db.Query("\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM sqlite_master;\n  ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "B3 step 5")
+			t.Errorf("TODO: %s not implemented in frigolite", "B3 step 5")
 		}
 		{ // do_test "backup-8.5"
 			_list := tclList([]string{"B3 step 5000", "B3 finish"})
@@ -814,8 +814,8 @@ func Test_backup(t *testing.T) {
 			_list := tclList([]string{"B2 step 5000", "B2 finish"})
 			_ = _list
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-8.7 db main db2 main")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup-8.8 db main db3 main")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-8.7 db main db2 main")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-8.8 db main db3 main")
 		{ // do_test "backup-8.9"
 			r = db.Query(" PRAGMA lock_status ")
 			if r.Error != nil {
@@ -842,8 +842,8 @@ func Test_backup(t *testing.T) {
 			db2, err := frigolite.Open("test2.db")
 			defer db2.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 1")
 		}
 		{ // do_test "backup-9.1.2"
 			var nRemaining = "B remaining"
@@ -851,19 +851,19 @@ func Test_backup(t *testing.T) {
 			// expr $nRemaining>100 → "$nRemaining>100"
 		}
 		{ // do_test "backup-9.1.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "B step 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step 0")
 		}
 		{ // do_test "backup-9.1.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "B remaining")
+			t.Errorf("TODO: %s not implemented in frigolite", "B remaining")
 		}
 		{ // do_test "backup-9.2.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "B step -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "B step -1")
 		}
 		{ // do_test "backup-9.2.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "B remaining")
+			t.Errorf("TODO: %s not implemented in frigolite", "B remaining")
 		}
 		{ // do_test "backup-9.2.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+			t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 		}
 		{
 			var _catchErr error
@@ -900,8 +900,8 @@ func Test_backup(t *testing.T) {
 					db2, err := frigolite.Open("bak.db")
 					defer db2.Close()
 					if err != nil { t.Fatal(err) }
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-					t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+					t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 				}
 				{ // do_test "backup-10." + tn + ".4"
 					_res = db.Exec(" UPDATE t1 SET b = randomblob(200) WHERE a IN (1, 250) ")
@@ -910,10 +910,10 @@ func Test_backup(t *testing.T) {
 					}
 				}
 				{ // do_test "backup-10." + tn + ".5"
-					t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+					t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 				}
 				{ // do_test "backup-10." + tn + ".6"
-					t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+					t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 				}
 				db2.Close()
 			}
@@ -924,8 +924,8 @@ func Test_backup(t *testing.T) {
 				db2, err := frigolite.Open(":memory:")
 				defer db2.Close()
 				if err != nil { t.Fatal(err) }
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db1 main db2 temp")
-				t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db1 main db2 temp")
+				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 			}
 			db1.Close()
 			db2.Close()
@@ -940,8 +940,8 @@ func Test_backup(t *testing.T) {
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 				db2.Exec("\n    PRAGMA page_size = 1024;\n    CREATE TABLE t2(x);\n  ")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db1 main db2 temp")
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 100")
-				t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db1 main db2 temp")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 100")
+				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 			}
 }

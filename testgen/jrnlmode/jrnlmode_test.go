@@ -59,14 +59,14 @@ func Test_jrnlmode(t *testing.T) {
 		}
 	}
 	{ // do_test "jrnlmode-1.4a"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 1")
 		r = db.Query("\n    PRAGMA journal_mode = off;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n  ")
 		}
 	}
 	{ // do_test "jrnlmode-1.4b"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 		r = db.Query("\n    PRAGMA journal_mode = off;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = off;\n  ")

@@ -54,7 +54,7 @@ func Test_mallocL(t *testing.T) {
 	for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n < 40 }() {
 		var _sql = "SELECT DISTINCT " + "join [lrange $cols 0 $j] ," + " FROM t1" // TCL namespace variable
 		_ = _sql // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$j -faults oom* -body {\n    execsql $::sql\n  } -test {\n    faultsim_test_result [list 0 [lrange $::vals ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$j -faults oom* -body {\n    execsql $::sql\n  } -test {\n    faultsim_test_result [list 0 [lrange $::vals ...}")
 		// incr j 1
 		{
 			_n, _err := strconv.Atoi(j)

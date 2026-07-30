@@ -25,17 +25,17 @@ func Test_misc7(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	if tclBool("clang_sanitize_address" + "==0") {
 		{ // do_test "misc7-1-misuse"
-			t.Skipf("TODO: %s not implemented in frigolite", "c_misuse_test")
+			t.Errorf("TODO: %s not implemented in frigolite", "c_misuse_test")
 		}
 	}
 	{ // do_test "misc7-2"
-		t.Skipf("TODO: %s not implemented in frigolite", "c_realloc_test")
+		t.Errorf("TODO: %s not implemented in frigolite", "c_realloc_test")
 	}
 	{ // do_test "misc7-3"
-		t.Skipf("TODO: %s not implemented in frigolite", "c_collation_test")
+		t.Errorf("TODO: %s not implemented in frigolite", "c_collation_test")
 	}
 	{ // do_test "misc7-4"
-		t.Skipf("TODO: %s not implemented in frigolite", "delete_file mydir")
+		t.Errorf("TODO: %s not implemented in frigolite", "delete_file mydir")
 		// file mkdir mydir
 	var rc string
 	_ = msg // suppress unused warning
@@ -57,7 +57,7 @@ func Test_misc7(t *testing.T) {
 	}
 	if tclBool("atomic_batch_write test.db" + "==0") {
 		{ // do_test "misc7-5"
-			t.Skipf("TODO: %s not implemented in frigolite", "delete_file mydir")
+			t.Errorf("TODO: %s not implemented in frigolite", "delete_file mydir")
 			// file mkdir mydir-journal
 			db2, err := frigolite.Open("./mydir")
 			defer db2.Close()
@@ -74,8 +74,8 @@ func Test_misc7(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE abc(a PRIMARY KEY, b, c); ")
 	}
 	if tcl_platform(platform) != "windows" {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fileopen_test misc7-6.1 {\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_fileopen_test misc7-6.2 {\n    PRAGMA temp.cache_size = 1000;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_fileopen_test misc7-6.1 {\n    BEGIN;\n    INSERT INTO abc VALUES(1, 2, 3);\n ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_fileopen_test misc7-6.2 {\n    PRAGMA temp.cache_size = 1000;\n  }")
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -87,7 +87,7 @@ func Test_misc7(t *testing.T) {
 		db2, err := frigolite.Open("test.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_busy_timeout [sqlite3_connection_pointer db] 2000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_busy_timeout [sqlite3_connection_pointer db] 2000")
 		_res = db.Exec("\n    BEGIN EXCLUSIVE;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN EXCLUSIVE;\n  ")
@@ -160,7 +160,7 @@ func Test_misc7(t *testing.T) {
 	os.Remove("test.db-journal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test misc7-16 -sqlprep {\n   PRAGMA cache_size = 10;\n   PRAGMA default_cach...} -tclbody {\n  set rc [catch {db eval {\n    BEGIN;\n      PRAGM...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test misc7-16 -sqlprep {\n   PRAGMA cache_size = 10;\n   PRAGMA default_cach...} -tclbody {\n  set rc [catch {db eval {\n    BEGIN;\n      PRAGM...}")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "misc7-16.X"
@@ -217,9 +217,9 @@ func Test_misc7(t *testing.T) {
 			}
 			var _pending_byte_page = "($::sqlite_pending_byte / 1024) + 1" // TCL namespace variable
 			_ = _pending_byte_page // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte $::sqlite_pending_byte")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte $::sqlite_pending_byte")
 			{ // do_test "misc7-17.3"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 				_res = db.Exec("\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = $pending_byte_page\n          WHERE type = 'table' AND name = 't3';\n      ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = $pending_byte_page\n          WHERE type = 'table' AND name = 't3';\n      ")
@@ -248,13 +248,13 @@ func Test_misc7(t *testing.T) {
 		}
 	}
 	{ // do_test "misc7-19.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_status -1 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_status -1 0")
 	}
 	{ // do_test "misc7-19.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_status 1000 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_status 1000 0")
 	}
 	{ // do_test "misc7-20.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_global_recover")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_global_recover")
 	}
 	{ // do_test "misc7-21.1"
 		var zFile = "file join [get_pwd] \"[string repeat abcde 104].db\""
@@ -306,7 +306,7 @@ func Test_misc7(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "misc7-22.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
 	}
 	{
 		var _catchErr error
@@ -351,7 +351,7 @@ func Test_misc7(t *testing.T) {
 			}
 		}
 		{ // do_test "23.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
 		}
 		{ // do_test "23.5"
 			os.Remove("tst")

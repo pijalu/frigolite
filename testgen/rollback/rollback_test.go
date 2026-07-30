@@ -31,16 +31,16 @@ func Test_rollback(t *testing.T) {
 	{ // do_test "rollback-1.3"
 		var STMT = "sqlite3_prepare $DB \"SELECT a FROM t1\" -1 TAIL"
 		_ = STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "rollback-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "rollback-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "rollback-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 	}
 	if tclBool(tcl_platform + "(platform) == \"unix\" \n && " + "permutation" + " != \"onefile\"\n && " + "permutation" + " != \"inmemory_journal\"\n && " + "permutation" + " != \"atomic-batch-write\"\n && " + "atomic_batch_write test.db" + "==0") {
 		{ // do_test "rollback-2.1"
@@ -57,7 +57,7 @@ func Test_rollback(t *testing.T) {
 		}
 		var mj = "file normalize testA.db-mj-123"
 		_ = mj // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "binary scan $mj c* a")
+		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $mj c* a")
 		var cksum = "0"
 		_ = cksum // suppress unused warning
 		for _, i := range tclSplitList(a) {
@@ -77,10 +77,10 @@ func Test_rollback(t *testing.T) {
 		_ = iOffset // suppress unused warning
 		var fd = "open testA.db-journal a+"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd $iOffset")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd $iOffset")
 		t.Log("-nonewline")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd 0")
 		t.Log("-nonewline")
 		// close $fd
 		{ // do_test "rollback-2.2"

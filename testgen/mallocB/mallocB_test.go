@@ -23,10 +23,10 @@ func Test_mallocB(t *testing.T) {
 		t.Log("Skipping mallocB tests: not compiled with -DSQLITE_MEMDEBUG...")
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-1 -sqlbody {SELECT - 456}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-2 -sqlbody {SELECT - 456.1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-3 -sqlbody {SELECT random()}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-4 -sqlbody {SELECT length(zeroblob(1000))}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-6 -sqlbody { SELECT test_auxdata('hello world'); }")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-7 -sqlbody {\n  SELECT strftime(hex(randomblob(50)) || '%Y', 'n...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-1 -sqlbody {SELECT - 456}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-2 -sqlbody {SELECT - 456.1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-3 -sqlbody {SELECT random()}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-4 -sqlbody {SELECT length(zeroblob(1000))}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-6 -sqlbody { SELECT test_auxdata('hello world'); }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocB-7 -sqlbody {\n  SELECT strftime(hex(randomblob(50)) || '%Y', 'n...}")
 }

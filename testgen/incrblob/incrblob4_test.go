@@ -25,32 +25,32 @@ func Test_incrblob4(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "create_t1")
-		t.Skipf("TODO: %s not implemented in frigolite", "populate_t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "create_t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "populate_t1")
 	}
 	{ // do_test "1.2"
 		var blob = "db incrblob t1 v 5"
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "read $blob 10")
+		t.Errorf("TODO: %s not implemented in frigolite", "read $blob 10")
 	}
 	{ // do_test "1.3"
 		_res = db.Exec(" DELETE FROM t1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "populate_t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "populate_t1")
 	}
 	{ // do_test "2.1"
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "create_t1")
-		t.Skipf("TODO: %s not implemented in frigolite", "populate_t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "create_t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "populate_t1")
 	}
 	{ // do_test "2.2"
 		var blob = "db incrblob t1 v 10"
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "read $blob 10")
+		t.Errorf("TODO: %s not implemented in frigolite", "read $blob 10")
 	}
 	{ // do_test "2.3"
 		var new = "% 900"
@@ -72,13 +72,13 @@ func Test_incrblob4(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "create_t1")
-		t.Skipf("TODO: %s not implemented in frigolite", "populate_t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "create_t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "populate_t1")
 	}
 	{ // do_test "3.2"
 		var blob = "db incrblob t1 v 20"
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "read $blob 10")
+		t.Errorf("TODO: %s not implemented in frigolite", "read $blob 10")
 	}
 	{ // do_test "3.3"
 		var new = "% 900"
@@ -105,7 +105,7 @@ func Test_incrblob4(t *testing.T) {
 	{ // do_test "4.2"
 		var blob = "db incrblob -readonly t2 b 456"
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "read $blob 5")
+		t.Errorf("TODO: %s not implemented in frigolite", "read $blob 5")
 	}
 	{ // "4.3"
 		_res = db.Exec("\n  DROP TABLE t2\n")
@@ -114,7 +114,7 @@ func Test_incrblob4(t *testing.T) {
 		}
 	}
 	{ // do_test "4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
 	}
 	// close $blob
 }

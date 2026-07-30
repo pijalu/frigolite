@@ -42,10 +42,10 @@ func Test_fts3expr2(t *testing.T) {
 		_ = e3 // suppress unused warning
 		var e4 = "tree_to_expr $t 1 1"
 		_ = e4 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.1 $e1 $t")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.2 $e2 $t")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.3 $e3 $t")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.4 $e4 $t")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.1 $e1 $t")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.2 $e2 $t")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.3 $e3 $t")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_exprparse_test fts3expr2-$iTest.4 $e4 $t")
 		// incr iTest 1
 		{
 			_n, _err := strconv.Atoi(iTest)

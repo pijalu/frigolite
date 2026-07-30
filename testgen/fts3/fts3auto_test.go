@@ -38,21 +38,21 @@ func Test_fts3auto(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.1 {a b c a b} a {2}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.2 {a b c a b} {a 5 b 6 c} {2 2 1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.3 {a b c a b} {\"a b\"} {2}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.4 {a b c a b} {\"b c\"} {1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.5 {a b c a b} {\"c c\"} {0}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.1 a b c d e f g {b 2 f} {0 0}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.2 a b c d e f g {b 3 f} {1 1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.3 a b c d e f g {f 2 b} {0 0}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.4 a b c d e f g {f 3 b} {1 1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.5 a b c d e f g {\"a b\" 2 \"f g\"} {0 0}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.6 a b c d e f g {\"a b\" 3 \"f g\"} {1 1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.1 {a b c a b} a {2}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.2 {a b c a b} {a 5 b 6 c} {2 2 1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.3 {a b c a b} {\"a b\"} {2}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.4 {a b c a b} {\"b c\"} {1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.1.5 {a b c a b} {\"c c\"} {0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.1 a b c d e f g {b 2 f} {0 0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.2 a b c d e f g {b 3 f} {1 1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.3 a b c d e f g {f 2 b} {0 0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.4 a b c d e f g {f 3 b} {1 1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.5 a b c d e f g {\"a b\" 2 \"f g\"} {0 0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.2.6 a b c d e f g {\"a b\" 3 \"f g\"} {1 1}")
 	var A = "a b c d e f g h i j k l m n o p q r s t u v w x y z"
 	_ = A // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.3.1 $A {\"c d\" 5 \"i j\" 1 \"e f\"} {0 0 0}")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.3.2 $A {\"c d\" 5 \"i j\" 2 \"e f\"} {1 1 1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.3.1 $A {\"c d\" 5 \"i j\" 1 \"e f\"} {0 0 0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_fts3_near_match 1.3.2 $A {\"c d\" 5 \"i j\" 2 \"e f\"} {1 1 1}")
 	// foreach {tn create} "\n  1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\"\n"
 	_items := tclSplitList("\n  1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
@@ -109,7 +109,7 @@ func Test_fts3auto(t *testing.T) {
 				expr := _items[_idx+1]
 				_ = expr // suppress unused warning
 				_ = _idx
-					t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 2.$tn.2.$tn2 t1 $expr")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 2.$tn.2.$tn2 t1 $expr")
 				}
 			}
 			// foreach {tn create} "\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n"
@@ -134,7 +134,7 @@ func Test_fts3auto(t *testing.T) {
 					}
 					var limit = "fts3_make_deferrable t1 c"
 					_ = limit // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 3.$tn.2.1 t1 {a OR c}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 3.$tn.2.1 t1 {a OR c}")
 					// foreach {tn2 expr def} "\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  "
 					_items := tclSplitList("\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  ")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
@@ -145,7 +145,7 @@ func Test_fts3auto(t *testing.T) {
 						def := _items[_idx+2]
 						_ = def // suppress unused warning
 						_ = _idx
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 3.$tn.4.$tn2 -deferred $def t1 $expr")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 3.$tn.4.$tn2 -deferred $def t1 $expr")
 						}
 					}
 					// foreach {tn create} "\n  1    \"fts4(x, y)\"\n  2    \"fts4(x, y, order=DESC)\"\n  3    \"fts4(x, y, order=DESC, prefix=2)\"\n"
@@ -160,11 +160,11 @@ func Test_fts3auto(t *testing.T) {
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";\n    INSERT INTO t1 VALUES('one two five four five', '');\n    INSERT INTO t1 VALUES('', 'one two five four five');\n    INSERT INTO t1 VALUES('one two', 'five four five');")
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.1 t1 {one AND five}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.2 t1 {one NEAR five}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.3 t1 {one NEAR/1 five}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.4 t1 {one NEAR/2 five}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.5 t1 {one NEAR/3 five}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.1 t1 {one AND five}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.2 t1 {one NEAR five}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.3 t1 {one NEAR/1 five}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.4 t1 {one NEAR/2 five}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.1.5 t1 {one NEAR/3 five}")
 							{ // do_test "4." + tn + ".2"
 								var limit = "fts3_make_deferrable t1 five"
 								_ = limit // suppress unused warning
@@ -173,16 +173,16 @@ func Test_fts3auto(t *testing.T) {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1) VALUES('optimize') ")
 								}
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.1 -deferred five t1 {one AND five}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.2 -deferred five t1 {one NEAR five}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.3 -deferred five t1 {one NEAR/1 five}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.4 -deferred five t1 {one NEAR/2 five}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.5 -deferred five t1 {one NEAR/3 five}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.1 -deferred fi* t1 {on* AND fi*}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.2 -deferred fi* t1 {on* NEAR fi*}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.3 -deferred fi* t1 {on* NEAR/1 fi*}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.4 -deferred fi* t1 {on* NEAR/2 fi*}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.5 -deferred fi* t1 {on* NEAR/3 fi*}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.1 -deferred five t1 {one AND five}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.2 -deferred five t1 {one NEAR five}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.3 -deferred five t1 {one NEAR/1 five}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.4 -deferred five t1 {one NEAR/2 five}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.3.5 -deferred five t1 {one NEAR/3 five}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.1 -deferred fi* t1 {on* AND fi*}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.2 -deferred fi* t1 {on* NEAR fi*}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.3 -deferred fi* t1 {on* NEAR/1 fi*}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.4 -deferred fi* t1 {on* NEAR/2 fi*}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 4.$tn.4.5 -deferred fi* t1 {on* NEAR/3 fi*}")
 						}
 						var chunkconfig = "fts3_configure_incr_load 1 1"
 						_ = chunkconfig // suppress unused warning
@@ -219,13 +219,13 @@ func Test_fts3auto(t *testing.T) {
 											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(a, b) VALUES($a, $b)")
 										}
 									}
-									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.1 t1 {s*}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.2 t1 {so*}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.3 t1 {\"s* o*\"}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.4 t1 {b* NEAR/3 a*}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.5 t1 {a*}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.6 t1 {th* NEAR/5 a* NEAR/5 w*}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.7 t1 {\"b* th* art* fair*\"}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.1 t1 {s*}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.2 t1 {so*}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.3 t1 {\"s* o*\"}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.4 t1 {b* NEAR/3 a*}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.5 t1 {a*}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.6 t1 {th* NEAR/5 a* NEAR/5 w*}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 5.$tn.1.7 t1 {\"b* th* art* fair*\"}")
 									if tclBool(pending) {
 										_res = db.Exec("COMMIT")
 										if _res.Error != nil {
@@ -271,11 +271,11 @@ func Test_fts3auto(t *testing.T) {
 													t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($a, $b, $c, $d) ")
 												}
 											}
-											t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.1 t1 {b:G}")
-											t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.2 t1 {b:G AND c:I}")
-											t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.3 t1 {b:G NEAR c:I}")
-											t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.4 t1 {a:C OR b:G OR c:K OR d:C}")
-											t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.5 t1 {a:G OR b:G}")
+											t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.1 t1 {b:G}")
+											t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.2 t1 {b:G AND c:I}")
+											t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.3 t1 {b:G NEAR c:I}")
+											t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.4 t1 {a:C OR b:G OR c:K OR d:C}")
+											t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 6.$tn.5 t1 {a:G OR b:G}")
 											_res = db.Exec(" COMMIT ")
 											_ = _res // catchsql
 										}
@@ -297,10 +297,10 @@ func Test_fts3auto(t *testing.T) {
 														t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($x) ")
 													}
 												}
-												t.Skipf("TODO: %s not implemented in frigolite", "fts3_make_deferrable t1 B 2")
-												t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.1 t1 {\"M B\"}")
-												t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.2 t1 {\"B D\"}")
-												t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.3 -deferred B t1 {\"M B D\"}")
+												t.Errorf("TODO: %s not implemented in frigolite", "fts3_make_deferrable t1 B 2")
+												t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.1 t1 {\"M B\"}")
+												t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.2 t1 {\"B D\"}")
+												t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.3 -deferred B t1 {\"M B D\"}")
 											}
 											var sqlite_fts3_enable_parentheses = sfep
 											_ = sqlite_fts3_enable_parentheses // suppress unused warning

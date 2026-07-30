@@ -29,20 +29,20 @@ func Test_walsetlk3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sql_block_on_close {\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 V...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sql_block_on_close {\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 V...}")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout db 2000")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout db 2000")
 	{ // "1.1"
 		_res = db.Exec("\n  SELECT * FROM t1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  SELECT * FROM t1\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sql_block_on_close {\n  INSERT INTO t1 VALUES(9, 10);\n  INSERT INTO t1 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sql_block_on_close {\n  INSERT INTO t1 VALUES(9, 10);\n  INSERT INTO t1 ...}")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout -block db 2000")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout -block db 2000")
 	{ // "1.2"
 		_res = db.Exec("\n  SELECT * FROM t1\n")
 		if _res.Error == nil {
@@ -59,10 +59,10 @@ func Test_walsetlk3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sql_block_on_write {\n  INSERT INTO x1 VALUES(4);\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sql_block_on_write {\n  INSERT INTO x1 VALUES(4);\n}")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout -block db 2000")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout -block db 2000")
 	{ // "2.2"
 		_res = db.Exec("\n  SELECT * FROM x1\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {

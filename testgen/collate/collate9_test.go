@@ -40,7 +40,7 @@ func Test_collate9(t *testing.T) {
 		}
 	}
 	{ // do_test "collate9-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT x FROM xy ORDER BY x\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT x FROM xy ORDER BY x\n  }")
 	}
 	{ // do_test "collate9-1.5"
 		_res = db.Exec(" \n    CREATE INDEX xy_i ON xy(x)\n  ")
@@ -49,7 +49,7 @@ func Test_collate9(t *testing.T) {
 		}
 	}
 	{ // do_test "collate9-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT x FROM xy ORDER BY x\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT x FROM xy ORDER BY x\n  }")
 	}
 	{ // do_test "collate9-2.1"
 		r = db.Query(" \n    SELECT x, x < 'seven' FROM xy ORDER BY x\n  ")
@@ -94,15 +94,15 @@ func Test_collate9(t *testing.T) {
 		}
 	}
 	{ // do_test "collate9-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y FROM xy ORDER BY y \n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y FROM xy ORDER BY y \n  }")
 	}
 	{ // do_test "collate9-3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y FROM xy ORDER BY y COLLATE \"reverse...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y FROM xy ORDER BY y COLLATE \"reverse...}")
 	}
 	{ // do_test "collate9-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y AS aaa FROM xy ORDER BY aaa\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y AS aaa FROM xy ORDER BY aaa\n  }")
 	}
 	{ // do_test "collate9-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y COLLATE \"reverse sort\" AS aaa FROM ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { \n    SELECT y COLLATE \"reverse sort\" AS aaa FROM ...}")
 	}
 }

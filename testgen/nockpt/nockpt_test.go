@@ -54,7 +54,7 @@ func Test_nockpt(t *testing.T) {
 		// file exists "test.db-wal"
 	}
 	{ // do_test "1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db NO_CKPT_ON_CLOSE 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db NO_CKPT_ON_CLOSE 1")
 	}
 	{ // do_test "1.8"
 		// file size test.db-wal
@@ -94,7 +94,7 @@ func Test_nockpt(t *testing.T) {
 		}
 	}
 	{ // do_test "1.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db NO_CKPT_ON_CLOSE 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db NO_CKPT_ON_CLOSE 1")
 	}
 	{ // "1.14"
 		r = db.Query(" PRAGMA main.journal_mode = delete ")
@@ -122,7 +122,7 @@ func Test_nockpt(t *testing.T) {
 		}
 		var _stmt = "sqlite3_prepare $::db1 \"SELECT * FROM t1\" -1 dummy" // TCL namespace variable
 		_ = _stmt // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_close_v2 $::db1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close_v2 $::db1")
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
@@ -175,7 +175,7 @@ func Test_nockpt(t *testing.T) {
 			}
 		}
 		{ // do_test "2.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
 			db3, err := frigolite.Open("test.db")
 			defer db3.Close()
 			if err != nil { t.Fatal(err) }

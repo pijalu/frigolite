@@ -19,14 +19,14 @@ func Test_mallocI(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-1 -sqlprep {\n  CREATE TABLE t1(a,b,c,d);\n  CREATE VIEW v1 AS S...} -sqlbody {\n  SELECT * FROM v1\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-2 -sqlbody {\n  PRAGMA temp.page_size\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-3 -sqlprep {\n  CREATE TABLE t1(a,b,c);\n} -sqlbody {\n  CREATE TABLE t2 AS SELECT b,c FROM t1;\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-4 -tclprep {\n  sqlite3 db2 test.db\n  db2 eval {\n    CREATE TAB...} -sqlbody {\n  SELECT * FROM t1\n} -cleanup {\n  do_test mallocI-4.$::n.2 {\n    # If this INSERT...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-1 -sqlprep {\n  CREATE TABLE t1(a,b,c,d);\n  CREATE VIEW v1 AS S...} -sqlbody {\n  SELECT * FROM v1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-2 -sqlbody {\n  PRAGMA temp.page_size\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-3 -sqlprep {\n  CREATE TABLE t1(a,b,c);\n} -sqlbody {\n  CREATE TABLE t2 AS SELECT b,c FROM t1;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-4 -tclprep {\n  sqlite3 db2 test.db\n  db2 eval {\n    CREATE TAB...} -sqlbody {\n  SELECT * FROM t1\n} -cleanup {\n  do_test mallocI-4.$::n.2 {\n    # If this INSERT...}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test mallocI-5 -faults oom* -prep {\n  catch { db close }\n  sqlite3 db test.db\n  sqlit...} -body {\n  db eval { Select CAST(1 AS blob) }\n} -test {\n  faultsim_test_result {0 1}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test mallocI-5 -faults oom* -prep {\n  catch { db close }\n  sqlite3 db test.db\n  sqlit...} -body {\n  db eval { Select CAST(1 AS blob) }\n} -test {\n  faultsim_test_result {0 1}\n}")
 }

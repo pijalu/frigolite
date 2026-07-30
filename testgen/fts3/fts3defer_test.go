@@ -36,15 +36,15 @@ func Test_fts3defer(t *testing.T) {
 	}
 	var tests = "\n  1  {SELECT rowid FROM t1 WHERE t1 MATCH '\"a dog\"'}                 {1}\n  2  {SELECT rowid FROM t1 WHERE t1 MATCH '\"is a dog\"'}              {1}\n  3  {SELECT rowid FROM t1 WHERE t1 MATCH '\"a longer phrase\"'}       {3}\n  4  {SELECT snippet(t1) FROM t1 WHERE t1 MATCH '\"a longer phrase\"'}  \n     {\"an instance of <b>a</b> <b>longer</b> <b>phrase</b>\"}\n  5  {SELECT rowid FROM t1 WHERE t1 MATCH 'a dog'}                   {1}\n"
 	_ = tests // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests 1.2 $tests")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests 1.2 $tests")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "1.3"
 		_res = db.Exec("\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments \n    SET block = zeroblob(length(block)) \n    WHERE length(block)>10000;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests 1.4 $tests")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests 1.4 $tests")
 	{ // "1.5"
 		_res = db.Exec(" DROP TABLE t1 ")
 		if _res.Error != nil {
@@ -88,51 +88,51 @@ func Test_fts3defer(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk xnxhf...} {13 29 40 47 48 52 63 92}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk eh'\n ...} {100}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.3 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwrf...} {7 70 98}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.4 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'duszemmz...} {3 5 8 10 13 18 20 23 32 37 41 43 55 60 65 67 72 74...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.5 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'ubwrfqnb...} {7 70 98}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.6 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwrf...} {7 70 98}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.7 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm xnxhf...} {12 13 29 30 40 47 48 52 63 92 93}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.8 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm eh'\n ...} {68 100}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.9 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm ubwrf...} {7 70 98}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.10 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'z* vgsld...} {10 13 17 31 35 51 58 88 89 90 93 100}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk xnxhf...} {13 29 40 47 48 52 63 92}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk eh'\n ...} {100}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.3 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwrf...} {7 70 98}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.4 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'duszemmz...} {3 5 8 10 13 18 20 23 32 37 41 43 55 60 65 67 72 74...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.5 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'ubwrfqnb...} {7 70 98}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.6 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'jk ubwrf...} {7 70 98}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.7 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm xnxhf...} {12 13 29 30 40 47 48 52 63 92 93}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.8 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm eh'\n ...} {68 100}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.9 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'zm ubwrf...} {7 70 98}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.10 {\n    SELECT rowid FROM t1 WHERE t1 MATCH 'z* vgsld...} {10 13 17 31 35 51 58 88 89 90 93 100}")
 			if func() bool { fts3_simple_deferred_tokens_only_n, _fts3_simple_deferred_tokens_only_e := strconv.Atoi(fts3_simple_deferred_tokens_only); if _fts3_simple_deferred_tokens_only_e != nil { return false }; return fts3_simple_deferred_tokens_only_n == 0 }() {
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.11 {\n      SELECT rowid FROM t1 \n      WHERE t1 MATCH ...} {10 13 17 31 35 51 58 88 89 90 93 100}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.11 {\n      SELECT rowid FROM t1 \n      WHERE t1 MATCH ...} {10 13 17 31 35 51 58 88 89 90 93 100}")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm agmc...} {3 24 52 53}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm zf\"'...} {33 53 75 88 101}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.3 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm aayx...} {48 65 84}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.4 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"aayxpmv...} {11 37 84}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.5 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"jk azav...} {16 53}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.6 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"xh jk j...} {18}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.7 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm jk v...} {13 17}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 2.8 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm jk v...} {}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 3.1 {\n    SELECT snippet(t1, '[', ']') FROM t1 WHERE t1...} {\n    {zm [zm] [agmckuiu] uhzq nsab jk rrkx duszemm...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 3.2 {\n    SELECT snippet(t1, '[', ']') FROM t1 WHERE t1...} {\n    {[xnxhf] [jk] [jk] agmckuiu duszemmzl [jk] zm...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 4.1 {\n    SELECT offsets(t1) FROM t1 WHERE t1 MATCH '\"j...} {\n    {0 0 10 2 0 1 13 6} {0 0 26 2 0 1 29 6}\n  }")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 4.2 {\n    SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'du...} {\n    {0 2 3 8 0 1 36 2 0 0 58 9} \n    {0 0 0 9 0 1...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 4.3 {\n    SELECT offsets(t1) FROM t1 \n    WHERE t1 MATC...} {{0 0 0 5 0 1 15 7 0 0 36 5}}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 2.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm agmc...} {3 24 52 53}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 2.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm zf\"'...} {33 53 75 88 101}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 2.3 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm aayx...} {48 65 84}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 2.4 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"aayxpmv...} {11 37 84}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 2.5 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"jk azav...} {16 53}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 2.6 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"xh jk j...} {18}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 2.7 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm jk v...} {13 17}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 2.8 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm jk v...} {}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 3.1 {\n    SELECT snippet(t1, '[', ']') FROM t1 WHERE t1...} {\n    {zm [zm] [agmckuiu] uhzq nsab jk rrkx duszemm...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 3.2 {\n    SELECT snippet(t1, '[', ']') FROM t1 WHERE t1...} {\n    {[xnxhf] [jk] [jk] agmckuiu duszemmzl [jk] zm...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 4.1 {\n    SELECT offsets(t1) FROM t1 WHERE t1 MATCH '\"j...} {\n    {0 0 10 2 0 1 13 6} {0 0 26 2 0 1 29 6}\n  }")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 4.2 {\n    SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'du...} {\n    {0 2 3 8 0 1 36 2 0 0 58 9} \n    {0 0 0 9 0 1...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 4.3 {\n    SELECT offsets(t1) FROM t1 \n    WHERE t1 MATC...} {{0 0 0 5 0 1 15 7 0 0 36 5}}")
 			for _, DO_MALLOC_TEST := range tclSplitList(dmt_modes) {
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.1 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '\"jk mj...} {8 15 36 64 67 72}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.2 {\n      SELECT rowid FROM t1 WHERE t1 MATCH 'duszem...} {3 5 8 10 12 13 18 20 23 37 43 55 60 65 67 72 74 81...}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.3 {\n      SELECT snippet(t1, '[', ']') FROM t1 WHERE ...} {\n      {[zm] [aayxpmve] csjqxhgj xnxhf xr jk aayxp...}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.4 {\n      SELECT snippet(t1, '[', ']') FROM t1 WHERE ...} {\n      {[zm] jk [zm] [zm] [zhbrzadb] uenvbm aayxpm...}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.5 {\n      SELECT offsets(t1) FROM t1 WHERE t1 MATCH '...} {\n      {0 0 0 2 0 1 3 8} {0 0 38 2 0 1 41 8} {0 0 ...}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.6 {\n      SELECT offsets(t1) FROM t1 WHERE t1 MATCH '...} {\n      {0 0 0 2 0 0 6 2 0 0 9 2 0 1 12 8}\n    }")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.1 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '\"jk mj...} {8 15 36 64 67 72}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.2 {\n      SELECT rowid FROM t1 WHERE t1 MATCH 'duszem...} {3 5 8 10 12 13 18 20 23 37 43 55 60 65 67 72 74 81...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.3 {\n      SELECT snippet(t1, '[', ']') FROM t1 WHERE ...} {\n      {[zm] [aayxpmve] csjqxhgj xnxhf xr jk aayxp...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.4 {\n      SELECT snippet(t1, '[', ']') FROM t1 WHERE ...} {\n      {[zm] jk [zm] [zm] [zhbrzadb] uenvbm aayxpm...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.5 {\n      SELECT offsets(t1) FROM t1 WHERE t1 MATCH '...} {\n      {0 0 0 2 0 1 3 8} {0 0 38 2 0 1 41 8} {0 0 ...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.6 {\n      SELECT offsets(t1) FROM t1 WHERE t1 MATCH '...} {\n      {0 0 0 2 0 0 6 2 0 0 9 2 0 1 12 8}\n    }")
 				var DO_MALLOC_TEST = "0"
 				_ = DO_MALLOC_TEST // suppress unused warning
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.1 {\n    SELECT rowid FROM t1 \n    WHERE t1 MATCH 'vgs...} {10}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.2.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"jk xduv...} {8}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.2.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm azav...} {15 26 92 96}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 6.1 {\n    SELECT rowid FROM t1 \n    WHERE t1 MATCH 'vgs...} {10}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 6.2.1 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"jk xduv...} {8}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 6.2.2 {\n    SELECT rowid FROM t1 WHERE t1 MATCH '\"zm azav...} {15 26 92 96}")
 			if func() bool { fts3_simple_deferred_tokens_only_n, _fts3_simple_deferred_tokens_only_e := strconv.Atoi(fts3_simple_deferred_tokens_only); if _fts3_simple_deferred_tokens_only_e != nil { return false }; return fts3_simple_deferred_tokens_only_n == 0 }() {
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 6.2.3 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '\"jk xd...} {8 15 26 92 96}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 6.2.3 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '\"jk xd...} {8 15 26 92 96}")
 			}
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n > 1 }() {
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 7.1 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '^zm mj...} {56 62}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 7.2 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '^azavw...} {43}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 7.1 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '^zm mj...} {56 62}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 7.2 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '^azavw...} {43}")
 			}
 		}
 		var testprefix = "fts3defer"

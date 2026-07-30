@@ -23,13 +23,13 @@ func Test_mallocD(t *testing.T) {
 		t.Log("Skipping mallocD tests: not compiled with -DSQLITE_MEMDEBUG...")
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char atomic")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char atomic")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	var PREP = " \n  PRAGMA page_size = 1024;\n  CREATE TABLE abc(a, b, c);\n"
 	_ = PREP // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocD-1 -sqlprep $PREP -sqlbody { \n  INSERT INTO abc VALUES(1, 2, 3);\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocD-2 -sqlprep $PREP -sqlbody {\n  BEGIN;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INS...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocD-3 -sqlprep $PREP -sqlbody {\n  BEGIN;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INS...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char {}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocD-1 -sqlprep $PREP -sqlbody { \n  INSERT INTO abc VALUES(1, 2, 3);\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocD-2 -sqlprep $PREP -sqlbody {\n  BEGIN;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INS...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocD-3 -sqlprep $PREP -sqlbody {\n  BEGIN;\n  INSERT INTO abc VALUES(1, 2, 3);\n  INS...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char {}")
 }

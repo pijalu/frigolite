@@ -169,7 +169,7 @@ func Test_misc5(t *testing.T) {
 		db2, err := frigolite.Open(":memory:")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db2 DEFENSIVE 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db2 DEFENSIVE 0")
 		_res = db.Exec("\n    CREATE TABLE t1(x UNIQUE);\n    PRAGMA writable_schema=ON;\n    UPDATE sqlite_master SET sql='CREATE table t(o CHECK(((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((((;VALUES(o)';\n    BEGIN;\n    CREATE TABLE t2(y);\n    ROLLBACK;\n    DROP TABLE IF EXISTS D;\n  ")
 		_ = _res // catchsql
 	}

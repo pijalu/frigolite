@@ -24,7 +24,7 @@ func Test_csv01(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "csv01"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db csv")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db csv")
 	{ // "1.0"
 		r = db.Query("\n  CREATE VIRTUAL TABLE temp.t1 USING csv(\n    data=\n'1,2,3,4\n5,6,7,8\n9,10,11,12\n13,14,15,16\n',\n    columns=4\n  );\n  SELECT * FROM t1 WHERE c1=10;\n")
 		if r.Error != nil {
@@ -325,7 +325,7 @@ func Test_csv01(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db csv")
+		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db csv")
 		var fd = "open csv.data w"
 		_ = fd // suppress unused warning
 		t.Log(fd)
@@ -363,7 +363,7 @@ func Test_csv01(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db csv")
+		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db csv")
 		var T = "randomtext $ii"
 		_ = T // suppress unused warning
 		var fd = "open csv.data w"
@@ -400,7 +400,7 @@ func Test_csv01(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db csv")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db csv")
 	{ // "8.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE abc USING csv(\n     data='1,2,3,4,5,6',\n     columns=32768\n  );\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "column= value too big, max 2000") {

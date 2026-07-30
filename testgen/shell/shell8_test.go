@@ -41,61 +41,61 @@ func Test_shell8(t *testing.T) {
 		_ = tcl // suppress unused warning
 		_ = _idx
 			// eval $tcl
-			t.Skipf("TODO: %s not implemented in frigolite", "populate_dir ar1 {\n    file1 \"abcd\" \n    file2 \"efgh\"\n    dir1/file3...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "populate_dir ar1 {\n    file1 \"abcd\" \n    file2 \"efgh\"\n    dir1/file3...}")
 			var expected = "dir_to_list ar1"
 			_ = expected // suppress unused warning
 			{ // do_test "1." + tn + ".1"
-				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $c1")
+				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $c1")
 				os.Remove("-force")
-				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $x1")
-				t.Skipf("TODO: %s not implemented in frigolite", "dir_to_list ar1")
+				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $x1")
+				t.Errorf("TODO: %s not implemented in frigolite", "dir_to_list ar1")
 			}
 			{ // do_test "1." + tn + ".2"
 				os.Remove("-force")
-				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $c2")
-				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $x2")
-				t.Skipf("TODO: %s not implemented in frigolite", "dir_to_list ar3")
+				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $c2")
+				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $x2")
+				t.Errorf("TODO: %s not implemented in frigolite", "dir_to_list ar3")
 			}
 			{ // do_test "1." + tn + ".3"
 				os.Remove("-force")
 				os.Remove("-force")
-				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: $c3")
-				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd :memory: $x3")
-				t.Skipf("TODO: %s not implemented in frigolite", "dir_to_list ar3")
+				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: $c3")
+				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd :memory: $x3")
+				t.Errorf("TODO: %s not implemented in frigolite", "dir_to_list ar3")
 			}
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
 				{ // do_test "1." + tn + ".4"
-					t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $c1")
+					t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $c1")
 					os.Remove("-force")
-					t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $x1")
-					t.Skipf("TODO: %s not implemented in frigolite", "dir_to_list ar1")
+					t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test_ar.db $x1")
+					t.Errorf("TODO: %s not implemented in frigolite", "dir_to_list ar1")
 				}
 			}
 		}
 		{ // do_test "2.1.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "populate_dir ar2 {\n    file1 \"abcd\" \n    file2 \"efgh\"\n    junk1 \"j1\"...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "populate_dir ar4 {\n    file2 \"efgh\"\n  }")
-			t.Skipf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -c}")
-			t.Skipf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -C ar2 -i .}")
-			t.Skipf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -r ./file2 ./dir1}")
-			t.Skipf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -g -r ./ju*2}")
-			t.Skipf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -C ar4 -x .}")
+			t.Errorf("TODO: %s not implemented in frigolite", "populate_dir ar2 {\n    file1 \"abcd\" \n    file2 \"efgh\"\n    junk1 \"j1\"...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "populate_dir ar4 {\n    file2 \"efgh\"\n  }")
+			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -c}")
+			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -C ar2 -i .}")
+			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -r ./file2 ./dir1}")
+			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -g -r ./ju*2}")
+			t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -C ar4 -x .}")
 			ar2 := tclRegsub("-all", "ar4", "dir_content ar4")
 			_ = ar2 // suppress unused warning
 		}
 		if tcl_platform(platform) == "unix" {
-			t.Skipf("TODO: %s not implemented in frigolite", "populate_dir ar2 {\n    file1 \"1234\" \n    file2 \"3456\"\n  }")
+			t.Errorf("TODO: %s not implemented in frigolite", "populate_dir ar2 {\n    file1 \"1234\" \n    file2 \"3456\"\n  }")
 			// file link ar2/link1 file1
 			os.Remove("shell8.db")
 			os.Remove("link1")
 			{ // do_test "3.1"
-				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -C ar2 -c file2 link1 }")
+				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -C ar2 -c file2 link1 }")
 			}
 			{ // do_test "3.2"
-				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -x}")
+				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -x}")
 			}
 			{ // do_test "3.3"
-				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -x}")
+				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -x}")
 			}
 			os.Remove("shell8.db")
 			os.Remove("ar1")
@@ -113,7 +113,7 @@ func Test_shell8(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE sqlar(\n      name TEXT PRIMARY KEY,  -- name of the file\n      mode INT,               -- access permissions\n      mtime INT,              -- last modification time\n      sz INT,                 -- original file size\n      data BLOB               -- compressed content\n    );\n    INSERT INTO sqlar VALUES\n         ('abc',33188,0,-1,'content for abc'),\n         ('escape',40960,0,-1,$pwd||'/ar3'),\n         ('escape/def',33188,0,-1,'content for escape/def'),\n         ('ghi',33188,0,-1,'content for ghi');\n  ")
 			}
 			{ // do_test "3.4.1"
-				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -x --directory ar2}")
+				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd shell8.db {.ar -x --directory ar2}")
 				tclSort("glob -tails -directory ar2 -nocomplain *")
 			}
 			{ // do_test "3.4.2"

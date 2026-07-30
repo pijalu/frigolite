@@ -19,7 +19,7 @@ func Test_minmax3(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "minmax3-1.0"
@@ -27,7 +27,7 @@ func Test_minmax3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x, y, z);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "set_file_format 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "set_file_format 4")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -37,100 +37,100 @@ func Test_minmax3(t *testing.T) {
 		}
 	}
 	{ // do_test "minmax3-1.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2'; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2'; }")
 	}
 	{ // do_test "minmax3-1.1.2"
 		_res = db.Exec(" CREATE INDEX i1 ON t1(x) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(x) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2'; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2'; }")
 	}
 	{ // do_test "minmax3-1.1.3"
 		_res = db.Exec(" CREATE INDEX i2 ON t1(x,y) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i2 ON t1(x,y) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2'; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2'; }")
 	}
 	{ // do_test "minmax3-1.1.4"
 		_res = db.Exec(" DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2'; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2'; }")
 	}
 	{ // do_test "minmax3-1.1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2' AND y != 'V';...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2' AND y != 'V';...}")
 	}
 	{ // do_test "minmax3-1.1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2' AND y < 'V'; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2' AND y < 'V'; }")
 	}
 	{ // do_test "minmax3-1.1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2' AND z != 'fiv...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1 WHERE x = '2' AND z != 'fiv...}")
 	}
 	{ // do_test "minmax3-1.2.1"
 		_res = db.Exec(" DROP INDEX i1 ; DROP INDEX i2 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i1 ; DROP INDEX i2 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1 WHERE x = '2'; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1 WHERE x = '2'; }")
 	}
 	{ // do_test "minmax3-1.2.2"
 		_res = db.Exec(" CREATE INDEX i1 ON t1(x) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(x) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1 WHERE x = '2'; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1 WHERE x = '2'; }")
 	}
 	{ // do_test "minmax3-1.2.3"
 		_res = db.Exec(" CREATE INDEX i2 ON t1(x,y) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i2 ON t1(x,y) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1 WHERE x = '2'; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1 WHERE x = '2'; }")
 	}
 	{ // do_test "minmax3-1.2.4"
 		_res = db.Exec(" DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i2 ; CREATE INDEX i2 ON t1(x, y DESC) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1 WHERE x = '2'; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1 WHERE x = '2'; }")
 	}
 	{ // do_test "minmax3-1.3.1"
 		_res = db.Exec(" DROP INDEX i1 ; DROP INDEX i2 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i1 ; DROP INDEX i2 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1; }")
 	}
 	{ // do_test "minmax3-1.3.2"
 		_res = db.Exec(" CREATE INDEX i1 ON t1(y) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(y) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1; }")
 	}
 	{ // do_test "minmax3-1.3.3"
 		_res = db.Exec(" DROP INDEX i1 ; CREATE INDEX i1 ON t1(y DESC) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i1 ; CREATE INDEX i1 ON t1(y DESC) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT min(y) FROM t1; }")
 	}
 	{ // do_test "minmax3-1.4.1"
 		_res = db.Exec(" DROP INDEX i1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX i1 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1; }")
 	}
 	{ // do_test "minmax3-1.4.2"
 		_res = db.Exec(" CREATE INDEX i1 ON t1(y) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(y) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1; }")
 	}
 	{ // do_test "minmax3-1.4.3"
 		_res = db.Exec(" DROP INDEX i1 ; CREATE INDEX i1 ON t1(y DESC) ")
@@ -141,7 +141,7 @@ func Test_minmax3(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT y from t1")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count { SELECT max(y) FROM t1; }")
 	}
 	{ // do_test "minmax3-1.4.4"
 		_res = db.Exec(" DROP INDEX i1 ")

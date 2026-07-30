@@ -40,8 +40,8 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.1b { \n  nLoop 1 nVisit 2 nEst 1048576.0 zName t1 zExpl...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.1b { \n  nLoop 1 nVisit 2 nEst 1048576.0 zName t1 zExpl...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 0")
 	{ // "1.2a"
 		r = db.Query(" SELECT count(*) FROM t1, t2; ")
 		if r.Error != nil {
@@ -54,8 +54,8 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.2b { \n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.2b { \n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 1")
 	{ // "1.3"
 		r = db.Query("\n  ANALYZE;\n  SELECT count(*) FROM t1, t2;\n")
 		if r.Error != nil {
@@ -68,7 +68,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.4 {\n  nLoop 1 nVisit 2 nEst 2.0 zName t1 zExplain {SC...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.4 {\n  nLoop 1 nVisit 2 nEst 2.0 zName t1 zExplain {SC...}")
 	{ // "1.5"
 		_res = db.Exec(" ANALYZE ")
 		if _res.Error != nil {
@@ -87,7 +87,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.7 {\n  nLoop 1 nVisit 2 nEst 2.0 zName t2 zExplain \n  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.7 {\n  nLoop 1 nVisit 2 nEst 2.0 zName t2 zExplain \n  ...}")
 	{ // "1.8"
 		r = db.Query("\n  SELECT count(*) FROM t1, t2 WHERE t2.rowid>1;\n")
 		if r.Error != nil {
@@ -100,15 +100,15 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.9 {\n  nLoop 2 nVisit 4 nEst 2.0 zName t2 zExplain \n  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.9 {\n  nLoop 2 nVisit 4 nEst 2.0 zName t2 zExplain \n  ...}")
 	{ // do_test "1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_stmt_scanstatus_reset [db version -last-stmt-ptr]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_stmt_scanstatus_reset [db version -last-stmt-ptr]")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.10 {\n  nLoop 0 nVisit 0 nEst 2.0 zName t2 zExplain \n  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 1.10 {\n  nLoop 0 nVisit 0 nEst 2.0 zName t2 zExplain \n  ...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 1")
 	{ // "2.1"
 		r = db.Query("\n  CREATE TABLE x1(i INTEGER PRIMARY KEY, j);\n  INSERT INTO x1 VALUES(1, 'one');\n  INSERT INTO x1 VALUES(2, 'two');\n  INSERT INTO x1 VALUES(3, 'three');\n  INSERT INTO x1 VALUES(4, 'four');\n  CREATE INDEX x1j ON x1(j);\n\n  SELECT * FROM x1 WHERE i=2;\n")
 		if r.Error != nil {
@@ -121,7 +121,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.2 {\n  nLoop 1 nVisit 1 nEst 1.0 zName x1 \n  zExplain ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.2 {\n  nLoop 1 nVisit 1 nEst 1.0 zName x1 \n  zExplain ...}")
 	{ // "2.3.1"
 		r = db.Query("\n  SELECT * FROM x1 WHERE j='two'\n")
 		if r.Error != nil {
@@ -134,7 +134,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.3.2 {\n  nLoop 1 nVisit 1 nEst 10.0 zName x1j \n  zExplai...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.3.2 {\n  nLoop 1 nVisit 1 nEst 10.0 zName x1j \n  zExplai...}")
 	{ // "2.4.1"
 		r = db.Query("\n  SELECT * FROM x1 WHERE j<'two'\n")
 		if r.Error != nil {
@@ -147,7 +147,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.4.2 {\n  nLoop 1 nVisit 3 nEst 262144.0 zName x1j \n  zEx...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.4.2 {\n  nLoop 1 nVisit 3 nEst 262144.0 zName x1j \n  zEx...}")
 	{ // "2.5.1"
 		r = db.Query("\n  SELECT * FROM x1 WHERE j>='two'\n")
 		if r.Error != nil {
@@ -160,7 +160,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.5.2 {\n  nLoop 1 nVisit 1 nEst 262144.0 zName x1j \n  zEx...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.5.2 {\n  nLoop 1 nVisit 1 nEst 262144.0 zName x1j \n  zEx...}")
 	{ // "2.6.1"
 		r = db.Query("\n  SELECT * FROM x1 WHERE j BETWEEN 'three' AND 'two'\n")
 		if r.Error != nil {
@@ -173,7 +173,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.6.2 {\n  nLoop 1 nVisit 2 nEst 16384.0 zName x1j \n  zExp...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.6.2 {\n  nLoop 1 nVisit 2 nEst 16384.0 zName x1j \n  zExp...}")
 	{ // "2.7.1"
 		r = db.Query("\n  CREATE TABLE x2(i INTEGER, j, k);\n  INSERT INTO x2 SELECT i, j, i || ' ' || j FROM x1;\n  CREATE INDEX x2j ON x2(j);\n  CREATE INDEX x2ij ON x2(i, j);\n  SELECT * FROM x2 WHERE j BETWEEN 'three' AND 'two'\n")
 		if r.Error != nil {
@@ -186,21 +186,21 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.7.2 {\n  nLoop 1 nVisit 2 nEst 16384.0 zName x2j \n  zExp...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.7.2 {\n  nLoop 1 nVisit 2 nEst 16384.0 zName x2j \n  zExp...}")
 	{ // "2.8.1"
 		r = db.Query("\n  SELECT * FROM x2 WHERE i=1 AND j='two'\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM x2 WHERE i=1 AND j='two'\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.8.2 {\n  nLoop 1 nVisit 0 nEst 8.0 zName x2ij \n  zExplai...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.8.2 {\n  nLoop 1 nVisit 0 nEst 8.0 zName x2ij \n  zExplai...}")
 	{ // "2.9.1"
 		r = db.Query("\n  SELECT * FROM x2 WHERE i=5 AND j='two'\n")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM x2 WHERE i=5 AND j='two'\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.9.2 {\n  nLoop 1 nVisit 0 nEst 8.0 zName x2ij \n  zExplai...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.9.2 {\n  nLoop 1 nVisit 0 nEst 8.0 zName x2ij \n  zExplai...}")
 	{ // "2.10.1"
 		r = db.Query("\n  SELECT * FROM x2 WHERE i=3 AND j='three'\n")
 		if r.Error != nil {
@@ -213,7 +213,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.10.2 {\n  nLoop 1 nVisit 1 nEst 8.0 zName x2ij \n  zExplai...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 2.10.2 {\n  nLoop 1 nVisit 1 nEst 8.0 zName x2ij \n  zExplai...}")
 	{ // "3.1"
 		r = db.Query("\n  CREATE TABLE a1(a, b, c, d);\n  CREATE INDEX a1a ON a1(a);\n  CREATE INDEX a1bc ON a1(b, c);\n\n  WITH d(x) AS (SELECT 1 UNION ALL SELECT x+1 AS n FROM d WHERE n<=100)\n  INSERT INTO a1 SELECT x, x, x, x FROM d;\n")
 		if r.Error != nil {
@@ -232,7 +232,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 3.2.2 {\n  nLoop 1 nVisit 1 nEst 10.0 zName a1a \n  zExplai...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 3.2.2 {\n  nLoop 1 nVisit 1 nEst 10.0 zName a1a \n  zExplai...}")
 	{ // "3.2.1"
 		r = db.Query("\n  SELECT count(*) FROM a1 WHERE (a BETWEEN 4 AND 12) OR (b BETWEEN 40 AND 60)\n")
 		if r.Error != nil {
@@ -245,7 +245,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 3.2.2 {\n  nLoop 1 nVisit 9 nEst 16384.0 zName a1a \n  zExp...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 3.2.2 {\n  nLoop 1 nVisit 9 nEst 16384.0 zName a1a \n  zExp...}")
 	{ // "3.3.1"
 		r = db.Query("\n  SELECT count(*) FROM a1 AS x, a1 AS y \n  WHERE (x.a BETWEEN 4 AND 12) AND (y.b BETWEEN 1 AND 10)\n")
 		if r.Error != nil {
@@ -258,7 +258,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 3.2.2 {\n  nLoop 1 nVisit 10 nEst 16384.0 zName a1bc \n  zE...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 3.2.2 {\n  nLoop 1 nVisit 10 nEst 16384.0 zName a1bc \n  zE...}")
 	{ // "3.4.1"
 		r = db.Query("\n  SELECT count(*) FROM a1 WHERE a IN (1, 5, 10, 15);\n")
 		if r.Error != nil {
@@ -271,7 +271,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 3.4.2 {\n  nLoop 1 nVisit 4 nEst 40.0 zName a1a \n  zExplai...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 3.4.2 {\n  nLoop 1 nVisit 4 nEst 40.0 zName a1a \n  zExplai...}")
 	{ // "3.4.1"
 		r = db.Query("\n  SELECT count(*) FROM a1 WHERE rowid IN (1, 5, 10, 15);\n")
 		if r.Error != nil {
@@ -284,7 +284,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 3.4.2 {\n  nLoop 1 nVisit 4 nEst 4.0 zName a1\n  zExplain {...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 3.4.2 {\n  nLoop 1 nVisit 4 nEst 4.0 zName a1\n  zExplain {...}")
 	{ // "4.0"
 		r = db.Query("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x PRIMARY KEY, y, z);\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT * FROM t2 WHERE x BETWEEN 20 AND 40;\n  END;\n  WITH d(x) AS (SELECT 1 UNION ALL SELECT x+1 AS n FROM d WHERE n<=100)\n  INSERT INTO t2 SELECT x, x*2, x*3 FROM d;\n")
 		if r.Error != nil {
@@ -297,7 +297,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(1, 2, 3); ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 4.1.2 {}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 4.1.2 {}")
 	{ // "4.2"
 		r = db.Query("\n  CREATE TABLE p1(x PRIMARY KEY);\n  INSERT INTO p1 VALUES(1), (2), (3), (4);\n  CREATE TABLE c1(y REFERENCES p1);\n  INSERT INTO c1 VALUES(1), (2), (3);\n  PRAGMA foreign_keys=on;\n")
 		if r.Error != nil {
@@ -310,11 +310,11 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM p1 WHERE x=4 ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 4.2.2 { \n  nLoop 1 nVisit 1 nEst 1.0 zName sqlite_autoind...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 4.2.2 { \n  nLoop 1 nVisit 1 nEst 1.0 zName sqlite_autoind...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db STMT_SCANSTATUS 1")
 	// proc definition (not transpiled)
 	{ // "5.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  INSERT INTO t1 VALUES(0, 1, 'a');\n  INSERT INTO t1 VALUES(1, 0, 'b');\n  INSERT INTO t1 VALUES(2, 1, 'c');\n  INSERT INTO t1 VALUES(3, 0, 'd');\n  INSERT INTO t1 VALUES(4, 1, 'e');\n  INSERT INTO t1 VALUES(5, 0, 'a');\n  INSERT INTO t1 VALUES(6, 1, 'b');\n  INSERT INTO t1 VALUES(7, 0, 'c');\n  INSERT INTO t1 VALUES(8, 1, 'd');\n  INSERT INTO t1 VALUES(9, 0, 'e');\n  CREATE INDEX t1bc ON t1(b, c);\n\n  CREATE TABLE t2(x, y);\n  CREATE INDEX t2xy ON t2(x, y);\n  WITH data(i, x, y) AS (\n    SELECT 0, 0, tochar(0) \n    UNION ALL\n    SELECT i+1, (i+1)%2, tochar(i+1) FROM data WHERE i<500\n  ) INSERT INTO t2 SELECT x, y FROM data;\n\n  CREATE TABLE t3(x, y);\n  INSERT INTO t3 SELECT * FROM t2;\n\n  ANALYZE;\n")
@@ -346,7 +346,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 5.2.2 { \n  nLoop 1 nVisit 2 nEst 2.0 zName sqlite_autoind...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 5.2.2 { \n  nLoop 1 nVisit 2 nEst 2.0 zName sqlite_autoind...}")
 	{ // "5.3.1"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT count(*) FROM t2 WHERE y = 'j';\n")
 		if r.Error != nil {
@@ -365,7 +365,7 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 5.3.3 { \n  nLoop 1 nVisit 19 nEst 56.0 zName t2xy zExplai...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 5.3.3 { \n  nLoop 1 nVisit 19 nEst 56.0 zName t2xy zExplai...}")
 	{ // "5.5.1"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT count(*) FROM t1, t3 WHERE y = c;\n")
 		if r.Error != nil {
@@ -384,5 +384,5 @@ func Test_scanstatus(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_scanstatus_test 5.5.3 { \n  nLoop 1 nVisit 501 nEst 480.0 zName t3 zExplai...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_scanstatus_test 5.5.3 { \n  nLoop 1 nVisit 501 nEst 480.0 zName t3 zExplai...}")
 }

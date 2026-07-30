@@ -22,7 +22,7 @@ func Test_corruptL(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "corruptL"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -169,14 +169,14 @@ func Test_corruptL(t *testing.T) {
 		db, err := frigolite.Open("")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "| 112: 45 41 54 45 20 54 41 42 4c 45 20 74 34 28 87 29 EATE TABLE t4(.)")
-		t.Skipf("TODO: %s not implemented in frigolite", "| 128: 2a 06 06 13 13 01 00 00 00 4f 64 6e 78 74 33 44 *........Odnxt3D")
-		t.Skipf("TODO: %s not implemented in frigolite", "| 144: 74 13 05 43 52 45 41 54 45 20 49 6e 44 45 00 00 t..CREATE InDE..")
-		t.Skipf("TODO: %s not implemented in frigolite", "| 160: 00 00 00 00 00 00 00 f9 ff ff ff ff ff ff ff 00 ................")
-		t.Skipf("TODO: %s not implemented in frigolite", "| 176: 00 00 5f 00 fb 00 00 2d 00 00 00 00 00 00 00 00 .._....-........")
-		t.Skipf("TODO: %s not implemented in frigolite", "| 192: 00 00 00 00 00 00 00 00 00 00 00 00 00 1e 00 00 ................")
-		t.Skipf("TODO: %s not implemented in frigolite", "| 208: 00 fe 00 00 00 00 17 15 11 01 45 69 6e 64 65 2e ..........Einde.")
-		t.Skipf("TODO: %s not implemented in frigolite", "| 224: 5b 38 63 64 74 3d 05 43 52 45 41 54 45 20 49 4e [8cdt=.CREATE IN\n|    240: 44 45 58 20 63 20 64 32...")
+		t.Errorf("TODO: %s not implemented in frigolite", "| 112: 45 41 54 45 20 54 41 42 4c 45 20 74 34 28 87 29 EATE TABLE t4(.)")
+		t.Errorf("TODO: %s not implemented in frigolite", "| 128: 2a 06 06 13 13 01 00 00 00 4f 64 6e 78 74 33 44 *........Odnxt3D")
+		t.Errorf("TODO: %s not implemented in frigolite", "| 144: 74 13 05 43 52 45 41 54 45 20 49 6e 44 45 00 00 t..CREATE InDE..")
+		t.Errorf("TODO: %s not implemented in frigolite", "| 160: 00 00 00 00 00 00 00 f9 ff ff ff ff ff ff ff 00 ................")
+		t.Errorf("TODO: %s not implemented in frigolite", "| 176: 00 00 5f 00 fb 00 00 2d 00 00 00 00 00 00 00 00 .._....-........")
+		t.Errorf("TODO: %s not implemented in frigolite", "| 192: 00 00 00 00 00 00 00 00 00 00 00 00 00 1e 00 00 ................")
+		t.Errorf("TODO: %s not implemented in frigolite", "| 208: 00 fe 00 00 00 00 17 15 11 01 45 69 6e 64 65 2e ..........Einde.")
+		t.Errorf("TODO: %s not implemented in frigolite", "| 224: 5b 38 63 64 74 3d 05 43 52 45 41 54 45 20 49 4e [8cdt=.CREATE IN\n|    240: 44 45 58 20 63 20 64 32...")
 	}
 	var res = "1 {database disk image is malformed}"
 	_ = res // suppress unused warning
@@ -276,14 +276,14 @@ func Test_corruptL(t *testing.T) {
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
 	{ // "14.1"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA integrity_check;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "extra_schema_checks 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 1")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -292,15 +292,15 @@ func Test_corruptL(t *testing.T) {
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db one-pass off")
+	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db one-pass off")
 	{ // "15.1"
 		_res = db.Exec("\n  PRAGMA cell_size_check = 0;\n  UPDATE c1 SET c= NOT EXISTS(SELECT 1 FROM c1 ORDER BY (SELECT 1 FROM c1 ORDER BY a)) +10 WHERE d BETWEEN 4 AND 7;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  PRAGMA cell_size_check = 0;\n  UPDATE c1 SET c= NOT EXISTS(SELECT 1 FROM c1 ORDER BY (SELECT 1 FROM c1 ORDER BY a)) +10 WHERE d BETWEEN 4 AND 7;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "extra_schema_checks 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 1")
 	{ // "15.2"
 		r = db.Query("\n  PRAGMA integrity_check;\n")
 		if r.Error != nil {
@@ -322,10 +322,10 @@ func Test_corruptL(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(w, x, y, z, UNIQUE(w, x), UNIQUE(y, z));\n  INSERT INTO t1 VALUES(1, 1, 1, 1);\n\n  CREATE TABLE t1idx(x, y, i INTEGER, PRIMARY KEY(x)) WITHOUT ROWID;\n  INSERT INTO t1idx VALUES(10, NULL, 5);\n\n  PRAGMA writable_schema = 1;\n  UPDATE sqlite_master SET rootpage = (\n    SELECT rootpage FROM sqlite_master WHERE name='t1idx'\n  ) WHERE type = 'index';\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "extra_schema_checks 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 1")
 	{ // "16.1"
 		_res = db.Exec("\n  PRAGMA writable_schema = ON;\n  INSERT INTO t1(rowid, w, x, y, z) VALUES(5, 10, 11, 10, NULL);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
@@ -345,7 +345,7 @@ func Test_corruptL(t *testing.T) {
 		{ // do_test "17.1"
 			var fd = "open test.db r+"
 			_ = fd // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "chan truncate $fd 2048")
+			t.Errorf("TODO: %s not implemented in frigolite", "chan truncate $fd 2048")
 			// file size test.db
 		}
 		{ // "17.2"

@@ -28,7 +28,7 @@ func Test_crash7(t *testing.T) {
 		var ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 64 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
+			t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -43,7 +43,7 @@ func Test_crash7(t *testing.T) {
 			var sig = "signature"
 			_ = sig // suppress unused warning
 			{ // do_test "crash7-1." + ii + ".crash"
-				t.Skipf("TODO: %s not implemented in frigolite", "crashsql -file $f \n         PRAGMA page_size = $to_size;\n         VA...")
+				t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file $f \n         PRAGMA page_size = $to_size;\n         VA...")
 			}
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
@@ -67,13 +67,13 @@ func Test_crash7(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, UNIQUE(a, b));\n  INSERT INTO t1 VALUES(randomblob(100), randomblob(100));\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  INSERT INTO t1 SELECT randomblob(100), randomblob(100) FROM t1;\n  DELETE FROM t1 WHERE rowid%2;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
 	var i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
-		t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
 		{ // do_test "2." + "$i+1" + ".1"
-			t.Skipf("TODO: %s not implemented in frigolite", "crashsql -file test.db -seed $i {VACUUM}")
+			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file test.db -seed $i {VACUUM}")
 		}
 		{ // "2." + "$i+1" + ".2"
 			r = db.Query(" PRAGMA integrity_check ")

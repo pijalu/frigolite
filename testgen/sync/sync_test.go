@@ -35,7 +35,7 @@ func Test_sync(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA fullfsync=OFF;\n    CREATE TABLE t1(a,b);\n    ATTACH DATABASE 'test2.db' AS db2;\n    CREATE TABLE db2.t2(x,y);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "cond_incr_sync_count 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "cond_incr_sync_count 2")
 	}
 	{ // do_test "sync-1.3"
 		var sqlite_sync_count = "0"
@@ -44,6 +44,6 @@ func Test_sync(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA main.synchronous=full;\n    PRAGMA db2.synchronous=full;\n    BEGIN;\n    INSERT INTO t1 VALUES(3,4);\n    INSERT INTO t2 VALUES(5,6);\n    COMMIT;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "cond_incr_sync_count 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "cond_incr_sync_count 4")
 	}
 }

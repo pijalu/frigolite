@@ -215,15 +215,15 @@ func Test_existsexpr(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE y1(a, b, c);\n  CREATE TABLE y2(x, y, z);\n  CREATE UNIQUE INDEX y2zy ON y2(z, y);\n\n  INSERT INTO y1 VALUES(1, 1, 1);\n  INSERT INTO y1 VALUES(2, 2, 2);\n  INSERT INTO y1 VALUES(3, 3, 3);\n  INSERT INTO y1 VALUES(4, 4, 4);\n\n  INSERT INTO y2 VALUES(1, 1, 1);\n  INSERT INTO y2 VALUES(3, 3, 3);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 3.1 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  1 1 1          3 3 3\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 3.2 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  1 1 1          3 3 3\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 3.3 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  1 1 1\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 3.4 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  3 3 3\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 3.5 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  2 2 2\n  4 4 4\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 3.6 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  2 2 2\n  4 4 4\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 3.7 1 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT c...} {\n  1 1 1\n  2 2 2\n  3 3 3\n  4 4 4\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 3.8 0 {\n  SELECT * FROM y1 WHERE EXISTS ( SELECT a+1 FROM...} {\n  1 1 1\n  2 2 2\n  3 3 3\n  4 4 4\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 3.9 1 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  2 2 2\n  4 4 4\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 3.1 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  1 1 1          3 3 3\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 3.2 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  1 1 1          3 3 3\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 3.3 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  1 1 1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 3.4 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  3 3 3\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 3.5 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  2 2 2\n  4 4 4\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 3.6 0 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  2 2 2\n  4 4 4\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 3.7 1 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT c...} {\n  1 1 1\n  2 2 2\n  3 3 3\n  4 4 4\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 3.8 0 {\n  SELECT * FROM y1 WHERE EXISTS ( SELECT a+1 FROM...} {\n  1 1 1\n  2 2 2\n  3 3 3\n  4 4 4\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 3.9 1 {\n  SELECT * FROM y1 WHERE EXISTS ( \n      SELECT 1...} {\n  2 2 2\n  4 4 4\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -233,22 +233,22 @@ func Test_existsexpr(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tx1(a TEXT COLLATE nocase, b TEXT);\n  CREATE UNIQUE INDEX tx1ab ON tx1(a, b);\n\n  INSERT INTO tx1 VALUES('a', 'a');\n  INSERT INTO tx1 VALUES('B', 'b');\n  INSERT INTO tx1 VALUES('c', 'c');\n  INSERT INTO tx1 VALUES('D', 'd');\n  INSERT INTO tx1 VALUES('e', 'e');\n\n  CREATE TABLE tx2(x, y);\n  INSERT INTO tx2 VALUES('A', 'a');\n  INSERT INTO tx2 VALUES('b', 'b');\n  INSERT INTO tx2 VALUES('C', 'c');\n  INSERT INTO tx2 VALUES('D', 'd');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 4.1 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a\n  b b\n  C c\n  D d\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 4.1.1 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a   b b   C c   D d\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 4.1.2 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a   b b   C c   D d\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 4.1.1 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a   b b   C c   D d\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 4.1.2 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a   b b   C c   D d\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 4.2 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a\n  b b\n  C c\n  D d\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 4.1 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a\n  b b\n  C c\n  D d\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 4.1.1 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a   b b   C c   D d\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 4.1.2 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a   b b   C c   D d\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 4.1.1 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a   b b   C c   D d\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 4.1.2 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a   b b   C c   D d\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 4.2 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a\n  b b\n  C c\n  D d\n}")
 	{ // "4.3"
 		_res = db.Exec("\n  DROP INDEX tx1ab;\n  CREATE UNIQUE INDEX tx1ab ON tx1(a COLLATE binary, b);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX tx1ab;\n  CREATE UNIQUE INDEX tx1ab ON tx1(a COLLATE binary, b);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 4.4 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a\n  b b\n  C c\n  D d\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 4.4 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  D d\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 4.4 1 {\n  SELECT EXISTS ( SELECT x FROM tx1 ) FROM tx2\n} {\n  1 1 1 1\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 4.4 1 {\n  SELECT (SELECT EXISTS ( SELECT x FROM tx1 ) WHE...} {\n  1 1 1 1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 4.4 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  A a\n  b b\n  C c\n  D d\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 4.4 0 {\n  SELECT * FROM tx2 WHERE EXISTS (\n    SELECT 1 F...} {\n  D d\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 4.4 1 {\n  SELECT EXISTS ( SELECT x FROM tx1 ) FROM tx2\n} {\n  1 1 1 1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 4.4 1 {\n  SELECT (SELECT EXISTS ( SELECT x FROM tx1 ) WHE...} {\n  1 1 1 1\n}")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -290,9 +290,9 @@ func Test_existsexpr(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE a2(o);\n  INSERT INTO a2 VALUES(2), (5); \n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 5.5 0 \n  SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FR... {\n  2 5\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 5.6 0 \n  SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FR... {\n  2 5\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_subquery_test 5.7 0 \n  SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FR... {\n  2 5\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 5.5 0 \n  SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FR... {\n  2 5\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 5.6 0 \n  SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FR... {\n  2 5\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_subquery_test 5.7 0 \n  SELECT o FROM a2 WHERE EXISTS (\n    SELECT 1 FR... {\n  2 5\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -400,7 +400,7 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db exists-to-join 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db exists-to-join 0")
 	}
 	{ // "9.6"
 		_res = db.Exec(Q)
@@ -419,7 +419,7 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
 	}
 	{ // "9.7.2"
 		_res = db.Exec(Q)
@@ -430,7 +430,7 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db exists-to-join 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db exists-to-join 0")
 	}
 	{ // "9.7.3"
 		_res = db.Exec(Q)
@@ -441,7 +441,7 @@ func Test_existsexpr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
 	}
 	db.Close()
 	db, err = frigolite.Open("")

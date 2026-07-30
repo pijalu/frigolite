@@ -71,7 +71,7 @@ func Test_securedel2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "detect_blob test.db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "detect_blob test.db 1")
 	}
 	tclFileCopy("test.db", "test.db.bak")
 	{ // "1.3.1"
@@ -93,7 +93,7 @@ func Test_securedel2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "detect_blob test.db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "detect_blob test.db 1")
 	}
 	tclFileCopy("test.db.bak", "test.db")
 	db, err = frigolite.Open("test.db")
@@ -117,7 +117,7 @@ func Test_securedel2(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "detect_blob test.db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "detect_blob test.db 1")
 	}
 	{ // "1.5.1"
 		_res = db.Exec(" DELETE FROM t1 WHERE rowid>850 ")
@@ -128,7 +128,7 @@ func Test_securedel2(t *testing.T) {
 	{ // do_test "1.5.2"
 		var n = "0"
 		_ = n // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "detect_blob_prepare test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "detect_blob_prepare test.db")
 		var i = "851"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
@@ -178,7 +178,7 @@ func Test_securedel2(t *testing.T) {
 	{ // do_test "1.6.2"
 		var n = "0"
 		_ = n // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "detect_blob_prepare test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "detect_blob_prepare test.db")
 		var i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 850 }() {

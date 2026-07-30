@@ -26,8 +26,8 @@ func Test_fts3corrupt6(t *testing.T) {
 	_ = _saved_sqlite_fts3_enable_parentheses // suppress unused warning
 	var sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // "1.0"
 		_res = db.Exec("\n  BEGIN TRANSACTION;\n  CREATE TABLE t_content(col0 INTEGER);\n  PRAGMA writable_schema=ON;\n  CREATE VIRTUAL TABLE t0 USING fts3(col0 INTEGER PRIMARY KEY,col1 VARCHAR(8),col2 BINARY,col3 BINARY);\n  INSERT INTO t0_content VALUES(0,NULL,NULL,NULL,NULL);\n  INSERT INTO t0_segdir VALUES(0,0,0,0,'0 42',X'000131030102000103323334050101010200000461616161050101020200000462626262050101030200');\n  COMMIT;\n")
 		if _res.Error != nil {

@@ -19,8 +19,8 @@ func Test_corruptB(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "corruptB-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randomblob(200));\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n    INSERT INTO t1 SELECT randomblob(200) FROM t1;\n  ")
 		if _res.Error != nil {
@@ -36,7 +36,7 @@ func Test_corruptB(t *testing.T) {
 		_ = _root // suppress unused warning
 		var _offset = "($::root-1)*1024" // TCL namespace variable
 		_ = _offset // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset+8] [hexio_render_int32 $::root]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset+8] [hexio_render_int32 $::root]")
 	}
 	{ // do_test "corruptB-1.3.2"
 		db, err := frigolite.Open("test.db")
@@ -49,7 +49,7 @@ func Test_corruptB(t *testing.T) {
 		tclFileCopy("bak.db", "test.db")
 		var cell_offset = "hexio_get_int [hexio_read test.db [expr $offset+12] 2]"
 		_ = cell_offset // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset+$cell_offset] [hexio_render_int32 $::root]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset+$cell_offset] [hexio_render_int32 $::root]")
 	}
 	{ // do_test "corruptB-1.4.2"
 		db, err := frigolite.Open("test.db")
@@ -74,7 +74,7 @@ func Test_corruptB(t *testing.T) {
 		_ = iRightChild // suppress unused warning
 		c_offset := "($iRightChild-1)*1024"
 		_ = c_offset // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root]")
 	}
 	{ // do_test "corruptB-1.6.2"
 		db, err := frigolite.Open("test.db")
@@ -87,7 +87,7 @@ func Test_corruptB(t *testing.T) {
 		tclFileCopy("bak.db", "test.db")
 		var cell_offset = "hexio_get_int [hexio_read test.db [expr $c_offset+12] 2]"
 		_ = cell_offset // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+$cell_offset] [hexio_render_int32 $::root]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+$cell_offset] [hexio_render_int32 $::root]")
 	}
 	{ // do_test "corruptB-1.7.2"
 		db, err := frigolite.Open("test.db")
@@ -103,7 +103,7 @@ func Test_corruptB(t *testing.T) {
 		_ = iLeftChild // suppress unused warning
 		c_offset := "($iLeftChild-1)*1024"
 		_ = c_offset // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root]")
 	}
 	{ // do_test "corruptB-1.8.2"
 		db, err := frigolite.Open("test.db")
@@ -116,7 +116,7 @@ func Test_corruptB(t *testing.T) {
 		tclFileCopy("bak.db", "test.db")
 		var cell_offset = "hexio_get_int [hexio_read test.db [expr $c_offset+12] 2]"
 		_ = cell_offset // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+$cell_offset] [hexio_render_int32 $::root]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+$cell_offset] [hexio_render_int32 $::root]")
 	}
 	{ // do_test "corruptB-1.9.2"
 		db, err := frigolite.Open("test.db")
@@ -127,7 +127,7 @@ func Test_corruptB(t *testing.T) {
 	}
 	{ // do_test "corruptB-2.1.1"
 		tclFileCopy("bak.db", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset+8] [hexio_render_int32 0x6FFFFFFF]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset+8] [hexio_render_int32 0x6FFFFFFF]")
 	}
 	{ // do_test "corruptB-2.1.2"
 		db, err := frigolite.Open("test.db")
@@ -155,7 +155,7 @@ func Test_corruptB(t *testing.T) {
 		_ = iCellarray // suppress unused warning
 		var iRecord = "hexio_get_int [hexio_read test.db $iCellarray 2]"
 		_ = iRecord // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $iPage+$iRecord+3] FF00")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $iPage+$iRecord+3] FF00")
 	}
 	{ // do_test "corruptB-3.1.2"
 		db, err := frigolite.Open("test.db")

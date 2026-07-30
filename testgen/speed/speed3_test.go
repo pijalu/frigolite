@@ -20,7 +20,7 @@ func Test_speed3(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_init speed1")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_init speed1")
 	// expr srand(0) → "srand(0)"
 	var _NROW = "1000" // TCL namespace variable
 	_ = _NROW // suppress unused warning
@@ -33,7 +33,7 @@ func Test_speed3(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	os.Remove("test2.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "speed3_reset_db")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed3_reset_db")
 	{ // do_test "speed3-0.1"
 		_res = db.Exec("\n    CREATE TABLE main.t1(a INTEGER, b TEXT, c INTEGER);\n  ")
 		if _res.Error != nil {
@@ -55,7 +55,7 @@ func Test_speed3(t *testing.T) {
 		}
 	}
 	{ // do_test "speed3-0.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "populate_t1 db")
+		t.Errorf("TODO: %s not implemented in frigolite", "populate_t1 db")
 		r = db.Query("\n    SELECT count(*) FROM main.t1;\n    SELECT count(*) FROM aux.t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM main.t1;\n    SELECT count(*) FROM aux.t1;\n  ")
@@ -67,13 +67,13 @@ func Test_speed3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA main.auto_vacuum;\n    PRAGMA aux.auto_vacuum;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed3_reset_db")
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed3-1.incrvacuum $::NROW row {DELETE FROM main.t1 WHERE 1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed3-1.normal $::NROW row {DELETE FROM aux.t1 WHERE 1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "io_log db")
-	t.Skipf("TODO: %s not implemented in frigolite", "populate_t1 db")
-	t.Skipf("TODO: %s not implemented in frigolite", "speed3_reset_db")
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed3-2.incrvacuum $::NROW row {SELECT c FROM main.t1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed3-2.normal $::NROW row {SELECT c FROM aux.t1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "io_log db")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed3_reset_db")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed3-1.incrvacuum $::NROW row {DELETE FROM main.t1 WHERE 1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed3-1.normal $::NROW row {DELETE FROM aux.t1 WHERE 1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "io_log db")
+	t.Errorf("TODO: %s not implemented in frigolite", "populate_t1 db")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed3_reset_db")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed3-2.incrvacuum $::NROW row {SELECT c FROM main.t1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed3-2.normal $::NROW row {SELECT c FROM aux.t1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "io_log db")
 }

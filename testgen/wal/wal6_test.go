@@ -118,7 +118,7 @@ func Test_wal6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test3 2.6.2")
+	t.Errorf("TODO: %s not implemented in frigolite", "test3 2.6.2")
 	{ // "2.6.3"
 		_res = db.Exec(" DELETE FROM t1 ")
 		if _res.Error != nil {
@@ -150,7 +150,7 @@ func Test_wal6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO ab VALUES(1, 2);\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test4 3.2.2")
+	t.Errorf("TODO: %s not implemented in frigolite", "test4 3.2.2")
 	{ // do_test "3.3.1"
 		_res = db.Exec(" \n    BEGIN;\n      INSERT INTO ab VALUES(3, 4);\n  ")
 		if _res.Error != nil {
@@ -205,7 +205,7 @@ func Test_wal6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db-wal 0 [string repeat 00 2000]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-wal 0 [string repeat 00 2000]")
 		db2, err := frigolite.Open("test.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }

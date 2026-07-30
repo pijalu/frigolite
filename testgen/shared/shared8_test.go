@@ -24,7 +24,7 @@ func Test_shared8(t *testing.T) {
 	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = _enable_shared_cache // suppress unused warning
 	{ // do_test "0.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache")
 	}
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
@@ -38,7 +38,7 @@ func Test_shared8(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db1 DEFENSIVE 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db1 DEFENSIVE 0")
 		r = db.Query(" \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA writable_schema = 1;\n    DELETE FROM sqlite_master WHERE 1;\n    PRAGMA writable_schema = 0;\n    SELECT * FROM sqlite_master;\n  ")
@@ -102,8 +102,8 @@ func Test_shared8(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "$db close")
+			t.Errorf("TODO: %s not implemented in frigolite", "$db close")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

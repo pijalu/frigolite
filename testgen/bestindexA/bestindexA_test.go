@@ -22,7 +22,7 @@ func Test_bestindexA(t *testing.T) {
 	var testprefix = "bestindexA"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING tcl(vtab_command);\n")
 		if _res.Error != nil {
@@ -30,14 +30,14 @@ func Test_bestindexA(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.1 {\n  SELECT * FROM t1 WHERE a=?\n} {\n  {eq 0}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.2 {\n  SELECT * FROM t1 WHERE a=? LIMIT 10\n} {\n  {eq 0}\n  {limit 0}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.3 {\n  SELECT * FROM t1 WHERE a=? AND (b+1)=? LIMIT 10...} {\n  {eq 0}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.1 {\n  SELECT * FROM t1 WHERE a=?\n} {\n  {eq 0}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.2 {\n  SELECT * FROM t1 WHERE a=? LIMIT 10\n} {\n  {eq 0}\n  {limit 0}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.3 {\n  SELECT * FROM t1 WHERE a=? AND (b+1)=? LIMIT 10...} {\n  {eq 0}\n}")
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.4 {\n  SELECT * FROM t1 WHERE even(a, ?)\n} {\n  {152 0}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.5 {\n  SELECT * FROM t1 WHERE b=10 AND even(a, ?)\n} {\n  {eq 1}\n  {152 0}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.6 {\n  SELECT * FROM t1 WHERE b=10 LIMIT 10\n} {\n  {eq 1}\n  {limit 0}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.7 {\n  SELECT * FROM t1 WHERE even(b,?) LIMIT 10\n} {\n  {152 1}\n  {limit 0}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.8 {\n  SELECT * FROM t1 WHERE b!=? LIMIT 10\n} {\n  {ne 1}\n  {limit 0}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.9 {\n  SELECT * FROM t1 WHERE ?=a LIMIT 10\n} {\n  {eq 0}\n  {limit 0}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.4 {\n  SELECT * FROM t1 WHERE even(a, ?)\n} {\n  {152 0}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.5 {\n  SELECT * FROM t1 WHERE b=10 AND even(a, ?)\n} {\n  {eq 1}\n  {152 0}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.6 {\n  SELECT * FROM t1 WHERE b=10 LIMIT 10\n} {\n  {eq 1}\n  {limit 0}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.7 {\n  SELECT * FROM t1 WHERE even(b,?) LIMIT 10\n} {\n  {152 1}\n  {limit 0}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.8 {\n  SELECT * FROM t1 WHERE b!=? LIMIT 10\n} {\n  {ne 1}\n  {limit 0}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_xbestindex_test 1.9 {\n  SELECT * FROM t1 WHERE ?=a LIMIT 10\n} {\n  {eq 0}\n  {limit 0}\n}")
 }

@@ -331,7 +331,7 @@ func Test_walmode(t *testing.T) {
 		_ = mode // suppress unused warning
 		_ = _idx
 			{ // do_test "walmode-6." + tn
-				t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+				t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 				r = db.Query("\n      PRAGMA journal_mode = " + mode + ";\n      PRAGMA journal_mode = wal;\n    ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA journal_mode = " + mode + ";\n      PRAGMA journal_mode = wal;\n    ")
@@ -368,7 +368,7 @@ func Test_walmode(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 			{ // "walmode-8.1"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  PRAGMA journal_mode = WAL;\n  ATTACH 'test.db2' AS two;\n  CREATE TABLE two.t2(a, b);\n")
 				if _res.Error != nil {

@@ -20,7 +20,10 @@ func Test_notnull(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "notnull-1.0"
-		// skip: complex column constraint parsing (NOT NULL with DEFAULT and ON CONFLICT)
+		r = db.Query("\n    CREATE TABLE t1 (\n      a NOT NULL,\n      b NOT NULL DEFAULT 5,\n      c NOT NULL ON CONFLICT REPLACE DEFAULT 6,\n      d NOT NULL ON CONFLICT IGNORE DEFAULT 7,\n      e NOT NULL ON CONFLICT ABORT DEFAULT 8\n    );\n    SELECT * FROM t1;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1 (\n      a NOT NULL,\n      b NOT NULL DEFAULT 5,\n      c NOT NULL ON CONFLICT REPLACE DEFAULT 6,\n      d NOT NULL ON CONFLICT IGNORE DEFAULT 7,\n      e NOT NULL ON CONFLICT ABORT DEFAULT 8\n    );\n    SELECT * FROM t1;\n  ")
+		}
 	}
 	{ // do_test "notnull-1.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
@@ -30,7 +33,7 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.2b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.2b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-1.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
@@ -39,12 +42,12 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.4b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.4b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-1.5"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.5b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.5b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-1.6"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
@@ -65,7 +68,7 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.10b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.10b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-1.11"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
@@ -90,12 +93,12 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.16b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.16b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-1.17"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.17b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.17b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-1.18"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,e) VALUES(1,2,3,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
@@ -108,7 +111,7 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,null);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.20b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-1.20b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-1.21"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(e,d,c,b,a) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
@@ -117,12 +120,12 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-2.1b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-2.1b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-2.2"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-2.2b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-2.2b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-2.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
@@ -131,12 +134,12 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR ABORT t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-2.4b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-2.4b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-2.5"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET b=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-2.6b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-2.6b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-2.6"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
@@ -157,7 +160,7 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET e=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-2.10b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-2.10b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-3.0"
 		_res = db.Exec("\n    CREATE INDEX t1a ON t1(a);\n    CREATE INDEX t1b ON t1(b);\n    CREATE INDEX t1c ON t1(c);\n    CREATE INDEX t1d ON t1(d);\n    CREATE INDEX t1e ON t1(e);\n    CREATE INDEX t1abc ON t1(a,b,c);\n  ")
 		if _res.Error != nil {
@@ -172,7 +175,7 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.2b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.2b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-3.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
@@ -181,12 +184,12 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.4b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.4b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-3.5"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(b,c,d,e) VALUES(2,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.5b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.5b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-3.6"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,c,d,e) VALUES(1,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
@@ -207,7 +210,7 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.10b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.10b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-3.11"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR IGNORE INTO t1(a,b,c,d,e) VALUES(1,null,3,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
@@ -232,12 +235,12 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,null,4,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.16b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.16b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-3.17"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,d,e) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.17b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.17b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-3.18"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR ABORT INTO t1(a,b,c,e) VALUES(1,2,3,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
@@ -250,7 +253,7 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1(a,b,c,d,e) VALUES(1,2,3,4,null);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.20b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-3.20b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-3.21"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT OR REPLACE INTO t1(e,d,c,b,a) VALUES(1,2,3,null,5);\n    SELECT * FROM t1 order by a;\n  ")
 		_ = _res // catchsql
@@ -259,12 +262,12 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-4.1b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-4.1b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-4.2"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-4.2b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-4.2b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-4.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR IGNORE t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
@@ -273,12 +276,12 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR ABORT t1 SET a=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-4.4b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-4.4b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-4.5"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET b=null;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-4.5b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-4.5b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-4.6"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE OR REPLACE t1 SET b=null, d=e, e=d;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
@@ -299,7 +302,7 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 VALUES(1,2,3,4,5);\n    UPDATE t1 SET e=null, a=b, b=a;\n    SELECT * FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-4.10b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-4.10b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-5.1"
 		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(a, b NOT NULL);\n    CREATE TABLE t2(c, d);\n    INSERT INTO t2 VALUES(3, 4);\n    INSERT INTO t2 VALUES(5, NULL);\n  ")
 		if _res.Error != nil {
@@ -310,7 +313,7 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-5.2b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-5.2b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-5.3"
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
@@ -321,7 +324,7 @@ func Test_notnull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n    BEGIN;\n      INSERT INTO t1 VALUES(1, 2);\n      INSERT INTO t1 SELECT * FROM t2;\n    COMMIT;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-5.4b SQLITE_CONSTRAINT_NOTNULL")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode notnull-5.4b SQLITE_CONSTRAINT_NOTNULL")
 	{ // do_test "notnull-5.5"
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
@@ -339,14 +342,14 @@ func Test_notnull(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a UNIQUE);\n  CREATE TABLE t2(a NOT NULL UNIQUE);\n  CREATE TABLE t3(a UNIQUE NOT NULL);\n  CREATE TABLE t4(a NOT NULL);\n  CREATE UNIQUE INDEX t4a ON t4(a);\n\n  CREATE TABLE t5(a PRIMARY KEY);\n  CREATE TABLE t6(a PRIMARY KEY NOT NULL);\n  CREATE TABLE t7(a NOT NULL PRIMARY KEY);\n  CREATE TABLE t8(a PRIMARY KEY) WITHOUT ROWID;\n\n  CREATE TABLE t9(a PRIMARY KEY UNIQUE NOT NULL);\n  CREATE TABLE t10(a UNIQUE PRIMARY KEY NOT NULL);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.1 SELECT * FROM t1 WHERE a IS ? 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.2 SELECT * FROM t2 WHERE a IS ? 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.3 SELECT * FROM t3 WHERE a IS ? 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.4 SELECT * FROM t4 WHERE a IS ? 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.5 SELECT * FROM t5 WHERE a IS ? 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.6 SELECT * FROM t6 WHERE a IS ? 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.7 SELECT * FROM t7 WHERE a IS ? 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.8 SELECT * FROM t8 WHERE a IS ? 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.9 SELECT * FROM t8 WHERE a IS ? 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.10 SELECT * FROM t8 WHERE a IS ? 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.1 SELECT * FROM t1 WHERE a IS ? 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.2 SELECT * FROM t2 WHERE a IS ? 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.3 SELECT * FROM t3 WHERE a IS ? 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.4 SELECT * FROM t4 WHERE a IS ? 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.5 SELECT * FROM t5 WHERE a IS ? 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.6 SELECT * FROM t6 WHERE a IS ? 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.7 SELECT * FROM t7 WHERE a IS ? 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.8 SELECT * FROM t8 WHERE a IS ? 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.9 SELECT * FROM t8 WHERE a IS ? 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_uses_op_next_test notnull-6.10 SELECT * FROM t8 WHERE a IS ? 0")
 }

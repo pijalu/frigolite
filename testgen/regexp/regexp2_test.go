@@ -22,7 +22,7 @@ func Test_regexp2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "regexp2"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db regexp")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db regexp")
 	{ // "1.0"
 		r = db.Query("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE x1(x, y, z);\n  CREATE TABLE x2(x, y, z);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    INSERT INTO x1 VALUES(\n        new.a REGEXP 'abc',\n        new.b REGEXP 'abc',\n        new.c REGEXP 'abc'\n    );\n  END;\n\n  CREATE TRIGGER tr2 AFTER INSERT ON t1 BEGIN\n    INSERT INTO x2 VALUES(\n        new.a REGEXP 'def',\n        new.b REGEXP 'def',\n        new.c REGEXP 'def'\n    );\n  END;\n\n  INSERT INTO t1 VALUES('abc', 'def', 'abc');\n  SELECT * FROM t1;\n")
 		if r.Error != nil {

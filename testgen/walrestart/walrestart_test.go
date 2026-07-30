@@ -27,9 +27,9 @@ func Test_walrestart(t *testing.T) {
 	if tclBool("permutation" + "==\"memsubsys1\"") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install faultsim")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install faultsim")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -98,5 +98,5 @@ func Test_walrestart(t *testing.T) {
 			t.Errorf("expected error, got none\n  sql: %s", "\n  PRAGMA integrity_check\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install")
 }

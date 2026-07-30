@@ -21,7 +21,7 @@ func Test_bestindex8(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "bestindex8"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  INSERT INTO t1 VALUES('a', 'b'), ('c', 'd');\n  INSERT INTO t1 VALUES('a', 'b'), ('c', 'd');\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n\n  CREATE TABLE t0(c0);\n  INSERT INTO t0(c0) VALUES (1), (0);\n")
@@ -68,7 +68,7 @@ func Test_bestindex8(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 		// proc definition (not transpiled)
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n")
@@ -115,7 +115,7 @@ func Test_bestindex8(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 		// proc definition (not transpiled)
 		{ // "3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(a, b);\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n")
@@ -146,7 +146,7 @@ func Test_bestindex8(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+			t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 			// proc definition (not transpiled)
 			{ // "4.0"
 				_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n")
@@ -177,7 +177,7 @@ func Test_bestindex8(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+				t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 				var _vtab_handle_in = "1" // TCL namespace variable
 				_ = _vtab_handle_in // suppress unused warning
 				// proc definition (not transpiled)
@@ -188,18 +188,18 @@ func Test_bestindex8(t *testing.T) {
 					}
 				}
 				// proc definition (not transpiled)
-				t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.1 {\n  SELECT DISTINCT a FROM vt1\n} {\n  {SELECT DISTINCT 0, a, 0, 0 FROM t1}\n} {1 2 3}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.2 {\n  SELECT DISTINCT a FROM vt1 ORDER BY a\n} {\n  {SELECT rowid, a, b, c FROM t1 ORDER BY a}\n} {1 2 3}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.3 {\n  SELECT DISTINCT a FROM vt1 WHERE c IN (4,5,6,7,...} {\n  {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c IN ...} {2 3 1}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.1 {\n  SELECT DISTINCT a FROM vt1\n} {\n  {SELECT DISTINCT 0, a, 0, 0 FROM t1}\n} {1 2 3}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.2 {\n  SELECT DISTINCT a FROM vt1 ORDER BY a\n} {\n  {SELECT rowid, a, b, c FROM t1 ORDER BY a}\n} {1 2 3}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.3 {\n  SELECT DISTINCT a FROM vt1 WHERE c IN (4,5,6,7,...} {\n  {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c IN ...} {2 3 1}")
 				var _vtab_handle_in = "0" // TCL namespace variable
 				_ = _vtab_handle_in // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.4 {\n  SELECT  DISTINCT a FROM vt1 WHERE c IN (4,5,6,7...} {\n  {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 4...} {2 3 1}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.4 {\n  SELECT  DISTINCT a FROM vt1 WHERE c IN (4,5,6,7...} {\n  {SELECT DISTINCT 0, a, 0, 0 FROM t1 WHERE c = 4...} {2 3 1}")
 				var _vtab_handle_in = "1" // TCL namespace variable
 				_ = _vtab_handle_in // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.5a {\n  SELECT a, b, c FROM vt1 WHERE c IN (4,5,6,7,8) ...} {\n  {SELECT rowid, a, b, c FROM t1 WHERE c IN (4,5,...} {1 5 6 2 6 7}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.5a {\n  SELECT a, b, c FROM vt1 WHERE c IN (4,5,6,7,8) ...} {\n  {SELECT rowid, a, b, c FROM t1 WHERE c IN (4,5,...} {1 5 6 2 6 7}")
 				var _vtab_handle_in = "0" // TCL namespace variable
 				_ = _vtab_handle_in // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.5b {\n  SELECT a, b, c FROM vt1 WHERE c IN (4,5,6,7,8) ...} {\n  {SELECT rowid, a, b, c FROM t1 WHERE c = 4}\n  {...} {1 5 6 2 6 7}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_vtab_test 5.1.5b {\n  SELECT a, b, c FROM vt1 WHERE c IN (4,5,6,7,8) ...} {\n  {SELECT rowid, a, b, c FROM t1 WHERE c = 4}\n  {...} {1 5 6 2 6 7}")
 				var _vtab_handle_in = "1" // TCL namespace variable
 				_ = _vtab_handle_in // suppress unused warning
 }

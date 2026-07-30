@@ -33,7 +33,7 @@ func Test_tkt_9f2eb3abac(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE TABLE \"a\" (\n      \"b\" integer NOT NULL,\n      \"c\" integer NOT NULL,\n      PRIMARY KEY (\"b\", \"c\")\n      );\n\n  CREATE TABLE \"d\" (\n      \"e\" integer NOT NULL,\n      \"g\" integer NOT NULL,\n      \"f\" integer NOT NULL,\n      \"h\" integer NOT NULL,\n      \"i\" character(10) NOT NULL,\n      \"j\" int,\n      PRIMARY KEY (\"e\", \"g\", \"f\", \"h\")\n      );\n\n  CREATE TABLE \"d_to_a\" (\n      \"f_e\" integer NOT NULL,\n      \"f_g\" integer NOT NULL,\n      \"f_f\" integer NOT NULL,\n      \"f_h\" integer NOT NULL,\n      \"t_b\" integer NOT NULL,\n      \"t_c\" integer NOT NULL,\n      \"r\" character NOT NULL,\n      \"s\" integer,\n      PRIMARY KEY (\"f_e\", \"f_g\", \"f_f\", \"f_h\", \"t_b\", \"t_c\")\n      );\n\n  INSERT INTO d (g, e, h, f, j, i) VALUES ( 1, 1, 1, 1, 1, 1 );\n  INSERT INTO a (b, c) VALUES ( 1, 1 );\n  INSERT INTO d_to_a VALUES (1, 1, 1, 1, 1, 1, 1, 1);\n\n  DELETE FROM d_to_a \n  WHERE f_g = 1 AND f_e = 1 AND f_h = 1 AND f_f = 1 AND t_b = 1 AND t_c = 1;\n\n  SELECT * FROM d_to_a;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 	{ // "2.0"
 		_res = db.Exec(" CREATE TABLE t1(a,b,c,d,e, PRIMARY KEY(a,b,c,d,e)) ")
 		if _res.Error != nil {
@@ -46,6 +46,6 @@ func Test_tkt_9f2eb3abac(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(x) ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELECT ...} -body {\n  execsql { SELECT * FROM t1,t2 WHERE a=? AND b=?...} -test {\n  faultsim_test_result {0 {}} \n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELECT ...} -body {\n  execsql { SELECT * FROM t1,t2 WHERE a=? AND b=?...} -test {\n  faultsim_test_result {0 {}} \n}")
 }

@@ -19,7 +19,7 @@ func Test_shrink(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
 	if tclBool("sqlite3_memory_used" + "==0") {
 		return
 	}
@@ -30,7 +30,7 @@ func Test_shrink(t *testing.T) {
 		}
 		var _baseline = "sqlite3_memory_used" // TCL namespace variable
 		_ = _baseline // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_release_memory db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_release_memory db")
 		// expr $::baseline > [sqlite3_memory_used]+500000 → "$::baseline > [sqlite3_memory_used]+500000"
 	}
 	{ // do_test "shrink-1.2"
@@ -51,5 +51,5 @@ func Test_shrink(t *testing.T) {
 		}
 		// expr $::baseline > [sqlite3_memory_used]+500000 → "$::baseline > [sqlite3_memory_used]+500000"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
 }

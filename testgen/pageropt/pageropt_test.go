@@ -19,24 +19,24 @@ func Test_pageropt(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
 	// proc definition (not transpiled)
 	{ // do_test "pageropt-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
 		r = db.Query("\n    PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 1024;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 1024;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    CREATE TABLE t1(x);\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    CREATE TABLE t1(x);\n  }")
 	}
 	{ // do_test "pageropt-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(5000));\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(5000));\n  }")
 	}
 	{ // do_test "pageropt-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    SELECT length(x) FROM t1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    SELECT length(x) FROM t1\n  }")
 	}
 	db2, err := frigolite.Open("test.db")
 	defer db2.Close()
@@ -44,56 +44,56 @@ func Test_pageropt(t *testing.T) {
 	var blobcontent = "db2 one {SELECT hex(x) FROM t1}"
 	_ = blobcontent // suppress unused warning
 	{ // do_test "pageropt-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    SELECT hex(x) FROM t1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    SELECT hex(x) FROM t1\n  }")
 	}
 	{ // do_test "pageropt-1.5"
 		db2.Exec("CREATE TABLE t2(y)")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    SELECT hex(x) FROM t1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    SELECT hex(x) FROM t1\n  }")
 	}
 	{ // do_test "pageropt-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    SELECT hex(x) FROM t1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    SELECT hex(x) FROM t1\n  }")
 	}
 	{ // do_test "pageropt-2.1"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    DELETE FROM t1 WHERE rowid=1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    DELETE FROM t1 WHERE rowid=1\n  }")
 	}
 	{ // do_test "pageropt-2.2"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(1500));\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(1500));\n  }")
 	}
 	{ // do_test "pageropt-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(1500));\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(1500));\n  }")
 	}
 	{ // do_test "pageropt-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(1500));\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(1500));\n  }")
 	}
 	{ // do_test "pageropt-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t2 SELECT * FROM t1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t2 SELECT * FROM t1;\n  }")
 	}
 	{ // do_test "pageropt-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    DROP TABLE t2;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    DROP TABLE t2;\n  }")
 	}
 	{ // do_test "pageropt-3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    DELETE FROM t1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    DELETE FROM t1;\n  }")
 	}
 	{ // do_test "pageropt-4.1"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(11300))\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    INSERT INTO t1 VALUES(randomblob(11300))\n  }")
 	}
 	{ // do_test "pageropt-4.2"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    DELETE FROM t1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "pagercount_sql {\n    DELETE FROM t1\n  }")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

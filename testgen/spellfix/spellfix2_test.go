@@ -21,7 +21,7 @@ func Test_spellfix2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "spellfix2"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE demo USING spellfix1;\n  INSERT INTO demo(word) VALUES ('amsterdam');\n  INSERT INTO demo(word) VALUES ('amsterdammetje');\n  INSERT INTO demo(word) VALUES ('amsterdamania');\n  INSERT INTO demo(word) VALUES ('amsterdamweg');\n  INSERT INTO demo(word) VALUES ('amsterdamsestraat');\n  INSERT INTO demo(word) VALUES ('amsterdamlaan');\n")
 		if _res.Error != nil {

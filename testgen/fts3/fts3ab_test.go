@@ -25,7 +25,7 @@ func Test_fts3ab(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(english,spanish,german);\n")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fill_multilanguage_fulltext_t1")
+	t.Errorf("TODO: %s not implemented in frigolite", "fill_multilanguage_fulltext_t1")
 	{ // do_test "fts3ab-1.1"
 		r = db.Query("SELECT rowid FROM t1 WHERE english MATCH 'one'")
 		if r.Error != nil {

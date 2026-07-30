@@ -71,7 +71,7 @@ func Test_fkey1(t *testing.T) {
 		}
 	}
 	{ // do_test "fkey1-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
 	}
 	{ // "fkey1-4.0"
 		r = db.Query("\n  PRAGMA foreign_keys=ON;\n  CREATE TABLE \"xx1\"(\"xx2\" TEXT PRIMARY KEY, \"xx3\" TEXT);\n  INSERT INTO \"xx1\"(\"xx2\",\"xx3\") VALUES('abc','def');\n  CREATE TABLE \"xx4\"(\"xx5\" TEXT REFERENCES \"xx1\" ON DELETE CASCADE);\n  INSERT INTO \"xx4\"(\"xx5\") VALUES('abc');\n  INSERT INTO \"xx1\"(\"xx2\",\"xx3\") VALUES('uvw','xyz');\n  SELECT 1, \"xx5\" FROM \"xx4\";\n  DELETE FROM \"xx1\";\n  SELECT 2, \"xx5\" FROM \"xx4\";\n")
@@ -184,7 +184,7 @@ func Test_fkey1(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // "8.2"
 		r = db.Query("\n  CREATE TABLE t1(a REFERENCES sqlite_stat1 ON DELETE CASCADE);\n  CREATE TABLE t2(a TEXT PRIMARY KEY);\n  PRAGMA writable_schema=ON;\n  CREATE TABLE sqlite_stat1(tbl INTEGER PRIMARY KEY DESC, idx UNIQUE DEFAULT NULL) WITHOUT ROWID;\n  UPDATE sqlite_schema SET name='sqlite_autoindex_sqlite_stat1_1' WHERE name='sqlite_autoindex_sqlite_stat1_2';\n  PRAGMA writable_schema=RESET;\n")
 		if r.Error != nil {

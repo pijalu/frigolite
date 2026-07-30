@@ -43,7 +43,7 @@ func Test_round1(t *testing.T) {
 			_ = ans // suppress unused warning
 		}
 		{ // do_test iTest + "/" + n + "/$"
-			t.Skipf("TODO: %s not implemented in frigolite", "r")
+			t.Errorf("TODO: %s not implemented in frigolite", "r")
 		}
 		var x4 = "[format %09d [expr {$x2+1}]] [expr {9-$n}] end"
 		_ = x4 // suppress unused warning
@@ -65,7 +65,7 @@ func Test_round1(t *testing.T) {
 			_ = ans // suppress unused warning
 		}
 		{ // do_test iTest + "/" + n + "/$"
-			t.Skipf("TODO: %s not implemented in frigolite", "r")
+			t.Errorf("TODO: %s not implemented in frigolite", "r")
 		}
 		// incr iTest 1
 		{

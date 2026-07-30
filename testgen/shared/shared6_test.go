@@ -28,7 +28,7 @@ func Test_shared6(t *testing.T) {
 	{ // do_test "shared6-1.1.2"
 		var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 		_ = _enable_shared_cache // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache")
 	}
 	{ // do_test "shared6-1.1.3"
 		db1, err := frigolite.Open("test.db")
@@ -277,11 +277,11 @@ func Test_shared6(t *testing.T) {
 		}
 	}
 	{ // do_test "shared6-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
 	}
 	{ // do_test "shared6-4.X"
 		db1.Close()
 		db2.Close()
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

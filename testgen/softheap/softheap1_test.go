@@ -32,7 +32,7 @@ func Test_softheap1(t *testing.T) {
 		}
 	}
 	{ // do_test "softheap1-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit -1")
 	}
 	{ // do_test "softheap1-1.3"
 		r = db.Query("PRAGMA soft_heap_limit(-1); PRAGMA soft_heap_limit;")
@@ -46,7 +46,7 @@ func Test_softheap1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit(0); PRAGMA soft_heap_limit;")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 5000")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 5000")
 	{ // do_test "softheap1-2.0"
 		r = db.Query("PRAGMA soft_heap_limit")
 		if r.Error != nil {
@@ -71,5 +71,5 @@ func Test_softheap1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
 }

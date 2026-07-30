@@ -23,16 +23,16 @@ func Test_func3(t *testing.T) {
 		var destroyed = "0"
 		_ = destroyed // suppress unused warning
 		// proc definition (not transpiled)
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 utf8 -func f3 -destroy destroy")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 utf8 -func f3 -destroy destroy")
 	}
 	{ // do_test "func3-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 utf8 -func f3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 utf8 -func f3")
 	}
 	{ // do_test "func3-3.1"
 		var destroyed = "0"
 		_ = destroyed // suppress unused warning
 		// proc definition (not transpiled)
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 any -func f3 -destroy destroy")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 any -func f3 -destroy destroy")
 	}
 	{ // do_test "func3-3.2"
 	}
@@ -45,7 +45,7 @@ func Test_func3(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 any -func f3 -step f3 -destroy destroy")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 any -func f3 -step f3 -destroy destroy")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -354,6 +354,6 @@ func Test_func3(t *testing.T) {
 		}
 	}
 	{ // do_test "func3-6.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db nofunc 1 utf8")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db nofunc 1 utf8")
 	}
 }

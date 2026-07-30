@@ -96,7 +96,7 @@ func Test_fts3rnd(t *testing.T) {
 			var i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-				t.Skipf("TODO: %s not implemented in frigolite", "insert_row $i")
+				t.Errorf("TODO: %s not implemented in frigolite", "insert_row $i")
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -144,9 +144,9 @@ func Test_fts3rnd(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "insert_row $iInsert")
-				t.Skipf("TODO: %s not implemented in frigolite", "update_row $iUpdate")
-				t.Skipf("TODO: %s not implemented in frigolite", "delete_row $iDelete")
+				t.Errorf("TODO: %s not implemented in frigolite", "insert_row $iInsert")
+				t.Errorf("TODO: %s not implemented in frigolite", "update_row $iUpdate")
+				t.Errorf("TODO: %s not implemented in frigolite", "delete_row $iDelete")
 				if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return 0 == (iTest_n%2) }() {
 					_res = db.Exec("COMMIT")
 					if _res.Error != nil {
@@ -160,8 +160,8 @@ func Test_fts3rnd(t *testing.T) {
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 					var term = "random_term"
 					_ = term // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.$i.asc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 0]")
-					t.Skipf("TODO: %s not implemented in frigolite", "do_select_test 1.$i.desc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 1]")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.$i.asc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 0]")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 1.$i.desc {\n        SELECT docid, mit(matchinfo(t1)) FROM t1 ...} [simple_token_matchinfo $term 1]")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -177,7 +177,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = prefix // suppress unused warning
 					var match = prefix + "*"
 					_ = match // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 2.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $match]")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 2.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $match]")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -193,7 +193,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = term // suppress unused warning
 					var match = "\\\"" + term + "\\\""
 					_ = match // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 3.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term]")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 3.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term]")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -209,7 +209,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = term // suppress unused warning
 					var match = "\\\"" + term + "\\\""
 					_ = match // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 4.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term]")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 4.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $term]")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -227,7 +227,7 @@ func Test_fts3rnd(t *testing.T) {
 					query += "[random_term] 0 end-1" + "*"
 					var match = "\\\"" + query + "\\\""
 					_ = match // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 5.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $query]")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 5.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_phrase $query]")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -243,7 +243,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = terms // suppress unused warning
 					var match = "join $terms \" NEAR \""
 					_ = match // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 6.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms 10]")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 6.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms 10]")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -261,7 +261,7 @@ func Test_fts3rnd(t *testing.T) {
 					_ = nNear // suppress unused warning
 					var match = "join $terms \" NEAR/$nNear \""
 					_ = match // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 7.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms $nNear]")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test 7.$i {\n        SELECT docid FROM t1 WHERE t1 MATCH $matc...} [simple_near $terms $nNear]")
 					// incr i 1
 					{
 						_n, _err := strconv.Atoi(i)
@@ -289,7 +289,7 @@ func Test_fts3rnd(t *testing.T) {
 							_ = term2 // suppress unused warning
 							var match = term1 + " " + op + " " + term2
 							_ = match // suppress unused warning
-							t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc [simple_phrase $term1] [simple_phrase $term...")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc [simple_phrase $term1] [simple_phrase $term...")
 							// incr i 1
 							{
 								_n, _err := strconv.Atoi(i)
@@ -322,7 +322,7 @@ func Test_fts3rnd(t *testing.T) {
 								_ = term4 // suppress unused warning
 								var match = term1 + " NEAR " + term2 + " " + op + " " + term3 + " NEAR " + term4
 								_ = match // suppress unused warning
-								t.Skipf("TODO: %s not implemented in frigolite", "do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc                                  \\\n        ...")
+								t.Errorf("TODO: %s not implemented in frigolite", "do_orderbydocid_test $tn.$i {\n          SELECT docid FROM t1 WHERE t1 MATCH $ma...} [$proc                                  \\\n        ...")
 								// incr i 1
 								{
 									_n, _err := strconv.Atoi(i)

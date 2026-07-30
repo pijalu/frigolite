@@ -58,5 +58,5 @@ func Test_diskfull(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_diskfull_test diskfull-2 VACUUM")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_diskfull_test diskfull-2 VACUUM")
 }

@@ -34,18 +34,18 @@ func Test_tkt_80ba201079(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt-80ba2-102"
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
 		_res = db.Exec("\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
 	{ // do_test "tkt-80ba2-150"
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 1")
 		var x1 = "db eval {EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));}"
 		_ = x1 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
 		var x2 = "db eval {EXPLAIN \n    SELECT * FROM t1, t2\n     WHERE (a='A' AND b='X')\n        OR (a='A' AND EXISTS (SELECT * FROM t3 WHERE c='C'));}"
 		_ = x2 // suppress unused warning
 		// expr $x1==$x2 → "$x1==$x2"
@@ -63,13 +63,13 @@ func Test_tkt_80ba201079(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt-80ba2-202"
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db factor-constants 0")
 		_res = db.Exec("\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT entry_type,\n           entry_types.name,\n           entry_id\n      FROM timeline JOIN entry_types ON entry_type = entry_types.id\n     WHERE (entry_types.name = 'cli_command' AND entry_id=2114)\n        OR (entry_types.name = 'object_change'\n             AND entry_id IN (SELECT change_id\n                              FROM object_changes\n                               WHERE obj_context = 'exported_pools'));\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	{ // "301"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE INDEX i1 ON t1(a);\n  CREATE INDEX i2 ON t1(b);\n  CREATE TABLE t2(d, e);\n\n  INSERT INTO t1 VALUES('A', 'B', 'C');\n  INSERT INTO t2 VALUES('D', 'E');\n")
 		if _res.Error != nil {

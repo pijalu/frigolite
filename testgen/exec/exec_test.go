@@ -26,7 +26,7 @@ func Test_exec(t *testing.T) {
 		}
 	}
 	{ // do_test "exec-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {/* comment */;;; SELECT * FROM t1; /* comment */}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {/* comment */;;; SELECT * FROM t1; /* comment */}")
 	}
 	{ // do_test "exec-1.3"
 		db2, err := frigolite.Open("test.db")
@@ -35,6 +35,6 @@ func Test_exec(t *testing.T) {
 		db2.Exec("CREATE TABLE t2(x, y);")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT * FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT * FROM t1}")
 	}
 }

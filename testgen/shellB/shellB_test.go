@@ -22,11 +22,11 @@ func Test_shellB(t *testing.T) {
 	var CLI = "test_cli_invocation"
 	_ = CLI // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_clitest modeA.sql")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_clitest dblwidth-a.sql")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_clitest vt100-a.sql")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_clitest regexp1.sql")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_clitest imposter1.sql")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_clitest fptest01.sql")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_clitest shell-prompt.sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest modeA.sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest dblwidth-a.sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest vt100-a.sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest regexp1.sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest imposter1.sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest fptest01.sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_clitest shell-prompt.sql")
 }

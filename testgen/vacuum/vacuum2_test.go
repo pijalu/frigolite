@@ -22,7 +22,7 @@ func Test_vacuum2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vacuum2"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	if tclBool(AUTOVACUUM) {
 		return
 	}
@@ -37,14 +37,14 @@ func Test_vacuum2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n    INSERT INTO t1 VALUES(1);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 24 4]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 24 4]")
 	}
 	{ // do_test "vacuum2-2.2"
 		_res = db.Exec("\n    VACUUM\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    VACUUM\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 24 4]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 24 4]")
 	}
 	db2, err := frigolite.Open("test.db")
 	defer db2.Close()
@@ -61,13 +61,13 @@ func Test_vacuum2(t *testing.T) {
 	var cksum = "cksum"
 	_ = cksum // suppress unused warning
 	{ // do_test "vacuum2-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksum db2")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksum db2")
 	}
 	{ // do_test "vacuum2-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksum db2")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksum db2")
 	}
 	{ // do_test "vacuum2-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksum")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksum")
 	}
 	{ // do_test "vacuum2-3.6"
 		r = db.Query("PRAGMA integrity_check")
@@ -89,10 +89,10 @@ func Test_vacuum2(t *testing.T) {
 		// expr [file size test.db]/$pageSize → "[file size test.db]/$pageSize"
 	}
 	{ // do_test "vacuum2-3.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksum db2")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksum db2")
 	}
 	{ // do_test "vacuum2-3.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksum")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksum")
 	}
 	{ // do_test "vacuum2-3.16"
 		r = db.Query("PRAGMA integrity_check")

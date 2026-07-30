@@ -22,7 +22,7 @@ func Test_walcrash4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "walcrash4"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // "1.0"
 		r = db.Query("\n  PRAGMA autovacuum = 0;\n  PRAGMA page_size = 1024;\n  PRAGMA journal_mode = wal;\n  PRAGMA main.synchronous = full;\n")
 		if r.Error != nil {
@@ -35,7 +35,7 @@ func Test_walcrash4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	if _tcl_platform(platform) == "windows" {
 		var msg = "child killed: unknown signal"
 		_ = msg // suppress unused warning
@@ -50,7 +50,7 @@ func Test_walcrash4(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 			{ // do_test "1.nExtra=" + nExtra + ".i=" + i + ".1"
-				t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+				t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 				var fd = "open crash.tcl w"
 				_ = fd // suppress unused warning
 				t.Log(fd)
@@ -59,7 +59,7 @@ func Test_walcrash4(t *testing.T) {
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
-					t.Skipf("TODO: %s not implemented in frigolite", "exec [info nameofexec] crash.tcl >@stdout")
+					t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] crash.tcl >@stdout")
 					if _catchErr != nil {
 						r = "1"
 						msg = _catchErr.Error()

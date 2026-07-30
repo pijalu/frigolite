@@ -23,7 +23,7 @@ func Test_resetdb(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "resetdb"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	if tclBool("permutation" + "==\"inmemory_journal\"\n || " + "permutation" + "==\"journaltest\"") {
 		return
 	}
@@ -49,7 +49,7 @@ func Test_resetdb(t *testing.T) {
 		}
 	}
 	{ // do_test "200"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 		_res = db.Exec("\n    UPDATE sqlite_dbpage SET data=randomblob(4096) WHERE pgno=1;\n    PRAGMA quick_check;\n  ")
 		_ = _res // catchsql
 	}
@@ -58,12 +58,12 @@ func Test_resetdb(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "210"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 1")
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 0")
 		if tclBool("permutation" + "==\"prepare\"") {
 			_res = db.Exec("SELECT * FROM sqlite_master")
 			_ = _res // catchsql
@@ -95,7 +95,7 @@ func Test_resetdb(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT sum(a), sum(length(b)) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA journal_mode;\n    PRAGMA page_size;\n    PRAGMA page_count;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "320"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data=randomblob(8192) WHERE pgno=1;\n  PRAGMA quick_check\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "file is not a database") {
@@ -107,12 +107,12 @@ func Test_resetdb(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "400"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 1")
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 0")
 		_res = db.Exec("\n     PRAGMA page_count;\n     PRAGMA page_size;\n     PRAGMA journal_mode;\n     PRAGMA quick_check;\n  ")
 		_ = _res // catchsql
 	}
@@ -120,13 +120,13 @@ func Test_resetdb(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "500"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize [\n    sqlite3_prepare db \"SELECT 1 FROM sqlite_mas...")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize [\n    sqlite3_prepare db \"SELECT 1 FROM sqlite_mas...")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 1")
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 0")
 		db2, err := frigolite.Open("test.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
@@ -182,7 +182,7 @@ func Test_resetdb(t *testing.T) {
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "710"
 		_res = db.Exec("\n  UPDATE sqlite_dbpage SET data=\n    X'53514C69746520666F726D61742033000200030100402020000000000000001300000000000000000000000300000004000000000000000000000001000000000000000000000000000000000000000000000000000000000000000000000000000000000D00000003017C0001D801AC017C00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000002E03061715110145696E6465787431626374310443524541544520494E4445582074316263204F4E20743128622C63292A0206171311013F696E64657874316174310343524541544520494E44455820743161204F4E20743128612926010617111101397461626C657431743102435245415445205441424C4520743128612C622C6329' WHERE pgno=1;\n")
 		if _res.Error != nil {
@@ -202,12 +202,12 @@ func Test_resetdb(t *testing.T) {
 		}
 	}
 	{ // do_test "730"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 1")
 		_res = db.Exec("VACUUM")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "VACUUM")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db RESET_DB 0")
 	}
 	{ // "740"
 		r = db.Query("\n  PRAGMA page_count;\n  PRAGMA integrity_check;\n")

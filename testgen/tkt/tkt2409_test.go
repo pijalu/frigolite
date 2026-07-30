@@ -20,7 +20,7 @@ func Test_tkt2409(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes $::DB 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes $::DB 1")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	db2, err := frigolite.Open("test.db")
@@ -33,7 +33,7 @@ func Test_tkt2409(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=10;\n    CREATE TABLE t1(x TEXT UNIQUE NOT NULL, y BLOB);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "read_lock_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_lock_db")
 		var _zShort = "0123456789 1" // TCL namespace variable
 		_ = _zShort // suppress unused warning
 		var _zLong = "0123456789 1500" // TCL namespace variable
@@ -42,12 +42,12 @@ func Test_tkt2409(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode $::DB")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode $::DB")
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "tkt2409-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "unread_lock_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "unread_lock_db")
 		_res = db.Exec(" ROLLBACK ")
 		_ = _res // catchsql
 	}
@@ -65,7 +65,7 @@ func Test_tkt2409(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA cache_size = " + iCache)
 		}
 		{ // do_test "tkt2409-2.1." + iCache
-			t.Skipf("TODO: %s not implemented in frigolite", "read_lock_db")
+			t.Errorf("TODO: %s not implemented in frigolite", "read_lock_db")
 			var _rc = "0" // TCL namespace variable
 			_ = _rc // suppress unused warning
 			// expr ($::rc == 1 && $msg eq "disk I/O error") || $::rc == 0 → "($::rc == 1 && $msg eq \"disk I/O error\") || $::rc == 0"
@@ -83,19 +83,19 @@ func Test_tkt2409(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "unread_lock_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "unread_lock_db")
 		_res = db.Exec("\n    COMMIT;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-3.1"
 		var _DB = "sqlite3 db test.db; sqlite3_connection_pointer db" // TCL namespace variable
 		_ = _DB // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes $::DB 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes $::DB 1")
 		_res = db.Exec("\n    PRAGMA cache_size=10;\n    DELETE FROM t1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA cache_size=10;\n    DELETE FROM t1;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "read_lock_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_lock_db")
 		var _zShort = "0123456789 1" // TCL namespace variable
 		_ = _zShort // suppress unused warning
 		var _zLong = "0123456789 1500" // TCL namespace variable
@@ -104,12 +104,12 @@ func Test_tkt2409(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode $::DB")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode $::DB")
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "tkt2409-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "unread_lock_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "unread_lock_db")
 		_res = db.Exec(" ROLLBACK ")
 		_ = _res // catchsql
 	}
@@ -145,7 +145,7 @@ func Test_tkt2409(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "read_lock_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_lock_db")
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
@@ -154,7 +154,7 @@ func Test_tkt2409(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "tkt2409-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode $::DB")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode $::DB")
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -164,6 +164,6 @@ func Test_tkt2409(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Skipf("TODO: %s not implemented in frigolite", "unread_lock_db")
+	t.Errorf("TODO: %s not implemented in frigolite", "unread_lock_db")
 	db2.Close()
 }

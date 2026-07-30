@@ -560,16 +560,16 @@ func Test_tclsqlite(t *testing.T) {
 	}
 	{ // do_test "tcl-6.4"
 		// proc definition (not transpiled)
-		t.Skipf("TODO: %s not implemented in frigolite", "return_test 10")
+		t.Errorf("TODO: %s not implemented in frigolite", "return_test 10")
 	}
 	{ // do_test "tcl-6.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "return_test 20")
+		t.Errorf("TODO: %s not implemented in frigolite", "return_test 20")
 	}
 	{ // do_test "tcl-6.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "return_test 99")
+		t.Errorf("TODO: %s not implemented in frigolite", "return_test 99")
 	}
 	{ // do_test "tcl-6.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "return_test 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "return_test 0")
 	}
 	{ // do_test "tcl-7.1"
 		// expr 0 → "0"
@@ -970,12 +970,12 @@ func Test_tclsqlite(t *testing.T) {
 	{ // do_test "tcl-11.3"
 	}
 	{ // do_test "tcl-11.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "tcl_objproc db exists {SELECT 1 FROM t4 WHERE x==8}")
+		t.Errorf("TODO: %s not implemented in frigolite", "tcl_objproc db exists {SELECT 1 FROM t4 WHERE x==8}")
 	}
 	{ // do_test "tcl-12.1"
 		var version = "db version"
 		_ = version // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "scan $version %d.%d.%d a b c")
+		t.Errorf("TODO: %s not implemented in frigolite", "scan $version %d.%d.%d a b c")
 		// expr $a*1000000 → "$a*1000000"
 	}
 	// proc definition (not transpiled)

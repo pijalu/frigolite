@@ -21,31 +21,31 @@ func Test_bestindexE(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "bestindexE"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "create_vtab x1 {a b c}")
+		t.Errorf("TODO: %s not implemented in frigolite", "create_vtab x1 {a b c}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_bestindex_test 1.1 {\n  SELECT * FROM x1 WHERE a=?\n} {{x1: a=?}}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_bestindex_test 1.2 {\n  SELECT * FROM x1 WHERE a=? AND b=?\n} {{x1: a=? AND b=?}}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex_test 1.1 {\n  SELECT * FROM x1 WHERE a=?\n} {{x1: a=?}}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex_test 1.2 {\n  SELECT * FROM x1 WHERE a=? AND b=?\n} {{x1: a=? AND b=?}}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	{ // do_test "2.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "create_vtab Delivery {id customer}")
-		t.Skipf("TODO: %s not implemented in frigolite", "create_vtab ReturnDelivery {id customer}")
-		t.Skipf("TODO: %s not implemented in frigolite", "create_vtab Customer {oid name}")
+		t.Errorf("TODO: %s not implemented in frigolite", "create_vtab Delivery {id customer}")
+		t.Errorf("TODO: %s not implemented in frigolite", "create_vtab ReturnDelivery {id customer}")
+		t.Errorf("TODO: %s not implemented in frigolite", "create_vtab Customer {oid name}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_bestindex_test 2.1 {\n  SELECT Delivery.ID, Customer.Name\n  FROM Delive...} {\n  {Delivery: }\n  {Customer: oid=?}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_bestindex_test 2.2 {\n  SELECT * FROM\n  (\n     SELECT Delivery.ID, Cust...} {\n  {Delivery: id=?} \n  {Customer: oid=?} \n  {Retur...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex_test 2.1 {\n  SELECT Delivery.ID, Customer.Name\n  FROM Delive...} {\n  {Delivery: }\n  {Customer: oid=?}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_bestindex_test 2.2 {\n  SELECT * FROM\n  (\n     SELECT Delivery.ID, Cust...} {\n  {Delivery: id=?} \n  {Customer: oid=?} \n  {Retur...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db eponymous_cmd")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db eponymous_cmd")
 	// proc definition (not transpiled)
 	{ // "3.1.0"
 		r = db.Query("\n  PRAGMA table_info = tcl\n")
@@ -87,7 +87,7 @@ func Test_bestindexE(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db eponymous_cmd")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db eponymous_cmd")
 	db2, err := frigolite.Open("test.db")
 	defer db2.Close()
 	if err != nil { t.Fatal(err) }

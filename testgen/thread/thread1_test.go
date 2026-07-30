@@ -32,46 +32,46 @@ func Test_thread1(t *testing.T) {
 		}
 	}
 	{ // do_test "thread1-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_create A test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_create B test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_create C test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_compile A {SELECT a FROM t1}")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_step A")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result A")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_create A test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_create B test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_create C test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_compile A {SELECT a FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_step A")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result A")
 	}
 	{ // do_test "thread1-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_argc A")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_argc A")
 	}
 	{ // do_test "thread1-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_argv A 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_argv A 0")
 	}
 	{ // do_test "thread1-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_compile B {SELECT b FROM t1}")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_step B")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result B")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_compile B {SELECT b FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_step B")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result B")
 	}
 	{ // do_test "thread1-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_argc B")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_argc B")
 	}
 	{ // do_test "thread1-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_argv B 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_argv B 0")
 	}
 	{ // do_test "thread1-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_finalize A")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result A")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_finalize A")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result A")
 	}
 	{ // do_test "thread1-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_finalize B")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result B")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_finalize B")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result B")
 	}
 	{ // do_test "thread1-1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_compile C {CREATE TABLE t2(x,y)}")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_step C")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_compile C {CREATE TABLE t2(x,y)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_step C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result C")
 	}
 	{ // do_test "thread1-1.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_finalize C")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_finalize C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result C")
 	}
 	{ // do_test "thread1-1.12"
 		_res = db.Exec("SELECT name FROM sqlite_master")
@@ -82,25 +82,25 @@ func Test_thread1(t *testing.T) {
 		}
 	}
 	{ // do_test "thread1-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_halt *")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_create A test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_compile A {SELECT a FROM t1}")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_step A")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result A")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_halt *")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_create A test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_compile A {SELECT a FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_step A")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result A")
 	}
 	{ // do_test "thread1-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_create B test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_compile B {SELECT b FROM t1}")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_step B")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result B")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_create B test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_compile B {SELECT b FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_step B")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result B")
 	}
 	{ // do_test "thread1-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_create C test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_compile C {INSERT INTO t2 VALUES(98,99)}")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_step C")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result C")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_finalize C")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_create C test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_compile C {INSERT INTO t2 VALUES(98,99)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_step C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_finalize C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result C")
 	}
 	{ // do_test "thread1-2.4"
 		r = db.Query("SELECT * FROM t2")
@@ -109,15 +109,15 @@ func Test_thread1(t *testing.T) {
 		}
 	}
 	{ // do_test "thread1-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_finalize A")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result A")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_finalize A")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result A")
 	}
 	{ // do_test "thread1-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_compile C {INSERT INTO t2 VALUES(98,99)}")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_step C")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result C")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_finalize C")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_compile C {INSERT INTO t2 VALUES(98,99)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_step C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_finalize C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result C")
 	}
 	{ // do_test "thread1-2.7"
 		r = db.Query("SELECT * FROM t2")
@@ -126,17 +126,17 @@ func Test_thread1(t *testing.T) {
 		}
 	}
 	{ // do_test "thread1-2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_finalize B")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result B")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_finalize B")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result B")
 	}
 	{ // do_test "thread1-2.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_compile C {INSERT INTO t2 VALUES(98,99)}")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_step C")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_compile C {INSERT INTO t2 VALUES(98,99)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_step C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result C")
 	}
 	{ // do_test "thread1-2.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_finalize C")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_result C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_finalize C")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_result C")
 	}
 	{ // do_test "thread1-2.11"
 		r = db.Query("SELECT * FROM t2")
@@ -144,5 +144,5 @@ func Test_thread1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t2")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "thread_halt *")
+	t.Errorf("TODO: %s not implemented in frigolite", "thread_halt *")
 }

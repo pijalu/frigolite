@@ -22,9 +22,9 @@ func Test_sortfault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sortfault"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_pmasz 10")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pmasz 10")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
@@ -59,49 +59,49 @@ func Test_sortfault(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA threads=" + nWorker)
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config $threadsmode")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config $threadsmode")
 			if tclBool(lookaside) {
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
 			} else {
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-			t.Skipf("TODO: %s not implemented in frigolite", "sorter_test_fakeheap $fakeheap")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+			t.Errorf("TODO: %s not implemented in frigolite", "sorter_test_fakeheap $fakeheap")
 			var str = "a 1000"
 			_ = str // suppress unused warning
 			t.Log(threadsmode)
-			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$tn -prep {\n    sqlite3 db test.db\n    sqlite3_test_control S...} -body {\n    execsql { \n      WITH r(x,y) AS (\n          S...} -test {\n    faultsim_test_result {0 {40 1000 40 1000 40 1...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    sqlite3 db test.db\n    sqlite3_test_control S...} -body {\n    execsql { \n      WITH r(x,y) AS (\n          S...} -test {\n    faultsim_test_result {0 {20 1000 20 1000 20 1...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$tn -prep {\n    sqlite3 db test.db\n    sqlite3_test_control S...} -body {\n    execsql { \n      WITH r(x,y) AS (\n          S...} -test {\n    faultsim_test_result {0 {40 1000 40 1000 40 1...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    sqlite3 db test.db\n    sqlite3_test_control S...} -body {\n    execsql { \n      WITH r(x,y) AS (\n          S...} -test {\n    faultsim_test_result {0 {20 1000 20 1000 20 1...}")
 			if func() bool { mmap_limit_n, _mmap_limit_e := strconv.Atoi(mmap_limit); if _mmap_limit_e != nil { return false }; return mmap_limit_n > 1000000 }() {
 				var str2 = "$str 10"
 				_ = str2 // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 0")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 0")
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $::mmap_limit")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $::mmap_limit")
 				r = db.Query(" PRAGMA cache_size = 5 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 5 ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.$tn -faults oom-trans* -body {\n      execsql { \n        WITH r(x,y) AS (\n       ...} -test {\n      faultsim_test_result {0 {60 10000 60 10000 ...}")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.$tn -faults oom-trans* -body {\n      execsql { \n        WITH r(x,y) AS (\n       ...} -test {\n      faultsim_test_result {0 {60 10000 60 10000 ...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_vfs_oom_test 1")
 			}
 		}
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 		var t_0 = "singlethread"
 		_ = t_0 // suppress unused warning
 		var t_1 = "multithread"
 		_ = t_1 // suppress unused warning
 		var t_2 = "serialized"
 		_ = t_2 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config $t($sqlite_options(threadsafe))")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config $t($sqlite_options(threadsafe))")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 100 500")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -128,8 +128,8 @@ func Test_sortfault(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4.2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE UNIQUE INDEX i1 ON t1(a,b,c) }...} -test {\n  faultsim_test_result {0 {}}\n}")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4.2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE UNIQUE INDEX i1 ON t1(a,b,c) }...} -test {\n  faultsim_test_result {0 {}}\n}")
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -145,5 +145,5 @@ func Test_sortfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES($a, $b, $c); \n  INSERT INTO t1 VALUES($c, $b, $a); \n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 5.1 -faults oom* -body {\n  execsql { SELECT * FROM t1 ORDER BY a }\n} -test {\n  faultsim_test_result [list 0 [list $::a $::b $:...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5.1 -faults oom* -body {\n  execsql { SELECT * FROM t1 ORDER BY a }\n} -test {\n  faultsim_test_result [list 0 [list $::a $::b $:...}")
 }

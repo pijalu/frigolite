@@ -32,43 +32,43 @@ func Test_where8(t *testing.T) {
 		}
 	}
 	{ // do_test "where8-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a = 1 OR b = 'nine' }")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a = 1 OR b = 'nine' }")
 	}
 	{ // do_test "where8-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a > 8 OR b = 'two' }")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a > 8 OR b = 'two' }")
 	}
 	{ // do_test "where8-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status { SELECT c FROM t1 WHERE a = 1 OR b = 'three' ORDER...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status { SELECT c FROM t1 WHERE a = 1 OR b = 'three' ORDER...}")
 	}
 	{ // do_test "where8-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status { SELECT c FROM t1 WHERE a = 1 OR b = 'three' ORDER...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status { SELECT c FROM t1 WHERE a = 1 OR b = 'three' ORDER...}")
 	}
 	{ // do_test "where8-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a > 1 AND c LIKE 'I%' }")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a > 1 AND c LIKE 'I%' }")
 	}
 	{ // do_test "where8-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a >= 9 OR b <= 'eight' }")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { SELECT c FROM t1 WHERE a >= 9 OR b <= 'eight' }")
 	}
 	{ // do_test "where8-1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE (a >= 9 AND c != 'X')...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE (a >= 9 AND c != 'X')...}")
 	}
 	{ // do_test "where8-1.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE (a >= 4 AND a <= 6) O...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE (a >= 4 AND a <= 6) O...}")
 	}
 	{ // do_test "where8-1.12.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE a IN(1, 2, 3) OR a = ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE a IN(1, 2, 3) OR a = ...}")
 	}
 	{ // do_test "where8-1.12.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE +a IN(1, 2, 3) OR +a ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 { \n    SELECT c FROM t1 WHERE +a IN(1, 2, 3) OR +a ...}")
 	}
 	{ // do_test "where8-1.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status2 {\n    SELECT c FROM t1\n    WHERE a = 2 OR b = 'thre...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 {\n    SELECT c FROM t1\n    WHERE a = 2 OR b = 'thre...}")
 	}
 	{ // do_test "where8-1.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status2 {\n    SELECT c FROM t1\n    WHERE \n      a = 2 OR b ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 {\n    SELECT c FROM t1\n    WHERE \n      a = 2 OR b ...}")
 	}
 	{ // do_test "where8-1.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status2 {\n    SELECT c FROM t1 WHERE \n      a BETWEEN 2 AND...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status2 {\n    SELECT c FROM t1 WHERE \n      a BETWEEN 2 AND...}")
 	}
 	if false {
 	}
@@ -79,64 +79,64 @@ func Test_where8(t *testing.T) {
 		}
 	}
 	{ // do_test "where8-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE b=e\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE b=e\n  }")
 	}
 	{ // do_test "where8-3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...}")
 	}
 	{ // do_test "where8-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...}")
 	}
 	{ // do_test "where8-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a = 2 OR a = 3...}")
 	}
 	{ // do_test "where8-3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a = ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a = ...}")
 	}
 	{ // do_test "where8-3.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE a = 2...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE a = 2...}")
 	}
 	{ // do_test "where8-3.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a = ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a = ...}")
 	}
 	{ // do_test "where8-3.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a = ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d \n    FROM t1, t2 \n    WHERE (a = ...}")
 	}
 	{ // do_test "where8-3.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT d FROM t2 WHERE e IS NULL OR e = 'four...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT d FROM t2 WHERE e IS NULL OR e = 'four...}")
 	}
 	{ // do_test "where8-3.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...}")
 	}
 	{ // do_test "where8-3.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...}")
 	}
 	{ // do_test "where8-3.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, t2 WHERE (a=d OR b=e) AN...}")
 	}
 	{ // do_test "where8-3.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT c FROM t1 WHERE a > (SELECT d FROM t2 ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT c FROM t1 WHERE a > (SELECT d FROM t2 ...}")
 	}
 	{ // do_test "where8-3.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT c FROM t1, t2 WHERE a BETWEEN 1 AND 2 ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT c FROM t1, t2 WHERE a BETWEEN 1 AND 2 ...}")
 	}
 	{ // do_test "where8-3.21"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, (t2) WHERE (a=d OR b=e) ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, (t2) WHERE (a=d OR b=e) ...}")
 	}
 	{ // do_test "where8-3.21.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, ((t2)) AS t3 WHERE (a=d ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, ((t2)) AS t3 WHERE (a=d ...}")
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // do_test "where8-3.21.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, ((SELECT * FROM t2)) AS ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM t1, ((SELECT * FROM t2)) AS ...}")
 		}
 	}
 	{ // do_test "where8-3.22"
-		t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM ((((((t1))), (((t2))))))\n   ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT a, d FROM ((((((t1))), (((t2))))))\n   ...}")
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // do_test "where8-3.23"
-			t.Skipf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT * FROM ((SELECT * FROM t2)) AS t3;\n  }")
+			t.Errorf("TODO: %s not implemented in frigolite", "execsql_status {\n    SELECT * FROM ((SELECT * FROM t2)) AS t3;\n  }")
 		}
 	}
 	{ // do_test "where8-4.1"
@@ -212,7 +212,7 @@ func Test_where8(t *testing.T) {
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
 			_res = db.Exec("\n    CREATE TABLE tA(\n      a, b, c, d, e, f, g, h, \n      i, j, k, l, m, n, o, p\n    );\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tA(\n      a, b, c, d, e, f, g, h, \n      i, j, k, l, m, n, o, p\n    );\n  ")

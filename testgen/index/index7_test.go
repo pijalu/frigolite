@@ -21,7 +21,7 @@ func Test_index7(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
 	{ // do_test "index7-1.1"
 		r = db.Query("\n    CREATE TABLE t1(a,b,c PRIMARY KEY) WITHOUT rowid;\n    CREATE INDEX t1a ON t1(a) WHERE a IS NOT NULL;\n    CREATE INDEX t1b ON t1(b) WHERE b>10;\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1(a,b,c)\n       SELECT CASE WHEN value%3!=0 THEN value END, value, value\n         FROM nums WHERE value<=20;\n    SELECT count(a), count(b) FROM t1;\n    PRAGMA integrity_check;\n  ")
 		if r.Error != nil {
@@ -29,7 +29,7 @@ func Test_index7(t *testing.T) {
 		}
 	}
 	{ // do_test "index7-1.1a"
-		t.Skipf("TODO: %s not implemented in frigolite", "capture_pragma db out {PRAGMA index_list(t1)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "capture_pragma db out {PRAGMA index_list(t1)}")
 		_res = db.Exec("SELECT \"name\", \"partial\", '|' FROM out ORDER BY \"name\"")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT \"name\", \"partial\", '|' FROM out ORDER BY \"name\"")

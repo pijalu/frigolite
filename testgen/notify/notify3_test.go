@@ -59,7 +59,7 @@ func Test_notify3(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "notify3-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db 1")
 		{
 			var msg string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
@@ -130,8 +130,8 @@ func Test_notify3(t *testing.T) {
 					db2, err := frigolite.Open("test.db2")
 					defer db2.Close()
 					if err != nil { t.Fatal(err) }
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db1 $enable_extended_errors")
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db2 $enable_extended_errors")
+					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db1 $enable_extended_errors")
+					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db2 $enable_extended_errors")
 					if tclBool(db1_loaded) {
 						db1.Exec("SELECT * FROM sqlite_master")
 						if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
@@ -168,5 +168,5 @@ func Test_notify3(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			db2.Close()
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $esc")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $esc")
 }

@@ -107,7 +107,7 @@ func Test_attach2(t *testing.T) {
 	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB ATTACH 'test2.db' AS t2 -1 TAIL")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB ATTACH 'test2.db' AS t2 -1 TAIL")
 			if _catchErr != nil {
 				rc = "1"
 				VM = _catchErr.Error()
@@ -119,8 +119,8 @@ func Test_attach2(t *testing.T) {
 		if tclBool(rc) {
 			rc = tclListAppend(rc, VM)
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	{ // do_test "attach2-3.2"
 	var rc string
@@ -128,7 +128,7 @@ func Test_attach2(t *testing.T) {
 	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB DETACH t2 -1 TAIL")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB DETACH t2 -1 TAIL")
 			if _catchErr != nil {
 				rc = "1"
 				VM = _catchErr.Error()
@@ -140,8 +140,8 @@ func Test_attach2(t *testing.T) {
 		if tclBool(rc) {
 			rc = tclListAppend(rc, VM)
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	var i = "2"
 	_ = i // suppress unused warning
@@ -149,7 +149,7 @@ func Test_attach2(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "db$i close")
+			t.Errorf("TODO: %s not implemented in frigolite", "db$i close")
 		}
 		// incr i 1
 		{
@@ -178,8 +178,8 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ATTACH 'test2.db' as file2")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.1.1 db {main unlocked temp closed file2 unlocked}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.1.2 db2 {main unlocked temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.1.1 db {main unlocked temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.1.2 db2 {main unlocked temp closed file2 unlocked}")
 	{ // do_test "attach2-4.2"
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
@@ -190,22 +190,22 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.2.1 db {main shared temp closed file2 unlocked}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.2.2 db2 {main unlocked temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.2.1 db {main shared temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.2.2 db2 {main unlocked temp closed file2 unlocked}")
 	{ // do_test "attach2-4.3"
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.3.1 db {main shared temp closed file2 unlocked}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.3.2 db2 {main unlocked temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.3.1 db {main shared temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.3.2 db2 {main unlocked temp closed file2 unlocked}")
 	{ // do_test "attach2-4.4"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.4.1 db {main shared temp closed file2 unlocked}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.4.2 db2 {main unlocked temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.4.1 db {main shared temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.4.2 db2 {main unlocked temp closed file2 unlocked}")
 	var soft_limit = "sqlite3_soft_heap_limit 0"
 	_ = soft_limit // suppress unused warning
 	{ // do_test "attach2-4.5"
@@ -218,60 +218,60 @@ func Test_attach2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO file2.t1 VALUES(1, 2)")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.5.1 db {main shared temp closed file2 unlocked}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.5.2 db2 {main unlocked temp closed file2 reserved}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.5.1 db {main shared temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.5.2 db2 {main unlocked temp closed file2 reserved}")
 	{ // do_test "attach2-4.6.1"
 		_res = db.Exec("\n    SELECT * FROM file2.t1;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.6.1.1 db {main shared temp closed file2 shared}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.6.1.2 db2 {main unlocked temp closed file2 reserved}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.6.1.1 db {main shared temp closed file2 shared}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.6.1.2 db2 {main unlocked temp closed file2 reserved}")
 	{ // do_test "attach2-4.6.2"
 		_res = db.Exec("\n    UPDATE file2.t1 SET a=0;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.6.2.1 db {main shared temp closed file2 shared}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.6.2.2 db2 {main unlocked temp closed file2 reserved}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.6.2.1 db {main shared temp closed file2 shared}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.6.2.2 db2 {main unlocked temp closed file2 reserved}")
 	{ // do_test "attach2-4.7"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.7.1 db {main shared temp closed file2 shared}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.7.2 db2 {main reserved temp closed file2 reserved}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.7.1 db {main shared temp closed file2 shared}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.7.2 db2 {main reserved temp closed file2 reserved}")
 	{ // do_test "attach2-4.8"
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.8.1 db {main shared temp closed file2 shared}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.8.2 db2 {main reserved temp closed file2 reserved}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.8.1 db {main shared temp closed file2 shared}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.8.2 db2 {main reserved temp closed file2 reserved}")
 	{ // do_test "attach2-4.9"
 		_res = db.Exec("\n    INSERT INTO t1 VALUES(1, 2)\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.9.1 db {main shared temp closed file2 shared}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.9.2 db2 {main reserved temp closed file2 reserved}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.9.1 db {main shared temp closed file2 shared}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.9.2 db2 {main reserved temp closed file2 reserved}")
 	{ // do_test "attach2-4.10"
 		_res = db.Exec("COMMIT")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.10.1 db {main shared temp closed file2 shared}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.10.2 db2 {main pending temp closed file2 reserved}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.10.1 db {main shared temp closed file2 shared}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.10.2 db2 {main pending temp closed file2 reserved}")
 	var sqlite_os_trace = "0"
 	_ = sqlite_os_trace // suppress unused warning
 	{ // do_test "attach2-4.11"
 		_res = db.Exec("COMMIT")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.11.1 db {main unlocked temp closed file2 unlocked}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.11.2 db2 {main pending temp closed file2 reserved}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.11.1 db {main unlocked temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.11.2 db2 {main pending temp closed file2 reserved}")
 	{ // do_test "attach2-4.12"
 		_res = db.Exec("COMMIT")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.12.1 db {main unlocked temp closed file2 unlocked}")
-	t.Skipf("TODO: %s not implemented in frigolite", "lock_status 4.12.2 db2 {main unlocked temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.12.1 db {main unlocked temp closed file2 unlocked}")
+	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.12.2 db2 {main unlocked temp closed file2 unlocked}")
 	{ // do_test "attach2-4.13"
 		r = db.Query("SELECT * FROM file2.t1")
 		if r.Error != nil {
@@ -292,7 +292,7 @@ func Test_attach2(t *testing.T) {
 	}
 	db2.Close()
 	os.Remove("test2.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $soft_limit")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $soft_limit")
 	for _, f := range tclSplitList("glob test.db*") {
 		os.Remove(f)
 	}

@@ -25,10 +25,10 @@ func Test_journal2(t *testing.T) {
 	var a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs devchar {undeletable_when_open powersafe_overwrite}")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter {xOpen xClose xDelete}")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script journal_op_catcher")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs devchar {undeletable_when_open powersafe_overwrite}")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xOpen xClose xDelete}")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script journal_op_catcher")
 	// proc definition (not transpiled)
 	{ // do_test "journal2-1.1"
 		var _oplog = "list" // TCL namespace variable
@@ -127,7 +127,7 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter {xOpen xClose xDelete xWrite xTruncate}")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xOpen xClose xDelete xWrite xTruncate}")
 		var _tvfs_error_on_write = "1" // TCL namespace variable
 		_ = _tvfs_error_on_write // suppress unused warning
 		_res = db.Exec(" COMMIT ")
@@ -163,7 +163,7 @@ func Test_journal2(t *testing.T) {
 	}
 	if tclBool("wal_is_capable") {
 		{ // do_test "journal2-2.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 			var _oplog = "list" // TCL namespace variable
 			_ = _oplog // suppress unused warning
 			r = db.Query(" PRAGMA journal_mode = persist ")
@@ -192,5 +192,5 @@ func Test_journal2(t *testing.T) {
 			_ = _oplog // TCL namespace variable (query)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
 }

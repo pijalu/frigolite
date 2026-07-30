@@ -142,9 +142,9 @@ func Test_vacuum5(t *testing.T) {
 		}
 	}
 	if tclBool(_TEMP_STORE + "<3 && " + "permutation" + "!=\"inmemory_journal\"") {
-		t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xOpen")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs script open_cb")
+		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xOpen")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs script open_cb")
 		os.Remove("test.db")
 		var _openfiles = "list" // TCL namespace variable
 		_ = _openfiles // suppress unused warning
@@ -164,7 +164,7 @@ func Test_vacuum5(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " VACUUM ")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
 		if tclBool("atomic_batch_write test.db" + "==0") {
 			{ // do_test "3.2"
 				tclLRange(_openfiles, "0", "4")

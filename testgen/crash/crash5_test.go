@@ -38,7 +38,7 @@ func Test_crash5(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      pragma auto_vacuum = 1;\n      CREATE TABLE t1(a, b, c);\n      INSERT INTO t1 VALUES('1111111111', '2222222222', $c);\n    ")
 			}
 			{ // do_test "crash5-" + ii + "." + jj + ".1"
-				t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db-journal -seed $ii -tclbody [join [list \\\n        [list set iFail $jj] {\n     ... {}")
+				t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db-journal -seed $ii -tclbody [join [list \\\n        [list set iFail $jj] {\n     ... {}")
 				// expr 1 → "1"
 			}
 			db, err = frigolite.Open("test.db")

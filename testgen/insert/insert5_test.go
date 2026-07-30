@@ -29,28 +29,28 @@ func Test_insert5(t *testing.T) {
 		}
 	}
 	{ // do_test "insert5-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM main }")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM main }")
 	}
 	{ // do_test "insert5-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM b }")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM b }")
 	}
 	{ // do_test "insert5-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT (SELECT id FROM b), id1 FROM...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT (SELECT id FROM b), id1 FROM...}")
 	}
 	{ // do_test "insert5-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT id1, (SELECT id FROM b) FROM...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT id1, (SELECT id FROM b) FROM...}")
 	}
 	{ // do_test "insert5-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_temp_table { \n    INSERT INTO b \n      SELECT * FROM main WHER...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { \n    INSERT INTO b \n      SELECT * FROM main WHER...}")
 	}
 	{ // do_test "insert5-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM v1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM v1 }")
 	}
 	{ // do_test "insert5-2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM v2 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { INSERT INTO b SELECT * FROM v2 }")
 	}
 	{ // do_test "insert5-2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_temp_table { \n    INSERT INTO b \n    SELECT * FROM main WHERE ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_temp_table { \n    INSERT INTO b \n    SELECT * FROM main WHERE ...}")
 	}
 	{ // do_test "insert5-2.9"
 		_res = db.Exec(" \n    INSERT INTO b \n    SELECT * FROM main \n    WHERE id > 10 AND (SELECT count(*) FROM v2 GROUP BY main.id)\n  ")

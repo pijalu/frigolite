@@ -28,7 +28,7 @@ func Test_vtabC(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 		var tablist = ""
 		_ = tablist // suppress unused warning
 		{ // do_test "vtabC-1." + N + ".1"

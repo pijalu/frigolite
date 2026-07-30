@@ -46,7 +46,7 @@ func Test_fts3defer2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES('a b c d e f a x y');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1 VALUES('');\n  INSERT INTO t1(t1) VALUES('optimize');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "1.1.4"
 		_res = db.Exec("\n  SELECT count(*) FROM t1_segments WHERE length(block)>10000;\n  UPDATE t1_segments SET block = zeroblob(length(block)) WHERE length(block)>10000;\n")
 		if _res.Error != nil {
@@ -145,7 +145,7 @@ func Test_fts3defer2(t *testing.T) {
 		sql := _items[_idx+1]
 		_ = sql // suppress unused warning
 		_ = _idx
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 			_res = db.Exec(sql)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
@@ -223,7 +223,7 @@ func Test_fts3defer2(t *testing.T) {
 			sql := _items[_idx+1]
 			_ = sql // suppress unused warning
 			_ = _idx
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)

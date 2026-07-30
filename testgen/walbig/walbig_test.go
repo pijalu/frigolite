@@ -19,7 +19,7 @@ func Test_walbig(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	var a_string_counter = "1"
 	_ = a_string_counter // suppress unused warning
 	// proc definition (not transpiled)
@@ -33,7 +33,7 @@ func Test_walbig(t *testing.T) {
 		t.Log("**** Unable to create a file larger than 5000 MB. *****")
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
+	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbig-1.1"

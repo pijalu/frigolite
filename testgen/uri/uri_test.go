@@ -24,8 +24,8 @@ func Test_uri(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "uri"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
 	// foreach {tn uri file} "\n  1      test.db                              test.db\n  2      file:test.db                         test.db\n  3      file://PWD/test.db                   test.db\n  4      file:PWD/test.db                     test.db\n  5      file:test.db?mork=1                  test.db\n  6      file:test.db?mork=1&tonglor=2        test.db\n  7      file:test.db?mork=1#boris            test.db\n  8      file:test.db#boris                   test.db\n  9      test.db#boris                        test.db#boris\n  10     file:test%2Edb                       test.db\n  11     file                                 file\n  12     http:test.db                         http:test.db\n  13     file:test.db%00extra                 test.db\n  14     file:testdb%00.db%00extra            testdb\n\n  15     test.db?mork=1#boris                 test.db?mork=1#boris\n  16     file://localhostPWD/test.db%3Fhello  test.db?hello\n"
 	_items := tclSplitList("\n  1      test.db                              test.db\n  2      file:test.db                         test.db\n  3      file://PWD/test.db                   test.db\n  4      file:PWD/test.db                     test.db\n  5      file:test.db?mork=1                  test.db\n  6      file:test.db?mork=1&tonglor=2        test.db\n  7      file:test.db?mork=1#boris            test.db\n  8      file:test.db#boris                   test.db\n  9      test.db#boris                        test.db#boris\n  10     file:test%2Edb                       test.db\n  11     file                                 file\n  12     http:test.db                         http:test.db\n  13     file:test.db%00extra                 test.db\n  14     file:testdb%00.db%00extra            testdb\n\n  15     test.db?mork=1#boris                 test.db?mork=1#boris\n  16     file://localhostPWD/test.db%3Fhello  test.db?hello\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
@@ -59,7 +59,7 @@ func Test_uri(t *testing.T) {
 			{ // do_test "1." + tn + ".2"
 				// file exists file
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
 			os.Remove(file)
 			{ // do_test "1." + tn + ".3"
 				// file exists file
@@ -73,10 +73,10 @@ func Test_uri(t *testing.T) {
 				// file exists file
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs2")
-		t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xOpen")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs script open_method")
+		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs2")
+		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xOpen")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs script open_method")
 		// proc definition (not transpiled)
 		// foreach {tn uri kvlist} "\n  1      file:test.db?hello=world                     {hello world}\n  2      file:test.db?hello&world                     {hello {} world {}}\n  3      file:test.db?hello=1&world=2&vfs=tvfs        {hello 1 world 2 vfs tvfs}\n  4      file:test.db?hello=1&world=2&vfs=tvfs2        {}\n  5      file:test.db?%68%65%6C%6C%6F=%77%6F%72%6C%64 {hello world}\n  6      file:testdb%00.db?hello%00extra=world%00ex   {hello world}\n  7      file:testdb%00.db?hello%00=world%00          {hello world}\n  8      file:testdb%00.db?=world&xyz=abc             {xyz abc}\n  9      file:test.db?%00hello=world&xyz=abc          {xyz abc}\n  10     file:test.db?hello=%00world&xyz=             {hello {} xyz {}}\n  11     file:test.db?=#ravada                        {}\n  12     file:test.db?&&&&&&&&hello=world&&&&&&&      {hello world}\n\n  13     test.db?&&&&&&&&hello=world&&&&&&&           {}\n  14     http:test.db?hello&world                     {}\n"
 		_items := tclSplitList("\n  1      file:test.db?hello=world                     {hello world}\n  2      file:test.db?hello&world                     {hello {} world {}}\n  3      file:test.db?hello=1&world=2&vfs=tvfs        {hello 1 world 2 vfs tvfs}\n  4      file:test.db?hello=1&world=2&vfs=tvfs2        {}\n  5      file:test.db?%68%65%6C%6C%6F=%77%6F%72%6C%64 {hello world}\n  6      file:testdb%00.db?hello%00extra=world%00ex   {hello world}\n  7      file:testdb%00.db?hello%00=world%00          {hello world}\n  8      file:testdb%00.db?=world&xyz=abc             {xyz abc}\n  9      file:test.db?%00hello=world&xyz=abc          {xyz abc}\n  10     file:test.db?hello=%00world&xyz=             {hello {} xyz {}}\n  11     file:test.db?=#ravada                        {}\n  12     file:test.db?&&&&&&&&hello=world&&&&&&&      {hello world}\n\n  13     test.db?&&&&&&&&hello=world&&&&&&&           {}\n  14     http:test.db?hello&world                     {}\n")
@@ -98,7 +98,7 @@ func Test_uri(t *testing.T) {
 				{ // do_test "2." + tn + ".1"
 					_ = _arglist // TCL namespace variable (query)
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
 				db, err := frigolite.Open("xxx.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
@@ -112,8 +112,8 @@ func Test_uri(t *testing.T) {
 					_ = _arglist // TCL namespace variable (query)
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
-			t.Skipf("TODO: %s not implemented in frigolite", "tvfs2 delete")
+			t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+			t.Errorf("TODO: %s not implemented in frigolite", "tvfs2 delete")
 			{ // do_test "3.1"
 				_list := tclList([]string{"0", msg})
 				_ = _list
@@ -209,12 +209,12 @@ func Test_uri(t *testing.T) {
 						{ // do_test "6." + tn
 							var DB = "sqlite3_open $uri"
 							_ = DB // suppress unused warning
-							t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg $DB")
+							t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg $DB")
 						}
 						{
 							var _catchErr error
 							_ = _catchErr // suppress unused warning
-							t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
+							t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB")
 						}
 					}
 					os.Remove("test.db")

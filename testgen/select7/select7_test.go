@@ -30,8 +30,8 @@ func Test_select7(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 10")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT 10")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 0")
 	{ // "select7-6.6"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such column: \\\"\\\" - should this be a string literal in single-quotes?") {
@@ -50,7 +50,7 @@ func Test_select7(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
 	{ // "select7-6.8"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES\n    (NULL,0,\"\"),  (X'',0.0,0.0),  (X'',X'',\"\"),  (0.0,0.0,\"\"),  (NULL,NULL,0.0),\n    (0,\"\",0),  (0.0,X'',0),  (\"\",X'',0.0),  (0.0,X'',NULL),  (0,NULL,\"\"),\n    (0,\"\",NULL),  (0.0,NULL,X''),  (\"\",X'',NULL),  (NULL,0,\"\"),\n    (0,NULL,0),  (X'',X'',0.0);\n")
 		if _res.Error == nil {

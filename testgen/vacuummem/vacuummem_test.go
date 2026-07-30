@@ -34,7 +34,7 @@ func Test_vacuummem(t *testing.T) {
 	var ans = "#/" + "memory_used" + "/"
 	_ = ans // suppress unused warning
 	{ // do_test "1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "memory_used")
+		t.Errorf("TODO: %s not implemented in frigolite", "memory_used")
 	}
 	{ // "1.2"
 		_res = db.Exec("VACUUM")
@@ -43,7 +43,7 @@ func Test_vacuummem(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "memory_used")
+		t.Errorf("TODO: %s not implemented in frigolite", "memory_used")
 	}
 	{ // "1.4"
 		r = db.Query("\n  SELECT count(*) FROM t1 WHERE +a IS NOT NULL\n")
@@ -58,6 +58,6 @@ func Test_vacuummem(t *testing.T) {
 		}
 	}
 	{ // do_test "1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "memory_used")
+		t.Errorf("TODO: %s not implemented in frigolite", "memory_used")
 	}
 }

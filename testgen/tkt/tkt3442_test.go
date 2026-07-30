@@ -25,7 +25,7 @@ func Test_tkt3442(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE listhash(\n       key INTEGER PRIMARY KEY,\n       id TEXT,\n       node INTEGER\n     );\n     CREATE UNIQUE INDEX ididx ON listhash(id);\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
 	{ // "tkt3442-1.2"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT node FROM listhash WHERE id='5000' LIMIT 1;\n")
 		if r.Error != nil {

@@ -22,19 +22,19 @@ func Test_fts3malloc(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
 	var sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	var DO_MALLOC_TEST = "1"
 	_ = DO_MALLOC_TEST // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.1 sqlite_master {\n  CREATE VIRTUAL TABLE ft1 USING fts3(a, b)\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.2 sqlite_master {\n  CREATE VIRTUAL TABLE ft2 USING fts3([a], [b]);\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.3 sqlite_master {\n  CREATE VIRTUAL TABLE ft3 USING fts3('a', \"b\");\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.4 sqlite_master {\n  CREATE VIRTUAL TABLE ft4 USING fts3(`a`, 'fred'...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_error_test fts3_malloc-1.5 {\n  CREATE VIRTUAL TABLE ft5 USING fts3(a, b, token...} {unknown tokenizer: unknown}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.6 sqlite_master {\n  CREATE VIRTUAL TABLE ft6 USING fts3(a, b, token...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.7 sqlite_master {\n  CREATE VIRTUAL TABLE ft7 USING fts4(a, b, notin...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.1 sqlite_master {\n  CREATE VIRTUAL TABLE ft1 USING fts3(a, b)\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.2 sqlite_master {\n  CREATE VIRTUAL TABLE ft2 USING fts3([a], [b]);\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.3 sqlite_master {\n  CREATE VIRTUAL TABLE ft3 USING fts3('a', \"b\");\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.4 sqlite_master {\n  CREATE VIRTUAL TABLE ft4 USING fts3(`a`, 'fred'...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_error_test fts3_malloc-1.5 {\n  CREATE VIRTUAL TABLE ft5 USING fts3(a, b, token...} {unknown tokenizer: unknown}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.6 sqlite_master {\n  CREATE VIRTUAL TABLE ft6 USING fts3(a, b, token...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-1.7 sqlite_master {\n  CREATE VIRTUAL TABLE ft7 USING fts4(a, b, notin...}")
 	{ // do_test "fts3_malloc-2.0"
 		_res = db.Exec(" \n    DROP TABLE ft1;\n    DROP TABLE ft2;\n    DROP TABLE ft3;\n    DROP TABLE ft4;\n    DROP TABLE ft6;\n    DROP TABLE ft7;\n  ")
 		if _res.Error != nil {
@@ -96,7 +96,7 @@ func Test_fts3malloc(t *testing.T) {
 		_ = _idx
 			var result = "normal_list $result"
 			_ = result // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test fts3_malloc-2.$tn $sql $result")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test fts3_malloc-2.$tn $sql $result")
 		}
 		{ // do_test "fts3_malloc-3.0"
 			_res = db.Exec("BEGIN")
@@ -179,7 +179,7 @@ func Test_fts3malloc(t *testing.T) {
 			_ = _idx
 				var result = "normal_list $result"
 				_ = result // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_test fts3_malloc-3.$tn $sql $result")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test fts3_malloc-3.$tn $sql $result")
 			}
 			{ // do_test "fts3_malloc-4.0"
 				_res = db.Exec(" DELETE FROM ft WHERE docid>=32 ")
@@ -195,7 +195,7 @@ func Test_fts3malloc(t *testing.T) {
 				sql := _items[_idx+1]
 				_ = sql // suppress unused warning
 				_ = _idx
-					t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-4.1.$tn ft_content $sql")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-4.1.$tn ft_content $sql")
 				}
 				{ // do_test "fts3_malloc-4.2"
 					r = db.Query(" SELECT a FROM ft ")
@@ -203,12 +203,12 @@ func Test_fts3malloc(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a FROM ft ")
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-5.1 ft_content {\n  INSERT INTO ft VALUES('short alongertoken reall...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-5.1 ft_content {\n  INSERT INTO ft VALUES('short alongertoken reall...}")
 				{ // do_test "fts3_malloc-5.2"
 					_res = db.Exec(" CREATE VIRTUAL TABLE ft8 USING fts3(x, tokenize porter) ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE ft8 USING fts3(x, tokenize porter) ")
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-5.3 ft_content {\n  INSERT INTO ft8 VALUES('short alongertoken real...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-5.3 ft_content {\n  INSERT INTO ft8 VALUES('short alongertoken real...}")
 }

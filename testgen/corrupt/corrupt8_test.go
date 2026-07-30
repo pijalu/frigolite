@@ -20,8 +20,8 @@ func Test_corrupt8(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "corrupt8-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=1;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n    INSERT INTO t1(x) SELECT x+16 FROM t1;\n    INSERT INTO t1(x) SELECT x+32 FROM t1;\n    INSERT INTO t1(x) SELECT x+64 FROM t1;\n    INSERT INTO t1(x) SELECT x+128 FROM t1;\n    INSERT INTO t1(x) SELECT x+256 FROM t1;\n    CREATE TABLE t2(a,b);\n    INSERT INTO t2 SELECT x, x*x FROM t1;\n  ")
 		if _res.Error != nil {
@@ -38,7 +38,7 @@ func Test_corrupt8(t *testing.T) {
 		_ = oldval // suppress unused warning
 		if func() bool { oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return oldval_n == 0 }() {
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $i 00")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i 00")
 		{ // do_test "corrupt8-2." + i + ".0"
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
@@ -52,7 +52,7 @@ func Test_corrupt8(t *testing.T) {
 		for func() bool { k_n, _k_e := strconv.Atoi(k); if _k_e != nil { return false }; return k_n <= 5 }() {
 			if func() bool { k_n, _k_e := strconv.Atoi(k); if _k_e != nil { return false }; oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return k_n == oldval_n }() {
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $i 0$k")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i 0$k")
 			{ // do_test "corrupt8-2." + i + "." + k
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
@@ -69,7 +69,7 @@ func Test_corrupt8(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $i 06")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i 06")
 		{ // do_test "corrupt8-2." + i + ".6"
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
@@ -78,13 +78,13 @@ func Test_corrupt8(t *testing.T) {
 			_ = x // suppress unused warning
 			// expr $x!="ok" → "$x!=\"ok\""
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $i $oldval")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i $oldval")
 		if func() bool { oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return oldval_n > 2 }() {
 			i2 := "$i+1+$i%4"
 			_ = i2 // suppress unused warning
 			var oldval = "hexio_read test.db $i2 1"
 			_ = oldval // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $i2 [format %02x [expr {($oldval+1)&0xff}]]")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i2 [format %02x [expr {($oldval+1)&0xff}]]")
 			{ // do_test "corrupt8-2." + i + ".7"
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
@@ -93,7 +93,7 @@ func Test_corrupt8(t *testing.T) {
 				_ = x // suppress unused warning
 				// expr $x!="ok" → "$x!=\"ok\""
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $i2 $oldval")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i2 $oldval")
 		}
 		// incr i 5
 		{

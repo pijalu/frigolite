@@ -79,7 +79,7 @@ func Test_loadext(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db $testextension testloadext_init")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db $testextension testloadext_init")
 		_res = db.Exec("\n    SELECT half(1.0);\n  ")
 		_ = _res // catchsql
 	}
@@ -87,12 +87,12 @@ func Test_loadext(t *testing.T) {
 		db2, err := frigolite.Open("test.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db2 SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db2 SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION 1")
 		_res = db.Exec("\n    SELECT half(1.0);\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db2 $testextension testloadext_init")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db2 $testextension testloadext_init")
 		_res = db.Exec("\n    SELECT half(1.0);\n  ")
 		_ = _res // catchsql
 	}
@@ -103,14 +103,14 @@ func Test_loadext(t *testing.T) {
 	db2.Close()
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 1")
 	{ // do_test "loadext-2.1"
 		os.Remove("$")
 	var rc string
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db ${testextension}xx")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db ${testextension}xx")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -135,7 +135,7 @@ func Test_loadext(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db ./notasharedlib")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db ./notasharedlib")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -152,7 +152,7 @@ func Test_loadext(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db $testextension icecream")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db $testextension icecream")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -173,7 +173,7 @@ func Test_loadext(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db $testextension testbrokenext_init")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db $testextension testbrokenext_init")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -187,7 +187,7 @@ func Test_loadext(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 1")
 	{ // do_test "loadext-3.1"
 		_res = db.Exec("\n    SELECT half(5);\n  ")
 		_ = _res // catchsql
@@ -235,23 +235,23 @@ func Test_loadext(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 1")
 		_res = db.Exec("\n    SELECT load_extension($::testextension,'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 0")
 		_res = db.Exec("\n    SELECT load_extension($::testextension,'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext-4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION 1")
 		_res = db.Exec("\n    SELECT load_extension($::testextension,'testloadext_init')\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test loadext-5 -tclprep {\n  sqlite3_reset_auto_extension\n} -tclbody {\n  if {[autoinstall_test_functions]==7} {error \"ou...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test loadext-5 -tclprep {\n  sqlite3_reset_auto_extension\n} -tclbody {\n  if {[autoinstall_test_functions]==7} {error \"ou...}")
 	if _tcl_platform(platform) != "windows" {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test loadext-6 -tclbody {\n    db enable_load_extension 1\n    sqlite3_load_e...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test loadext-6 -tclbody {\n    db enable_load_extension 1\n    sqlite3_load_e...}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 }

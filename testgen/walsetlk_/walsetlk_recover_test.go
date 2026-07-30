@@ -28,14 +28,14 @@ func Test_walsetlk_recover(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "db_restore")
-	t.Skipf("TODO: %s not implemented in frigolite", "testfixture_nb myvar {\n\n  testvfs tvfs -fullshm 1\n  sqlite3 db test.db -...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_restore")
+	t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb myvar {\n\n  testvfs tvfs -fullshm 1\n  sqlite3 db test.db -...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script sleep_callback")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xSleep")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script sleep_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xSleep")
 	var _sleep_count = "0" // TCL namespace variable
 	_ = _sleep_count // suppress unused warning
 	// proc definition (not transpiled)
@@ -61,7 +61,7 @@ func Test_walsetlk_recover(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
 	if func() bool { _sqlite_options_n, __sqlite_options_e := strconv.Atoi(_sqlite_options); if __sqlite_options_e != nil { return false }; return _sqlite_options_n(setlk_timeout) == 1 }() {
 		{ // do_test "1.5.1"
 			_ = _sleep_count // TCL namespace variable (query)

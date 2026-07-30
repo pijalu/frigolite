@@ -45,7 +45,7 @@ func Test_savepoint4(t *testing.T) {
 			{ // do_test "savepoint4-1." + ii + ".1." + iDelay
 				var ret = "crashsql -delay $iDelay -file test.db-journal {\n        PRAGMA cache_size = 20;\n        SAVEPOINT one;\n          DELETE FROM t1 WHERE random()%2==0;\n          SAVEPOINT two;\n            INSERT INTO t1 SELECT randstr(10,10)||x FROM t1;\n           ROLLBACK TO two;\n            UPDATE t1 SET x = randstr(10, 400) WHERE random()%10;\n          RELEASE two;\n        ROLLBACK TO one;\n        RELEASE one;\n      }"
 				_ = ret // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "signature")
+				t.Errorf("TODO: %s not implemented in frigolite", "signature")
 			}
 			var crashed = "lindex $ret 0"
 			_ = crashed // suppress unused warning
@@ -97,7 +97,7 @@ func Test_savepoint4(t *testing.T) {
 				var crashed = "lindex $ret 0"
 				_ = crashed // suppress unused warning
 				if tclBool(crashed) {
-					t.Skipf("TODO: %s not implemented in frigolite", "signature")
+					t.Errorf("TODO: %s not implemented in frigolite", "signature")
 				} else {
 					_ = _sig // TCL namespace variable (query)
 				}

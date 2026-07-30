@@ -352,8 +352,8 @@ func Test_attach(t *testing.T) {
 			dbx, err := frigolite.Open("cannot-read")
 			defer dbx.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "dbx eval {CREATE TABLE t1(a,b,c)}")
-			t.Skipf("TODO: %s not implemented in frigolite", "dbx close")
+			t.Errorf("TODO: %s not implemented in frigolite", "dbx eval {CREATE TABLE t1(a,b,c)}")
+			t.Errorf("TODO: %s not implemented in frigolite", "dbx close")
 			// file attributes cannot-read -permission 0000
 			if tclBool("file writable cannot-read") {
 				t.Log("\\n**** Tests do not work when run as root ****")
@@ -376,7 +376,7 @@ func Test_attach(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "db$i close")
+			t.Errorf("TODO: %s not implemented in frigolite", "db$i close")
 		}
 		// incr i 1
 		{

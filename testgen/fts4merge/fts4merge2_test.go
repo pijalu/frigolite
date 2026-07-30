@@ -22,9 +22,9 @@ func Test_fts4merge2(t *testing.T) {
 	var _testprefix = "fts4merge2" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
 	{ // do_test "1.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "fts3_build_db_1 1000")
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_1 1000")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { INSERT INTO t1(t1) VALUES('merge=32,4...} -test {\n  faultsim_test_result {0 {}} \n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -faults oom-t* -prep {\n  if {$iFail<100} {set iFail 803}\n  faultsim_rest...} -body {\n  execsql { INSERT INTO t1(t1) VALUES('merge=1,2'...} -test {\n  faultsim_test_result {0 {}} \n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { INSERT INTO t1(t1) VALUES('merge=32,4...} -test {\n  faultsim_test_result {0 {}} \n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -faults oom-t* -prep {\n  if {$iFail<100} {set iFail 803}\n  faultsim_rest...} -body {\n  execsql { INSERT INTO t1(t1) VALUES('merge=1,2'...} -test {\n  faultsim_test_result {0 {}} \n}")
 }

@@ -35,7 +35,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "has_rowdata {DELETE FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {DELETE FROM t1}")
 	}
 	{ // do_test "trigger9-1.2.4"
 		_res = db.Exec(" ROLLBACK ")
@@ -50,7 +50,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "has_rowdata {DELETE FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {DELETE FROM t1}")
 	}
 	{ // do_test "trigger9-1.3.3"
 		_res = db.Exec(" ROLLBACK ")
@@ -65,7 +65,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "has_rowdata {DELETE FROM t1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {DELETE FROM t1}")
 	}
 	{ // do_test "trigger9-1.4.3"
 		_res = db.Exec(" ROLLBACK ")
@@ -80,7 +80,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "has_rowdata {UPDATE t1 SET y = ''}")
+		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {UPDATE t1 SET y = ''}")
 	}
 	{ // do_test "trigger9-1.5.3"
 		_res = db.Exec(" ROLLBACK ")
@@ -95,7 +95,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.6.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "has_rowdata {UPDATE t1 SET y = ''}")
+		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {UPDATE t1 SET y = ''}")
 	}
 	{ // do_test "trigger9-1.6.3"
 		_res = db.Exec(" ROLLBACK ")
@@ -110,7 +110,7 @@ func Test_trigger9(t *testing.T) {
 		}
 	}
 	{ // do_test "trigger9-1.7.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "has_rowdata {UPDATE t1 SET y = ''}")
+		t.Errorf("TODO: %s not implemented in frigolite", "has_rowdata {UPDATE t1 SET y = ''}")
 	}
 	{ // do_test "trigger9-1.7.3"
 		_res = db.Exec(" ROLLBACK ")

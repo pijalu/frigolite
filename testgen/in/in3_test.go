@@ -29,49 +29,49 @@ func Test_in3(t *testing.T) {
 		}
 	}
 	{ // do_test "in3-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT rowid FROM t1 WHERE rowid IN (SELECT rowid...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT rowid FROM t1 WHERE rowid IN (SELECT rowid...}")
 	}
 	{ // do_test "in3-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1); }")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1); }")
 	}
 	{ // do_test "in3-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT rowid FROM t1 WHERE rowid+0 IN (SELECT row...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT rowid FROM t1 WHERE rowid+0 IN (SELECT row...}")
 	}
 	{ // do_test "in3-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a+0 IN (SELECT a FROM t1);...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a+0 IN (SELECT a FROM t1);...}")
 	}
 	{ // do_test "in3-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT rowid FROM t1 WHERE rowid IN (SELECT rowid...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT rowid FROM t1 WHERE rowid IN (SELECT rowid...}")
 	}
 	{ // do_test "in3-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a+0 FROM t1);...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a+0 FROM t1);...}")
 	}
 	{ // do_test "in3-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 WHE...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 WHE...}")
 	}
 	{ // do_test "in3-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 GRO...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 GRO...}")
 	}
 	{ // do_test "in3-1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 ORD...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 ORD...}")
 	}
 	{ // do_test "in3-1.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph {SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 ORDE...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph {SELECT a FROM t1 WHERE a IN (SELECT a FROM t1 ORDE...}")
 	}
 	{ // do_test "in3-1.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph {\n    SELECT a FROM t1 WHERE a IN (SELECT a FROM t1...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph {\n    SELECT a FROM t1 WHERE a IN (SELECT a FROM t1...}")
 	}
 	{ // do_test "in3-1.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a COLLATE nocase IN (SELEC...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a COLLATE nocase IN (SELEC...}")
 	}
 	{ // do_test "in3-1.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a COLLATE binary IN (SELEC...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT a FROM t1 WHERE a COLLATE binary IN (SELEC...}")
 	}
 	{ // do_test "in3-1.16"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph {SELECT a FROM t1 WHERE a COLLATE nocase IN (SELECT...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph {SELECT a FROM t1 WHERE a COLLATE nocase IN (SELECT...}")
 	}
 	{ // do_test "in3-1.17"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph {SELECT a FROM t1 WHERE a COLLATE binary IN (SELECT...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph {SELECT a FROM t1 WHERE a COLLATE binary IN (SELECT...}")
 	}
 	{ // do_test "in3-2.1"
 		_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(w int, x int, y int);\n    CREATE TABLE t2(p int, q int, r int, s int);\n  ")
@@ -137,22 +137,22 @@ func Test_in3(t *testing.T) {
 		}
 	}
 	{ // do_test "in3-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT x IN (SELECT a FROM t1) FROM t2 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT x IN (SELECT a FROM t1) FROM t2 }")
 	}
 	{ // do_test "in3-3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT x IN (SELECT b FROM t1) FROM t2 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT x IN (SELECT b FROM t1) FROM t2 }")
 	}
 	{ // do_test "in3-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT x IN (SELECT c FROM t1) FROM t2 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT x IN (SELECT c FROM t1) FROM t2 }")
 	}
 	{ // do_test "in3-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT y IN (SELECT a FROM t1) FROM t2 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT y IN (SELECT a FROM t1) FROM t2 }")
 	}
 	{ // do_test "in3-3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT y IN (SELECT b FROM t1) FROM t2 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT y IN (SELECT b FROM t1) FROM t2 }")
 	}
 	{ // do_test "in3-3.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT y IN (SELECT c FROM t1) FROM t2 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT y IN (SELECT c FROM t1) FROM t2 }")
 	}
 	{ // do_test "in3-4.1"
 		_res = db.Exec("\n    CREATE TABLE t3(a, b, c);\n    CREATE UNIQUE INDEX t3_i ON t3(b, a);\n  ")
@@ -165,20 +165,20 @@ func Test_in3(t *testing.T) {
 		}
 	}
 	{ // do_test "in3-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT 'text' IN (SELECT b FROM t3) }")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT 'text' IN (SELECT b FROM t3) }")
 	}
 	{ // do_test "in3-4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT 'TEXT' COLLATE nocase IN (SELECT b FROM t3...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT 'TEXT' COLLATE nocase IN (SELECT b FROM t3...}")
 	}
 	{ // do_test "in3-4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT b FROM t3 WHERE b IN (SELECT b FROM t3) }")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT b FROM t3 WHERE b IN (SELECT b FROM t3) }")
 	}
 	{ // do_test "in3-4.5"
 		_res = db.Exec(" CREATE UNIQUE INDEX t3_i2 ON t3(b) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE UNIQUE INDEX t3_i2 ON t3(b) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "exec_neph { SELECT b FROM t3 WHERE b IN (SELECT b FROM t3) }")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec_neph { SELECT b FROM t3 WHERE b IN (SELECT b FROM t3) }")
 	}
 	{ // do_test "in3-4.6"
 		_res = db.Exec(" DROP INDEX t3_i2 ")

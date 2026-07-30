@@ -100,7 +100,7 @@ func Test_exclusive(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
 	{ // do_test "exclusive-2.6"
 		_res = db.Exec("\n    BEGIN;\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		if _res.Error != nil {
@@ -119,7 +119,7 @@ func Test_exclusive(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ROLLBACK;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit)")
 	{ // do_test "exclusive-2.9"
 		_res = db.Exec("\n    INSERT INTO abc VALUES(7, 8, 9);\n  ")
 		if _res.Error != nil {
@@ -150,21 +150,21 @@ func Test_exclusive(t *testing.T) {
 	if tclBool(tcl_platform + "(platform) != \"windows\"\n && " + "atomic_batch_write test.db" + "==0") {
 		// proc definition (not transpiled)
 		{ // do_test "exclusive-3.0"
-			t.Skipf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
+			t.Errorf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
 		}
 		{ // do_test "exclusive-3.1"
 			_res = db.Exec("\n      PRAGMA locking_mode = exclusive;\n      BEGIN;\n      DELETE FROM abc;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA locking_mode = exclusive;\n      BEGIN;\n      DELETE FROM abc;\n    ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
+			t.Errorf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
 		}
 		{ // do_test "exclusive-3.2"
 			_res = db.Exec("\n      COMMIT;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      COMMIT;\n    ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
+			t.Errorf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
 		}
 		{ // do_test "exclusive-3.3"
 			r = db.Query("\n      INSERT INTO abc VALUES('A', 'B', 'C');\n      SELECT * FROM abc;\n    ")
@@ -179,14 +179,14 @@ func Test_exclusive(t *testing.T) {
 			}
 		}
 		{ // do_test "exclusive-3.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
+			t.Errorf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
 		}
 		{ // do_test "exclusive-3.6"
 			r = db.Query("\n      PRAGMA locking_mode = normal;\n      SELECT * FROM abc;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      PRAGMA locking_mode = normal;\n      SELECT * FROM abc;\n    ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
+			t.Errorf("TODO: %s not implemented in frigolite", "filestate test.db-journal")
 		}
 	}
 	// proc definition (not transpiled)
@@ -215,14 +215,14 @@ func Test_exclusive(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    SELECT count(*) FROM t3;\n    ROLLBACK;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "signature")
+		t.Errorf("TODO: %s not implemented in frigolite", "signature")
 	}
 	{ // do_test "exclusive-4.2"
 		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    DELETE FROM t3 WHERE random()%10!=0;\n    INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n    ROLLBACK;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "signature")
+		t.Errorf("TODO: %s not implemented in frigolite", "signature")
 	}
 	{ // do_test "exclusive-4.3"
 		_res = db.Exec("\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3 WHERE random()%10==0;\n  ")
@@ -321,8 +321,8 @@ func Test_exclusive(t *testing.T) {
 			}
 			{ // do_test "exclusive-6.2"
 				os.Remove("test2.db")
-				t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
-				t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db-journal test2.db-journal")
+				t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test2.db")
+				t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-journal test2.db-journal")
 				db, err := frigolite.Open("test2.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }

@@ -19,7 +19,7 @@ func Test_format4(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
 	{ // do_test "format4-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x0,x1,x2,x3,x4,x5,x6,x7,x8,x9);\n    INSERT INTO t1 VALUES(0,0,0,0,0,0,0,0,0,0);\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
 		if _res.Error != nil {

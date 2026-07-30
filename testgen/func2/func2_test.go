@@ -595,7 +595,7 @@ func Test_func2(t *testing.T) {
 	{ // do_test "func2-3.1.1"
 		var blob = "execsql \"SELECT x'1234'\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.1.2"
 		_res = db.Exec("SELECT SUBSTR()")
@@ -612,147 +612,147 @@ func Test_func2(t *testing.T) {
 	{ // do_test "func2-3.2.0"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 0, 0)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.2.1"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 0, 1)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.2.2"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 0, 2)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.2.3"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 0, 3)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.3.0"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 1, 0)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.3.1"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 1, 1)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.3.2"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 1, 2)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.3.3"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 1, 3)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.4.0"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -1, 0)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.4.1"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -1, 1)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.4.2"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -1, 2)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.4.3"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -1, 3)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.5.0"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -2, 0)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.5.1"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -2, 1)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.5.2"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -2, 2)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.5.3"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -2, 3)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.6.0"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -1, 0)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.6.1"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -1, -1)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.6.2"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -1, -2)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.6.3"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -1, -3)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.7.0"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -2, 0)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.7.1"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -2, -1)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.7.2"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', -2, -2)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.8.0"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 1, 0)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.8.1"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 1, -1)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.8.2"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 1, -2)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.9.0"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 2, 0)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.9.1"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 2, -1)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.9.2"
 		var blob = "execsql \"SELECT SUBSTR(x'1234', 2, -2)\""
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "func2-3.10"
 		var tm = "time {\n    execsql {\n      SELECT '' IN (zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(1)\n      )))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))\n  }\n  }"

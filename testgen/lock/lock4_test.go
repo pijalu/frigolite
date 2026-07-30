@@ -23,7 +23,7 @@ func Test_lock4(t *testing.T) {
 	if tclBool("atomic_batch_write test.db") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // do_test "lock4-1.1"
 		_res = db.Exec("\n     PRAGMA auto_vacuum=OFF;\n     CREATE TABLE t1(x);\n  ")
 		if _res.Error != nil {
@@ -49,7 +49,7 @@ func Test_lock4(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     BEGIN EXCLUSIVE;\n     INSERT INTO t1 VALUES(1);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "exec [info nameofexec] ./test2-script.tcl &")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec [info nameofexec] ./test2-script.tcl &")
 		for tclBool("!" + "file exists test2.db-journal") {
 		}
 		db2, err := frigolite.Open("test2.db")

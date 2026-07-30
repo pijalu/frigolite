@@ -24,7 +24,7 @@ func Test_e_droptrigger(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_droptrigger_tests 1.1 -repair {\n  droptrigger_reopen_db\n} -tclquery {\n  list_all_triggers \n} {\n  1   \"DROP TRIGGER main.tr1\"            \n      {...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_droptrigger_tests 1.1 -repair {\n  droptrigger_reopen_db\n} -tclquery {\n  list_all_triggers \n} {\n  1   \"DROP TRIGGER main.tr1\"            \n      {...}")
 	// foreach {tn tbl droptrigger before after} "\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n"
 	_items := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
 	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
@@ -40,7 +40,7 @@ func Test_e_droptrigger(t *testing.T) {
 		_ = after // suppress unused warning
 		_ = _idx
 			{ // do_test "2." + tn + ".1"
-				t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
+				t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
 				_res = db.Exec(" INSERT INTO " + tbl + " VALUES('1', '2') ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO " + tbl + " VALUES('1', '2') ")
@@ -48,7 +48,7 @@ func Test_e_droptrigger(t *testing.T) {
 				_ = _triggers_fired // TCL namespace variable (query)
 			}
 			{ // do_test "2." + tn + ".2"
-				t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
+				t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
 				_res = db.Exec(droptrigger)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, droptrigger)
@@ -75,7 +75,7 @@ func Test_e_droptrigger(t *testing.T) {
 			_ = after // suppress unused warning
 			_ = _idx
 				{ // do_test "3.1." + tn + ".1"
-					t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db UPDATE")
+					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db UPDATE")
 					_res = db.Exec("UPDATE " + tbl + " SET a = 'abc'")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE " + tbl + " SET a = 'abc'")
@@ -83,7 +83,7 @@ func Test_e_droptrigger(t *testing.T) {
 					_ = _triggers_fired // TCL namespace variable (query)
 				}
 				{ // do_test "3.1." + tn + ".2"
-					t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db UPDATE")
+					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db UPDATE")
 					_res = db.Exec(droptrigger)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, droptrigger)
@@ -110,7 +110,7 @@ func Test_e_droptrigger(t *testing.T) {
 				_ = after // suppress unused warning
 				_ = _idx
 					{ // do_test "3.2." + tn + ".1"
-						t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db DELETE")
+						t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db DELETE")
 						_res = db.Exec("DELETE FROM " + tbl)
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM " + tbl)
@@ -118,7 +118,7 @@ func Test_e_droptrigger(t *testing.T) {
 						_ = _triggers_fired // TCL namespace variable (query)
 					}
 					{ // do_test "3.2." + tn + ".2"
-						t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db DELETE")
+						t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db DELETE")
 						_res = db.Exec(droptrigger)
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, droptrigger)
@@ -131,31 +131,31 @@ func Test_e_droptrigger(t *testing.T) {
 					}
 				}
 				{ // do_test "4.1"
-					t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
-					t.Skipf("TODO: %s not implemented in frigolite", "list_all_triggers")
+					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
+					t.Errorf("TODO: %s not implemented in frigolite", "list_all_triggers")
 				}
 				{ // do_test "4.2"
-					t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
+					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
 					_res = db.Exec("DROP TABLE t1")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "list_all_triggers")
+					t.Errorf("TODO: %s not implemented in frigolite", "list_all_triggers")
 				}
 				{ // do_test "4.3"
-					t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
+					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
 					_res = db.Exec("DROP TABLE t1")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "list_all_triggers")
+					t.Errorf("TODO: %s not implemented in frigolite", "list_all_triggers")
 				}
 				{ // do_test "4.4"
-					t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
+					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
 					_res = db.Exec("DROP TABLE t1")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t1")
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "list_all_triggers")
+					t.Errorf("TODO: %s not implemented in frigolite", "list_all_triggers")
 				}
 }

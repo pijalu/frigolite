@@ -19,7 +19,7 @@ func Test_btree02(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db eval")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db eval")
 	{ // "btree02-100"
 		r = db.Query("\n  CREATE TABLE t1(a TEXT, ax INTEGER, b INT, PRIMARY KEY(a,ax)) WITHOUT ROWID;\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n    INSERT INTO t1(a,ax,b) SELECT printf('%02x',i+160), random(), i FROM c;\n  CREATE INDEX t1a ON t1(a);\n  CREATE TABLE t2(x,y);\n  CREATE TABLE t3(cnt);\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<4)\n    INSERT INTO t3(cnt) SELECT i FROM c;\n  SELECT count(*) FROM t1;\n")
 		if r.Error != nil {

@@ -145,9 +145,9 @@ func Test_triggerA(t *testing.T) {
 		}
 	}
 	os.Remove("test.db-triggerA")
-	t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db test.db-triggerA")
+	t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test.db-triggerA")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test triggerA-3 -tclprep {\n  db close\n  forcedelete test.db test.db-journal\n...} -sqlbody {\n   DELETE FROM v5 WHERE x=5;\n   UPDATE v5 SET b=b...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test triggerA-3 -tclprep {\n  db close\n  forcedelete test.db test.db-journal\n...} -sqlbody {\n   DELETE FROM v5 WHERE x=5;\n   UPDATE v5 SET b=b...}")
 	os.Remove("test.db-triggerA")
 }

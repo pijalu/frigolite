@@ -1285,9 +1285,9 @@ func Test_selectA(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t8(a, b);\n  CREATE TABLE t9(c, d);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_same_test 5.1 {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_same_test 5.2 {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_same_test 5.3 {\n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {\n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {\n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {\n  SELECT a, b FROM t8 EXCEPT SELECT * FROM t9 ORD...} {\n  SELECT * FROM t8 EXCEPT SELECT c, d FROM t9 ORD...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_same_test 5.1 {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...} {\n  SELECT a, b FROM t8 INTERSECT SELECT c, d FROM ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_same_test 5.2 {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...} {\n  SELECT a, b FROM t8 UNION SELECT c, d FROM t9 O...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_same_test 5.3 {\n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {\n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {\n  SELECT a, b FROM t8 EXCEPT SELECT c, d FROM t9 ...} {\n  SELECT a, b FROM t8 EXCEPT SELECT * FROM t9 ORD...} {\n  SELECT * FROM t8 EXCEPT SELECT c, d FROM t9 ORD...}")
 	{ // "5.4"
 		_res = db.Exec("\n  SELECT * FROM t8 UNION SELECT * FROM t9 ORDER BY a+b COLLATE NOCASE\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1st ORDER BY term does not match any column in the result set") {

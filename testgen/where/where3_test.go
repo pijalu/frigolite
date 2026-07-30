@@ -38,40 +38,40 @@ func Test_where3(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE tA(apk integer primary key, ax);\n    CREATE TABLE tB(bpk integer primary key, bx);\n    CREATE TABLE tC(cpk integer primary key, cx);\n    CREATE TABLE tD(dpk integer primary key, dx);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
 	}
 	{ // do_test "where3-2.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...}")
 	}
 	{ // do_test "where3-2.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...}")
 	}
 	{ // do_test "where3-2.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON cx=d...}")
 	}
 	{ // do_test "where3-2.1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
 	}
 	{ // do_test "where3-2.1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
 	}
 	{ // do_test "where3-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
 	}
 	{ // do_test "where3-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
 	}
 	{ // do_test "where3-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
 	}
 	{ // do_test "where3-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
 	}
 	{ // do_test "where3-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
 	}
 	{ // do_test "where3-2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM tA, tB, tC LEFT JOIN tD ON dpk=...}")
 	}
 	{ // "where3-3.0"
 		_res = db.Exec("\n  CREATE TABLE t301(a INTEGER PRIMARY KEY,b,c);\n  CREATE INDEX t301c ON t301(c);\n  INSERT INTO t301 VALUES(1,2,3);\n  INSERT INTO t301 VALUES(2,2,3);\n  CREATE TABLE t302(x, y);\n  INSERT INTO t302 VALUES(4,5);\n  ANALYZE;\n")
@@ -281,8 +281,8 @@ func Test_where3(t *testing.T) {
 		}
 	}
 	for _, disabled_opt := range tclSplitList("none omit-noop-join all") {
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db $disabled_opt 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db $disabled_opt 0")
 		{ // "where3-7." + disabled_opt + ".1"
 			r = db.Query("\n    SELECT x1 FROM t71 LEFT JOIN t72 ON x2=y1;\n  ")
 			if r.Error != nil {

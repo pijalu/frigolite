@@ -23,18 +23,18 @@ func Test_mutex2(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "install_mutex_counters 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "install_mutex_counters 1")
 	{ // do_test "mutex2-1.1"
 		var _disable_mutex_init = "10" // TCL namespace variable
 		_ = _disable_mutex_init // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	}
 	{ // do_test "mutex2-1.1"
 		var _disable_mutex_init = "7" // TCL namespace variable
 		_ = _disable_mutex_init // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	}
 	// proc definition (not transpiled)
 	{ // do_test "mutex2-2.1"
@@ -44,7 +44,7 @@ func Test_mutex2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite db test.db")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite db test.db")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -56,24 +56,24 @@ func Test_mutex2(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "mutex2-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_mprintf_int {This is a test %d,%d,%d} 1 2 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mprintf_int {This is a test %d,%d,%d} 1 2 3")
 	}
 	{ // do_test "mutex2-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
 	}
 	{ // do_test "mutex2-2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_malloc 10000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_malloc 10000")
 	}
 	{ // do_test "mutex2-2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_realloc 0 10000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_realloc 0 10000")
 	}
 	{ // do_test "mutex2-2.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "vfs_initfail_test")
+		t.Errorf("TODO: %s not implemented in frigolite", "vfs_initfail_test")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "install_mutex_counters 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "install_mutex_counters 0")
 	var disable_mutex_init = "0"
 	_ = disable_mutex_init // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 	{ // do_test "mutex2-3.1"
 		var ptr = "alloc_dealloc_mutex"
 		_ = ptr // suppress unused warning

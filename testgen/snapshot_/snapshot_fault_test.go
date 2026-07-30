@@ -21,9 +21,9 @@ func Test_snapshot_fault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "snapshot_fault"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.0 -prep {\n  catch { db2 close }\n  faultsim_delete_and_reope...} -body {\n  db eval { PRAGMA wal_checkpoint }\n} -test {\n  db2 eval BEGIN\n  if {[catch { sqlite3_snapshot_...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.0 -prep {\n  faultsim_delete_and_reopen\n  db eval { \n    CRE...} -body {\n  db eval { PRAGMA wal_checkpoint }\n} -test {\n\n  db_save\n  db close\n  db_restore_and_reopen\n  d...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.0 -prep {\n  faultsim_delete_and_reopen\n  db eval { \n    CRE...} -body {\n  if { [catch { sqlite3_snapshot_open db main $::...} -test {\n  faultsim_test_result {0 {}} {1 SQLITE_IOERR} {1...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.0 -prep {\n  catch { db2 close }\n  faultsim_delete_and_reope...} -body {\n  db eval { PRAGMA wal_checkpoint }\n} -test {\n  db2 eval BEGIN\n  if {[catch { sqlite3_snapshot_...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.0 -prep {\n  faultsim_delete_and_reopen\n  db eval { \n    CRE...} -body {\n  db eval { PRAGMA wal_checkpoint }\n} -test {\n\n  db_save\n  db close\n  db_restore_and_reopen\n  d...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3.0 -prep {\n  faultsim_delete_and_reopen\n  db eval { \n    CRE...} -body {\n  if { [catch { sqlite3_snapshot_open db main $::...} -test {\n  faultsim_test_result {0 {}} {1 SQLITE_IOERR} {1...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -33,16 +33,16 @@ func Test_snapshot_fault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(zzz);\n  INSERT INTO t1 VALUES('abc');\n  INSERT INTO t1 VALUES('def');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	{ // do_test "4.0.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 		_res = db.Exec(" SELECT * FROM sqlite_master ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT * FROM sqlite_master ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_recover db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_recover db main")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4.0 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  sqlite3_snapshot_recover db main\n} -test {\n  faultsim_test_result {0 {}} {1 SQLITE_NOMEM} {1...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4.0 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db eval { SELECT ...} -body {\n  sqlite3_snapshot_recover db main\n} -test {\n  faultsim_test_result {0 {}} {1 SQLITE_NOMEM} {1...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -62,8 +62,8 @@ func Test_snapshot_fault(t *testing.T) {
 		_list := tclList([]string{"file size test.db-shm", "file size test.db"})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4.1 -faults shm* -prep {\n  catch { db2 close } \n  catch { db close } \n  fa...} -body {\n  sqlite3_snapshot_recover db main\n} -test {\n  faultsim_test_result {0 {}} {1 SQLITE_IOERR}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4.1 -faults shm* -prep {\n  catch { db2 close } \n  catch { db close } \n  fa...} -body {\n  sqlite3_snapshot_recover db main\n} -test {\n  faultsim_test_result {0 {}} {1 SQLITE_IOERR}\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -79,6 +79,6 @@ func Test_snapshot_fault(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -prep {\n  faultsim_restore_and_reopen\n  execsql { SELECT ...} -body {\n  sqlite3_snapshot_get_blob db main\n  set {} {}\n} -test {\n  execsql END\n  faultsim_test_result {0 {}} {1 SQ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -prep {\n  faultsim_restore_and_reopen\n  execsql { SELECT ...} -body {\n  sqlite3_snapshot_get_blob db main\n  set {} {}\n} -test {\n  execsql END\n  faultsim_test_result {0 {}} {1 SQ...}")
 }

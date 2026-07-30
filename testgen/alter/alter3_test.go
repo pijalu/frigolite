@@ -31,7 +31,7 @@ func Test_alter3(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "alter3-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
 		r = db.Query("\n    CREATE TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_master;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE abc(a, b, c);\n    SELECT sql FROM sqlite_master;\n  ")
@@ -137,14 +137,14 @@ func Test_alter3(t *testing.T) {
 	}
 	if tclBool("!" + has_codec) {
 		{ // do_test "alter3-3.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "get_file_format")
+			t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
 		}
 	}
 	{ // do_test "alter3-4.1"
 		os.Remove("test.db")
 		var _DB = "sqlite3 db test.db" // TCL namespace variable
 		_ = _DB // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
 		r = db.Query("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 100);\n    INSERT INTO t1 VALUES(2, 300);\n    SELECT * FROM t1;\n  ")
@@ -164,7 +164,7 @@ func Test_alter3(t *testing.T) {
 	}
 	if tclBool("!" + has_codec) {
 		{ // do_test "alter3-4.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "get_file_format")
+			t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
 		}
 	}
 	{ // do_test "alter3-4.99"

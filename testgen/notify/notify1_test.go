@@ -152,8 +152,8 @@ func Test_notify1(t *testing.T) {
 			con, err := frigolite.Open("test.db")
 			defer con.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "$con eval { ATTACH 'test2.db' AS aux2 }")
-			t.Skipf("TODO: %s not implemented in frigolite", "$con eval { ATTACH 'test3.db' AS aux3 }")
+			t.Errorf("TODO: %s not implemented in frigolite", "$con eval { ATTACH 'test2.db' AS aux2 }")
+			t.Errorf("TODO: %s not implemented in frigolite", "$con eval { ATTACH 'test3.db' AS aux3 }")
 		}
 		_res = db.Exec("\n    CREATE TABLE main.t1(a, b);\n    CREATE TABLE aux2.t2(a, b);\n    CREATE TABLE aux3.t3(a, b);\n  ")
 		if _res.Error != nil {
@@ -277,7 +277,7 @@ func Test_notify1(t *testing.T) {
 					_ = _res // catchsql
 				}
 				{ // do_test "notify1-" + tn + ".2." + ii + ".2"
-					t.Skipf("TODO: %s not implemented in frigolite", "$cmd unlock_notify lappend lUnlock $ii")
+					t.Errorf("TODO: %s not implemented in frigolite", "$cmd unlock_notify lappend lUnlock $ii")
 				}
 				lUnlockFinal = tclListAppend(lUnlockFinal, ii)
 				// incr ii 1
@@ -301,7 +301,7 @@ func Test_notify1(t *testing.T) {
 				var ii = "1"
 				_ = ii // suppress unused warning
 				for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return ii_n <= nConn_n }() {
-					t.Skipf("TODO: %s not implemented in frigolite", "db$ii close")
+					t.Errorf("TODO: %s not implemented in frigolite", "db$ii close")
 					// incr ii 1
 					{
 						_n, _err := strconv.Atoi(ii)
@@ -312,7 +312,7 @@ func Test_notify1(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test notify1-5 -tclprep {\n  set ::lUnlock [list]\n  execsql {\n    CREATE TAB...} -sqlbody {\n  COMMIT;\n} -cleanup {\n  # One of two things should have happened:\n  #\n ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test notify1-5 -tclprep {\n  set ::lUnlock [list]\n  execsql {\n    CREATE TAB...} -sqlbody {\n  COMMIT;\n} -cleanup {\n  # One of two things should have happened:\n  #\n ...}")
 		{ // do_test "notify1-6.1.1"
 			os.Remove("test.db")
 			for _, conn := range tclSplitList("db db2 db3") {
@@ -429,7 +429,7 @@ func Test_notify1(t *testing.T) {
 			var unlock_notify = "0"
 			_ = unlock_notify // suppress unused warning
 			// db2.unlock_notify (db command)
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_unlock_notify db3")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_unlock_notify db3")
 		}
 		{ // do_test "notify1-7.5"
 		}
@@ -448,7 +448,7 @@ func Test_notify1(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-8.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db2")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db2")
 		}
 		{ // do_test "notify1-8.3"
 			_res = db.Exec("\n    COMMIT;\n    BEGIN EXCLUSIVE;\n  ")
@@ -459,7 +459,7 @@ func Test_notify1(t *testing.T) {
 			_ = _res // catchsql
 		}
 		{ // do_test "notify1-8.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db2")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db2")
 		}
 		{ // do_test "notify1-8.X"
 			_res = db.Exec(" COMMIT ")
@@ -541,5 +541,5 @@ func Test_notify1(t *testing.T) {
 		}
 		db2.Close()
 		db3.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

@@ -23,5 +23,5 @@ func Test_rowallock(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	var mmap_res = "1000000"
 	_ = mmap_res // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  code2 { db2 close }\n  code3 { db3 close }\n  \n  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  code2 { db2 close }\n  code3 { db3 close }\n  \n  ...}")
 }

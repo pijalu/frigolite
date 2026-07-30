@@ -40,10 +40,10 @@ func Test_crash(t *testing.T) {
 		seed := "0"
 		_ = seed // suppress unused warning
 		{ // do_test "crash-1.2." + i
-			t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db-journal -seed $seed {\n      DELETE FROM abc WHERE a = 1;\n    }")
+			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db-journal -seed $seed {\n      DELETE FROM abc WHERE a = 1;\n    }")
 		}
 		{ // do_test "crash-1.3." + i
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		// incr i 1
 		{
@@ -54,27 +54,27 @@ func Test_crash(t *testing.T) {
 		}
 	}
 	{ // do_test "crash-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    DELETE FROM abc WHERE a = 1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    DELETE FROM abc WHERE a = 1;\n  }")
 	}
 	{ // do_test "crash-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "signature")
+		t.Errorf("TODO: %s not implemented in frigolite", "signature")
 	}
 	{ // do_test "crash-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db-journal {\n    DELETE FROM abc WHERE a = 1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db-journal {\n    DELETE FROM abc WHERE a = 1;\n  }")
 	}
 	{ // do_test "crash-1.7"
 		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "crash-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 3 -file test.db-journal {\n    DELETE FROM abc WHERE a = 1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 3 -file test.db-journal {\n    DELETE FROM abc WHERE a = 1;\n  }")
 	}
 	{ // do_test "crash-1.9"
 		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "crash-1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db {\n    DELETE FROM abc WHERE a = 4;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db {\n    DELETE FROM abc WHERE a = 4;\n  }")
 	}
 	{ // do_test "crash-1.11"
 		_res = db.Exec("\n    SELECT * FROM abc;\n  ")
@@ -115,16 +115,16 @@ func Test_crash(t *testing.T) {
 		// expr ([file size test.db] → "([file size test.db]"
 	}
 	{ // do_test "crash-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db-journal {\n    DELETE FROM abc WHERE a < 800;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db-journal {\n    DELETE FROM abc WHERE a < 800;\n  }")
 	}
 	{ // do_test "crash-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "signature")
+		t.Errorf("TODO: %s not implemented in frigolite", "signature")
 	}
 	{ // do_test "crash-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    DELETE FROM abc WHERE a<800;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    DELETE FROM abc WHERE a<800;\n  }")
 	}
 	{ // do_test "crash-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "signature")
+		t.Errorf("TODO: %s not implemented in frigolite", "signature")
 	}
 	{ // do_test "crash-3.0"
 		_res = db.Exec("\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")
@@ -141,10 +141,10 @@ func Test_crash(t *testing.T) {
 		{ // do_test "crash-3." + i + ".1"
 			seed := "0"
 			_ = seed // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay [expr $i%5 + 1] -file test.db-journal -seed $seed \n       BEGIN;\n       SELECT random() FROM abc LIM...")
+			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay [expr $i%5 + 1] -file test.db-journal -seed $seed \n       BEGIN;\n       SELECT random() FROM abc LIM...")
 		}
 		{ // do_test "crash-3." + i + ".2"
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		// incr i 1
 		{
@@ -169,29 +169,29 @@ func Test_crash(t *testing.T) {
 	var sig = "signature"
 	_ = sig // suppress unused warning
 	{ // do_test "crash-5.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db-journal {\n    BEGIN;                                       ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db-journal {\n    BEGIN;                                       ...}")
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "crash-5.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "signature")
+		t.Errorf("TODO: %s not implemented in frigolite", "signature")
 	}
 	{ // do_test "crash-6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    DROP TABLE abc;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    DROP TABLE abc;\n  }")
 	}
 	{ // do_test "crash-6.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "signature")
+		t.Errorf("TODO: %s not implemented in frigolite", "signature")
 	}
 	{ // do_test "crash-7.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    ATTACH 'test2.db' AS aux;\n    BEGIN;\n    INSE...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    ATTACH 'test2.db' AS aux;\n    BEGIN;\n    INSE...}")
 		var f = "open test.db-journal a"
 		_ = f // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $f [expr [file size test.db-journal] - 12]")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $f -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $f [expr [file size test.db-journal] - 12]")
 		t.Log("-nonewline")
 		// close $f
 	}
 	{ // do_test "crash-7.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "signature")
+		t.Errorf("TODO: %s not implemented in frigolite", "signature")
 	}
 }

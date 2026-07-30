@@ -75,8 +75,6 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 		t:      "t",
 		vars:   []string{"db", "err"},
 	}
-	// Populate skipped test cases based on file name
-	tp.skippedTests = getSkippedTests(base)
 	tp.processCommands(cmds)
 
 	body.WriteString("}\n")
@@ -144,22 +142,6 @@ type transpiler struct {
 	varCount     int
 	vars         []string
 	catchMode    bool // true when transpiling inside a catch {} block
-	skippedTests map[string]string // test name → skip reason
-}
-
-func (tp *transpiler) shouldSkip(nameExpr string) (string, bool) {
-	// nameExpr is a Go string literal like "test-name" or `do_test test-name`
-	// Strip the Do_test prefix if present
-	name := nameExpr
-	if strings.HasPrefix(name, `do_test `) {
-		name = strings.TrimSpace(name[8:])
-	}
-	// Strip Go string delimiters
-	name = strings.Trim(name, `"`)
-	if reason, ok := tp.skippedTests[name]; ok {
-		return reason, true
-	}
-	return "", false
 }
 
 func (tp *transpiler) emit(format string, args ...interface{}) {
@@ -582,11 +564,11 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 			tp.processDBForName(cmdName, args)
 			break
 		}
-		// Unsupported command — emit skip marker
+		// Unsupported command — emit error marker (P1: errors are never ignored)
 		if len(args) > 0 {
-			tp.emitLine("t.Skipf(\"TODO: %%s not implemented in frigolite\", %q)", cmdName+" "+describeArgsShort(args))
+			tp.emitLine("t.Errorf(\"TODO: %%s not implemented in frigolite\", %q)", cmdName+" "+describeArgsShort(args))
 		} else {
-			tp.emitLine("t.Skipf(\"TODO: %%s not implemented in frigolite\", %q)", cmdName)
+			tp.emitLine("t.Errorf(\"TODO: %%s not implemented in frigolite\", %q)", cmdName)
 		}
 	}
 }
@@ -674,14 +656,6 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 	tp.emitLine("{ // %s", nameExpr)
 	tp.indent++
 
-	// Skip unsupported test cases
-	if reason, ok := tp.shouldSkip(nameExpr); ok {
-		tp.emitLine("// skip: %s", reason)
-		tp.indent--
-		tp.emitLine("}")
-		return
-	}
-
 	if isQuery && expectedExpr != `""` {
 		tp.emitLine("r = db.Query(%s)", sqlExpr)
 		tp.emitLine("if r.Error != nil {")
@@ -744,14 +718,6 @@ func (tp *transpiler) processDoCatchSQLTest(args []tcl.RawWord) {
 	tp.emitLine("{ // %s", nameExpr)
 	tp.indent++
 
-	// Skip unsupported test cases
-	if reason, ok := tp.shouldSkip(nameExpr); ok {
-		tp.emitLine("// skip: %s", reason)
-		tp.indent--
-		tp.emitLine("}")
-		return
-	}
-
 	errMsg := extractExpectedErrorFromLiteral(expectedExpr)
 	if errMsg != "" {
 		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
@@ -778,14 +744,6 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 
 	tp.emitLine("{ // do_test %s", nameExpr)
 	tp.indent++
-
-	// Skip unsupported test cases
-	if reason, ok := tp.shouldSkip(nameExpr); ok {
-		tp.emitLine("// skip: %s", reason)
-		tp.indent--
-		tp.emitLine("}")
-		return
-	}
 
 	if bodyCmds != nil {
 		bodyTP := &transpiler{

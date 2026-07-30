@@ -31,7 +31,7 @@ func Test_trigger3(t *testing.T) {
 		_res = db.Exec("\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (1, 5, 6);\n    ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode trigger3-1.1b SQLITE_CONSTRAINT_TRIGGER")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode trigger3-1.1b SQLITE_CONSTRAINT_TRIGGER")
 	{ // do_test "trigger3-1.2"
 		_res = db.Exec("\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
 		if _res.Error != nil {
@@ -48,7 +48,7 @@ func Test_trigger3(t *testing.T) {
 		_res = db.Exec("\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (2, 5, 6);\n    ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode trigger3-2.1b SQLITE_CONSTRAINT_TRIGGER")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode trigger3-2.1b SQLITE_CONSTRAINT_TRIGGER")
 	{ // do_test "trigger3-2.2"
 		_res = db.Exec("\n        SELECT * FROM tbl;\n        ROLLBACK;\n    ")
 		if _res.Error != nil {
@@ -59,7 +59,7 @@ func Test_trigger3(t *testing.T) {
 		_res = db.Exec("\n        BEGIN;\n        INSERT INTO tbl VALUES (5, 5, 6);\n        INSERT INTO tbl VALUES (3, 5, 6);\n    ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode trigger3-3.1b SQLITE_CONSTRAINT_TRIGGER")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode trigger3-3.1b SQLITE_CONSTRAINT_TRIGGER")
 	{ // do_test "trigger3-3.2"
 		r = db.Query("\n        SELECT * FROM tbl;\n    ")
 		if r.Error != nil {
@@ -72,7 +72,7 @@ func Test_trigger3(t *testing.T) {
 		_res = db.Exec("\n        INSERT INTO tbl VALUES (3, 9, 10);\n    ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode trigger3-3.3b SQLITE_CONSTRAINT_TRIGGER")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode trigger3-3.3b SQLITE_CONSTRAINT_TRIGGER")
 	{ // do_test "trigger3-3.4"
 		r = db.Query("SELECT * FROM tbl")
 		if r.Error != nil {

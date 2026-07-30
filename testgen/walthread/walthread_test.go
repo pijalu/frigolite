@@ -41,13 +41,13 @@ func Test_walthread(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_thread_test2 walthread-1 -seconds $seconds(walthread-1) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n    CR...} -thread main 10 {\n\n  proc read_transaction {} {\n    set results [db...} -thread ckpt 1 {\n  set nRun 0\n  while {[tt_continue]} {\n    db eva...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_thread_test2 walthread-1 -seconds $seconds(walthread-1) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n    CR...} -thread main 10 {\n\n  proc read_transaction {} {\n    set results [db...} -thread ckpt 1 {\n  set nRun 0\n  while {[tt_continue]} {\n    db eva...}")
 	if tclBool("atomic_batch_write $::DBNAME" + "==0") {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_thread_test2 walthread-2 -seconds $seconds(walthread-2) -init {\n    execsql { CREATE TABLE t1(x INTEGER PRIMARY K...} -thread RB 2 [string map [list %DB% $::DBNAME] {\n\n    db close\n... -thread WAL 2 [string map [list %DB% $::DBNAME] {\n    db close\n ...")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_thread_test2 walthread-2 -seconds $seconds(walthread-2) -init {\n    execsql { CREATE TABLE t1(x INTEGER PRIMARY K...} -thread RB 2 [string map [list %DB% $::DBNAME] {\n\n    db close\n... -thread WAL 2 [string map [list %DB% $::DBNAME] {\n    db close\n ...")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_thread_test walthread-3 -seconds $seconds(walthread-3) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n    CR...} -thread t 10 {\n\n  set nextwrite $E(pid)\n\n  proc wal_hook {zDb nE...} -check {\n  puts \"  Final db contains [db eval {SELECT coun...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_thread_test2 walthread-4 -seconds $seconds(walthread-4) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n    CR...} -thread r 1 {\n  # This connection only ever reads the database....} -thread w 1 {\n\n  proc wal_hook {zDb nEntry} {\n    if {$nEntry>1...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_thread_test walthread-5 -seconds $seconds(walthread-5) -init {\n\n  proc log_file_size {nFrame pgsz} {\n    expr {1...} -thread T 5 {\n  db eval { SELECT count(*) FROM t1 }\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_thread_test walthread-3 -seconds $seconds(walthread-3) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n    CR...} -thread t 10 {\n\n  set nextwrite $E(pid)\n\n  proc wal_hook {zDb nE...} -check {\n  puts \"  Final db contains [db eval {SELECT coun...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_thread_test2 walthread-4 -seconds $seconds(walthread-4) -init {\n  execsql {\n    PRAGMA journal_mode = WAL;\n    CR...} -thread r 1 {\n  # This connection only ever reads the database....} -thread w 1 {\n\n  proc wal_hook {zDb nEntry} {\n    if {$nEntry>1...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_thread_test walthread-5 -seconds $seconds(walthread-5) -init {\n\n  proc log_file_size {nFrame pgsz} {\n    expr {1...} -thread T 5 {\n  db eval { SELECT count(*) FROM t1 }\n}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

@@ -23,10 +23,10 @@ func Test_dbstatus(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "dbstatus"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "dbstatus-1.1"
@@ -76,11 +76,11 @@ func Test_dbstatus(t *testing.T) {
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500")
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module db")
+					t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
 				}
 				_res = db.Exec(schema)
 				if _res.Error != nil {
@@ -97,7 +97,7 @@ func Test_dbstatus(t *testing.T) {
 				}
 				var nSchema1 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
 				_ = nSchema1 // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+				t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 				var nAlloc2 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
 				_ = nAlloc2 // suppress unused warning
 				// incr nAlloc2 lookaside db
@@ -124,7 +124,7 @@ func Test_dbstatus(t *testing.T) {
 				}
 				var nSchema3 = "lindex [sqlite3_db_status db SQLITE_DBSTATUS_SCHEMA_USED 0] 1"
 				_ = nSchema3 // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+				t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 				var nAlloc4 = "lindex [sqlite3_status SQLITE_STATUS_MEMORY_USED 0] 1"
 				_ = nAlloc4 // suppress unused warning
 				// incr nAlloc4 lookaside db
@@ -172,11 +172,11 @@ func Test_dbstatus(t *testing.T) {
 					db, err := frigolite.Open("test.db")
 					defer db.Close()
 					if err != nil { t.Fatal(err) }
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500")
+					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 $::lookaside_buffer_size 500")
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
-						t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module db")
+						t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
 					}
 					_res = db.Exec(schema)
 					if _res.Error != nil {
@@ -278,13 +278,13 @@ func Test_dbstatus(t *testing.T) {
 			{ // do_test "5.1"
 				var _stmt = "sqlite3_prepare db \"SELECT * FROM t1\" -1 dummy" // TCL namespace variable
 				_ = _stmt // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::stmt")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::stmt")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::stmt")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::stmt")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::stmt")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::stmt")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::stmt")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::stmt")
 			}
 			{ // do_test "5.3"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_stmt_status $::stmt 0 0")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_stmt_status $::stmt 0 0")
 			}
 			{ // do_test "5.4"
 				// expr [sqlite3_stmt_status $::stmt 99 0]>0 → "[sqlite3_stmt_status $::stmt 99 0]>0"
@@ -305,5 +305,5 @@ func Test_dbstatus(t *testing.T) {
 						// expr [sqlite3_stmt_status $::stmt $id 0]>0 → "[sqlite3_stmt_status $::stmt $id 0]>0"
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
 }

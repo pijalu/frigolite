@@ -21,104 +21,104 @@ func Test_bitvec(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "bitvec-1.0.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {5 1 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {5 1 1 1 0}")
 	}
 	{ // do_test "bitvec-1.0.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {5 1 234 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {5 1 234 1 0}")
 	}
 	{ // do_test "bitvec-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {1 400 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {1 400 1 1 0}")
 	}
 	{ // do_test "bitvec-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {1 4000 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {1 4000 1 1 0}")
 	}
 	{ // do_test "bitvec-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 40000 {1 40000 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 40000 {1 40000 1 1 0}")
 	}
 	{ // do_test "bitvec-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {1 400000 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {1 400000 1 1 0}")
 	}
 	{ // do_test "bitvec-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {1 400 1 7 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {1 400 1 7 0}")
 	}
 	{ // do_test "bitvec-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {1 4000 1 7 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {1 4000 1 7 0}")
 	}
 	{ // do_test "bitvec-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 40000 {1 40000 1 7 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 40000 {1 40000 1 7 0}")
 	}
 	{ // do_test "bitvec-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {1 400000 1 7 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {1 400000 1 7 0}")
 	}
 	{ // do_test "bitvec-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {1 400 1 1 2 400 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {1 400 1 1 2 400 1 1 0}")
 	}
 	{ // do_test "bitvec-1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {1 4000 1 1 2 4000 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {1 4000 1 1 2 4000 1 1 0}")
 	}
 	{ // do_test "bitvec-1.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 40000 {1 40000 1 1 2 40000 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 40000 {1 40000 1 1 2 40000 1 1 0}")
 	}
 	{ // do_test "bitvec-1.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {1 400000 1 1 2 400000 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {1 400000 1 1 2 400000 1 1 0}")
 	}
 	{ // do_test "bitvec-1.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {1 400 1 1 2 400 1 7 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400 {1 400 1 1 2 400 1 7 0}")
 	}
 	{ // do_test "bitvec-1.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {1 4000 1 1 2 4000 1 7 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {1 4000 1 1 2 4000 1 7 0}")
 	}
 	{ // do_test "bitvec-1.16"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 40000 {1 40000 1 1 2 40000 1 77 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 40000 {1 40000 1 1 2 40000 1 77 0}")
 	}
 	{ // do_test "bitvec-1.17"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {1 400000 1 1 2 400000 1 777 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {1 400000 1 1 2 400000 1 777 0}")
 	}
 	{ // do_test "bitvec-1.18"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {1 5000 100000 1 2 400000 1 37 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {1 5000 100000 1 2 400000 1 37 0}")
 	}
 	for _, start := range tclSplitList("1 2 3 4 5 6 7 8") {
 		for _, incr := range tclSplitList("124 125") {
 			{ // do_test "bitvec-1.20." + start + "." + incr
 				var prog = "list 1 60 $::start $::incr 2 5000 1 1 0"
 				_ = prog // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 5000 $prog")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 5000 $prog")
 			}
 		}
 	}
 	{ // do_test "bitvec-1.30.big_and_slow"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 17000000 {1 17000000 1 1 2 17000000 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 17000000 {1 17000000 1 1 2 17000000 1 1 0}")
 	}
 	{ // do_test "bitvec-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {3 2000 4 2000 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {3 2000 4 2000 0}")
 	}
 	{ // do_test "bitvec-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {3 1000 4 1000 3 1000 4 1000 3 1000 4 1000\n        ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {3 1000 4 1000 3 1000 4 1000 3 1000 4 1000\n        ...}")
 	}
 	{ // do_test "bitvec-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {3 10 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 400000 {3 10 0}")
 	}
 	{ // do_test "bitvec-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {3 10 2 4000 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 4000 {3 10 2 4000 1 1 0}")
 	}
 	{ // do_test "bitvec-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 5000 {3 20 2 5000 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 5000 {3 20 2 5000 1 1 0}")
 	}
 	{ // do_test "bitvec-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 50000 {3 60 2 50000 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 50000 {3 60 2 50000 1 1 0}")
 	}
 	{ // do_test "bitvec-2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 5000 {\n          1 25 121 125\n          1 50 121 125\n   ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3BitvecBuiltinTest 5000 {\n          1 25 121 125\n          1 50 121 125\n   ...}")
 	}
 	// proc definition (not transpiled)
 	var _go = "1"
 	_ = _go // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "save_prng_state")
+	t.Errorf("TODO: %s not implemented in frigolite", "save_prng_state")
 	var n = "0"
 	_ = n // suppress unused warning
 	for tclBool(_go) {
-		t.Skipf("TODO: %s not implemented in frigolite", "restore_prng_state")
-		t.Skipf("TODO: %s not implemented in frigolite", "bitvec_malloc_test bitvec-3.1.$n $n 5000 {\n      3 60 2 5000 1 1 3 60 2 5000 1 1 3 60 2 5000...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "restore_prng_state")
+		t.Errorf("TODO: %s not implemented in frigolite", "bitvec_malloc_test bitvec-3.1.$n $n 5000 {\n      3 60 2 5000 1 1 3 60 2 5000 1 1 3 60 2 5000...}")
 		// incr n 1
 		{
 			_n, _err := strconv.Atoi(n)
@@ -132,8 +132,8 @@ func Test_bitvec(t *testing.T) {
 	var n = "0"
 	_ = n // suppress unused warning
 	for tclBool(_go) {
-		t.Skipf("TODO: %s not implemented in frigolite", "restore_prng_state")
-		t.Skipf("TODO: %s not implemented in frigolite", "bitvec_malloc_test bitvec-3.2.$n $n 5000 {\n      3 600 2 5000 1 1 3 600 2 5000 1 1 3 600 2 5...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "restore_prng_state")
+		t.Errorf("TODO: %s not implemented in frigolite", "bitvec_malloc_test bitvec-3.2.$n $n 5000 {\n      3 600 2 5000 1 1 3 600 2 5000 1 1 3 600 2 5...}")
 		// incr n 1
 		{
 			_n, _err := strconv.Atoi(n)
@@ -147,7 +147,7 @@ func Test_bitvec(t *testing.T) {
 	var n = "1"
 	_ = n // suppress unused warning
 	for tclBool(_go) {
-		t.Skipf("TODO: %s not implemented in frigolite", "bitvec_malloc_test bitvec-3.3.$n $n 50000 {1 50000 1 1 0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "bitvec_malloc_test bitvec-3.3.$n $n 50000 {1 50000 1 1 0}")
 		// incr n 1
 		{
 			_n, _err := strconv.Atoi(n)

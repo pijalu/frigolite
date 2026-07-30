@@ -299,9 +299,9 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	{ // do_test "8.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B tmp main db main")
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 5")
-		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B tmp main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 5")
+		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 	}
 	{ // do_test "8.4"
 		r = db.Query("\n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check;\n    PRAGMA page_size;\n  ")
@@ -310,14 +310,14 @@ func Test_temptable2(t *testing.T) {
 		}
 	}
 	{ // do_test "8.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "tmp eval { UPDATE t1 SET a=randomblob(100) }")
+		t.Errorf("TODO: %s not implemented in frigolite", "tmp eval { UPDATE t1 SET a=randomblob(100) }")
 	}
 	{ // do_test "8.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B tmp main db main")
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 1000")
-		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B tmp main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 1000")
+		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tmp close")
+	t.Errorf("TODO: %s not implemented in frigolite", "tmp close")
 	// foreach {tn mode} "\n  1 delete\n  2 wal\n"
 	_items := tclSplitList("\n  1 delete\n  2 wal\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {

@@ -84,35 +84,35 @@ func Test_fts3prefix(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fts3_tap_test 1.5 db t1 {1 3 6}")
+	t.Errorf("TODO: %s not implemented in frigolite", "fts3_tap_test 1.5 db t1 {1 3 6}")
 	{ // "2.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES('FTS3 and FTS4 are an SQLite virtual table modules');\n  INSERT INTO t1 VALUES('that allows users to perform full-text searches on');\n  INSERT INTO t1 VALUES('a set of documents. The most common (and');\n  INSERT INTO t1 VALUES('effective) way to describe full-text searches is');\n  INSERT INTO t1 VALUES('\"what Google, Yahoo and Altavista do with');\n  INSERT INTO t1 VALUES('documents placed on the World Wide Web\". Users');\n  INSERT INTO t1 VALUES('input a term, or series of terms, perhaps');\n  INSERT INTO t1 VALUES('connected by a binary operator or grouped together');\n  INSERT INTO t1 VALUES('into a phrase, and the full-text query system');\n  INSERT INTO t1 VALUES('finds the set of documents that best matches those');\n  INSERT INTO t1 VALUES('terms considering the operators and groupings the');\n  INSERT INTO t1 VALUES('user has specified. This article describes the');\n  INSERT INTO t1 VALUES('deployment and usage of FTS3 and FTS4.');\n  INSERT INTO t1 VALUES('FTS1 and FTS2 are obsolete full-text search');\n  INSERT INTO t1 VALUES('modules for SQLite. There are known issues with');\n  INSERT INTO t1 VALUES('these older modules and their use should be');\n  INSERT INTO t1 VALUES('avoided. Portions of the original FTS3 code were');\n  INSERT INTO t1 VALUES('contributed to the SQLite project by Scott Hess of');\n  INSERT INTO t1 VALUES('Google. It is now developed and maintained as part');\n  INSERT INTO t1 VALUES('of SQLite. ');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES('FTS3 and FTS4 are an SQLite virtual table modules');\n  INSERT INTO t1 VALUES('that allows users to perform full-text searches on');\n  INSERT INTO t1 VALUES('a set of documents. The most common (and');\n  INSERT INTO t1 VALUES('effective) way to describe full-text searches is');\n  INSERT INTO t1 VALUES('\"what Google, Yahoo and Altavista do with');\n  INSERT INTO t1 VALUES('documents placed on the World Wide Web\". Users');\n  INSERT INTO t1 VALUES('input a term, or series of terms, perhaps');\n  INSERT INTO t1 VALUES('connected by a binary operator or grouped together');\n  INSERT INTO t1 VALUES('into a phrase, and the full-text query system');\n  INSERT INTO t1 VALUES('finds the set of documents that best matches those');\n  INSERT INTO t1 VALUES('terms considering the operators and groupings the');\n  INSERT INTO t1 VALUES('user has specified. This article describes the');\n  INSERT INTO t1 VALUES('deployment and usage of FTS3 and FTS4.');\n  INSERT INTO t1 VALUES('FTS1 and FTS2 are obsolete full-text search');\n  INSERT INTO t1 VALUES('modules for SQLite. There are known issues with');\n  INSERT INTO t1 VALUES('these older modules and their use should be');\n  INSERT INTO t1 VALUES('avoided. Portions of the original FTS3 code were');\n  INSERT INTO t1 VALUES('contributed to the SQLite project by Scott Hess of');\n  INSERT INTO t1 VALUES('Google. It is now developed and maintained as part');\n  INSERT INTO t1 VALUES('of SQLite. ');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fts3_tap_test 2.2 db t1 {1 3 6}")
+	t.Errorf("TODO: %s not implemented in frigolite", "fts3_tap_test 2.2 db t1 {1 3 6}")
 	{ // "2.3"
 		_res = db.Exec(" DELETE FROM t1 WHERE docid%2; ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE docid%2; ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fts3_tap_test 2.4 db t1 {1 3 6}")
+	t.Errorf("TODO: %s not implemented in frigolite", "fts3_tap_test 2.4 db t1 {1 3 6}")
 	{ // "2.5"
 		_res = db.Exec(" INSERT INTO t1(t1) VALUES('optimize') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1) VALUES('optimize') ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fts3_tap_test 2.6 db t1 {1 3 6}")
+	t.Errorf("TODO: %s not implemented in frigolite", "fts3_tap_test 2.6 db t1 {1 3 6}")
 	{ // "3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix='1,2,3');\n  INSERT INTO t2 VALUES('On 12 September the wind direction turned and');\n  INSERT INTO t2 VALUES('William''s fleet sailed. A storm blew up and the');\n  INSERT INTO t2 VALUES('fleet was forced to take shelter at');\n  INSERT INTO t2 VALUES('Saint-Valery-sur-Somme and again wait for the wind');\n  INSERT INTO t2 VALUES('to change. On 27 September the Norman fleet');\n  INSERT INTO t2 VALUES('finally set sail, landing in England at Pevensey');\n  INSERT INTO t2 VALUES('Bay (Sussex) on 28 September. William then moved');\n  INSERT INTO t2 VALUES('to Hastings, a few miles to the east, where he');\n  INSERT INTO t2 VALUES('built a prefabricated wooden castle for a base of');\n  INSERT INTO t2 VALUES('operations. From there, he ravaged the hinterland');\n  INSERT INTO t2 VALUES('and waited for Harold''s return from the north.');\n  INSERT INTO t2 VALUES('On 12 September the wind direction turned and');\n  INSERT INTO t2 VALUES('William''s fleet sailed. A storm blew up and the');\n  INSERT INTO t2 VALUES('fleet was forced to take shelter at');\n  INSERT INTO t2 VALUES('Saint-Valery-sur-Somme and again wait for the wind');\n  INSERT INTO t2 VALUES('to change. On 27 September the Norman fleet');\n  INSERT INTO t2 VALUES('finally set sail, landing in England at Pevensey');\n  INSERT INTO t2 VALUES('Bay (Sussex) on 28 September. William then moved');\n  INSERT INTO t2 VALUES('to Hastings, a few miles to the east, where he');\n  INSERT INTO t2 VALUES('built a prefabricated wooden castle for a base of');\n  INSERT INTO t2 VALUES('operations. From there, he ravaged the hinterland');\n  INSERT INTO t2 VALUES('and waited for Harold''s return from the north.');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts4(prefix='1,2,3');\n  INSERT INTO t2 VALUES('On 12 September the wind direction turned and');\n  INSERT INTO t2 VALUES('William''s fleet sailed. A storm blew up and the');\n  INSERT INTO t2 VALUES('fleet was forced to take shelter at');\n  INSERT INTO t2 VALUES('Saint-Valery-sur-Somme and again wait for the wind');\n  INSERT INTO t2 VALUES('to change. On 27 September the Norman fleet');\n  INSERT INTO t2 VALUES('finally set sail, landing in England at Pevensey');\n  INSERT INTO t2 VALUES('Bay (Sussex) on 28 September. William then moved');\n  INSERT INTO t2 VALUES('to Hastings, a few miles to the east, where he');\n  INSERT INTO t2 VALUES('built a prefabricated wooden castle for a base of');\n  INSERT INTO t2 VALUES('operations. From there, he ravaged the hinterland');\n  INSERT INTO t2 VALUES('and waited for Harold''s return from the north.');\n  INSERT INTO t2 VALUES('On 12 September the wind direction turned and');\n  INSERT INTO t2 VALUES('William''s fleet sailed. A storm blew up and the');\n  INSERT INTO t2 VALUES('fleet was forced to take shelter at');\n  INSERT INTO t2 VALUES('Saint-Valery-sur-Somme and again wait for the wind');\n  INSERT INTO t2 VALUES('to change. On 27 September the Norman fleet');\n  INSERT INTO t2 VALUES('finally set sail, landing in England at Pevensey');\n  INSERT INTO t2 VALUES('Bay (Sussex) on 28 September. William then moved');\n  INSERT INTO t2 VALUES('to Hastings, a few miles to the east, where he');\n  INSERT INTO t2 VALUES('built a prefabricated wooden castle for a base of');\n  INSERT INTO t2 VALUES('operations. From there, he ravaged the hinterland');\n  INSERT INTO t2 VALUES('and waited for Harold''s return from the north.');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fts3_tap_test 3.2 db t2 {1 2 3}")
+	t.Errorf("TODO: %s not implemented in frigolite", "fts3_tap_test 3.2 db t2 {1 2 3}")
 	{ // "3.3"
 		r = db.Query(" SELECT optimize(t2) FROM t2 LIMIT 1 ")
 		if r.Error != nil {
@@ -125,7 +125,7 @@ func Test_fts3prefix(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fts3_tap_test 3.4 db t2 {1 2 3}")
+	t.Errorf("TODO: %s not implemented in frigolite", "fts3_tap_test 3.4 db t2 {1 2 3}")
 	{ // "4.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts4(prefix=\"1,4\");\n  INSERT INTO t3 VALUES('one two three');\n  INSERT INTO t3 VALUES('four five six');\n  INSERT INTO t3 VALUES('seven eight nine');\n")
 		if _res.Error != nil {

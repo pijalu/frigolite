@@ -19,8 +19,8 @@ func Test_corruptA(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "corruptA-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n  ")
 		if _res.Error != nil {
@@ -35,7 +35,7 @@ func Test_corruptA(t *testing.T) {
 	_ = unreadable_version // suppress unused warning
 	{ // do_test "corruptA-2.1"
 		tclFileCopy("test.db-template", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 19 $unreadable_version")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 19 $unreadable_version")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -44,7 +44,7 @@ func Test_corruptA(t *testing.T) {
 	}
 	{ // do_test "corruptA-2.2"
 		tclFileCopy("test.db-template", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 21 41")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 21 41")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -53,7 +53,7 @@ func Test_corruptA(t *testing.T) {
 	}
 	{ // do_test "corruptA-2.3"
 		tclFileCopy("test.db-template", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 22 1f")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 22 1f")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -62,7 +62,7 @@ func Test_corruptA(t *testing.T) {
 	}
 	{ // do_test "corruptA-2.4"
 		tclFileCopy("test.db-template", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 23 21")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 23 21")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }

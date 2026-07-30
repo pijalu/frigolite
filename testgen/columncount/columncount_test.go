@@ -28,10 +28,10 @@ func Test_columncount(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y, z);\n  INSERT INTO t1 VALUES('a', 'b', 'c');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.1 { SELECT * FROM t1 } {3    a b c}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.2 { CREATE TABLE t2(a, b) } {0}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.3 { ALTER TABLE t2 RENAME TO t3 } {0}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.4 { ALTER TABLE t3 RENAME b TO ccc } {0}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.5 { ALTER TABLE t3 ADD COLUMN d } {0}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.6 { DROP TABLE t3 } {0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.1 { SELECT * FROM t1 } {3    a b c}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.2 { CREATE TABLE t2(a, b) } {0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.3 { ALTER TABLE t2 RENAME TO t3 } {0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.4 { ALTER TABLE t3 RENAME b TO ccc } {0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.5 { ALTER TABLE t3 ADD COLUMN d } {0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ccsql_test 1.6 { DROP TABLE t3 } {0}")
 }

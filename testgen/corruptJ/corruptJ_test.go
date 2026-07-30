@@ -28,7 +28,7 @@ func Test_corruptJ(t *testing.T) {
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // "1.1"
 		r = db.Query("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a,b);\n  WITH RECURSIVE c(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM c WHERE i<10)\n    INSERT INTO t1(a,b) SELECT i, zeroblob(700) FROM c;\n")
 		if r.Error != nil {
@@ -36,7 +36,7 @@ func Test_corruptJ(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {2*1024-2}] 02")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {2*1024-2}] 02")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -54,10 +54,10 @@ func Test_corruptJ(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db [expr {9*1024+391}] 8")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db [expr {9*1024+391}] 8")
 	}
 	{ // do_test "2.2b"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {9*1024+391}] 00000002")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {9*1024+391}] 00000002")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }

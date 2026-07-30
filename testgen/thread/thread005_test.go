@@ -26,7 +26,7 @@ func Test_thread005(t *testing.T) {
 	}
 	var _enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
 	_ = _enable_shared_cache // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
 	// proc definition (not transpiled)
 	{ // do_test "thread005-1.1"
 		db, err := frigolite.Open("test.db")
@@ -40,19 +40,19 @@ func Test_thread005(t *testing.T) {
 	var ii = "2"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 500 }() {
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_spawn finished(0) {sqlite3_open test.db}")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) {sqlite3_open test.db}")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(0) {sqlite3_open test.db}")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) {sqlite3_open test.db}")
 		if tclBool("!" + "info exists finished(0)") {
 		}
 		if tclBool("!" + "info exists finished(1)") {
 		}
 		{ // do_test "thread005-1." + ii
-			t.Skipf("TODO: %s not implemented in frigolite", "runsql { BEGIN } $finished(0)")
-			t.Skipf("TODO: %s not implemented in frigolite", "runsql { INSERT INTO t1 VALUES(1, 2) } $finished(0)")
-			t.Skipf("TODO: %s not implemented in frigolite", "runsql { SELECT * FROM t1 } $finished(1)")
+			t.Errorf("TODO: %s not implemented in frigolite", "runsql { BEGIN } $finished(0)")
+			t.Errorf("TODO: %s not implemented in frigolite", "runsql { INSERT INTO t1 VALUES(1, 2) } $finished(0)")
+			t.Errorf("TODO: %s not implemented in frigolite", "runsql { SELECT * FROM t1 } $finished(1)")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_close $finished(0)")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_close $finished(1)")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $finished(0)")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $finished(1)")
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
@@ -82,8 +82,8 @@ func Test_thread005(t *testing.T) {
 	db, err = frigolite.Open("test2.db")
 	if err != nil { t.Fatal(err) }
 	t.Log("Running thread-tests for ~20 seconds")
-	t.Skipf("TODO: %s not implemented in frigolite", "thread_spawn finished(0) {set isWriter 0} $ThreadProgram")
-	t.Skipf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) {set isWriter 1} $ThreadProgram")
+	t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(0) {set isWriter 0} $ThreadProgram")
+	t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) {set isWriter 1} $ThreadProgram")
 	if tclBool("!" + "info exists finished(0)") {
 	}
 	if tclBool("!" + "info exists finished(1)") {
@@ -114,5 +114,5 @@ func Test_thread005(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM t1 WHERE b IS NULL ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

@@ -25,18 +25,18 @@ func Test_fts4unicode(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.0 {a B c D} {0 a a 1 b B 2 c c 3 d D}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.1 \\uC4 \\uD6 \\uDC 0 \\uE4 \\uC4 1 \\uF6 \\uD6 2 \\uFC \\uDC")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.2 x\\uC4x x\\uD6x x\\uDCx 0 x\\uE4x x\\uC4x 1 x\\uF6x x\\uD6x 2 x\\uFCx x\\uDCx")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.3 \\uDF 0 \\uDF \\uDF")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.4 \\u1E9E 0 \\uDF \\u1E9E")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.5 The quick brown fox {\n  0 the The 1 quick quick 2 brown brown 3 fox fox...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.6 The\\u00bfquick\\u224ebrown\\u2263fox {\n  0 the The 1 quick quick 2 brown brown 3 fox fox...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test2 1.7 {a B c D} {0 a a 1 b B 2 c c 3 d D}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test2 1.8 \\uC4 \\uD6 \\uDC 0 a \\uC4 1 o \\uD6 2 u \\uDC")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test2 1.9 x\\uC4x x\\uD6x x\\uDCx 0 xax x\\uC4x 1 xox x\\uD6x 2 xux x\\uDCx")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test2 1.10 xx\\u0301xx 0 xxxx xx\\u301xx")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.11 \\u01c5 0 \\u01c6 \\u01c5")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.0 {a B c D} {0 a a 1 b B 2 c c 3 d D}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.1 \\uC4 \\uD6 \\uDC 0 \\uE4 \\uC4 1 \\uF6 \\uD6 2 \\uFC \\uDC")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.2 x\\uC4x x\\uD6x x\\uDCx 0 x\\uE4x x\\uC4x 1 x\\uF6x x\\uD6x 2 x\\uFCx x\\uDCx")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.3 \\uDF 0 \\uDF \\uDF")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.4 \\u1E9E 0 \\uDF \\u1E9E")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.5 The quick brown fox {\n  0 the The 1 quick quick 2 brown brown 3 fox fox...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.6 The\\u00bfquick\\u224ebrown\\u2263fox {\n  0 the The 1 quick quick 2 brown brown 3 fox fox...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test2 1.7 {a B c D} {0 a a 1 b B 2 c c 3 d D}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test2 1.8 \\uC4 \\uD6 \\uDC 0 a \\uC4 1 o \\uD6 2 u \\uDC")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test2 1.9 x\\uC4x x\\uD6x x\\uDCx 0 xax x\\uC4x 1 xox x\\uD6x 2 xux x\\uDCx")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test2 1.10 xx\\u0301xx 0 xxxx xx\\u301xx")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test 1.11 \\u01c5 0 \\u01c6 \\u01c5")
 	var docs = "list {\n  Enhance the INSERT syntax to allow multiple rows to be inserted via the\n  VALUES clause.\n} {\n  Enhance the CREATE VIRTUAL TABLE command to support the IF NOT EXISTS clause.\n} {\n  Added the sqlite3_stricmp() interface as a counterpart to sqlite3_strnicmp().\n} {\n  Added the sqlite3_db_readonly() interface.\n} {\n  Added the SQLITE_FCNTL_PRAGMA file control, giving VFS implementations the\n  ability to add new PRAGMA statements or to override built-in PRAGMAs.  \n} {\n  Queries of the form: \"SELECT max(x), y FROM table\" returns the value of y on\n  the same row that contains the maximum x value.\n} {\n  Added support for the FTS4 languageid option.\n} {\n  Documented support for the FTS4 content option. This feature has actually\n  been in the code since version 3.7.9 but is only now considered to be\n  officially supported.  \n} {\n  Pending statements no longer block ROLLBACK. Instead, the pending statement\n  will return SQLITE_ABORT upon next access after the ROLLBACK.  \n} {\n  Improvements to the handling of CSV inputs in the command-line shell\n} {\n  Fix a bug introduced in version 3.7.10 that might cause a LEFT JOIN to be\n  incorrectly converted into an INNER JOIN if the WHERE clause indexable terms\n  connected by OR.  \n}"
 	_ = docs // suppress unused warning
 	var map_a = "list \"\\u00C4\" \"\\u00E4\""
@@ -187,53 +187,53 @@ func Test_fts4unicode(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES($a);\n    INSERT INTO t1 VALUES($b);\n    INSERT INTO t1 VALUES($c);\n    INSERT INTO t1 VALUES($d);\n  ")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.1 {tokenchars=} {\n  sqlite3_reset sqlite3_column_int\n} {\n  0 sqlite3 sqlite3 \n  1 reset reset \n  2 sqlite3...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.2 {tokenchars=_} {\n  sqlite3_reset sqlite3_column_int\n} {\n  0 sqlite3_reset sqlite3_reset \n  1 sqlite3_colu...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.3 {separators=xyz} {\n  Laotianxhorseyrunszfast\n} {\n  0 laotian Laotian\n  1 horse horse\n  2 runs runs...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.4 {tokenchars=xyz} {\n  Laotianxhorseyrunszfast\n} {\n  0 laotianxhorseyrunszfast Laotianxhorseyrunszfa...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.5 {tokenchars=_} {separators=zyx} {\n  sqlite3_resetxsqlite3_column_intyhonda_phantom\n} {\n  0 sqlite3_reset sqlite3_reset \n  1 sqlite3_colu...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.6 separators=\\u05D1 abc\\u05D1def {\n  0 abc abc 1 def def\n}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.7 tokenchars=\\u2444\\u2445 separators=\\u05D0\\u05D1\\u05D2 \\u2444fre\\u2445sh\\u05D0water\\u05D2fish.\\u2445timer [list                                             ...")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.8 separators=\\u0301 hello\\u0301world \\u0301helloworld 0 helloworld hello\\u0301world 1 helloworld hellowo...")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.9 tokenchars=\\u0301 hello\\u0301world \\u0301helloworld 0 helloworld hello\\u0301world 1 helloworld hellowo...")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.10 separators=\\u0301 remove_diacritics=0 hello\\u0301world \\u0301helloworld 0 hello\\u0301world hello\\u0301world 1 helloworld h...")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.11 tokenchars=\\u0301 remove_diacritics=0 hello\\u0301world \\u0301helloworld 0 hello\\u0301world hello\\u0301world 1 helloworld h...")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.1 {tokenchars=} {\n  sqlite3_reset sqlite3_column_int\n} {\n  0 sqlite3 sqlite3 \n  1 reset reset \n  2 sqlite3...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.2 {tokenchars=_} {\n  sqlite3_reset sqlite3_column_int\n} {\n  0 sqlite3_reset sqlite3_reset \n  1 sqlite3_colu...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.3 {separators=xyz} {\n  Laotianxhorseyrunszfast\n} {\n  0 laotian Laotian\n  1 horse horse\n  2 runs runs...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.4 {tokenchars=xyz} {\n  Laotianxhorseyrunszfast\n} {\n  0 laotianxhorseyrunszfast Laotianxhorseyrunszfa...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.5 {tokenchars=_} {separators=zyx} {\n  sqlite3_resetxsqlite3_column_intyhonda_phantom\n} {\n  0 sqlite3_reset sqlite3_reset \n  1 sqlite3_colu...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.6 separators=\\u05D1 abc\\u05D1def {\n  0 abc abc 1 def def\n}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.7 tokenchars=\\u2444\\u2445 separators=\\u05D0\\u05D1\\u05D2 \\u2444fre\\u2445sh\\u05D0water\\u05D2fish.\\u2445timer [list                                             ...")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.8 separators=\\u0301 hello\\u0301world \\u0301helloworld 0 helloworld hello\\u0301world 1 helloworld hellowo...")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.9 tokenchars=\\u0301 hello\\u0301world \\u0301helloworld 0 helloworld hello\\u0301world 1 helloworld hellowo...")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.10 separators=\\u0301 remove_diacritics=0 hello\\u0301world \\u0301helloworld 0 hello\\u0301world hello\\u0301world 1 helloworld h...")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 5.11 tokenchars=\\u0301 remove_diacritics=0 hello\\u0301world \\u0301helloworld 0 hello\\u0301world hello\\u0301world 1 helloworld h...")
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
 		var tokenizers = "list unicode61"
 		_ = tokenizers // suppress unused warning
 		for _, T := range tclSplitList(tokenizers) {
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.1 $T 32")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.2 $T 160")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.3 $T 5760")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.1 $T 32")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.2 $T 160")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.3 $T 5760")
 			if T != "icu" {
-				t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.4 $T 6158")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.4 $T 6158")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.5 $T 8192")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.6 $T 8193")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.7 $T 8194")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.8 $T 8195")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.9 $T 8196")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.10 $T 8197")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.11 $T 8198")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.12 $T 8199")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.13 $T 8200")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.14 $T 8201")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.15 $T 8202")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.5 $T 8192")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.6 $T 8193")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.7 $T 8194")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.8 $T 8195")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.9 $T 8196")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.10 $T 8197")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.11 $T 8198")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.12 $T 8199")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.13 $T 8200")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.14 $T 8201")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.15 $T 8202")
 			if T != "icu" {
-				t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.16 $T 8239")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.16 $T 8239")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.17 $T 8287")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.18 $T 12288")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.17 $T 8287")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.18 $T 12288")
 			if T != "icu" {
-				t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.19 $T {32 160 5760 6158}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.19 $T {32 160 5760 6158}")
 			} else {
-				t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.19 $T {32 160 5760 8192}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.19 $T {32 160 5760 8192}")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.20 $T {8192 8193 8194 8195}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.21 $T {8196 8197 8198 8199}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.22 $T {8200 8201 8202 8239}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.23 $T {8287 12288}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.20 $T {8192 8193 8194 8195}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.21 $T {8196 8197 8198 8199}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.22 $T {8200 8201 8202 8239}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.23 $T {8287 12288}")
 		}
 		// foreach {tn1 c} "\n  1 \\ue000 2 \\ue001 3 \\uf000 4 \\uf8fe 5 \\uf8ff\n"
 		_items := tclSplitList("\n  1 \\ue000 2 \\ue001 3 \\uf000 4 \\uf8fe 5 \\uf8ff\n")
@@ -259,7 +259,7 @@ func Test_fts4unicode(t *testing.T) {
 						_ = input // suppress unused warning
 						var output = "[list * $c] $res"
 						_ = output // suppress unused warning
-						t.Skipf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 7.$tn1.$tn2 {*} $config $input $output")
+						t.Errorf("TODO: %s not implemented in frigolite", "do_unicode_token_test3 7.$tn1.$tn2 {*} $config $input $output")
 					}
 				}
 				{ // "8.1.1"

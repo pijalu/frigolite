@@ -50,7 +50,7 @@ func Test_enc4(t *testing.T) {
 			{ // do_test "enc4-" + i + "." + j + ".2"
 				var S = ""
 				_ = S // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
 			}
 			var k = "1"
 			_ = k // suppress unused warning
@@ -60,8 +60,8 @@ func Test_enc4(t *testing.T) {
 				for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 16 }() {
 					part := "$init + [string range $val 0 [expr $x-1]]"
 					_ = part // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test enc4-$i.$j.$k.3.$x {\n          sqlite3_reset $S\n          sqlite3_bind...} [list $part]")
-					t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test enc4-$i.$j.$k.4.$x {\n          sqlite3_reset $S\n          sqlite3_bind...} [list $part]")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test enc4-$i.$j.$k.3.$x {\n          sqlite3_reset $S\n          sqlite3_bind...} [list $part]")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test enc4-$i.$j.$k.4.$x {\n          sqlite3_reset $S\n          sqlite3_bind...} [list $part]")
 					// incr x 1
 					{
 						_n, _err := strconv.Atoi(x)
@@ -79,7 +79,7 @@ func Test_enc4(t *testing.T) {
 				}
 			}
 			{ // do_test "enc4-" + i + "." + j + ".5"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
 			}
 			// incr j 1
 			{
@@ -109,30 +109,30 @@ func Test_enc4(t *testing.T) {
 	{ // do_test "enc4-4.2.1"
 		var S = ""
 		_ = S // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $S 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $S 0")
 	}
 	{ // do_test "enc4-4.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
 	}
 	{ // do_test "enc4-4.3.1"
 		var S = ""
 		_ = S // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 1. 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $S 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 1. 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $S 0")
 	}
 	{ // do_test "enc4-4.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
 	}
 	{ // do_test "enc4-4.4.1"
 		var S = ""
 		_ = S // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 1.0 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $S 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 1.0 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $S 0")
 	}
 	{ // do_test "enc4-4.4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
 	}
 }

@@ -22,7 +22,7 @@ func Test_fts3dropmod(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3dropmod"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_drop_modules db fts3")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_drop_modules db fts3")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n")
 		if _res.Error != nil {
@@ -38,7 +38,7 @@ func Test_fts3dropmod(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_drop_modules db fts4")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_drop_modules db fts4")
 	{ // "2.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(x);\n")
 		if _res.Error != nil {

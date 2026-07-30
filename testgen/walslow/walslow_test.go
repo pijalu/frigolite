@@ -24,13 +24,13 @@ func Test_walslow(t *testing.T) {
 	var testprefix = "walslow"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "save_prng_state")
+	t.Errorf("TODO: %s not implemented in frigolite", "save_prng_state")
 	var seed = "1"
 	_ = seed // suppress unused warning
 	for func() bool { seed_n, _seed_e := strconv.Atoi(seed); if _seed_e != nil { return false }; return seed_n < 10 }() {
 		// expr srand($seed) → "srand($seed)"
-		t.Skipf("TODO: %s not implemented in frigolite", "restore_prng_state")
-		t.Skipf("TODO: %s not implemented in frigolite", "reopen_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "restore_prng_state")
+		t.Errorf("TODO: %s not implemented in frigolite", "reopen_db")
 		{ // do_test "walslow-1.seed=" + seed + ".0"
 			_res = db.Exec(" CREATE TABLE t1(a, b) ")
 			if _res.Error != nil {
@@ -74,8 +74,8 @@ func Test_walslow(t *testing.T) {
 			}
 			{ // do_test "walslow-1.seed=" + seed + "." + iTest + ".3"
 				os.Remove("testX.db")
-				t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db testX.db")
-				t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db-wal testX.db-wal")
+				t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db testX.db")
+				t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-wal testX.db-wal")
 				db2, err := frigolite.Open("testX.db")
 				defer db2.Close()
 				if err != nil { t.Fatal(err) }
@@ -144,10 +144,10 @@ func Test_walslow(t *testing.T) {
 				tclFileCopy("test.db-wal", "test2.db-wal")
 				var fd = "open test2.db-wal r+"
 				_ = fd // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-				t.Skipf("TODO: %s not implemented in frigolite", "seek $fd $iOff")
-				t.Skipf("TODO: %s not implemented in frigolite", "binary scan [read $fd 1] c x")
-				t.Skipf("TODO: %s not implemented in frigolite", "seek $fd $iOff")
+				t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+				t.Errorf("TODO: %s not implemented in frigolite", "seek $fd $iOff")
+				t.Errorf("TODO: %s not implemented in frigolite", "binary scan [read $fd 1] c x")
+				t.Errorf("TODO: %s not implemented in frigolite", "seek $fd $iOff")
 				t.Log("-nonewline")
 				// close $fd
 				db2, err := frigolite.Open("test2.db")
@@ -187,7 +187,7 @@ func Test_walslow(t *testing.T) {
 	{ // do_test "4.1.2"
 		var fd = "open test.db-wal w"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd [expr 200*1024*1024]")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 200*1024*1024]")
 		t.Log(fd)
 		// close $fd
 		db, err := frigolite.Open("test.db")
@@ -234,5 +234,5 @@ func Test_walslow(t *testing.T) {
 	{ // do_test "4.2.3"
 		// expr [file size test.db-wal] → "[file size test.db-wal]"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  incr tn 2\n\n  do_test 4.$tn.0 {\n    sql1 {\n     ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  incr tn 2\n\n  do_test 4.$tn.0 {\n    sql1 {\n     ...}")
 }

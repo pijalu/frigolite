@@ -29,7 +29,7 @@ func Test_fts4aa(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+		t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 		for _, q := range tclSplitList(_fts4aa_queries) {
 			var r = "db eval {SELECT docid FROM t1 WHERE words MATCH $q ORDER BY docid}"
 			_ = r // suppress unused warning
@@ -91,7 +91,7 @@ func Test_fts4aa(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts3(words, tokenize porter);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+		t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 	}
 	var ii = "0"
 	_ = ii // suppress unused warning
@@ -126,7 +126,7 @@ func Test_fts4aa(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size=65536;\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);\n  ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+			t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 		}
 		var ii = "0"
 		_ = ii // suppress unused warning
@@ -158,7 +158,7 @@ func Test_fts4aa(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING fts4(words, tokenize porter);\n  ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+				t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 			}
 			var ii = "0"
 			_ = ii // suppress unused warning

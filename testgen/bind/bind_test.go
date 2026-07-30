@@ -31,19 +31,19 @@ func Test_bind(t *testing.T) {
 		_ = VM // suppress unused warning
 	}
 	{ // do_test "bind-1.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
 	}
 	{ // do_test "bind-1.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 1")
 	}
 	{ // do_test "bind-1.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 2")
 	}
 	{ // do_test "bind-1.1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 3")
 	}
 	{ // do_test "bind-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
 	}
 	{ // do_test "bind-1.3"
 		r = db.Query("SELECT rowid, * FROM t1")
@@ -52,9 +52,9 @@ func Test_bind(t *testing.T) {
 		}
 	}
 	{ // do_test "bind-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 1 {test value 1} normal")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 1 {test value 1} normal")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
 	}
 	{ // do_test "bind-1.5"
 		r = db.Query("SELECT rowid, * FROM t1")
@@ -63,9 +63,9 @@ func Test_bind(t *testing.T) {
 		}
 	}
 	{ // do_test "bind-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 3 {'test value 2'} normal")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 3 {'test value 2'} normal")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
 	}
 	{ // do_test "bind-1.7"
 		r = db.Query("SELECT rowid, * FROM t1")
@@ -74,26 +74,26 @@ func Test_bind(t *testing.T) {
 		}
 	}
 	{ // do_test "bind-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
 		var sqlite_static_bind_value = "123"
 		_ = sqlite_static_bind_value // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 1 {} static")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 2 {abcdefg} normal")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 3 {} null")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 1 {} static")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 2 {abcdefg} normal")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 3 {} null")
 		_res = db.Exec("DELETE FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
 		r = db.Query("SELECT rowid, * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t1")
 		}
 	}
 	{ // do_test "bind-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 1 {456} normal")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 1 {456} normal")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
 		r = db.Query("SELECT rowid, * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t1")
@@ -104,7 +104,7 @@ func Test_bind(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare db {INSERT INTO t1 VALUES($abc:123,?,:abc)} -1 TAIL")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare db {INSERT INTO t1 VALUES($abc:123,?,:abc)} -1 TAIL")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -120,7 +120,7 @@ func Test_bind(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare db {INSERT INTO t1 VALUES(@abc:xyz,?,:abc)} -1 TAIL")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare db {INSERT INTO t1 VALUES(@abc:xyz,?,:abc)} -1 TAIL")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -132,48 +132,48 @@ func Test_bind(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "bind-1.99"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	{ // do_test "bind-2.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
 	}
 	{ // do_test "bind-2.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 1")
 	}
 	{ // do_test "bind-2.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 2")
 	}
 	{ // do_test "bind-2.1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 3")
 	}
 	{ // do_test "bind-2.1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM $v1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM $v1")
 	}
 	{ // do_test "bind-2.1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM $v2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM $v2")
 	}
 	{ // do_test "bind-2.1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM $v3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM $v3")
 	}
 	{ // do_test "bind-2.1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM {:hi}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM {:hi}")
 	}
 	{ // do_test "bind-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 123")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 456")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 789")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 123")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 456")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 789")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
 		r = db.Query("SELECT rowid, * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t1")
 		}
 	}
 	{ // do_test "bind-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 -2000000000")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 2000000000")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 -2000000000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 2000000000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
 		r = db.Query("SELECT rowid, * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t1")
@@ -192,11 +192,11 @@ func Test_bind(t *testing.T) {
 		}
 	}
 	{ // do_test "bind-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int64 $VM 1 32")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int64 $VM 2 -2000000000000")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int64 $VM 3 2000000000000")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int64 $VM 1 32")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int64 $VM 2 -2000000000000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int64 $VM 3 2000000000000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
 		r = db.Query("SELECT rowid, * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t1")
@@ -215,11 +215,11 @@ func Test_bind(t *testing.T) {
 		}
 	}
 	{ // do_test "bind-4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 1 1234.1234")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 2 0.00001")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 3 123456789")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 1 1234.1234")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 2 0.00001")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 3 123456789")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
 		var x = "execsql {SELECT rowid, * FROM t1}"
 		_ = x // suppress unused warning
 		y := tclRegsub("1e-005", x, "1e-05")
@@ -238,11 +238,11 @@ func Test_bind(t *testing.T) {
 		}
 	}
 	{ // do_test "bind-4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 1 NaN")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 2 1e300")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 3 -1e-300")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 1 NaN")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 2 1e300")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 3 -1e-300")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
 		var x = "execsql {SELECT rowid, * FROM t1}"
 		_ = x // suppress unused warning
 		y := tclRegsub("1e-005", x, "1e-05")
@@ -261,11 +261,11 @@ func Test_bind(t *testing.T) {
 		}
 	}
 	{ // do_test "bind-5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 3")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
 		r = db.Query("SELECT rowid, * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t1")
@@ -284,11 +284,11 @@ func Test_bind(t *testing.T) {
 		}
 	}
 	{ // do_test "bind-6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 1 hellothere 5")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 2 .. 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 3 world\\000 -1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 1 hellothere 5")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 2 .. 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 3 world\\000 -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
 		r = db.Query("SELECT rowid, * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT rowid, * FROM t1")
@@ -311,11 +311,11 @@ func Test_bind(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 1 hello\\000there\\000 12")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 2 hello\\000there\\000 11")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 3 hello\\000there\\000 -1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 1 hello\\000there\\000 12")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 2 hello\\000there\\000 11")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 3 hello\\000there\\000 -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_step $VM N VALUES COLNAMES")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
 		r = db.Query("SELECT * FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT * FROM t1")
@@ -370,77 +370,77 @@ func Test_bind(t *testing.T) {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 0")
 		}
 	}
 	{ // do_test "bind-8.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg $DB")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg $DB")
 	}
 	{ // do_test "bind-8.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg $DB")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg $DB")
 	}
 	{ // do_test "bind-8.5"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 4")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_null $VM 4")
 		}
 	}
 	{ // do_test "bind-8.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg $DB")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg $DB")
 	}
 	{ // do_test "bind-8.8"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_blob $VM 0 abc 3")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_blob $VM 0 abc 3")
 		}
 	}
 	{ // do_test "bind-8.9"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_blob $VM 4 abc 3")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_blob $VM 4 abc 3")
 		}
 	}
 	{ // do_test "bind-8.10"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 0 abc 3")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $VM 0 abc 3")
 		}
 	}
 	{ // do_test "bind-8.12"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 0 5")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 0 5")
 		}
 	}
 	{ // do_test "bind-8.13"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 4 5")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 4 5")
 		}
 	}
 	{ // do_test "bind-8.14"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 0 5.0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 0 5.0")
 		}
 	}
 	{ // do_test "bind-8.15"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 4 6.0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $VM 4 6.0")
 		}
 	}
 	{ // do_test "bind-8.99"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	var iMaxVar = SQLITE_MAX_VARIABLE_NUMBER
 	_ = iMaxVar // suppress unused warning
@@ -455,7 +455,7 @@ func Test_bind(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {\n      INSERT INTO t2(a) VALUES(?0)\n    } -1 TAIL")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {\n      INSERT INTO t2(a) VALUES(?0)\n    } -1 TAIL")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -471,7 +471,7 @@ func Test_bind(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB INSERT INTO t2(a) VALUES(?[expr $iMaxVar+1]) -1 TAIL")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB INSERT INTO t2(a) VALUES(?[expr $iMaxVar+1]) -1 TAIL")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -485,37 +485,37 @@ func Test_bind(t *testing.T) {
 	{ // do_test "bind-9.3.1"
 		var VM = "sqlite3_prepare $DB \"\n      INSERT INTO t2(a,b) VALUES(?1,?$iMaxVar)\n    \" -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	{ // do_test "bind-9.3.2"
 		var VM = "sqlite3_prepare $DB \"\n      INSERT INTO t2(a,b) VALUES(?2,?[expr $iMaxVar - 1])\n    \" -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	{ // do_test "bind-9.4"
 		var VM = "sqlite3_prepare $DB \"\n      INSERT INTO t2(a,b,c,d) VALUES(?1,?[expr $iMaxVar - 2],?,?)\n    \" -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
 	}
 	{ // do_test "bind-9.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM [expr $iMaxVar - 2] 999")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM [expr $iMaxVar - 1] 1000")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM $iMaxVar 1001")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM [expr $iMaxVar - 2] 999")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM [expr $iMaxVar - 1] 1000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM $iMaxVar 1001")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 	}
 	{ // do_test "bind-9.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	{ // do_test "bind-9.7"
 		r = db.Query("SELECT * FROM t2")
@@ -524,44 +524,44 @@ func Test_bind(t *testing.T) {
 		}
 	}
 	{ // do_test "bind-10.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM :abc")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM :abc")
 	}
 	{ // do_test "bind-10.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM $v1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM $v1")
 	}
 	{ // do_test "bind-10.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM $v2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM $v2")
 	}
 	{ // do_test "bind-10.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 1")
 	}
 	{ // do_test "bind-10.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 2")
 	}
 	{ // do_test "bind-10.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 3")
 	}
 	{ // do_test "bind-10.7.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name 0 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name 0 1")
 	}
 	{ // do_test "bind-10.7.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 0")
 	}
 	{ // do_test "bind-10.7.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 4")
 	}
 	{ // do_test "bind-10.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 	}
 	{ // do_test "bind-10.8.1"
 	var rc string
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -573,7 +573,7 @@ func Test_bind(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "bind-10.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	{ // do_test "bind-10.10"
 		r = db.Query("SELECT * FROM t2")
@@ -584,42 +584,42 @@ func Test_bind(t *testing.T) {
 	{ // do_test "bind-10.11"
 		var VM = "sqlite3_prepare $DB {\n      INSERT INTO t2(a,b,c,d,e,f) VALUES(:abc,?,?4,:pqr,:abc,?4)\n    } -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM")
 	}
 	{ // do_test "bind-10.11.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index 0 :xyz")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index 0 :xyz")
 	}
 	{ // do_test "bind-10.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM :xyz")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM :xyz")
 	}
 	{ // do_test "bind-10.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM {}")
 	}
 	{ // do_test "bind-10.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM :pqr")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM :pqr")
 	}
 	{ // do_test "bind-10.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM ?4")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_index $VM ?4")
 	}
 	{ // do_test "bind-10.16"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 1")
 	}
 	{ // do_test "bind-10.17"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 2")
 	}
 	{ // do_test "bind-10.18"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 3")
 	}
 	{ // do_test "bind-10.19"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 4")
 	}
 	{ // do_test "bind-10.20"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 5")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_name $VM 5")
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	if tclBool("execsql {pragma encoding}" + "==\"UTF-8\"") {
 		{ // do_test "bind-12.1"
@@ -629,16 +629,16 @@ func Test_bind(t *testing.T) {
 			}
 			var VM = "sqlite3_prepare $DB {INSERT INTO t3 VALUES(?)} -1 TAIL"
 			_ = VM // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 1 not-used blob10")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite_bind $VM 1 not-used blob10")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 			r = db.Query("\n      SELECT typeof(x), length(x), quote(x),\n             length(cast(x AS BLOB)), quote(cast(x AS BLOB)) FROM t3\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(x), length(x), quote(x),\n             length(cast(x AS BLOB)), quote(cast(x AS BLOB)) FROM t3\n    ")
 			}
 		}
 		{ // do_test "bind-12.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function $DB")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function $DB")
 			r = db.Query("\n      SELECT quote(cast(x_coalesce(x) AS blob)) FROM t3\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT quote(cast(x_coalesce(x) AS blob)) FROM t3\n    ")
@@ -648,45 +648,45 @@ func Test_bind(t *testing.T) {
 	{ // do_test "bind-13.1"
 		var VM = "sqlite3_prepare $DB {SELECT ?,?,?} -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
 		_ = _list
 	}
 	{ // do_test "bind-13.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
 		_ = _list
 	}
 	{ // do_test "bind-13.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
 		_ = _list
 	}
 	{ // do_test "bind-13.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_clear_bindings $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_clear_bindings $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 		_list := tclList([]string{"sqlite3_column_type $VM 0", "sqlite3_column_type $VM 1", "sqlite3_column_type $VM 2"})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	// proc definition (not transpiled)
 	{ // do_test "bind-14.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "param_names db { SELECT @a, @b }")
+		t.Errorf("TODO: %s not implemented in frigolite", "param_names db { SELECT @a, @b }")
 	}
 	{ // do_test "bind-14.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "param_names db { SELECT NULL FROM (SELECT NULL) WHERE @a = @b }")
+		t.Errorf("TODO: %s not implemented in frigolite", "param_names db { SELECT NULL FROM (SELECT NULL) WHERE @a = @b }")
 	}
 	{ // do_test "bind-14.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "param_names db { SELECT @a FROM (SELECT NULL) WHERE 1 = @b }")
+		t.Errorf("TODO: %s not implemented in frigolite", "param_names db { SELECT @a FROM (SELECT NULL) WHERE 1 = @b }")
 	}
 	{ // do_test "bind-14.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "param_names db { SELECT @a, @b FROM (SELECT NULL) }")
+		t.Errorf("TODO: %s not implemented in frigolite", "param_names db { SELECT @a, @b FROM (SELECT NULL) }")
 	}
 	{ // do_test "bind-15.1"
 		_res = db.Exec("CREATE TABLE t4(a,b,c,d,e,f,g,h);")
@@ -695,16 +695,16 @@ func Test_bind(t *testing.T) {
 		}
 		var VM = "sqlite3_prepare db {\n       INSERT INTO t4(a,b,c,d,f,g,h,e) VALUES(?,?,?,?,?,?,?,?)\n  } -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 4 4")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 5 5")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 6 6")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 7 7")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 8 8")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 4 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 5 5")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 6 6")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 7 7")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 8 8")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 		_res = db.Exec("SELECT * FROM t4")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
@@ -717,16 +717,16 @@ func Test_bind(t *testing.T) {
 		}
 		var VM = "sqlite3_prepare db {\n       INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?,?,?,?,?)\n  } -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 4 4")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 5 5")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 6 6")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 7 7")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 8 8")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 4 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 5 5")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 6 6")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 7 7")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 8 8")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 		_res = db.Exec("SELECT * FROM t4")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
@@ -739,16 +739,16 @@ func Test_bind(t *testing.T) {
 		}
 		var VM = "sqlite3_prepare db {\n       INSERT INTO t4(h,g,f,e,d,c,b,a) VALUES(?,?,?,?,?,?,?,?)\n  } -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 4 4")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 5 5")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 6 6")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 7 7")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 8 8")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 4 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 5 5")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 6 6")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 7 7")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 8 8")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 		_res = db.Exec("SELECT * FROM t4")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")
@@ -761,16 +761,16 @@ func Test_bind(t *testing.T) {
 		}
 		var VM = "sqlite3_prepare db {\n       INSERT INTO t4(a,b,c,d,e,f,g,h) VALUES(?,?,?,?4,?,?6,?,?)\n  } -1 TAIL"
 		_ = VM // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 4 4")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 5 5")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 6 6")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 7 7")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 8 8")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 2 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 3 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 4 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 5 5")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 6 6")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 7 7")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 8 8")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 		_res = db.Exec("SELECT * FROM t4")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t4")

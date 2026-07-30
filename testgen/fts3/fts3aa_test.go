@@ -382,5 +382,5 @@ func Test_fts3aa(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "SQL logic error", _res.Error, "\n  DELETE FROM z1;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "expand_all_sql db")
+	t.Errorf("TODO: %s not implemented in frigolite", "expand_all_sql db")
 }

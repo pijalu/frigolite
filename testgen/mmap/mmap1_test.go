@@ -36,7 +36,7 @@ func Test_mmap1(t *testing.T) {
 		c2init := _items[_idx+3]
 		_ = c2init // suppress unused warning
 		_ = _idx
-			t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    sql1 {PRAGMA cache_size=2000}\n    sql2 {PRAGM...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    sql1 {PRAGMA cache_size=2000}\n    sql2 {PRAGM...}")
 		}
 		var _rcnt = "0" // TCL namespace variable
 		_ = _rcnt // suppress unused warning
@@ -91,8 +91,8 @@ func Test_mmap1(t *testing.T) {
 		{ // do_test "4.2"
 			var _STMT = "sqlite3_prepare db \"SELECT * FROM t1 ORDER BY rowid\" -1 dummy" // TCL namespace variable
 			_ = _STMT // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $::STMT 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $::STMT 0")
 		}
 		{ // do_test "4.3"
 			for _, r := range tclSplitList("2 3 4") {
@@ -108,7 +108,7 @@ func Test_mmap1(t *testing.T) {
 			}
 		}
 		{ // do_test "4.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
 		}
 		{ // "4.5"
 			_res = db.Exec(" COMMIT ")
@@ -138,8 +138,8 @@ func Test_mmap1(t *testing.T) {
 		{ // do_test "5.2"
 			var _STMT = "sqlite3_prepare db \"SELECT * FROM t1 ORDER BY rowid\" -1 dummy" // TCL namespace variable
 			_ = _STMT // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $::STMT 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $::STMT 0")
 		}
 		{ // "5.3"
 			_res = db.Exec("\n  CREATE TABLE t2(x);\n  INSERT INTO t2 VALUES('tricked you!');\n  INSERT INTO t2 VALUES('tricked you!');\n")
@@ -148,11 +148,11 @@ func Test_mmap1(t *testing.T) {
 			}
 		}
 		{ // do_test "5.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_text $::STMT 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_text $::STMT 0")
 		}
 		{ // do_test "5.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
 		}
 		os.Remove("test2.db")
 		db2, err := frigolite.Open("test2.db")

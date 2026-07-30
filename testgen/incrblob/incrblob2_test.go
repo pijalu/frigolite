@@ -38,33 +38,33 @@ func Test_incrblob2(t *testing.T) {
 			_ = fd1 // suppress unused warning
 			var fd2 = "db incrblob blobs data 1"
 			_ = fd2 // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd1 -buffering none")
-			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd2 -buffering none")
+			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd1 -buffering none")
+			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd2 -buffering none")
 			if func() bool { iOffset_n, _iOffset_e := strconv.Atoi(iOffset); if _iOffset_e != nil { return false }; return iOffset_n != 0 }() {
-				t.Skipf("TODO: %s not implemented in frigolite", "seek $fd2 $iOffset start")
-				t.Skipf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
+				t.Errorf("TODO: %s not implemented in frigolite", "seek $fd2 $iOffset start")
+				t.Errorf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "read $fd1 6")
+			t.Errorf("TODO: %s not implemented in frigolite", "read $fd1 6")
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".3"
-			t.Skipf("TODO: %s not implemented in frigolite", "read $fd2 6")
+			t.Errorf("TODO: %s not implemented in frigolite", "read $fd2 6")
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".4"
-			t.Skipf("TODO: %s not implemented in frigolite", "seek $fd2 $iOffset start")
-			t.Skipf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
+			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd2 $iOffset start")
+			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
 			t.Log("-nonewline")
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".5"
-			t.Skipf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
-			t.Skipf("TODO: %s not implemented in frigolite", "read $fd1 6")
+			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
+			t.Errorf("TODO: %s not implemented in frigolite", "read $fd1 6")
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".6"
-			t.Skipf("TODO: %s not implemented in frigolite", "seek $fd2 $iOffset start")
-			t.Skipf("TODO: %s not implemented in frigolite", "read $fd2 6")
+			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd2 $iOffset start")
+			t.Errorf("TODO: %s not implemented in frigolite", "read $fd2 6")
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".7"
-			t.Skipf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
-			t.Skipf("TODO: %s not implemented in frigolite", "read $fd1 6")
+			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd1 $iOffset start")
+			t.Errorf("TODO: %s not implemented in frigolite", "read $fd1 6")
 		}
 		{ // do_test "incrblob2-1." + iOffset + ".8"
 			// close $fd1
@@ -75,16 +75,16 @@ func Test_incrblob2(t *testing.T) {
 		{ // do_test "incrblob2-2." + iOffset + ".1"
 			var fd1 = "db incrblob blobs data 1"
 			_ = fd1 // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "seek $fd1 [expr $iOffset - 5000] end")
-			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd1 -buffering none")
+			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd1 [expr $iOffset - 5000] end")
+			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd1 -buffering none")
 			var fd2 = "db incrblob blobs data 1"
 			_ = fd2 // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "seek $fd2 [expr $iOffset - 5000] end")
-			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd2 -buffering none")
+			t.Errorf("TODO: %s not implemented in frigolite", "seek $fd2 [expr $iOffset - 5000] end")
+			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd2 -buffering none")
 			t.Log("-nonewline")
 		}
 		{ // do_test "incrblob2-2." + iOffset + ".2"
-			t.Skipf("TODO: %s not implemented in frigolite", "read $fd2 6")
+			t.Errorf("TODO: %s not implemented in frigolite", "read $fd2 6")
 		}
 		{ // do_test "incrblob2-2." + iOffset + ".3"
 			// close $fd1
@@ -94,7 +94,7 @@ func Test_incrblob2(t *testing.T) {
 	{ // do_test "incrblob2-3.1"
 		var fd1 = "db incrblob blobs data 1"
 		_ = fd1 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd1 -buffering none")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd1 -buffering none")
 	}
 	{ // do_test "incrblob2-3.2"
 		_res = db.Exec("\n    INSERT INTO blobs VALUES(5, zeroblob(10240));\n  ")
@@ -107,7 +107,7 @@ func Test_incrblob2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "read $fd1 6")
+			t.Errorf("TODO: %s not implemented in frigolite", "read $fd1 6")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -168,21 +168,21 @@ func Test_incrblob2(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "aborted_handles")
+		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
 	}
 	{ // do_test "incrblob2-4.3"
 		_res = db.Exec("UPDATE t1 SET data = data || '' WHERE id = 3")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET data = data || '' WHERE id = 3")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "aborted_handles")
+		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
 	}
 	{ // do_test "incrblob2-4.3.1"
 	var rc string
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::handles(3) 10 HELLO")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::handles(3) 10 HELLO")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -199,49 +199,49 @@ func Test_incrblob2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE id = 14")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "aborted_handles")
+		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
 	}
 	{ // do_test "incrblob2-4.5"
 		_res = db.Exec("UPDATE t1 SET id = 102 WHERE id = 15")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE t1 SET id = 102 WHERE id = 15")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "aborted_handles")
+		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
 	}
 	{ // do_test "incrblob2-4.6"
 		_res = db.Exec("INSERT OR REPLACE INTO t1 VALUES(92, zeroblob(1000))")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT OR REPLACE INTO t1 VALUES(92, zeroblob(1000))")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "aborted_handles")
+		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
 	}
 	{ // do_test "incrblob2-4.7"
 		_res = db.Exec("UPDATE OR REPLACE t1 SET id = 65 WHERE id = 35")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "UPDATE OR REPLACE t1 SET id = 65 WHERE id = 35")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "aborted_handles")
+		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
 	}
 	{ // do_test "incrblob2-4.9"
 		_res = db.Exec("INSERT INTO t1 SELECT NULL, data FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT NULL, data FROM t1")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "aborted_handles")
+		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
 	}
 	{ // do_test "incrblob2-4.9"
 		_res = db.Exec("DELETE FROM t1 WHERE id >=1 AND id <= 25")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1 WHERE id >=1 AND id <= 25")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "aborted_handles")
+		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
 	}
 	{ // do_test "incrblob2-4.10"
 		_res = db.Exec("DELETE FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t1")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "aborted_handles")
+		t.Errorf("TODO: %s not implemented in frigolite", "aborted_handles")
 	}
 	{ // do_test "incrblob2-4.1.X"
 		var ii = "1"
@@ -268,15 +268,15 @@ func Test_incrblob2(t *testing.T) {
 		_ = rdHandle // suppress unused warning
 		var wrHandle = "db incrblob t1 data 1"
 		_ = wrHandle // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 0 100")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $wrHandle 0 ABCDEF")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 0 100")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $wrHandle 0 ABCDEF")
 		// close $wrHandle
 		// close $rdHandle
 	}
 	{ // do_test "incrblob2-6.2"
 		var rdHandle = "db incrblob -readonly t1 data 1"
 		_ = rdHandle // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 0 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 0 2")
 	}
 	if func() bool { _tcl_platform_n, __tcl_platform_e := strconv.Atoi(_tcl_platform); if __tcl_platform_e != nil { return false }; return _tcl_platform_n(pointerSize) >= 8 }() {
 		{ // do_test "incrblob2-6.2b"
@@ -285,7 +285,7 @@ func Test_incrblob2(t *testing.T) {
 	_ = errmsg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2147483647 2147483647")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2147483647 2147483647")
 				if _catchErr != nil {
 					rc = "1"
 					errmsg = _catchErr.Error()
@@ -307,7 +307,7 @@ func Test_incrblob2(t *testing.T) {
 	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2147483647 100")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2147483647 100")
 			if _catchErr != nil {
 				rc = "1"
 				errmsg = _catchErr.Error()
@@ -321,8 +321,8 @@ func Test_incrblob2(t *testing.T) {
 	{ // do_test "incrblob2-6.3"
 		var wrHandle = "db incrblob t1 data 1"
 		_ = wrHandle // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $wrHandle 0 ZZZZZZZZZZ")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $wrHandle 0 ZZZZZZZZZZ")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2 4")
 	}
 	{ // do_test "incrblob2-6.3b"
 	var rc string
@@ -330,7 +330,7 @@ func Test_incrblob2(t *testing.T) {
 	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $wrHandle 2147483647 YYYYYYYYYYYYYYYYYY")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $wrHandle 2147483647 YYYYYYYYYYYYYYYYYY")
 			if _catchErr != nil {
 				rc = "1"
 				errmsg = _catchErr.Error()
@@ -342,13 +342,13 @@ func Test_incrblob2(t *testing.T) {
 		rc = tclListAppend(rc, errmsg)
 	}
 	{ // do_test "incrblob2-6.3c"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2 4")
 	}
 	{ // do_test "incrblob2-6.4"
 		// close $wrHandle
 		// close $rdHandle
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
 	{ // do_test "incrblob2-7.1"
 		_res = db.Exec("\n    CREATE TABLE t2(B BLOB);\n    INSERT INTO t2 VALUES(zeroblob(10 * 1024 * 1024)); \n  ")
 		if _res.Error != nil {
@@ -362,8 +362,8 @@ func Test_incrblob2(t *testing.T) {
 		// expr [sqlite3_memory_highwater]<(5 * 1024 * 1024) → "[sqlite3_memory_highwater]<(5 * 1024 * 1024)"
 	}
 	{ // do_test "incrblob2-7.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $h 0 end")
-		t.Skipf("TODO: %s not implemented in frigolite", "tell $h")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $h 0 end")
+		t.Errorf("TODO: %s not implemented in frigolite", "tell $h")
 	}
 	{ // do_test "incrblob2-7.4"
 		// expr [sqlite3_memory_highwater]<(5 * 1024 * 1024) → "[sqlite3_memory_highwater]<(5 * 1024 * 1024)"
@@ -415,7 +415,7 @@ func Test_incrblob2(t *testing.T) {
 		}
 		var h = "db incrblob t3 b 3"
 		_ = h // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $h 0 20")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $h 0 20")
 	}
 	{ // do_test "incrblob2-8.5"
 		_res = db.Exec("UPDATE t3 SET a = 6 WHERE a > 3")
@@ -426,7 +426,7 @@ func Test_incrblob2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-8.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $h 0 20")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $h 0 20")
 	}
 	{ // do_test "incrblob2-8.8"
 		_res = db.Exec("UPDATE t3 SET a = 6 WHERE a = 3 OR a = 5")
@@ -437,7 +437,7 @@ func Test_incrblob2(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $h 0 20")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $h 0 20")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()

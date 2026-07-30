@@ -31,6 +31,6 @@ func Test_swarmvtabfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db1' AS aux;\n  CREATE TABLE aux.t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO aux.t1 VALUES(1, NULL);\n  INSERT INTO aux.t1 VALUES(2, NULL);\n  INSERT INTO aux.t1 VALUES(9, NULL);\n  DETACH aux;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db func fetch_db ...} -body {\n  execsql { SELECT a FROM xyz }\n} -test {\n  faultsim_test_result {0 {1 2 9}} {1 {sql error:...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n  db func fetch_db ...} -body {\n  execsql { SELECT a FROM xyz }\n} -test {\n  faultsim_test_result {0 {1 2 9}} {1 {sql error:...}")
 }

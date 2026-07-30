@@ -43,7 +43,7 @@ func Test_atof2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db ieee754")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db ieee754")
 	{ // "atof2-2.1"
 		r = db.Query("\n  SELECT format('%!.30f',ieee754_inc(100.0,-1));\n")
 		if r.Error != nil {

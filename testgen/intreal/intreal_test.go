@@ -21,7 +21,7 @@ func Test_intreal(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "intreal" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
 	{ // "100"
 		r = db.Query("\n  SELECT intreal(5);\n")
 		if r.Error != nil {

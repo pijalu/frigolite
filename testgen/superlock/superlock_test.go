@@ -23,7 +23,7 @@ func Test_superlock(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "superlock"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // "1.1"
 		r = db.Query("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  PRAGMA journal_mode = DELETE;\n")
 		if r.Error != nil {
@@ -37,7 +37,7 @@ func Test_superlock(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3demo_superlock unlock test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3demo_superlock unlock test.db")
 	}
 	{ // "1.3"
 		_res = db.Exec(" SELECT * FROM t1 ")
@@ -46,7 +46,7 @@ func Test_superlock(t *testing.T) {
 		}
 	}
 	{ // do_test "1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "unlock")
+		t.Errorf("TODO: %s not implemented in frigolite", "unlock")
 	}
 	{ // "2.1"
 		r = db.Query(" \n  INSERT INTO t1 VALUES(3, 4);\n  PRAGMA journal_mode = WAL;\n")
@@ -61,7 +61,7 @@ func Test_superlock(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3demo_superlock unlock test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3demo_superlock unlock test.db")
 	}
 	{ // "2.3"
 		_res = db.Exec(" SELECT * FROM t1 ")
@@ -82,7 +82,7 @@ func Test_superlock(t *testing.T) {
 		}
 	}
 	{ // do_test "2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "unlock")
+		t.Errorf("TODO: %s not implemented in frigolite", "unlock")
 	}
 	{ // "3.1"
 		_res = db.Exec(" INSERT INTO t1 VALUES(3, 4) ")
@@ -91,7 +91,7 @@ func Test_superlock(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3demo_superlock unlock test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3demo_superlock unlock test.db")
 	}
 	{ // "3.3"
 		_res = db.Exec(" SELECT * FROM t1 ")
@@ -112,7 +112,7 @@ func Test_superlock(t *testing.T) {
 		}
 	}
 	{ // do_test "3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "unlock")
+		t.Errorf("TODO: %s not implemented in frigolite", "unlock")
 	}
 	{ // "4.1"
 		r = db.Query(" PRAGMA wal_checkpoint ")
@@ -127,7 +127,7 @@ func Test_superlock(t *testing.T) {
 		}
 	}
 	{ // do_test "4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3demo_superlock unlock test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3demo_superlock unlock test.db")
 	}
 	{ // "4.3"
 		_res = db.Exec(" SELECT * FROM t1 ")
@@ -148,9 +148,9 @@ func Test_superlock(t *testing.T) {
 		}
 	}
 	{ // do_test "4.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "unlock")
+		t.Errorf("TODO: %s not implemented in frigolite", "unlock")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  proc busyhandler {x} {\n    switch -- $x {\n    ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  proc busyhandler {x} {\n    switch -- $x {\n    ...}")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -169,7 +169,7 @@ func Test_superlock(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
 	{ // "6.2"
 		_res = db.Exec(" SELECT * FROM t1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t1") {
@@ -182,7 +182,7 @@ func Test_superlock(t *testing.T) {
 			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t2 ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
 	{ // "6.4"
 		_res = db.Exec(" SELECT * FROM t1 ")
 		if _res.Error == nil {
@@ -207,7 +207,7 @@ func Test_superlock(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
 	{ // "6.7"
 		_res = db.Exec(" SELECT * FROM t1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t1") {
@@ -220,7 +220,7 @@ func Test_superlock(t *testing.T) {
 			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t2 ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
 	{ // "6.9"
 		_res = db.Exec(" SELECT * FROM t1 ")
 		if _res.Error == nil {
@@ -248,7 +248,7 @@ func Test_superlock(t *testing.T) {
 			}
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
 	{ // "6.12"
 		_res = db.Exec(" SELECT * FROM t1 ")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: t1") {
@@ -261,7 +261,7 @@ func Test_superlock(t *testing.T) {
 			t.Errorf("expected error, got none\n  sql: %s", " SELECT * FROM t2 ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_swap test.db2 test.db")
 	{ // "6.14"
 		_res = db.Exec(" SELECT * FROM t1 ")
 		if _res.Error == nil {

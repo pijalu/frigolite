@@ -175,7 +175,7 @@ func Test_vacuum3(t *testing.T) {
 						}
 					}
 					{ // do_test "vacuum3-3." + I + ".2"
-						t.Skipf("TODO: %s not implemented in frigolite", "signature")
+						t.Errorf("TODO: %s not implemented in frigolite", "signature")
 					}
 					_res = db.Exec("PRAGMA integrity_check")
 					if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -188,7 +188,7 @@ func Test_vacuum3(t *testing.T) {
 					}
 				}
 				{ // do_test "vacuum3-4.1"
-					t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
+					t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
 					db, err := frigolite.Open("test.db")
 					defer db.Close()
 					if err != nil { t.Fatal(err) }
@@ -260,10 +260,10 @@ func Test_vacuum3(t *testing.T) {
 				}
 				var create_database_sql = "\n  BEGIN; \n  CREATE TABLE t1(a, b, c); \n  INSERT INTO t1 VALUES(1, randstr(50,50), randstr(50,50)); \n  INSERT INTO t1 SELECT a+2, b||'-'||rowid, c||'-'||rowid FROM t1; \n  INSERT INTO t1 SELECT a+4, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+8, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+16, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+32, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+64, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 SELECT a+128, b||'-'||rowid, c||'-'||rowid FROM t1;\n  INSERT INTO t1 VALUES(1, randstr(600,600), randstr(600,600));\n  CREATE TABLE t2 AS SELECT * FROM t1;\n  CREATE TABLE t3 AS SELECT * FROM t1;\n  COMMIT;\n  DROP TABLE t2;\n"
 				_ = create_database_sql // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test vacuum3-ioerr-1 -cksum true -sqlprep \n  PRAGMA page_size = 1024;\n  $create_database_sql... -sqlbody {\n  PRAGMA page_size = 4096;\n  VACUUM;\n}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test vacuum3-ioerr-2 -cksum true -sqlprep  \n  PRAGMA page_size = 2048;\n  $create_database_sq... -sqlbody {\n  PRAGMA page_size = 512;\n  VACUUM;\n}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test vacuum3-ioerr-1 -cksum true -sqlprep \n  PRAGMA page_size = 1024;\n  $create_database_sql... -sqlbody {\n  PRAGMA page_size = 4096;\n  VACUUM;\n}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test vacuum3-ioerr-2 -cksum true -sqlprep  \n  PRAGMA page_size = 2048;\n  $create_database_sq... -sqlbody {\n  PRAGMA page_size = 512;\n  VACUUM;\n}")
 				if tclBool(MEMDEBUG) {
-					t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test vacuum3-malloc-1 -sqlprep { \n    PRAGMA page_size = 2048;\n    BEGIN; \n    CRE...} -sqlbody {\n    PRAGMA page_size = 512;\n    VACUUM;\n  }")
-					t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test vacuum3-malloc-2 -sqlprep { \n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a...} -sqlbody {\n    VACUUM;\n  }")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test vacuum3-malloc-1 -sqlprep { \n    PRAGMA page_size = 2048;\n    BEGIN; \n    CRE...} -sqlbody {\n    PRAGMA page_size = 512;\n    VACUUM;\n  }")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test vacuum3-malloc-2 -sqlprep { \n    PRAGMA encoding=UTF16;\n    CREATE TABLE t1(a...} -sqlbody {\n    VACUUM;\n  }")
 				}
 }

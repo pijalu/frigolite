@@ -22,13 +22,13 @@ func Test_savepoint2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	{ // do_test "savepoint2-1"
-		t.Skipf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
+		t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
 		r = db.Query("\n    PRAGMA cache_size=10;\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=10;\n    BEGIN;\n    CREATE TABLE t3(x TEXT);\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 VALUES(randstr(10,400));\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    INSERT INTO t3 SELECT randstr(10,400) FROM t3;\n    COMMIT;\n    SELECT count(*) FROM t3;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint2-1.1")
+	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint2-1.1")
 	var iterations = "20"
 	_ = iterations // suppress unused warning
 	var SQL_1 = "\n  DELETE FROM t3 WHERE random()%10!=0;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n  INSERT INTO t3 SELECT randstr(10,10)||x FROM t3;\n"
@@ -65,7 +65,7 @@ func Test_savepoint2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK to one")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -90,7 +90,7 @@ func Test_savepoint2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK to two")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -115,7 +115,7 @@ func Test_savepoint2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "ROLLBACK to one")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		{ // do_test "savepoint2-" + ii + ".6"
 			_res = db.Exec(SQL + "(4)")
@@ -126,11 +126,11 @@ func Test_savepoint2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
 		}
 		_res = db.Exec("PRAGMA integrity_check")
 		if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-		t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint2-$ii.7")
+		t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint2-$ii.7")
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)

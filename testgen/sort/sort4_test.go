@@ -22,9 +22,9 @@ func Test_sort4(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sort4"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_pmasz 10")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pmasz 10")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	if tclBool("!" + "*MAX_WORKER_THREADS=0* [db eval {PRAGMA compile_options}]") {
@@ -33,10 +33,10 @@ func Test_sort4(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA threads=5")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS -1")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS -1")
 		}
 		{ // do_test "sort4-init002"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS 3")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_WORKER_THREADS 3")
 			_res = db.Exec("PRAGMA threads")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA threads")
@@ -58,20 +58,20 @@ func Test_sort4(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size = 4096")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "populate_table 100000 500")
+		t.Errorf("TODO: %s not implemented in frigolite", "populate_table 100000 500")
 	}
 	iTimeLimit := "[clock_seconds] + $SORT4TIMEOUT"
 	_ = iTimeLimit // suppress unused warning
 	var t = "2"
 	_ = t // suppress unused warning
 	for true {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sorter_test $t.2 -repeats 10 -rows 1000 -read 100")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sorter_test $t.3 -repeats 10 -rows 100000 -read 1000")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sorter_test $t.4 -repeats 10 -rows 100000 -read 1000 -payload 500")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sorter_test $t.5 -repeats 10 -rows 100000 -read 100000 -payload 8")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sorter_test $t.6 -repeats 10 -rows 100000 -read 10 -payload 8")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sorter_test $t.7 -repeats 10 -rows 10000 -read 10000 -payload 8 -fakeheap 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_sorter_test $t.8 -repeats 10 -rows 100000 -read 10000 -cachesize 250")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.2 -repeats 10 -rows 1000 -read 100")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.3 -repeats 10 -rows 100000 -read 1000")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.4 -repeats 10 -rows 100000 -read 1000 -payload 500")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.5 -repeats 10 -rows 100000 -read 100000 -payload 8")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.6 -repeats 10 -rows 100000 -read 10 -payload 8")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.7 -repeats 10 -rows 10000 -read 10000 -payload 8 -fakeheap 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_sorter_test $t.8 -repeats 10 -rows 100000 -read 10000 -cachesize 250")
 		var iNow = "clock_seconds"
 		_ = iNow // suppress unused warning
 		if func() bool { iNow_n, _iNow_e := strconv.Atoi(iNow); if _iNow_e != nil { return false }; iTimeLimit_n, _iTimeLimit_e := strconv.Atoi(iTimeLimit); if _iTimeLimit_e != nil { return false }; return iNow_n >= iTimeLimit_n }() {

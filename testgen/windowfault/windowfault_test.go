@@ -27,17 +27,17 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d);\n  INSERT INTO t1 VALUES(1, 2, 3, 4);\n  INSERT INTO t1 VALUES(5, 6, 7, 8);\n  INSERT INTO t1 VALUES(9, 10, 11, 12);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -start 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT row_number() OVER win,\n   ...} -test {\n  faultsim_test_result {0 {1 1 1 1 4 4 {} 8 {} 4 ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT row_number() OVER win,\n   ...} -test {\n  faultsim_test_result {0 {1 1 1 2 2 2 1 1 1}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT ntile(105) \n    OVER ( RAN...} -test {\n  faultsim_test_result {0 {1 2 3}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -start 1 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT round(percent_rank() OVER ...} -test {\n  faultsim_test_result {0 {0.0 0.33 0.5 0.67 1.0 ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT min(d) OVER win, max(d) OV...} -test {\n  faultsim_test_result {0 {4 12 8 12 12 12}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    CREATE VIEW aaa AS\n    SELECT min...} -test {\n  faultsim_test_result {0 {4 12 8 12 12 12}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -start 1 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT last_value(a) OVER win1,\n ...} -test {\n  faultsim_test_result {0 {5 1 9 5 9 9}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 6 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT percent_rank() OVER (), cu...} -test {\n  faultsim_test_result {0 {0.0 1.0 0.0 1.0 0.0 1....}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 7 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT percent_rank() OVER (), cu...} -test {\n  faultsim_test_result {0 {0.0 1.0 0.0 1.0 0.0 1....}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 8 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT a, sum(b) OVER win1 FROM t...} -test {\n  faultsim_test_result {0 {1 2 5 6 9 10}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -start 1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT row_number() OVER win,\n   ...} -test {\n  faultsim_test_result {0 {1 1 1 1 4 4 {} 8 {} 4 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT row_number() OVER win,\n   ...} -test {\n  faultsim_test_result {0 {1 1 1 2 2 2 1 1 1}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT ntile(105) \n    OVER ( RAN...} -test {\n  faultsim_test_result {0 {1 2 3}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -start 1 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT round(percent_rank() OVER ...} -test {\n  faultsim_test_result {0 {0.0 0.33 0.5 0.67 1.0 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT min(d) OVER win, max(d) OV...} -test {\n  faultsim_test_result {0 {4 12 8 12 12 12}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    CREATE VIEW aaa AS\n    SELECT min...} -test {\n  faultsim_test_result {0 {4 12 8 12 12 12}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -start 1 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT last_value(a) OVER win1,\n ...} -test {\n  faultsim_test_result {0 {5 1 9 5 9 9}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 6 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT percent_rank() OVER (), cu...} -test {\n  faultsim_test_result {0 {0.0 1.0 0.0 1.0 0.0 1....}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 7 -faults oom-* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT percent_rank() OVER (), cu...} -test {\n  faultsim_test_result {0 {0.0 1.0 0.0 1.0 0.0 1....}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 8 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT a, sum(b) OVER win1 FROM t...} -test {\n  faultsim_test_result {0 {1 2 5 6 9 10}}\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -49,9 +49,9 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size = 512;\n  PRAGMA cache_size = 2;\n  CREATE TABLE t(x INTEGER PRIMARY KEY, y TEXT);\n  WITH s(i) AS (\n    VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<1900\n  )\n  INSERT INTO t(y) SELECT $big FROM s;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script vfs_callback")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xRead")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script vfs_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xRead")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// proc definition (not transpiled)
@@ -61,12 +61,12 @@ func Test_windowfault(t *testing.T) {
 	// proc definition (not transpiled)
 	var L = "db eval {SELECT 0.0 FROM t}"
 	_ = L // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 9 -end 25 -faults tmpread -body {\n  execsql {\n    SELECT sum(y) OVER win FROM t\n   ...} -test {\n  faultsim_test_result [list 0 $::L]\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 9 -end 25 -faults tmpread -body {\n  execsql {\n    SELECT sum(y) OVER win FROM t\n   ...} -test {\n  faultsim_test_result [list 0 $::L]\n}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -76,7 +76,7 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, d);\n  CREATE TABLE t2(a, b, c, d);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 10 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT row_number() OVER win\n    ...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 10 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT row_number() OVER win\n    ...} -test {\n  faultsim_test_result {0 {}}\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -86,8 +86,8 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t0;\n  CREATE TABLE t0(c0 INTEGER UNIQUE);\n  INSERT INTO t0 VALUES(0);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 11.1 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT * FROM t0 WHERE \n      (0,...} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 11.2 -faults oom* -prep {\n} -body {\n  execsql {\n    VALUES(false),(current_date colla...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 11.1 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT * FROM t0 WHERE \n      (0,...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 11.2 -faults oom* -prep {\n} -body {\n  execsql {\n    VALUES(false),(current_date colla...} -test {\n  faultsim_test_result {0 {}}\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -97,7 +97,7 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 12 -faults oom* -prep {\n} -body {\n  execsql {\n    WITH v(a, b, row_number) AS (\n   ...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 12 -faults oom* -prep {\n} -body {\n  execsql {\n    WITH v(a, b, row_number) AS (\n   ...} -test {\n  faultsim_test_result {0 {}}\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -121,5 +121,5 @@ func Test_windowfault(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 13 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT group_concat(a, b) OVER (\n...} -test {\n  faultsim_test_result [list 0 $::queryres]\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 13 -faults oom* -prep {\n} -body {\n  execsql {\n    SELECT group_concat(a, b) OVER (\n...} -test {\n  faultsim_test_result [list 0 $::queryres]\n}")
 }

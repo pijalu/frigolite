@@ -47,60 +47,60 @@ func Test_dbstatus2(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b FROM t1 WHERE a=2 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "db_hit_miss db")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_hit_miss db")
 	}
 	{ // do_test "1.3"
 		r = db.Query(" SELECT b FROM t1 WHERE a=2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b FROM t1 WHERE a=2 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "db_hit_miss db")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_hit_miss db")
 	}
 	{ // do_test "1.4"
 		r = db.Query(" SELECT b FROM t1 WHERE a=2 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT b FROM t1 WHERE a=2 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "db_hit_miss db")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_hit_miss db")
 	}
 	{ // do_test "1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_hit_miss db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_hit_miss db 1")
 	}
 	{ // do_test "1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_hit_miss db 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_hit_miss db 0")
 	}
 	{ // do_test "1.7"
 		var fd = "db incrblob main t1 b 1"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
 		var len = strconv.Itoa(len("[read $fd]"))
 		_ = len // suppress unused warning
 		// close $fd
 	}
 	{ // do_test "1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_HIT 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_HIT 0")
 	}
 	{ // do_test "1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_MISS 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db CACHE_MISS 0")
 	}
 	{ // do_test "2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_write db")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_write db")
 	}
 	{ // do_test "2.2"
 		_res = db.Exec(" INSERT INTO t1 VALUES(4, randomblob(600)) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(4, randomblob(600)) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "db_write db")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_write db")
 	}
 	{ // do_test "2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_write db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_write db 1")
 	}
 	{ // do_test "2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_write db 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_write db 0")
 	}
 	{ // do_test "2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_write db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_write db 1")
 	}
 	if tclBool("wal_is_capable") {
 		{ // do_test "2.6"
@@ -108,7 +108,7 @@ func Test_dbstatus2(t *testing.T) {
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA journal_mode = WAL ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "db_write db 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_write db 1")
 		}
 	}
 	{ // do_test "2.7"
@@ -116,19 +116,19 @@ func Test_dbstatus2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES(5, randomblob(600)) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "db_write db")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_write db")
 	}
 	{ // do_test "2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_write db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_write db 1")
 	}
 	{ // do_test "2.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_write db 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_write db 0")
 	}
 	{ // do_test "3.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_spill db 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_spill db 1")
 	}
 	{ // do_test "3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_spill db 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_spill db 0")
 	}
 	{ // "3.2"
 		_res = db.Exec("\n  PRAGMA journal_mode=DELETE;\n  PRAGMA cache_size=3;\n  UPDATE t1 SET b=randomblob(1000);\n")
@@ -137,7 +137,7 @@ func Test_dbstatus2(t *testing.T) {
 		}
 	}
 	{ // do_test "3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_spill db 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_spill db 0")
 	}
 	if func() bool { _TEMP_STORE_n, __TEMP_STORE_e := strconv.Atoi(_TEMP_STORE); if __TEMP_STORE_e != nil { return false }; return _TEMP_STORE_n < 3 }() {
 		{ // "4.0"
@@ -147,7 +147,7 @@ func Test_dbstatus2(t *testing.T) {
 			}
 		}
 		{ // do_test "4.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "db_temp_spill db 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_temp_spill db 0")
 		}
 		{ // "4.2"
 			_res = db.Exec("\n    CREATE TABLE data(a INTEGER, b BLOB);\n\n    -- Insert 5-6 MB of data.\n    WITH s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<75000 )\n    INSERT INTO data SELECT i, hex(randomblob(50)) FROM s;\n  ")
@@ -156,7 +156,7 @@ func Test_dbstatus2(t *testing.T) {
 			}
 		}
 		{ // do_test "4.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "db_temp_spill db 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_temp_spill db 0")
 		}
 		{ // do_test "4.4"
 			r = db.Query(" SELECT a, b FROM data ORDER BY a ")
@@ -168,7 +168,7 @@ func Test_dbstatus2(t *testing.T) {
 			// expr ($nTmpSpill>7*1000*1000) && ($nTmpSpill<10*1000*1000)?"ok":$nTmpSpill → "($nTmpSpill>7*1000*1000) && ($nTmpSpill<10*1000*1000)?\"ok\":$nTmpSpill"
 		}
 		{ // do_test "4.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "db_temp_spill db 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_temp_spill db 0")
 		}
 		{ // do_test "4.6"
 			_res = db.Exec(" CREATE INDEX i1 ON data(a) ")
@@ -180,14 +180,14 @@ func Test_dbstatus2(t *testing.T) {
 			// expr ($nTmpSpill>384*1000) && ($nTmpSpill<768*1000)?"ok":$nTmpSpill → "($nTmpSpill>384*1000) && ($nTmpSpill<768*1000)?\"ok\":$nTmpSpill"
 		}
 		{ // do_test "4.7"
-			t.Skipf("TODO: %s not implemented in frigolite", "db_temp_spill db 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_temp_spill db 0")
 		}
 		{ // do_test "4.8"
 			r = db.Query(" SELECT a, b FROM data ORDER BY a ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, b FROM data ORDER BY a ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "db_temp_spill db 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_temp_spill db 0")
 		}
 	}
 }

@@ -23,9 +23,9 @@ func Test_walcrash3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "walcrash3"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter {xTruncate xWrite}")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script tvfs_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xTruncate xWrite}")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script tvfs_callback")
 	// proc definition (not transpiled)
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -77,7 +77,7 @@ func Test_walcrash3(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -106,7 +106,7 @@ func Test_walcrash3(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "db_save")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_save")
 	}
 	var nInitialErr = "set_test_counter errors"
 	_ = nInitialErr // suppress unused warning
@@ -118,8 +118,8 @@ func Test_walcrash3(t *testing.T) {
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "db_restore")
-			t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db-wal -seed $i {\n      SELECT * FROM sqlite_master;\n      PRAGMA s...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_restore")
+			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db-wal -seed $i {\n      SELECT * FROM sqlite_master;\n      PRAGMA s...}")
 		}
 		{ // do_test "2." + i + ".2"
 			db, err := frigolite.Open("test.db")

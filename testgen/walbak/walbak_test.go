@@ -21,7 +21,7 @@ func Test_walbak(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // do_test "walbak-1.0"
 		_res = db.Exec(" \n    PRAGMA synchronous = NORMAL;\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = wal;\n    BEGIN;\n      CREATE TABLE t1(a PRIMARY KEY, b);\n      INSERT INTO t1 VALUES('I', 'one');\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -67,7 +67,7 @@ func Test_walbak(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "walbak-1.6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
 	}
 	{ // do_test "walbak-1.7"
 		_res = db.Exec(" \n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 SELECT * FROM t1;\n    DROP TABLE t1;\n  ")
@@ -94,7 +94,7 @@ func Test_walbak(t *testing.T) {
 		_ = _list
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "walbak-2.1"
@@ -115,8 +115,8 @@ func Test_walbak(t *testing.T) {
 		strings.Compare("sig db", "sig db2")
 	}
 	{ // do_test "walbak-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 		_res = db.Exec(" UPDATE t1 SET b = randomblob(500) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET b = randomblob(500) ")
@@ -135,8 +135,8 @@ func Test_walbak(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 10 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 		_res = db.Exec("\n    BEGIN;\n      UPDATE t1 SET b = randomblob(500);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      UPDATE t1 SET b = randomblob(500);\n  ")
@@ -144,7 +144,7 @@ func Test_walbak(t *testing.T) {
 		// expr [file size test.db-wal] → "[file size test.db-wal]"
 	}
 	{ // do_test "walbak-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 1000")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 1000")
 	}
 	{ // do_test "walbak-2.7"
 		_res = db.Exec("COMMIT")
@@ -165,8 +165,8 @@ func Test_walbak(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA cache_size = 10 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 50")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 50")
 		_res = db.Exec("\n    BEGIN;\n      UPDATE t1 SET b = randomblob(500);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      UPDATE t1 SET b = randomblob(500);\n  ")
@@ -174,7 +174,7 @@ func Test_walbak(t *testing.T) {
 		// expr [file size test.db-wal] → "[file size test.db-wal]"
 	}
 	{ // do_test "walbak-2.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 1000")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 1000")
 	}
 	{ // do_test "walbak-2.11"
 		_res = db.Exec("ROLLBACK")
@@ -211,9 +211,9 @@ func Test_walbak(t *testing.T) {
 				}
 			}
 			{ // do_test "walbak-3." + tn + ".2"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 10000")
-				t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 10000")
+				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 				r = db.Query(" SELECT * FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -226,9 +226,9 @@ func Test_walbak(t *testing.T) {
 				}
 			}
 			{ // do_test "walbak-3." + tn + ".4"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db2 main")
-				t.Skipf("TODO: %s not implemented in frigolite", "B step 10000")
-				t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db2 main")
+				t.Errorf("TODO: %s not implemented in frigolite", "B step 10000")
+				t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 				r = db.Query(" SELECT * FROM t1 ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -245,7 +245,7 @@ func Test_walbak(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+				t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
 			}
 			if tclBool("file exists test.db2") {
 				{ // do_test "walbak-3." + tn + ".7"
@@ -259,7 +259,7 @@ func Test_walbak(t *testing.T) {
 					if r.Error != nil {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA wal_checkpoint ")
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
+					t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 18 2")
 				}
 			}
 			db2.Close()

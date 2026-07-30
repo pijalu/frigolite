@@ -19,23 +19,23 @@ func Test_memsubsys2(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	var highwater = "sqlite3_memory_highwater 0"
 	_ = highwater // suppress unused warning
 	{ // do_test "memsubsys2-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_malloc 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_malloc 0")
 	}
 	{ // do_test "memsubsys2-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
 	}
 	if tclBool("sqlite3_memory_used" + "!=0") {
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
 		var highwater = "sqlite3_memory_highwater 0"
 		_ = highwater // suppress unused warning
 		{ // do_test "memsubsys2-2.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_free [set x [sqlite3_malloc 100000]]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_free [set x [sqlite3_malloc 100000]]")
 			// expr $x!="0" → "$x!=\"0\""
 		}
 		{ // do_test "memsubsys2-2.2.1"
@@ -45,22 +45,22 @@ func Test_memsubsys2(t *testing.T) {
 			// expr [sqlite3_memory_highwater 0]>=$highwater+50000 → "[sqlite3_memory_highwater 0]>=$highwater+50000"
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
 	var highwater = "sqlite3_memory_highwater 0"
 	_ = highwater // suppress unused warning
 	{ // do_test "memsubsys2-3.1"
 	}
 	{ // do_test "memsubsys2-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_malloc 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_malloc 0")
 	}
 	{ // do_test "memsubsys2-3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
 	}
 	{ // do_test "memsubsys2-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
 	}
 	{ // do_test "memsubsys2-3.5"
 		var _allocation = "sqlite3_malloc 100000" // TCL namespace variable
@@ -68,33 +68,33 @@ func Test_memsubsys2(t *testing.T) {
 		// expr $::allocation!="0" → "$::allocation!=\"0\""
 	}
 	{ // do_test "memsubsys2-3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
 	}
 	{ // do_test "memsubsys2-3.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
 	}
 	{ // do_test "memsubsys2-3.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_free $::allocation")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_free $::allocation")
 	}
 	{ // do_test "memsubsys2-3.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_free 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_free 0")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
 	var highwater = "sqlite3_memory_highwater 0"
 	_ = highwater // suppress unused warning
 	{ // do_test "memsubsys2-4.1"
 	}
 	{ // do_test "memsubsys2-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_malloc 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_malloc 0")
 	}
 	{ // do_test "memsubsys2-4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 0")
 	}
 	{ // do_test "memsubsys2-4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
 	}
 	{ // do_test "memsubsys2-4.5"
 		var _allocation = "sqlite3_malloc 100000" // TCL namespace variable
@@ -108,16 +108,16 @@ func Test_memsubsys2(t *testing.T) {
 		// expr [sqlite3_memory_used]>=100000 → "[sqlite3_memory_used]>=100000"
 	}
 	{ // do_test "memsubsys2-4.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_free $::allocation")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_free $::allocation")
 	}
 	{ // do_test "memsubsys2-4.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_free 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_free 0")
 	}
 	{ // do_test "memsubsys2-4.10"
 		// expr [sqlite3_memory_highwater 0]>=100000 → "[sqlite3_memory_highwater 0]>=100000"
 	}
 	{ // do_test "memsubsys2-4.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_used")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 }

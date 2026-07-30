@@ -29,7 +29,7 @@ func Test_instrfault(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
 		r = db.Query("PRAGMA encoding = " + enc)
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA encoding = " + enc)
@@ -40,16 +40,16 @@ func Test_instrfault(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(n, h);\n    INSERT INTO t1 VALUES($::NEEDLE, $::HAYSTACK);\n  ")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.1 -faults oom-t* -prep {\n    execsql { SELECT instr(h, n) FROM t1 }\n  } -body {\n    execsql { SELECT instr(h, n) FROM t1 }\n  } -test {\n    faultsim_test_result {0 31}\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.2 -faults oom-t* -prep {\n    execsql { SELECT instr($::HAYSTACK, $::NEEDLE...} -body {\n    execsql { SELECT instr($::HAYSTACK, $::NEEDLE...} -test {\n    faultsim_test_result {0 31}\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.3 -faults oom-t* -prep {\n    set ::stmt [sqlite3_prepare_v2 db \"SELECT ins...} -body {\n    set rc [sqlite3_step $::stmt]\n    if {$rc==\"S...} -test {\n    faultsim_test_result {0 31}\n    sqlite3_final...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.4 -faults oom-t* -prep {\n    set ::stmt [sqlite3_prepare_v2 db \"SELECT ins...} -body {\n    set rc [sqlite3_step $::stmt]\n    if {$rc==\"S...} -test {\n    faultsim_test_result {0 31}\n    sqlite3_final...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.1 -faults oom-t* -prep {\n    execsql { SELECT instr(h, n) FROM t1 }\n  } -body {\n    execsql { SELECT instr(h, n) FROM t1 }\n  } -test {\n    faultsim_test_result {0 31}\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.2 -faults oom-t* -prep {\n    execsql { SELECT instr($::HAYSTACK, $::NEEDLE...} -body {\n    execsql { SELECT instr($::HAYSTACK, $::NEEDLE...} -test {\n    faultsim_test_result {0 31}\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.3 -faults oom-t* -prep {\n    set ::stmt [sqlite3_prepare_v2 db \"SELECT ins...} -body {\n    set rc [sqlite3_step $::stmt]\n    if {$rc==\"S...} -test {\n    faultsim_test_result {0 31}\n    sqlite3_final...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.4 -faults oom-t* -prep {\n    set ::stmt [sqlite3_prepare_v2 db \"SELECT ins...} -body {\n    set rc [sqlite3_step $::stmt]\n    if {$rc==\"S...} -test {\n    faultsim_test_result {0 31}\n    sqlite3_final...}")
 		{ // "1." + enc + ".5.0"
 			_res = db.Exec("\n    CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE h1(a, b);\n    INSERT INTO h1 VALUES('abcdefg%200hijkl', randomblob(200));\n    INSERT INTO h1 SELECT b, a FROM h1;\n  ")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.5 -faults oom-t* -body {\n    execsql { SELECT rowid FROM h1 WHERE instr(a,...} -test {}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.$enc.5 -faults oom-t* -body {\n    execsql { SELECT rowid FROM h1 WHERE instr(a,...} -test {}")
 	}
 }

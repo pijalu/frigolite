@@ -26,10 +26,10 @@ func Test_corruptC(t *testing.T) {
 		os.Remove("test.db")
 	}
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "corruptC-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 1")
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    BEGIN;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT OR IGNORE INTO t1 SELECT x*2,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*3,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*5,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*7,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*11,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*13,y FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x,2 as y FROM t1 WHERE rowid%5!=0;\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    BEGIN;\n    CREATE TABLE t1(x,y);\n    INSERT INTO t1 VALUES(1,1);\n    INSERT OR IGNORE INTO t1 SELECT x*2,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*3,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*5,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*7,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*11,y FROM t1;\n    INSERT OR IGNORE INTO t1 SELECT x*13,y FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT x,2 as y FROM t1 WHERE rowid%5!=0;\n    COMMIT;\n  ")
@@ -51,7 +51,7 @@ func Test_corruptC(t *testing.T) {
 	// expr srand($qseed) → "srand($qseed)"
 	{ // do_test "corruptC-2.1"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2053 [format %02x 0x04]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2053 [format %02x 0x04]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -60,16 +60,16 @@ func Test_corruptC(t *testing.T) {
 	}
 	{ // do_test "corruptC-2.2"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 27 [format %02x 0x08]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 233 [format %02x 0x6a]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 328 [format %02x 0x67]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 750 [format %02x 0x1f]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 1132 [format %02x 0x52]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 1133 [format %02x 0x84]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 1220 [format %02x 0x01]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 3688 [format %02x 0xc1]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 3714 [format %02x 0x58]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 3746 [format %02x 0x9a]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 27 [format %02x 0x08]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 233 [format %02x 0x6a]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 328 [format %02x 0x67]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 750 [format %02x 0x1f]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 1132 [format %02x 0x52]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 1133 [format %02x 0x84]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 1220 [format %02x 0x01]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 3688 [format %02x 0xc1]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 3714 [format %02x 0x58]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 3746 [format %02x 0x9a]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -84,7 +84,7 @@ func Test_corruptC(t *testing.T) {
 	}
 	{ // do_test "corruptC-2.3"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 1094 [format %02x 0x76]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 1094 [format %02x 0x76]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -93,7 +93,7 @@ func Test_corruptC(t *testing.T) {
 	}
 	{ // do_test "corruptC-2.4"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 3119 [format %02x 0xdf]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 3119 [format %02x 0xdf]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -102,8 +102,8 @@ func Test_corruptC(t *testing.T) {
 	}
 	{ // do_test "corruptC-2.5"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 3119 [format %02x 0xdf]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 4073 [format %02x 0xbf]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 3119 [format %02x 0xdf]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 4073 [format %02x 0xbf]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -114,8 +114,8 @@ func Test_corruptC(t *testing.T) {
 	}
 	{ // do_test "corruptC-2.6"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 619 [format %02x 0xe2]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 3150 [format %02x 0xa8]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 619 [format %02x 0xe2]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 3150 [format %02x 0xa8]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -124,7 +124,7 @@ func Test_corruptC(t *testing.T) {
 	}
 	{ // do_test "corruptC-2.7"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 3074 [format %02x 0xa0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 3074 [format %02x 0xa0]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -134,11 +134,11 @@ func Test_corruptC(t *testing.T) {
 	if false {
 		{ // do_test "corruptC-2.8"
 			tclFileCopy("test.bu", "test.db")
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 1393 [format %02x 0x7d]")
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 84 [format %02x 0x19]")
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 3287 [format %02x 0x3b]")
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2564 [format %02x 0xed]")
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2139 [format %02x 0x55]")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 1393 [format %02x 0x7d]")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 84 [format %02x 0x19]")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 3287 [format %02x 0x3b]")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2564 [format %02x 0xed]")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2139 [format %02x 0x55]")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -148,7 +148,7 @@ func Test_corruptC(t *testing.T) {
 	}
 	{ // do_test "corruptC-2.9"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2095 [format %02x 0xd6]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2095 [format %02x 0xd6]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -157,7 +157,7 @@ func Test_corruptC(t *testing.T) {
 	}
 	{ // do_test "corruptC-2.10"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 3130 [format %02x 0x02]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 3130 [format %02x 0x02]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -166,7 +166,7 @@ func Test_corruptC(t *testing.T) {
 	}
 	{ // do_test "corruptC-2.11"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 55 [format %02x 0xa7]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 55 [format %02x 0xa7]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -175,7 +175,7 @@ func Test_corruptC(t *testing.T) {
 	}
 	{ // do_test "corruptC-2.12"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 974 [format %02x 0x2e]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 974 [format %02x 0x2e]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -184,7 +184,7 @@ func Test_corruptC(t *testing.T) {
 	}
 	{ // do_test "corruptC-2.13"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 102 [format %02x 0x12]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 102 [format %02x 0x12]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -206,13 +206,13 @@ func Test_corruptC(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		var filesize = "file size test.db"
 		_ = filesize // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $filesize-2048] 00000001")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $filesize-2048] 00000001")
 		_res = db.Exec("DELETE FROM t1 WHERE rowid = (SELECT max(rowid) FROM t1)")
 		_ = _res // catchsql
 	}
 	{ // do_test "corruptC-2.15"
 		tclFileCopy("test.bu", "test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 986 b9")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 986 b9")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -240,7 +240,7 @@ func Test_corruptC(t *testing.T) {
 			}
 			var rbyte = "format %02x [random 255]"
 			_ = rbyte // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $roffset $rbyte")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $roffset $rbyte")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -308,8 +308,8 @@ func Test_corruptC(t *testing.T) {
 				{ // do_test "corruptC-3." + tn + ".(" + qseed + ")." + i + ".11"
 					var bt = "btree_from_db db"
 					_ = bt // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "db_enter db")
-					t.Skipf("TODO: %s not implemented in frigolite", "db_leave db")
+					t.Errorf("TODO: %s not implemented in frigolite", "db_enter db")
+					t.Errorf("TODO: %s not implemented in frigolite", "db_leave db")
 				}
 			}
 			// incr i 1

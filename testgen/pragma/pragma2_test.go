@@ -20,9 +20,9 @@ func Test_pragma2(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db test.db-journal")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_file test3.db test3.db-journal")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db test.db-journal")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test3.db test3.db-journal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	var DB = "sqlite3_connection_pointer db"
@@ -57,8 +57,8 @@ func Test_pragma2(t *testing.T) {
 	}
 	os.Remove("test2.db")
 	os.Remove("test2.db-journal")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db test.db-journal")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_file test2.db test2.db-journal")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db test.db-journal")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test2.db test2.db-journal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "pragma2-4.1"
@@ -91,7 +91,7 @@ func Test_pragma2(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA cache_size=50;\n  BEGIN;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t1 VALUES(1, randomblob(400), 1, randomblob(400));\n  INSERT INTO t1 SELECT a+1, randomblob(400), a+1, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+2, randomblob(400), a+2, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+4, randomblob(400), a+4, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+8, randomblob(400), a+8, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+16, randomblob(400), a+16, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+32, randomblob(400), a+32, randomblob(400) FROM t1;\n  INSERT INTO t1 SELECT a+64, randomblob(400), a+64, randomblob(400) FROM t1;\n  COMMIT;\n  ATTACH 'test2.db' AS aux1;\n  CREATE TABLE aux1.t2(a INTEGER PRIMARY KEY, b, c, d);\n  INSERT INTO t2 SELECT * FROM t1;\n  DETACH aux1;\n  PRAGMA cache_spill=ON;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
 	{ // do_test "pragma2-4.4"
 		_res = db.Exec("\n    BEGIN;\n    UPDATE t1 SET c=c+1;\n    PRAGMA lock_status;\n  ")
 		if _res.Error != nil {
@@ -128,7 +128,7 @@ func Test_pragma2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  COMMIT;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_release_memory")
 	{ // "pragma2-4.8"
 		r = db.Query("\n  PRAGMA cache_spill=ON; -- Applies to all databases\n  BEGIN;\n  UPDATE t2 SET c=c-1;\n  PRAGMA lock_status;\n")
 		if r.Error != nil {
@@ -180,5 +180,5 @@ func Test_pragma2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
 }

@@ -35,7 +35,7 @@ func Test_chunksize(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 32768")
+			t.Errorf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main 32768")
 			{ // tn + ".0"
 				r = db.Query(" PRAGMA journal_mode = " + jrnlmode + " ")
 				if r.Error != nil {

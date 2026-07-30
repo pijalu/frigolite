@@ -63,43 +63,43 @@ func Test_types3(t *testing.T) {
 	{ // do_test "types3-1.6"
 		var V = "abc"
 		_ = V // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "binary scan $V a3 x")
+		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $V a3 x")
 		_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
 		_ = _r
 	}
 	{ // do_test "types3-2.2"
 		var V = "db one {SELECT 123}"
 		_ = V // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
 	}
 	Vx := "123456789123457"
 	_ = Vx // suppress unused warning
 	{ // do_test "types3-2.3"
 		var V = "db one {SELECT 1234567890123456}"
 		_ = V // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
 	}
 	{ // do_test "types3-2.4.1"
 		var V = "db one {SELECT 1234567890123456.1}"
 		_ = V // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
 	}
 	{ // do_test "types3-2.4.2"
 		var V = "db one {SELECT 1234567890123.456}"
 		_ = V // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
 	}
 	{ // do_test "types3-2.5"
 		var V = "db one {SELECT '1234567890123456.0'}"
 		_ = V // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
 	}
 	{ // do_test "types3-2.6"
 		var V = "db one {SELECT NULL}"
 		_ = V // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
+		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
 	{ // "types3-3.1"
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x TEXT PRIMARY KEY);\n  INSERT INTO t1 VALUES('1');\n  SELECT * FROM t1 WHERE NOT x=upper(1);\n")
 		if r.Error != nil {

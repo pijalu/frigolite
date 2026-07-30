@@ -28,37 +28,37 @@ func Test_multiplex(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test2.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test2.db")
 	{ // do_test "multiplex-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize nosuchvfs 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize nosuchvfs 1")
 	}
 	{ // do_test "multiplex-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 	}
 	{ // do_test "multiplex-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 	}
 	{ // do_test "multiplex-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
 	{ // do_test "multiplex-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  0")
 	}
 	{ // do_test "multiplex-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
 	{ // do_test "multiplex-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 	}
 	{ // do_test "multiplex-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
 	{ // do_test "multiplex-1.9.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 	}
 	{ // do_test "multiplex-1.9.2"
 		db, err := frigolite.Open("test.db")
@@ -66,27 +66,27 @@ func Test_multiplex(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "multiplex-1.9.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 16")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 16")
 	}
 	{ // do_test "multiplex-1.9.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 -1")
 	}
 	{ // do_test "multiplex-1.9.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main 31 16")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_set db main 31 16")
 	}
 	{ // do_test "multiplex-1.9.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 100")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 100")
 	}
 	{ // do_test "multiplex-1.9.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main 1073741824 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_set db main 1073741824 1")
 	}
 	{ // do_test "multiplex-1.9.9"
 	}
 	{ // do_test "multiplex-1.9.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
 	{ // do_test "multiplex-1.10.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 	}
 	{ // do_test "multiplex-1.10.2"
 		db, err := frigolite.Open("test.db")
@@ -111,10 +111,10 @@ func Test_multiplex(t *testing.T) {
 	{ // do_test "multiplex-1.10.9"
 	}
 	{ // do_test "multiplex-1.10.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
 	{ // do_test "multiplex-1.11.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 	}
 	{ // do_test "multiplex-1.11.2"
 		db, err := frigolite.Open("test.db")
@@ -122,21 +122,21 @@ func Test_multiplex(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 	}
 	{ // do_test "multiplex-1.11.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_control db main enable 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_control db main enable 0")
 	}
 	{ // do_test "multiplex-1.11.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_control db main enable 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_control db main enable 1")
 	}
 	{ // do_test "multiplex-1.11.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_control db main enable -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_control db main enable -1")
 	}
 	{ // do_test "multiplex-1.11.6"
 	}
 	{ // do_test "multiplex-1.11.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
 	{ // do_test "multiplex-1.12.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 	}
 	{ // do_test "multiplex-1.12.2"
 		db, err := frigolite.Open("test.db")
@@ -155,10 +155,10 @@ func Test_multiplex(t *testing.T) {
 	{ // do_test "multiplex-1.12.6"
 	}
 	{ // do_test "multiplex-1.12.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
 	{ // do_test "multiplex-1.13.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 	}
 	{ // do_test "multiplex-1.13.2"
 		db, err := frigolite.Open("test.db")
@@ -174,10 +174,10 @@ func Test_multiplex(t *testing.T) {
 	{ // do_test "multiplex-1.13.6"
 	}
 	{ // do_test "multiplex-1.13.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
-	t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 16")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+	t.Errorf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 16")
 	os.Remove("test.x")
 	for _, f := range tclSplitList("glob -nocomplain {test.x*[0-9][0-9][0-9]}") {
 		os.Remove(f)
@@ -251,15 +251,15 @@ func Test_multiplex(t *testing.T) {
 		tclGlob("test.x*")
 	}
 	{ // do_test "multiplex-2.4.99"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
 	{ // do_test "multiplex-2.5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test.x")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test.x")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 		db, err := frigolite.Open("test.x")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main 4096 16")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_set db main 4096 16")
 	}
 	{ // do_test "multiplex-2.5.2"
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n  ")
@@ -336,7 +336,7 @@ func Test_multiplex(t *testing.T) {
 		}
 	}
 	{ // do_test "multiplex-2.5.99"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
 	var all_journal_modes = "delete persist truncate memory off"
 	_ = all_journal_modes // suppress unused warning
@@ -345,12 +345,12 @@ func Test_multiplex(t *testing.T) {
 		_ = sz // suppress unused warning
 		for func() bool { sz_n, _sz_e := strconv.Atoi(sz); if _sz_e != nil { return false }; return sz_n < 8000 }() {
 			{ // do_test "multiplex-2.6.1." + sz + "." + jmode
-				t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+				t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
-				t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main $sz 32")
+				t.Errorf("TODO: %s not implemented in frigolite", "multiplex_set db main $sz 32")
 			}
 			{ // do_test "multiplex-2.6.2." + sz + "." + jmode
 				_res = db.Exec("\n        PRAGMA page_size = 1024;\n        PRAGMA auto_vacuum = off;\n      ")
@@ -384,17 +384,17 @@ func Test_multiplex(t *testing.T) {
 				// file size [multiplex_name test.db 0]
 			}
 			{ // do_test "multiplex-2.6.99." + sz + "." + jmode
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 			}
 			sz := "$sz+419"
 			_ = sz // suppress unused warning
 		}
 	}
 	{ // do_test "multiplex-2.7.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
 	}
 	{ // do_test "multiplex-2.7.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 	}
 	{ // do_test "multiplex-2.7.3"
 		db, err := frigolite.Open("test.db")
@@ -434,15 +434,15 @@ func Test_multiplex(t *testing.T) {
 	{ // do_test "multiplex-2.7.12"
 	}
 	{ // do_test "multiplex-2.7.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
 	{ // do_test "multiplex-3.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 16")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 16")
 	}
 	{ // do_test "multiplex-3.1.2"
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = delete;\n    PRAGMA auto_vacuum = off;\n    CREATE TABLE t1(a PRIMARY KEY, b);\n    INSERT INTO t1 VALUES(1, 'one');\n  ")
@@ -474,8 +474,8 @@ func Test_multiplex(t *testing.T) {
 		db2.Close()
 	}
 	{ // do_test "multiplex-3.2.1a"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test2.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test2.db")
 		db1a, err := frigolite.Open("test.db")
 		defer db1a.Close()
 		if err != nil { t.Fatal(err) }
@@ -570,15 +570,15 @@ func Test_multiplex(t *testing.T) {
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "$db close")
+				t.Errorf("TODO: %s not implemented in frigolite", "$db close")
 			}
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
-	t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 16")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+	t.Errorf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 16")
 	// proc definition (not transpiled)
 	{ // do_test "multiplex-4.1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test2.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test2.db")
 		db, err := frigolite.Open("test2.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -642,18 +642,18 @@ func Test_multiplex(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "multiplex-4.1.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_list")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_list")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
-	t.Skipf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 16")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test multiplex-5.1 -prep {\n  catch {db close}\n} -body {\n  sqlite3 db test2.db\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test multiplex-5.2 -prep {\n  catch {db close}\n} -body {\n  sqlite3 db test.db\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+	t.Errorf("TODO: %s not implemented in frigolite", "multiplex_set db main 32768 16")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test multiplex-5.1 -prep {\n  catch {db close}\n} -body {\n  sqlite3 db test2.db\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test multiplex-5.2 -prep {\n  catch {db close}\n} -body {\n  sqlite3 db test.db\n}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test2.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test2.db")
 	{ // do_test "multiplex-5.3.prep"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -662,15 +662,15 @@ func Test_multiplex(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA page_size = 1024;\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(10, zeroblob(1200));\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test multiplex-5.3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { DELETE FROM t1 }\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test multiplex-5.3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { DELETE FROM t1 }\n}")
 	{ // do_test "multiplex-5.4.1"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_delete test.db")
 		// file mkdir test.db
 		_list := tclList([]string{"0", msg})
 		_ = _list
@@ -678,9 +678,9 @@ func Test_multiplex(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test multiplex-5.5 -prep {\n  catch { sqlite3_multiplex_shutdown }\n} -body {\n  sqlite3_multiplex_initialize \"\" 1\n  multiplex_s...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test multiplex-5.5 -prep {\n  catch { sqlite3_multiplex_shutdown }\n} -body {\n  sqlite3_multiplex_initialize \"\" 1\n  multiplex_s...}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -688,9 +688,9 @@ func Test_multiplex(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 }

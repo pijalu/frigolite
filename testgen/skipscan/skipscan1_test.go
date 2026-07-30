@@ -539,7 +539,7 @@ func Test_skipscan1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db skip-scan off")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db skip-scan off")
 	{ // "skipscan1-9.3"
 		r = db.Query("\n  EXPLAIN QUERY PLAN\n  SELECT  * FROM t9a WHERE b IN (SELECT x FROM t9b WHERE y!=5);\n")
 		if r.Error != nil {
@@ -552,7 +552,7 @@ func Test_skipscan1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all on")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all on")
 	{ // "skipscan1-2.1"
 		_res = db.Exec("\n  CREATE TABLE t6(a TEXT, b INT, c INT, d INT);\n  CREATE INDEX t6abc ON t6(a,b,c);\n  INSERT INTO t6 VALUES('abc',123,4,5);\n\n  ANALYZE;\n  DELETE FROM sqlite_stat1;\n  INSERT INTO sqlite_stat1 VALUES('t6','t6abc','10000 5000 2000 10');\n  ANALYZE sqlite_master;\n  DELETE FROM t6;\n")
 		if _res.Error != nil {

@@ -28,9 +28,9 @@ func Test_win32heap(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_heap_size 1048576")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap_size 1048576")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	}
 	{ // do_test "1.2"
 		db, err := frigolite.Open("test.db")
@@ -52,9 +52,9 @@ func Test_win32heap(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_heap_size 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap_size 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	}
 	{ // do_test "1.6"
 		db, err := frigolite.Open("test.db")

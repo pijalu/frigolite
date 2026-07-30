@@ -22,7 +22,7 @@ func Test_fts4record(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts4record"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts4(x);\n  INSERT INTO t1 VALUES('terma terma terma termb');\n")
 		if _res.Error != nil {

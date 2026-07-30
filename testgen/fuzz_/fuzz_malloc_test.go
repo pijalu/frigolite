@@ -30,13 +30,13 @@ func Test_fuzz_malloc(t *testing.T) {
 		_ = _REPEATS // suppress unused warning
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_fuzzy_malloc_test fuzzy_malloc-1 -template {Select [Expr]}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_fuzzy_malloc_test fuzzy_malloc-2 -template {[Select]}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_malloc_test fuzzy_malloc-1 -template {Select [Expr]}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_malloc_test fuzzy_malloc-2 -template {[Select]}")
 	var _SQLPREP = "\n  BEGIN;\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);\n    INSERT INTO abc VALUES(1.5, 3, 'a short string');\n    INSERT INTO def VALUES(NULL, X'ABCDEF', \n        'a longer string. Long enough that it doesn''t fit in Mem.zShort');\n    INSERT INTO ghi VALUES(zeroblob(1000), 'hello world', -1257900987654321);\n  COMMIT;\n" // TCL namespace variable
 	_ = _SQLPREP // suppress unused warning
 	var _TableList = "list abc def ghi" // TCL namespace variable
 	_ = _TableList // suppress unused warning
 	var _ColumnList = "list a b c" // TCL namespace variable
 	_ = _ColumnList // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_fuzzy_malloc_test fuzzy_malloc-3 -template {[Select]} -sqlprep $::SQLPREP")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_malloc_test fuzzy_malloc-3 -template {[Select]} -sqlprep $::SQLPREP")
 }

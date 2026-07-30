@@ -20,7 +20,7 @@ func Test_dbfuzz001(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "dbfuzz001-100"
 		db, err := frigolite.Open("")
 		defer db.Close()
@@ -41,7 +41,7 @@ func Test_dbfuzz001(t *testing.T) {
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
 	{ // "dbfuzz001-320"
 		_res = db.Exec("\n  PRAGMA integrity_check;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
@@ -54,7 +54,7 @@ func Test_dbfuzz001(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", _res.Error, "\n  DELETE FROM t3 WHERE x IN (SELECT x FROM t4);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "extra_schema_checks 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 1")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

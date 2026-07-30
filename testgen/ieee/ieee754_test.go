@@ -21,7 +21,7 @@ func Test_ieee754(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db ieee754")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db ieee754")
 	// foreach {id float rep} "\n   1       1.0                            1,0\n   2       2.0                            2,0\n   3       0.5                            1,-1\n   4       1.5                            3,-1\n   5       0.0                            0,-1075\n   6       4.9406564584124654e-324        1,-1074\n   7       2.2250738585072009e-308        4503599627370495,-1074\n   8       2.2250738585072014e-308        1,-1022\n"
 	_items := tclSplitList("\n   1       1.0                            1,0\n   2       2.0                            2,0\n   3       0.5                            1,-1\n   4       1.5                            3,-1\n   5       0.0                            0,-1075\n   6       4.9406564584124654e-324        1,-1074\n   7       2.2250738585072009e-308        4503599627370495,-1074\n   8       2.2250738585072014e-308        1,-1022\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {

@@ -19,7 +19,7 @@ func Test_tkt3841(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
 	{ // do_test "tkt3841.1"
 		r = db.Query("\n    CREATE TABLE table2 (key TEXT, x TEXT);\n    CREATE TABLE list (key TEXT, value TEXT);\n  \n    INSERT INTO table2 VALUES (\"a\", \"alist\");\n    INSERT INTO table2 VALUES (\"b\", \"blist\");\n    INSERT INTO list VALUES (\"a\", 1);\n    INSERT INTO list VALUES (\"a\", 2);\n    INSERT INTO list VALUES (\"a\", 3);\n    INSERT INTO list VALUES (\"b\", 4);\n    INSERT INTO list VALUES (\"b\", 5);\n    INSERT INTO list VALUES (\"b\", 6);\n\n    SELECT\n      table2.x,\n      (SELECT group_concat(list.value)\n        FROM list\n        WHERE list.key = table2.key)\n    FROM table2;\n  ")
 		if r.Error != nil {

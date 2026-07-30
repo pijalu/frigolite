@@ -37,7 +37,7 @@ func Test_symlink(t *testing.T) {
 		db2, err := frigolite.Open("test.db2")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_filename db2 main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_filename db2 main")
 	}
 	{ // do_test "1.1.2"
 		db2.Close()
@@ -88,12 +88,12 @@ func Test_symlink(t *testing.T) {
 		// file exists "test.db"
 	}
 	{ // do_test "1.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_filename db2 main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_filename db2 main")
 	}
 	db2.Close()
 	{ // do_test "1.3"
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "exec ln -s test.db2 test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec ln -s test.db2 test.db")
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}

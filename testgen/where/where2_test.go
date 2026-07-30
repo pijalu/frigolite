@@ -53,19 +53,19 @@ func Test_where2(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "where2-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=739...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=739...}")
 	}
 	{ // do_test "where2-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=739...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=739...}")
 	}
 	{ // do_test "where2-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=85 ORDER BY random()...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=85 ORDER BY random()...}")
 	}
 	{ // do_test "where2-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER B...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER B...}")
 	}
 	{ // do_test "where2-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y...}")
 	}
 	{ // do_test "where2-2.4"
 		_res = db.Exec("\n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);\n  ")
@@ -107,41 +107,41 @@ func Test_where2(t *testing.T) {
 		}
 	}
 	{ // do_test "where2-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 ORDER BY rowid LIMIT 2\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 ORDER BY rowid LIMIT 2\n  }")
 	}
 	{ // do_test "where2-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2\n...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2\n...}")
 	}
 	{ // do_test "where2-5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 ORDER BY w\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 ORDER BY w\n  }")
 	}
 	var _idx = "" // TCL namespace variable
 	_ = _idx // suppress unused warning
 	{ // do_test "where2-6.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 ORDER BY...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 ORDER BY...}")
 	}
 	{ // do_test "where2-6.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 99=w OR 100=w ORDER BY...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 99=w OR 100=w ORDER BY...}")
 	}
 	{ // do_test "where2-6.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w O...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w O...}")
 	}
 	{ // do_test "where2-6.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ...}")
 	}
 	{ // do_test "where2-6.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 OR...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 OR...}")
 	}
 	{ // do_test "where2-6.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 O...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 O...}")
 	}
 	var _idx = "" // TCL namespace variable
 	_ = _idx // suppress unused warning
 	{ // do_test "where2-6.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 A...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 A...}")
 	}
 	{ // do_test "where2-6.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 A...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 A...}")
 	}
 	if tclBool("permutation" + " != \"no_optimization\"") {
 		{ // do_test "where2-6.7"
@@ -149,28 +149,28 @@ func Test_where2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);\n  ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    -- Because a is type TEXT and b is type INTEG...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    -- Because a is type TEXT and b is type INTEG...}")
 		}
 		{ // do_test "where2-6.9"
-			t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    -- The + operator removes affinity from the r...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    -- The + operator removes affinity from the r...}")
 		}
 		{ // do_test "where2-6.9.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
 		}
 		{ // do_test "where2-6.10"
-			t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    -- Use + on both sides of the comparison to d...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    -- Use + on both sides of the comparison to d...}")
 		}
 		{ // do_test "where2-6.11"
-			t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
 		}
 		{ // do_test "where2-6.11.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
 		}
 		{ // do_test "where2-6.11.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
 		}
 		{ // do_test "where2-6.11.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHER...}")
 		}
 		{ // "where2-6.14.1"
 			r = db.Query("\n  CREATE TABLE t614a(a TEXT COLLATE NOCASE, b TEXT COLLATE NOCASE);\n  INSERT INTO t614a VALUES('AAA','BBB');\n  CREATE TABLE t614b(x,y,c TEXT);\n  INSERT INTO t614b(c) VALUES('aaa'),('bbb');\n  CREATE INDEX t614b_c ON t614b(c);\n  SELECT c FROM t614a, t614b WHERE a=c OR b=c;\n")
@@ -323,19 +323,19 @@ func Test_where2(t *testing.T) {
 			}
 		}
 		{ // do_test "where2-6.20"
-			t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x.a, y.a FROM t2249a x CROSS JOIN t224...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT x.a, y.a FROM t2249a x CROSS JOIN t224...}")
 		}
 		{ // do_test "where2-7.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "cksort {\n    create table t8(a unique, b, c);\n    insert i...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    create table t8(a unique, b, c);\n    insert i...}")
 		}
 		{ // do_test "where2-7.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "cksort {\n    select * from t8 where a=1 order by b, c\n  }")
+			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    select * from t8 where a=1 order by b, c\n  }")
 		}
 		{ // do_test "where2-7.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "cksort {\n    select * from t8, t9 where a=1 and y=3 order ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    select * from t8, t9 where a=1 and y=3 order ...}")
 		}
 		{ // do_test "where2-7.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "cksort {\n    create unique index i9y on t9(y);\n    select ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    create unique index i9y on t9(y);\n    select ...}")
 		}
 	}
 	{ // do_test "where2-11.1"

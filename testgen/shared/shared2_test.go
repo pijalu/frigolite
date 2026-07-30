@@ -61,7 +61,7 @@ func Test_shared2(t *testing.T) {
 	db1.Close()
 	db2.Close()
 	{ // do_test "shared2-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
 	}
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -107,6 +107,6 @@ func Test_shared2(t *testing.T) {
 		}
 	}
 	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test {tn} {\n  sql1 { CREATE TABLE t1(a, b) }\n  sql2 { CREATE ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test {tn} {\n  sql1 { CREATE TABLE t1(a, b) }\n  sql2 { CREATE ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

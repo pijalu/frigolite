@@ -26,11 +26,11 @@ func Test_collate7(t *testing.T) {
 	{ // do_test "collate7-1.1"
 		var cmd = "list incr ::caseless_del"
 		_ = cmd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_collation_v2 db CASELESS caseless_cmp $cmd")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_collation_v2 db CASELESS caseless_cmp $cmd")
 		_ = _caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_delete_collation db CASELESS")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_delete_collation db CASELESS")
 		_ = _caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-1.3"
@@ -38,7 +38,7 @@ func Test_collate7(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "collate7-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del}")
 		_ = _caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-2.1"
@@ -46,7 +46,7 @@ func Test_collate7(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_collation_v2 db CASELESS caseless_cmp {incr ::caseless_del}")
 		_res = db.Exec("\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA encoding='utf-16';\n    CREATE TABLE abc16(a COLLATE CASELESS, b, c);\n  ")
@@ -61,7 +61,7 @@ func Test_collate7(t *testing.T) {
 		_ = _caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_delete_collation db CASELESS")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_delete_collation db CASELESS")
 		_ = _caseless_del // TCL namespace variable (query)
 	}
 	{ // do_test "collate7-2.4"

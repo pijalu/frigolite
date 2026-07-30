@@ -74,7 +74,7 @@ func Test_alter(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "alter-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    ALTER TABLE [-t1-] RENAME to [*t1*];\n    ALTE...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "stepsql $DB {\n    ALTER TABLE [-t1-] RENAME to [*t1*];\n    ALTE...}")
 		_res = db.Exec("\n    DELETE FROM objlist;\n    INSERT INTO objlist SELECT type, name, tbl_name\n        FROM sqlite_master WHERE NAME!='objlist';\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM objlist;\n    INSERT INTO objlist SELECT type, name, tbl_name\n        FROM sqlite_master WHERE NAME!='objlist';\n  ")
@@ -238,7 +238,7 @@ func Test_alter(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO " + _tbl_name + " VALUES(1, 2, 3, 4, 5);\n    SELECT " + _col_name + ", " + _col_name2 + " FROM " + _tbl_name + ";\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test alter-7.1 {\n  execsql {\n    CREATE TABLE t1(a TEXT COLLATE BI...} {text 1 integer -2 text 5.4e-08 real 5.4e-08}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test alter-7.1 {\n  execsql {\n    CREATE TABLE t1(a TEXT COLLATE BI...} {text 1 integer -2 text 5.4e-08 real 5.4e-08}")
 	{ // do_test "alter-8.1"
 		r = db.Query("\n    CREATE TABLE t2(a INTEGER);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(1);\n    INSERT INTO t2 VALUES(2);\n    ALTER TABLE t2 ADD COLUMN b INTEGER DEFAULT 9;\n    SELECT sum(b) FROM t2;\n  ")
 		if r.Error != nil {
@@ -251,7 +251,7 @@ func Test_alter(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, sum(b) FROM t2 GROUP BY a;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
 	{ // do_test "alter-9.1"
 		r = db.Query("SELECT SQLITE_RENAME_COLUMN(0,0,0,0,0,0,0,0,0)")
 		if r.Error != nil {
@@ -275,7 +275,7 @@ func Test_alter(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
 		{ // "alter-9.3"
 			_res = db.Exec("\n  SELECT sqlite_rename_table(0,0,0,0,0,0,0);\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_rename_table") {
@@ -319,7 +319,7 @@ func Test_alter(t *testing.T) {
 			}
 		}
 		{ // do_test "alter-11.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11(%c6%c6)}")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11(%c6%c6)}")
 			_res = db.Exec("\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
@@ -335,11 +335,11 @@ func Test_alter(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11 VALUES(1,2)")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %c6%c6 AS xyz, abc FROM t11}")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %c6%c6 AS xyz, abc FROM t11}")
 			}
 		}
 		{ // do_test "alter-11.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11b(\"%81%82%83\" text)}")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11b(\"%81%82%83\" text)}")
 			_res = db.Exec("\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
@@ -353,17 +353,17 @@ func Test_alter(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11b VALUES(3,4)")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11b}")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11b}")
 			}
 			{ // do_test "alter-11.5"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11b}")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11b}")
 			}
 			{ // do_test "alter-11.6"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT \"%81%82%83\" AS xyz, abc FROM t11b}")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT \"%81%82%83\" AS xyz, abc FROM t11b}")
 			}
 		}
 		{ // do_test "alter-11.7"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11c(%81%82%83 text)}")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {CREATE TABLE t11c(%81%82%83 text)}")
 			_res = db.Exec("\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
@@ -377,13 +377,13 @@ func Test_alter(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t11c VALUES(5,6)")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11c}")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT %81%82%83 AS xyz, abc FROM t11c}")
 			}
 			{ // do_test "alter-11.9"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11c}")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT [%81%82%83] AS xyz, abc FROM t11c}")
 			}
 			{ // do_test "alter-11.10"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT \"%81%82%83\" AS xyz, abc FROM t11c}")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_exec db {SELECT \"%81%82%83\" AS xyz, abc FROM t11c}")
 			}
 		}
 		{ // do_test "alter-12.1"

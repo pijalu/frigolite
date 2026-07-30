@@ -20,7 +20,7 @@ func Test_speed4p(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_init speed1")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_init speed1")
 	// expr srand(0) → "srand(0)"
 	var sqlout = "open speed1.txt w"
 	_ = sqlout // suppress unused warning
@@ -72,32 +72,32 @@ func Test_speed4p(t *testing.T) {
 	}
 	var sql = "SELECT * FROM t1, t2, t3 WHERE t1.oid = t2.oid AND t2.oid = t3.oid"
 	_ = sql // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed4p-join1 50000 row $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4p-join1 50000 row $sql")
 	var sql = "SELECT * FROM t1, t2, t3 WHERE t1.t = t2.t AND t2.t = t3.t"
 	_ = sql // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed4p-join2 50000 row $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4p-join2 50000 row $sql")
 	var script = "\n  for {set ii 1} {$ii < 10000} {incr ii} {\n    set v [expr {$ii*3}]\n    set t [expr {$ii%3+1}]\n    db eval \"SELECT * FROM v$t WHERE rowid = \\$v\"\n  }\n"
 	_ = script // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-view1 10000 stmt $script")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-view1 10000 stmt $script")
 	var script = "\n  for {set ii 1} {$ii < 10000} {incr ii} {\n    set v [expr {$ii*3}]\n    set t [expr {$ii%3+1}]\n    db eval \"SELECT t FROM t$t WHERE rowid = \\$v\"\n  }\n"
 	_ = script // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-table1 10000 stmt $script")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-table1 10000 stmt $script")
 	var script = "\n  for {set ii 1} {$ii < 10000} {incr ii} {\n    set v [expr {$ii*3}]\n    db eval {\n      SELECT (SELECT t FROM t1 WHERE rowid = $v), \n             (SELECT t FROM t2 WHERE rowid = $v), \n             (SELECT t FROM t3 WHERE rowid = $v)\n    }\n  }\n"
 	_ = script // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-subselect1 10000 stmt $script")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-subselect1 10000 stmt $script")
 	var script = "\n  db eval BEGIN\n  for {set ii 1} {$ii < 10000} {incr ii} {\n    db eval {UPDATE t1 SET i=i+1 WHERE rowid=$ii}\n  }\n  db eval COMMIT\n"
 	_ = script // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-rowid-update 10000 stmt $script")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-rowid-update 10000 stmt $script")
 	_res = db.Exec("\n   CREATE TABLE t5(t TEXT PRIMARY KEY, i INTEGER);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n   CREATE TABLE t5(t TEXT PRIMARY KEY, i INTEGER);\n")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed4p-insert-ignore 50000 row {\n  INSERT OR IGNORE INTO t5 SELECT t, i FROM t1;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4p-insert-ignore 50000 row {\n  INSERT OR IGNORE INTO t5 SELECT t, i FROM t1;\n}")
 	var list = "db eval {SELECT t FROM t5}"
 	_ = list // suppress unused warning
 	var script = "\n  db eval BEGIN\n  foreach t $::list {\n    db eval {UPDATE t5 SET i=i+1 WHERE t=$t}\n  }\n  db eval COMMIT\n"
 	_ = script // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-unique-update [llength $list] stmt $script")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-unique-update [llength $list] stmt $script")
 	_res = db.Exec("\n  CREATE TABLE log(op TEXT, r INTEGER, i INTEGER, t TEXT);\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TRIGGER t4_trigger1 AFTER INSERT ON t4 BEGIN\n    INSERT INTO log VALUES('INSERT INTO t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger2 AFTER UPDATE ON t4 BEGIN\n    INSERT INTO log VALUES('UPDATE OF t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger3 AFTER DELETE ON t4 BEGIN\n    INSERT INTO log VALUES('DELETE OF t4', old.rowid, old.i, old.t);\n  END;\n  BEGIN;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE log(op TEXT, r INTEGER, i INTEGER, t TEXT);\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TRIGGER t4_trigger1 AFTER INSERT ON t4 BEGIN\n    INSERT INTO log VALUES('INSERT INTO t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger2 AFTER UPDATE ON t4 BEGIN\n    INSERT INTO log VALUES('UPDATE OF t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger3 AFTER DELETE ON t4 BEGIN\n    INSERT INTO log VALUES('DELETE OF t4', old.rowid, old.i, old.t);\n  END;\n  BEGIN;\n")
@@ -118,7 +118,7 @@ func Test_speed4p(t *testing.T) {
 	}
 	var script = "\n  foreach {ii name} $::list {\n    db eval {INSERT INTO t4 VALUES(NULL, $ii, $name)}\n  }\n"
 	_ = script // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-trigger1 10000 stmt $script")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-trigger1 10000 stmt $script")
 	var list = ""
 	_ = list // suppress unused warning
 	var ii = "1"
@@ -137,10 +137,10 @@ func Test_speed4p(t *testing.T) {
 	}
 	var script = "\n  foreach {ii ii2 name} $::list {\n    db eval {\n      UPDATE t4 SET i = $ii2, t = $name WHERE rowid = $ii;\n    }\n  }\n"
 	_ = script // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-trigger2 10000 stmt $script")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-trigger2 10000 stmt $script")
 	var script = "\n  for {set ii 1} {$ii < 20000} {incr ii 2} {\n    db eval {DELETE FROM t4 WHERE rowid = $ii}\n  }\n"
 	_ = script // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-trigger3 10000 stmt $script")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-trigger3 10000 stmt $script")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -165,7 +165,7 @@ func Test_speed4p(t *testing.T) {
 	}
 	var script = "\n  foreach {ii name} $::list {\n    db eval {INSERT INTO t4 VALUES(NULL, $ii, $name);}\n  }\n"
 	_ = script // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-notrigger1 10000 stmt $script")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-notrigger1 10000 stmt $script")
 	var list = ""
 	_ = list // suppress unused warning
 	var ii = "1"
@@ -184,13 +184,13 @@ func Test_speed4p(t *testing.T) {
 	}
 	var script = "\n  foreach {ii ii2 name} $::list {\n    db eval {\n      UPDATE t4 SET i = $ii2, t = $name WHERE rowid = $ii;\n    }\n  }\n"
 	_ = script // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-notrigger2 10000 stmt $script")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-notrigger2 10000 stmt $script")
 	var script = "\n  for {set ii 1} {$ii < 20000} {incr ii 2} {\n    db eval {DELETE FROM t4 WHERE rowid = $ii}\n  }\n"
 	_ = script // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-notrigger3 10000 stmt $script")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_tcl speed4p-notrigger3 10000 stmt $script")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_summary speed4")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_summary speed4")
 }

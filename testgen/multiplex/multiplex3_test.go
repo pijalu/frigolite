@@ -22,22 +22,22 @@ func Test_multiplex3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "multiplex3" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "setup_and_save_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "setup_and_save_db")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  multiplex_restore_db\n  sqlite3 db file:test.db?...} -body {\n  execsql {\n    UPDATE t1 SET a=randomblob(12), b...} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc!=0} {...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  multiplex_restore_db\n  sqlite3 db file:test.db?...} -body {\n  execsql {\n    UPDATE t1 SET a=randomblob(12), b...} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc!=0} {...}")
 	{ // do_test "2.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "setup_and_save_db")
-		t.Skipf("TODO: %s not implemented in frigolite", "multiplex_restore_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "setup_and_save_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "multiplex_restore_db")
 		db, err := frigolite.Open("file:test.db?8_3_names=1")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -83,12 +83,12 @@ func Test_multiplex3(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	{ // do_test "3.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "setup_and_save_db")
+		t.Errorf("TODO: %s not implemented in frigolite", "setup_and_save_db")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults ioerr-trans* -prep {\n\n  forcedelete test2.db\n  set fd [open test2.wal ...} -body {\n  sqlite3_backup B db2 main db main\n  B step 1000...} -test {\n  faultsim_test_result {0 SQLITE_OK}\n  if {$testr...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults ioerr-trans* -prep {\n\n  forcedelete test2.db\n  set fd [open test2.wal ...} -body {\n  sqlite3_backup B db2 main db main\n  B step 1000...} -test {\n  faultsim_test_result {0 SQLITE_OK}\n  if {$testr...}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 }

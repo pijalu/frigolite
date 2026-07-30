@@ -29,10 +29,10 @@ func Test_unionvtabfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS aux;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b TEXT);\n  CREATE TABLE aux.t3(a INTEGER PRIMARY KEY, b TEXT);\n\n  INSERT INTO t1 VALUES(1, 'one'), (2, 'two'), (3, 'three');\n  INSERT INTO t2 VALUES(10, 'ten'), (11, 'eleven'), (12, 'twelve');\n  INSERT INTO t3 VALUES(20, 'twenty'), (21, 'twenty-one'), (22, 'twenty-two');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults * -prep {\n  faultsim_restore_and_reopen\n  load_static_exten...} -body {\n  execsql {\n    CREATE VIRTUAL TABLE temp.uuu USI...} -test {\n  faultsim_test_result {0 {}}             \\\n     ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults * -prep {\n  faultsim_restore_and_reopen\n  load_static_exten...} -body {\n  execsql {\n    CREATE VIRTUAL TABLE temp.uuu USI...} -test {\n  faultsim_test_result {0 {}}             \\\n     ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
 	_res = db.Exec(" ATTACH 'test.db2' AS aux; ")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'test.db2' AS aux; ")
@@ -45,6 +45,6 @@ func Test_unionvtabfault(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE temp.uuu USING unionvtab(\n      \"VALUES(NULL, 't1', 1, 9),  ('main', 't2', 10, 19), ('aux', 't3', 20, 29)\"\n  );\n")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -faults oom* -prep {\n} -body {\n  execsql { SELECT * FROM uuu }\n} -test {\n  faultsim_test_result {0 {1 one 2 two 3 three 10...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.0 -faults * -prep {\n  catch { db close }\n  sqlite3 db :memory:\n} -body {\n  load_static_extension db unionvtab\n} -test {\n  faultsim_test_result {0 {}} {1 {initialization ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -faults oom* -prep {\n} -body {\n  execsql { SELECT * FROM uuu }\n} -test {\n  faultsim_test_result {0 {1 one 2 two 3 three 10...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.0 -faults * -prep {\n  catch { db close }\n  sqlite3 db :memory:\n} -body {\n  load_static_extension db unionvtab\n} -test {\n  faultsim_test_result {0 {}} {1 {initialization ...}")
 }

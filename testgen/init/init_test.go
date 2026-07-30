@@ -36,34 +36,34 @@ func Test_init(t *testing.T) {
 		_ = _idx
 			{ // do_test "init-" + t + ".1"
 				// eval init_wrapper_install $failed
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 			}
 			{ // do_test "init-" + t + ".2"
-				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
 			}
 			{ // do_test "init-" + t + ".3"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
 			}
 			{ // do_test "init-" + t + ".4"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 			}
 			{ // do_test "init-" + t + ".5"
-				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
 			}
 			{ // do_test "init-" + t + ".6"
-				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_clear")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_clear")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 			}
 			{ // do_test "init-" + t + ".7"
-				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_query")
+				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_query")
 			}
 			{ // do_test "init-" + t + ".8"
-				t.Skipf("TODO: %s not implemented in frigolite", "init_wrapper_uninstall")
+				t.Errorf("TODO: %s not implemented in frigolite", "init_wrapper_uninstall")
 			}
 		}
 		if tclBool(MEMDEBUG) {
-			t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test init-2 -tclprep {\n    db close\n    init_wrapper_install\n  } -tclbody {\n    set rc [sqlite3_initialize]\n    if {[string m...} -cleanup {\n    set zRepeat \"transient\"\n    if {$::iRepeat} {...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test init-2 -tclprep {\n    db close\n    init_wrapper_install\n  } -tclbody {\n    set rc [sqlite3_initialize]\n    if {[string m...} -cleanup {\n    set zRepeat \"transient\"\n    if {$::iRepeat} {...}")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+		t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 }

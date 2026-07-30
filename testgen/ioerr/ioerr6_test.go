@@ -24,10 +24,10 @@ func Test_ioerr6(t *testing.T) {
 	if tclBool("permutation" + "==\"inmemory_journal\"") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	{ // do_test "1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "testvfs shmfault -default true")
-		t.Skipf("TODO: %s not implemented in frigolite", "shmfault devchar atomic")
+		t.Errorf("TODO: %s not implemented in frigolite", "testvfs shmfault -default true")
+		t.Errorf("TODO: %s not implemented in frigolite", "shmfault devchar atomic")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -35,7 +35,7 @@ func Test_ioerr6(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(2, 4);\n    INSERT INTO t1 VALUES(3, 6);\n    INSERT INTO t1 VALUES(4, 8);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "shmfault full 2 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "shmfault full 2 1")
 		_res = db.Exec(" INSERT INTO t1 VALUES(5, 10) ")
 		_ = _res // catchsql
 	}
@@ -45,7 +45,7 @@ func Test_ioerr6(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "shmfault delete")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults full* -prep {\n  shmfault devchar atomic\n  faultsim_restore\n  sq...} -body {\n  db eval {\n    CREATE TABLE t1(x PRIMARY KEY);\n ...} -test {\n  set res [db one { PRAGMA integrity_check }]\n  i...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults full* -prep {\n  shmfault devchar atomic\n  faultsim_restore\n  sq...} -body {\n  db eval {\n    CREATE TABLE t1(x);\n    CREATE TA...} -test {\n  db eval { CREATE TABLE t3(x) }\n  if {[db one { ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "shmfault delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults full* -prep {\n  shmfault devchar atomic\n  faultsim_restore\n  sq...} -body {\n  db eval {\n    CREATE TABLE t1(x PRIMARY KEY);\n ...} -test {\n  set res [db one { PRAGMA integrity_check }]\n  i...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults full* -prep {\n  shmfault devchar atomic\n  faultsim_restore\n  sq...} -body {\n  db eval {\n    CREATE TABLE t1(x);\n    CREATE TA...} -test {\n  db eval { CREATE TABLE t3(x) }\n  if {[db one { ...}")
 }

@@ -25,7 +25,7 @@ func Test_wal64k(t *testing.T) {
 	if tclBool("llength [info commands test_syscall]" + "==0") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_syscall pagesize 65536")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall pagesize 65536")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
@@ -71,5 +71,5 @@ func Test_wal64k(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_syscall pagesize -1")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall pagesize -1")
 }

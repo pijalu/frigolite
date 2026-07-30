@@ -23,7 +23,7 @@ func Test_io(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "io" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	var _nWrite = "0" // TCL namespace variable
@@ -37,7 +37,7 @@ func Test_io(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = OFF;\n    PRAGMA page_size = 1024;\n    CREATE TABLE abc(a,b);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "nWrite db")
+		t.Errorf("TODO: %s not implemented in frigolite", "nWrite db")
 	}
 	{ // do_test "io-1.2"
 		var ret = "list"
@@ -68,7 +68,7 @@ func Test_io(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO abc VALUES(5,randstr(230,230)); ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "nWrite db")
+		t.Errorf("TODO: %s not implemented in frigolite", "nWrite db")
 	}
 	{ // do_test "io-1.4"
 		var ret = "list"
@@ -94,10 +94,10 @@ func Test_io(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO abc VALUES(9,randstr(230,230)); ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "nWrite db")
+		t.Errorf("TODO: %s not implemented in frigolite", "nWrite db")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char sequential -sectorsize 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char safe_append")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char sequential -sectorsize 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char safe_append")
 	var expected_sync_count = "2"
 	_ = expected_sync_count // suppress unused warning
 	if _tcl_platform(os) != "Windows NT" {
@@ -107,12 +107,12 @@ func Test_io(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM abc ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "nSync")
+		t.Errorf("TODO: %s not implemented in frigolite", "nSync")
 		_res = db.Exec(" INSERT INTO abc VALUES('a', 'b') ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO abc VALUES('a', 'b') ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "nSync")
+		t.Errorf("TODO: %s not implemented in frigolite", "nSync")
 	}
 	{ // do_test "io-4.2.1"
 		_res = db.Exec(" BEGIN ")
@@ -127,7 +127,7 @@ func Test_io(t *testing.T) {
 	}
 	if _tcl_platform(platform) == "unix" {
 		{ // do_test "io-4.2.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db-journal 8 4")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db-journal 8 4")
 		}
 	}
 	{ // do_test "io-4.2.3"
@@ -135,9 +135,9 @@ func Test_io(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "nSync")
+		t.Errorf("TODO: %s not implemented in frigolite", "nSync")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char safe_append")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char safe_append")
 	{ // do_test "io-4.3.1"
 		_res = db.Exec("\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n    INSERT INTO abc SELECT * FROM abc;\n  ")
 		if _res.Error != nil {
@@ -179,7 +179,7 @@ func Test_io(t *testing.T) {
 			if func() bool { pgsize_n, _pgsize_e := strconv.Atoi(pgsize); if _pgsize_e != nil { return false }; _SQLITE_MAX_PAGE_SIZE_n, __SQLITE_MAX_PAGE_SIZE_e := strconv.Atoi(_SQLITE_MAX_PAGE_SIZE); if __SQLITE_MAX_PAGE_SIZE_e != nil { return false }; return pgsize_n > _SQLITE_MAX_PAGE_SIZE_n }() {
 			}
 			os.Remove("test.db")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char $char -sectorsize $sectorsize")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char $char -sectorsize $sectorsize")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -196,7 +196,7 @@ func Test_io(t *testing.T) {
 			}
 		}
 		{ // do_test "io-6.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char atomic")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char atomic")
 			os.Remove("test.db")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
@@ -205,7 +205,7 @@ func Test_io(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA mmap_size = 0;\n    PRAGMA page_size = 1024;\n    PRAGMA cache_size = 2000;\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(x);\n    CREATE TABLE t3(x);\n    CREATE INDEX i3 ON t3(x);\n    INSERT INTO t3 VALUES(randomblob(100));\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n    INSERT INTO t3 SELECT randomblob(100) FROM t3;\n  ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
 		}
 		// foreach {tn sql} "\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n"
 		_items := tclSplitList("\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n")
@@ -217,7 +217,7 @@ func Test_io(t *testing.T) {
 			_ = _idx
 				if tclBool("permutation" + " == \"memsubsys1\"") {
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "db_restore")
+				t.Errorf("TODO: %s not implemented in frigolite", "db_restore")
 				db, err := frigolite.Open("test.db")
 				defer db.Close()
 				if err != nil { t.Fatal(err) }
@@ -243,7 +243,7 @@ func Test_io(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 * 5] [string repeat 00 2048]")
+				t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 * 5] [string repeat 00 2048]")
 				{ // "6.2." + tn + ".3"
 					r = db.Query(" PRAGMA integrity_check ")
 					if r.Error != nil {
@@ -257,6 +257,6 @@ func Test_io(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char {} -sectorsize 0")
-			t.Skipf("TODO: %s not implemented in frigolite", "unregister_devsim")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -char {} -sectorsize 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "unregister_devsim")
 }

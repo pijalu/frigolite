@@ -621,7 +621,7 @@ func Test_conflict2(t *testing.T) {
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
 								_ = _res // catchsql
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-9.21b SQLITE_CONSTRAINT_UNIQUE")
+							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-9.21b SQLITE_CONSTRAINT_UNIQUE")
 							{ // do_test "conflict2-9.20"
 								{
 									var _catchErr error
@@ -638,7 +638,7 @@ func Test_conflict2(t *testing.T) {
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
 								_ = _res // catchsql
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-9.21b SQLITE_CONSTRAINT_UNIQUE")
+							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-9.21b SQLITE_CONSTRAINT_UNIQUE")
 							{ // do_test "conflict2-9.22"
 								{
 									var _catchErr error
@@ -755,7 +755,7 @@ func Test_conflict2(t *testing.T) {
 								_res = db.Exec("\n    UPDATE t5 SET a=a+1 WHERE a=1;\n  ")
 								_ = _res // catchsql
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-12.3b SQLITE_CONSTRAINT_PRIMARYKEY")
+							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-12.3b SQLITE_CONSTRAINT_PRIMARYKEY")
 							{ // do_test "conflict2-12.4"
 								r = db.Query("\n    UPDATE OR REPLACE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
 								if r.Error != nil {
@@ -770,7 +770,7 @@ func Test_conflict2(t *testing.T) {
 								_res = db.Exec("\n    REPLACE INTO t13 VALUES(2);\n  ")
 								_ = _res // catchsql
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-13.1b SQLITE_CONSTRAINT_CHECK")
+							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict2-13.1b SQLITE_CONSTRAINT_CHECK")
 							{ // do_test "conflict2-13.2"
 								r = db.Query("\n    REPLACE INTO t13 VALUES(3);\n    COMMIT;\n    SELECT * FROM t13;\n  ")
 								if r.Error != nil {

@@ -24,5 +24,5 @@ func Test_external_reader(t *testing.T) {
 	if _tcl_platform(os) == "Windows NT" {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  set bExternal 1\n  if {[info commands db3]!=\"\"}...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n  set bExternal 1\n  if {[info commands db3]!=\"\"}...}")
 }

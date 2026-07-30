@@ -277,7 +277,7 @@ func Test_zipfile2(t *testing.T) {
 		}
 		// proc definition (not transpiled)
 		os.Remove("test.zip")
-		t.Skipf("TODO: %s not implemented in frigolite", "make_corrupt_file test.zip")
+		t.Errorf("TODO: %s not implemented in frigolite", "make_corrupt_file test.zip")
 		{ // "7.0"
 			_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  CREATE VIRTUAL TABLE t1 USING zipfile('test.zip');\n")
 			if _res.Error != nil {
@@ -300,7 +300,7 @@ func Test_zipfile2(t *testing.T) {
 			os.Remove("test.zip")
 			var fd = "open test.zip wb"
 			_ = fd // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
 			t.Log("-nonewline")
 			// close $fd
 			{ // "8.0"

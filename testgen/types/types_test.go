@@ -22,7 +22,7 @@ func Test_types(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var DB = "sqlite3 db test.db; sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_rekey $DB {}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_rekey $DB {}")
 	{ // do_test "types-1.1.0"
 		_res = db.Exec("\n    CREATE TABLE t1(i integer, n numeric, t text, o blob);\n  ")
 		if _res.Error != nil {
@@ -188,7 +188,7 @@ func Test_types(t *testing.T) {
 	{ // do_test "types-2.3.3"
 		var root = "db eval {select rootpage from sqlite_master where name = 't3'}"
 		_ = root // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "record_sizes $root")
+		t.Errorf("TODO: %s not implemented in frigolite", "record_sizes $root")
 	}
 	{ // do_test "types-2.4.1"
 		var string10 = "abcdefghij"
@@ -212,13 +212,13 @@ func Test_types(t *testing.T) {
 		{ // do_test "types-2.4.3"
 			var root = "db eval {select rootpage from sqlite_master where name = 't4'}"
 			_ = root // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "record_sizes $root")
+			t.Errorf("TODO: %s not implemented in frigolite", "record_sizes $root")
 		}
 	} else {
 		{ // do_test "types-2.4.3"
 			var root = "db eval {select rootpage from sqlite_master where name = 't4'}"
 			_ = root // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "record_sizes $root")
+			t.Errorf("TODO: %s not implemented in frigolite", "record_sizes $root")
 		}
 	}
 	{ // do_test "types-2.5.1"

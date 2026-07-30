@@ -37,7 +37,7 @@ func Test_changes2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "db changes"})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::stmt")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::stmt")
 	{ // "1.2"
 		_res = db.Exec("\n  DROP TABLE some_table;\n  CREATE TABLE some_table ( \n    id INTEGER NOT NULL, value VARCHAR(40) NOT NULL, PRIMARY KEY (id)\n  );\n  INSERT INTO some_table (id, value) VALUES (1, 'v1');\n")
 		if _res.Error != nil {
@@ -52,7 +52,7 @@ func Test_changes2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "db changes"})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -90,7 +90,7 @@ func Test_changes2(t *testing.T) {
 		_list := tclList([]string{"SQLITE_ROW", "sqlite3_reset $::stmt"})
 		_ = _list
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
 	{ // "2.4"
 		r = db.Query("\n  SELECT * FROM log;\n")
 		if r.Error != nil {

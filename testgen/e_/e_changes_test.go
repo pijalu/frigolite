@@ -44,10 +44,10 @@ func Test_e_changes(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.1 { INSERT INTO t1 VALUES(0, 0) } 1")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.2 {\n    WITH rows(i, j) AS (\n        SELECT 1, 1 UNIO...} 10")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.3 {\n    UPDATE t1 SET b=b+1 WHERE a<5;\n  } 5")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.4 {\n    DELETE FROM t1 WHERE a>6\n  } 4")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.1 { INSERT INTO t1 VALUES(0, 0) } 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.2 {\n    WITH rows(i, j) AS (\n        SELECT 1, 1 UNIO...} 10")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.3 {\n    UPDATE t1 SET b=b+1 WHERE a<5;\n  } 5")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.4 {\n    DELETE FROM t1 WHERE a>6\n  } 4")
 			{ // do_test "1." + tn + ".5"
 				db2, err := frigolite.Open("test.db")
 				defer db2.Close()
@@ -61,7 +61,7 @@ func Test_e_changes(t *testing.T) {
 			{ // do_test "1." + tn + ".6"
 			}
 			db2.Close()
-			t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.7 {\n    CREATE UNIQUE INDEX i2 ON t1(a);\n  } 4")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.7 {\n    CREATE UNIQUE INDEX i2 ON t1(a);\n  } 4")
 			{ // "1." + tn + ".8"
 				_res = db.Exec("\n    INSERT INTO t1 VALUES('a', 0), ('b', 0), ('c', 0), (0, 11);\n  ")
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
@@ -78,16 +78,16 @@ func Test_e_changes(t *testing.T) {
 			}
 			{ // do_test "1." + tn + ".11"
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.12 COMMIT 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 1.$tn.12 COMMIT 0")
 		}
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 2.1 { CREATE TABLE t1(x)          } 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 2.2 { \n  WITH d(y) AS (SELECT 1 UNION ALL SELECT y+1 FR...} 47")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 2.3 { SELECT count(x) FROM t1 } {47 47}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 2.4 { DROP TABLE t1               } 47")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 2.5 { CREATE TABLE t1(x)          } 47")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 2.1 { CREATE TABLE t1(x)          } 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 2.2 { \n  WITH d(y) AS (SELECT 1 UNION ALL SELECT y+1 FR...} 47")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 2.3 { SELECT count(x) FROM t1 } {47 47}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 2.4 { DROP TABLE t1               } 47")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 2.5 { CREATE TABLE t1(x)          } 47")
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -97,9 +97,9 @@ func Test_e_changes(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE log(x);\n  CREATE TABLE p1(one PRIMARY KEY, two);\n\n  CREATE TRIGGER tr_ai AFTER INSERT ON p1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n  CREATE TRIGGER tr_bd BEFORE DELETE ON p1 BEGIN\n    INSERT INTO log VALUES('delete');\n  END;\n  CREATE TRIGGER tr_au AFTER UPDATE ON p1 BEGIN\n    INSERT INTO log VALUES('update');\n  END;\n\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.1.1 {\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('...} 3")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.1.2 {\n  UPDATE p1 SET two = two||two;\n} 3")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.1.3 {\n  DELETE FROM p1 WHERE one IN ('a', 'c');\n} 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.1.1 {\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('...} 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.1.2 {\n  UPDATE p1 SET two = two||two;\n} 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.1.3 {\n  DELETE FROM p1 WHERE one IN ('a', 'c');\n} 2")
 		{ // "3.1.4"
 			_res = db.Exec("\n  -- None of the inserts on table log were counted.\n  SELECT count(*) FROM log\n")
 			if _res.Error != nil {
@@ -112,9 +112,9 @@ func Test_e_changes(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  DELETE FROM p1;\n  INSERT INTO p1 VALUES('a', 'A'), ('b', 'B'), ('c', 'C');\n\n  CREATE TABLE c1(a, b, FOREIGN KEY(a) REFERENCES p1 ON DELETE SET NULL);\n  CREATE TABLE c2(a, b, FOREIGN KEY(a) REFERENCES p1 ON DELETE SET DEFAULT);\n  CREATE TABLE c3(a, b, FOREIGN KEY(a) REFERENCES p1 ON DELETE CASCADE);\n  INSERT INTO c1 VALUES('a', 'aaa');\n  INSERT INTO c2 VALUES('b', 'bbb');\n  INSERT INTO c3 VALUES('c', 'ccc');\n\n  INSERT INTO p1 VALUES('d', 'D'), ('e', 'E'), ('f', 'F');\n  CREATE TABLE c4(a, b, FOREIGN KEY(a) REFERENCES p1 ON UPDATE SET NULL);\n  CREATE TABLE c5(a, b, FOREIGN KEY(a) REFERENCES p1 ON UPDATE SET DEFAULT);\n  CREATE TABLE c6(a, b, FOREIGN KEY(a) REFERENCES p1 ON UPDATE CASCADE);\n  INSERT INTO c4 VALUES('d', 'aaa');\n  INSERT INTO c5 VALUES('e', 'bbb');\n  INSERT INTO c6 VALUES('f', 'ccc');\n\n  PRAGMA foreign_keys = ON;\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.1 { DELETE FROM p1 WHERE one = 'a' } 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.2 { DELETE FROM p1 WHERE one = 'b' } 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.3 { DELETE FROM p1 WHERE one = 'c' } 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.1 { DELETE FROM p1 WHERE one = 'a' } 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.2 { DELETE FROM p1 WHERE one = 'b' } 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.3 { DELETE FROM p1 WHERE one = 'c' } 1")
 		{ // "3.2.4"
 			r = db.Query(" \n  SELECT * FROM c1;\n  SELECT * FROM c2;\n  SELECT * FROM c3;\n")
 			if r.Error != nil {
@@ -127,9 +127,9 @@ func Test_e_changes(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.5 { UPDATE p1 SET one = 'g' WHERE one = 'd' } 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.6 { UPDATE p1 SET one = 'h' WHERE one = 'e' } 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.7 { UPDATE p1 SET one = 'i' WHERE one = 'f' } 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.5 { UPDATE p1 SET one = 'g' WHERE one = 'd' } 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.6 { UPDATE p1 SET one = 'h' WHERE one = 'e' } 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.2.7 { UPDATE p1 SET one = 'i' WHERE one = 'f' } 1")
 		{ // "3.2.8"
 			r = db.Query(" \n  SELECT * FROM c4;\n  SELECT * FROM c5;\n  SELECT * FROM c6;\n")
 			if r.Error != nil {
@@ -148,10 +148,10 @@ func Test_e_changes(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE r1(a UNIQUE, b UNIQUE);\n  INSERT INTO r1 VALUES('i', 'i');\n  INSERT INTO r1 VALUES('ii', 'ii');\n  INSERT INTO r1 VALUES('iii', 'iii');\n  INSERT INTO r1 VALUES('iv', 'iv');\n  INSERT INTO r1 VALUES('v', 'v');\n  INSERT INTO r1 VALUES('vi', 'vi');\n  INSERT INTO r1 VALUES('vii', 'vii');\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.3.1 { INSERT OR REPLACE INTO r1 VALUES('i', 1)    } 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.3.2 { INSERT OR REPLACE INTO r1 VALUES('iv', 'v') } 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.3.3 { UPDATE OR REPLACE r1 SET b='v' WHERE a='iii' } 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 3.3.4 { UPDATE OR REPLACE r1 SET b='vi',a='vii' WHERE a='...} 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.3.1 { INSERT OR REPLACE INTO r1 VALUES('i', 1)    } 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.3.2 { INSERT OR REPLACE INTO r1 VALUES('iv', 'v') } 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.3.3 { UPDATE OR REPLACE r1 SET b='v' WHERE a='iii' } 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 3.3.4 { UPDATE OR REPLACE r1 SET b='vi',a='vii' WHERE a='...} 1")
 		{ // "3.3.5"
 			r = db.Query(" \n  SELECT * FROM r1 ORDER BY a;\n")
 			if r.Error != nil {
@@ -173,12 +173,12 @@ func Test_e_changes(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE log(log);\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n\n  CREATE VIEW v1 AS SELECT * FROM t1;\n  CREATE TRIGGER v1_i INSTEAD OF INSERT ON v1 BEGIN\n    INSERT INTO log VALUES('insert');\n  END;\n  CREATE TRIGGER v1_u INSTEAD OF UPDATE ON v1 BEGIN\n    INSERT INTO log VALUES('update'), ('update');\n  END;\n  CREATE TRIGGER v1_d INSTEAD OF DELETE ON v1 BEGIN\n    INSERT INTO log VALUES('delete'), ('delete'), ('delete');\n  END;\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 4.2.1 { INSERT INTO t1 SELECT * FROM t1 } 3")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 4.2.2 { INSERT INTO v1 VALUES(1, 2) } 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 4.3.1 { INSERT INTO t1 SELECT * FROM t1 } 6")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 4.3.2 { UPDATE v1 SET y='xyz' WHERE x=1 } 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 4.4.1 { INSERT INTO t1 SELECT * FROM t1 } 12")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 4.4.2 { DELETE FROM v1 WHERE x=5 } 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 4.2.1 { INSERT INTO t1 SELECT * FROM t1 } 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 4.2.2 { INSERT INTO v1 VALUES(1, 2) } 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 4.3.1 { INSERT INTO t1 SELECT * FROM t1 } 6")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 4.3.2 { UPDATE v1 SET y='xyz' WHERE x=1 } 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 4.4.1 { INSERT INTO t1 SELECT * FROM t1 } 12")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 4.4.2 { DELETE FROM v1 WHERE x=5 } 0")
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -248,9 +248,9 @@ func Test_e_changes(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE t3(a, b);\n  CREATE TABLE log(x);\n\n  CREATE TRIGGER t1_i BEFORE INSERT ON t1 BEGIN\n    INSERT INTO t2 VALUES(new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_i AFTER INSERT ON t2 BEGIN\n    INSERT INTO t3 VALUES(new.a, new.b), (new.a, new.b), (new.a, new.b);\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n\n  CREATE TRIGGER t1_u AFTER UPDATE ON t1 BEGIN\n    UPDATE t2 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_u BEFORE UPDATE ON t2 BEGIN\n    UPDATE t3 SET b=new.b WHERE a=old.a;\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n\n  CREATE TRIGGER t1_d AFTER DELETE ON t1 BEGIN\n    DELETE FROM t2 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t2->' || changes());\n  END;\n\n  CREATE TRIGGER t2_d BEFORE DELETE ON t2 BEGIN\n    DELETE FROM t3 WHERE a=old.a AND b=old.b;\n    INSERT INTO log VALUES('t3->' || changes());\n  END;\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 6.1 {\n  INSERT INTO t1 VALUES('+', 'o');\n  SELECT * FRO...} {t3->3 t3->3 t2->2 1}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 6.2 {\n  DELETE FROM log;\n  UPDATE t1 SET b='*';\n  SELEC...} {t3->6 t3->6 t2->2 1}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_changes_test 6.3 {\n  DELETE FROM log;\n  DELETE FROM t1;\n  SELECT * F...} {t3->6 t3->0 t2->2 1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 6.1 {\n  INSERT INTO t1 VALUES('+', 'o');\n  SELECT * FRO...} {t3->3 t3->3 t2->2 1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 6.2 {\n  DELETE FROM log;\n  UPDATE t1 SET b='*';\n  SELEC...} {t3->6 t3->6 t2->2 1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_changes_test 6.3 {\n  DELETE FROM log;\n  DELETE FROM t1;\n  SELECT * F...} {t3->6 t3->0 t2->2 1}")
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

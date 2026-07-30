@@ -21,7 +21,7 @@ func Test_pragma6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "pragma6"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "1.0"
 		db, err := frigolite.Open("")
 		defer db.Close()

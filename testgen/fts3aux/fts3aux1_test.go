@@ -632,10 +632,10 @@ func Test_fts3aux1(t *testing.T) {
 			}
 		}
 		// proc definition (not transpiled)
-		t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.2 {\n  SELECT y FROM x2, terms WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN x2\n  `--SCAN terms VIRTUAL...} {\n  a b c d e f g h i j k l\n}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.3 {\n  SELECT y FROM terms, x2 WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN x2\n  `--SCAN terms VIRTUAL...} {\n  a b c d e f g h i j k l\n}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.4 {\n  SELECT y FROM x3, terms WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN terms VIRTUAL TABLE INDEX ...} {\n  a b c d e f g h i j k l\n}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_plansql_test 4.5 {\n  SELECT y FROM terms, x3 WHERE y = term AND occu...} {\n  QUERY PLAN\n  |--SCAN terms VIRTUAL TABLE INDEX ...} {\n  a k l\n}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_plansql_test 4.2 {\n  SELECT y FROM x2, terms WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN x2\n  `--SCAN terms VIRTUAL...} {\n  a b c d e f g h i j k l\n}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_plansql_test 4.3 {\n  SELECT y FROM terms, x2 WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN x2\n  `--SCAN terms VIRTUAL...} {\n  a b c d e f g h i j k l\n}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_plansql_test 4.4 {\n  SELECT y FROM x3, terms WHERE y = term AND col ...} {\n  QUERY PLAN\n  |--SCAN terms VIRTUAL TABLE INDEX ...} {\n  a b c d e f g h i j k l\n}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_plansql_test 4.5 {\n  SELECT y FROM terms, x3 WHERE y = term AND occu...} {\n  QUERY PLAN\n  |--SCAN terms VIRTUAL TABLE INDEX ...} {\n  a k l\n}")
 		{ // "5.1"
 			r = db.Query("\n  CREATE VIRTUAL TABLE \"abc '!' def\" USING fts4(x, y);\n  INSERT INTO \"abc '!' def\" VALUES('XX', 'YY');\n\n  CREATE VIRTUAL TABLE terms3 USING fts4aux(\"abc '!' def\");\n  SELECT * FROM terms3;\n")
 			if r.Error != nil {

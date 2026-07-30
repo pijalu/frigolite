@@ -39,7 +39,7 @@ func Test_symlink2(t *testing.T) {
 	}
 	os.Remove("link.db")
 	{ // do_test "2.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "createWin32Symlink link.db test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "createWin32Symlink link.db test.db")
 	}
 	{ // do_test "2.1"
 		// file exists "test.db"
@@ -85,7 +85,7 @@ func Test_symlink2(t *testing.T) {
 	}
 	{ // do_test "4.0"
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "deleteWin32Symlink link.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "deleteWin32Symlink link.db")
 	}
 	{ // do_test "4.1"
 		// file exists "test.db"

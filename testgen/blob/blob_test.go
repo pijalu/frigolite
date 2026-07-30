@@ -23,27 +23,27 @@ func Test_blob(t *testing.T) {
 	{ // do_test "blob-1.0"
 		var blob = "execsql {SELECT X'01020304';}"
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "blob-1.1"
 		var blob = "execsql {SELECT x'ABCDEF';}"
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "blob-1.2"
 		var blob = "execsql {SELECT x'';}"
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "blob-1.3"
 		var blob = "execsql {SELECT x'abcdEF12';}"
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "blob-1.3.2"
 		var blob = "execsql {SELECT x'0123456789abcdefABCDEF';}"
 		_ = blob // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
+		t.Errorf("TODO: %s not implemented in frigolite", "bin_to_hex [lindex $blob 0]")
 	}
 	{ // do_test "blob-1.4"
 		_res = db.Exec("SELECT X'01020k304', 100")
@@ -146,11 +146,11 @@ func Test_blob(t *testing.T) {
 		_ = DB // suppress unused warning
 		var STMT = "sqlite3_prepare $DB \"DELETE FROM t1 WHERE a = ?\" -1 DUMMY"
 		_ = STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_blob $STMT 1 \\x12\\x34\\x56 3")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_blob $STMT 1 \\x12\\x34\\x56 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "blob-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 		db2.Close()
 	}
 	{ // do_test "blob-3.2"

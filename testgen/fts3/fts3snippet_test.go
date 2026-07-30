@@ -43,7 +43,7 @@ func Test_fts3snippet(t *testing.T) {
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
 			_res = db.Exec("PRAGMA encoding = \\\"" + enc + "\\\"")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA encoding = \\\"" + enc + "\\\"")
@@ -56,10 +56,10 @@ func Test_fts3snippet(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('xxx xxx xxx xxx');\n    ")
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.2 {xxx} {0 0 0 3 0 0 4 3 0 0 8 3 0 0 12 3}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.3 {\"xxx xxx\"} {\n      0 0  0 3     0 0  4 3     0 1  4 3     0 0 ...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.4 {\"xxx xxx\" xxx} {\n      0 0  0 3     0 2  0 3     0 0  4 3     0 1 ...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.5 {xxx \"xxx xxx\"} {\n      0 0  0 3     0 1  0 3     0 0  4 3     0 1 ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.2 {xxx} {0 0 0 3 0 0 4 3 0 0 8 3 0 0 12 3}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.3 {\"xxx xxx\"} {\n      0 0  0 3     0 0  4 3     0 1  4 3     0 0 ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.4 {\"xxx xxx\" xxx} {\n      0 0  0 3     0 2  0 3     0 0  4 3     0 1 ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.1.5 {xxx \"xxx xxx\"} {\n      0 0  0 3     0 1  0 3     0 0  4 3     0 1 ...}")
 			{ // do_test T + ".2.1"
 				var v1 = "lrange $numbers 0 99"
 				_ = v1 // suppress unused warning
@@ -70,16 +70,16 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			var off = "\"twohundred \" $numbers"
 			_ = off // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "do_offsets_test $T.2.1 {twohundred} [list 1 0 $off 10]")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.2.1 {twohundred} [list 1 0 $off 10]")
 			var off = "\"onehundred \" $numbers"
 			_ = off // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "do_offsets_test $T.2.2 {onehundred} [list 0 0 $off 10 1 0 $off 10] [list 0 0 $off 10]")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.2.2 {onehundred} [list 0 0 $off 10 1 0 $off 10] [list 0 0 $off 10]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 			_res = db.Exec(" UPDATE ft_content SET c1b = 'hello world' WHERE c1b = $numbers ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE ft_content SET c1b = 'hello world' WHERE c1b = $numbers ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_error_test $T.2.3 {\n    SELECT offsets(ft) FROM ft WHERE ft MATCH 'on...} {database disk image is malformed}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_error_test $T.2.3 {\n    SELECT offsets(ft) FROM ft WHERE ft MATCH 'on...} {database disk image is malformed}")
 			// proc definition (not transpiled)
 			{ // do_test T + ".3.1"
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('one two three four five six seven eight nine ten');\n    ")
@@ -87,63 +87,63 @@ func Test_fts3snippet(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('one two three four five six seven eight nine ten');\n    ")
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.2 one 0 5 {one} two three four five...")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.3 two 0 5 one {two} three four five...")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.4 three 0 5 one two {three} four five...")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.5 four 0 5 ...two three {four} five six...")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.6 five 0 5 ...three four {five} six seven...")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.7 six 0 5 ...four five {six} seven eight...")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.8 seven 0 5 ...five six {seven} eight nine...")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.9 eight 0 5 ...six seven {eight} nine ten")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.10 nine 0 5 ...six seven eight {nine} ten")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.11 ten 0 5 ...six seven eight nine {ten}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.2 one 0 5 {one} two three four five...")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.3 two 0 5 one {two} three four five...")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.4 three 0 5 one two {three} four five...")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.5 four 0 5 ...two three {four} five six...")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.6 five 0 5 ...three four {five} six seven...")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.7 six 0 5 ...four five {six} seven eight...")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.8 seven 0 5 ...five six {seven} eight nine...")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.9 eight 0 5 ...six seven {eight} nine ten")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.10 nine 0 5 ...six seven eight {nine} ten")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.3.11 ten 0 5 ...six seven eight nine {ten}")
 			{ // do_test T + ".4.1"
 				_res = db.Exec("\n      INSERT INTO ft VALUES(\n           'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty '\n        || 'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty'\n      );\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO ft VALUES(\n           'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty '\n        || 'one two three four five '\n        || 'six seven eight nine ten '\n        || 'eleven twelve thirteen fourteen fifteen '\n        || 'sixteen seventeen eighteen nineteen twenty'\n      );\n    ")
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.2 {one nine} 0 5 {\n     {one} two three...eight {nine} ten\n  } {\n     {one} two three...eight {nine} ten...\n  }")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.3 {one nine} 0 -5 {\n     {one} two three four five...six seven eight ...} {\n     {one} two three four five...seven eight {nin...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.3 {one nineteen} 0 -5 {\n     ...eighteen {nineteen} twenty {one} two...\n ...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.4 {two nineteen} 0 -5 {\n     ...eighteen {nineteen} twenty one {two}...\n ...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.5 {three nineteen} 0 -5 {\n     ...{nineteen} twenty one two {three}...\n  }")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.6 {four nineteen} 0 -5 {\n     ...two three {four} five six...seventeen eig...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.7 {four NEAR nineteen} 0 -5 {\n     ...seventeen eighteen {nineteen} twenty one....}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.8 {four nineteen} 0 5 {\n     ...three {four} five...eighteen {nineteen} t...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.9 {four NEAR nineteen} 0 5 {\n     ...eighteen {nineteen} twenty...three {four}...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.10 {four NEAR nineteen} 0 -5 {\n     ...seventeen eighteen {nineteen} twenty one....}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.11 {four NOT (nineteen twentyone)} 0 5 {\n     ...two three {four} five six...\n  } {\n     ...two three {four} five six...\n  }")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.12 {four OR nineteen NEAR twentyone} 0 5 {\n     ...two three {four} five six...\n  } {\n     ...two three {four} five six...\n  }")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.2 {one nine} 0 5 {\n     {one} two three...eight {nine} ten\n  } {\n     {one} two three...eight {nine} ten...\n  }")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.3 {one nine} 0 -5 {\n     {one} two three four five...six seven eight ...} {\n     {one} two three four five...seven eight {nin...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.3 {one nineteen} 0 -5 {\n     ...eighteen {nineteen} twenty {one} two...\n ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.4 {two nineteen} 0 -5 {\n     ...eighteen {nineteen} twenty one {two}...\n ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.5 {three nineteen} 0 -5 {\n     ...{nineteen} twenty one two {three}...\n  }")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.6 {four nineteen} 0 -5 {\n     ...two three {four} five six...seventeen eig...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.7 {four NEAR nineteen} 0 -5 {\n     ...seventeen eighteen {nineteen} twenty one....}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.8 {four nineteen} 0 5 {\n     ...three {four} five...eighteen {nineteen} t...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.9 {four NEAR nineteen} 0 5 {\n     ...eighteen {nineteen} twenty...three {four}...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.10 {four NEAR nineteen} 0 -5 {\n     ...seventeen eighteen {nineteen} twenty one....}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.11 {four NOT (nineteen twentyone)} 0 5 {\n     ...two three {four} five six...\n  } {\n     ...two three {four} five six...\n  }")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.4.12 {four OR nineteen NEAR twentyone} 0 5 {\n     ...two three {four} five six...\n  } {\n     ...two three {four} five six...\n  }")
 			{ // do_test T + ".5.1"
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n      INSERT INTO ft VALUES(\n        'one two three four five', \n        'four five six seven eight', \n        'seven eight nine ten eleven'\n      );\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(a, b, c);\n      INSERT INTO ft VALUES(\n        'one two three four five', \n        'four five six seven eight', \n        'seven eight nine ten eleven'\n      );\n    ")
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.2 {five} -1 3 {...three four {five}}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.3 {five} 0 3 {...three four {five}}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.4 {five} 1 3 {four {five} six...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.5 {five} 2 3 {seven eight nine...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.2 {five} -1 3 {...three four {five}}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.3 {five} 0 3 {...three four {five}}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.4 {five} 1 3 {four {five} six...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.5 {five} 2 3 {seven eight nine...}")
 			{ // do_test T + ".5.6"
 				_res = db.Exec(" UPDATE ft SET b = NULL ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE ft SET b = NULL ")
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.7 {five} -1 3 {...three four {five}}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.8 {five} 0 3 {...three four {five}}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.9 {five} 1 3 {}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.10 {five} 2 3 {seven eight nine...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.11 {one \"seven eight nine\"} -1 -3 {\n    {one} two three...{seven} {eight} {nine}...\n ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.7 {five} -1 3 {...three four {five}}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.8 {five} 0 3 {...three four {five}}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.9 {five} 1 3 {}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.10 {five} 2 3 {seven eight nine...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.5.11 {one \"seven eight nine\"} -1 -3 {\n    {one} two three...{seven} {eight} {nine}...\n ...}")
 			{ // do_test T + ".6.1"
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x);\n      INSERT INTO ft VALUES($numbers);\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x);\n      INSERT INTO ft VALUES($numbers);\n    ")
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.6.2 {\n    one fifty onehundred onehundredfifty twohundr...} -1 4 {\n    {one}...{fifty}...{onehundred}...{onehundredf...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_snippet_test $T.6.3 {\n    one fifty onehundred onehundredfifty twohundr...} -1 -4 {\n    {one} two three four...fortyeight fortynine {...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.6.2 {\n    one fifty onehundred onehundredfifty twohundr...} -1 4 {\n    {one}...{fifty}...{onehundred}...{onehundredf...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_snippet_test $T.6.3 {\n    one fifty onehundred onehundredfifty twohundr...} -1 -4 {\n    {one} two three four...fortyeight fortynine {...}")
 			{ // do_test T + ".7.1"
 				_res = db.Exec("\n      BEGIN;\n        DROP TABLE IF EXISTS ft;\n        CREATE VIRTUAL TABLE ft USING fts3(x);\n    ")
 				if _res.Error != nil {
@@ -185,11 +185,11 @@ func Test_fts3snippet(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES($ten);\n      INSERT INTO ft VALUES($ten || ' ' || $ten);\n    ")
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.2 one {1 1  1 3 2} {1 1  2 3 2}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.3 one NEAR/3 ten {2 1  1 1 1 1 1 1}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.4 five NEAR/4 ten {2 1  1 3 2  1 3 2} {2 1  2 3 2  2 3 2}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.5 six NEAR/3 ten NEAR/3 two {3 1  1 1 1  1 1 1  1 1 1}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.6 five NEAR/4 ten NEAR/3 two {3 1  2 2 1  1 1 1  1 1 1}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.2 one {1 1  1 3 2} {1 1  2 3 2}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.3 one NEAR/3 ten {2 1  1 1 1 1 1 1}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.4 five NEAR/4 ten {2 1  1 3 2  1 3 2} {2 1  2 3 2  2 3 2}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.5 six NEAR/3 ten NEAR/3 two {3 1  1 1 1  1 1 1  1 1 1}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.8.6 five NEAR/4 ten NEAR/3 two {3 1  2 2 1  1 1 1  1 1 1}")
 			{ // do_test T + ".9.1"
 				_res = db.Exec("\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x, y);\n    ")
 				if _res.Error != nil {
@@ -208,22 +208,22 @@ func Test_fts3snippet(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.2 {two*} { 1 2    1   105 3   101 606 3} { 1 2    3   105 3   202 606 3} { 1 2    101 105 3   303 606 3}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.4 {\"one* two*\"} { 1 2    1 5 3   2 12 3} { 1 2    2 5 3   4 12 3} { 1 2    2 5 3   6 12 3}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.5 {twohundredfifty} { 1 2    0 1 1   1 6 3} { 1 2    0 1 1   2 6 3} { 1 2    1 1 1   3 6 3}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.6 {\"threehundred one\"} { 1 2    0 0 0   1 3 2} { 1 2    0 0 0   2 3 2}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.7 {one OR fivehundred} { 2 2    1 3 3   1 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   2 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   3 6 3   0 0 0   0 0 0 }")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.8 {two OR \"threehundred one\"} { 2 2    1 3 3   1 6 3   0 0 0   0 3 2 } { 2 2    1 3 3   2 6 3   0 0 0   1 3 2 } { 2 2    1 3 3   3 6 3   0 0 0   2 3 2 }")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test $T.9.9 {\n    SELECT mit(matchinfo(ft)), mit(matchinfo(ft))...} [normalize {\n    {2 2 1 3 3 1 6 3 0 0 0 0 3 2}\n   ...")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.2 {two*} { 1 2    1   105 3   101 606 3} { 1 2    3   105 3   202 606 3} { 1 2    101 105 3   303 606 3}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.4 {\"one* two*\"} { 1 2    1 5 3   2 12 3} { 1 2    2 5 3   4 12 3} { 1 2    2 5 3   6 12 3}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.5 {twohundredfifty} { 1 2    0 1 1   1 6 3} { 1 2    0 1 1   2 6 3} { 1 2    1 1 1   3 6 3}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.6 {\"threehundred one\"} { 1 2    0 0 0   1 3 2} { 1 2    0 0 0   2 3 2}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.7 {one OR fivehundred} { 2 2    1 3 3   1 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   2 6 3   0 0 0   0 0 0 } { 2 2    1 3 3   3 6 3   0 0 0   0 0 0 }")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_matchinfo_test $T.9.8 {two OR \"threehundred one\"} { 2 2    1 3 3   1 6 3   0 0 0   0 3 2 } { 2 2    1 3 3   2 6 3   0 0 0   1 3 2 } { 2 2    1 3 3   3 6 3   0 0 0   2 3 2 }")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.9.9 {\n    SELECT mit(matchinfo(ft)), mit(matchinfo(ft))...} [normalize {\n    {2 2 1 3 3 1 6 3 0 0 0 0 3 2}\n   ...")
 			var r = "1000000"
 			_ = r // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test $T.10.0 { SELECT rowid FROM ft WHERE rowid = $r } $r")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test $T.10.1 {\n    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text 0 text 0 text}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test $T.10.2 {\n    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test $T.10.3 {\n    SELECT length(snippet(ft)), typeof(snippet(ft...} {0 text 0 text 0 text}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test $T.10.4 {\n    SELECT length(snippet(ft)), typeof(snippet(ft...} {0 text}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test $T.10.5 {\n    SELECT length(matchinfo(ft)), typeof(matchinf...} {0 blob 0 blob 0 blob}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_select_test $T.10.6 {\n    SELECT length(matchinfo(ft)), typeof(matchinf...} {0 blob}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.0 { SELECT rowid FROM ft WHERE rowid = $r } $r")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.1 {\n    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text 0 text 0 text}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.2 {\n    SELECT length(offsets(ft)), typeof(offsets(ft...} {0 text}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.3 {\n    SELECT length(snippet(ft)), typeof(snippet(ft...} {0 text 0 text 0 text}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.4 {\n    SELECT length(snippet(ft)), typeof(snippet(ft...} {0 text}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.5 {\n    SELECT length(matchinfo(ft)), typeof(matchinf...} {0 blob 0 blob 0 blob}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test $T.10.6 {\n    SELECT length(matchinfo(ft)), typeof(matchinf...} {0 blob}")
 		}
 		{ // "2.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts4;\n  INSERT INTO t2 VALUES('one two three four five');\n  INSERT INTO t2 VALUES('two three four five one');\n  INSERT INTO t2 VALUES('three four five one two');\n  INSERT INTO t2 VALUES('four five one two three');\n  INSERT INTO t2 VALUES('five one two three four');\n")

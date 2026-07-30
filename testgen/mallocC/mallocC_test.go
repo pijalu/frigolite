@@ -24,19 +24,19 @@ func Test_mallocC(t *testing.T) {
 		return
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db 1")
 	_res = db.Exec("\n  PRAGMA auto_vacuum=1;\n  CREATE TABLE t0(a, b, c);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA auto_vacuum=1;\n  CREATE TABLE t0(a, b, c);\n")
 	}
 	if false {
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 50 500")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-		t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 50 500")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_mallocC_test 1 -sql {\n  BEGIN;\n  -- Allocate 32 new root pages. This wi...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_mallocC_test 1 -sql {\n  BEGIN;\n  -- Allocate 32 new root pages. This wi...}")
 }

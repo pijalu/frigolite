@@ -130,5 +130,5 @@ func Test_shared4(t *testing.T) {
 	db2.Close()
 	db3.Close()
 	db4.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

@@ -444,7 +444,7 @@ func Test_returning1(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
 	{ // "15.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x REAL);\n  INSERT INTO t1(x) VALUES(5.0) RETURNING x, affinity(x);\n")
 		if _res.Error != nil {

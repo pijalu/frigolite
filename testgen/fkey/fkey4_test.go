@@ -32,21 +32,21 @@ func Test_fkey4(t *testing.T) {
 		_ = _SQL // suppress unused warning
 		var _STMT1 = "" // TCL namespace variable
 		_ = _STMT1 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT1")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode fkey4-1.2b SQLITE_CONSTRAINT_FOREIGNKEY")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode fkey4-1.2b SQLITE_CONSTRAINT_FOREIGNKEY")
 	{ // do_test "fkey4-1.3"
 		var _STMT2 = "" // TCL namespace variable
 		_ = _STMT2 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT2")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode fkey4-1.3b SQLITE_CONSTRAINT_FOREIGNKEY")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode fkey4-1.3b SQLITE_CONSTRAINT_FOREIGNKEY")
 	{ // do_test "fkey4-1.4"
 		_res = db.Exec("SELECT * FROM t2")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t2")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT2")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT2")
 }

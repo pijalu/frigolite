@@ -20,8 +20,8 @@ func Test_fuzz3(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
 	// expr srand(123) → "srand(123)"
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -60,12 +60,12 @@ func Test_fuzz3(t *testing.T) {
 	var _cksum = "db_checksum" // TCL namespace variable
 	_ = _cksum // suppress unused warning
 	{ // do_test "fuzz3-2"
-		t.Skipf("TODO: %s not implemented in frigolite", "db_checksum")
+		t.Errorf("TODO: %s not implemented in frigolite", "db_checksum")
 	}
 	var ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 5000 }() {
-		t.Skipf("TODO: %s not implemented in frigolite", "purge_pcache")
+		t.Errorf("TODO: %s not implemented in frigolite", "purge_pcache")
 		iNew := "0"
 		_ = iNew // suppress unused warning
 		var iOld = "modify_database $iNew"
@@ -81,10 +81,10 @@ func Test_fuzz3(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "purge_pcache")
-		t.Skipf("TODO: %s not implemented in frigolite", "modify_database $iOld")
+		t.Errorf("TODO: %s not implemented in frigolite", "purge_pcache")
+		t.Errorf("TODO: %s not implemented in frigolite", "modify_database $iOld")
 		{ // do_test "fuzz3-" + ii + "." + iNew + "." + "incr iTest"
-			t.Skipf("TODO: %s not implemented in frigolite", "db_checksum")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_checksum")
 		}
 		// incr ii 1
 		{
@@ -94,5 +94,5 @@ func Test_fuzz3(t *testing.T) {
 			}
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
 }

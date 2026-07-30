@@ -65,7 +65,7 @@ func Test_without_rowid7(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.2b {\n  SELECT *, '|' FROM pragma_index_info('t2');\n} {0 0 a | 1 0 a |}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.2b {\n  SELECT *, '|' FROM pragma_index_info('t2');\n} {0 0 a | 1 0 a |}")
 	{ // "2.3a"
 		r = db.Query("\n  PRAGMA index_xinfo(t2);\n")
 		if r.Error != nil {
@@ -78,7 +78,7 @@ func Test_without_rowid7(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.3b {\n  SELECT *, '|' FROM pragma_index_xinfo('t2');\n} {0 0 a 0 nocase 1 | 1 0 a 0 BINARY 1 | 2 1 b 0 BINA...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.3b {\n  SELECT *, '|' FROM pragma_index_xinfo('t2');\n} {0 0 a 0 nocase 1 | 1 0 a 0 BINARY 1 | 2 1 b 0 BINA...}")
 	{ // "2.4"
 		r = db.Query("\n  CREATE TABLE t3(a, b, PRIMARY KEY(a COLLATE nocase, a));\n  PRAGMA index_info(t3);\n")
 		if r.Error != nil {
@@ -104,7 +104,7 @@ func Test_without_rowid7(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
 	}
 	{ // "3.2.1"
 		_res = db.Exec("\n  CREATE UNIQUE INDEX i1 ON t1(b);\n")
@@ -113,7 +113,7 @@ func Test_without_rowid7(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -124,22 +124,22 @@ func Test_without_rowid7(t *testing.T) {
 		}
 	}
 	{ // do_test "3.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
 	}
 	{ // do_test "3.4.1"
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
 	{ // do_test "3.4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes db 1")
 	{ // do_test "3.5.1"
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
 	{ // do_test "3.5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
 	}
 	{ // "3.6"
 		_res = db.Exec("\n  SELECT * FROM t1 WHERE a=1;\n")

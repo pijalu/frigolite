@@ -1181,7 +1181,7 @@ func Test_e_expr(t *testing.T) {
 											// proc definition (not transpiled)
 											var mvn = SQLITE_MAX_VARIABLE_NUMBER
 											_ = mvn // suppress unused warning
-											t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.1 \n  SELECT ?1, ?123, ?$SQLITE_MAX_VARIABLE_NUMBER, ... 1 ?1  123 ?123 $mvn ?$mvn 4 ?4 -1 -123 -$mvn -123 -4")
+											t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.1 \n  SELECT ?1, ?123, ?$SQLITE_MAX_VARIABLE_NUMBER, ... 1 ?1  123 ?123 $mvn ?$mvn 4 ?4 -1 -123 -$mvn -123 -4")
 											var errmsg = "variable number must be between ?1 and ?" + SQLITE_MAX_VARIABLE_NUMBER
 											_ = errmsg // suppress unused warning
 											// foreach {tn param_number} "list \\\n  2  0                                    \\\n  3  [expr $SQLITE_MAX_VARIABLE_NUMBER+1] \\\n  4  [expr $SQLITE_MAX_VARIABLE_NUMBER+2] \\\n  5  12345678903456789034567890234567890  \\\n  6  2147483648                           \\\n  7  2147483649                           \\\n  8  4294967296                           \\\n  9  4294967297                           \\\n  10 9223372036854775808                  \\\n  11 9223372036854775809                  \\\n  12 18446744073709551616                 \\\n  13 18446744073709551617                 \\"
@@ -1199,12 +1199,12 @@ func Test_e_expr(t *testing.T) {
 														}
 													}
 												}
-												t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.1 SELECT ? {1 {}} -1")
-												t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.2 SELECT ?, ? {1 {} 2 {}} {-1 -2}")
-												t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.3 SELECT ?5, ? {5 ?5 6 {}} {-5 -6}")
-												t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.4 SELECT ?, ?5 {1 {} 5 ?5} {-1 -5}")
-												t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.5 SELECT ?, ?456, ? {\n  1 {} 456 ?456 457 {}\n} {-1 -456 -457}")
-												t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.5 SELECT ?, ?456, ?4, ? {\n  1 {} 456 ?456 4 ?4 457 {}\n} {-1 -456 -4 -457}")
+												t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.1 SELECT ? {1 {}} -1")
+												t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.2 SELECT ?, ? {1 {} 2 {}} {-1 -2}")
+												t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.3 SELECT ?5, ? {5 ?5 6 {}} {-5 -6}")
+												t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.4 SELECT ?, ?5 {1 {} 5 ?5} {-1 -5}")
+												t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.5 SELECT ?, ?456, ? {\n  1 {} 456 ?456 457 {}\n} {-1 -456 -457}")
+												t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.5 SELECT ?, ?456, ?4, ? {\n  1 {} 456 ?456 4 ?4 457 {}\n} {-1 -456 -4 -457}")
 												// foreach {tn sql} "list                           \\\n  1  \"SELECT ?$mvn, ?\"                           \\\n  2  \"SELECT ?[expr $mvn-5], ?, ?, ?, ?, ?, ?\"   \\\n  3  \"SELECT ?[expr $mvn], ?5, ?6, ?\"            \\"
 												_items := tclSplitList("list                           \\\n  1  \"SELECT ?$mvn, ?\"                           \\\n  2  \"SELECT ?[expr $mvn-5], ?, ?, ?, ?, ?, ?\"   \\\n  3  \"SELECT ?[expr $mvn], ?5, ?6, ?\"            \\")
 												for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
@@ -1220,30 +1220,30 @@ func Test_e_expr(t *testing.T) {
 															}
 														}
 													}
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.1 {SELECT :AAAA} {1 :AAAA} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.2 {SELECT :123} {1 :123} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.3 {SELECT :__} {1 :__} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.4 {SELECT :_$_} {1 :_$_} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.5 \n  SELECT :\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u0... 1 :\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u0e2d\\u0e2... -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.6 SELECT :\\u0080 1 :\\u0080 -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.1 {SELECT @AAAA} {1 @AAAA} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.2 {SELECT @123} {1 @123} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.3 {SELECT @__} {1 @__} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.4 {SELECT @_$_} {1 @_$_} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.5 \n  SELECT @\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u0... 1 @\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u0e2d\\u0e2... -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.6 SELECT @\\u0080 1 @\\u0080 -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.1 {SELECT $AAAA} {1 $AAAA} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.2 {SELECT $123} {1 $123} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.3 {SELECT $__} {1 $__} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.4 {SELECT $_$_} {1 $_$_} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.5 \n  SELECT \\$\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u... 1 \\$\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u0e2d\\u0e... -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.6 SELECT \\$\\u0080 1 \\$\\u0080 -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.5.1 {SELECT $::::a(++--++)} {1 $::::a(++--++)} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.5.2 {SELECT $::a()} {1 $::a()} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.5.3 {SELECT $::1(::#$)} {1 $::1(::#$)} -1")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.6.1 SELECT ?, @abc {1 {} 2 @abc} {-1 -2}")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.6.2 SELECT ?123, :a1 {123 ?123 124 :a1} {-123 -124}")
-													t.Skipf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.6.3 {SELECT $a, ?8, ?, $b, ?2, $c} {\n  1 $a 8 ?8 9 {} 10 $b 2 ?2 11 $c\n} {-1 -8 -9 -10 -2 -11}")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.1 {SELECT :AAAA} {1 :AAAA} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.2 {SELECT :123} {1 :123} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.3 {SELECT :__} {1 :__} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.4 {SELECT :_$_} {1 :_$_} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.5 \n  SELECT :\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u0... 1 :\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u0e2d\\u0e2... -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.2.6 SELECT :\\u0080 1 :\\u0080 -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.1 {SELECT @AAAA} {1 @AAAA} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.2 {SELECT @123} {1 @123} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.3 {SELECT @__} {1 @__} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.4 {SELECT @_$_} {1 @_$_} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.5 \n  SELECT @\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u0... 1 @\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u0e2d\\u0e2... -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.3.6 SELECT @\\u0080 1 @\\u0080 -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.1 {SELECT $AAAA} {1 $AAAA} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.2 {SELECT $123} {1 $123} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.3 {SELECT $__} {1 $__} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.4 {SELECT $_$_} {1 $_$_} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.5 \n  SELECT \\$\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u... 1 \\$\\u0e40\\u0e2d\\u0e28\\u0e02\\u0e39\\u0e40\\u0e2d\\u0e... -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.4.6 SELECT \\$\\u0080 1 \\$\\u0080 -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.5.1 {SELECT $::::a(++--++)} {1 $::::a(++--++)} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.5.2 {SELECT $::a()} {1 $::a()} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.5.3 {SELECT $::1(::#$)} {1 $::1(::#$)} -1")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.6.1 SELECT ?, @abc {1 {} 2 @abc} {-1 -2}")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.6.2 SELECT ?123, :a1 {123 ?123 124 :a1} {-123 -124}")
+													t.Errorf("TODO: %s not implemented in frigolite", "parameter_test e_expr-11.6.3 {SELECT $a, ?8, ?, $b, ?2, $c} {\n  1 $a 8 ?8 9 {} 10 $b 2 ?2 11 $c\n} {-1 -8 -9 -10 -2 -11}")
 													// foreach {tn sql} "list                           \\\n  1  \"SELECT ?$mvn, \\$::a\"                       \\\n  2  \"SELECT ?$mvn, ?4, @a1\"                     \\\n  3  \"SELECT ?[expr $mvn-2], :bag, @123, \\$x\"    \\"
 													_items := tclSplitList("list                           \\\n  1  \"SELECT ?$mvn, \\$::a\"                       \\\n  2  \"SELECT ?$mvn, ?4, @a1\"                     \\\n  3  \"SELECT ?[expr $mvn-2], :bag, @123, \\$x\"    \\")
 													for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
@@ -1262,12 +1262,12 @@ func Test_e_expr(t *testing.T) {
 														{ // do_test "e_expr-11.7.1"
 															var stmt = ""
 															_ = stmt // suppress unused warning
-															t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+															t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
 															_list := tclList([]string{"sqlite3_column_type $stmt 0", "sqlite3_column_type $stmt 1", "sqlite3_column_type $stmt 2", "sqlite3_column_type $stmt 3"})
 															_ = _list
 														}
 														{ // do_test "e_expr-11.7.1"
-															t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+															t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 														}
 														{ // "e_expr-12.1.1"
 															r = db.Query(" SELECT 0, +0, -0 ")
@@ -3221,16 +3221,16 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.2.1 { CAST(NULL AS integer) } null {}")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.2.2 { CAST(NULL AS text) } null {}")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.2.3 { CAST(NULL AS blob) } null {}")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.2.4 { CAST(NULL AS number) } null {}")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.3.1 { CAST('abc' AS blob)       } blob abc")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.3.2 { CAST('def' AS shobblob_x) } blob def")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.3.3 { CAST('ghi' AS abbLOb10)   } blob ghi")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_qexpr_test e_expr-27.4.1 { CAST('ghi' AS blob) } X'676869'")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_qexpr_test e_expr-27.4.2 { CAST(456 AS blob) } X'343536'")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_qexpr_test e_expr-27.4.3 { CAST(1.78 AS blob) } X'312E3738'")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.2.1 { CAST(NULL AS integer) } null {}")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.2.2 { CAST(NULL AS text) } null {}")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.2.3 { CAST(NULL AS blob) } null {}")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.2.4 { CAST(NULL AS number) } null {}")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.3.1 { CAST('abc' AS blob)       } blob abc")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.3.2 { CAST('def' AS shobblob_x) } blob def")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-27.3.3 { CAST('ghi' AS abbLOb10)   } blob ghi")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_qexpr_test e_expr-27.4.1 { CAST('ghi' AS blob) } X'676869'")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_qexpr_test e_expr-27.4.2 { CAST(456 AS blob) } X'343536'")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_qexpr_test e_expr-27.4.3 { CAST(1.78 AS blob) } X'312E3738'")
 																		db, err = frigolite.Open(":memory:")
 																		if err != nil { t.Fatal(err) }
 																		db, err = frigolite.Open(":memory:")
@@ -3239,73 +3239,73 @@ func Test_e_expr(t *testing.T) {
 																		if _res.Error != nil {
 																			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " PRAGMA encoding = 'utf-16be' ")
 																		}
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.1.1 { CAST (X'676869' AS text) } text ghi")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.1.2 { CAST (X'670068006900' AS text) } text g")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.1.1 { CAST (X'676869' AS text) } text ghi")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.1.2 { CAST (X'670068006900' AS text) } text g")
 																		db, err = frigolite.Open(":memory:")
 																		if err != nil { t.Fatal(err) }
 																		_res = db.Exec(" PRAGMA encoding = 'utf-16le' ")
 																		if _res.Error != nil {
 																			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " PRAGMA encoding = 'utf-16le' ")
 																		}
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.1 { CAST (1 AS text)   } text 1")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.2 { CAST (45 AS text)  } text 45")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.3 { CAST (-45 AS text) } text -45")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.4 { CAST (8.8 AS text)    } text 8.8")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.5 { CAST (2.3e+5 AS text) } text 230000.0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.6 { CAST (-2.3e-5 AS text) } text -2.3e-05")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.7 { CAST (0.0 AS text) } text 0.0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.7 { CAST (0 AS text) } text 0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.1.1 { CAST (X'312E3233' AS REAL) } real 1.23")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.1.2 { CAST (X'3233302E30' AS REAL) } real 230.0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.1.3 { CAST (X'2D392E3837' AS REAL) } real -9.87")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.1.4 { CAST (X'302E30303031' AS REAL) } real 0.0001")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.1 { CAST (1 AS text)   } text 1")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.2 { CAST (45 AS text)  } text 45")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.3 { CAST (-45 AS text) } text -45")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.4 { CAST (8.8 AS text)    } text 8.8")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.5 { CAST (2.3e+5 AS text) } text 230000.0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.6 { CAST (-2.3e-5 AS text) } text -2.3e-05")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.7 { CAST (0.0 AS text) } text 0.0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-28.2.7 { CAST (0 AS text) } text 0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.1.1 { CAST (X'312E3233' AS REAL) } real 1.23")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.1.2 { CAST (X'3233302E30' AS REAL) } real 230.0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.1.3 { CAST (X'2D392E3837' AS REAL) } real -9.87")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.1.4 { CAST (X'302E30303031' AS REAL) } real 0.0001")
 																		db, err = frigolite.Open(":memory:")
 																		if err != nil { t.Fatal(err) }
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.2.1 { CAST('1.23abcd' AS REAL) } real 1.23")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.2.2 { CAST('1.45.23abcd' AS REAL) } real 1.45")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.2.3 { CAST('-2.12e-01ABC' AS REAL) } real -0.212")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.2.4 { CAST('1 2 3 4' AS REAL) } real 1.0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.3.1 { CAST(' 1.23abcd' AS REAL) } real 1.23")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.3.2 { CAST('    1.45.23abcd' AS REAL) } real 1.45")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.3.3 { CAST('   -2.12e-01ABC' AS REAL) } real -0.212")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.3.4 { CAST(' 1 2 3 4' AS REAL) } real 1.0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.4.1 { CAST('' AS REAL) } real 0.0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.4.2 { CAST('not a number' AS REAL) } real 0.0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.4.3 { CAST('XXI' AS REAL) } real 0.0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.1.1 { CAST(X'313233' AS INTEGER) } integer 123")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.1.2 { CAST(X'2D363738' AS INTEGER) } integer -678")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.1.3 { \n  CAST(X'31303030303030' AS INTEGER) \n} integer 1000000")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.1.4 { \n  CAST(X'2D31313235383939393036383432363234' AS ...} integer -1125899906842624")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.2.1 { CAST('1.23abcd' AS REAL) } real 1.23")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.2.2 { CAST('1.45.23abcd' AS REAL) } real 1.45")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.2.3 { CAST('-2.12e-01ABC' AS REAL) } real -0.212")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.2.4 { CAST('1 2 3 4' AS REAL) } real 1.0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.3.1 { CAST(' 1.23abcd' AS REAL) } real 1.23")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.3.2 { CAST('    1.45.23abcd' AS REAL) } real 1.45")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.3.3 { CAST('   -2.12e-01ABC' AS REAL) } real -0.212")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.3.4 { CAST(' 1 2 3 4' AS REAL) } real 1.0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.4.1 { CAST('' AS REAL) } real 0.0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.4.2 { CAST('not a number' AS REAL) } real 0.0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-29.4.3 { CAST('XXI' AS REAL) } real 0.0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.1.1 { CAST(X'313233' AS INTEGER) } integer 123")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.1.2 { CAST(X'2D363738' AS INTEGER) } integer -678")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.1.3 { \n  CAST(X'31303030303030' AS INTEGER) \n} integer 1000000")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.1.4 { \n  CAST(X'2D31313235383939393036383432363234' AS ...} integer -1125899906842624")
 																		db, err = frigolite.Open(":memory:")
 																		if err != nil { t.Fatal(err) }
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.2.1 { CAST('123abcd' AS INT) } integer 123")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.2.2 { CAST('14523abcd' AS INT) } integer 14523")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.2.3 { CAST('-2.12e-01ABC' AS INT) } integer -2")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.2.4 { CAST('1 2 3 4' AS INT) } integer 1")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.3.1 { CAST('   123abcd' AS INT) } integer 123")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.3.2 { CAST('  14523abcd' AS INT) } integer 14523")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.3.3 { CAST(' -2.12e-01ABC' AS INT) } integer -2")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.3.4 { CAST('     1 2 3 4' AS INT) } integer 1")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.4.1 { CAST('' AS INTEGER) } integer 0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.4.2 { CAST('not a number' AS INTEGER) } integer 0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.4.3 { CAST('XXI' AS INTEGER) } integer 0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.5.1 { CAST('0x1234' AS INTEGER) } integer 0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.5.2 { CAST('0X1234' AS INTEGER) } integer 0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.1.1 { CAST(3.14159 AS INTEGER) } integer 3")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.1.2 { CAST(1.99999 AS INTEGER) } integer 1")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.1.3 { CAST(-1.99999 AS INTEGER) } integer -1")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.1.4 { CAST(-0.99999 AS INTEGER) } integer 0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.2.1 { CAST(2e+50 AS INT) } integer 9223372036854775807")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.2.2 { CAST(-2e+50 AS INT) } integer -9223372036854775808")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.2.3 { \n  CAST(-9223372036854775809.0 AS INT)\n} integer -9223372036854775808")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.2.4 { \n  CAST(9223372036854775809.0 AS INT)\n} integer 9223372036854775807")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.1 { CAST('45'   AS NUMERIC)  } integer 45")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.2 { CAST('45.0' AS NUMERIC)  } integer 45")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.3 { CAST('45.2' AS NUMERIC)  } real 45.2")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.4 { CAST('11abc' AS NUMERIC) } integer 11")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.5 { CAST('11.1abc' AS NUMERIC) } real 11.1")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.6 {CAST( '9.223372036e14' AS NUMERIC)} integer 922337203600000")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.7 {CAST('-9.223372036e14' AS NUMERIC)} integer -922337203600000")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.2.1 { CAST('123abcd' AS INT) } integer 123")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.2.2 { CAST('14523abcd' AS INT) } integer 14523")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.2.3 { CAST('-2.12e-01ABC' AS INT) } integer -2")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.2.4 { CAST('1 2 3 4' AS INT) } integer 1")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.3.1 { CAST('   123abcd' AS INT) } integer 123")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.3.2 { CAST('  14523abcd' AS INT) } integer 14523")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.3.3 { CAST(' -2.12e-01ABC' AS INT) } integer -2")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.3.4 { CAST('     1 2 3 4' AS INT) } integer 1")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.4.1 { CAST('' AS INTEGER) } integer 0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.4.2 { CAST('not a number' AS INTEGER) } integer 0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.4.3 { CAST('XXI' AS INTEGER) } integer 0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.5.1 { CAST('0x1234' AS INTEGER) } integer 0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-30.5.2 { CAST('0X1234' AS INTEGER) } integer 0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.1.1 { CAST(3.14159 AS INTEGER) } integer 3")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.1.2 { CAST(1.99999 AS INTEGER) } integer 1")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.1.3 { CAST(-1.99999 AS INTEGER) } integer -1")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.1.4 { CAST(-0.99999 AS INTEGER) } integer 0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.2.1 { CAST(2e+50 AS INT) } integer 9223372036854775807")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.2.2 { CAST(-2e+50 AS INT) } integer -9223372036854775808")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.2.3 { \n  CAST(-9223372036854775809.0 AS INT)\n} integer -9223372036854775808")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-31.2.4 { \n  CAST(9223372036854775809.0 AS INT)\n} integer 9223372036854775807")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.1 { CAST('45'   AS NUMERIC)  } integer 45")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.2 { CAST('45.0' AS NUMERIC)  } integer 45")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.3 { CAST('45.2' AS NUMERIC)  } real 45.2")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.4 { CAST('11abc' AS NUMERIC) } integer 11")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.5 { CAST('11.1abc' AS NUMERIC) } real 11.1")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.6 {CAST( '9.223372036e14' AS NUMERIC)} integer 922337203600000")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.7 {CAST('-9.223372036e14' AS NUMERIC)} integer -922337203600000")
 																		{ // do_test "e_expr-32.1.8"
 																			var expr = "CAST( '9.223372036e15' AS NUMERIC)"
 																			_ = expr // suppress unused warning
@@ -3326,17 +3326,17 @@ func Test_e_expr(t *testing.T) {
 																			_list := tclList([]string{_type, value})
 																			_ = _list
 																		}
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.20 { CAST('9223372036854775807' AS numeric) } integer 9223372036854775807")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.21 { CAST('9223372036854775808' AS numeric) } real 9.22337203685478e+18")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.22 { CAST('-9223372036854775808' AS numeric) } integer -9223372036854775808")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.23 { CAST('-9223372036854775809' AS numeric) } real -9.22337203685478e+18")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.1 { CAST(13.0 AS NUMERIC) } real 13.0")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.2 { CAST(13.5 AS NUMERIC) } real 13.5")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.3 { \n  CAST(-9223372036854775808 AS NUMERIC)\n} integer -9223372036854775808")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.4 { \n  CAST(9223372036854775807 AS NUMERIC)\n} integer 9223372036854775807")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.5 { \n  CAST('9223372036854775807 ' AS NUMERIC)\n} integer 9223372036854775807")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.6 { \n  CAST('   9223372036854775807   ' AS NUMERIC)\n} integer 9223372036854775807")
-																		t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.7 { \n  CAST('  ' AS NUMERIC)\n} integer 0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.20 { CAST('9223372036854775807' AS numeric) } integer 9223372036854775807")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.21 { CAST('9223372036854775808' AS numeric) } real 9.22337203685478e+18")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.22 { CAST('-9223372036854775808' AS numeric) } integer -9223372036854775808")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.1.23 { CAST('-9223372036854775809' AS numeric) } real -9.22337203685478e+18")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.1 { CAST(13.0 AS NUMERIC) } real 13.0")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.2 { CAST(13.5 AS NUMERIC) } real 13.5")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.3 { \n  CAST(-9223372036854775808 AS NUMERIC)\n} integer -9223372036854775808")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.4 { \n  CAST(9223372036854775807 AS NUMERIC)\n} integer 9223372036854775807")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.5 { \n  CAST('9223372036854775807 ' AS NUMERIC)\n} integer 9223372036854775807")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.6 { \n  CAST('   9223372036854775807   ' AS NUMERIC)\n} integer 9223372036854775807")
+																		t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-32.2.7 { \n  CAST('  ' AS NUMERIC)\n} integer 0")
 																		{ // "e_expr-32.2.8"
 																			r = db.Query("\n  WITH t1(x) AS (VALUES\n     ('9000000000000000001'),\n     ('9000000000000000001x'),\n     ('9000000000000000001 '),\n     (' 9000000000000000001 '),\n     (' 9000000000000000001'),\n     (' 9000000000000000001.'),\n     ('9223372036854775807'),\n     ('9223372036854775807 '),\n     ('   9223372036854775807   '),\n     ('9223372036854775808'),\n     ('   9223372036854775808   '),\n     ('9223372036854775807.0'),\n     ('9223372036854775807e+0'),\n     ('-5.0'),\n     ('-5e+0'))\n  SELECT typeof(CAST(x AS NUMERIC)), CAST(x AS NUMERIC)||'' FROM t1;\n")
 																			if r.Error != nil {
@@ -3370,7 +3370,7 @@ func Test_e_expr(t *testing.T) {
 																			expr := _items[_idx+1]
 																			_ = expr // suppress unused warning
 																			_ = _idx
-																				t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-34.2.$tn $expr integer 1")
+																				t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-34.2.$tn $expr integer 1")
 																			}
 																			// foreach {tn expr} "\n    1 { EXISTS ( SELECT a FROM t1 WHERE 0) }\n    2 { EXISTS ( SELECT b FROM t1 WHERE a = 5) }\n    3 { EXISTS ( SELECT 24 WHERE 0) }\n    4 { EXISTS ( SELECT NULL WHERE 1=2) }\n"
 																			_items := tclSplitList("\n    1 { EXISTS ( SELECT a FROM t1 WHERE 0) }\n    2 { EXISTS ( SELECT b FROM t1 WHERE a = 5) }\n    3 { EXISTS ( SELECT 24 WHERE 0) }\n    4 { EXISTS ( SELECT NULL WHERE 1=2) }\n")
@@ -3380,7 +3380,7 @@ func Test_e_expr(t *testing.T) {
 																				expr := _items[_idx+1]
 																				_ = expr // suppress unused warning
 																				_ = _idx
-																					t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-34.3.$tn $expr integer 0")
+																					t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-34.3.$tn $expr integer 0")
 																				}
 																				// foreach {tn expr res} "\n    1 { EXISTS ( SELECT * FROM t1 ) }                          1\n    2 { EXISTS ( SELECT *, *, * FROM t1 ) }                    1\n    3 { EXISTS ( SELECT 24, 25 ) }                             1\n    4 { EXISTS ( SELECT NULL, NULL, NULL ) }                   1\n    5 { EXISTS ( SELECT a,b,a||b FROM t1 WHERE a IS NULL ) }   1\n\n    6 { EXISTS ( SELECT a, a FROM t1 WHERE 0) }                0\n    7 { EXISTS ( SELECT b, b, a FROM t1 WHERE a = 5) }         0\n    8 { EXISTS ( SELECT 24, 46, 89 WHERE 0) }                  0\n    9 { EXISTS ( SELECT NULL, NULL WHERE 1=2) }                0\n"
 																				_items := tclSplitList("\n    1 { EXISTS ( SELECT * FROM t1 ) }                          1\n    2 { EXISTS ( SELECT *, *, * FROM t1 ) }                    1\n    3 { EXISTS ( SELECT 24, 25 ) }                             1\n    4 { EXISTS ( SELECT NULL, NULL, NULL ) }                   1\n    5 { EXISTS ( SELECT a,b,a||b FROM t1 WHERE a IS NULL ) }   1\n\n    6 { EXISTS ( SELECT a, a FROM t1 WHERE 0) }                0\n    7 { EXISTS ( SELECT b, b, a FROM t1 WHERE a = 5) }         0\n    8 { EXISTS ( SELECT 24, 46, 89 WHERE 0) }                  0\n    9 { EXISTS ( SELECT NULL, NULL WHERE 1=2) }                0\n")
@@ -3392,7 +3392,7 @@ func Test_e_expr(t *testing.T) {
 																					res := _items[_idx+2]
 																					_ = res // suppress unused warning
 																					_ = _idx
-																						t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-34.4.$tn $expr integer $res")
+																						t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-34.4.$tn $expr integer $res")
 																					}
 																					// foreach {tn e1 e2} "\n  1 { EXISTS (SELECT 'not null') }    { EXISTS (SELECT NULL) }\n  2 { EXISTS (SELECT NULL FROM t1) }  { EXISTS (SELECT 'bread' FROM t1) }\n"
 																					_items := tclSplitList("\n  1 { EXISTS (SELECT 'not null') }    { EXISTS (SELECT NULL) }\n  2 { EXISTS (SELECT NULL FROM t1) }  { EXISTS (SELECT 'bread' FROM t1) }\n")
@@ -3406,8 +3406,8 @@ func Test_e_expr(t *testing.T) {
 																						_ = _idx
 																							var res = "db one \"SELECT $e1\""
 																							_ = res // suppress unused warning
-																							t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-34.5.$ {tn} a $e1 integer $res")
-																							t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-34.5.$ {tn} b $e2 integer $res")
+																							t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-34.5.$ {tn} a $e1 integer $res")
+																							t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-34.5.$ {tn} b $e2 integer $res")
 																						}
 																						{
 																							var _catchErr error
@@ -3422,12 +3422,12 @@ func Test_e_expr(t *testing.T) {
 																								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a, b);\n    INSERT INTO t2 VALUES('one', 'two');\n    INSERT INTO t2 VALUES('three', NULL);\n    INSERT INTO t2 VALUES(4, 5.0);\n  ")
 																							}
 																						}
-																						t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.1 { (SELECT 35)   } integer 35")
-																						t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.2 { (SELECT NULL) } null {}")
-																						t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.3 { (SELECT count(*) FROM t2) } integer 3")
-																						t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.4 { (SELECT 4 FROM t2) } integer 4")
-																						t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.5 { \n  (SELECT b FROM t2 UNION SELECT a+1 FROM t2)\n} null {}")
-																						t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.6 { \n  (SELECT a FROM t2 UNION SELECT COALESCE(b, 55)...} integer 4")
+																						t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.1 { (SELECT 35)   } integer 35")
+																						t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.2 { (SELECT NULL) } null {}")
+																						t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.3 { (SELECT count(*) FROM t2) } integer 3")
+																						t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.4 { (SELECT 4 FROM t2) } integer 4")
+																						t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.5 { \n  (SELECT b FROM t2 UNION SELECT a+1 FROM t2)\n} null {}")
+																						t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-35.1.6 { \n  (SELECT a FROM t2 UNION SELECT COALESCE(b, 55)...} integer 4")
 																						var M = "/1 {sub-select returns [23] columns - expected 1}/"
 																						_ = M // suppress unused warning
 																						// foreach {tn sql} "\n  1     { SELECT (SELECT * FROM t2 UNION SELECT a+1, b+1 FROM t2) }\n  2     { SELECT (SELECT * FROM t2 UNION SELECT a+1, b+1 FROM t2 ORDER BY 1) }\n  3     { SELECT (SELECT 1, 2) }\n  4     { SELECT (SELECT NULL, NULL, NULL) }\n  5     { SELECT (SELECT * FROM t2) }\n  6     { SELECT (SELECT * FROM (SELECT 1, 2, 3)) }\n"
@@ -3463,7 +3463,7 @@ func Test_e_expr(t *testing.T) {
 																								resval := _items[_idx+3]
 																								_ = resval // suppress unused warning
 																								_ = _idx
-																									t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-36.3.$tn $expr $restype $resval")
+																									t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-36.3.$tn $expr $restype $resval")
 																								}
 																								// foreach {tn expr} "\n    1  { ( SELECT x FROM t4 WHERE x>3 ORDER BY x )      }\n    2  { ( SELECT x FROM t4 WHERE y<'one' ORDER BY y )  }\n"
 																								_items := tclSplitList("\n    1  { ( SELECT x FROM t4 WHERE x>3 ORDER BY x )      }\n    2  { ( SELECT x FROM t4 WHERE y<'one' ORDER BY y )  }\n")
@@ -3473,7 +3473,7 @@ func Test_e_expr(t *testing.T) {
 																									expr := _items[_idx+1]
 																									_ = expr // suppress unused warning
 																									_ = _idx
-																										t.Skipf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-36.4.$tn $expr null {}")
+																										t.Errorf("TODO: %s not implemented in frigolite", "do_expr_test e_expr-36.4.$tn $expr null {}")
 																									}
 																									{ // "e_expr-37.1"
 																										r = db.Query("\n   SELECT CASE WHEN NULL THEN 'true' ELSE 'false' END, iif(NULL,'true','false');\n")

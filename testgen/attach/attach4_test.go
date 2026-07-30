@@ -39,7 +39,7 @@ func Test_attach4(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_ATTACHED -1")
 	}
 	{ // do_test "1.2.1"
 		// foreach {name f} files

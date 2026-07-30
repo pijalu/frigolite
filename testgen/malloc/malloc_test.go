@@ -27,9 +27,9 @@ func Test_malloc(t *testing.T) {
 		return
 	}
 	t.Log("stderr")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_dump $testdir")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_dump $testdir")
 	t.Log("Memory dump to file memdump.txt...")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_dump memdump.txt")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_dump memdump.txt")
 	{ // do_test "malloc-1.X"
 		{
 			var _catchErr error
@@ -42,7 +42,7 @@ func Test_malloc(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 3 -sqlbody {\n  BEGIN TRANSACTION;\n  CREATE TABLE t1(a int, b i...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 3 -sqlbody {\n  BEGIN TRANSACTION;\n  CREATE TABLE t1(a int, b i...}")
 	{ // do_test "malloc-3.X"
 		{
 			var _catchErr error
@@ -61,17 +61,17 @@ func Test_malloc(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 7 -sqlprep {\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(...} -sqlbody {\n  SELECT min(a) FROM t1 WHERE a<6 GROUP BY b;\n  S...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 9 -sqlprep {\n  ATTACH 'test2.db' as test2;\n  CREATE TABLE abc1...} -sqlbody {\n  BEGIN;\n  INSERT INTO abc1 VALUES(1, 2, 3);\n  IN...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 10 -tclprep {\n  catch {db2 close}\n  db close\n  forcedelete test...} -tclbody {\n  db close\n  sqlite3 db2 test.db\n  sqlite3_extend...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 11 -tclbody {\n  set rc [sqlite3_create_function db]\n  if {[stri...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 12 -tclbody {\n  set sql16 [encoding convertto unicode \"SELECT *...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 7 -sqlprep {\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(...} -sqlbody {\n  SELECT min(a) FROM t1 WHERE a<6 GROUP BY b;\n  S...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 9 -sqlprep {\n  ATTACH 'test2.db' as test2;\n  CREATE TABLE abc1...} -sqlbody {\n  BEGIN;\n  INSERT INTO abc1 VALUES(1, 2, 3);\n  IN...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 10 -tclprep {\n  catch {db2 close}\n  db close\n  forcedelete test...} -tclbody {\n  db close\n  sqlite3 db2 test.db\n  sqlite3_extend...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 11 -tclbody {\n  set rc [sqlite3_create_function db]\n  if {[stri...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 12 -tclbody {\n  set sql16 [encoding convertto unicode \"SELECT *...}")
 	if tclBool(tcl_platform + "(platform) != \"windows\" && " + "atomic_batch_write test.db" + "==0") {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 14 -tclprep {\n    catch {db close}\n    sqlite3 db2 test2.db\n   ...} -tclbody {\n    sqlite3 db test.db\n    sqlite3_extended_resul...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 14 -tclprep {\n    catch {db close}\n    sqlite3 db2 test2.db\n   ...} -tclbody {\n    sqlite3 db test.db\n    sqlite3_extended_resul...}")
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 16 -tclbody {\n  db complete {SELECT \"hello \"\"\"||'world\"' [micro...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 16 -tclbody {\n  db complete {SELECT \"hello \"\"\"||'world\"' [micro...}")
 	var static_string = "\\x00h\\x00e\\x00l\\x00l\\x00o"
 	_ = static_string // suppress unused warning
 	var l = "0"
@@ -87,35 +87,35 @@ func Test_malloc(t *testing.T) {
 		}
 	}
 	static_string += "\\x00\\x00"
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 19 -tclprep {\n  execsql {\n    PRAGMA encoding = \"UTF16be\";\n    ...} -tclbody {\n  unset -nocomplain ::STMT\n  set r [catch {\n    s...} -cleanup {\n  if {[info exists ::STMT]} {\n    sqlite3_finaliz...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 22 -tclbody {\n  set ::STMT \"\"\n  set r [catch {\n    set ::STMT [...} -cleanup {\n  if {$::STMT ne \"\"} {\n    sqlite3_finalize $::ST...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 25 -sqlprep {\n  CREATE TABLE abc(a, b, c);\n  CREATE INDEX i1 ON...} -tclbody {\n  # For each UPDATE executed, the cursor used for...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 26 -sqlprep {\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t...} -tclbody {\n  db close\n  sqlite3 db test.db\n  db eval { INSER...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 27 -tclprep {\n  db close\n  sqlite3_shutdown\n} -tclbody {\n  set rc [sqlite3_initialize]\n  if {$rc == \"SQLIT...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 28 -sqlprep {\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(...} -sqlbody {\n  SELECT * FROM t1 INDEXED BY i1 ORDER BY a;\n  SE...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 29 -sqlprep {\n  CREATE TABLE t1(a TEXT, b TEXT);\n} -sqlbody {\n  INSERT INTO t1 VALUES(1, -234);\n  INSERT INTO t...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 30 -tclprep {\n  db eval {\n    CREATE TABLE t1(x PRIMARY KEY);\n ...} -sqlbody {\n  -- This statement requires the 'no-content' pag...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 31 -sqlprep {\n  PRAGMA journal_mode = persist;\n  PRAGMA journal...} -sqlbody {\n  INSERT INTO t1 VALUES(1, 2);\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 32 -tclprep {\n  # Build a small database containing an indexed ...} -tclbody {\n  # Running in exclusive mode, perform a database...} -cleanup {\n\n  # Perform another transaction using the first ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 33 -tclprep {\n  db eval { PRAGMA cache_size = 10 }\n  db transac...} -sqlbody {\n  SELECT count(*) FROM abc;\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 34 -tclprep {\n  db eval { PRAGMA cache_size = 10 }\n  db transac...} -sqlbody {\n  SELECT count(*) FROM abc;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 19 -tclprep {\n  execsql {\n    PRAGMA encoding = \"UTF16be\";\n    ...} -tclbody {\n  unset -nocomplain ::STMT\n  set r [catch {\n    s...} -cleanup {\n  if {[info exists ::STMT]} {\n    sqlite3_finaliz...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 22 -tclbody {\n  set ::STMT \"\"\n  set r [catch {\n    set ::STMT [...} -cleanup {\n  if {$::STMT ne \"\"} {\n    sqlite3_finalize $::ST...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 25 -sqlprep {\n  CREATE TABLE abc(a, b, c);\n  CREATE INDEX i1 ON...} -tclbody {\n  # For each UPDATE executed, the cursor used for...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 26 -sqlprep {\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t...} -tclbody {\n  db close\n  sqlite3 db test.db\n  db eval { INSER...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 27 -tclprep {\n  db close\n  sqlite3_shutdown\n} -tclbody {\n  set rc [sqlite3_initialize]\n  if {$rc == \"SQLIT...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 28 -sqlprep {\n  CREATE TABLE t1(a, b);\n  CREATE INDEX i1 ON t1(...} -sqlbody {\n  SELECT * FROM t1 INDEXED BY i1 ORDER BY a;\n  SE...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 29 -sqlprep {\n  CREATE TABLE t1(a TEXT, b TEXT);\n} -sqlbody {\n  INSERT INTO t1 VALUES(1, -234);\n  INSERT INTO t...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 30 -tclprep {\n  db eval {\n    CREATE TABLE t1(x PRIMARY KEY);\n ...} -sqlbody {\n  -- This statement requires the 'no-content' pag...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 31 -sqlprep {\n  PRAGMA journal_mode = persist;\n  PRAGMA journal...} -sqlbody {\n  INSERT INTO t1 VALUES(1, 2);\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 32 -tclprep {\n  # Build a small database containing an indexed ...} -tclbody {\n  # Running in exclusive mode, perform a database...} -cleanup {\n\n  # Perform another transaction using the first ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 33 -tclprep {\n  db eval { PRAGMA cache_size = 10 }\n  db transac...} -sqlbody {\n  SELECT count(*) FROM abc;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 34 -tclprep {\n  db eval { PRAGMA cache_size = 10 }\n  db transac...} -sqlbody {\n  SELECT count(*) FROM abc;\n}")
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 35 -tclprep {\n  db func f f\n  set ::STMT [sqlite3_prepare db \"S...} -tclbody {\n  sqlite3_finalize $::STMT\n} -cleanup {\n  # At one point an assert( !db->mallocFailed ) c...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 36 -sqlprep {\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(...} -sqlbody {\n  SELECT test_agg_errmsg16(), group_concat(a) FRO...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 35 -tclprep {\n  db func f f\n  set ::STMT [sqlite3_prepare db \"S...} -tclbody {\n  sqlite3_finalize $::STMT\n} -cleanup {\n  # At one point an assert( !db->mallocFailed ) c...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 36 -sqlprep {\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(...} -sqlbody {\n  SELECT test_agg_errmsg16(), group_concat(a) FRO...}")
 	if tclBool("db eval {PRAGMA locking_mode}" + "!=\"exclusive\"") {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 37 -tclprep {\n    sqlite3 db2 test.db\n    execsql {\n      CREAT...} -sqlbody {\n    SELECT * FROM t1;\n  } -cleanup {\n    # Try to write to the database using connecti...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 37 -tclprep {\n    sqlite3 db2 test.db\n    execsql {\n      CREAT...} -sqlbody {\n    SELECT * FROM t1;\n  } -cleanup {\n    # Try to write to the database using connecti...}")
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			db2.Close()
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test 39 -tclprep {\n  sqlite3 db test.db\n} -sqlbody {\n  SELECT test_auxdata('abc', 'def');\n} -cleanup {\n  db close\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test 39 -tclprep {\n  sqlite3 db test.db\n} -sqlbody {\n  SELECT test_auxdata('abc', 'def');\n} -cleanup {\n  db close\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "add_test_utf16bin_collate db")
+	t.Errorf("TODO: %s not implemented in frigolite", "add_test_utf16bin_collate db")
 	{ // "40.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES('fghij');\n  INSERT INTO t1 VALUES('pqrst');\n  INSERT INTO t1 VALUES('abcde');\n  INSERT INTO t1 VALUES('uvwxy');\n  INSERT INTO t1 VALUES('klmno');\n")
 		if _res.Error != nil {
@@ -134,11 +134,11 @@ func Test_malloc(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 40.3 -faults oom-trans* -body {\n  execsql {\n    SELECT * FROM t1 ORDER BY 1 COLLA...} -test {\n  faultsim_test_result {0 {abcde fghij klmno pqrs...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 40.3 -faults oom-trans* -body {\n  execsql {\n    SELECT * FROM t1 ORDER BY 1 COLLA...} -test {\n  faultsim_test_result {0 {abcde fghij klmno pqrs...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "add_test_utf16bin_collate db")
+	t.Errorf("TODO: %s not implemented in frigolite", "add_test_utf16bin_collate db")
 	var big = "x 200"
 	_ = big // suppress unused warning
 	{ // "41.1"
@@ -147,7 +147,7 @@ func Test_malloc(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a COLLATE utf16bin);\n  INSERT INTO t1 VALUES('fghij' || $::big);\n  INSERT INTO t1 VALUES('pqrst' || $::big);\n  INSERT INTO t1 VALUES('abcde' || $::big);\n  INSERT INTO t1 VALUES('uvwxy' || $::big);\n  INSERT INTO t1 VALUES('klmno' || $::big);\n  CREATE INDEX i1 ON t1(a);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 41.2 -faults oom* -body {\n  execsql { SELECT * FROM t1 WHERE a = ('abcde' |...} -test {\n  faultsim_test_result [list 0 \"abcde$::big\"]\n  f...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 41.2 -faults oom* -body {\n  execsql { SELECT * FROM t1 WHERE a = ('abcde' |...} -test {\n  faultsim_test_result [list 0 \"abcde$::big\"]\n  f...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -157,8 +157,8 @@ func Test_malloc(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x INTEGER PRIMARY KEY, y, z);\n  CREATE TABLE t2(a, b);\n  CREATE VIEW a002 AS SELECT *, sum(b) AS m FROM t2 GROUP BY a;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 42 -faults oom-tran* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELECT ...} -body {\n  execsql {\n    SELECT t1.z, a002.m\n    FROM t1 J...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 42 -faults oom-tran* -prep {\n  faultsim_restore_and_reopen\n  execsql { SELECT ...} -body {\n  execsql {\n    SELECT t1.z, a002.m\n    FROM t1 J...} -test {\n  faultsim_test_result {0 {}}\n}")
 	{ // do_test "malloc-99.X"
 		{
 			var _catchErr error

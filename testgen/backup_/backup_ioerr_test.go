@@ -25,7 +25,7 @@ func Test_backup_ioerr(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "backup_ioerr-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "populate_database db")
+		t.Errorf("TODO: %s not implemented in frigolite", "populate_database db")
 		nPage := "[file size test.db] / 1024"
 		_ = nPage // suppress unused warning
 		// expr $nPage>130 && $nPage<160 → "$nPage>130 && $nPage<160"
@@ -54,16 +54,16 @@ func Test_backup_ioerr(t *testing.T) {
 				var iError = "1"
 				_ = iError // suppress unused warning
 				for func() bool { bStop_n, _bStop_e := strconv.Atoi(bStop); if _bStop_e != nil { return false }; return bStop_n == 0 }() {
-					t.Skipf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
+					t.Errorf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
-						t.Skipf("TODO: %s not implemented in frigolite", "ddb close")
+						t.Errorf("TODO: %s not implemented in frigolite", "ddb close")
 					}
 					{
 						var _catchErr error
 						_ = _catchErr // suppress unused warning
-						t.Skipf("TODO: %s not implemented in frigolite", "sdb close")
+						t.Errorf("TODO: %s not implemented in frigolite", "sdb close")
 					}
 					{
 						var _catchErr error
@@ -81,11 +81,11 @@ func Test_backup_ioerr(t *testing.T) {
 					ddb, err := frigolite.Open("bak.db")
 					defer ddb.Close()
 					if err != nil { t.Fatal(err) }
-					t.Skipf("TODO: %s not implemented in frigolite", "populate_database sdb")
-					t.Skipf("TODO: %s not implemented in frigolite", "ddb eval PRAGMA page_size = $iDestPagesize")
-					t.Skipf("TODO: %s not implemented in frigolite", "ddb eval PRAGMA cache_size = 10")
+					t.Errorf("TODO: %s not implemented in frigolite", "populate_database sdb")
+					t.Errorf("TODO: %s not implemented in frigolite", "ddb eval PRAGMA page_size = $iDestPagesize")
+					t.Errorf("TODO: %s not implemented in frigolite", "ddb eval PRAGMA cache_size = 10")
 					// eval $zSetupBak
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B ddb main sdb main")
+					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B ddb main sdb main")
 					var _sqlite_io_error_pending = iError // TCL namespace variable
 					_ = _sqlite_io_error_pending // suppress unused warning
 					var _sqlite_io_error_persist = bPersist // TCL namespace variable
@@ -106,9 +106,9 @@ func Test_backup_ioerr(t *testing.T) {
 							tclStringMatch("SQLITE_IOERR*", rc)
 						}
 						{ // do_test "backup_ioerr-" + iTest + "." + iError + ".4"
-							t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg ddb")
+							t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg ddb")
 						}
-						t.Skipf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
+						t.Errorf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
 						ddb, err := frigolite.Open("bak.db")
 						defer ddb.Close()
 						if err != nil { t.Fatal(err) }
@@ -129,16 +129,16 @@ func Test_backup_ioerr(t *testing.T) {
 								_list := tclList([]string{"B step 5000", "B finish"})
 								_ = _list
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
-							t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup_ioerr-$iTest.$iError.8 ddb main sdb main")
+							t.Errorf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
+							t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup_ioerr-$iTest.$iError.8 ddb main sdb main")
 							_res = db.Exec("PRAGMA integrity_check")
 							if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 						} else {
 							{ // do_test "backup_ioerr-" + iTest + "." + iError + ".10"
-								t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+								t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 							}
 						}
-						t.Skipf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
+						t.Errorf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
 						ddb, err := frigolite.Open("bak.db")
 						defer ddb.Close()
 						if err != nil { t.Fatal(err) }
@@ -162,9 +162,9 @@ func Test_backup_ioerr(t *testing.T) {
 							tclStringMatch("SQLITE_IOERR*", rc)
 						}
 						{ // do_test "backup_ioerr-" + iTest + "." + iError + ".15"
-							t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg ddb")
+							t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg ddb")
 						}
-						t.Skipf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
+						t.Errorf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
 						ddb, err := frigolite.Open("bak.db")
 						defer ddb.Close()
 						if err != nil { t.Fatal(err) }
@@ -176,12 +176,12 @@ func Test_backup_ioerr(t *testing.T) {
 						_list := tclList([]string{"set rc", "B finish"})
 						_ = _list
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
+					t.Errorf("TODO: %s not implemented in frigolite", "clear_ioerr_simulation")
 					sdb, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					ddb, err = frigolite.Open("bak.db")
 					if err != nil { t.Fatal(err) }
-					t.Skipf("TODO: %s not implemented in frigolite", "test_contents backup_ioerr-$iTest.$iError.18 ddb main sdb main")
+					t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup_ioerr-$iTest.$iError.18 ddb main sdb main")
 					_res = db.Exec("PRAGMA integrity_check")
 					if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 					bStop := "$::sqlite_io_error_pending<=0"
@@ -200,11 +200,11 @@ func Test_backup_ioerr(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sdb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "sdb close")
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "ddb close")
+		t.Errorf("TODO: %s not implemented in frigolite", "ddb close")
 	}
 }

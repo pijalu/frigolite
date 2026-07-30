@@ -1180,12 +1180,12 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						// proc definition (not transpiled)
-						t.Skipf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.1 {\n  SELECT \n    sum(c) OVER (ORDER BY a, b),\n    su...} 0")
-						t.Skipf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.2 {\n  SELECT \n    sum(c) OVER (ORDER BY b, a),\n    su...} 1")
-						t.Skipf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.3 {\n  SELECT \n    sum(c) OVER (ORDER BY b, a),\n    su...} 2")
-						t.Skipf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.4 {\n  SELECT \n    sum(c) OVER (ORDER BY b ROWS BETWEE...} 1")
-						t.Skipf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.5 {\n  SELECT \n    sum(c) OVER (ORDER BY b+1 ROWS UNBO...} 1")
-						t.Skipf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.6 {\n  SELECT \n    sum(c) OVER (ORDER BY b+1 ROWS UNBO...} 3")
+						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.1 {\n  SELECT \n    sum(c) OVER (ORDER BY a, b),\n    su...} 0")
+						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.2 {\n  SELECT \n    sum(c) OVER (ORDER BY b, a),\n    su...} 1")
+						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.3 {\n  SELECT \n    sum(c) OVER (ORDER BY b, a),\n    su...} 2")
+						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.4 {\n  SELECT \n    sum(c) OVER (ORDER BY b ROWS BETWEE...} 1")
+						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.5 {\n  SELECT \n    sum(c) OVER (ORDER BY b+1 ROWS UNBO...} 1")
+						t.Errorf("TODO: %s not implemented in frigolite", "do_ordercount_test 23.6 {\n  SELECT \n    sum(c) OVER (ORDER BY b+1 ROWS UNBO...} 3")
 						{ // "24.1"
 							r = db.Query("\n  SELECT sum(44) OVER ()\n")
 							if r.Error != nil {
@@ -2277,7 +2277,7 @@ func Test_window1(t *testing.T) {
 						}
 						for _, tn := range tclSplitList("1 2") {
 							if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
-								t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 0")
+								t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 0")
 							}
 							{ // "61.2." + tn
 								_res = db.Exec("\n    SELECT \n      (SELECT max(x)OVER(ORDER BY x) / min(x) OVER() ) \n    FROM (\n      SELECT (SELECT sum(a) FROM t1 ) AS x FROM t1\n    )\n\n  ")
@@ -2289,7 +2289,7 @@ func Test_window1(t *testing.T) {
 						db.Close()
 						db, err = frigolite.Open("")
 						if err != nil { t.Fatal(err) }
-						t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
+						t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
 						{ // "61.3.0"
 							_res = db.Exec("\n  CREATE TABLE t1(a);\n  CREATE TABLE t2(y);\n")
 							if _res.Error != nil {

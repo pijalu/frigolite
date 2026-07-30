@@ -35,10 +35,10 @@ func Test_misc4(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "misc4-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
 	}
 	{ // do_test "misc4-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 	}
 	{ // do_test "misc4-2.4"
 		_res = db.Exec("\n    INSERT INTO t3 VALUES(1);\n  ")
@@ -66,7 +66,7 @@ func Test_misc4(t *testing.T) {
 	}
 	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "misc4-7.1"
 		_res = db.Exec("\n  CREATE TABLE t7(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE [M%s%s%s%s%s%s%s%s%s%s%s%s%s';\n  VACUUM;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "unrecognized token: \\\"[M%s%s%s%s%s%s%s%s%s%s%s%s%s\\\"") {

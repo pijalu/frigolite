@@ -75,9 +75,9 @@ func Test_windowpushd(t *testing.T) {
 	}
 	for _, tn := range tclSplitList("0 1") {
 		if tclBool(tn) {
-			t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all on")
+			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all on")
 		} else {
-			t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db push-down off")
+			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db push-down off")
 		}
 		{ // "2." + tn + ".1.1"
 			r = db.Query("\n    SELECT * FROM v1;\n  ")

@@ -35,7 +35,7 @@ func Test_tkt35xx(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(1, 1, zeroblob(676));\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	var big = "abcdefghij 22"

@@ -27,39 +27,39 @@ func Test_mem5(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 25000000 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 25000000 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	}
 	{ // do_test "mem5-1.2"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 1 1073741824")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 1 1073741824")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	}
 	{ // do_test "mem5-1.3"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 1 1073741825")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 1 1073741825")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	}
 	{ // do_test "mem5-1.4"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 0 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_heap 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_lookaside 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	}
 }

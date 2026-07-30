@@ -21,11 +21,11 @@ func Test_fts3corrupt2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts3corrupt2" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
 	var data = "list"
 	_ = data // suppress unused warning
 	data = tclListAppend(data, "*", "\n   \"amxtvoo adqwroyhz auq aithtir avniqnuynvf axp ahibayfynig agbicpm\"\n   \"ajdtebs anteaxr aieynenwmd awpl alo akxcrwow aoxftge aoqvgul\"\n   \"amcfvdr auz apu aebelm ahuxyz aqc asyafdb agulvhvqu\"\n   \"apepwfyz azkhdvkw aenyelxzbk aslnitbyet aycdsdcpgr aqzzdbc agfi axnypydou\"\n   \"aaqrzzcm apcxdxo atumltzj aevvivo aodknoft aqoyytoz alobx apldt\"\n   \"adjllxlhnmj aiuhvuj adwppceuht atvj azrsam ahkjqdhny audlqxr aotgcd\"\n   \"aira azflsceos awj auzbobfkc awmezplr aeh awec ahndxlmv\"\n   \"aydwnied alk auoap agihyqeix aymqxzajnl aydwnied aojkarx agbo\"\n   \"ahajsmcl anvx amdhjm aoptsj agugzjjm apkevm acnj acjg\"\n   \"amwtkw aogttbykvt aubwrfqnbjf ajow agsj aerkqzjdqst anenlvbalkn arfajzzgckx\"\n   \"adqqqofkmz amjpavjuhw aqgehgnb awvvxlbtqzn agstqko akmkzehyh atagzey agwja\"\n   \"amag ahe autkllywhr avnk atmt akn anvdh aixfrv\"\n   \"aqdyerbws avefykly awl azaduojgzo anxfsmw axpt abgbvk ati\"\n   \"attyqkwz aiweypiczul afy asitaqbczhh aitxisizpv auhviq aibql ajfqc\"\n   \"aylzprtmta aiuemihqrpi awluvgsw ampbuy axlifpzfqr aems aoaxwads apianfn\"\n   \"aodrkijelq acdb aaserrdxm aqyasgofqu aevvivo afi apmwu aeoqysl\"\n   \"amqnk ankaotm ayfy ajcupeeoc advcbukan aucahlwnyk adbfyo azqjpeant\"\n   \"afczpp asqrs ahslvda akhlf aiqgdp atyd aznuglxqbrg awirndrh\"\n   \"aqhiajp amxeazb asxuehg akod axvolvsp agcz asmovmohy acmqa\"\n   \"avvomv aafms ashuaec arevx audtq alrwqhjvao avgsgpg ajbrctpsel\"\n   \"atxoirr ayopboobqdu ajunntua arh aernimxid aipljda aglo aefk\"\n   \"aonxf acmnnkna abgviaswe aulvcbv axp apemgakpzo aibql acioaid\"\n   \"axo alrwqhjvao ayqounftdzl azmoakdyh apajze ajk artvy apxiamy\"\n   \"ayjafsraz addjj agsj asejtziqws acatvhegu aoxdjqblsvv aekdmmbs aaobe\"\n   \"abjjvzubkwt alczv ati awz auyxgcxeb aymjoym anqoukprtyt atwfhpmbooh\"\n   \"ajfqz aethlgir aclcx aowlyvetby aproqm afjlqtkv anebfy akzrcpfrrvw\"\n   \"aoledfotm aiwlfm aeejlaej anz abgbvk aktfn aayoh anpywgdvgz\"\n   \"acvmldguld asdvz aqb aeomsyzyu aggylhprbdz asrfkwz auipybpsn agsnszzfb\"\n")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // do_test "fts3corrupt2-1.0"
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {

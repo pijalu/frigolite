@@ -39,7 +39,7 @@ func Test_fts4onepass(t *testing.T) {
 		_ = uses // suppress unused warning
 		_ = _idx
 			{ // do_test "1." + tn
-				t.Skipf("TODO: %s not implemented in frigolite", "sql_uses_stmt db $sql")
+				t.Errorf("TODO: %s not implemented in frigolite", "sql_uses_stmt db $sql")
 			}
 		}
 		{ // "2.0"
@@ -59,7 +59,7 @@ func Test_fts4onepass(t *testing.T) {
 			_ = uses // suppress unused warning
 			_ = _idx
 				{ // do_test "2." + tn
-					t.Skipf("TODO: %s not implemented in frigolite", "sql_uses_stmt db $sql")
+					t.Errorf("TODO: %s not implemented in frigolite", "sql_uses_stmt db $sql")
 				}
 			}
 			// foreach {tn tcl1 tcl2} "\n  1 {} {}\n\n  2 {\n    execsql BEGIN\n  } {\n    if {[sqlite3_get_autocommit db]==1} { error \"transaction rolled back!\" }\n    execsql COMMIT\n  }\n"

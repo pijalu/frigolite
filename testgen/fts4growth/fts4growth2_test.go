@@ -28,7 +28,7 @@ func Test_fts4growth2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(docid, words); ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+	t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // "1.1"
@@ -41,10 +41,10 @@ func Test_fts4growth2(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "tt 0")
-			t.Skipf("TODO: %s not implemented in frigolite", "tt 1")
-			t.Skipf("TODO: %s not implemented in frigolite", "tt 2")
-			t.Skipf("TODO: %s not implemented in frigolite", "tt 3")
+			t.Errorf("TODO: %s not implemented in frigolite", "tt 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "tt 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "tt 2")
+			t.Errorf("TODO: %s not implemented in frigolite", "tt 3")
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -62,10 +62,10 @@ func Test_fts4growth2(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "tt 0")
-			t.Skipf("TODO: %s not implemented in frigolite", "tt 1")
-			t.Skipf("TODO: %s not implemented in frigolite", "tt 2")
-			t.Skipf("TODO: %s not implemented in frigolite", "tt 3")
+			t.Errorf("TODO: %s not implemented in frigolite", "tt 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "tt 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "tt 2")
+			t.Errorf("TODO: %s not implemented in frigolite", "tt 3")
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -93,10 +93,10 @@ func Test_fts4growth2(t *testing.T) {
 			var i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-				t.Skipf("TODO: %s not implemented in frigolite", "tt 0")
-				t.Skipf("TODO: %s not implemented in frigolite", "tt 1")
-				t.Skipf("TODO: %s not implemented in frigolite", "tt 2")
-				t.Skipf("TODO: %s not implemented in frigolite", "tt 3")
+				t.Errorf("TODO: %s not implemented in frigolite", "tt 0")
+				t.Errorf("TODO: %s not implemented in frigolite", "tt 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "tt 2")
+				t.Errorf("TODO: %s not implemented in frigolite", "tt 3")
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)

@@ -19,12 +19,12 @@ func Test_fkey_malloc(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-1 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a PR...} -sqlbody {\n  INSERT INTO t1 VALUES('aaa', 1);\n  INSERT INTO ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-2 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a, b...} -sqlbody {\n  CREATE TABLE t2(x, y, \n    FOREIGN KEY(x, y) RE...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-3 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(x IN...} -sqlbody {\n  UPDATE t1 SET x = 14;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-1 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a PR...} -sqlbody {\n  INSERT INTO t1 VALUES('aaa', 1);\n  INSERT INTO ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-2 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a, b...} -sqlbody {\n  CREATE TABLE t2(x, y, \n    FOREIGN KEY(x, y) RE...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-3 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(x IN...} -sqlbody {\n  UPDATE t1 SET x = 14;\n}")
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-4 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(x IN...} -tclbody {\n  catch_fk_error {INSERT INTO t2 VALUES(1, 3)}\n  ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-5 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(x, y...} -sqlbody {\n  UPDATE t1 SET x = 5;\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-6 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(\n   ...} -sqlbody {\n  INSERT INTO t1 VALUES('ghi', 'ghi');\n  DELETE F...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-7 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE x(a, b,...} -sqlbody {\n  DROP TABLE y;\n  DROP TABLE x;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-4 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(x IN...} -tclbody {\n  catch_fk_error {INSERT INTO t2 VALUES(1, 3)}\n  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-5 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(x, y...} -sqlbody {\n  UPDATE t1 SET x = 5;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-6 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(\n   ...} -sqlbody {\n  INSERT INTO t1 VALUES('ghi', 'ghi');\n  DELETE F...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-7 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE x(a, b,...} -sqlbody {\n  DROP TABLE y;\n  DROP TABLE x;\n}")
 }

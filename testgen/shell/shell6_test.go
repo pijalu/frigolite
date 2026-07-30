@@ -65,7 +65,7 @@ func Test_shell6(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "lindex $RES 1")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db [list .lint fkey-indexes]")
+				t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db [list .lint fkey-indexes]")
 			}
 		}
 }

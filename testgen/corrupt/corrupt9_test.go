@@ -19,8 +19,8 @@ func Test_corrupt9(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "corrupt9-1.1"
@@ -33,7 +33,7 @@ func Test_corrupt9(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	tclFileCopy("test.db", "test.db-template")
-	t.Skipf("TODO: %s not implemented in frigolite", "corrupt_freelist test.db 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "corrupt_freelist test.db 1")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-2.1"
@@ -46,7 +46,7 @@ func Test_corrupt9(t *testing.T) {
 		_ = _res // catchsql
 	}
 	tclFileCopy("test.db-template", "test.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "corrupt_freelist test.db 2")
+	t.Errorf("TODO: %s not implemented in frigolite", "corrupt_freelist test.db 2")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-3.1"
@@ -59,7 +59,7 @@ func Test_corrupt9(t *testing.T) {
 		_ = _res // catchsql
 	}
 	tclFileCopy("test.db-template", "test.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "corrupt_freelist test.db 3")
+	t.Errorf("TODO: %s not implemented in frigolite", "corrupt_freelist test.db 3")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "corrupt9-4.1"

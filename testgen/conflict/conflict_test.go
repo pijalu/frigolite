@@ -612,7 +612,7 @@ func Test_conflict(t *testing.T) {
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    INSERT INTO t2 VALUES(3,3,3,3,1);\n    SELECT * FROM t2;\n  ")
 								_ = _res // catchsql
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-9.21b SQLITE_CONSTRAINT_UNIQUE")
+							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-9.21b SQLITE_CONSTRAINT_UNIQUE")
 							{ // do_test "conflict-9.20"
 								{
 									var _catchErr error
@@ -629,7 +629,7 @@ func Test_conflict(t *testing.T) {
 								_res = db.Exec("\n    BEGIN;\n    UPDATE t3 SET x=x+1;\n    UPDATE t2 SET e=e+1 WHERE e=1;\n    SELECT * FROM t2;\n  ")
 								_ = _res // catchsql
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-9.21b SQLITE_CONSTRAINT_UNIQUE")
+							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-9.21b SQLITE_CONSTRAINT_UNIQUE")
 							{ // do_test "conflict-9.22"
 								{
 									var _catchErr error
@@ -746,7 +746,7 @@ func Test_conflict(t *testing.T) {
 								_res = db.Exec("\n    UPDATE t5 SET a=a+1 WHERE a=1;\n  ")
 								_ = _res // catchsql
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-12.3b SQLITE_CONSTRAINT_PRIMARYKEY")
+							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-12.3b SQLITE_CONSTRAINT_PRIMARYKEY")
 							{ // do_test "conflict-12.4"
 								r = db.Query("\n    UPDATE OR REPLACE t5 SET a=a+1 WHERE a=1;\n    SELECT * FROM t5;\n  ")
 								if r.Error != nil {
@@ -757,7 +757,7 @@ func Test_conflict(t *testing.T) {
 								_res = db.Exec("\n    CREATE TABLE t5b(x);\n    INSERT INTO t5b(rowid, x) VALUES(1,10),(2,11);\n    UPDATE t5b SET rowid=rowid+1 WHERE x=10;\n  ")
 								_ = _res // catchsql
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-12.5b SQLITE_CONSTRAINT_ROWID")
+							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-12.5b SQLITE_CONSTRAINT_ROWID")
 							{ // do_test "conflict-13.1"
 								_res = db.Exec("\n    CREATE TABLE t13(a CHECK(a!=2));\n    BEGIN;\n    REPLACE INTO t13 VALUES(1);\n  ")
 								if _res.Error != nil {
@@ -766,7 +766,7 @@ func Test_conflict(t *testing.T) {
 								_res = db.Exec("\n    REPLACE INTO t13 VALUES(2);\n  ")
 								_ = _res // catchsql
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-13.1b SQLITE_CONSTRAINT_CHECK")
+							t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode conflict-13.1b SQLITE_CONSTRAINT_CHECK")
 							{ // do_test "conflict-13.2"
 								r = db.Query("\n    REPLACE INTO t13 VALUES(3);\n    COMMIT;\n    SELECT * FROM t13;\n  ")
 								if r.Error != nil {

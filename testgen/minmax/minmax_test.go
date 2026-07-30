@@ -487,12 +487,12 @@ func Test_minmax(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(a, b, c) ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_13_opt 13.3 {\n  SELECT min(b) FROM t1 WHERE a='b'\n} {\n  SELECT min(c) FROM t1 WHERE a='b'\n} {2}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_13_opt 13.4 {\n  SELECT a, min(b) FROM t1 WHERE a='b'\n} {\n  SELECT a, min(c) FROM t1 WHERE a='b'\n} {b 2}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_13_opt 13.4 {\n  SELECT a||c, max(b)+4 FROM t1 WHERE a='c'\n} {\n  SELECT a||c, max(c)+4 FROM t1 WHERE a='c'\n} {c7 11}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_13_noopt 13.5 {\n  SELECT a||c, max(b+1) FROM t1 WHERE a='c'\n} {\n  SELECT a||c, max(c+1) FROM t1 WHERE a='c'\n} {c7 8}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_13_noopt 13.6 {\n  SELECT count(b) FROM t1 WHERE a='c'\n} {\n  SELECT count(c) FROM t1 WHERE a='c'\n} {5}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_13_noopt 13.7 {\n  SELECT min(b), count(b) FROM t1 WHERE a='a';\n} {\n  SELECT min(c), count(c) FROM t1 WHERE a='a';\n} {1 5}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_opt 13.3 {\n  SELECT min(b) FROM t1 WHERE a='b'\n} {\n  SELECT min(c) FROM t1 WHERE a='b'\n} {2}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_opt 13.4 {\n  SELECT a, min(b) FROM t1 WHERE a='b'\n} {\n  SELECT a, min(c) FROM t1 WHERE a='b'\n} {b 2}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_opt 13.4 {\n  SELECT a||c, max(b)+4 FROM t1 WHERE a='c'\n} {\n  SELECT a||c, max(c)+4 FROM t1 WHERE a='c'\n} {c7 11}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_noopt 13.5 {\n  SELECT a||c, max(b+1) FROM t1 WHERE a='c'\n} {\n  SELECT a||c, max(c+1) FROM t1 WHERE a='c'\n} {c7 8}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_noopt 13.6 {\n  SELECT count(b) FROM t1 WHERE a='c'\n} {\n  SELECT count(c) FROM t1 WHERE a='c'\n} {5}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_13_noopt 13.7 {\n  SELECT min(b), count(b) FROM t1 WHERE a='a';\n} {\n  SELECT min(c), count(c) FROM t1 WHERE a='a';\n} {1 5}")
 	{ // "14.1"
 		r = db.Query("\n  CREATE TABLE t14(a INTEGER, b INTEGER);\n  INSERT INTO t14(a,b) VALUES(100,2),(200,2),(300,2),(400,1),(500,2);\n  SELECT min(a) FROM t14 WHERE b='2' AND a>'50';\n")
 		if r.Error != nil {

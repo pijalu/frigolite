@@ -43,7 +43,7 @@ func Test_analyze5(t *testing.T) {
 			_ = w // suppress unused warning
 			t := "$z+0.5"
 			_ = t // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "switch $z {\n      0 {set u \"alpha\"; unset x}\n      1 {set u \"...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "switch $z {\n      0 {set u \"alpha\"; unset x}\n      1 {set u \"...}")
 			if tclBool(i + "%2") {
 				var v = u
 				_ = v // suppress unused warning
@@ -95,7 +95,7 @@ func Test_analyze5(t *testing.T) {
 		_ = rows // suppress unused warning
 		_ = _idx
 			{ // do_test "analyze5-1.$"
-				t.Skipf("TODO: %s not implemented in frigolite", "testid")
+				t.Errorf("TODO: %s not implemented in frigolite", "testid")
 			}
 		}
 		_res = db.Exec("\n   UPDATE t1 SET x=NULL;\n   UPDATE t1 SET x=rowid\n    WHERE rowid IN (SELECT rowid FROM t1 ORDER BY random() LIMIT 5);\n   ANALYZE;\n")
@@ -115,7 +115,7 @@ func Test_analyze5(t *testing.T) {
 			_ = rows // suppress unused warning
 			_ = _idx
 				{ // do_test "analyze5-1.$"
-					t.Skipf("TODO: %s not implemented in frigolite", "testid")
+					t.Errorf("TODO: %s not implemented in frigolite", "testid")
 				}
 			}
 }

@@ -29,7 +29,7 @@ func Test_corruptI(t *testing.T) {
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // "1.1"
 		_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(a);\n  CREATE INDEX i1 ON t1(a);\n  INSERT INTO t1 VALUES('abcdefghijklmnop');\n")
 		if _res.Error != nil {
@@ -41,7 +41,7 @@ func Test_corruptI(t *testing.T) {
 		_ = offset // suppress unused warning
 		off := "2*1024 + $offset + 1"
 		_ = off // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $off 7f06")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $off 7f06")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -53,7 +53,7 @@ func Test_corruptI(t *testing.T) {
 		_ = offset // suppress unused warning
 		off := "2*1024 + $offset + 1"
 		_ = off // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $off FFFF7f02")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $off FFFF7f02")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -73,7 +73,7 @@ func Test_corruptI(t *testing.T) {
 		_ = offset // suppress unused warning
 		off := "(5-1)*1024 + $offset + 1"
 		_ = off // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $off FFFF0004")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $off FFFF0004")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -96,7 +96,7 @@ func Test_corruptI(t *testing.T) {
 			}
 		}
 		{ // do_test "3.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 512+3] 0054")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 512+3] 0054")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -133,8 +133,8 @@ func Test_corruptI(t *testing.T) {
 	offset := "($root-1) * 65536"
 	_ = offset // suppress unused warning
 	{ // do_test "4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset + 8 + 2] 0000")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset + 5] 0000")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset + 8 + 2] 0000")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset + 5] 0000")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -186,7 +186,7 @@ func Test_corruptI(t *testing.T) {
 		}
 	}
 	{ // do_test "5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 512*($nPage-1)] [\n    format \"%.8X%.8X%.8X\" 0 1 [expr $nPage+1]\n  ...")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 512*($nPage-1)] [\n    format \"%.8X%.8X%.8X\" 0 1 [expr $nPage+1]\n  ...")
 	}
 	{ // do_test "5.3"
 		db, err := frigolite.Open("test.db")
@@ -205,7 +205,7 @@ func Test_corruptI(t *testing.T) {
 		}
 	}
 	{ // do_test "6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 616 8FFFFFFF7F02")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 616 8FFFFFFF7F02")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -229,7 +229,7 @@ func Test_corruptI(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "7.1"
 		_res = db.Exec("\n  PRAGMA writable_schema = 1;\n  DELETE FROM sqlite_master WHERE name = 'sqlite_autoindex_t1_1';\n")
 		if _res.Error != nil {
@@ -253,7 +253,7 @@ func Test_corruptI(t *testing.T) {
 		}
 	}
 	{ // do_test "8.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 + 8] 00000001")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 + 8] 00000001")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }

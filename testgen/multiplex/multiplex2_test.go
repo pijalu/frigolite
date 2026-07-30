@@ -19,10 +19,10 @@ func Test_multiplex2(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  code1 { catch { sqlite3_multiplex_initialize \"\"...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  code1 { catch { sqlite3_multiplex_initialize \"\"...}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 	}
 }

@@ -21,7 +21,7 @@ func Test_crash8(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // do_test "crash8-1.1"
 		r = db.Query("\n    PRAGMA auto_vacuum=OFF;\n    CREATE TABLE t1(a, b);\n    CREATE INDEX i1 ON t1(a, b);\n    INSERT INTO t1 VALUES(1, randstr(1000,1000));\n    INSERT INTO t1 VALUES(2, randstr(1000,1000));\n    INSERT INTO t1 VALUES(3, randstr(1000,1000));\n    INSERT INTO t1 VALUES(4, randstr(1000,1000));\n    INSERT INTO t1 VALUES(5, randstr(1000,1000));\n    INSERT INTO t1 VALUES(6, randstr(1000,1000));\n    CREATE TABLE t2(a, b);\n    CREATE TABLE t3(a, b);\n    CREATE TABLE t4(a, b);\n    CREATE TABLE t5(a, b);\n    CREATE TABLE t6(a, b);\n    CREATE TABLE t7(a, b);\n    CREATE TABLE t8(a, b);\n    CREATE TABLE t9(a, b);\n    CREATE TABLE t10(a, b);\n    PRAGMA integrity_check\n  ")
 		if r.Error != nil {
@@ -29,7 +29,7 @@ func Test_crash8(t *testing.T) {
 		}
 	}
 	{ // do_test "crash8-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db {\n    PRAGMA cache_size = 10;\n    UPDATE t1 SET b =...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db {\n    PRAGMA cache_size = 10;\n    UPDATE t1 SET b =...}")
 	}
 	{ // do_test "crash8-1.3"
 		r = db.Query("PRAGMA integrity_check")
@@ -38,7 +38,7 @@ func Test_crash8(t *testing.T) {
 		}
 	}
 	{ // do_test "crash8.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db {\n    PRAGMA journal_mode = persist;\n    PRAGMA cac...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db {\n    PRAGMA journal_mode = persist;\n    PRAGMA cac...}")
 	}
 	{ // do_test "crash8-2.3"
 		r = db.Query("PRAGMA integrity_check")
@@ -68,12 +68,12 @@ func Test_crash8(t *testing.T) {
 			}
 		}
 		{ // do_test "crash8-3.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "binary scan [string range $zJournal 20 23] I nSector")
+			t.Errorf("TODO: %s not implemented in frigolite", "binary scan [string range $zJournal 20 23] I nSector")
 		}
 		{ // do_test "crash8-3.5"
 			var zJournal2 = "$zJournal 20 23 [binary format I 513]"
 			_ = zJournal2 // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
@@ -82,7 +82,7 @@ func Test_crash8(t *testing.T) {
 		{ // do_test "crash8-3.6"
 			var zJournal2 = "$zJournal 20 23 [binary format I 0x2000000]"
 			_ = zJournal2 // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
@@ -91,7 +91,7 @@ func Test_crash8(t *testing.T) {
 		{ // do_test "crash8-3.7"
 			var zJournal2 = "$zJournal 20 23 [binary format I 256]"
 			_ = zJournal2 // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
@@ -100,7 +100,7 @@ func Test_crash8(t *testing.T) {
 		{ // do_test "crash8-3.8"
 			var zJournal2 = "$zJournal 24 27 [binary format I 513]"
 			_ = zJournal2 // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
@@ -111,7 +111,7 @@ func Test_crash8(t *testing.T) {
 			_ = big // suppress unused warning
 			var zJournal2 = "$zJournal 24 27 [binary format I $big]"
 			_ = zJournal2 // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
@@ -120,7 +120,7 @@ func Test_crash8(t *testing.T) {
 		{ // do_test "crash8-3.10"
 			var zJournal2 = "$zJournal 24 27 [binary format I 256]"
 			_ = zJournal2 // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
+			t.Errorf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
@@ -129,7 +129,7 @@ func Test_crash8(t *testing.T) {
 		{ // do_test "crash8-3.11"
 			var fd = "open test.db-journal w"
 			_ = fd // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
 			t.Log("-nonewline")
 			// close $fd
 			r = db.Query(" \n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check\n  ")
@@ -155,7 +155,7 @@ func Test_crash8(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n        CREATE TABLE t1(x PRIMARY KEY);\n        INSERT INTO t1 VALUES(randomblob(900));\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;\n        INSERT INTO t1 SELECT randomblob(900) FROM t1;          /* 64 rows */\n      ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "crashsql -file test.db -delay [expr ($::i%2) + 1] {\n        PRAGMA cache_size = 10;\n        BEGIN;\n  ...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file test.db -delay [expr ($::i%2) + 1] {\n        PRAGMA cache_size = 10;\n        BEGIN;\n  ...}")
 				r = db.Query(" PRAGMA integrity_check ")
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
@@ -176,7 +176,7 @@ func Test_crash8(t *testing.T) {
 				os.Remove("testX.db")
 				tclFileCopy("test.db", "testX.db")
 				tclFileCopy("test.db-journal", "testX.db-journal")
-				t.Skipf("TODO: %s not implemented in frigolite", "crashsql -file test.db -delay [expr ($::i%2) + 1] {\n        SELECT * FROM sqlite_master;\n        INSE...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file test.db -delay [expr ($::i%2) + 1] {\n        SELECT * FROM sqlite_master;\n        INSE...}")
 				db2, err := frigolite.Open("testX.db")
 				defer db2.Close()
 				if err != nil { t.Fatal(err) }

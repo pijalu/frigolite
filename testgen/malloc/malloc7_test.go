@@ -23,7 +23,7 @@ func Test_malloc7(t *testing.T) {
 		t.Log("Skipping malloc7 tests: not compiled with -DSQLITE_MEMDEBUG...")
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test malloc7-1 -sqlprep {\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX i1 ON ...} -tclbody {\n  set sql16 [encoding convertto unicode \"SELECT *...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloc7-1 -sqlprep {\n  CREATE TABLE t1(a,b,c,d);\n  CREATE INDEX i1 ON ...} -tclbody {\n  set sql16 [encoding convertto unicode \"SELECT *...}")
 	{ // do_test "malloc-99.X"
 		{
 			var _catchErr error

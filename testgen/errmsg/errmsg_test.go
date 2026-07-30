@@ -26,10 +26,10 @@ func Test_errmsg(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "error_messages SELECT sql_error('custom message')")
+		t.Errorf("TODO: %s not implemented in frigolite", "error_messages SELECT sql_error('custom message')")
 	}
 	{ // do_test "1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "error_messages_v2 SELECT sql_error('custom message')")
+		t.Errorf("TODO: %s not implemented in frigolite", "error_messages_v2 SELECT sql_error('custom message')")
 	}
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t1 VALUES('abc', 'def');\n")
@@ -38,13 +38,13 @@ func Test_errmsg(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "error_messages INSERT INTO t1 VALUES('ghi', 'def')")
+		t.Errorf("TODO: %s not implemented in frigolite", "error_messages INSERT INTO t1 VALUES('ghi', 'def')")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode 2.2b SQLITE_CONSTRAINT_UNIQUE")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode 2.2b SQLITE_CONSTRAINT_UNIQUE")
 	{ // do_test "2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "error_messages_v2 INSERT INTO t1 VALUES('ghi', 'def')")
+		t.Errorf("TODO: %s not implemented in frigolite", "error_messages_v2 INSERT INTO t1 VALUES('ghi', 'def')")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode 2.3b SQLITE_CONSTRAINT_UNIQUE")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode 2.3b SQLITE_CONSTRAINT_UNIQUE")
 	{ // "3.1.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t2 VALUES('abc', 'def');\n")
 		if _res.Error != nil {
@@ -52,7 +52,7 @@ func Test_errmsg(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "error_messages SELECT a FROM t2 DROP TABLE t2")
+		t.Errorf("TODO: %s not implemented in frigolite", "error_messages SELECT a FROM t2 DROP TABLE t2")
 	}
 	{ // "3.2.1"
 		_res = db.Exec("\n  CREATE TABLE t2(a PRIMARY KEY, b UNIQUE);\n  INSERT INTO t2 VALUES('abc', 'def');\n")
@@ -61,6 +61,6 @@ func Test_errmsg(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "error_messages_v2 SELECT a FROM t2 DROP TABLE t2")
+		t.Errorf("TODO: %s not implemented in frigolite", "error_messages_v2 SELECT a FROM t2 DROP TABLE t2")
 	}
 }

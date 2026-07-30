@@ -32,9 +32,9 @@ func Test_walsetlk2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a, b, c);\n  INSERT INTO t1 VALUES(1, 2, 3);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script xShmLock_callback")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xShmLock")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xShmLock_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmLock")
 	var _xshmlock = "list" // TCL namespace variable
 	_ = _xshmlock // suppress unused warning
 	// proc definition (not transpiled)
@@ -92,7 +92,7 @@ func Test_walsetlk2(t *testing.T) {
 	{ // do_test "1.5.3"
 		_ = _xshmlock // TCL namespace variable (query)
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -104,15 +104,15 @@ func Test_walsetlk2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2), (3, 4);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout db 2000")
-	t.Skipf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout db 2000")
+	t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
 	{ // "2.1"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 8);\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database is locked") {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database is locked", _res.Error, "\n  INSERT INTO t1 VALUES(7, 8);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_busy_timeout db 2000")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_busy_timeout db 2000")
 	{ // "2.2"
 		_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 8);\n")
 		if _res.Error == nil {
@@ -152,8 +152,8 @@ func Test_walsetlk2(t *testing.T) {
 		}
 	}
 	if func() bool { _sqlite_options_n, __sqlite_options_e := strconv.Atoi(_sqlite_options); if __sqlite_options_e != nil { return false }; return _sqlite_options_n(setlk_timeout) == 1 }() {
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout db 2000")
-		t.Skipf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout db 2000")
+		t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
 		{ // "2.6"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(13, 14);\n")
 			if _res.Error == nil {
@@ -183,15 +183,15 @@ func Test_walsetlk2(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  INSERT INTO t1 VALUES(1, 'one'), (3, 'three');\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout db -1")
-		t.Skipf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout db -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
 		{ // "3.1"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(7, 'seven');\n")
 			if _res.Error == nil {
 				t.Errorf("expected error, got none\n  sql: %s", "\n  INSERT INTO t1 VALUES(7, 'seven');\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
 		{ // "3.2"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(9, 'ten');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: t1.a") {
@@ -210,11 +210,11 @@ func Test_walsetlk2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb done {\n  sqlite3 db test.db\n  db eval {\n    BEGIN EXCLUS...}")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout db -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_setlk_timeout db -1")
 		{ // "3.4"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(13, 'thirteen');\n")
 			if _res.Error == nil {

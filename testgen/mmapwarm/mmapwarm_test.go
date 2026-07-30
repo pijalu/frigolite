@@ -20,9 +20,9 @@ func Test_mmapwarm(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	if false {
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 		// proc definition (not transpiled)
-		t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log msg")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log msg")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -49,7 +49,7 @@ func Test_mmapwarm(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA mmap_size = 1000000")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db")
 	}
 	{ // do_test "1.2"
 		db, err := frigolite.Open("test.db")
@@ -59,19 +59,19 @@ func Test_mmapwarm(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA mmap_size = 1000000")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db main")
 	}
 	{ // do_test "1.3"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db")
 	}
 	{ // do_test "1.4"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db main")
 	}
 	{ // do_test "2.0"
 		db, err := frigolite.Open("test.db")
@@ -81,7 +81,7 @@ func Test_mmapwarm(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_mmap_warm db main")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n  sqlite3 db test.db\n  sqlite3_db_config_lookasid...} -body {\n  sqlite3_mmap_warm db \"main\"\n} -test {\n  faultsim_test_result {0 SQLITE_OK} {0 SQLITE_NO...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n  sqlite3 db test.db\n  sqlite3_db_config_lookasid...} -body {\n  sqlite3_mmap_warm db \"main\"\n} -test {\n  faultsim_test_result {0 SQLITE_OK} {0 SQLITE_NO...}")
 }

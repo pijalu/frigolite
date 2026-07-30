@@ -51,34 +51,34 @@ func Test_between(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "between-1.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 5 AND 6 ORDE...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 5 AND 6 ORDE...}")
 	}
 	{ // do_test "between-1.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 6 ORD...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 6 ORD...}")
 	}
 	{ // do_test "between-1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 5 AND 65-y O...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 5 AND 65-y O...}")
 	}
 	{ // do_test "between-1.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 65-y ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 5 AND 65-y ...}")
 	}
 	{ // do_test "between-1.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 6 O...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 6 O...}")
 	}
 	{ // do_test "between-1.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 41-y AND 6 ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE +w BETWEEN 41-y AND 6 ...}")
 	}
 	{ // do_test "between-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 65-...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE w BETWEEN 41-y AND 65-...}")
 	}
 	{ // do_test "between-1.5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN y AND z ORD...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN y AND z ORD...}")
 	}
 	{ // do_test "between-1.5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN +y AND z OR...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN +y AND z OR...}")
 	}
 	{ // do_test "between-1.5.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN y AND +z OR...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "queryplan {\n    SELECT * FROM t1 WHERE 26 BETWEEN y AND +z OR...}")
 	}
 	db.Close()
 	db, err = frigolite.Open("")

@@ -216,12 +216,12 @@ func Test_autoindex4(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA automatic_index=ON;")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
+				t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
 				_res = db.Exec(sql)
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
 		}
 }

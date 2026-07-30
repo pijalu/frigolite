@@ -32,11 +32,11 @@ func Test_sysfault(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	var open_and_write_body = "\n  sqlite3 db test.db\n  db eval {\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    PRAGMA journal_mode = WAL;\n    INSERT INTO t1 VALUES(3, 4);\n    SELECT * FROM t1;\n    CREATE TEMP TABLE t2(x);\n    INSERT INTO t2 VALUES('y');\n  }\n"
 	_ = open_and_write_body // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults vfsfault-* -prep {\n  faultsim_restore\n} -body $open_and_write_body -test {\n  faultsim_test_result {0 {wal 1 2 3 4}}       \\\n...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults vfsfault-* -prep {\n  faultsim_restore\n} -body $open_and_write_body -test {\n  faultsim_test_result {0 {wal 1 2 3 4}}       \\\n...}")
 	// foreach {tn errno errlist} "\n  1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}\n"
 	_items := tclSplitList("\n  1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
@@ -53,7 +53,7 @@ func Test_sysfault(t *testing.T) {
 			for _, e := range tclSplitList(errlist) {
 				errs = tclListAppend(errs, "list 1 $e")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2.$tn -faults vfsfault-* -prep {\n    faultsim_restore\n  } -body \n    test_syscall errno fstat $errno\n    $open_and... -test \n    faultsim_test_result {0 {wal 1 2 3 4}} $errs\n...")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2.$tn -faults vfsfault-* -prep {\n    faultsim_restore\n  } -body \n    test_syscall errno fstat $errno\n    $open_and... -test \n    faultsim_test_result {0 {wal 1 2 3 4}} $errs\n...")
 		}
 		for _, vfs := range tclSplitList("unix unix-excl") {
 			// foreach {tn errno errlist} "\n    1 EAGAIN       {{database is locked} {disk I/O error}}\n    2 ETIMEDOUT    {{database is locked} {disk I/O error}}\n    3 EBUSY        {{database is locked} {disk I/O error}}\n    4 EINTR        {{database is locked} {disk I/O error}}\n    5 ENOLCK       {{database is locked} {disk I/O error}}\n    6 EACCES       {{database is locked} {disk I/O error}}\n    7 EPERM        {{access permission denied} {disk I/O error}}\n    8 EDEADLK      {{disk I/O error}}\n    9 ENOMEM       {{disk I/O error}}\n  "
@@ -74,7 +74,7 @@ func Test_sysfault(t *testing.T) {
 					}
 					var body = "[list %VFS% $vfs] {\n      sqlite3 db test.db\n      db eval {\n        CREATE TABLE t1(a, b);\n        INSERT INTO t1 VALUES(1, 2);\n      }\n      set fd [open test.db-journal w]\n      puts $fd \"hello world\"\n      close $fd\n      sqlite3 db test.db -vfs %VFS%\n      db eval {\n        SELECT * FROM t1;\n      }\n    }"
 					_ = body // suppress unused warning
-					t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.3.$vfs.$tn -faults vfsfault-* -prep {\n      faultsim_restore\n    } -body \n      test_syscall errno fcntl $errno\n      $body... -test \n      faultsim_test_result {0 {1 2}} $errs\n    ")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.3.$vfs.$tn -faults vfsfault-* -prep {\n      faultsim_restore\n    } -body \n      test_syscall errno fcntl $errno\n      $body... -test \n      faultsim_test_result {0 {1 2}} $errs\n    ")
 				}
 			}
 			// proc definition (not transpiled)
@@ -86,18 +86,18 @@ func Test_sysfault(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b, c, PRIMARY KEY(a));\n    INSERT INTO t1 VALUES('abc', 'def', 'ghi');\n    ATTACH 'test.db2' AS 'aux';\n    CREATE TABLE aux.t2(x);\n    INSERT INTO t2 VALUES(1);\n  ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+				t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -faults vfsfault-transient -prep {\n  catch { db close }\n  faultsim_restore\n} -body {\n  test_syscall errno open      EINTR\n  test_sysca...} -test {\n  faultsim_test_result {0 {abc def ghi truncate a...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.2 -faults vfsfault-* -prep {\n  catch { db close }\n  faultsim_restore\n} -body {\n  sqlite3 db test.db\n  set res [db eval {\n    ATT...} -test {\n  faultsim_test_result {0 {abc def ghi truncate a...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -faults vfsfault-transient -prep {\n  catch { db close }\n  faultsim_restore\n} -body {\n  test_syscall errno open      EINTR\n  test_sysca...} -test {\n  faultsim_test_result {0 {abc def ghi truncate a...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.2 -faults vfsfault-* -prep {\n  catch { db close }\n  faultsim_restore\n} -body {\n  sqlite3 db test.db\n  set res [db eval {\n    ATT...} -test {\n  faultsim_test_result {0 {abc def ghi truncate a...}")
 			// proc definition (not transpiled)
-			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults vfsfault-* -prep {\n  faultsim_delete_and_reopen\n  file_control_chunk...} -body {\n  test_syscall errno fstat     EIO\n  test_syscall...} -test {\n  faultsim_test_result {0 20000}\n}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults vfsfault-* -prep {\n  faultsim_delete_and_reopen\n  file_control_chunk...} -body {\n  test_syscall errno fstat     EIO\n  test_syscall...} -test {\n  faultsim_test_result {0 20000}\n}")
 			// proc definition (not transpiled)
-			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 			_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults vfsfault-* -prep {\n  faultsim_restore_and_reopen\n  file_control_chun...} -body {\n  test_syscall errno mmap     EACCES\n\n  execsql {...} -test {\n  faultsim_test_result {0 {1 2}} {1 {disk I/O err...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults vfsfault-* -prep {\n  faultsim_restore_and_reopen\n  file_control_chun...} -body {\n  test_syscall errno mmap     EACCES\n\n  execsql {...} -test {\n  faultsim_test_result {0 {1 2}} {1 {disk I/O err...}")
 }

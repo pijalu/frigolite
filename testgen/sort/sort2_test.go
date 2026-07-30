@@ -21,9 +21,9 @@ func Test_sort2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sort2"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_pmasz 10")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pmasz 10")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// skip: foreach over unresolved TCL command

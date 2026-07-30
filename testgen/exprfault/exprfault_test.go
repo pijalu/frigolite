@@ -27,9 +27,9 @@ func Test_exprfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a);                 \n  CREATE TABLE t2(d);                 \n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT a = ( SELECT d FROM (SELEC...} -test {\n  faultsim_test_result {0 {}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT hex ( unhex('ABCDEF') );\n ...} -test {\n  faultsim_test_result {0 ABCDEF}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT a = ( SELECT d FROM (SELEC...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    SELECT hex ( unhex('ABCDEF') );\n ...} -test {\n  faultsim_test_result {0 ABCDEF}\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -39,6 +39,6 @@ func Test_exprfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=1024;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1( hex(b) );\n  INSERT INTO t1 VALUES(10, randomblob(500));\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    UPDATE t1 SET b=randomblob(500);\n...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    UPDATE t1 SET b=randomblob(500);\n...} -test {\n  faultsim_test_result {0 {}}\n}")
 }

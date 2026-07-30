@@ -21,8 +21,8 @@ func Test_uri2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "uri2"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
 	// foreach {tn uri} "\n  1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def\n"
 	_items := tclSplitList("\n  1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
@@ -53,12 +53,12 @@ func Test_uri2(t *testing.T) {
 			{ // do_test "1." + tn + ".2"
 				var DB2 = "sqlite3_open $uri"
 				_ = DB2 // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode $DB2")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode $DB2")
 			}
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_close $DB2")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_close $DB2")
 			}
 			{ // do_test "1." + tn + ".2"
 				db, err := frigolite.Open("")
@@ -68,7 +68,7 @@ func Test_uri2(t *testing.T) {
 				_ = _res // catchsql
 			}
 			{ // do_test "1." + tn + ".3"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 			}
 			{
 				var _catchErr error

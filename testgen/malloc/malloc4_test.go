@@ -28,6 +28,6 @@ func Test_malloc4(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl(\n    the_first_reasonably_long_column_name that_also_has_quite_a_lengthy_type\n  );\n  INSERT INTO tbl VALUES(\n    'An extra long string. Far too long to be stored in NBFS bytes.'\n  );\n")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_stmt_test 1 SELECT * FROM tbl")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail -1")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_stmt_test 1 SELECT * FROM tbl")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail -1")
 }

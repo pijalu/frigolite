@@ -27,7 +27,7 @@ func Test_thread004(t *testing.T) {
 	}
 	var _enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
 	_ = _enable_shared_cache // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "thread004-1.1"
@@ -41,12 +41,12 @@ func Test_thread004(t *testing.T) {
 		_ = ThreadOne // suppress unused warning
 		var ThreadTwo = "\n    set ::DB [sqlite3_open test.db]\n    set iStart [clock_seconds]\n    set nErr 0\n    while {[clock_seconds] <$iStart+20} {\n      incr nErr [catch {sqlite3_table_column_metadata $::DB main t1 a}]\n    }\n    sqlite3_close $::DB\n    set nErr\n  "
 		_ = ThreadTwo // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) $thread_procs $ThreadOne")
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_spawn finished(2) $thread_procs $ThreadTwo")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) $thread_procs $ThreadOne")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(2) $thread_procs $ThreadTwo")
 		for _, t := range tclSplitList("1 2") {
 			if tclBool("!" + "info exists finished($t)") {
 			}
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

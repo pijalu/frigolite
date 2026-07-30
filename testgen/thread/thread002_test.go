@@ -60,7 +60,7 @@ func Test_thread002(t *testing.T) {
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; _NTHREAD_n, __NTHREAD_e := strconv.Atoi(_NTHREAD); if __NTHREAD_e != nil { return false }; return ii_n < _NTHREAD_n }() {
 		var order = "lindex $order_list [expr $ii%6]"
 		_ = order // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "thread_spawn finished($ii) $thread_procs set order {$order} $thread_program")
+		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished($ii) $thread_procs set order {$order} $thread_program")
 		// incr ii 1
 		{
 			_n, _err := strconv.Atoi(ii)
@@ -103,7 +103,7 @@ func Test_thread002(t *testing.T) {
 			}
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 	var sqlite_open_file_count = "0"
 	_ = sqlite_open_file_count // suppress unused warning
 }

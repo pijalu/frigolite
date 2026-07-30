@@ -21,7 +21,7 @@ func Test_stmtrand(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "stmtrand"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db stmtrand")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db stmtrand")
 	{ // "1.1"
 		r = db.Query("\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<30)\n  SELECT stmtrand()%10 FROM c\n")
 		if r.Error != nil {

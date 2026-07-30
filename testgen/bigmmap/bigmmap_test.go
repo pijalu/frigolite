@@ -49,7 +49,7 @@ func Test_bigmmap(t *testing.T) {
 			t.Log("Cannot create " + i + "MB sparse file")
 			return
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 [format %.8x [expr ($i*1024*1024*1024/4096) - 5]]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 [format %.8x [expr ($i*1024*1024*1024/4096) - 5]]")
 		{ // "1." + i
 			r = db.Query("\n    CREATE TABLE t" + i + " (a INTEGER PRIMARY KEY, b, c, UNIQUE(b, c));\n    WITH  s(i) AS ( SELECT 1 UNION ALL SELECT i+1 FROM s LIMIT 100 )\n      INSERT INTO t" + i + " SELECT i, 't" + i + "', randomblob(800) FROM s;\n  ")
 			if r.Error != nil {

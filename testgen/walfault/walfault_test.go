@@ -20,10 +20,10 @@ func Test_walfault(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "walfault-1-pre-1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { PRAGMA main.journal_mode = WAL }\n} -test {\n\n  faultsim_test_result {0 wal}\n\n  # Test that th...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { PRAGMA main.journal_mode = WAL }\n} -test {\n\n  faultsim_test_result {0 wal}\n\n  # Test that th...}")
 	{ // do_test "walfault-2-pre-1"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -38,14 +38,14 @@ func Test_walfault(t *testing.T) {
 		}
 	}
 	{ // do_test "walfault-2-pre-2"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 		r = db.Query(" SELECT count(*) FROM x ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT count(*) FROM x ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT count(*) FROM x }\n} -test {\n  faultsim_test_result {0 8}\n  faultsim_integrity...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT count(*) FROM x }\n} -test {\n  faultsim_test_result {0 8}\n  faultsim_integrity...}")
 	{ // do_test "walfault-3-pre-1"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -54,68 +54,68 @@ func Test_walfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 1;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(1500));\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval {\n    DELETE FROM abc;\n    PRAGMA wal_c...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval {\n    DELETE FROM abc;\n    PRAGMA wal_c...} -test {\n  faultsim_test_result {0 {}}\n}")
 	if tclBool("permutation" + " != \"inmemory_journal\"") {
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-4 -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql {\n      PRAGMA auto_vacuum = 0;\n     ...} -test {\n    # Update: The following changed from {0 {wal ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-4 -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql {\n      PRAGMA auto_vacuum = 0;\n     ...} -test {\n    # Update: The following changed from {0 {wal ...}")
 	}
 	{ // do_test "walfault-5-pre-1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		r = db.Query("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-5 -faults shmerr* -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGMA ...} -body {\n  execsql {\n    CREATE TABLE t1(x);\n    BEGIN;\n  ...} -test {\n  faultsim_test_result {0 16384}\n  faultsim_integ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-5 -faults shmerr* -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGMA ...} -body {\n  execsql {\n    CREATE TABLE t1(x);\n    BEGIN;\n  ...} -test {\n  faultsim_test_result {0 16384}\n  faultsim_integ...}")
 	{ // do_test "walfault-6-pre-1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 32 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 64 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 128 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 256 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 512 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 1024 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2048 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4096 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8192 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16384 */\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 32 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 64 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 128 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 256 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 512 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 1024 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2048 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4096 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 8192 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 16384 */\n    COMMIT;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-6 -faults shmerr* -prep {\n  faultsim_restore_and_reopen\n  shmfault filter x...} -body {\n  execsql { SELECT count(*) FROM t1 }\n} -test {\n  faultsim_test_result {0 16384}\n  faultsim_integ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-6 -faults shmerr* -prep {\n  faultsim_restore_and_reopen\n  shmfault filter x...} -body {\n  execsql { SELECT count(*) FROM t1 }\n} -test {\n  faultsim_test_result {0 16384}\n  faultsim_integ...}")
 	{ // do_test "walfault-7-pre-1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec("\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 512;\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE t1(x);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(400));           /* 1 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 2 */\n      INSERT INTO t1 SELECT randomblob(400) FROM t1;    /* 4 */\n    COMMIT;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-7 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT count(*) FROM t1 }\n} -test {\n  faultsim_test_result {0 4}\n  set n [db one {SEL...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-7 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT count(*) FROM t1 }\n} -test {\n  faultsim_test_result {0 4}\n  set n [db one {SEL...}")
 	{ // do_test "walfault-8-pre-1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-8 -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGMA ...} -body {\n  execsql {\n    BEGIN;\n      INSERT INTO abc SELE...} -test {\n  faultsim_test_result {0 1}\n\n  faultsim_integrit...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-8 -prep {\n  faultsim_restore_and_reopen\n  execsql { PRAGMA ...} -body {\n  execsql {\n    BEGIN;\n      INSERT INTO abc SELE...} -test {\n  faultsim_test_result {0 1}\n\n  faultsim_integrit...}")
 	{ // do_test "walfault-9-pre-1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE abc(a PRIMARY KEY);\n    INSERT INTO abc VALUES(randomblob(900));\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-9 -prep {\n  #if {$iFail<73} { set iFail 73 }\n  #if {$iFail>...} -body {\n  execsql {\n    BEGIN;\n      INSERT INTO abc SELE...} -test {\n  faultsim_test_result {0 2}\n  faultsim_integrity...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-9 -prep {\n  #if {$iFail<73} { set iFail 73 }\n  #if {$iFail>...} -body {\n  execsql {\n    BEGIN;\n      INSERT INTO abc SELE...} -test {\n  faultsim_test_result {0 2}\n  faultsim_integrity...}")
 	{ // do_test "walfault-10-pre1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE z(zz INTEGER PRIMARY KEY, zzz BLOB);\n    CREATE INDEX zzzz ON z(zzz);\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    CREATE TABLE z(zz INTEGER PRIMARY KEY, zzz BLOB);\n    CREATE INDEX zzzz ON z(zzz);\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z VALUES(NULL, randomblob(800));\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n    INSERT INTO z SELECT NULL, randomblob(800) FROM z;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-10 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    PRA...} -body {\n  execsql { INSERT INTO z VALUES(NULL, NULL) }\n} -test {\n  sqlite3_finalize $::stmt\n  faultsim_integrity_c...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-10 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    PRA...} -body {\n  execsql { INSERT INTO z VALUES(NULL, NULL) }\n} -test {\n  sqlite3_finalize $::stmt\n  faultsim_integrity_c...}")
 	{ // do_test "walfault-11-pre-1"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -124,54 +124,54 @@ func Test_walfault(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    4\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --    8\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   16\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   32\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --   64\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  128\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  256\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   --  512\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 1024\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 2048\n      INSERT INTO abc SELECT randomblob(1500) FROM abc;   -- 4096\n    COMMIT;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-11 -faults shmerr* -prep {\n  catch { db2 close }\n  faultsim_restore_and_reop...} -body {\n  db eval { SELECT count(*) FROM abc }\n  sqlite3 ...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-11 -faults shmerr* -prep {\n  catch { db2 close }\n  faultsim_restore_and_reop...} -body {\n  db eval { SELECT count(*) FROM abc }\n  sqlite3 ...} -test {\n  faultsim_test_result {0 {}}\n}")
 	{ // do_test "walfault-12-pre-1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-12 -prep {\n  if {[info commands shmfault] == \"\"} {\n    testv...} -body {\n  set rc [sqlite3_wal_checkpoint db]\n  if {$rc !=...} -test {\n  db close\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-12 -prep {\n  if {[info commands shmfault] == \"\"} {\n    testv...} -body {\n  set rc [sqlite3_wal_checkpoint db]\n  if {$rc !=...} -test {\n  db close\n  faultsim_test_result {0 {}}\n}")
 	{ // do_test "walfault-13-pre-1"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec("\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = WAL;\n    PRAGMA wal_autocheckpoint = 0;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Skipf("TODO: %s not implemented in frigolite", "delete_file sv_test.db-shm")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "delete_file sv_test.db-shm")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-13.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { PRAGMA locking_mode = exclusive }\n  d...} -test {\n  faultsim_test_result {0 2}\n  if {[file exists t...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-13.2 -prep {\n  faultsim_restore_and_reopen\n  db eval { PRAGMA ...} -body {\n  db eval { PRAGMA journal_mode = delete }\n} -test {\n  faultsim_test_result {0 delete}\n  if {[file exi...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-13.1 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { PRAGMA locking_mode = exclusive }\n  d...} -test {\n  faultsim_test_result {0 2}\n  if {[file exists t...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-13.2 -prep {\n  faultsim_restore_and_reopen\n  db eval { PRAGMA ...} -body {\n  db eval { PRAGMA journal_mode = delete }\n} -test {\n  faultsim_test_result {0 delete}\n  if {[file exi...}")
 	{ // do_test "walfault-13-pre-2"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec("\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-13.3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { \n    PRAGMA locking_mode = exclusive;...} -test {\n  faultsim_test_result {0 {exclusive wal}}\n  if {...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-13.3 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { \n    PRAGMA locking_mode = exclusive;...} -test {\n  faultsim_test_result {0 {exclusive wal}}\n  if {...}")
 	{ // do_test "walfault-14-pre"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-14 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { \n    PRAGMA wal_checkpoint = full;\n  ...} -test {\n  faultsim_test_result {0 {0 9 9}}\n  faultsim_int...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-14 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  db eval { \n    PRAGMA wal_checkpoint = full;\n  ...} -test {\n  faultsim_test_result {0 {0 9 9}}\n  faultsim_int...}")
 	{ // do_test "walfault-15-pre"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec("\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY);\n      INSERT INTO abc VALUES(randomblob(1500));\n      INSERT INTO abc VALUES(randomblob(1500));\n    COMMIT;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-15 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    SEL...} -body {\n  db eval { \n    PRAGMA locking_mode = normal;\n  ...} -test {\n  faultsim_integrity_check\n  set nRow [db eval {S...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test walfault-15 -prep {\n  faultsim_restore_and_reopen\n  execsql {\n    SEL...} -body {\n  db eval { \n    PRAGMA locking_mode = normal;\n  ...} -test {\n  faultsim_integrity_check\n  set nRow [db eval {S...}")
 }

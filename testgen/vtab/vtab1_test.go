@@ -37,7 +37,7 @@ func Test_vtab1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT name FROM sqlite_master ORDER BY 1\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 	{ // do_test "vtab1-1.3.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING echo;\n  ")
 		_ = _res // catchsql
@@ -73,22 +73,22 @@ func Test_vtab1(t *testing.T) {
 		_ = sql // suppress unused warning
 		var STMT = ""
 		_ = STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "vtab-1.2152.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "vtab-1.2152.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $STMT")
 		_res = db.Exec("CREATE TABLE t2152b(x,y)")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t2152b(x,y)")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 	}
 	{ // do_test "vtab-1.2152.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 		_res = db.Exec("DROP TABLE t2152a; DROP TABLE t2152b")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE t2152a; DROP TABLE t2152b")
@@ -147,8 +147,8 @@ func Test_vtab1(t *testing.T) {
 		_res = db.Exec("\n    DROP TABLE techo;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
-	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 	{ // do_test "vtab1-1.16"
 		_res = db.Exec("\n    DROP TABLE techo;\n    CREATE TABLE logmsg(log);\n  ")
 		if _res.Error != nil {
@@ -198,7 +198,7 @@ func Test_vtab1(t *testing.T) {
 		_res = db.Exec(" PRAGMA table_info(t1); ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 	{ // do_test "vtab1.2.7"
 		r = db.Query(" PRAGMA table_info(t1); ")
 		if r.Error != nil {
@@ -337,21 +337,21 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1-4.1"
 		var echo_module = ""
 		_ = echo_module // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT b FROM t1 ORDER BY b;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT b FROM t1 ORDER BY b;\n  }")
 	}
 	{ // do_test "vtab1-4.2"
 	}
 	{ // do_test "vtab1-4.3"
 		var echo_module = ""
 		_ = echo_module // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT b FROM t1 ORDER BY b DESC;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT b FROM t1 ORDER BY b DESC;\n  }")
 	}
 	{ // do_test "vtab1-4.4"
 	}
 	{ // do_test "vtab1-4.3"
 		var echo_module = ""
 		_ = echo_module // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT b FROM t1 ORDER BY b||'';\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT b FROM t1 ORDER BY b||'';\n  }")
 	}
 	{ // do_test "vtab1-4.4"
 	}
@@ -375,7 +375,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-5-3"
-		t.Skipf("TODO: %s not implemented in frigolite", "filter $echo_module")
+		t.Errorf("TODO: %s not implemented in frigolite", "filter $echo_module")
 	}
 	{ // do_test "vtab1-5-4"
 		var echo_module = ""
@@ -386,7 +386,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-5-5"
-		t.Skipf("TODO: %s not implemented in frigolite", "filter $echo_module")
+		t.Errorf("TODO: %s not implemented in frigolite", "filter $echo_module")
 	}
 	{ // do_test "vtab1-5-6"
 		_res = db.Exec("\n    CREATE INDEX i1 ON t2(d);\n  ")
@@ -396,7 +396,7 @@ func Test_vtab1(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 		var _echo_module = "" // TCL namespace variable
 		_ = _echo_module // suppress unused warning
 		r = db.Query("\n    SELECT * FROM et1, et2 WHERE et2.d = 2;\n  ")
@@ -405,7 +405,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-5-7"
-		t.Skipf("TODO: %s not implemented in frigolite", "filter $::echo_module")
+		t.Errorf("TODO: %s not implemented in frigolite", "filter $::echo_module")
 	}
 	_res = db.Exec("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE et1;\n  DROP TABLE et2;\n")
 	if _res.Error != nil {
@@ -560,7 +560,7 @@ func Test_vtab1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, stmt)
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "check_echo_table vtab1-6.8.[incr tn]")
+		t.Errorf("TODO: %s not implemented in frigolite", "check_echo_table vtab1-6.8.[incr tn]")
 	}
 	db2.Close()
 	{ // do_test "vtab1.7-1"
@@ -685,7 +685,7 @@ func Test_vtab1(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 		_res = db.Exec("\n    DROP TABLE del;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP TABLE del;\n  ")
@@ -700,7 +700,7 @@ func Test_vtab1(t *testing.T) {
 			var _catchErr error
 			var ptr = "sqlite3_connection_pointer db"
 			_ = ptr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_declare_vtab $ptr {CREATE TABLE abc(a, b, c)}")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_declare_vtab $ptr {CREATE TABLE abc(a, b, c)}")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -738,7 +738,7 @@ func Test_vtab1(t *testing.T) {
 	{ // do_test "vtab1.10-6"
 		var echo_module = ""
 		_ = echo_module // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_delete_function db match")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_delete_function db match")
 		r = db.Query("\n    SELECT * FROM e WHERE match('pattern', rowid, 'pattern2');\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM e WHERE match('pattern', rowid, 'pattern2');\n  ")
@@ -790,7 +790,7 @@ func Test_vtab1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "vtab1.12-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg db")
 	}
 	{ // do_test "vtab1.12-3"
 		r = db.Query(" SELECT * FROM c ")
@@ -1013,7 +1013,7 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab1-17.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 		_res = db.Exec(" \n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    PRAGMA writable_schema = 1;\n    INSERT INTO sqlite_master VALUES(\n      'table', 't3', 't3', 0, 'INSERT INTO \"%s%s\" VALUES(1)'\n    );\n  ")
@@ -1079,10 +1079,10 @@ func Test_vtab1(t *testing.T) {
 			db2, err := frigolite.Open("test.db")
 			defer db2.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
+			t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
 		}
 		{ // do_test "19.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
+			t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db2]")
 		}
 		{ // do_test "19.3"
 			db2.Close()
@@ -1171,9 +1171,9 @@ func Test_vtab1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db eval")
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module db")
+		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db eval")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
 		{ // do_test "23.1"
 			_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING wholenumber ")
 			if _res.Error != nil {
@@ -1223,7 +1223,7 @@ func Test_vtab1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module db")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
 		{ // "25.0"
 			_res = db.Exec("\n  CREATE TABLE t0(a);\n  CREATE VIRTUAL TABLE t1 USING echo(t0);\n  WITH t3(a) AS (SELECT * FROM t1 UNION ALL SELECT * FROM t1)\n  UPDATE t1 SET (a,a) = (SELECT 1, 0) FROM t3;\n")
 			if _res.Error == nil {
@@ -1233,7 +1233,7 @@ func Test_vtab1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
 		{ // "26.1"
 			_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING wholenumber;\n  CREATE TABLE tx(a, b, c);\n")
 			if _res.Error != nil {

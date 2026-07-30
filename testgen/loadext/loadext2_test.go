@@ -31,17 +31,17 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
 	}
 	{ // do_test "loadext2-1.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
 	}
 	{ // do_test "loadext2-1.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
 	}
 	{ // do_test "loadext2-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_sqr")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_cube")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_sqr")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_cube")
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
 		_ = _res // catchsql
 	}
@@ -61,16 +61,16 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.7.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
 	}
 	{ // do_test "loadext2-1.7.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_sqr")
 	}
 	{ // do_test "loadext2-1.7.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_cube")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_cube")
 	}
 	{ // do_test "loadext2-1.7.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_cube")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_cancel_auto_extension_cube")
 	}
 	{ // do_test "loadext2-1.7.5"
 		_res = db.Exec("\n    SELECT sqr(2)\n  ")
@@ -81,7 +81,7 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_sqr")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_sqr")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -93,8 +93,8 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_cube")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_cube")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -106,7 +106,7 @@ func Test_loadext2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "loadext2-1.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_broken")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_broken")
 	var rc string
 	var errmsg string
 	_ = errmsg // suppress unused warning
@@ -133,6 +133,6 @@ func Test_loadext2(t *testing.T) {
 		_res = db.Exec("\n    SELECT cube(2)\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 }

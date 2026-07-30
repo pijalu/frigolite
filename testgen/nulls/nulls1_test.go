@@ -89,7 +89,7 @@ func Test_nulls1(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "switch $a {\n    0 {\n      execsql { CREATE INDEX i1 ON t3(a) ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "switch $a {\n    0 {\n      execsql { CREATE INDEX i1 ON t3(a) ...}")
 			// incr a 1
 			{
 				_n, _err := strconv.Atoi(a)

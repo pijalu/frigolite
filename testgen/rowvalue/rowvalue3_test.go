@@ -135,7 +135,7 @@ func Test_rowvalue3(t *testing.T) {
 				idx := _items[_idx+1]
 				_ = idx // suppress unused warning
 				_ = _idx
-					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_indexes")
+					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_indexes")
 					// foreach {tn2 sql res} "\n    1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }\n\n  "
 					_items := tclSplitList("\n    1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }\n\n  ")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
@@ -168,7 +168,7 @@ func Test_rowvalue3(t *testing.T) {
 						idx := _items[_idx+1]
 						_ = idx // suppress unused warning
 						_ = _idx
-							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_indexes")
+							t.Errorf("TODO: %s not implemented in frigolite", "drop_all_indexes")
 							_res = db.Exec(idx)
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)

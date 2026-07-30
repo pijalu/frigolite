@@ -22,7 +22,7 @@ func Test_corruptM(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "corruptM"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	// proc definition (not transpiled)
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -52,7 +52,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-102"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n  }")
 	}
 	{ // "corruptM-110"
 		r = db.Query("\n  UPDATE sqlite_master SET tbl_name='tx' WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -67,7 +67,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-111"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n  }")
 	}
 	{ // "corruptM-112"
 		r = db.Query("\n  UPDATE sqlite_master SET tbl_name='t1', type='tabl' WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -82,7 +82,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-113"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n  }")
 	}
 	{ // "corruptM-114"
 		r = db.Query("\n  UPDATE sqlite_master SET tbl_name='t9',type='table',name='t9'WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -97,7 +97,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-114"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n  }")
 	}
 	{ // "corruptM-120"
 		r = db.Query("\n  UPDATE sqlite_master SET name='t1',tbl_name='T1' WHERE name='t9';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -112,7 +112,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-121"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
 	}
 	{ // "corruptM-130"
 		r = db.Query("\n  UPDATE sqlite_master SET type='view' WHERE name='t1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -127,7 +127,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-131"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
 	}
 	{ // "corruptM-140"
 		r = db.Query("\n  UPDATE sqlite_master SET type='table', tbl_name='t1' WHERE name='t1';\n  UPDATE sqlite_master SET tbl_name='tx' WHERE name='i1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -142,7 +142,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-141"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
 	}
 	{ // "corruptM-150"
 		r = db.Query("\n  UPDATE sqlite_master SET type='table', tbl_name='t1' WHERE name='i1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -157,7 +157,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-151"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
 	}
 	{ // "corruptM-160"
 		r = db.Query("\n  UPDATE sqlite_master SET type='view', tbl_name='t1' WHERE name='i1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -172,7 +172,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-161"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
 	}
 	{ // "corruptM-170"
 		r = db.Query("\n  UPDATE sqlite_master SET type='index', tbl_name='t1' WHERE name='i1';\n  UPDATE sqlite_master SET type='table', tbl_name='v2' WHERE name='v2';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -187,7 +187,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-171"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
 	}
 	{ // "corruptM-180"
 		r = db.Query("\n  UPDATE sqlite_master SET type='view',name='v3',tbl_name='v3' WHERE name='v2';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -202,7 +202,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-181"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
 	}
 	{ // "corruptM-190"
 		r = db.Query("\n  UPDATE sqlite_master SET type='view',name='v2',tbl_name='v2' WHERE name='v3';\n  UPDATE sqlite_master SET type='view' WHERE name='r1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -217,7 +217,7 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-191"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
 	}
 	{ // "corruptM-192"
 		r = db.Query("\n  UPDATE sqlite_master SET type='trigger',tbl_name='v2' WHERE name='r1';\n  SELECT type, name, tbl_name, '|' FROM sqlite_master;\n")
@@ -232,6 +232,6 @@ func Test_corruptM(t *testing.T) {
 		}
 	}
 	{ // do_test "corruptM-193"
-		t.Skipf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "open_db2_and_catchsql {\n    PRAGMA quick_check;\n    SELECT * FROM t1, v2;...}")
 	}
 }

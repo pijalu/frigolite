@@ -32,7 +32,7 @@ func Test_fts3al(t *testing.T) {
 			_res = db.Exec("CREATE VIRTUAL TABLE t2 USING fts3(content, tokenize \\x80)")
 			if _res.Error != nil { _catchErr = _res.Error }
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errmsg $DB")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errmsg $DB")
 	}
 	{ // do_test "fts3al-1.3"
 		_res = db.Exec("CREATE VIRTUAL TABLE t3 USING fts3(content, tokenize\\x80)")

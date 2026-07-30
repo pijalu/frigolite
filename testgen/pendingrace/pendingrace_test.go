@@ -22,7 +22,7 @@ func Test_pendingrace(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "pendingrace"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
@@ -45,23 +45,23 @@ func Test_pendingrace(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "db2")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_save")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_save")
 	db2.Close()
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "my_db_restore")
+	t.Errorf("TODO: %s not implemented in frigolite", "my_db_restore")
 	{ // do_test "1.2"
 		// file exists "test.db-journal"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs2")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs2 filter xUnlock")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs2 script xUnlock")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs2")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs2 filter xUnlock")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs2 script xUnlock")
 	var _seen_unlock = "0" // TCL namespace variable
 	_ = _seen_unlock // suppress unused warning
 	// proc definition (not transpiled)
 	db2, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xAccess")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script xAccess")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xAccess")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script xAccess")
 	var _seen_access = "0" // TCL namespace variable
 	_ = _seen_access // suppress unused warning
 	// proc definition (not transpiled)
@@ -72,6 +72,6 @@ func Test_pendingrace(t *testing.T) {
 		}
 	}
 	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs2 delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs2 delete")
 }

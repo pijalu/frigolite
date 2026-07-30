@@ -22,12 +22,12 @@ func Test_zeroblob(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "zeroblob"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
 	_res = db.Exec("PRAGMA cache_size=10")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA cache_size=10")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
 	var memused = "sqlite3_memory_used"
 	_ = memused // suppress unused warning
 	{ // do_test "zeroblob-1.1"
@@ -177,7 +177,7 @@ func Test_zeroblob(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "select typeof(zeroblob(-1))")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
 	var memused = "sqlite3_memory_used"
 	_ = memused // suppress unused warning
 	{ // do_test "zeroblob-7.1"
@@ -185,14 +185,14 @@ func Test_zeroblob(t *testing.T) {
 		_ = _STMT // suppress unused warning
 		var _sqlite3_max_blobsize = "0" // TCL namespace variable
 		_ = _sqlite3_max_blobsize // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_zeroblob $::STMT 1 450000")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_zeroblob $::STMT 1 450000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
 	}
 	{ // do_test "zeroblob-7.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_int $::STMT 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_int $::STMT 0")
 	}
 	{ // do_test "zeroblob-7.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
 	}
 	{ // do_test "zeroblob-8.1"
 		tclLLength("execsql {\n    SELECT 'hello' AS a, zeroblob(10) as b from t1 ORDER BY a, b;\n  }")
@@ -293,25 +293,25 @@ func Test_zeroblob(t *testing.T) {
 	var stmt = "sqlite3_prepare db \"SELECT length(?)\" -1 dummy"
 	_ = stmt // suppress unused warning
 	{ // do_test "12.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "bind_and_run $stmt 40")
+		t.Errorf("TODO: %s not implemented in frigolite", "bind_and_run $stmt 40")
 	}
 	{ // do_test "12.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "bind_and_run $stmt 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "bind_and_run $stmt 0")
 	}
 	{ // do_test "12.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "bind_and_run $stmt 1000")
+		t.Errorf("TODO: %s not implemented in frigolite", "bind_and_run $stmt 1000")
 	}
 	{ // do_test "12.4"
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
 	{ // do_test "12.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
 		var ret = int64(0)
 		_ = ret // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $stmt")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $stmt")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 	{ // "13.100"
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(a,b,c);\n  CREATE INDEX t1bbc ON t1(b, b+c);\n  INSERT INTO t1(a,b,c) VALUES(1,zeroblob(8),3);\n  SELECT a, quote(b), length(b), c FROM t1;\n")
 		if r.Error != nil {
@@ -324,5 +324,5 @@ func Test_zeroblob(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
 }

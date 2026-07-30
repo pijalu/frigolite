@@ -23,5 +23,5 @@ func Test_zeroblobfault(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	var quoted_res = "db one { SELECT quote(zeroblob(2000)) }"
 	_ = quoted_res // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { SELECT quote(zeroblob(2000)) }\n} -test {\n  faultsim_test_result [list 0 $::quoted_res]\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  sqlite3 db test.db\n} -body {\n  execsql { SELECT quote(zeroblob(2000)) }\n} -test {\n  faultsim_test_result [list 0 $::quoted_res]\n}")
 }

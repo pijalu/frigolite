@@ -24,7 +24,7 @@ func Test_corruptG(t *testing.T) {
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // "1.1"
 		_res = db.Exec("\n  PRAGMA page_size=512;\n  CREATE TABLE t1(a,b,c);\n  INSERT INTO t1(rowid,a,b,c) VALUES(52,'abc','xyz','123');\n  CREATE INDEX t1abc ON t1(a,b,c);\n")
 		if _res.Error != nil {
@@ -33,7 +33,7 @@ func Test_corruptG(t *testing.T) {
 	}
 	var idxroot = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1abc'}"
 	_ = idxroot // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {$idxroot*512 - 15}] 888080807f")
+	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {$idxroot*512 - 15}] 888080807f")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "1.2"
@@ -48,7 +48,7 @@ func Test_corruptG(t *testing.T) {
 		_res = db.Exec("\n    SELECT c FROM t1 ORDER BY a;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {$idxroot*512-15}] 0513ff7f01")
+	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr {$idxroot*512-15}] 0513ff7f01")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "2.1"

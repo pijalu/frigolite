@@ -345,7 +345,7 @@ func Test_upsert1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, b INT);\n  CREATE UNIQUE INDEX t1x ON t1(b+3);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ENABLE_QPSG 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db ENABLE_QPSG 1")
 	{ // "upsert1-1210"
 		_res = db.Exec("\n  INSERT INTO t1(a,b) VALUES(1,2) ON CONFLICT(b+?1) DO NOTHING;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON CONFLICT clause does not match any PRIMARY KEY or UNIQUE constraint") {

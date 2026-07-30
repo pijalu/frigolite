@@ -23,7 +23,7 @@ func Test_sort5(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sort5"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -iversion 1 -default true")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -iversion 1 -default true")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -64,10 +64,10 @@ func Test_sort5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX i1 ON t1(b);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script tv_callback")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter {xOpen xWrite}")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script tv_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter {xOpen xWrite}")
 	// proc definition (not transpiled)
 	{
 		var _catchErr error

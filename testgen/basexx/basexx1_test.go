@@ -148,7 +148,7 @@ func Test_basexx1(t *testing.T) {
 	}
 	var inLimit = "sqlite3_limit db SQLITE_LIMIT_LENGTH -1"
 	_ = inLimit // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 1300")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 1300")
 	{ // "109"
 		_res = db.Exec("\n  SELECT len, base64(b) FROM rb WHERE len>200;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "blob expanded to base64 too big") {
@@ -167,7 +167,7 @@ func Test_basexx1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "blob expanded to base85 too big", _res.Error, "\n  SELECT length(base85(b))=1335 FROM rb WHERE len=1054;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH $inLimit")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH $inLimit")
 	{ // "112"
 		_res = db.Exec("\n  SELECT is_base85(' '||base85(x'123456')||char(10)),\n  is_base85('#$%&*+,-./0123456789:;<=>?@'\n   ||'ABCDEFGHIJKLMNOPQRSTUVWXYZ'\n   ||'[\\]^_`'\n   ||'abcdefghijklmnopqrstuvwxyz'),\n  is_base85('!'), is_base85('\"'), is_base85(''''), is_base85('('),\n  is_base85(')'), is_base85(char(123)), is_base85('|'), is_base85(char(125)),\n  is_base85('~'), is_base85(char(127));\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "1 0 0 0 0 0 0 0 0 0 0") {

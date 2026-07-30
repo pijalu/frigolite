@@ -68,6 +68,6 @@ func Test_without_rowid2(t *testing.T) {
 		}
 	}
 	{ // do_test "without_rowid2-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
 	}
 }

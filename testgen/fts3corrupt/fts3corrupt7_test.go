@@ -23,9 +23,9 @@ func Test_fts3corrupt7(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3corrupt7"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
-	t.Skipf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_fts3_may_be_corrupt 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "extra_schema_checks 0")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

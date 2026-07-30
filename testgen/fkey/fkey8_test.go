@@ -41,7 +41,7 @@ func Test_fkey8(t *testing.T) {
 		schema := _items[_idx+3]
 		_ = schema // suppress unused warning
 		_ = _idx
-			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 			{ // do_test "1." + tn
 				_res = db.Exec(schema)
 				if _res.Error != nil {
@@ -51,7 +51,7 @@ func Test_fkey8(t *testing.T) {
 				_ = stmt // suppress unused warning
 				var ret = "uses_stmt_journal $stmt"
 				_ = ret // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 			}
 		}
 		db.Close()

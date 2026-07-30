@@ -29,7 +29,7 @@ func Test_fts3conf(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE VIRTUAL TABLE t1 USING fts3(x);\n  INSERT INTO t1(rowid, x) VALUES(1, 'a b c d');\n  INSERT INTO t1(rowid, x) VALUES(2, 'e f g h');\n\n  CREATE TABLE source(a, b);\n  INSERT INTO source VALUES(4, 'z');\n  INSERT INTO source VALUES(2, 'y');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
 	var T1 = "INTO t1(rowid, x) VALUES(1, 'x')"
 	_ = T1 // suppress unused warning
 	var T2 = "INTO t1(rowid, x) SELECT * FROM source"
@@ -52,7 +52,7 @@ func Test_fts3conf(t *testing.T) {
 		data := _items[_idx+4]
 		_ = data // suppress unused warning
 		_ = _idx
-			t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
 			_res = db.Exec(" \n    BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');\n  ")
@@ -75,7 +75,7 @@ func Test_fts3conf(t *testing.T) {
 			}
 			_res = db.Exec("COMMIT")
 			_ = _res // catchsql
-			t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity 1.$tn.3 db t1")
+			t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity 1.$tn.3 db t1")
 			{ // do_test "1." + tn + ".4"
 				_res = db.Exec("list sql_uses_stmt db $sql")
 				if _res.Error != nil {
@@ -89,7 +89,7 @@ func Test_fts3conf(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1 VALUES('a b c');\n    SAVEPOINT a;\n      INSERT INTO t1 VALUES('x y z');\n    ROLLBACK TO a;\n  COMMIT;\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity 2.1.2 db t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity 2.1.2 db t1")
 		{ // "2.2.1"
 			_res = db.Exec("\n  DELETE FROM t1;\n  BEGIN;\n    INSERT INTO t1(docid, x) VALUES(0, 'a b c');\n    INSERT INTO t1(docid, x) VALUES(1, 'a b c');\n    REPLACE INTO t1(docid, x) VALUES('zero', 'd e f');\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "datatype mismatch") {
@@ -114,7 +114,7 @@ func Test_fts3conf(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity 2.2.4 db t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity 2.2.4 db t1")
 		if tcl_platform(byteOrder) == "littleEndian" {
 			{ // "3.1"
 				r = db.Query("\n    CREATE VIRTUAL TABLE t3 USING fts4;\n    REPLACE INTO t3(docid, content) VALUES (1, 'one two');\n    SELECT quote(matchinfo(t3, 'na')) FROM t3 WHERE t3 MATCH 'one'\n  ")

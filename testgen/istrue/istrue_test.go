@@ -273,10 +273,10 @@ func Test_istrue(t *testing.T) {
 			{ // do_test "istrue-600." + tn + ".2"
 				var _STMT = "sqlite3_prepare db \"INSERT INTO t1 VALUES(?)\" -1 TAIL" // TCL namespace variable
 				_ = _STMT // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 $val")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 $val")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
 			}
 			{ // "istrue-600." + tn + ".3"
 				r = db.Query("\n    SELECT x IS TRUE FROM t1;\n  ")

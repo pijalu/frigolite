@@ -44,10 +44,10 @@ func Test_thread3(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nAttempt_n, _nAttempt_e := strconv.Atoi(nAttempt); if _nAttempt_e != nil { return false }; return i_n < nAttempt_n }() {
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlthread spawn X {\n      sqlite3 dbI test.db\n      dbI timeout 100\n ...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlthread spawn Y {\n      sqlite3 dbR test.db\n      catch {\n        d...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "wait_for_var X")
-			t.Skipf("TODO: %s not implemented in frigolite", "wait_for_var Y")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlthread spawn X {\n      sqlite3 dbI test.db\n      dbI timeout 100\n ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlthread spawn Y {\n      sqlite3 dbR test.db\n      catch {\n        d...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "wait_for_var X")
+			t.Errorf("TODO: %s not implemented in frigolite", "wait_for_var Y")
 			// incr nTotalBusy X
 			{
 				_n, _err := strconv.Atoi(nTotalBusy)

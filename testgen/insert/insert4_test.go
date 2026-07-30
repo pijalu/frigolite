@@ -23,7 +23,7 @@ func Test_insert4(t *testing.T) {
 	var testprefix = "insert4"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
 	_res = db.Exec("\n  CREATE TABLE t1(a int, b int, check(b>a));\n  CREATE TABLE t2(x int, y int);\n  CREATE VIEW v2 AS SELECT y, x FROM t2;\n  CREATE TABLE t3(a int, b int);\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a int, b int, check(b>a));\n  CREATE TABLE t2(x int, y int);\n  CREATE VIEW v2 AS SELECT y, x FROM t2;\n  CREATE TABLE t3(a int, b int);\n")
@@ -38,7 +38,7 @@ func Test_insert4(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t1 SELECT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "xferopt_test insert4-1.2 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-1.2 0")
 	{ // do_test "insert4-1.3"
 		r = db.Query("\n    SELECT * FROM t1;\n  ")
 		if r.Error != nil {
@@ -51,52 +51,52 @@ func Test_insert4(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT 4, 8;\n    SELECT * FROM t1;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.1.2 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.1.2 0")
 	{ // do_test "insert4-2.2.1"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM v2;\n    SELECT * FROM t1;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.2.2 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.2.2 0")
 	{ // do_test "insert4-2.3.1"
 		r = db.Query("\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);\n    INSERT INTO t2 SELECT y, x FROM t2;\n    INSERT INTO t3 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t2;\n    INSERT INTO t2 VALUES(9,1);\n    INSERT INTO t2 SELECT y, x FROM t2;\n    INSERT INTO t3 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t3;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.3.2 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.3.2 0")
 	{ // do_test "insert4-2.3.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT * FROM t2 LIMIT 1;\n    SELECT * FROM t1;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.3.4 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.3.4 0")
 	{ // do_test "insert4-2.4.1"
 		r = db.Query("\n    DELETE FROM t3;\n    INSERT INTO t3 SELECT DISTINCT * FROM t2;\n    SELECT * FROM t3;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    DELETE FROM t3;\n    INSERT INTO t3 SELECT DISTINCT * FROM t2;\n    SELECT * FROM t3;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.4.2 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.4.2 0")
 	{ // do_test "insert4-2.4.3"
 		_res = db.Exec("\n    DELETE FROM t1;\n    INSERT INTO t1 SELECT DISTINCT * FROM t2;\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.4.4 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "xferopt_test insert4-2.4.4 0")
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.1 1 {1 9} {a int, b int CHECK(b>a)} {x int, y int CHECK(y>x)}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.2 1 {1 9} {a int, b int CHECK(b>a)} {x int CHECK(y>x), y int}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.3 1 {1 9} {a int, b int} {x int, y int CHECK(y>x)}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.4 0 {1 9} {a int, b int CHECK(b>a)} {x int, y int}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.5 0 {1 9} {a int, b int NOT NULL} {x int, y int}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.6 0 {1 9} {a int, b int NOT NULL} {x int NOT NULL, y int}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.7 0 {1 9} {a int NOT NULL, b int NOT NULL} {x int NOT NULL, y int}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.8 0 {1 9} {a int NOT NULL, b int} {x int, y int}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.9 1 {1 9} {a int, b int} {x int NOT NULL, y int}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.10 1 {1 9} {a int, b int} {x int NOT NULL, y int NOT NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.11 1 {1 9} {a int NOT NULL, b int} {x int NOT NULL, y int NOT NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.12 1 {1 9} {a int, b int NOT NULL} {x int NOT NULL, y int NOT NULL}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.20 0 {1 9} {a text, b int} {x int, b int}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.21 0 {1 9} {a int, b int} {x text, b int}")
-	t.Skipf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.22 1 {1 9} {a int, b int} {x integer, b int}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.1 1 {1 9} {a int, b int CHECK(b>a)} {x int, y int CHECK(y>x)}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.2 1 {1 9} {a int, b int CHECK(b>a)} {x int CHECK(y>x), y int}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.3 1 {1 9} {a int, b int} {x int, y int CHECK(y>x)}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.4 0 {1 9} {a int, b int CHECK(b>a)} {x int, y int}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.5 0 {1 9} {a int, b int NOT NULL} {x int, y int}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.6 0 {1 9} {a int, b int NOT NULL} {x int NOT NULL, y int}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.7 0 {1 9} {a int NOT NULL, b int NOT NULL} {x int NOT NULL, y int}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.8 0 {1 9} {a int NOT NULL, b int} {x int, y int}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.9 1 {1 9} {a int, b int} {x int NOT NULL, y int}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.10 1 {1 9} {a int, b int} {x int NOT NULL, y int NOT NULL}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.11 1 {1 9} {a int NOT NULL, b int} {x int NOT NULL, y int NOT NULL}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.12 1 {1 9} {a int, b int NOT NULL} {x int NOT NULL, y int NOT NULL}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.20 0 {1 9} {a text, b int} {x int, b int}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.21 0 {1 9} {a int, b int} {x text, b int}")
+	t.Errorf("TODO: %s not implemented in frigolite", "xfer_check insert4-3.22 1 {1 9} {a int, b int} {x integer, b int}")
 	{ // do_test "insert4-4.1a"
 		_res = db.Exec("CREATE TABLE t4(a, b, UNIQUE(a,b))")
 		if _res.Error != nil {

@@ -29,22 +29,22 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	{ // do_test "collate4-1.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a}")
 	}
 	{ // do_test "collate4-1.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a COLLATE NOCASE}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a COLLATE NOCASE}")
 	}
 	{ // do_test "collate4-1.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a COLLATE TEXT}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a COLLATE TEXT}")
 	}
 	{ // do_test "collate4-1.1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t1 ORDER BY b}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t1 ORDER BY b}")
 	}
 	{ // do_test "collate4-1.1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t1 ORDER BY b COLLATE TEXT}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t1 ORDER BY b COLLATE TEXT}")
 	}
 	{ // do_test "collate4-1.1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t1 ORDER BY b COLLATE NOCASE...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t1 ORDER BY b COLLATE NOCASE...}")
 	}
 	{ // do_test "collate4-1.1.7"
 		_res = db.Exec("\n    CREATE TABLE collate4t2(\n      a PRIMARY KEY COLLATE NOCASE, \n      b UNIQUE COLLATE TEXT\n    );\n    INSERT INTO collate4t2 VALUES( 'a', 'a' );\n    INSERT INTO collate4t2 VALUES( NULL, NULL );\n    INSERT INTO collate4t2 VALUES( 'B', 'B' );\n  ")
@@ -53,22 +53,22 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	{ // do_test "collate4-1.1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a}")
 	}
 	{ // do_test "collate4-1.1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a COLLATE NOCASE}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a COLLATE NOCASE}")
 	}
 	{ // do_test "collate4-1.1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a COLLATE TEXT}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a COLLATE TEXT}")
 	}
 	{ // do_test "collate4-1.1.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t2 ORDER BY b}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t2 ORDER BY b}")
 	}
 	{ // do_test "collate4-1.1.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t2 ORDER BY b COLLATE TEXT}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t2 ORDER BY b COLLATE TEXT}")
 	}
 	{ // do_test "collate4-1.1.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t2 ORDER BY b COLLATE NOCASE}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t2 ORDER BY b COLLATE NOCASE}")
 	}
 	{ // do_test "collate4-1.1.14"
 		_res = db.Exec("\n    CREATE TABLE collate4t3(\n      b COLLATE TEXT,  \n      a COLLATE NOCASE, \n      UNIQUE(a), PRIMARY KEY(b)\n    );\n    INSERT INTO collate4t3 VALUES( 'a', 'a' );\n    INSERT INTO collate4t3 VALUES( NULL, NULL );\n    INSERT INTO collate4t3 VALUES( 'B', 'B' );\n  ")
@@ -77,22 +77,22 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	{ // do_test "collate4-1.1.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a}")
 	}
 	{ // do_test "collate4-1.1.16"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE NOCASE}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE NOCASE}")
 	}
 	{ // do_test "collate4-1.1.17"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE TEXT}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE TEXT}")
 	}
 	{ // do_test "collate4-1.1.18"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t3 ORDER BY b}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t3 ORDER BY b}")
 	}
 	{ // do_test "collate4-1.1.19"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t3 ORDER BY b COLLATE TEXT}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t3 ORDER BY b COLLATE TEXT}")
 	}
 	{ // do_test "collate4-1.1.20"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t3 ORDER BY b COLLATE NOCASE}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t3 ORDER BY b COLLATE NOCASE}")
 	}
 	{ // do_test "collate4-1.1.21"
 		_res = db.Exec("\n    CREATE TABLE collate4t4(a COLLATE NOCASE, b COLLATE TEXT);\n    INSERT INTO collate4t4 VALUES( 'a', 'a' );\n    INSERT INTO collate4t4 VALUES( 'b', 'b' );\n    INSERT INTO collate4t4 VALUES( NULL, NULL );\n    INSERT INTO collate4t4 VALUES( 'B', 'B' );\n    INSERT INTO collate4t4 VALUES( 'A', 'A' );\n    CREATE INDEX collate4i3 ON collate4t4(a COLLATE TEXT);\n    CREATE INDEX collate4i4 ON collate4t4(b COLLATE NOCASE);\n  ")
@@ -101,22 +101,22 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	{ // do_test "collate4-1.1.22"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t4 ORDER BY a, rowid}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t4 ORDER BY a, rowid}")
 	}
 	{ // do_test "collate4-1.1.23"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t4 ORDER BY a COLLATE NOCASE...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t4 ORDER BY a COLLATE NOCASE...}")
 	}
 	{ // do_test "collate4-1.1.24"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t4 ORDER BY a COLLATE TEXT, ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t4 ORDER BY a COLLATE TEXT, ...}")
 	}
 	{ // do_test "collate4-1.1.25"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t4 ORDER BY b}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t4 ORDER BY b}")
 	}
 	{ // do_test "collate4-1.1.26"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t4 ORDER BY b COLLATE TEXT}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t4 ORDER BY b COLLATE TEXT}")
 	}
 	{ // do_test "collate4-1.1.27"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t4 ORDER BY b COLLATE NOCASE}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM collate4t4 ORDER BY b COLLATE NOCASE}")
 	}
 	{ // do_test "collate4-1.1.30"
 		_res = db.Exec("\n    DROP TABLE collate4t1;\n    DROP TABLE collate4t2;\n    DROP TABLE collate4t3;\n    DROP TABLE collate4t4;\n  ")
@@ -131,22 +131,22 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	{ // do_test "collate4-1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a}")
 	}
 	{ // do_test "collate4-1.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a COLLATE nocase}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a COLLATE nocase}")
 	}
 	{ // do_test "collate4-1.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a COLLATE text}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a COLLATE text}")
 	}
 	{ // do_test "collate4-1.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a, b}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a, b}")
 	}
 	{ // do_test "collate4-1.2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a, b COLLATE noc...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a, b COLLATE noc...}")
 	}
 	{ // do_test "collate4-1.2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a, b COLLATE tex...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t1 ORDER BY a, b COLLATE tex...}")
 	}
 	{ // do_test "collate4-1.2.7"
 		_res = db.Exec("\n    CREATE TABLE collate4t2(\n      a COLLATE NOCASE, \n      b COLLATE TEXT, \n      PRIMARY KEY(a, b)\n    );\n    INSERT INTO collate4t2 VALUES( 'a', 'a' );\n    INSERT INTO collate4t2 VALUES( NULL, NULL );\n    INSERT INTO collate4t2 VALUES( 'B', 'B' );\n  ")
@@ -155,22 +155,22 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	{ // do_test "collate4-1.2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a}")
 	}
 	{ // do_test "collate4-1.2.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a COLLATE nocase}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a COLLATE nocase}")
 	}
 	{ // do_test "collate4-1.2.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a COLLATE text}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a COLLATE text}")
 	}
 	{ // do_test "collate4-1.2.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a, b}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a, b}")
 	}
 	{ // do_test "collate4-1.2.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a, b COLLATE noc...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a, b COLLATE noc...}")
 	}
 	{ // do_test "collate4-1.2.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a, b COLLATE tex...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t2 ORDER BY a, b COLLATE tex...}")
 	}
 	{ // do_test "collate4-1.2.14"
 		_res = db.Exec("\n    CREATE TABLE collate4t3(a COLLATE NOCASE, b COLLATE TEXT);\n    INSERT INTO collate4t3 VALUES( 'a', 'a' );\n    INSERT INTO collate4t3 VALUES( 'b', 'b' );\n    INSERT INTO collate4t3 VALUES( NULL, NULL );\n    INSERT INTO collate4t3 VALUES( 'B', 'B' );\n    INSERT INTO collate4t3 VALUES( 'A', 'A' );\n    CREATE INDEX collate4i2 ON collate4t3(a COLLATE TEXT, b COLLATE NOCASE);\n  ")
@@ -179,34 +179,34 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	{ // do_test "collate4-1.2.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a, rowid}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a, rowid}")
 	}
 	{ // do_test "collate4-1.2.16"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE nocase...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE nocase...}")
 	}
 	{ // do_test "collate4-1.2.17"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text}")
 	}
 	{ // do_test "collate4-1.2.18"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text, ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text, ...}")
 	}
 	{ // do_test "collate4-1.2.19"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text, ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text, ...}")
 	}
 	{ // do_test "collate4-1.2.20"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text, ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text, ...}")
 	}
 	{ // do_test "collate4-1.2.21"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text D...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text D...}")
 	}
 	{ // do_test "collate4-1.2.22"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text D...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 ORDER BY a COLLATE text D...}")
 	}
 	{ // do_test "collate4-1.2.23"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 \n            ORDER BY a C...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 \n            ORDER BY a C...}")
 	}
 	{ // do_test "collate4-1.2.24"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 \n            ORDER BY a C...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM collate4t3 \n            ORDER BY a C...}")
 	}
 	{ // do_test "collate4-1.2.25"
 		_res = db.Exec("\n    DROP TABLE collate4t1;\n    DROP TABLE collate4t2;\n    DROP TABLE collate4t3;\n  ")
@@ -221,27 +221,27 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	{ // do_test "collate4-2.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2, collate4t1 WHERE a ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2, collate4t1 WHERE a ...}")
 	}
 	{ // do_test "collate4-2.1.2"
 		_res = db.Exec("\n    CREATE INDEX collate4i1 ON collate4t1(a);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX collate4i1 ON collate4t1(a);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2, collate4t1 WHERE a ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2, collate4t1 WHERE a ...}")
 	}
 	{ // do_test "collate4-2.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2, collate4t1 WHERE b ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2, collate4t1 WHERE b ...}")
 	}
 	{ // do_test "collate4-2.1.4"
 		_res = db.Exec("\n    DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a COLLATE TEXT);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a COLLATE TEXT);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2, collate4t1 WHERE a ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2, collate4t1 WHERE a ...}")
 	}
 	{ // do_test "collate4-2.1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2, collate4t1 WHERE b ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2, collate4t1 WHERE b ...}")
 	}
 	{ // do_test "collate4-2.1.10"
 		_res = db.Exec("\n    DROP TABLE collate4t1;\n    DROP TABLE collate4t2;\n  ")
@@ -256,21 +256,21 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	{ // do_test "collate4-2.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2 NOT INDEXED NATURAL ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2 NOT INDEXED NATURAL ...}")
 	}
 	{ // do_test "collate4-2.2.1b"
 		_res = db.Exec("\n    CREATE INDEX collate4i1 ON collate4t1(a, b, c);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX collate4i1 ON collate4t1(a, b, c);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2 NATURAL JOIN collate...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2 NATURAL JOIN collate...}")
 	}
 	{ // do_test "collate4-2.2.2"
 		_res = db.Exec("\n    DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a, b, c COLLATE text);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a, b, c COLLATE text);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2 NATURAL JOIN collate...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT * FROM collate4t2 NATURAL JOIN collate...}")
 	}
 	{ // do_test "collate4-2.2.10"
 		_res = db.Exec("\n    DROP TABLE collate4t1;\n    DROP TABLE collate4t2;\n  ")
@@ -364,30 +364,30 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	{ // do_test "collate4-4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT max(a) FROM collate4t1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT max(a) FROM collate4t1\n  }")
 	}
 	{ // do_test "collate4-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT min(a) FROM collate4t1\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT min(a) FROM collate4t1\n  }")
 	}
 	{ // do_test "collate4-4.3"
 		_res = db.Exec("\n    CREATE INDEX collate4i1 ON collate4t1(a);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX collate4i1 ON collate4t1(a);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT min(a) FROM collate4t1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT min(a) FROM collate4t1;\n  }")
 	}
 	{ // do_test "collate4-4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT max(a) FROM collate4t1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT max(a) FROM collate4t1;\n  }")
 	}
 	{ // do_test "collate4-4.5"
 		_res = db.Exec("\n    DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a COLLATE NUMERIC);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX collate4i1;\n    CREATE INDEX collate4i1 ON collate4t1(a COLLATE NUMERIC);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT min(a) FROM collate4t1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT min(a) FROM collate4t1;\n  }")
 	}
 	{ // do_test "collate4-4.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {\n    SELECT max(a) FROM collate4t1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {\n    SELECT max(a) FROM collate4t1;\n  }")
 	}
 	{ // do_test "collate4-4.7"
 		_res = db.Exec("\n    DROP TABLE collate4t1;\n  ")
@@ -450,12 +450,12 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	{ // do_test "collate4-6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM collate4t1 ORDER BY 1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM collate4t1 ORDER BY 1;\n  }")
 	}
 	{ // do_test "collate4-6.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM collate4t1 ORDER BY oid;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM collate4t1 ORDER BY oid;\n  }")
 	}
 	{ // do_test "collate4-6.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM collate4t1 ORDER BY oid||'' COL...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {\n    SELECT * FROM collate4t1 ORDER BY oid||'' COL...}")
 	}
 }

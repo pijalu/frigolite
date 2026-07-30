@@ -27,31 +27,31 @@ func Test_e_insert(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-0 {\n     1  \"INSERT             INTO a1 DEFAULT VALUE...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.1 {\n    0    \"SELECT count(*) FROM a2\"           {0}\n...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.2 -error { \n  table %s has %d columns but %d values were sup...} {\n    1    \"INSERT INTO a2 VALUES(1)\"         {a2 3...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.3 {\n    1a   \"INSERT INTO a2 VALUES(1, 2, 3)\"    {}\n ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.4 -error { \n  %d values for %d columns\n} {\n    1    \"INSERT INTO a2(a, b, c) VALUES(1)\"     ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.5 {\n    1a   \"INSERT INTO a2(b, c) VALUES('b', 'c')\" ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.1 {\n    0    \"SELECT count(*) FROM a1\"            {0}...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.2 -error {\n  %d values for %d columns\n} {\n    1    \"INSERT INTO a3(x, y) SELECT a, b, c FRO...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.3 -error {\n  table %s has %d columns but %d values were supp...} {\n    1    \"INSERT INTO a1 SELECT a, b, c FROM a2\" ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_all_data")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-0 {\n     1  \"INSERT             INTO a1 DEFAULT VALUE...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.1 {\n    0    \"SELECT count(*) FROM a2\"           {0}\n...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.2 -error { \n  table %s has %d columns but %d values were sup...} {\n    1    \"INSERT INTO a2 VALUES(1)\"         {a2 3...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.3 {\n    1a   \"INSERT INTO a2 VALUES(1, 2, 3)\"    {}\n ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.4 -error { \n  %d values for %d columns\n} {\n    1    \"INSERT INTO a2(a, b, c) VALUES(1)\"     ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-1.5 {\n    1a   \"INSERT INTO a2(b, c) VALUES('b', 'c')\" ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.1 {\n    0    \"SELECT count(*) FROM a1\"            {0}...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.2 -error {\n  %d values for %d columns\n} {\n    1    \"INSERT INTO a3(x, y) SELECT a, b, c FRO...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.3 -error {\n  table %s has %d columns but %d values were supp...} {\n    1    \"INSERT INTO a1 SELECT a, b, c FROM a2\" ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
 	{ // "e_insert-2.3.0"
 		_res = db.Exec("\n  INSERT INTO a1 VALUES('x', 'y');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO a1 VALUES('x', 'y');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.3 {\n  1  \"INSERT INTO a1 SELECT a,b FROM a1 UNION SEL...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-3.1 {\n    1    \"SELECT count(*) FROM a3\"           {0}\n...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_all_data")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-3.2 {\n    1.1    \"INSERT INTO a3 DEFAULT VALUES\"     {}...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-2.3 {\n  1  \"INSERT INTO a1 SELECT a,b FROM a1 UNION SEL...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-3.1 {\n    1    \"SELECT count(*) FROM a3\"           {0}\n...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_insert_tests e_insert-3.2 {\n    1.1    \"INSERT INTO a3 DEFAULT VALUES\"     {}...}")
 	{ // "e_insert-4.1.0"
 		_res = db.Exec("\n  INSERT INTO a4 VALUES(1, 'a');\n  INSERT INTO a4 VALUES(2, 'a');\n  INSERT INTO a4 VALUES(3, 'a');\n")
 		if _res.Error != nil {
@@ -91,7 +91,7 @@ func Test_e_insert(t *testing.T) {
 				}
 			}
 			{ // do_test "e_insert-4.1." + tn + ".3"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
 			}
 		}
 		var err = "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
@@ -114,5 +114,5 @@ func Test_e_insert(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"DEFAULT\\\": syntax error", _res.Error, "\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO a4 DEFAULT VALUES;\n  END;\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "delete_all_data")
+		t.Errorf("TODO: %s not implemented in frigolite", "delete_all_data")
 }

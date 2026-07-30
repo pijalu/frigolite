@@ -36,7 +36,7 @@ func Test_shell9(t *testing.T) {
 	// close $out
 	{ // do_test "1.1.1"
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .read testdump.txt")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read testdump.txt")
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -62,11 +62,11 @@ func Test_shell9(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .read testdump.txt")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read testdump.txt")
 	}
 	{ // do_test "1.3.1"
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchsafecmd test.db .read testdump.txt")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchsafecmd test.db .read testdump.txt")
 	}
 	{ // do_test "1.3.2"
 		var fd = "open testdump.txt"
@@ -75,11 +75,11 @@ func Test_shell9(t *testing.T) {
 		_ = script // suppress unused warning
 		// close $fd
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchsafecmd test.db $script")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchsafecmd test.db $script")
 	}
 	{ // do_test "1.3.3"
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db $script")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db $script")
 	}
 	// proc definition (not transpiled)
 	db.Close()
@@ -92,7 +92,7 @@ func Test_shell9(t *testing.T) {
 		}
 	}
 	{ // do_test "2.0.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db .dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db .dump]")
 	}
 	{ // "2.1.1"
 		_res = db.Exec("\n  CREATE virtual TABLE r1 USING fts5(x);\n")
@@ -101,18 +101,18 @@ func Test_shell9(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db .dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db .dump]")
 	}
 	{ // do_test "2.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db \".dump t1\"]")
+		t.Errorf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db \".dump t1\"]")
 	}
 	{ // do_test "2.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db \".dump r1\"]")
+		t.Errorf("TODO: %s not implemented in frigolite", "contains_warning [catchcmd test.db \".dump r1\"]")
 	}
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DQS_DDL 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DQS_DDL 1")
 	{ // "3.1.0"
 		_res = db.Exec("\n  CREATE TABLE t4(hello, check( hello IS NOT \"xyz\") );\n")
 		if _res.Error != nil {
@@ -125,6 +125,6 @@ func Test_shell9(t *testing.T) {
 	// close $out
 	{ // do_test "3.1.1"
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "catchcmd test.db .read testdump.txt")
+		t.Errorf("TODO: %s not implemented in frigolite", "catchcmd test.db .read testdump.txt")
 	}
 }

@@ -2836,7 +2836,7 @@ func Test_json101(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db strdup")
+			t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db strdup")
 			{ // "json101-26.1b"
 				r = db.Query("\n  SELECT value FROM json_each(strdup(x'CC141761133117621332176313331764133437656565')) WHERE key='eee';\n")
 				if r.Error != nil {

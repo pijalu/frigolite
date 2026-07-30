@@ -32,58 +32,58 @@ func Test_e_blobopen(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "1.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob main t1 b 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob main t1 b 1")
 	}
 	{ // do_test "1.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob main t1 c 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob main t1 c 1")
 	}
 	{ // do_test "1.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob temp t1 b 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob temp t1 b 1")
 	}
 	{ // do_test "1.1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob temp t1 c 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob temp t1 c 1")
 	}
 	{ // do_test "1.1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob aux t1 b 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob aux t1 b 1")
 	}
 	{ // do_test "1.1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob aux t1 c 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob aux t1 c 1")
 	}
 	{ // do_test "1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob main t1 b 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob main t1 b 4")
 	}
 	{ // do_test "1.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob main t1 c 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob main t1 c 4")
 	}
 	{ // do_test "1.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob temp t1 b 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob temp t1 b 4")
 	}
 	{ // do_test "1.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob temp t1 c 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob temp t1 c 4")
 	}
 	{ // do_test "1.2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob aux t1 b 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob aux t1 b 4")
 	}
 	{ // do_test "1.2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob aux t1 c 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob aux t1 c 4")
 	}
 	{ // do_test "1.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob main x1 b 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob main x1 b 2")
 	}
 	{ // do_test "1.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob main x1 c 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob main x1 c 2")
 	}
 	{ // do_test "1.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob temp x2 b 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob temp x2 b 2")
 	}
 	{ // do_test "1.3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob temp x2 c 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob temp x2 c 2")
 	}
 	{ // do_test "1.3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob aux x3 b 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob aux x3 b 2")
 	}
 	{ // do_test "1.3.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "read_blob aux x3 c 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "read_blob aux x3 c 2")
 	}
 	{ // do_test "2.1"
 		_list := tclList([]string{"0", msg})
@@ -104,10 +104,10 @@ func Test_e_blobopen(t *testing.T) {
 		_ = flags // suppress unused warning
 		_ = _idx
 			{ // do_test "3." + tn + ".1"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 c $iRow $flags B")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 c $iRow $flags B")
 				var n = "sqlite3_blob_bytes $B"
 				_ = n // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 $n")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 $n")
 			}
 			if func() bool { flags_n, _flags_e := strconv.Atoi(flags); if _flags_e != nil { return false }; return flags_n == 0 }() {
 				{ // do_test "3." + tn + ".2"
@@ -144,7 +144,7 @@ func Test_e_blobopen(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
 		}
 		db.Close()
 		db, err = frigolite.Open("")
@@ -156,36 +156,36 @@ func Test_e_blobopen(t *testing.T) {
 			}
 		}
 		// proc definition (not transpiled)
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 1 nosuchdb t1 x 1 0 SQLITE_ERROR no such table: nosuchdb.t1")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 2 main tt1 x 1 0 SQLITE_ERROR no such table: main.tt1")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 3 main t2 y 1 0 SQLITE_ERROR cannot open table without rowid: t2")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 4 main t1 z 2 0 SQLITE_ERROR no such column: \\\"z\\\"")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 5 main t1 y 6 0 SQLITE_ERROR no such rowid: 6")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 6 main t1 x 2 0 SQLITE_ERROR cannot open value of type null")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 7 main t1 y 1 0 SQLITE_ERROR cannot open value of type integer")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8 main t1 y 3 0 SQLITE_ERROR cannot open value of type real")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.1 main t3 a 1 0 SQLITE_OK not an error")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.2 main t3 b 1 0 SQLITE_OK not an error")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.3 main t3 c 1 0 SQLITE_OK not an error")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.4 main t3 d 1 0 SQLITE_OK not an error")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.5 main t3 e 1 0 SQLITE_OK not an error")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.6 main t3 f 1 0 SQLITE_OK not an error")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 1 nosuchdb t1 x 1 0 SQLITE_ERROR no such table: nosuchdb.t1")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 2 main tt1 x 1 0 SQLITE_ERROR no such table: main.tt1")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 3 main t2 y 1 0 SQLITE_ERROR cannot open table without rowid: t2")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 4 main t1 z 2 0 SQLITE_ERROR no such column: \\\"z\\\"")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 5 main t1 y 6 0 SQLITE_ERROR no such rowid: 6")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 6 main t1 x 2 0 SQLITE_ERROR cannot open value of type null")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 7 main t1 y 1 0 SQLITE_ERROR cannot open value of type integer")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8 main t1 y 3 0 SQLITE_ERROR cannot open value of type real")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.1 main t3 a 1 0 SQLITE_OK not an error")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.2 main t3 b 1 0 SQLITE_OK not an error")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.3 main t3 c 1 0 SQLITE_OK not an error")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.4 main t3 d 1 0 SQLITE_OK not an error")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.5 main t3 e 1 0 SQLITE_OK not an error")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.1.6 main t3 f 1 0 SQLITE_OK not an error")
 		var cannot = "cannot open indexed column for writing"
 		_ = cannot // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.1 main t3 a 1 8 SQLITE_ERROR $cannot")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.2 main t3 b 1 8 SQLITE_ERROR $cannot")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.3 main t3 c 1 8 SQLITE_OK not an error")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.4 main t3 d 1 8 SQLITE_OK not an error")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.5 main t3 e 1 8 SQLITE_ERROR $cannot")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.6 main t3 f 1 8 SQLITE_ERROR $cannot")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 9.1 main c1 b 45 0 SQLITE_OK not an error")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 9.2 main c1 b 45 1 SQLITE_OK not an error")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.1 main t3 a 1 8 SQLITE_ERROR $cannot")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.2 main t3 b 1 8 SQLITE_ERROR $cannot")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.3 main t3 c 1 8 SQLITE_OK not an error")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.4 main t3 d 1 8 SQLITE_OK not an error")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.5 main t3 e 1 8 SQLITE_ERROR $cannot")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 8.2.6 main t3 f 1 8 SQLITE_ERROR $cannot")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 9.1 main c1 b 45 0 SQLITE_OK not an error")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 9.2 main c1 b 45 1 SQLITE_OK not an error")
 		r = db.Query(" PRAGMA foreign_keys = ON ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA foreign_keys = ON ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 9.3 main c1 b 45 0 SQLITE_OK not an error")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_blob_open 9.4 main c1 b 45 1 SQLITE_ERROR cannot open foreign key column for writing")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 9.3 main c1 b 45 0 SQLITE_OK not an error")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_blob_open 9.4 main c1 b 45 1 SQLITE_ERROR cannot open foreign key column for writing")
 		{ // "11.1"
 			_res = db.Exec("\n  CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c UNIQUE);\n  INSERT INTO b1 VALUES(1, '1234567890', 1);\n  INSERT INTO b1 VALUES(2, '1234567890', 2);\n  INSERT INTO b1 VALUES(3, '1234567890', 3);\n  INSERT INTO b1 VALUES(4, '1234567890', 4);\n  INSERT INTO b1 VALUES(5, '1234567890', 5);\n  INSERT INTO b1 VALUES(6, '1234567890', 6);\n\n  CREATE TABLE b2(a INTEGER PRIMARY KEY, b, c UNIQUE);\n  INSERT INTO b2 VALUES(1, '1234567890', 1);\n  INSERT INTO b2 VALUES(2, '1234567890', 2);\n  INSERT INTO b2 VALUES(3, '1234567890', 3);\n  INSERT INTO b2 VALUES(4, '1234567890', 4);\n  INSERT INTO b2 VALUES(5, '1234567890', 5);\n  INSERT INTO b2 VALUES(6, '1234567890', 6);\n")
 			if _res.Error != nil {
@@ -193,15 +193,15 @@ func Test_e_blobopen(t *testing.T) {
 			}
 		}
 		{ // do_test "11.2.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b1 b 2 0 B")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b1 b 2 0 B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
 		}
 		{ // do_test "11.2.2"
 			_res = db.Exec(" DELETE FROM b1 WHERE a = 1 ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM b1 WHERE a = 1 ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
 		}
 		{ // do_test "11.2.3"
 			_res = db.Exec(" DELETE FROM b1 WHERE a = 2 ")
@@ -212,18 +212,18 @@ func Test_e_blobopen(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "11.2.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
 		}
 		{ // do_test "11.3.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b1 b 3 0 B")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b1 b 3 0 B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
 		}
 		{ // do_test "11.3.2"
 			_res = db.Exec(" UPDATE b1 SET c = 42 WHERE a=4 ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE b1 SET c = 42 WHERE a=4 ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
 		}
 		{ // do_test "11.3.3"
 			_res = db.Exec(" UPDATE b1 SET c = 43 WHERE a=3 ")
@@ -234,18 +234,18 @@ func Test_e_blobopen(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "11.3.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
 		}
 		{ // do_test "11.4.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b1 b 6 0 B")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b1 b 6 0 B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
 		}
 		{ // do_test "11.4.2"
 			_res = db.Exec(" INSERT OR REPLACE INTO b1 VALUES(10, 'abcdefghij', 5) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT OR REPLACE INTO b1 VALUES(10, 'abcdefghij', 5) ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 10")
 		}
 		{ // do_test "11.4.3"
 			_res = db.Exec(" INSERT OR REPLACE INTO b1 VALUES(11, 'abcdefghij', 6) ")
@@ -256,18 +256,18 @@ func Test_e_blobopen(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "11.4.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
 		}
 		{ // do_test "11.4.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b2 b 2 1 B")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 abcdefghij")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b2 b 2 1 B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 abcdefghij")
 		}
 		{ // do_test "11.4.2"
 			_res = db.Exec(" DELETE FROM b2 WHERE a = 1 ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM b2 WHERE a = 1 ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 ABCDEFGHIJ")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 ABCDEFGHIJ")
 		}
 		{ // do_test "11.4.3"
 			_res = db.Exec(" DELETE FROM b2 WHERE a = 2 ")
@@ -278,18 +278,18 @@ func Test_e_blobopen(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "11.4.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
 		}
 		{ // do_test "11.5.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b2 b 3 1 B")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 abcdefghij")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b2 b 3 1 B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 abcdefghij")
 		}
 		{ // do_test "11.5.2"
 			_res = db.Exec(" UPDATE b2 SET c = 42 WHERE a=4 ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE b2 SET c = 42 WHERE a=4 ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 ABCDEFGHIJ")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 ABCDEFGHIJ")
 		}
 		{ // do_test "11.5.3"
 			_res = db.Exec(" UPDATE b2 SET c = 43 WHERE a=3 ")
@@ -300,18 +300,18 @@ func Test_e_blobopen(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "11.5.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
 		}
 		{ // do_test "11.6.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b2 b 6 1 B")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 abcdefghij")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b2 b 6 1 B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 abcdefghij")
 		}
 		{ // do_test "11.6.2"
 			_res = db.Exec(" INSERT OR REPLACE INTO b2 VALUES(10, 'abcdefghij', 5) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT OR REPLACE INTO b2 VALUES(10, 'abcdefghij', 5) ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 ABCDEFGHIJ")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 ABCDEFGHIJ")
 		}
 		{ // do_test "11.6.3"
 			_res = db.Exec(" INSERT OR REPLACE INTO b2 VALUES(11, 'abcdefghij', 6) ")
@@ -322,7 +322,7 @@ func Test_e_blobopen(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "11.6.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
 		}
 		{ // "12.1"
 			_res = db.Exec("\n  CREATE TABLE b3(x INTEGER PRIMARY KEY, y TEXT, z INTEGER);\n  INSERT INTO b3 VALUES(22, '..........', NULL);\n")
@@ -331,8 +331,8 @@ func Test_e_blobopen(t *testing.T) {
 			}
 		}
 		{ // do_test "12.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b3 y 22 1 B")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 xxxxx 5")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main b3 y 22 1 B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 xxxxx 5")
 		}
 		{ // "12.3"
 			_res = db.Exec("\n  UPDATE b3 SET z = 'not null';\n")
@@ -357,7 +357,7 @@ func Test_e_blobopen(t *testing.T) {
 			}
 		}
 		{ // do_test "12.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
 		}
 		{ // "12.6"
 			r = db.Query("\n  SELECT * FROM b3;\n")
@@ -380,31 +380,31 @@ func Test_e_blobopen(t *testing.T) {
 		{ // do_test "13.2"
 			var stmt = ""
 			_ = stmt // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_zeroblob $stmt 1 45")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_zeroblob $stmt 1 45")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $stmt")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 		}
 		{ // do_test "13.3.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main c2 j 10 1 B")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main c2 j 11 1 B2")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main c2 j 10 1 B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main c2 j 11 1 B2")
 			_list := tclList([]string{"sqlite3_blob_bytes $B", "sqlite3_blob_bytes $B2"})
 			_ = _list
 		}
 		{ // do_test "13.3.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 24")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B 0 24")
 		}
 		{ // do_test "13.3.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B2 0 45")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $B2 0 45")
 		}
 		{ // do_test "13.4.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 [string repeat [binary format c 1] 24]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B 0 [string repeat [binary format c 1] 24]")
 		}
 		{ // do_test "13.4.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B2 0 [string repeat [binary format c 1] 45]")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $B2 0 [string repeat [binary format c 1] 45]")
 		}
 		{ // do_test "13.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B2")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close $B2")
 			r = db.Query(" SELECT j FROM c2 ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT j FROM c2 ")

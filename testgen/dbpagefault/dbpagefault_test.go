@@ -26,9 +26,9 @@ func Test_dbpagefault(t *testing.T) {
 	}
 	var testprefix = "dbpagefault"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  execsql { ATTACH ...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE t1 USING sq...} -test {\n  execsql { PRAGMA journal_mode = off }\n  faultsi...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -prep {\n  sqlite3 db \"xyz.db\" -vfs memdb\n  execsql { ATTA...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE t1 USING sq...} -test {\n  execsql { PRAGMA journal_mode = off }\n  faultsi...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  execsql { ATTACH ...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE t1 USING sq...} -test {\n  execsql { PRAGMA journal_mode = off }\n  faultsi...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -prep {\n  sqlite3 db \"xyz.db\" -vfs memdb\n  execsql { ATTA...} -body {\n  execsql { \n    CREATE VIRTUAL TABLE t1 USING sq...} -test {\n  execsql { PRAGMA journal_mode = off }\n  faultsi...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -62,6 +62,6 @@ func Test_dbpagefault(t *testing.T) {
 	}
 	var pgno = "db one {SELECT max(rootpage) FROM sqlite_schema}"
 	_ = pgno // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -prep {\n  faultsim_restore_and_reopen\n  execsql { ATTACH ...} -body {\n  execsql { \n    UPDATE sqlite_dbpage SET data = ...} -test {\n  faultsim_test_result {0 {}} {1 {unable to open ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -prep {\n  faultsim_restore_and_reopen\n  execsql { ATTACH ...} -body {\n  execsql { \n    UPDATE sqlite_dbpage SET data = ...} -test {\n  faultsim_test_result {0 {}} {1 {unable to open ...}")
 }

@@ -34,8 +34,8 @@ func Test_tkt3457(t *testing.T) {
 		tclFileCopy("test.db-journal", "bak.db-journal")
 		var fd = "open bak.db-journal a+"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd 0")
 		t.Log("-nonewline")
 		// close $fd
 		_res = db.Exec("COMMIT")
@@ -46,8 +46,8 @@ func Test_tkt3457(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall install fchmod")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall fault 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall install fchmod")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall fault 1 1")
 	}
 	{ // do_test "tkt3457-1.2"
 		tclFileCopy("bak.db-journal", "test.db-journal")
@@ -76,7 +76,7 @@ func Test_tkt3457(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall uninstall")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_syscall fault 0 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall uninstall")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall fault 0 0")
 	}
 }

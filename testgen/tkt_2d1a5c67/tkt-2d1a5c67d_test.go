@@ -54,7 +54,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
 	_res = db.Exec("\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x,y);\n  CREATE VIRTUAL TABLE nums USING wholenumber;\n  INSERT INTO t2 SELECT value, randomblob(1000) FROM nums\n                 WHERE value BETWEEN 1 AND 1000;\n")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode=WAL;\n  CREATE TABLE t1(a,b);\n  CREATE INDEX t1b ON t1(b);\n  CREATE TABLE t2(x,y);\n  CREATE VIRTUAL TABLE nums USING wholenumber;\n  INSERT INTO t2 SELECT value, randomblob(1000) FROM nums\n                 WHERE value BETWEEN 1 AND 1000;\n")
@@ -108,8 +108,8 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			var b = "db incrblob -readonly t3 b $i"
 			_ = b // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $b -translation binary")
-			t.Skipf("TODO: %s not implemented in frigolite", "read $b")
+			t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $b -translation binary")
+			t.Errorf("TODO: %s not implemented in frigolite", "read $b")
 			blobs = tclListAppend(blobs, b)
 			// incr i 1
 			{
@@ -139,8 +139,8 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 	}
 	os.Remove("test.db2-wal")
 	{ // do_test "3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db-wal test.db2-wal")
-		t.Skipf("TODO: %s not implemented in frigolite", "copy_file test.db test.db2")
+		t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db-wal test.db2-wal")
+		t.Errorf("TODO: %s not implemented in frigolite", "copy_file test.db test.db2")
 		db2, err := frigolite.Open("test.db2")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }

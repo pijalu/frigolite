@@ -24,8 +24,8 @@ func Test_bigfile(t *testing.T) {
 	if tcl_platform(os) == "Darwin" {
 	}
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "scan $::tcl_version %f vx")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "scan $::tcl_version %f vx")
 	if func() bool { vx_n, _vx_e := strconv.Atoi(vx); if _vx_e != nil { return false }; return vx_n < 8.4 }() {
 	}
 	if tcl_platform(os) == "Darwin" {
@@ -46,7 +46,7 @@ func Test_bigfile(t *testing.T) {
 		t.Log("**** Unable to create a file larger than 4096 MB. *****")
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
+	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
 	{ // do_test "bigfile-1.2"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -79,7 +79,7 @@ func Test_bigfile(t *testing.T) {
 		t.Log("**** Unable to create a file larger than 8192 MB. *****")
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
+	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
 	{ // do_test "bigfile-1.5"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -123,7 +123,7 @@ func Test_bigfile(t *testing.T) {
 		t.Log("**** Unable to create a file larger than 16384 MB. *****")
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
+	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
 	{ // do_test "bigfile-1.10"
 		db, err := frigolite.Open("test.db")
 		defer db.Close()

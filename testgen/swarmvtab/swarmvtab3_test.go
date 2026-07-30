@@ -23,8 +23,8 @@ func Test_swarmvtab3(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "swarmvtab3"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
 	var nFile = sqlite_open_file_count
 	_ = nFile // suppress unused warning
 	{ // "1.0"
@@ -44,8 +44,8 @@ func Test_swarmvtab3(t *testing.T) {
 			rrr, err := frigolite.Open(file)
 			defer rrr.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "rrr eval {\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "rrr close")
+			t.Errorf("TODO: %s not implemented in frigolite", "rrr eval {\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "rrr close")
 			_res = db.Exec("\n      INSERT INTO swarm VALUES($i, 't1', $i, $i);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES($i, 't1', $i, $i);\n    ")
@@ -97,7 +97,7 @@ func Test_swarmvtab3(t *testing.T) {
 				}
 			}
 			{ // do_test "1." + tn + ".3"
-				t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
+				t.Errorf("TODO: %s not implemented in frigolite", "check_dbcache")
 			}
 			{ // "1." + tn + ".4"
 				r = db.Query("\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
@@ -112,7 +112,7 @@ func Test_swarmvtab3(t *testing.T) {
 				}
 			}
 			{ // do_test "1." + tn + ".5"
-				t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
+				t.Errorf("TODO: %s not implemented in frigolite", "check_dbcache")
 			}
 		}
 		_res = db.Exec(" DROP TABLE IF EXISTS s ")
@@ -164,8 +164,8 @@ func Test_swarmvtab3(t *testing.T) {
 				rrr, err := frigolite.Open(file)
 				defer rrr.Close()
 				if err != nil { t.Fatal(err) }
-				t.Skipf("TODO: %s not implemented in frigolite", "rrr eval {\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n...}")
-				t.Skipf("TODO: %s not implemented in frigolite", "rrr close")
+				t.Errorf("TODO: %s not implemented in frigolite", "rrr eval {\n      CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "rrr close")
 				_res = db.Exec("\n      INSERT INTO swarm VALUES('test.db' || $i, 't1', $i, $i, $file)\n    ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES('test.db' || $i, 't1', $i, $i, $file)\n    ")
@@ -217,7 +217,7 @@ func Test_swarmvtab3(t *testing.T) {
 					}
 				}
 				{ // do_test "3." + tn + ".3"
-					t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
+					t.Errorf("TODO: %s not implemented in frigolite", "check_dbcache")
 				}
 				{ // "3." + tn + ".4"
 					r = db.Query("\n    SELECT b FROM s WHERE (b%10)=0;\n  ")
@@ -232,7 +232,7 @@ func Test_swarmvtab3(t *testing.T) {
 					}
 				}
 				{ // do_test "3." + tn + ".5"
-					t.Skipf("TODO: %s not implemented in frigolite", "check_dbcache")
+					t.Errorf("TODO: %s not implemented in frigolite", "check_dbcache")
 				}
 			}
 			os.Remove("*")

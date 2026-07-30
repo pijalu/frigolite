@@ -28,7 +28,7 @@ func Test_fts4opt(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(docid, words) ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+	t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE t2 USING fts4(words, prefix=\"1,2,3\") ")
@@ -55,7 +55,7 @@ func Test_fts4opt(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "prepare_for_optimize db t2")
+	t.Errorf("TODO: %s not implemented in frigolite", "prepare_for_optimize db t2")
 	{ // "1.4"
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
 		if _res.Error != nil {
@@ -143,7 +143,7 @@ func Test_fts4opt(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('integrity-check') ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "prepare_for_optimize db t2")
+	t.Errorf("TODO: %s not implemented in frigolite", "prepare_for_optimize db t2")
 	{ // "2.4"
 		_res = db.Exec(" INSERT INTO t2(t2) VALUES('integrity-check') ")
 		if _res.Error != nil {

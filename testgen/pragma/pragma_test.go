@@ -23,10 +23,10 @@ func Test_pragma(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "pragma"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db test.db-journal")
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_file test3.db test3.db-journal")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db test.db-journal")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test3.db test3.db-journal")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	var DB = "sqlite3_connection_pointer db"
@@ -58,7 +58,7 @@ func Test_pragma(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
+		t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -100,8 +100,8 @@ func Test_pragma(t *testing.T) {
 	dbX, err := frigolite.Open(":memory:")
 	defer dbX.Close()
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "dbX eval {PRAGMA temp_store_directory = \"\"}")
-	t.Skipf("TODO: %s not implemented in frigolite", "dbX close")
+	t.Errorf("TODO: %s not implemented in frigolite", "dbX eval {PRAGMA temp_store_directory = \"\"}")
+	t.Errorf("TODO: %s not implemented in frigolite", "dbX close")
 	// foreach {autovac_setting val} "\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0\n"
 	_items := tclSplitList("\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
@@ -146,7 +146,7 @@ func Test_pragma(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+			t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			{ // do_test "pragma-19.1"
@@ -227,7 +227,7 @@ func Test_pragma(t *testing.T) {
 				}
 				os.Remove("data_dir")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+			t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 			if tclBool("!" + "nonzero_reserved_bytes") {
 				{ // do_test "21.1"
 					os.Remove("test.db")
@@ -254,7 +254,7 @@ func Test_pragma(t *testing.T) {
 						}
 					}
 					tclFileCopy("test.db", "testerr.db")
-					t.Skipf("TODO: %s not implemented in frigolite", "hexio_write testerr.db 15000 [string repeat 55 100]")
+					t.Errorf("TODO: %s not implemented in frigolite", "hexio_write testerr.db 15000 [string repeat 55 100]")
 				}
 				var mainerr = "*** in database main ***\nMultiple uses for byte 672 of page 15"
 				_ = mainerr // suppress unused warning
@@ -347,12 +347,12 @@ func Test_pragma(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX i2;\n    CREATE INDEX i2 ON t1(c,d,b);\n  ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "capture_pragma db2 out {PRAGMA index_info(i2)}")
+				t.Errorf("TODO: %s not implemented in frigolite", "capture_pragma db2 out {PRAGMA index_info(i2)}")
 				db2.Exec("SELECT cid, name, '|' FROM out ORDER BY seqno")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			{ // do_test "23.2b"
-				t.Skipf("TODO: %s not implemented in frigolite", "capture_pragma db2 out {PRAGMA index_xinfo(i2)}")
+				t.Errorf("TODO: %s not implemented in frigolite", "capture_pragma db2 out {PRAGMA index_xinfo(i2)}")
 				db2.Exec("SELECT cid, name, \"desc\", coll, \"key\", '|' FROM out ORDER BY seqno")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
@@ -373,7 +373,7 @@ func Test_pragma(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX IF EXISTS i3;\n    CREATE INDEX i3 ON t1(d,b,c);\n  ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "capture_pragma db2 out {PRAGMA index_list(t1)}")
+				t.Errorf("TODO: %s not implemented in frigolite", "capture_pragma db2 out {PRAGMA index_list(t1)}")
 				db2.Exec("SELECT seq, name, \"unique\", origin, '|' FROM out ORDER BY seq")
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
@@ -386,7 +386,7 @@ func Test_pragma(t *testing.T) {
 				if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 			}
 			db2.Close()
-			t.Skipf("TODO: %s not implemented in frigolite", "database_never_corrupt")
+			t.Errorf("TODO: %s not implemented in frigolite", "database_never_corrupt")
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

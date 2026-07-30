@@ -33,6 +33,6 @@ func Test_orderbyB(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_eqp_execsql_test 1.1 {\n  WITH t3(x,y) AS (SELECT a, b FROM t1 ORDER BY a...} {\n  QUERY PLAN\n  |--CO-ROUTINE t3\n  |  |--SCAN t1\n ...} {\n  NULL  NULL  NULL\n  aa    bb    2\n  aa    GG    ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_eqp_execsql_test 1.2 {\n  WITH t3(x,y) AS MATERIALIZED (SELECT a, b COLLA...} {\n  QUERY PLAN\n  |--MATERIALIZE t3\n  |  |--SCAN t1\n...} {\n  NULL  NULL  NULL\n  aa    bb    2\n  aa    GG    ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_eqp_execsql_test 1.1 {\n  WITH t3(x,y) AS (SELECT a, b FROM t1 ORDER BY a...} {\n  QUERY PLAN\n  |--CO-ROUTINE t3\n  |  |--SCAN t1\n ...} {\n  NULL  NULL  NULL\n  aa    bb    2\n  aa    GG    ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_eqp_execsql_test 1.2 {\n  WITH t3(x,y) AS MATERIALIZED (SELECT a, b COLLA...} {\n  QUERY PLAN\n  |--MATERIALIZE t3\n  |  |--SCAN t1\n...} {\n  NULL  NULL  NULL\n  aa    bb    2\n  aa    GG    ...}")
 }

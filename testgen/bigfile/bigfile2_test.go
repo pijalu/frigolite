@@ -35,7 +35,7 @@ func Test_bigfile2(t *testing.T) {
 		t.Log("**** Unable to create a file larger than 4096 MB. *****")
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
+	t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 28 00000000")
 	{ // do_test "1.2"
 		// file size test.db
 	}
@@ -52,5 +52,5 @@ func Test_bigfile2(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "delete_file test.db")
+	t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db")
 }

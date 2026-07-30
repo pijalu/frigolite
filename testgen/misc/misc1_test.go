@@ -526,7 +526,7 @@ func Test_misc1(t *testing.T) {
 		// expr $n>=100 → "$n>=100"
 	}
 	{ // do_test "misc1-18.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_sleep -100")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_sleep -100")
 	}
 	{ // "misc1-19.1"
 		r = db.Query("\n  CREATE TABLE t19 AS SELECT 1, 2 AS '', 3;\n  SELECT * FROM t19;\n")
@@ -568,10 +568,10 @@ func Test_misc1(t *testing.T) {
 	_ = fault_callbacks // suppress unused warning
 	// proc definition (not transpiled)
 	{ // do_test "misc1-19.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install fault_callback")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install fault_callback")
 	}
 	{ // do_test "misc1-19.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_fault_install")
 	}
 	{ // "misc1-20.1"
 		r = db.Query("\n  CREATE TABLE t0(x INTEGER DEFAULT(0==0) NOT NULL);\n  REPLACE INTO t0(x) VALUES('');\n  SELECT rowid, quote(x) FROM t0;\n")
@@ -611,17 +611,17 @@ func Test_misc1(t *testing.T) {
 	}
 	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "misc1-23.1"
 		_res = db.Exec("\n  CREATE TABLE t1(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table t(d CHECK(T(#0)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t3;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table t(d CHECK(T(#0)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t3;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "misc1-23.2"
 		_res = db.Exec("\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE TABLE IF not EXISTS t(c)';\n  BEGIN;\n  CREATE TABLE t2(x);\n  ROLLBACK;\n  DROP TABLE F;\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such table: F") {
@@ -630,7 +630,7 @@ func Test_misc1(t *testing.T) {
 	}
 	db, err = frigolite.Open(":memory:")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "misc1-23.3"
 		_res = db.Exec("\n  CREATE TABLE t1(x UNIQUE);\n  PRAGMA writable_schema=ON;\n  UPDATE sqlite_master SET sql='CREATE table y(a TEXT, a TEXT)';\n  BEGIN;\n  CREATE TABLE t2(y);\n  ROLLBACK;\n  DROP TABLE IF EXISTS t;\n")
 		if _res.Error == nil {

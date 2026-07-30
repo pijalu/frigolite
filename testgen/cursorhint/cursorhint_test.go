@@ -30,56 +30,56 @@ func Test_cursorhint(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n     SELECT * FROM t1 CROSS JOIN t2 WHERE a=x\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n     SELECT * FROM t1 CROSS JOIN t2 WHERE a=x\n  }")
 	}
 	{ // do_test "1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "p5_of_opcode db OpenRead {\n     SELECT * FROM t1 CROSS JOIN t2 WHERE a=x\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "p5_of_opcode db OpenRead {\n     SELECT * FROM t1 CROSS JOIN t2 WHERE a=x\n  }")
 	}
 	{ // do_test "2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n     SELECT * FROM t2 CROSS JOIN t1 WHERE a=x\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n     SELECT * FROM t2 CROSS JOIN t1 WHERE a=x\n  }")
 	}
 	{ // do_test "2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "p5_of_opcode db OpenRead {\n     SELECT * FROM t2 CROSS JOIN t1 WHERE a=x\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "p5_of_opcode db OpenRead {\n     SELECT * FROM t2 CROSS JOIN t1 WHERE a=x\n  }")
 	}
 	{ // do_test "3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT * FROM t1 WHERE a=15 AND c=22 AND rowi...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT * FROM t1 WHERE a=15 AND c=22 AND rowi...}")
 	}
 	{ // do_test "3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT * FROM t3 WHERE a<15 AND b>22 AND id!=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT * FROM t3 WHERE a<15 AND b>22 AND id!=...}")
 	}
 	{ // do_test "4.1asc"
 		_res = db.Exec("\n    CREATE INDEX t1bc ON t1(b,c);\n    CREATE INDEX t2yz ON t2(y,z);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX t1bc ON t1(b,c);\n    CREATE INDEX t2yz ON t2(y,z);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT * FROM t1 WHERE b>11 ORDER BY b ASC;\n ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT * FROM t1 WHERE b>11 ORDER BY b ASC;\n ...}")
 	}
 	{ // do_test "4.1desc"
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT * FROM t1 WHERE b>11 ORDER BY b DESC;\n...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT * FROM t1 WHERE b>11 ORDER BY b DESC;\n...}")
 	}
 	{ // do_test "4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "p5_of_opcode db OpenRead {\n    SELECT * FROM t1 WHERE b>11;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "p5_of_opcode db OpenRead {\n    SELECT * FROM t1 WHERE b>11;\n  }")
 	}
 	{ // do_test "4.3asc"
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT c FROM t1 WHERE b<11 ORDER BY b ASC;\n ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT c FROM t1 WHERE b<11 ORDER BY b ASC;\n ...}")
 	}
 	{ // do_test "4.3desc"
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT c FROM t1 WHERE b<11 ORDER BY b DESC;\n...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT c FROM t1 WHERE b<11 ORDER BY b DESC;\n...}")
 	}
 	{ // do_test "4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "p5_of_opcode db OpenRead {\n    SELECT c FROM t1 WHERE b<11;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "p5_of_opcode db OpenRead {\n    SELECT c FROM t1 WHERE b<11;\n  }")
 	}
 	{ // do_test "4.5asc"
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT c FROM t1 WHERE b>=10 AND b<=20 ORDER ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT c FROM t1 WHERE b>=10 AND b<=20 ORDER ...}")
 	}
 	{ // do_test "4.5desc"
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT c FROM t1 WHERE b>=10 AND b<=20 ORDER ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT c FROM t1 WHERE b>=10 AND b<=20 ORDER ...}")
 	}
 	{ // do_test "4.6asc"
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT rowid FROM t1 WHERE b=22 AND c>=10 AND...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT rowid FROM t1 WHERE b=22 AND c>=10 AND...}")
 	}
 	{ // do_test "4.6desc"
-		t.Skipf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT rowid FROM t1 WHERE b=22 AND c>=10 AND...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "p4_of_opcode db CursorHint {\n    SELECT rowid FROM t1 WHERE b=22 AND c>=10 AND...}")
 	}
 	db.Close()
 	db, err = frigolite.Open("")

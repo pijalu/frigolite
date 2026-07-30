@@ -45,23 +45,23 @@ func Test_savepoint6(t *testing.T) {
 	// proc definition (not transpiled)
 	// expr srand(0) → "srand(0)"
 	{ // do_test "savepoint6-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sql $DATABASE_SCHEMA")
+		t.Errorf("TODO: %s not implemented in frigolite", "sql $DATABASE_SCHEMA")
 	}
 	{ // do_test "savepoint6-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "insert_rows {\n    497 166 230 355 779 588 394 317 290 475 362 1...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "savepoint one")
-		t.Skipf("TODO: %s not implemented in frigolite", "insert_rows 858")
-		t.Skipf("TODO: %s not implemented in frigolite", "delete_rows 930")
-		t.Skipf("TODO: %s not implemented in frigolite", "savepoint two")
+		t.Errorf("TODO: %s not implemented in frigolite", "insert_rows {\n    497 166 230 355 779 588 394 317 290 475 362 1...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "savepoint one")
+		t.Errorf("TODO: %s not implemented in frigolite", "insert_rows 858")
+		t.Errorf("TODO: %s not implemented in frigolite", "delete_rows 930")
+		t.Errorf("TODO: %s not implemented in frigolite", "savepoint two")
 		r = db.Query("PRAGMA incremental_vacuum")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA incremental_vacuum")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "savepoint three")
-		t.Skipf("TODO: %s not implemented in frigolite", "insert_rows 144")
-		t.Skipf("TODO: %s not implemented in frigolite", "rollback three")
-		t.Skipf("TODO: %s not implemented in frigolite", "rollback two")
-		t.Skipf("TODO: %s not implemented in frigolite", "release one")
+		t.Errorf("TODO: %s not implemented in frigolite", "savepoint three")
+		t.Errorf("TODO: %s not implemented in frigolite", "insert_rows 144")
+		t.Errorf("TODO: %s not implemented in frigolite", "rollback three")
+		t.Errorf("TODO: %s not implemented in frigolite", "rollback two")
+		t.Errorf("TODO: %s not implemented in frigolite", "release one")
 		r = db.Query("SELECT count(*) FROM t1")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT count(*) FROM t1")
@@ -74,25 +74,25 @@ func Test_savepoint6(t *testing.T) {
 		}
 		os.Remove("test.db")
 		// eval $zSetup
-		t.Skipf("TODO: %s not implemented in frigolite", "sql $DATABASE_SCHEMA")
-		t.Skipf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
+		t.Errorf("TODO: %s not implemented in frigolite", "sql $DATABASE_SCHEMA")
+		t.Errorf("TODO: %s not implemented in frigolite", "wal_set_journal_mode")
 		{ // do_test "savepoint6-" + testname + ".setup"
-			t.Skipf("TODO: %s not implemented in frigolite", "savepoint one")
-			t.Skipf("TODO: %s not implemented in frigolite", "insert_rows [random_integers 100 1000]")
-			t.Skipf("TODO: %s not implemented in frigolite", "release one")
-			t.Skipf("TODO: %s not implemented in frigolite", "checkdb")
+			t.Errorf("TODO: %s not implemented in frigolite", "savepoint one")
+			t.Errorf("TODO: %s not implemented in frigolite", "insert_rows [random_integers 100 1000]")
+			t.Errorf("TODO: %s not implemented in frigolite", "release one")
+			t.Errorf("TODO: %s not implemented in frigolite", "checkdb")
 		}
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _G_n, __G_e := strconv.Atoi(_G); if __G_e != nil { return false }; return i_n < _G_n(savepoint6_iterations) }() {
 			{ // do_test "savepoint6-" + testname + "." + i + ".1"
-				t.Skipf("TODO: %s not implemented in frigolite", "savepoint_op")
-				t.Skipf("TODO: %s not implemented in frigolite", "checkdb")
+				t.Errorf("TODO: %s not implemented in frigolite", "savepoint_op")
+				t.Errorf("TODO: %s not implemented in frigolite", "checkdb")
 			}
 			{ // do_test "savepoint6-" + testname + "." + i + ".2"
-				t.Skipf("TODO: %s not implemented in frigolite", "database_op")
-				t.Skipf("TODO: %s not implemented in frigolite", "database_op")
-				t.Skipf("TODO: %s not implemented in frigolite", "checkdb")
+				t.Errorf("TODO: %s not implemented in frigolite", "database_op")
+				t.Errorf("TODO: %s not implemented in frigolite", "database_op")
+				t.Errorf("TODO: %s not implemented in frigolite", "checkdb")
 			}
 			// incr i 1
 			{
@@ -102,6 +102,6 @@ func Test_savepoint6(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint6-$testname.walok")
+		t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode savepoint6-$testname.walok")
 	}
 }

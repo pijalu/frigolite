@@ -31,23 +31,23 @@ func Test_bindxfer(t *testing.T) {
 		_ = VM1 // suppress unused warning
 	}
 	{ // do_test "bindxfer-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM1")
 	}
 	{ // do_test "bindxfer-1.3"
 		var VM2 = "sqlite3_prepare $DB {SELECT ?, ?, ?} -1 TAIL"
 		_ = VM2 // suppress unused warning
 	}
 	{ // do_test "bindxfer-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_parameter_count $VM2")
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM1")
 	}
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM2")
 	}
 }

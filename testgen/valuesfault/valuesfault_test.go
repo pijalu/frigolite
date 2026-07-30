@@ -27,6 +27,6 @@ func Test_valuesfault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b, c);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  sqlite3_limit db ...} -body {\n  execsql {\n    INSERT INTO x1 VALUES(1, 1, 1), (...} -test {\n  faultsim_test_result {0 {}} \n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -prep {\n  faultsim_restore_and_reopen\n  sqlite3_limit db ...} -body {\n  execsql {\n    INSERT INTO x1 VALUES(1, 1, 1), (...} -test {\n  faultsim_test_result {0 {}} \n}")
 }

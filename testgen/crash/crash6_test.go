@@ -29,7 +29,7 @@ func Test_crash6(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 		os.Remove("test.db")
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db {\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 2 -file test.db {\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=...}")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -58,7 +58,7 @@ func Test_crash6(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=2048;\n    BEGIN;\n    CREATE TABLE abc AS SELECT 1 AS a, 2 AS b, 3 AS c;\n    COMMIT;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    INSERT INTO abc VALUES(5, 6, 7);\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db {\n    INSERT INTO abc VALUES(5, 6, 7);\n  }")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec("PRAGMA integrity_check")
@@ -132,13 +132,13 @@ func Test_crash6(t *testing.T) {
 		var sig = "signature"
 		_ = sig // suppress unused warning
 		{ // do_test "crash6-3." + ii + ".2"
-			t.Skipf("TODO: %s not implemented in frigolite", "crashsql -file test.db \n       BEGIN;\n       SELECT random() FROM abc LIM...")
+			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -file test.db \n       BEGIN;\n       SELECT random() FROM abc LIM...")
 		}
 		{ // do_test "crash6-3." + ii + ".3"
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "signature")
+			t.Errorf("TODO: %s not implemented in frigolite", "signature")
 		}
 		// incr ii 1
 		{

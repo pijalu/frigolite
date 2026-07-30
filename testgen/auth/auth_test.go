@@ -23,7 +23,7 @@ func Test_auth(t *testing.T) {
 	if false {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "proc_real proc {name arguments script} {\n  proc_real $name $arguments $script\n  if {$name=...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "proc_real proc {name arguments script} {\n  proc_real $name $arguments $script\n  if {$name=...}")
 	{ // do_test "auth-1.1.1"
 		var _DB = "sqlite3 db test.db" // TCL namespace variable
 		_ = _DB // suppress unused warning

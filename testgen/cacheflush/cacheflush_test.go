@@ -22,7 +22,7 @@ func Test_cacheflush(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "cacheflush"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
 	// proc definition (not transpiled)
 	{ // "1.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  BEGIN;\n    INSERT INTO t1 VALUES(3, 4);\n")
@@ -31,11 +31,11 @@ func Test_cacheflush(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1 }")
 	}
 	{ // do_test "1.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1 }")
 	}
 	{ // "1.2.0"
 		_res = db.Exec("\n  COMMIT;\n  CREATE TABLE t2(a, b);\n  BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n    INSERT INTO t2 VALUES('a', 'b');\n")
@@ -44,11 +44,11 @@ func Test_cacheflush(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  }")
 	}
 	{ // do_test "1.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n  }")
 	}
 	{ // "1.3.0"
 		_res = db.Exec("\n  COMMIT;\n  CREATE TABLE t3(a, b);\n  BEGIN;\n    INSERT INTO t1 VALUES(7, 8);\n    INSERT INTO t2 VALUES('c', 'd');\n    INSERT INTO t3 VALUES('i', 'ii');\n")
@@ -57,18 +57,18 @@ func Test_cacheflush(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n    ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n    ...}")
 	}
 	{ // do_test "1.3.2"
 		_res = db.Exec(" SELECT a FROM t1 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " SELECT a FROM t1 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n    ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n    ...}")
 	}
 	{ // do_test "1.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n    ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n    SELECT * FROM t2;\n    ...}")
 	}
 	{ // "1.4.0"
 		_res = db.Exec("\n  COMMIT;\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
@@ -82,19 +82,19 @@ func Test_cacheflush(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2.Exec("\n    BEGIN;\n      SELECT * FROM t1;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n  }")
 	}
 	{ // do_test "1.4.2"
 		_list := tclList([]string{"0", msg})
 		_ = _list
 	}
 	{ // do_test "1.4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n  }")
 	}
 	{ // do_test "1.4.4"
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { \n    SELECT * FROM t1;\n  }")
 	}
 	{ // "1.4.5"
 		_res = db.Exec(" COMMIT ")
@@ -110,18 +110,18 @@ func Test_cacheflush(t *testing.T) {
 		}
 	}
 	{ // do_test "2.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1; }")
 	}
 	{ // do_test "2.1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db2 { SELECT * FROM t4; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db2 { SELECT * FROM t4; }")
 	}
 	{ // do_test "2.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1; }")
 	}
 	{ // do_test "2.1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db2 { SELECT * FROM t4; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db2 { SELECT * FROM t4; }")
 	}
 	{ // "2.1.5"
 		_res = db.Exec(" COMMIT ")
@@ -136,10 +136,10 @@ func Test_cacheflush(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1; }")
 	}
 	{ // do_test "2.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db2 { SELECT * FROM t4; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db2 { SELECT * FROM t4; }")
 	}
 	{ // do_test "2.2.3"
 		db2, err := frigolite.Open("test.db")
@@ -153,15 +153,15 @@ func Test_cacheflush(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "2.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1; }")
 	}
 	{ // do_test "2.2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db2 { SELECT * FROM t4; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db2 { SELECT * FROM t4; }")
 	}
 	{ // do_test "2.2.6"
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1; }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db { SELECT * FROM t1; }")
 	}
 	{ // "2.2.7"
 		_res = db.Exec(" COMMIT ")
@@ -177,7 +177,7 @@ func Test_cacheflush(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x PRIMARY KEY);\n    CREATE TABLE t2(y PRIMARY KEY);\n    BEGIN;\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n      INSERT INTO t1 VALUES(randomblob(100));\n      INSERT INTO t2 VALUES(randomblob(100));\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
 	}
 	{ // "3.1"
 		r = db.Query(" PRAGMA integrity_check ")
@@ -229,48 +229,48 @@ func Test_cacheflush(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE ta(a, aa);\n    CREATE TABLE tb(b, bb);\n    INSERT INTO ta VALUES('a', randomblob(500));\n    INSERT INTO tb VALUES('b', randomblob(500));\n    BEGIN;\n      UPDATE ta SET a = 'A';\n      SAVEPOINT one;\n        UPDATE tb SET b = 'B';\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
 	}
 	{ // do_test "4.1"
 		_res = db.Exec(" \n    ROLLBACK TO one;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    ROLLBACK TO one;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
 	}
 	{ // do_test "4.2"
 		_res = db.Exec(" \n    INSERT INTO tb VALUES('c', randomblob(10));\n    INSERT INTO tb VALUES('d', randomblob(10));\n    INSERT INTO tb VALUES('e', randomblob(10));\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    INSERT INTO tb VALUES('c', randomblob(10));\n    INSERT INTO tb VALUES('d', randomblob(10));\n    INSERT INTO tb VALUES('e', randomblob(10));\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
 	}
 	{ // do_test "4.3"
 		_res = db.Exec(" \n    SAVEPOINT two;\n    UPDATE tb SET b = upper(b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    SAVEPOINT two;\n    UPDATE tb SET b = upper(b);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
 	}
 	{ // do_test "4.4"
 		_res = db.Exec(" \n    ROLLBACK TO two;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    ROLLBACK TO two;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
 	}
 	{ // do_test "4.4"
 		_res = db.Exec(" \n    ROLLBACK TO one;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    ROLLBACK TO one;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
-		t.Skipf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_cacheflush db")
+		t.Errorf("TODO: %s not implemented in frigolite", "diskquery test.db {\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  }")
 	}
 	{ // do_test "4.5"
 		r = db.Query(" \n    ROLLBACK;\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  ")
@@ -278,5 +278,5 @@ func Test_cacheflush(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    ROLLBACK;\n    SELECT a FROM ta;\n    SELECT b FROM tb;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
 }

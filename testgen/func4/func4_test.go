@@ -24,7 +24,7 @@ func Test_func4(t *testing.T) {
 	_ = saved_tcl_precision // suppress unused warning
 	var tcl_precision = "0"
 	_ = tcl_precision // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db totype")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db totype")
 	highPrecision_1 := "\\\n    {[db eval {SELECT tointeger(9223372036854775807 + 1);}] eq {{}}}"
 	_ = highPrecision_1 // suppress unused warning
 	highPrecision_2 := "\\\n    {[db eval {SELECT toreal(-9223372036854775808 + 1);}] eq {{}}}"

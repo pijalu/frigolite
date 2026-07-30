@@ -29,9 +29,9 @@ func Test_walprotocol2(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs T")
-	t.Skipf("TODO: %s not implemented in frigolite", "T filter xShmLock")
-	t.Skipf("TODO: %s not implemented in frigolite", "T script lock_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs T")
+	t.Errorf("TODO: %s not implemented in frigolite", "T filter xShmLock")
+	t.Errorf("TODO: %s not implemented in frigolite", "T script lock_callback")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2, err := frigolite.Open("test.db")
@@ -63,7 +63,7 @@ func Test_walprotocol2(t *testing.T) {
 		}
 	}
 	{ // do_test "2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_extended_errcode db")
 	}
 	// proc definition (not transpiled)
 	{ // "2.4"

@@ -23,7 +23,7 @@ func Test_bestindex1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "bestindex1"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING tcl(vtab_command);\n")
@@ -46,7 +46,7 @@ func Test_bestindex1(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	// proc definition (not transpiled)
 	{ // "2.1"
 		_res = db.Exec("\n  CREATE TABLE t1x(i INTEGER PRIMARY KEY, a, b);\n  INSERT INTO t1x VALUES(1, 'one', 1);\n  INSERT INTO t1x VALUES(2, 'two', 2);\n  INSERT INTO t1x VALUES(3, 'three', 3);\n  INSERT INTO t1x VALUES(4, 'four', 4);\n")
@@ -139,7 +139,7 @@ func Test_bestindex1(t *testing.T) {
 		os.Remove("test.db")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 		{ // "3.1"
 			_res = db.Exec("\n  CREATE TABLE t1(" + G + "(cols));\n  INSERT INTO t1 VALUES(1, 0, 'ValueA');\n  INSERT INTO t1 VALUES(2, 0, 'ValueA');\n  INSERT INTO t1 VALUES(3, 0, 'ValueB');\n  INSERT INTO t1 VALUES(4, 0, 'ValueB');\n")
 			if _res.Error != nil {

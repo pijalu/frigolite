@@ -287,7 +287,7 @@ func Test_fts3ao(t *testing.T) {
 				db2.Close()
 				var stmt = "sqlite3_prepare db { SELECT * FROM ft } -1 dummy"
 				_ = stmt // suppress unused warning
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $stmt")
 			}
 		}
 }

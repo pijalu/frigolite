@@ -83,14 +83,14 @@ func Test_snapshot_up(t *testing.T) {
 		}
 	}
 	{ // do_test "1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap1")
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
 		}
 	}
 	{ // do_test "1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap2")
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -172,7 +172,7 @@ func Test_snapshot_up(t *testing.T) {
 		}
 	}
 	{ // do_test "1.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap4")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap4")
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -213,10 +213,10 @@ func Test_snapshot_up(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " COMMIT ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap2")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap3")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap4")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap2")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap3")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap4")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
@@ -273,7 +273,7 @@ func Test_snapshot_up(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_open db main $::snap1")
 		r = db.Query(" SELECT * FROM t1 ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t1 ")
@@ -287,6 +287,6 @@ func Test_snapshot_up(t *testing.T) {
 		}
 		_ = _res // TCL namespace variable (query)
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap2")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap2")
 }

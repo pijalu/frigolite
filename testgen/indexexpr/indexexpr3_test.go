@@ -28,12 +28,12 @@ func Test_indexexpr3(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.1 {\n  SELECT json_extract(j, '$.x') FROM t1 ORDER BY ...} {\n  0 one three two\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.2 {\n  SELECT json_extract(j, '$.x') FROM t1 WHERE a=2...} {\n  0 two\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.3 {\n  SELECT coalesce(json_extract(j, '$.x'), 'five')...} {\n  0 two\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.4 {\n  SELECT json_extract(j, '$.x') || '.two' FROM t1...} {\n  0 two.two\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.5 {\n  SELECT json_insert( '{}', '$.y', json_extract(j...} {\n  2 {{\"y\":\"two\"}}\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.6 {\n  SELECT json_insert( '{}', '$.y', coalesce( json...} {\n  2 {{\"y\":\"two\"}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.1 {\n  SELECT json_extract(j, '$.x') FROM t1 ORDER BY ...} {\n  0 one three two\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.2 {\n  SELECT json_extract(j, '$.x') FROM t1 WHERE a=2...} {\n  0 two\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.3 {\n  SELECT coalesce(json_extract(j, '$.x'), 'five')...} {\n  0 two\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.4 {\n  SELECT json_extract(j, '$.x') || '.two' FROM t1...} {\n  0 two.two\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.5 {\n  SELECT json_insert( '{}', '$.y', json_extract(j...} {\n  2 {{\"y\":\"two\"}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_hasfunction_test 1.6 {\n  SELECT json_insert( '{}', '$.y', coalesce( json...} {\n  2 {{\"y\":\"two\"}}\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }

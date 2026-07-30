@@ -37,8 +37,8 @@ func Test_without_rowid1(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid1-1.0ixi {\n  SELECT name, key FROM pragma_index_xinfo('t1');...} {c 1 a 1 b 0 d 0}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid1-1.0tl {\n  SELECT wr FROM pragma_table_list('t1');\n} {1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid1-1.0ixi {\n  SELECT name, key FROM pragma_index_xinfo('t1');...} {c 1 a 1 b 0 d 0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab without_rowid1-1.0tl {\n  SELECT wr FROM pragma_table_list('t1');\n} {1}")
 	{ // "without_rowid1-1.1"
 		r = db.Query("\n  SELECT *, '|' FROM t1 ORDER BY +c, a;\n")
 		if r.Error != nil {
@@ -215,7 +215,7 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.1.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {a nocase 1 b BINARY 0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.1.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {a nocase 1 b BINARY 0}")
 	{ // "2.2.1"
 		r = db.Query("\n  DROP TABLE t4;\n  CREATE TABLE t4 (b, a COLLATE nocase PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t4(a, b) VALUES('abc', 'def');\n  SELECT * FROM t4;\n")
 		if r.Error != nil {
@@ -240,14 +240,14 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.2.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {a nocase 1 b BINARY 0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.2.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {a nocase 1 b BINARY 0}")
 	{ // "2.3.1"
 		_res = db.Exec("\n  CREATE TABLE t5 (a, b, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t5(a, b) VALUES('abc', 'def');\n  UPDATE t5 SET a='abc', b='def';\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5 (a, b, PRIMARY KEY(b, a)) WITHOUT ROWID;\n  INSERT INTO t5(a, b) VALUES('abc', 'def');\n  UPDATE t5 SET a='abc', b='def';\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.3.2 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {b BINARY 1 a BINARY 1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.3.2 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {b BINARY 1 a BINARY 1}")
 	{ // "2.4.1"
 		_res = db.Exec("\n  CREATE TABLE t6 (\n    a COLLATE nocase, b, c UNIQUE, PRIMARY KEY(b, a)\n  ) WITHOUT ROWID;\n\n  INSERT INTO t6(a, b, c) VALUES('abc', 'def', 'ghi');\n  UPDATE t6 SET a='ABC', c='ghi';\n")
 		if _res.Error != nil {
@@ -266,7 +266,7 @@ func Test_without_rowid1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.4.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {b BINARY 1 a nocase 1 c BINARY 0}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_test_if_vtab 2.4.3 {\n  SELECT name, coll, key FROM pragma_index_xinfo(...} {b BINARY 1 a nocase 1 c BINARY 0}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -609,7 +609,7 @@ func Test_without_rowid1(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN 8")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN 8")
 			{ // "16.1"
 				_res = db.Exec("\n  CREATE TABLE t1(\n    c1,c2,c3,c4,c5,c6,c7,c8,\n    PRIMARY KEY(c1,c2,c1 COLLATE NOCASE)\n  ) WITHOUT ROWID;\n")
 				if _res.Error != nil {

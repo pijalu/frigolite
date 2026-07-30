@@ -60,7 +60,7 @@ func Test_hook(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(6,7);\n  ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "verify_ex_errcode hook-3.6b SQLITE_CONSTRAINT_COMMITHOOK")
+	t.Errorf("TODO: %s not implemented in frigolite", "verify_ex_errcode hook-3.6b SQLITE_CONSTRAINT_COMMITHOOK")
 	{ // do_test "hook-3.7"
 		_ = _commit_cnt // TCL namespace variable (query)
 	}
@@ -244,12 +244,12 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(a, b); \n  CREATE TABLE t2(x, y); \n  CREATE TABLE t3(i, j, UNIQUE(i));\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.1 {\n  INSERT INTO t1 VALUES('x', 'y')\n} {INSERT main t1 1 1  x y}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.2.1 {\n  INSERT INTO t1 SELECT y, x FROM t2;\n} {INSERT main t1 2 2 b a   INSERT main t1 3 3 d c}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.2.2 {\n  INSERT INTO t1 SELECT * FROM t2;\n} {INSERT main t1 4 4 a b   INSERT main t1 5 5 c d}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.3 {\n  REPLACE INTO t1(rowid, a, b) VALUES(1, 1, 1);\n} {\n  DELETE main t1 1 1   x y\n  INSERT main t1 1 1  ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.4 {\n  REPLACE INTO t3 VALUES(4, NULL);\n} {\n  DELETE main t3 1 1   4 16\n  INSERT main t3 4 4 ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.5 {\n  REPLACE INTO t3(rowid, i, j) VALUES(2, 6, NULL)...} {\n  DELETE main t3 2 2  5 25\n  DELETE main t3 3 3  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.1 {\n  INSERT INTO t1 VALUES('x', 'y')\n} {INSERT main t1 1 1  x y}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.2.1 {\n  INSERT INTO t1 SELECT y, x FROM t2;\n} {INSERT main t1 2 2 b a   INSERT main t1 3 3 d c}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.2.2 {\n  INSERT INTO t1 SELECT * FROM t2;\n} {INSERT main t1 4 4 a b   INSERT main t1 5 5 c d}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.3 {\n  REPLACE INTO t1(rowid, a, b) VALUES(1, 1, 1);\n} {\n  DELETE main t1 1 1   x y\n  INSERT main t1 1 1  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.4 {\n  REPLACE INTO t3 VALUES(4, NULL);\n} {\n  DELETE main t3 1 1   4 16\n  INSERT main t3 4 4 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.1.5 {\n  REPLACE INTO t3(rowid, i, j) VALUES(2, 6, NULL)...} {\n  DELETE main t3 2 2  5 25\n  DELETE main t3 3 3  ...}")
 	{ // "7.2.0"
 		r = db.Query(" SELECT rowid FROM t1 ")
 		if r.Error != nil {
@@ -262,18 +262,18 @@ func Test_hook(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.2.1 {\n  DELETE FROM t1 WHERE rowid = 3\n} {\n  DELETE main t1 3 3  d c\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.2.2 {\n  DELETE FROM t1\n} {\n  DELETE main t1 1 1   1 1\n  DELETE main t1 2 2  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.2.1 {\n  DELETE FROM t1 WHERE rowid = 3\n} {\n  DELETE main t1 3 3  d c\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.2.2 {\n  DELETE FROM t1\n} {\n  DELETE main t1 1 1   1 1\n  DELETE main t1 2 2  ...}")
 	{ // "7.3.0"
 		_res = db.Exec(" \n  DELETE FROM t1;\n  DELETE FROM t2;\n  DELETE FROM t3;\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DELETE FROM t1;\n  DELETE FROM t2;\n  DELETE FROM t3;\n\n  INSERT INTO t2 VALUES('a', 'b');\n  INSERT INTO t2 VALUES('c', 'd');\n\n  INSERT INTO t3 VALUES(4, 16);\n  INSERT INTO t3 VALUES(5, 25);\n  INSERT INTO t3 VALUES(6, 36);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.1 {\n  UPDATE t2 SET y = y||y;\n} {\n  UPDATE main t2 1 1   a b  a bb\n  UPDATE main t2...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.2 {\n  UPDATE t2 SET rowid = rowid-1;\n} {\n  UPDATE main t2 1 0   a bb  a bb\n  UPDATE main t...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.3 {\n  UPDATE OR REPLACE t2 SET rowid = 1 WHERE x = 'a...} {\n  DELETE main t2 1 1   c dd\n  UPDATE main t2 0 1 ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.4.1 {\n  UPDATE OR REPLACE t3 SET i = 5 WHERE i = 6\n} {\n  DELETE main t3 2 2   5 25\n  UPDATE main t3 3 3 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.1 {\n  UPDATE t2 SET y = y||y;\n} {\n  UPDATE main t2 1 1   a b  a bb\n  UPDATE main t2...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.2 {\n  UPDATE t2 SET rowid = rowid-1;\n} {\n  UPDATE main t2 1 0   a bb  a bb\n  UPDATE main t...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.3 {\n  UPDATE OR REPLACE t2 SET rowid = 1 WHERE x = 'a...} {\n  DELETE main t2 1 1   c dd\n  UPDATE main t2 0 1 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.4.1 {\n  UPDATE OR REPLACE t3 SET i = 5 WHERE i = 6\n} {\n  DELETE main t3 2 2   5 25\n  UPDATE main t3 3 3 ...}")
 	{ // "7.3.4.2"
 		r = db.Query("\n  INSERT INTO t3 VALUES(10, 100);\n  SELECT rowid, * FROM t3;\n")
 		if r.Error != nil {
@@ -286,38 +286,38 @@ func Test_hook(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.5 {\n  UPDATE OR REPLACE t3 SET rowid = 1, i = 5 WHERE...} {\n  DELETE main t3 1 1    4  16\n  DELETE main t3 3 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.3.5 {\n  UPDATE OR REPLACE t3 SET rowid = 1, i = 5 WHERE...} {\n  DELETE main t3 1 1    4  16\n  DELETE main t3 3 ...}")
 	{ // "7.4.1.0"
 		_res = db.Exec("\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('a', 1);\n  INSERT INTO t4 VALUES('b', 2);\n  INSERT INTO t4 VALUES('c', 3);\n\n  CREATE TRIGGER t4t BEFORE DELETE ON t4 BEGIN\n    DELETE FROM t4 WHERE b = 1;\n  END;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(a, b);\n  INSERT INTO t4 VALUES('a', 1);\n  INSERT INTO t4 VALUES('b', 2);\n  INSERT INTO t4 VALUES('c', 3);\n\n  CREATE TRIGGER t4t BEFORE DELETE ON t4 BEGIN\n    DELETE FROM t4 WHERE b = 1;\n  END;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.1.1 {\n  DELETE FROM t4 WHERE b = 3\n} {\n  DELETE main t4 1 1   a 1\n  DELETE main t4 3 3  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.1.1 {\n  DELETE FROM t4 WHERE b = 3\n} {\n  DELETE main t4 1 1   a 1\n  DELETE main t4 3 3  ...}")
 	{ // "7.4.1.2"
 		_res = db.Exec("\n  INSERT INTO t4(rowid, a, b) VALUES(1, 'a', 1);\n  INSERT INTO t4(rowid, a, b) VALUES(3, 'c', 3);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t4(rowid, a, b) VALUES(1, 'a', 1);\n  INSERT INTO t4(rowid, a, b) VALUES(3, 'c', 3);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.1.3 {\n  DELETE FROM t4 WHERE b = 1\n} {\n  DELETE main t4 1 1   a 1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.1.3 {\n  DELETE FROM t4 WHERE b = 1\n} {\n  DELETE main t4 1 1   a 1\n}")
 	{ // "7.4.2.0"
 		_res = db.Exec("\n  CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES('a', 1);\n  INSERT INTO t5 VALUES('b', 2);\n  INSERT INTO t5 VALUES('c', 3);\n\n  CREATE TRIGGER t5t BEFORE UPDATE ON t5 BEGIN\n    DELETE FROM t5 WHERE b = 1;\n  END;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t5(a, b);\n  INSERT INTO t5 VALUES('a', 1);\n  INSERT INTO t5 VALUES('b', 2);\n  INSERT INTO t5 VALUES('c', 3);\n\n  CREATE TRIGGER t5t BEFORE UPDATE ON t5 BEGIN\n    DELETE FROM t5 WHERE b = 1;\n  END;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.2.1 {\n  UPDATE t5 SET b = 4 WHERE a = 'c'\n} {\n  DELETE main t5 1 1   a 1\n  UPDATE main t5 3 3  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.2.1 {\n  UPDATE t5 SET b = 4 WHERE a = 'c'\n} {\n  DELETE main t5 1 1   a 1\n  UPDATE main t5 3 3  ...}")
 	{ // "7.4.2.2"
 		_res = db.Exec("\n  INSERT INTO t5(rowid, a, b) VALUES(1, 'a', 1);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t5(rowid, a, b) VALUES(1, 'a', 1);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.2.3 {\n  UPDATE t5 SET b = 5 WHERE a = 'a'\n} {\n  DELETE main t5 1 1   a 1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.4.2.3 {\n  UPDATE t5 SET b = 5 WHERE a = 'a'\n} {\n  DELETE main t5 1 1   a 1\n}")
 	if true {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.5.2.1 {\n    DELETE FROM t8 WHERE a = 'one'\n  } {\n    DELETE main t8 1 1   one two xxx\n  }")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.5.2.2 {\n    UPDATE t8 SET b = 'five'\n  } {\n    UPDATE main t8 2 2   three four xxx  three fi...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.5.2.1 {\n    DELETE FROM t8 WHERE a = 'one'\n  } {\n    DELETE main t8 1 1   one two xxx\n  }")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.5.2.2 {\n    UPDATE t8 SET b = 'five'\n  } {\n    UPDATE main t8 2 2   three four xxx  three fi...}")
 	}
 	{ // "7.6.1"
 		_res = db.Exec(" CREATE TABLE t9(a, b INTEGER PRIMARY KEY, c) ")
@@ -325,7 +325,7 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t9(a, b INTEGER PRIMARY KEY, c) ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.2 {\n  INSERT INTO t9 VALUES(1, 2, 3);\n  UPDATE t9 SET...} {\n  INSERT main t9 2 2   1 2 3\n  UPDATE main t9 2 3...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.2 {\n  INSERT INTO t9 VALUES(1, 2, 3);\n  UPDATE t9 SET...} {\n  INSERT main t9 2 2   1 2 3\n  UPDATE main t9 2 3...}")
 	// proc definition (not transpiled)
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -336,18 +336,18 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(x PRIMARY KEY);\n  CREATE TABLE t2(x PRIMARY KEY);\n  CREATE TABLE t3(x PRIMARY KEY);\n  CREATE TABLE t4(x PRIMARY KEY);\n\n  CREATE TRIGGER a AFTER INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b AFTER INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c AFTER INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d AFTER UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e AFTER UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f AFTER UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g AFTER DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h AFTER DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i AFTER DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.2 {\n  INSERT INTO t1 VALUES('xyz');\n} {\n  INSERT main t1 1 1   0      xyz\n  INSERT main t...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.3 {\n  UPDATE t1 SET x = 'abc';\n} {\n  UPDATE main t1 1 1   0      xyz abc\n  UPDATE ma...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.4 {\n  DELETE FROM t1 WHERE 1;\n} {\n  DELETE main t1 1 1   0      abc\n  DELETE main t...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.2 {\n  INSERT INTO t1 VALUES('xyz');\n} {\n  INSERT main t1 1 1   0      xyz\n  INSERT main t...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.3 {\n  UPDATE t1 SET x = 'abc';\n} {\n  UPDATE main t1 1 1   0      xyz abc\n  UPDATE ma...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.4 {\n  DELETE FROM t1 WHERE 1;\n} {\n  DELETE main t1 1 1   0      abc\n  DELETE main t...}")
 	{ // "7.6.5"
 		_res = db.Exec(" \n  DROP TRIGGER a; DROP TRIGGER b; DROP TRIGGER c;\n  DROP TRIGGER d; DROP TRIGGER e; DROP TRIGGER f;\n  DROP TRIGGER g; DROP TRIGGER h; DROP TRIGGER i;\n\n  CREATE TRIGGER a BEFORE INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b BEFORE INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c BEFORE INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e BEFORE UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f BEFORE UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g BEFORE DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h BEFORE DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i BEFORE DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  DROP TRIGGER a; DROP TRIGGER b; DROP TRIGGER c;\n  DROP TRIGGER d; DROP TRIGGER e; DROP TRIGGER f;\n  DROP TRIGGER g; DROP TRIGGER h; DROP TRIGGER i;\n\n  CREATE TRIGGER a BEFORE INSERT ON t1 BEGIN INSERT INTO t2 VALUES(new.x); END;\n  CREATE TRIGGER b BEFORE INSERT ON t2 BEGIN INSERT INTO t3 VALUES(new.x); END;\n  CREATE TRIGGER c BEFORE INSERT ON t3 BEGIN INSERT INTO t4 VALUES(new.x); END;\n\n  CREATE TRIGGER d BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET x = new.x; END;\n  CREATE TRIGGER e BEFORE UPDATE ON t2 BEGIN UPDATE t3 SET x = new.x; END;\n  CREATE TRIGGER f BEFORE UPDATE ON t3 BEGIN UPDATE t4 SET x = new.x; END;\n\n  CREATE TRIGGER g BEFORE DELETE ON t1 BEGIN DELETE FROM t2 WHERE 1; END;\n  CREATE TRIGGER h BEFORE DELETE ON t2 BEGIN DELETE FROM t3 WHERE 1; END;\n  CREATE TRIGGER i BEFORE DELETE ON t3 BEGIN DELETE FROM t4 WHERE 1; END;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.6 {\n  INSERT INTO t1 VALUES('xyz');\n} {\n  INSERT main t4 1 1   3      xyz\n  INSERT main t...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.3 {\n  UPDATE t1 SET x = 'abc';\n} {\n  UPDATE main t4 1 1   3      xyz abc\n  UPDATE ma...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.4 {\n  DELETE FROM t1 WHERE 1;\n} {\n  DELETE main t4 1 1   3      abc\n  DELETE main t...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.6 {\n  INSERT INTO t1 VALUES('xyz');\n} {\n  INSERT main t4 1 1   3      xyz\n  INSERT main t...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.3 {\n  UPDATE t1 SET x = 'abc';\n} {\n  UPDATE main t4 1 1   3      xyz abc\n  UPDATE ma...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 7.6.4 {\n  DELETE FROM t1 WHERE 1;\n} {\n  DELETE main t4 1 1   3      abc\n  DELETE main t...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -357,7 +357,7 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t3(a, b INTEGER PRIMARY KEY);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 10.1 {\n  INSERT INTO t3 DEFAULT VALUES\n} {\n  INSERT main t3 1 1 0 {} 1\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 10.1 {\n  INSERT INTO t3 DEFAULT VALUES\n} {\n  INSERT main t3 1 1 0 {} 1\n}")
 	{ // "10.2"
 		r = db.Query(" SELECT * FROM t3 ")
 		if r.Error != nil {
@@ -370,7 +370,7 @@ func Test_hook(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 10.3 {\n  DELETE FROM t3 WHERE b=1\n} {DELETE main t3 1 1 0 {} 1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 10.3 {\n  DELETE FROM t3 WHERE b=1\n} {DELETE main t3 1 1 0 {} 1}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -449,7 +449,7 @@ func Test_hook(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ALTER TABLE t1 ADD COLUMN b DEFAULT 1234;\n  ALTER TABLE t1 ADD COLUMN c DEFAULT 'abcdef';\n  ALTER TABLE t1 ADD COLUMN d DEFAULT NULL;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 13.2 {\n  DELETE FROM t1 WHERE a=300\n} {DELETE main t1 300 300 0 300 1234 abcdef {}}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 13.3 {\n  UPDATE t1 SET d='hello world' WHERE a=200\n} {\n  UPDATE main t1 200 200 0 200 1234 abcdef {} \n  ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_preupdate_test 13.4 {\n  INSERT INTO t1 DEFAULT VALUES;\n} {\n  INSERT main t1 401 401 0 401 1234 abcdef {}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 13.2 {\n  DELETE FROM t1 WHERE a=300\n} {DELETE main t1 300 300 0 300 1234 abcdef {}}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 13.3 {\n  UPDATE t1 SET d='hello world' WHERE a=200\n} {\n  UPDATE main t1 200 200 0 200 1234 abcdef {} \n  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_preupdate_test 13.4 {\n  INSERT INTO t1 DEFAULT VALUES;\n} {\n  INSERT main t1 401 401 0 401 1234 abcdef {}\n}")
 }

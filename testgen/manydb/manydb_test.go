@@ -133,7 +133,7 @@ func Test_manydb(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
 			{ // do_test "manydb-3." + i
-				t.Skipf("TODO: %s not implemented in frigolite", "db$i close")
+				t.Errorf("TODO: %s not implemented in frigolite", "db$i close")
 				os.Remove(dbname + "(" + i + ")")
 			}
 			// incr i 1

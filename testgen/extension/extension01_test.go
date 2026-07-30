@@ -22,7 +22,7 @@ func Test_extension01(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "extension01" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db fileio")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fileio")
 	{ // do_test "1.0"
 		os.Remove("file1.txt")
 		var out = "open ./file1.txt wb"

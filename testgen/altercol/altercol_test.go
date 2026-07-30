@@ -470,7 +470,7 @@ func Test_altercol(t *testing.T) {
 			lSchema := _items[_idx+3]
 			_ = lSchema // suppress unused warning
 			_ = _idx
-				t.Skipf("TODO: %s not implemented in frigolite", "do_rename_column_test 9.$tn $old $new $lSchema")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_rename_column_test 9.$tn $old $new $lSchema")
 			}
 			db.Close()
 			db, err = frigolite.Open("")
@@ -565,7 +565,7 @@ func Test_altercol(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 			{ // "13.1.4"
 				r = db.Query("\n  PRAGMA writable_schema = ON;\n  UPDATE sqlite_master SET sql = 'CREATE INDEX x1i ON x1(j)' WHERE name='x1i';\n  PRAGMA writable_schema = OFF;\n")
 				if r.Error != nil {
@@ -625,7 +625,7 @@ func Test_altercol(t *testing.T) {
 						}
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
 				{ // "14.1"
 					_res = db.Exec("\n  CREATE TABLE ddd(sql, type, object, db, tbl, icol, znew, bquote);\n  INSERT INTO ddd VALUES(\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', -1, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'x1', 2, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'notable', 0, 'zzz', 0\n  ), (\n      'CREATE TABLE x1(i INTEGER, t TEXT)',\n      'table', 'x1', 'main', 'ddd', -1, 'zzz', 0\n  );\n")
 					if _res.Error != nil {
@@ -644,7 +644,7 @@ func Test_altercol(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
 				{ // "14.3"
 					_res = db.Exec("\n  SELECT sqlite_rename_column(0,0,0,0,0,0,0,0,0);\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "no such function: sqlite_rename_column") {
@@ -930,8 +930,8 @@ func Test_altercol(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
 				{ // "22.0"
 					r = db.Query("\n  CREATE TABLE t1(a, b);\n  CREATE INDEX x1 on t1(\"c\"=b);\n  INSERT INTO t1 VALUES('a', 'a');\n  INSERT INTO t1 VALUES('b', 'b');\n  INSERT INTO t1 VALUES('c', 'c');\n  ALTER TABLE t1 RENAME COLUMN a TO \"c\";\n  PRAGMA integrity_check;\n")
 					if r.Error != nil {

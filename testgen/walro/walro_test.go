@@ -25,7 +25,7 @@ func Test_walro(t *testing.T) {
 	if _tcl_platform(os) == "Windows NT" {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  \n  # Close all connections and delete the datab...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  \n  # Close all connections and delete the datab...}")
 	os.Remove("test.db")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  \n  # Close all connections and delete the datab...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n  \n  # Close all connections and delete the datab...}")
 }

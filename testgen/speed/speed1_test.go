@@ -23,14 +23,14 @@ func Test_speed1(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 	var old_lookaside = "sqlite3_config_lookaside 1000 300"
 	_ = old_lookaside // suppress unused warning
 	// set testdir: test directory (not used in Go test context)
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_init speed1")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_init speed1")
 	// expr srand(0) → "srand(0)"
 	var sqlout = "open speed1.txt w"
 	_ = sqlout // suppress unused warning
@@ -70,7 +70,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-insert1 50000 row $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-insert1 50000 row $sql")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -95,7 +95,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-insert2 50000 row $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-insert2 50000 row $sql")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -122,7 +122,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-select1 [expr {50*50000}] row $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-select1 [expr {50*50000}] row $sql")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -145,7 +145,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-select2 [expr {50*50000}] row $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-select2 [expr {50*50000}] row $sql")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -154,7 +154,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-createidx 150000 row {\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b O...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-createidx 150000 row {\n  CREATE INDEX i1a ON t1(a);\n  CREATE INDEX i1b O...}")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -181,7 +181,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-select3 5000 stmt $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-select3 5000 stmt $sql")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -206,7 +206,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-select4 100000 row $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-select4 100000 row $sql")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -231,7 +231,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-select5 100000 row $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-select5 100000 row $sql")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -246,12 +246,12 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-select6 50000 row $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-select6 50000 row $sql")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-vacuum 100000 row VACUUM")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-vacuum 100000 row VACUUM")
 	var sql = ""
 	_ = sql // suppress unused warning
 	var i = "0"
@@ -274,7 +274,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-update1 5000 stmt $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-update1 5000 stmt $sql")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
@@ -299,12 +299,12 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-update2 50000 row $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-update2 50000 row $sql")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-update3 50000 row {\n  UPDATE t1 SET c=a;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-update3 50000 row {\n  UPDATE t1 SET c=a;\n}")
 	var sql = ""
 	_ = sql // suppress unused warning
 	var i = "1"
@@ -325,35 +325,35 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-update4 50000 row $sql")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-update4 50000 row $sql")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-delete1 50000 row {DELETE FROM t1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-copy1 50000 row {INSERT INTO t1 SELECT * FROM t2}")
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-delete2 50000 row {DELETE FROM t1 WHERE 1}")
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-copy2 50000 row {INSERT INTO t1 SELECT * FROM t2}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-delete1 50000 row {DELETE FROM t1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-copy1 50000 row {INSERT INTO t1 SELECT * FROM t2}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-delete2 50000 row {DELETE FROM t1 WHERE 1}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-copy2 50000 row {INSERT INTO t1 SELECT * FROM t2}")
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-drop1 50000 row {\n   DROP TABLE t1;\n   CREATE TABLE t1(a INTEGER, b...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-drop1 50000 row {\n   DROP TABLE t1;\n   CREATE TABLE t1(a INTEGER, b...}")
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-copy3 50000 row {INSERT INTO t1 SELECT * FROM t2}")
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-random1 50000 row {\n  SELECT rowid FROM t1 ORDER BY random() LIMIT 20...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-random-del1 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT rowid...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-copy3 50000 row {INSERT INTO t1 SELECT * FROM t2}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-random1 50000 row {\n  SELECT rowid FROM t1 ORDER BY random() LIMIT 20...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-random-del1 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT rowid...}")
 	{ // do_test "speed1-1.1"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial speed1-random-del2 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT rowid...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-random-del2 20000 row {\n  DELETE FROM t1 WHERE rowid IN\n    (SELECT rowid...}")
 	{ // do_test "speed1-1.2"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_summary speed1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial_summary speed1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 	// eval sqlite3_config_lookaside $old_lookaside
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 }

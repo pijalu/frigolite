@@ -25,6 +25,6 @@ func Test_mallocE(t *testing.T) {
 	}
 	var PREP = " \n  PRAGMA page_size = 1024;\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(x, y, z);\n"
 	_ = PREP // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocE-1 -sqlprep $PREP -sqlbody { \n  SELECT p, q FROM (SELECT a+b AS p, b+c AS q FR...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocE-2 -sqlprep $PREP -sqlbody { \n  SELECT x, y2 FROM (SELECT a+b AS x, b+c AS y2 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocE-1 -sqlprep $PREP -sqlbody { \n  SELECT p, q FROM (SELECT a+b AS p, b+c AS q FR...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocE-2 -sqlprep $PREP -sqlbody { \n  SELECT x, y2 FROM (SELECT a+b AS x, b+c AS y2 ...}")
 }

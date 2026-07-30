@@ -19,19 +19,19 @@ func Test_vtab_err(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test vtab_err-1 -tclprep {\n  register_echo_module [sqlite3_connection_pointe...} -sqlbody {\n  BEGIN;\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test vtab_err-2 -tclprep { \n  register_echo_module [sqlite3_connection_point...} -sqlbody {\n  BEGIN;\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail -1")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_ioerr_test vtab_err-1 -tclprep {\n  register_echo_module [sqlite3_connection_pointe...} -sqlbody {\n  BEGIN;\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test vtab_err-2 -tclprep { \n  register_echo_module [sqlite3_connection_point...} -sqlbody {\n  BEGIN;\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memdebug_fail -1")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 	{ // "vtab_err-3.0"
 		_res = db.Exec("\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n  CREATE VIRTUAL TABLE e USING echo(r);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n  CREATE VIRTUAL TABLE e USING echo(r);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test vtab_err-3 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n  register_echo_mod...} -body {\n  execsql {\n    BEGIN;\n      CREATE TABLE xyz(x);...} -test {\n  faultsim_test_result {0 {}}\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test vtab_err-3 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n  register_echo_mod...} -body {\n  execsql {\n    BEGIN;\n      CREATE TABLE xyz(x);...} -test {\n  faultsim_test_result {0 {}}\n}")
 }

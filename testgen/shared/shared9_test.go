@@ -128,7 +128,7 @@ func Test_shared9(t *testing.T) {
 	{ // do_test "3.2"
 		var _tf = "launch_testfixture" // TCL namespace variable
 		_ = _tf // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "testfixture $::tf {\n    sqlite3 db test.db\n    db eval {\n      BEGIN;...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $::tf {\n    sqlite3 db test.db\n    db eval {\n      BEGIN;...}")
 	}
 	{ // do_test "3.3"
 		db2.Exec(" SELECT * FROM t2 ")
@@ -148,5 +148,5 @@ func Test_shared9(t *testing.T) {
 	}
 	db1.Close()
 	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

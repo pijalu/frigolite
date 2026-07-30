@@ -26,7 +26,7 @@ func Test_e_resolve(t *testing.T) {
 	var schema = "\n  ATTACH 'test.db2' AS at1;\n  ATTACH 'test.db3' AS at2;\n\n  CREATE TABLE   temp.n1(x, y); INSERT INTO temp.n1 VALUES('temp', 'n1');\n  CREATE TRIGGER temp.n3 AFTER INSERT ON n1 BEGIN SELECT 1; END;\n  CREATE INDEX   temp.n4 ON n1(x, y);\n\n  CREATE TABLE   main.n1(x, y); INSERT INTO main.n1 VALUES('main', 'n1');\n  CREATE TABLE   main.n2(x, y); INSERT INTO main.n2 VALUES('main', 'n2');\n  CREATE INDEX   main.n3 ON n2(y, x);\n  CREATE TRIGGER main.n4 BEFORE INSERT ON n2 BEGIN SELECT 1; END;\n\n  CREATE TABLE   at1.n1(x, y);  INSERT INTO at1.n1 VALUES('at1', 'n1');\n  CREATE TABLE   at1.n2(x, y);  INSERT INTO at1.n2 VALUES('at1', 'n2');\n  CREATE TABLE   at1.n3(x, y);  INSERT INTO at1.n3 VALUES('at1', 'n3');\n\n  CREATE TABLE   at2.n1(x, y);  INSERT INTO at2.n1 VALUES('at2', 'n1');\n  CREATE TABLE   at2.n2(x, y);  INSERT INTO at2.n2 VALUES('at2', 'n2');\n  CREATE TABLE   at2.n3(x, y);  INSERT INTO at2.n3 VALUES('at2', 'n3');\n  CREATE TABLE   at2.n4(x, y);  INSERT INTO at2.n4 VALUES('at2', 'n4');\n  CREATE TRIGGER at2.n4 BEFORE INSERT ON n4 BEGIN SELECT 1; END;\n"
 	_ = schema // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "resolve_reopen_db")
+	t.Errorf("TODO: %s not implemented in frigolite", "resolve_reopen_db")
 	{ // "1.1"
 		r = db.Query(" SELECT * FROM n1 ")
 		if r.Error != nil {
@@ -75,7 +75,7 @@ func Test_e_resolve(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "resolve_reopen_db")
+	t.Errorf("TODO: %s not implemented in frigolite", "resolve_reopen_db")
 	{ // "2.1.1"
 		r = db.Query(" SELECT * FROM main.n1 ")
 		if r.Error != nil {
@@ -130,7 +130,7 @@ func Test_e_resolve(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such table: xxx.n1", _res.Error, " SELECT * FROM xxx.n1 ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "resolve_reopen_db")
+	t.Errorf("TODO: %s not implemented in frigolite", "resolve_reopen_db")
 	{ // "3.1"
 		r = db.Query(" SELECT * FROM MAIN.n1 ")
 		if r.Error != nil {

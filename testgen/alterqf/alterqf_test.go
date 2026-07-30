@@ -21,9 +21,9 @@ func Test_alterqf(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "alterqf"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_INTERNAL_FUNCTIONS db")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n")
 		if _res.Error != nil {
@@ -56,8 +56,8 @@ func Test_alterqf(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE x1(\n      one, two, three, PRIMARY KEY(one), \n      CHECK (three!=\"xyz\"), CHECK (two!=\"one\")\n  ) WITHOUT ROWID;\n  CREATE INDEX x1i ON x1(one+\"two\"+\"four\") WHERE \"five\";\n  CREATE TEMP TRIGGER AFTER INSERT ON x1 BEGIN\n    UPDATE x1 SET two=new.three || \"new\" WHERE one=new.one||\"\";\n  END;\n")
 			if _res.Error != nil {

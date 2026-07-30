@@ -27,89 +27,89 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b IS NULL\n       ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b IS NULL\n       ...}")
 	}
 	{ // do_test "where9-1.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE +b IS NULL\n      ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE +b IS NULL\n      ...}")
 	}
 	{ // do_test "where9-1.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b IS NULL\n       ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b IS NULL\n       ...}")
 	}
 	{ // do_test "where9-1.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b IS NULL\n       ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b IS NULL\n       ...}")
 	}
 	{ // do_test "where9-1.2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t4\n     WHERE b IS NULL\n       ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t4\n     WHERE b IS NULL\n       ...}")
 	}
 	{ // do_test "where9-1.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b IS NULL AND c ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b IS NULL AND c ...}")
 	}
 	{ // do_test "where9-1.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t4\n     WHERE (b IS NULL AND c ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t4\n     WHERE (b IS NULL AND c ...}")
 	}
 	{ // do_test "where9-1.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t4\n     WHERE (b NOT NULL AND c...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t4\n     WHERE (b NOT NULL AND c...}")
 	}
 	{ // do_test "where9-1.3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM (t4)\n     WHERE (b IS NULL AND ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM (t4)\n     WHERE (b IS NULL AND ...}")
 	}
 	{ // do_test "where9-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b>=950 AND b<=10...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b>=950 AND b<=10...}")
 	}
 	{ // do_test "where9-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE a=83\n        OR b...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE a=83\n        OR b...}")
 	}
 	{ // do_test "where9-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b=1012\n        OR...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b=1012\n        OR...}")
 	}
 	{ // do_test "where9-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b=1012 OR (d IS ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b=1012 OR (d IS ...}")
 	}
 	{ // do_test "where9-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b=1012 OR (d IS ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE (b=1012 OR (d IS ...}")
 	}
 	{ // do_test "where9-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t2.a FROM t1, t2\n     WHERE t1.a=80\n  ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t2.a FROM t1, t2\n     WHERE t1.a=80\n  ...}")
 	}
 	{ // do_test "where9-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t2.a FROM t1, t2\n     WHERE t1.a=80\n  ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t2.a FROM t1, t2\n     WHERE t1.a=80\n  ...}")
 	}
 	{ // do_test "where9-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT coalesce(t2.a,9999)\n      FROM t1 LEFT...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT coalesce(t2.a,9999)\n      FROM t1 LEFT...}")
 	}
 	{ // do_test "where9-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT coalesce(t2.a,9999)\n      FROM t1 LEFT...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT coalesce(t2.a,9999)\n      FROM t1 LEFT...}")
 	}
 	{ // do_test "where9-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t1.a, coalesce(t2.a,9999)\n      FROM t...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t1.a, coalesce(t2.a,9999)\n      FROM t...}")
 	}
 	{ // do_test "where9-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t1.a, coalesce(t2.a,9999)\n      FROM t...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t1.a, coalesce(t2.a,9999)\n      FROM t...}")
 	}
 	{ // do_test "where9-2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t3.x, t1.a, coalesce(t2.a,9999)\n      ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t3.x, t1.a, coalesce(t2.a,9999)\n      ...}")
 	}
 	{ // do_test "where9-2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t3.x, t1.a, coalesce(t2.a,9999)\n      ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT t3.x, t1.a, coalesce(t2.a,9999)\n      ...}")
 	}
 	{ // do_test "where9-4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b>1000\n       AND...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b>1000\n       AND...}")
 	}
 	{ // do_test "where9-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b>1000\n       AND...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE b>1000\n       AND...}")
 	}
 	{ // do_test "where9-4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE +b>1000\n       AN...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1\n     WHERE +b>1000\n       AN...}")
 	}
 	{ // do_test "where9-4.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1 INDEXED BY t1b\n     WHERE b>...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1 INDEXED BY t1b\n     WHERE b>...}")
 	}
 	{ // do_test "where9-4.5"
 		_res = db.Exec("\n    SELECT a FROM t1 INDEXED BY t1b\n     WHERE +b>1000\n       AND (c=31031 OR d IS NULL)\n     ORDER BY +a\n  ")
 		_ = _res // catchsql
 	}
 	{ // do_test "where9-4.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1 NOT INDEXED\n     WHERE b>100...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t1 NOT INDEXED\n     WHERE b>100...}")
 	}
 	{ // do_test "where9-4.7"
 		_res = db.Exec("\n    SELECT a FROM t1 INDEXED BY t1c\n     WHERE b>1000\n       AND (c=31031 OR d IS NULL)\n     ORDER BY +a\n  ")
@@ -144,7 +144,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     DELETE FROM t1\n     WHERE b IS N...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     DELETE FROM t1\n     WHERE b IS N...}")
 	}
 	{ // do_test "where9-6.2.3"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a>=85;\n    ROLLBACK;\n  ")
@@ -153,7 +153,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     DELETE FROM t1\n     WHERE +b IS ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     DELETE FROM t1\n     WHERE +b IS ...}")
 	}
 	{ // do_test "where9-6.2.5"
 		_res = db.Exec("\n     SELECT count(*) FROM t1 UNION ALL\n     SELECT a FROM t1 WHERE a>=85;\n     ROLLBACK;\n  ")
@@ -162,7 +162,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     UPDATE t1 SET a=a+100\n     WHERE...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     UPDATE t1 SET a=a+100\n     WHERE...}")
 	}
 	{ // do_test "where9-6.2.7"
 		_res = db.Exec("\n     SELECT count(*) FROM t1 UNION ALL\n     SELECT a FROM t1 WHERE a>=85;\n     ROLLBACK\n  ")
@@ -171,7 +171,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     DELETE FROM t1\n     WHERE (b IS ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n     BEGIN;\n     DELETE FROM t1\n     WHERE (b IS ...}")
 	}
 	{ // do_test "where9-6.2.9"
 		_res = db.Exec("\n     SELECT count(*) FROM t1 UNION ALL SELECT a FROM t1 WHERE a>=85;\n     ROLLBACK;\n  ")
@@ -180,7 +180,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (b IS NU...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (b IS NU...}")
 	}
 	{ // do_test "where9-6.3.2"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -189,7 +189,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
 	}
 	{ // do_test "where9-6.3.4"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 200;\n    ROLLBACK;\n  ")
@@ -198,7 +198,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (+b IS N...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (+b IS N...}")
 	}
 	{ // do_test "where9-6.3.6"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -207,7 +207,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.3.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
 	}
 	{ // do_test "where9-6.3.8"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -216,7 +216,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (b>=950 ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (b>=950 ...}")
 	}
 	{ // do_test "where9-6.4.2"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -225,7 +225,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
 	}
 	{ // do_test "where9-6.4.4"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -234,7 +234,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE a=83\n   ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE a=83\n   ...}")
 	}
 	{ // do_test "where9-6.5.2"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a IN (5,31,57,82,83,84,85,86,87);\n    ROLLBACK;\n  ")
@@ -243,7 +243,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.5.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE a...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE a...}")
 	}
 	{ // do_test "where9-6.5.4"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a%100 IN (5,31,57,82,83,84,85,86,87) ORDER BY rowid;\n    ROLLBACK;\n  ")
@@ -252,7 +252,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (b IS NU...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1\n     WHERE (b IS NU...}")
 	}
 	{ // do_test "where9-6.6.2"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -261,7 +261,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.6.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 SET a=a+100\n     WHERE (...}")
 	}
 	{ // do_test "where9-6.6.4"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 200;\n    ROLLBACK;\n  ")
@@ -270,7 +270,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.7.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1 NOT INDEXED\n     WH...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    DELETE FROM t1 NOT INDEXED\n     WH...}")
 	}
 	{ // do_test "where9-6.7.2"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 100;\n    ROLLBACK;\n  ")
@@ -279,7 +279,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-6.7.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 NOT INDEXED SET a=a+100\n...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    BEGIN;\n    UPDATE t1 NOT INDEXED SET a=a+100\n...}")
 	}
 	{ // do_test "where9-6.7.4"
 		_res = db.Exec("\n    SELECT count(*) FROM t1 UNION ALL\n    SELECT a FROM t1 WHERE a BETWEEN 85 AND 200;\n    ROLLBACK;\n  ")
@@ -323,7 +323,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-7.1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE x='y' AND (b=913 OR c=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE x='y' AND (b=913 OR c=...}")
 	}
 	{ // do_test "where9-7.1.2"
 		r = db.Query("\n    SELECT a FROM t6 WHERE x='y' AND (b=913 OR c=27027) ORDER BY a;\n  ")
@@ -332,7 +332,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-7.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE x='n' AND (b=913 OR c=...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE x='n' AND (b=913 OR c=...}")
 	}
 	{ // do_test "where9-7.1.4"
 		r = db.Query("\n    SELECT a FROM t6 WHERE x='n' AND (b=913 OR c=27027) ORDER BY a;\n  ")
@@ -341,7 +341,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-7.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE (x='y' OR y='y') AND b...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE (x='y' OR y='y') AND b...}")
 	}
 	{ // do_test "where9-7.2.2"
 		r = db.Query("\n    SELECT a FROM t6 WHERE (x='y' OR y='y') AND b=913 ORDER BY a;\n  ")
@@ -350,7 +350,7 @@ func Test_where9(t *testing.T) {
 		}
 	}
 	{ // do_test "where9-7.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE (x='y' OR y='y') AND c...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count_steps {\n    SELECT a FROM t5 WHERE (x='y' OR y='y') AND c...}")
 	}
 	{ // do_test "where9-7.3.2"
 		r = db.Query("\n    SELECT a FROM t6 WHERE (x='y' OR y='y') AND c=27027 ORDER BY a;\n  ")

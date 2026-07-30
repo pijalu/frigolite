@@ -19,9 +19,9 @@ func Test_mallocH(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocH-1 -tclprep {\n  db close\n  sqlite3 db :memory:\n  db eval {\n    ...} -sqlbody {\n  INSERT INTO t1 SELECT x+1, y+100 FROM t1;\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocH-2 -sqlbody {\n   SELECT CASE WHEN 1 THEN 1 END;\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocH-3 -sqlbody {\n   SELECT 3+EXISTS(SELECT * FROM sqlite_master);\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocH-3 -sqlbody {\n   SELECT replace('ababa','a','xyzzy');\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocH-5 -sqlprep {\n   CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n   C...} -sqlbody {\n   PRAGMA integrity_check;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocH-1 -tclprep {\n  db close\n  sqlite3 db :memory:\n  db eval {\n    ...} -sqlbody {\n  INSERT INTO t1 SELECT x+1, y+100 FROM t1;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocH-2 -sqlbody {\n   SELECT CASE WHEN 1 THEN 1 END;\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocH-3 -sqlbody {\n   SELECT 3+EXISTS(SELECT * FROM sqlite_master);\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocH-3 -sqlbody {\n   SELECT replace('ababa','a','xyzzy');\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocH-5 -sqlprep {\n   CREATE TABLE t1(a PRIMARY KEY, b UNIQUE);\n   C...} -sqlbody {\n   PRAGMA integrity_check;\n}")
 }

@@ -22,7 +22,7 @@ func Test_corrupt7(t *testing.T) {
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "corrupt7-1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x);\n    INSERT INTO t1(x) VALUES(1);\n    INSERT INTO t1(x) VALUES(2);\n    INSERT INTO t1(x) SELECT x+2 FROM t1;\n    INSERT INTO t1(x) SELECT x+4 FROM t1;\n    INSERT INTO t1(x) SELECT x+8 FROM t1;\n  ")
 		if _res.Error != nil {
@@ -31,15 +31,15 @@ func Test_corrupt7(t *testing.T) {
 		// file size test.db
 	}
 	{ // do_test "corrupt7-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 16 2]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 16 2]")
 	}
 	{ // do_test "corrupt7-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 20 1]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db 20 1]")
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "corrupt7-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 1062 FF")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 1062 FF")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -49,7 +49,7 @@ func Test_corrupt7(t *testing.T) {
 		}
 	}
 	{ // do_test "corrupt7-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 1062 04")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 1062 04")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }

@@ -69,13 +69,13 @@ func Test_memleak(t *testing.T) {
 			for _, x := range tclSplitList(LeakList) {
 				if tclBool(x + "!=" + "lindex $LeakList 0") {
 					t.Log(" failed! (" + LeakList + ")")
-					t.Skipf("TODO: %s not implemented in frigolite", "fail_test memory-leak-test-$tail")
+					t.Errorf("TODO: %s not implemented in frigolite", "fail_test memory-leak-test-$tail")
 					break
 				}
 			}
 			t.Log(" Ok")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "memleak_finish_test")
-	t.Skipf("TODO: %s not implemented in frigolite", "memleak_finish_test")
+	t.Errorf("TODO: %s not implemented in frigolite", "memleak_finish_test")
+	t.Errorf("TODO: %s not implemented in frigolite", "memleak_finish_test")
 }

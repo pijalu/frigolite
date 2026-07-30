@@ -29,21 +29,21 @@ func Test_shellA(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a INT, x TEXT);\n  INSERT INTO t1 VALUES\n   (1, 'line with '' single quote'),\n   (2, concat(char(0x1b),'[31mVT-100 codes',char(0x1b),'[0m')),\n   (3, NULL),\n   (4, 1234),\n   (5, 568.25),\n   (6, unistr('new\\u000aline')),\n   (7, unistr('carriage\\u000dreturn')),\n   (8, 'last line');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-1.2 {\n  exec {*}$CLI -noinit test.db {.mode box -quote ...} {\n╭───┬───────────\xe2...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-1.2 {\n  exec {*}$CLI -noinit test.db {.mode box -quote ...} {\n╭───┬───────────\xe2...}")
 	{ // do_test "shellA-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit -list test.db {SELECT x FROM t1 WHERE a=2;}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit -list test.db {SELECT x FROM t1 WHERE a=2;}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-1.4 {\n  exec {*}$CLI -noinit -list test.db --escape sym...} {\n␛[31mVT-100 codes␛[0m\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-1.4 {\n  exec {*}$CLI -noinit -list test.db --escape sym...} {\n␛[31mVT-100 codes␛[0m\n}")
 	{ // do_test "shellA-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit -list test.db --escape ascii {SELECT x FROM t1 WHERE a=2;}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit -list test.db --escape ascii {SELECT x FROM t1 WHERE a=2;}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-1.6 {\n  exec {*}$CLI -noinit test.db {.mode list --esca...} {\n␛[31mVT-100 codes␛[0m\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-1.6 {\n  exec {*}$CLI -noinit test.db {.mode list --esca...} {\n␛[31mVT-100 codes␛[0m\n}")
 	{ // do_test "shellA-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode list --escape ascii} {SELECT x FROM t1 WHERE a=2;}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode list --escape ascii} {SELECT x FROM t1 WHERE a=2;}")
 	}
 	{ // do_test "shellA-1.8"
 		os.Remove("-force")
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode list --escape off} {SELECT x FROM t1 WHERE a=7;} >out.txt")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode list --escape off} {SELECT x FROM t1 WHERE a=7;} >out.txt")
 		var fd = "open out.txt rb"
 		_ = fd // suppress unused warning
 		var res = "read $fd"
@@ -56,7 +56,7 @@ func Test_shellA(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode test --escape xyz}")
+			t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode test --escape xyz}")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -72,7 +72,7 @@ func Test_shellA(t *testing.T) {
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
-			t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI --noinit --escape abc test.db .q")
+			t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI --noinit --escape abc test.db .q")
 			if _catchErr != nil {
 				rc = "1"
 				msg = _catchErr.Error()
@@ -84,34 +84,34 @@ func Test_shellA(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "shellA-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db --quote {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db --quote {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)}")
 	}
 	{ // do_test "shellA-2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db --quote {.mode -v}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db --quote {.mode -v}")
 	}
 	{ // do_test "shellA-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db --quote --escape SYMBOL {.mode}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db --quote --escape SYMBOL {.mode}")
 	}
 	{ // do_test "shellA-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db --quote --escape OFF {.mode}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db --quote --escape OFF {.mode}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-3.1 {\n exec {*}$CLI -noinit test.db --line --escape sym...} {\n    a: 1\n    x: line with ' single quote\n\n    a: ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-3.1 {\n exec {*}$CLI -noinit test.db --line --escape sym...} {\n    a: 1\n    x: line with ' single quote\n\n    a: ...}")
 	{ // do_test "shellA-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db --line --escape ascii {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db --line --escape ascii {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-4.1 {\n exec {*}$CLI -noinit test.db --box --escape asci...} {\n╭───┬───────────\xe2...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-4.1b {\n exec {*}$CLI -noinit test.db --box --escape asci...} {\n a │            x\n═══╪═════\xe2\x95...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-4.2 {\n exec {*}$CLI -noinit test.db {.mode qbox} {SELEC...} {\n╭───┬───────────\xe2...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-4.2b {\n exec {*}$CLI -noinit test.db {.mode qbox -border...} {\n a │                     x\n═══╪══\xe2\x95...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-4.1 {\n exec {*}$CLI -noinit test.db --box --escape asci...} {\n╭───┬───────────\xe2...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-4.1b {\n exec {*}$CLI -noinit test.db --box --escape asci...} {\n a │            x\n═══╪═════\xe2\x95...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-4.2 {\n exec {*}$CLI -noinit test.db {.mode qbox} {SELEC...} {\n╭───┬───────────\xe2...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_test_with_ansi_output shellA-4.2b {\n exec {*}$CLI -noinit test.db {.mode qbox -border...} {\n a │                     x\n═══╪══\xe2\x95...}")
 	{ // do_test "shellA-5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode insert t1 --escape ascii} {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode insert t1 --escape ascii} {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)}")
 	}
 	{ // do_test "shellA-5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode insert t1 --escape symbol} {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode insert t1 --escape symbol} {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)}")
 	}
 	{ // do_test "shellA-5.3"
 		os.Remove("-force")
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode insert t1 --escape off} {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)} >out.txt")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode insert t1 --escape off} {SELECT a, x FROM t1 WHERE a IN (1,2,6,7,8)} >out.txt")
 		var fd = "open out.txt rb"
 		_ = fd // suppress unused warning
 		var res = "read $fd"
@@ -124,12 +124,12 @@ func Test_shellA(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(x);\n    INSERT INTO t2(x) VALUES\n      ('one'), ('two'), ('three'), ('four'), ('five'),\n      ('six'), ('seven'), ('eight'), ('nine'), ('ten'),\n      ('eleven'), ('twelve'), ('thirteen'), ('fourteen');\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.print} {.mode split -screenwidth 30} {SELECT x FROM t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.print} {.mode split -screenwidth 30} {SELECT x FROM t2}")
 	}
 	{ // do_test "shellA-6.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.print} {.mode split -screenwidth 30} {SELECT x FROM t2} {.mode column -titles off} {SELECT x FROM t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.print} {.mode split -screenwidth 30} {SELECT x FROM t2} {.mode column -titles off} {SELECT x FROM t2}")
 	}
 	{ // do_test "shellA-6.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.print} {.mode table} {.mode --once split -screenwidth 30} {SELECT x FROM t2} {SELECT x FROM t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.print} {.mode table} {.mode --once split -screenwidth 30} {SELECT x FROM t2} {SELECT x FROM t2}")
 	}
 }

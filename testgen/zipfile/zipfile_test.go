@@ -109,14 +109,14 @@ func Test_zipfile(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_zip_tests 1.2a test.zip")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_zip_tests 1.2a test.zip")
 	{ // "1.3"
 		_res = db.Exec("\n  INSERT INTO zz(name, mode, mtime, data) VALUES('h.txt', \n    '-rw-r--r--', 1000000004, 'aaaaaaaaaabbbbbbbbbb'\n  );\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO zz(name, mode, mtime, data) VALUES('h.txt', \n    '-rw-r--r--', 1000000004, 'aaaaaaaaaabbbbbbbbbb'\n  );\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_zip_tests 1.3a test.zip")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_zip_tests 1.3a test.zip")
 	{ // "1.4"
 		r = db.Query("\n  SELECT name, mtime, data, method FROM zipfile('test.zip');\n")
 		if r.Error != nil {
@@ -189,7 +189,7 @@ func Test_zipfile(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_zip_tests 1.6.1a test.zip")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_zip_tests 1.6.1a test.zip")
 	{ // "1.6.2"
 		r = db.Query("\n  UPDATE zz SET mtime=4 WHERE name='i.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');\n")
 		if r.Error != nil {
@@ -225,7 +225,7 @@ func Test_zipfile(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_zip_tests 1.6.3a test.zip")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_zip_tests 1.6.3a test.zip")
 	{ // "1.6.4"
 		r = db.Query("\n  UPDATE zz SET name = 'blue.txt' WHERE name='f.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');\n")
 		if r.Error != nil {
@@ -238,7 +238,7 @@ func Test_zipfile(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_zip_tests 1.6.4a test.zip")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_zip_tests 1.6.4a test.zip")
 	{ // "1.6.5"
 		r = db.Query("\n  UPDATE zz SET data = 'edcba' WHERE name='blue.txt';\n  SELECT name, mode, mtime, data, method FROM zipfile('test.zip');\n")
 		if r.Error != nil {
@@ -327,8 +327,8 @@ func Test_zipfile(t *testing.T) {
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db fileio")
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fileio")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
 	{ // "2.1"
 		r = db.Query("\n  CREATE VIRTUAL TABLE zzz USING zipfile('test.zip');\n  INSERT INTO zzz(name, mode) VALUES('dirname', 'drwxr-xr-x');\n  SELECT name, mode, data FROM zzz;\n")
 		if r.Error != nil {
@@ -371,7 +371,7 @@ func Test_zipfile(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_zip_tests 2.4a test.zip")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_zip_tests 2.4a test.zip")
 	if tclBool("info exists ::UNZIP") {
 		{ // do_test "2.5.1"
 			os.Remove("dirname")
@@ -387,7 +387,7 @@ func Test_zipfile(t *testing.T) {
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				t.Skipf("TODO: %s not implemented in frigolite", "exec $::UNZIP test.zip > $null")
+				t.Errorf("TODO: %s not implemented in frigolite", "exec $::UNZIP test.zip > $null")
 				if _catchErr != nil {
 					rc = "1"
 					msg = _catchErr.Error()
@@ -420,8 +420,8 @@ func Test_zipfile(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	os.Remove("test.zip")
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db fileio")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fileio")
 	{ // "3.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE temp.x1 USING zipfile('test.zip');\n  INSERT INTO x1(name, data) VALUES('dir1/', NULL);\n  INSERT INTO x1(name, data) VALUES('file1', '1234');\n  INSERT INTO x1(name, data) VALUES('dir1/file2', '5678');\n")
 		if _res.Error != nil {
@@ -650,8 +650,8 @@ func Test_zipfile(t *testing.T) {
 			os.Remove("test.zip")
 			db, err = frigolite.Open(":memory:")
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
-			t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db fileio")
+			t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
+			t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fileio")
 			{ // "10.0"
 				_res = db.Exec("\n  CREATE VIRTUAL TABLE z USING zipfile('test.zip');\n")
 				if _res.Error != nil {
@@ -955,7 +955,7 @@ func Test_zipfile(t *testing.T) {
 					db, err := frigolite.Open(":memory:")
 					defer db.Close()
 					if err != nil { t.Fatal(err) }
-					t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
+					t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
 					os.Remove("zipfile19.zip")
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE t1 USING zipfile('zipfile19.zip');\n    INSERT INTO t1 DEFAULT VALUES;\n  ")
 					if _res.Error != nil {
@@ -963,7 +963,7 @@ func Test_zipfile(t *testing.T) {
 					}
 					db, err = frigolite.Open(":memory:")
 					if err != nil { t.Fatal(err) }
-					t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
+					t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE v0 USING zipfile('zipfile19.zip');\n    SAVEPOINT y;\n    DELETE FROM v0 WHERE 9;\n    INSERT INTO v0 DEFAULT VALUES;\n  ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE v0 USING zipfile('zipfile19.zip');\n    SAVEPOINT y;\n    DELETE FROM v0 WHERE 9;\n    INSERT INTO v0 DEFAULT VALUES;\n  ")
@@ -972,7 +972,7 @@ func Test_zipfile(t *testing.T) {
 				os.Remove("zipfile19.zip")
 				db, err = frigolite.Open(":memory:")
 				if err != nil { t.Fatal(err) }
-				t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
+				t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
 				{ // "20.0"
 					_res = db.Exec("\n  SELECT * FROM zipfile(X'504b050600000000010001004000000000a3e1110000');\n")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "zip archive is corrupt") {
@@ -1012,7 +1012,7 @@ func Test_zipfile(t *testing.T) {
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
-				t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
+				t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
 				if tclBool("0" + "==0") {
 					{ // "23.0"
 						_res = db.Exec("\n    SELECT length(zipfile(name,0,0,data,0)) FROM (\n        SELECT 'a' AS name, zeroblob(1000000000) AS data\n        UNION ALL SELECT 'b', zeroblob(1200000000)\n    );\n  ")
@@ -1025,8 +1025,8 @@ func Test_zipfile(t *testing.T) {
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
 				os.Remove("test.zip")
-				t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
-				t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db fileio")
+				t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db zipfile")
+				t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db fileio")
 				{ // "24.0"
 					_res = db.Exec("\n  CREATE VIRTUAL TABLE zzz USING zipfile('test.zip');\n  INSERT INTO zzz (name, data) VALUES ('f.txt','lotsoftext');\n")
 					if _res.Error != nil {

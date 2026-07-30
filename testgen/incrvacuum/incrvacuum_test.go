@@ -238,12 +238,12 @@ func Test_incrvacuum(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "compare_dbs db1 db2 incrvacuum-5.3.$ {tn}")
+		t.Errorf("TODO: %s not implemented in frigolite", "compare_dbs db1 db2 incrvacuum-5.3.$ {tn}")
 		{ // do_test "incrvacuum-5.3.$"
-			t.Skipf("TODO: %s not implemented in frigolite", "tn")
+			t.Errorf("TODO: %s not implemented in frigolite", "tn")
 		}
 		{ // do_test "incrvacuum-5.3.$"
-			t.Skipf("TODO: %s not implemented in frigolite", "tn")
+			t.Errorf("TODO: %s not implemented in frigolite", "tn")
 		}
 		// incr tn 1
 		{
@@ -259,10 +259,10 @@ func Test_incrvacuum(t *testing.T) {
 	_ = jj // suppress unused warning
 	for func() bool { jj_n, _jj_e := strconv.Atoi(jj); if _jj_e != nil { return false }; return jj_n < 10 }() {
 		{ // do_test "incrvacuum-6.$"
-			t.Skipf("TODO: %s not implemented in frigolite", "jj")
+			t.Errorf("TODO: %s not implemented in frigolite", "jj")
 		}
 		{ // do_test "incrvacuum-6.$"
-			t.Skipf("TODO: %s not implemented in frigolite", "jj")
+			t.Errorf("TODO: %s not implemented in frigolite", "jj")
 		}
 		// incr jj 1
 		{
@@ -276,13 +276,13 @@ func Test_incrvacuum(t *testing.T) {
 	_ = _iWrite // suppress unused warning
 	for true {
 		{ // do_test "incrvacuum-7.$"
-			t.Skipf("TODO: %s not implemented in frigolite", "::iWrite")
+			t.Errorf("TODO: %s not implemented in frigolite", "::iWrite")
 		}
 		{ // do_test "incrvacuum-7.$"
-			t.Skipf("TODO: %s not implemented in frigolite", "::iWrite")
+			t.Errorf("TODO: %s not implemented in frigolite", "::iWrite")
 		}
 		{ // do_test "incrvacuum-7.$"
-			t.Skipf("TODO: %s not implemented in frigolite", "::iWrite")
+			t.Errorf("TODO: %s not implemented in frigolite", "::iWrite")
 		}
 		if func() bool { _nRow_n, __nRow_e := strconv.Atoi(_nRow); if __nRow_e != nil { return false }; _iWrite_n, __iWrite_e := strconv.Atoi(_iWrite); if __iWrite_e != nil { return false }; return _nRow_n == _iWrite_n }() {
 		}
@@ -548,7 +548,7 @@ func Test_incrvacuum(t *testing.T) {
 		db, err := frigolite.Open("")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+		t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	}
 	{ // "incrvacuum-17.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON;\n  PRAGMA incremental_vacuum(10);\n")

@@ -20,7 +20,7 @@ func Test_filefmt(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	os.Remove("test.db")
 	{ // do_test "filefmt-1.1"
 		db, err := frigolite.Open("test.db")
@@ -30,10 +30,10 @@ func Test_filefmt(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t1(x)")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 0 16")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 0 16")
 	}
 	{ // do_test "filefmt-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 0 54")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 0 54")
 	var x string
 	var err string
 	_ = err // suppress unused warning
@@ -57,7 +57,7 @@ func Test_filefmt(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "filefmt-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 0 53")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 0 53")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -65,7 +65,7 @@ func Test_filefmt(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "filefmt-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 16 [hexio_render_int16 1025]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 16 [hexio_render_int16 1025]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -73,7 +73,7 @@ func Test_filefmt(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "filefmt-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 16 [hexio_render_int16 256]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 16 [hexio_render_int16 256]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -94,11 +94,11 @@ func Test_filefmt(t *testing.T) {
 	}
 	if tclBool("!" + "nonzero_reserved_bytes") {
 		{ // do_test "filefmt-2.1.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 28 4")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 28 4")
 		}
 	}
 	{ // do_test "filefmt-2.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sql36231 { INSERT INTO t1 VALUES(a_string(3000)) }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sql36231 { INSERT INTO t1 VALUES(a_string(3000)) }")
 	}
 	{ // "filefmt-2.1.4"
 		_res = db.Exec(" INSERT INTO t2 VALUES(2) ")
@@ -109,7 +109,7 @@ func Test_filefmt(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "filefmt-2.1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 28 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 28 4")
 	}
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
@@ -122,11 +122,11 @@ func Test_filefmt(t *testing.T) {
 	}
 	if tclBool("!" + "nonzero_reserved_bytes") {
 		{ // do_test "filefmt-2.2.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 28 4")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 28 4")
 		}
 	}
 	{ // do_test "filefmt-2.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sql36231 { INSERT INTO t1 VALUES(a_string(3000)) }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sql36231 { INSERT INTO t1 VALUES(a_string(3000)) }")
 	}
 	{ // "filefmt-2.2.4"
 		_res = db.Exec(" \n  PRAGMA integrity_check;\n  BEGIN;\n    INSERT INTO t2 VALUES(2);\n    SAVEPOINT a;\n      INSERT INTO t2 VALUES(3);\n    ROLLBACK TO a;\n")
@@ -156,7 +156,7 @@ func Test_filefmt(t *testing.T) {
 		}
 	}
 	{ // do_test "filefmt-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sql36231 { DROP TABLE t1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sql36231 { DROP TABLE t1 }")
 	}
 	{ // "filefmt-3.3"
 		r = db.Query("\n  SELECT * FROM sqlite_master;\n  PRAGMA integrity_check;\n")
@@ -180,7 +180,7 @@ func Test_filefmt(t *testing.T) {
 		}
 	}
 	{ // do_test "filefmt-4.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sql36231 { INSERT INTO t2 SELECT * FROM t1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "sql36231 { INSERT INTO t2 SELECT * FROM t1 }")
 	}
 	{ // do_test "filefmt-4.3"
 		os.Remove("bak.db")

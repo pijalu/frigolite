@@ -33,6 +33,6 @@ func Test_errofst1(t *testing.T) {
 		}
 	}
 	{ // do_test "errofst1-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_error_offset db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_error_offset db")
 	}
 }

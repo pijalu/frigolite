@@ -20,16 +20,16 @@ func Test_pcache2(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
 	{ // do_test "pcache2-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 6000 100")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-		t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_status SQLITE_STATUS_PAGECACHE_USED 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 6000 100")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_status SQLITE_STATUS_PAGECACHE_USED 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0")
 	}
 	{ // do_test "pcache2-1.2"
 		os.Remove("test.db")
@@ -56,7 +56,7 @@ func Test_pcache2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n     CREATE TABLE t1(a,b);\n     CREATE TABLE t2(x,y);\n     INSERT INTO t1 VALUES(1, zeroblob(800));\n     INSERT INTO t1 VALUES(2, zeroblob(800));\n     INSERT INTO t2 SELECT * FROM t1;\n     INSERT INTO t1 SELECT x+2, y FROM t2;\n     INSERT INTO t2 SELECT a+10, b FROM t1;\n     INSERT INTO t1 SELECT x+10, y FROM t2;\n     INSERT INTO t2 SELECT a+100, b FROM t1;\n     INSERT INTO t1 SELECT x+100, y FROM t2;\n     INSERT INTO t2 SELECT a+1000, b FROM t1;\n     INSERT INTO t1 SELECT x+1000, y FROM t2;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_status SQLITE_STATUS_PAGECACHE_USED 0")
 	}
 	{ // do_test "pcache2-2.1"
 		{
@@ -64,12 +64,12 @@ func Test_pcache2(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			db2.Close()
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 0 -1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-		t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 0 -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config singlethread")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+		t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 	}
 	db.Close()
 	db, err = frigolite.Open("")
@@ -85,11 +85,11 @@ func Test_pcache2(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 0 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config serialized")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset_auto_extension")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_pagecache 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config serialized")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
 }

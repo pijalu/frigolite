@@ -33,7 +33,7 @@ func Test_walcrash2(t *testing.T) {
 		{ // do_test "walcrash2-1.2." + "$nEntry/8"
 			var C = "launch_testfixture"
 			_ = C // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "testfixture $C {\n      sqlite3 db test.db\n      db eval {\n        ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "testfixture $C {\n      sqlite3 db test.db\n      db eval {\n        ...}")
 			// close $C
 			// file size test.db-wal
 		}

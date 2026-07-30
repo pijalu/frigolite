@@ -19,7 +19,7 @@ func Test_alter2(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -28,7 +28,7 @@ func Test_alter2(t *testing.T) {
 		_res = db.Exec("SELECT substr('abcdefg',1,3)")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // do_test "alter2-1.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b);\n    INSERT INTO abc VALUES(1, 2);\n    INSERT INTO abc VALUES(3, 4);\n    INSERT INTO abc VALUES(5, 6);\n  ")
 		if _res.Error != nil {
@@ -36,7 +36,7 @@ func Test_alter2(t *testing.T) {
 		}
 	}
 	{ // do_test "alter2-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "alter_table abc {CREATE TABLE abc(a, b, c);}")
+		t.Errorf("TODO: %s not implemented in frigolite", "alter_table abc {CREATE TABLE abc(a, b, c);}")
 	}
 	{ // do_test "alter2-1.3"
 		r = db.Query("\n    SELECT * FROM abc;\n  ")
@@ -75,7 +75,7 @@ func Test_alter2(t *testing.T) {
 		}
 	}
 	{ // do_test "alter2-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "alter_table abc {CREATE TABLE abc(a, b, c, d);}")
+		t.Errorf("TODO: %s not implemented in frigolite", "alter_table abc {CREATE TABLE abc(a, b, c, d);}")
 		if tclBool("permutation" + " == \"prepare\"") {
 		}
 		r = db.Query(" SELECT * FROM abc; ")
@@ -100,7 +100,7 @@ func Test_alter2(t *testing.T) {
 		}
 	}
 	{ // do_test "alter2-4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "set_file_format 5")
+		t.Errorf("TODO: %s not implemented in frigolite", "set_file_format 5")
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
@@ -118,7 +118,7 @@ func Test_alter2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "alter2-4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	{ // do_test "alter2-4.4"
 		var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
@@ -127,23 +127,23 @@ func Test_alter2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "alter2-4.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	default_file_format := "$SQLITE_DEFAULT_FILE_FORMAT==4 ? 4 : 1"
 	_ = default_file_format // suppress unused warning
 	{ // do_test "alter2-6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "set_file_format 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "set_file_format 2")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "get_file_format")
+		t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
 	}
 	{ // do_test "alter2-6.3"
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a, b);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "get_file_format")
+		t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
 	}
 	{ // do_test "alter2-7.1"
 		r = db.Query("\n    DROP TABLE t1;\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 VALUES(3);\n    INSERT INTO t1 VALUES(4);\n    SELECT * FROM t1;\n  ")
@@ -154,7 +154,7 @@ func Test_alter2(t *testing.T) {
 	{ // do_test "alter2-7.2"
 		var sql = "CREATE TABLE t1(a, b DEFAULT '123', c INTEGER DEFAULT '123')"
 		_ = sql // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "alter_table t1 $sql 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "alter_table t1 $sql 3")
 		r = db.Query("\n    SELECT * FROM t1 LIMIT 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t1 LIMIT 1;\n  ")
@@ -175,7 +175,7 @@ func Test_alter2(t *testing.T) {
 	{ // do_test "alter2-7.5"
 		var sql = "CREATE TABLE t1(a, b DEFAULT -123.0, c VARCHAR(10) default 5)"
 		_ = sql // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "alter_table t1 $sql 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "alter_table t1 $sql 3")
 		r = db.Query("\n    SELECT a, typeof(a), b, typeof(b), c, typeof(c) FROM t1 LIMIT 1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, typeof(a), b, typeof(b), c, typeof(c) FROM t1 LIMIT 1;\n  ")

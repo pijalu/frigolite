@@ -19,8 +19,8 @@ func Test_descidx2(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db LEGACY_FILE_FORMAT 0")
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	{ // do_test "descidx2-1.1"
@@ -28,21 +28,21 @@ func Test_descidx2(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(a,b);\n    CREATE INDEX i1 ON t1(b ASC);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "get_file_format")
+		t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
 	}
 	{ // do_test "descidx2-1.2"
 		_res = db.Exec("\n    CREATE INDEX i2 ON t1(a DESC);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE INDEX i2 ON t1(a DESC);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "get_file_format")
+		t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
 	}
 	{ // do_test "descidx2-2.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "set_file_format 3")
+		t.Errorf("TODO: %s not implemented in frigolite", "set_file_format 3")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "get_file_format")
+		t.Errorf("TODO: %s not implemented in frigolite", "get_file_format")
 	}
 	{ // do_test "descidx2-2.1"
 		r = db.Query("\n    INSERT INTO t1 VALUES(1,1);\n    INSERT INTO t1 VALUES(2,2);\n    INSERT INTO t1 SELECT a+2, a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4, a+4 FROM t1;\n    SELECT b FROM t1 WHERE a>3 AND a<7;\n  ")
@@ -82,57 +82,57 @@ func Test_descidx2(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "descidx2-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY a}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY a}")
 	}
 	{ // do_test "descidx2-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY a ASC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY a ASC}")
 	}
 	{ // do_test "descidx2-3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY a DESC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY a DESC}")
 	}
 	{ // do_test "descidx2-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY a}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY a}")
 	}
 	{ // do_test "descidx2-3.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY a ASC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY a ASC}")
 	}
 	{ // do_test "descidx2-3.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY a DESC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY a DESC}")
 	}
 	{ // do_test "descidx2-3.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY b}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY b}")
 	}
 	{ // do_test "descidx2-3.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY b ASC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY b ASC}")
 	}
 	{ // do_test "descidx2-3.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY b DESC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 ORDER BY b DESC}")
 	}
 	{ // do_test "descidx2-3.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY b}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY b}")
 	}
 	{ // do_test "descidx2-3.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY b ASC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY b ASC}")
 	}
 	{ // do_test "descidx2-3.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY b DESC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 ORDER BY b DESC}")
 	}
 	{ // do_test "descidx2-3.21"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 WHERE a>3 AND a<8 ORDER BY a}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 WHERE a>3 AND a<8 ORDER BY a}")
 	}
 	{ // do_test "descidx2-3.22"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 WHERE a>3 AND a<8 ORDER BY a ASC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 WHERE a>3 AND a<8 ORDER BY a ASC}")
 	}
 	{ // do_test "descidx2-3.23"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 WHERE a>3 AND a<8 ORDER BY a DESC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT a FROM t1 WHERE a>3 AND a<8 ORDER BY a DESC}")
 	}
 	{ // do_test "descidx2-3.24"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 WHERE a>3 AND a<8 ORDER BY a}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 WHERE a>3 AND a<8 ORDER BY a}")
 	}
 	{ // do_test "descidx2-3.25"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 WHERE a>3 AND a<8 ORDER BY a ASC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 WHERE a>3 AND a<8 ORDER BY a ASC}")
 	}
 	{ // do_test "descidx2-3.26"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 WHERE a>3 AND a<8 ORDER BY a DESC}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort {SELECT b FROM t1 WHERE a>3 AND a<8 ORDER BY a DESC}")
 	}
 }

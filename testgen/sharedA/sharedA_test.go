@@ -71,7 +71,7 @@ func Test_sharedA(t *testing.T) {
 	{ // do_test "1.3"
 		db2.Close()
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
 	{ // do_test "2.1"
 		os.Remove("test.db")
 		db1, err := frigolite.Open("test.db")
@@ -93,8 +93,8 @@ func Test_sharedA(t *testing.T) {
 		db1.Exec("\n    BEGIN;\n      CREATE INDEX i1 ON t1(x);\n      INSERT INTO t2 VALUES('value!');\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xRead")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script read_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xRead")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script read_callback")
 	// proc definition (not transpiled)
 	{ // do_test "2.3"
 		db1.Exec("ROLLBACK")
@@ -108,6 +108,6 @@ func Test_sharedA(t *testing.T) {
 	}
 	db1.Close()
 	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 }

@@ -33,7 +33,7 @@ func Test_vtab3(t *testing.T) {
 		}
 	}
 	{ // do_test "vtab3-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE pachyderm USING echo(elephant);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE pachyderm USING echo(elephant);\n  ")

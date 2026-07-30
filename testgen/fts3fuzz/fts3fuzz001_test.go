@@ -21,7 +21,7 @@ func Test_fts3fuzz001(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3fuzz001"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "fts3fuzz001-100"
 		db, err := frigolite.Open("")
 		defer db.Close()

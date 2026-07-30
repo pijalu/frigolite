@@ -24,7 +24,7 @@ func Test_memdb1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "memdb1"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // do_test "100"
 		_res = db.Exec("\n    CREATE TABLE t1(a,b);\n    INSERT INTO t1 VALUES(1,2);\n  ")
 		if _res.Error != nil {
@@ -324,7 +324,7 @@ func Test_memdb1(t *testing.T) {
 		}
 		var fd = "open test.db"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
 		var data = "read $fd [expr 20*1024]"
 		_ = data // suppress unused warning
 		// close $fd
@@ -373,7 +373,7 @@ func Test_memdb1(t *testing.T) {
 		_ = len // suppress unused warning
 		// expr $len>0 → "$len>0"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "dbempty close")
+	t.Errorf("TODO: %s not implemented in frigolite", "dbempty close")
 	{ // "1000"
 		_res = db.Exec("\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
 		if _res.Error != nil {
@@ -395,11 +395,11 @@ func Test_memdb1(t *testing.T) {
 	{ // do_test "1020"
 		var seen = "0"
 		_ = seen // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 2")
 		var res = "list [catch {\n    db deserialize main $blob\n  } msg] $msg"
 		_ = res // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 	}
 	db2.Close()
 	db.Close()
@@ -419,9 +419,9 @@ func Test_memdb1(t *testing.T) {
 	{ // do_test "1110"
 		var seen = "0"
 		_ = seen // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 		// db2.deserialize (db command)
-		t.Skipf("TODO: %s not implemented in frigolite", "B step 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
+		t.Errorf("TODO: %s not implemented in frigolite", "B step 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 	}
 }

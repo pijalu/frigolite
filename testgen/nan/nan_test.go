@@ -19,7 +19,7 @@ func Test_nan(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	{ // do_test "nan-1.1.1"
 		_res = db.Exec("\n    PRAGMA auto_vacuum=OFF;\n    PRAGMA page_size=1024;\n    CREATE TABLE t1(x FLOAT);\n  ")
 		if _res.Error != nil {
@@ -27,20 +27,20 @@ func Test_nan(t *testing.T) {
 		}
 		var _STMT = "sqlite3_prepare db \"INSERT INTO t1 VALUES(?)\" -1 TAIL" // TCL namespace variable
 		_ = _STMT // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 NaN")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 NaN")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
 		_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
 		}
 	}
 	if tcl_platform(platform) != "symbian" {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.2 {\n    sqlite3_bind_double $::STMT 1 +Inf\n    sqlite...} {{} null inf real}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.3 {\n    sqlite3_bind_double $::STMT 1 -Inf\n    sqlite...} {{} null inf real -inf real}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.4 {\n    sqlite3_bind_double $::STMT 1 -NaN\n    sqlite...} {{} null inf real -inf real {} null}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.5 {\n    sqlite3_bind_double $::STMT 1 NaN0\n    sqlite...} {{} null inf real -inf real {} null {} null}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.6 {\n    sqlite3_bind_double $::STMT 1 -NaN0\n    sqlit...} {{} null inf real -inf real {} null {} null {} null}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.2 {\n    sqlite3_bind_double $::STMT 1 +Inf\n    sqlite...} {{} null inf real}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.3 {\n    sqlite3_bind_double $::STMT 1 -Inf\n    sqlite...} {{} null inf real -inf real}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.4 {\n    sqlite3_bind_double $::STMT 1 -NaN\n    sqlite...} {{} null inf real -inf real {} null}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.5 {\n    sqlite3_bind_double $::STMT 1 NaN0\n    sqlite...} {{} null inf real -inf real {} null {} null}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-1.1.6 {\n    sqlite3_bind_double $::STMT 1 -NaN0\n    sqlit...} {{} null inf real -inf real {} null {} null {} null}")
 		{ // do_test "nan-1.1.7"
 			_res = db.Exec("\n      UPDATE t1 SET x=x-x;\n      SELECT x, typeof(x) FROM t1;\n    ")
 			if _res.Error != nil {
@@ -53,54 +53,54 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM T1;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 NaN")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 NaN")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
 		}
 	}
 	{ // do_test "nan-1.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 +Inf")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 +Inf")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
 		}
 	}
 	{ // do_test "nan-1.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 -Inf")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 -Inf")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
 		}
 	}
 	{ // do_test "nan-1.2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 -NaN")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 -NaN")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
 		}
 	}
 	{ // do_test "nan-1.2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 NaN0")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 NaN0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
 		}
 	}
 	{ // do_test "nan-1.2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 -NaN0")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 -NaN0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
 		_res = db.Exec("SELECT CAST(x AS text), typeof(x) FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
@@ -117,22 +117,22 @@ func Test_nan(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM T1;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 NaN")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_double $::STMT 1 NaN")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $::STMT")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
 		_res = db.Exec("SELECT x, typeof(x) FROM t1")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::STMT")
 	if tclBool("!" + "nonzero_reserved_bytes") {
 		{ // do_test "nan-3.1"
 			_res = db.Exec("\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(0.5);\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size=1024;\n      VACUUM;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DELETE FROM t1;\n      INSERT INTO t1 VALUES(0.5);\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA page_size=1024;\n      VACUUM;\n    ")
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_read test.db 2040 8")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_read test.db 2040 8")
 		}
 		{ // do_test "nan-3.2"
 			_res = db.Exec("\n      SELECT x, typeof(x) FROM t1\n    ")
@@ -141,7 +141,7 @@ func Test_nan(t *testing.T) {
 			}
 		}
 		{ // do_test "nan-3.3"
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2040 FFF8000000000000")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2040 FFF8000000000000")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -151,7 +151,7 @@ func Test_nan(t *testing.T) {
 			}
 		}
 		{ // do_test "nan-3.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2040 7FF8000000000000")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2040 7FF8000000000000")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -161,7 +161,7 @@ func Test_nan(t *testing.T) {
 			}
 		}
 		{ // do_test "nan-3.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2040 FFFFFFFFFFFFFFFF")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2040 FFFFFFFFFFFFFFFF")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -171,7 +171,7 @@ func Test_nan(t *testing.T) {
 			}
 		}
 		{ // do_test "nan-3.6"
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2040 7FFFFFFFFFFFFFFF")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2040 7FFFFFFFFFFFFFFF")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -270,8 +270,8 @@ func Test_nan(t *testing.T) {
 		}
 	}
 	if tcl_platform(platform) != "symbian" {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.7 {\n    db eval {DELETE FROM t1}\n    db eval \"INSERT ...} {inf real}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.8 {\n    db eval {DELETE FROM t1}\n    db eval \"INSERT ...} {-inf real}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.7 {\n    db eval {DELETE FROM t1}\n    db eval \"INSERT ...} {inf real}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.8 {\n    db eval {DELETE FROM t1}\n    db eval \"INSERT ...} {-inf real}")
 	}
 	{ // do_test "nan-4.9"
 		_res = db.Exec("DELETE FROM t1")
@@ -361,7 +361,7 @@ func Test_nan(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT x, typeof(x) FROM t1")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db decimal")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db decimal")
 	if tcl_platform(platform) != "symbian" {
 		{ // do_test "nan-4.15"
 			_res = db.Exec("DELETE FROM t1")
@@ -428,12 +428,12 @@ func Test_nan(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT CAST(x AS text), typeof(x) FROM t1")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.20 {\n  db eval {DELETE FROM t1}\n  set big [string repe...} {inf real}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.30 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {inf real}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.31 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {inf real}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.32 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {0.0 real}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.33 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {0.0 real}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.34 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {inf real}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.35 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {0.0 real}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.40 {\n  db eval {\n    SELECT cast('-1e999' AS real);\n  ...} {-inf}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.20 {\n  db eval {DELETE FROM t1}\n  set big [string repe...} {inf real}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.30 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {inf real}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.31 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {inf real}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.32 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {0.0 real}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.33 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {0.0 real}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.34 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {inf real}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.35 {\n  db eval {\n    DELETE FROM t1;\n    INSERT INTO t...} {0.0 real}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test nan-4.40 {\n  db eval {\n    SELECT cast('-1e999' AS real);\n  ...} {-inf}")
 }

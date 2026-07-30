@@ -23,8 +23,8 @@ func Test_tabfunc01(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tabfunc01"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db series")
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db remember")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db series")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db remember")
 	{ // "tabfunc01-1.1"
 		r = db.Query("\n  SELECT *, '|' FROM generate_series WHERE start=1 AND stop=9 AND step=2;\n")
 		if r.Error != nil {
@@ -616,7 +616,7 @@ func Test_tabfunc01(t *testing.T) {
 	{ // do_test "tabfunc01-700"
 		var PTR1 = "intarray_addr 5 7 13 17 23"
 		_ = PTR1 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
 		_res = db.Exec("\n    SELECT b FROM t600, carray(inttoptr($PTR1),5) WHERE a=value;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT b FROM t600, carray(inttoptr($PTR1),5) WHERE a=value;\n  ")
@@ -1292,7 +1292,7 @@ func Test_tabfunc01(t *testing.T) {
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db series")
+			t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db series")
 			{ // "1400"
 				_res = db.Exec("\n  CREATE TABLE t1(x);\n  CREATE TABLE t2(y);\n")
 				if _res.Error != nil {
@@ -1479,8 +1479,8 @@ func Test_tabfunc01(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "intarray_addr")
-			t.Skipf("TODO: %s not implemented in frigolite", "int64array_addr")
-			t.Skipf("TODO: %s not implemented in frigolite", "doublearray_addr")
-			t.Skipf("TODO: %s not implemented in frigolite", "textarray_addr")
+			t.Errorf("TODO: %s not implemented in frigolite", "intarray_addr")
+			t.Errorf("TODO: %s not implemented in frigolite", "int64array_addr")
+			t.Errorf("TODO: %s not implemented in frigolite", "doublearray_addr")
+			t.Errorf("TODO: %s not implemented in frigolite", "textarray_addr")
 }

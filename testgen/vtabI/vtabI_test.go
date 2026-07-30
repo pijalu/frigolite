@@ -21,7 +21,7 @@ func Test_vtabI(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtabI"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module db")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c, d, e);\n  CREATE VIRTUAL TABLE e1 USING echo(t1);\n")
 		if _res.Error != nil {

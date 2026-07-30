@@ -28,7 +28,7 @@ func Test_corruptK(t *testing.T) {
 	if tclBool("nonzero_reserved_bytes") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // "1.1"
 		_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE t1(x);\n\n  INSERT INTO t1 VALUES(randomblob(20));\n  INSERT INTO t1 VALUES(randomblob(100));   -- make this into a free slot\n  INSERT INTO t1 VALUES(randomblob(27));    -- this one will be corrupt\n  INSERT INTO t1 VALUES(randomblob(800));\n\n  DELETE FROM t1 WHERE rowid=2;  -- free the 100 byte slot\n  PRAGMA page_count\n")
 		if _res.Error != nil {
@@ -36,15 +36,15 @@ func Test_corruptK(t *testing.T) {
 		}
 	}
 	{ // do_test "1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 + 0x360] 21")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 + 0x363] [format %x [expr 31*2 + 12]]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 + 0x360] 21")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 + 0x363] [format %x [expr 31*2 + 12]]")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 		var fd = "db incrblob t1 x 3"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd 30")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd 30")
 		t.Log("-nonewline")
 		// close $fd
 	}
@@ -78,15 +78,15 @@ func Test_corruptK(t *testing.T) {
 		}
 	}
 	{ // do_test "2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 + 0x388] 53")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 + 0x38A] 03812C")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 + 0x388] 53")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr 1024 + 0x38A] 03812C")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 		var fd = "db incrblob t1 x 5"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd 22")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd 22")
 		t.Log("-nonewline")
 		// close $fd
 	}

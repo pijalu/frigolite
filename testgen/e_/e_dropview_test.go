@@ -26,8 +26,8 @@ func Test_e_dropview(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_dropview_tests 1 -repair {\n  dropview_reopen_db\n} -tclquery {\n  list_all_views\n} {\n  1   \"DROP VIEW v1\"                  {main.v1 ma...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "dropview_reopen_db")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_dropview_tests 1 -repair {\n  dropview_reopen_db\n} -tclquery {\n  list_all_views\n} {\n  1   \"DROP VIEW v1\"                  {main.v1 ma...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "dropview_reopen_db")
 	{ // "2.1"
 		r = db.Query("\n  CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y;\n  SELECT * FROM \"new view\";\n")
 		if r.Error != nil {
@@ -91,7 +91,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "list_all_views")
+		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
 	}
 	{ // do_test "3.1.4"
 		strings.Compare("list_all_data", databasedata)
@@ -121,7 +121,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "list_all_views")
+		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
 	}
 	{ // do_test "3.2.4"
 		strings.Compare("list_all_data", databasedata)
@@ -151,7 +151,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "list_all_views")
+		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
 	}
 	{ // do_test "3.3.4"
 		strings.Compare("list_all_data", databasedata)
@@ -181,7 +181,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "list_all_views")
+		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
 	}
 	{ // do_test "3.4.4"
 		strings.Compare("list_all_data", databasedata)
@@ -211,7 +211,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.5.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "list_all_views")
+		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
 	}
 	{ // do_test "3.5.4"
 		strings.Compare("list_all_data", databasedata)
@@ -241,11 +241,11 @@ func Test_e_dropview(t *testing.T) {
 		}
 	}
 	{ // do_test "3.6.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "list_all_views")
+		t.Errorf("TODO: %s not implemented in frigolite", "list_all_views")
 	}
 	{ // do_test "3.6.4"
 		strings.Compare("list_all_data", databasedata)
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_dropview_tests 4 -repair {\n  dropview_reopen_db \n} -errorformat {\n  no such view: %s\n} {\n  1   \"DROP VIEW xx\"                  xx\n  2   \"D...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_dropview_tests 5 -repair {\n  dropview_reopen_db\n} -tclquery {\n  list_all_views\n  #expr {[list_all_views] == \"ma...} {\n  1    \"DROP VIEW IF EXISTS xx\" \"main.v1 main.v2 ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_dropview_tests 4 -repair {\n  dropview_reopen_db \n} -errorformat {\n  no such view: %s\n} {\n  1   \"DROP VIEW xx\"                  xx\n  2   \"D...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_dropview_tests 5 -repair {\n  dropview_reopen_db\n} -tclquery {\n  list_all_views\n  #expr {[list_all_views] == \"ma...} {\n  1    \"DROP VIEW IF EXISTS xx\" \"main.v1 main.v2 ...}")
 }

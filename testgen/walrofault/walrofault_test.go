@@ -21,8 +21,8 @@ func Test_walrofault(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "walro2" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // "1.0"
@@ -37,7 +37,7 @@ func Test_walrofault(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep {\n  catch { db close }\n  faultsim_restore\n  sqlite3...} -body {\n  execsql { SELECT * FROM t1 }\n} -test {\n  faultsim_test_result {0 {hello world ! world he...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "file_control_persist_wal db 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults oom* -prep {\n  catch { db close }\n  faultsim_restore\n  sqlite3...} -body {\n  execsql { SELECT * FROM t1 }\n} -test {\n  faultsim_test_result {0 {hello world ! world he...}")
 }

@@ -29,12 +29,12 @@ func Test_pagerfault3(t *testing.T) {
 		}
 	}
 	{ // do_test "pagerfault3-pre2"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 		r = db.Query(" \n    PRAGMA page_size = 1024;\n    VACUUM;\n    PRAGMA page_count;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    PRAGMA page_size = 1024;\n    VACUUM;\n    PRAGMA page_count;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault3-1 -faults ioerr-transient -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    PRAGMA page_size = 1024;\n    VAC...} -test {\n  faultsim_test_result {0 {}} \n  faultsim_integri...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault3-1 -faults ioerr-transient -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { \n    PRAGMA page_size = 1024;\n    VAC...} -test {\n  faultsim_test_result {0 {}} \n  faultsim_integri...}")
 }

@@ -21,7 +21,7 @@ func Test_vtabrhs1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtabrhs1"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db qpvtab")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db qpvtab")
 	{ // "1.1"
 		r = db.Query("\n  SELECT rhs FROM qpvtab\n   WHERE cn='a'\n     AND a=12345\n")
 		if r.Error != nil {

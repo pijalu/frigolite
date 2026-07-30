@@ -48,10 +48,10 @@ func Test_quota_glob(t *testing.T) {
 		_ = ans // suppress unused warning
 		_ = _idx
 			{ // do_test "quota-glob-" + testnum + ".1"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_glob $::pattern $::text")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_glob $::pattern $::text")
 			}
 			{ // do_test "quota-glob-" + testnum + ".2"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_glob $::pattern [string map {/ \\\\} $::text]")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_glob $::pattern [string map {/ \\\\} $::text]")
 			}
 		}
 }

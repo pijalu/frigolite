@@ -27,13 +27,13 @@ func Test_wal4(t *testing.T) {
 		}
 	}
 	{ // do_test "wal4-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 		os.Remove("sv_test.db")
 	}
 	{ // do_test "wal4-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res // catchsql
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test wal4-2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT name FROM sqlite_master }\n} -test {\n  # Result should be zero rows (empty db file).\n ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test wal4-2 -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT name FROM sqlite_master }\n} -test {\n  # Result should be zero rows (empty db file).\n ...}")
 }

@@ -45,7 +45,7 @@ func Test_e_walckpt(t *testing.T) {
 		}
 		for _, tn := range tclSplitList("1 2 3") {
 			os.Remove("test.db")
-			t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs")
+			t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
@@ -56,7 +56,7 @@ func Test_e_walckpt(t *testing.T) {
 			db2, err := frigolite.Open("test.db2")
 			defer db2.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "switch -- $tn {\n    1 {\n      # EVIDENCE-OF: R-41299-52117 If no ...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "switch -- $tn {\n    1 {\n      # EVIDENCE-OF: R-41299-52117 If no ...}")
 			db2.Close()
 		}
 		db.Close()
@@ -87,6 +87,6 @@ func Test_e_walckpt(t *testing.T) {
 		{ // do_test "6.5"
 			db2.Exec("COMMIT")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-			t.Skipf("TODO: %s not implemented in frigolite", "wal_checkpoint_v2 db truncate")
+			t.Errorf("TODO: %s not implemented in frigolite", "wal_checkpoint_v2 db truncate")
 		}
 }

@@ -24,7 +24,7 @@ func Test_tkt1667(t *testing.T) {
 	os.Remove("test.db")
 	first_ptrmap_page := "207.8"
 	_ = first_ptrmap_page // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte [expr 1024 * ($first_ptrmap_page-1)]")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte [expr 1024 * ($first_ptrmap_page-1)]")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "tkt1667-1"

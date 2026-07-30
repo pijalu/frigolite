@@ -21,15 +21,15 @@ func Test_fts3tok_err(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts3tok_err" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test fts3tok_err-1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts3tok...} -test {\n  faultsim_test_result {0 {}} \n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test fts3tok_err-1 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { CREATE VIRTUAL TABLE t1 USING fts3tok...} -test {\n  faultsim_test_result {0 {}} \n}")
 	{ // do_test "fts3tok_err-2.prep"
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		_res = db.Exec(" CREATE VIRTUAL TABLE t1 USING fts3tokenize(\"simple\"); ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING fts3tokenize(\"simple\"); ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test fts3tok_err-2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT token FROM t1 WHERE input = 'A...} -test {\n  faultsim_test_result {0 {a galaxy far far away}...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test fts3tok_err-2 -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql { SELECT token FROM t1 WHERE input = 'A...} -test {\n  faultsim_test_result {0 {a galaxy far far away}...}")
 }

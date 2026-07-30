@@ -74,7 +74,7 @@ func Test_rowvalue4(t *testing.T) {
 				idx := _items[_idx+1]
 				_ = idx // suppress unused warning
 				_ = _idx
-					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_indexes")
+					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_indexes")
 					_res = db.Exec(idx)
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
@@ -191,7 +191,7 @@ func Test_rowvalue4(t *testing.T) {
 								t.Errorf("expected error containing %q, got: %v\n  sql: %s", "no such collation sequence: nose", _res.Error, "\n  SELECT * FROM f1 WHERE (?, ? COLLATE nose) > (a, b);\n")
 							}
 						}
-						t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+						t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 						{ // "8.1"
 							_res = db.Exec("\n  CREATE TABLE c1(x, y);\n  CREATE TABLE c2(a, b, c);\n  CREATE INDEX c2ab ON c2(a, b);\n  CREATE INDEX c2c ON c2(c);\n\n  CREATE TABLE c3(d);\n")
 							if _res.Error != nil {

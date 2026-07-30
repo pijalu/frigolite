@@ -27,7 +27,7 @@ func Test_fts4incr(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t1 USING fts4(words) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+		t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 	}
 	{ // "1.1"
 		r = db.Query("\n  SELECT min(docid), max(docid) FROM t1;\n")

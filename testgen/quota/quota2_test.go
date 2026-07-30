@@ -21,7 +21,7 @@ func Test_quota2(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_initialize  1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_initialize  1")
 	for _, dir := range tclSplitList("quota2a/x1 quota2a/x2 quota2a quota2b quota2c") {
 		os.Remove(dir)
 	}
@@ -38,8 +38,8 @@ func Test_quota2(t *testing.T) {
 	var _quota_request_ok = "0" // TCL namespace variable
 	_ = _quota_request_ok // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_set */quota2a/* 4000 quota_check")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_set */quota2b/* 5000 quota_check")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_set */quota2a/* 4000 quota_check")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_set */quota2b/* 5000 quota_check")
 	var i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
@@ -67,20 +67,20 @@ func Test_quota2(t *testing.T) {
 	{ // do_test "quota2-1.1"
 		var _h1 = "sqlite3_quota_fopen quota2a/xyz.txt w+b" // TCL namespace variable
 		_ = _h1 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h1 1 7000 $bigtext")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h1 1 7000 $bigtext")
 	}
 	{ // do_test "quota2-1.2"
 		_ = _quota // TCL namespace variable (query)
 	}
 	{ // do_test "quota2-1.2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_size $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_size $::h1")
 	}
 	{ // do_test "quota2-1.2.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fflush $::h1 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_truesize $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fflush $::h1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_truesize $::h1")
 	}
 	{ // do_test "quota2-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_rewind $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_rewind $::h1")
 		var _x = "sqlite3_quota_fread $::h1 1001 7" // TCL namespace variable
 		_ = _x // suppress unused warning
 		len(_x)
@@ -89,80 +89,80 @@ func Test_quota2(t *testing.T) {
 		tclStringMatch(_x, "$::bigtext 0 3002")
 	}
 	{ // do_test "quota2-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 0 SEEK_END")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 0 SEEK_END")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 -100 SEEK_END")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 -100 SEEK_END")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 -100 SEEK_CUR")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 -100 SEEK_CUR")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 50 SEEK_CUR")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 50 SEEK_CUR")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 50 SEEK_SET")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 50 SEEK_SET")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_rewind $::h1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_rewind $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-1.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-1.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftruncate $::h1 3500")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_size $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftruncate $::h1 3500")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_size $::h1")
 	}
 	{ // do_test "quota2-1.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_truesize $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_truesize $::h1")
 	}
 	{ // do_test "quota2-1.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-1.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 0 SEEK_END")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 0 SEEK_END")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-1.16"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h1 1 7000 $bigtext")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h1 1 7000 $bigtext")
 	}
 	{ // do_test "quota2-1.17"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-1.18"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_size $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_size $::h1")
 	}
 	{ // do_test "quota2-1.19"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fflush $::h1 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_truesize $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fflush $::h1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_truesize $::h1")
 	}
 	{ // do_test "quota2-1.20"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fclose $::h1")
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fclose $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-1.21"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_remove quota2a/xyz.txt")
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_remove quota2a/xyz.txt")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	var quota = ""
 	_ = quota // suppress unused warning
 	{ // do_test "quota2-2.1"
 		var _h1 = "sqlite3_quota_fopen quota2c/xyz.txt w+b" // TCL namespace variable
 		_ = _h1 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h1 1 7000 $bigtext")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h1 1 7000 $bigtext")
 	}
 	{ // do_test "quota2-2.2"
 		_ = _quota // TCL namespace variable (query)
 	}
 	{ // do_test "quota2-2.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_rewind $::h1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_rewind $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
 	}
 	{ // do_test "quota2-2.3.2"
 		var _x = "sqlite3_quota_fread $::h1 1001 7" // TCL namespace variable
@@ -170,96 +170,96 @@ func Test_quota2(t *testing.T) {
 		len(_x)
 	}
 	{ // do_test "quota2-2.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
 	}
 	{ // do_test "quota2-2.4"
 		tclStringMatch(_x, "$::bigtext 0 6005")
 	}
 	{ // do_test "quota2-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 0 SEEK_END")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 0 SEEK_END")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 -100 SEEK_END")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 -100 SEEK_END")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-2.6.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
 	}
 	{ // do_test "quota2-2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 -100 SEEK_CUR")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 -100 SEEK_CUR")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-2.7.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
 	}
 	{ // do_test "quota2-2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 50 SEEK_CUR")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 50 SEEK_CUR")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-2.8.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
 	}
 	{ // do_test "quota2-2.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 50 SEEK_SET")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fseek $::h1 50 SEEK_SET")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-2.9.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
 	}
 	{ // do_test "quota2-2.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_rewind $::h1")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_rewind $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ftell $::h1")
 	}
 	{ // do_test "quota2-2.10.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_file_available $::h1")
 	}
 	{ // do_test "quota2-2.10.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_ferror $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_ferror $::h1")
 	}
 	{ // do_test "quota2-2.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-2.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fclose $::h1")
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fclose $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_set */quota2b/* 0 quota_check")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_set */quota2b/* 0 quota_check")
 		var _h1 = "sqlite3_quota_fopen quota2a/x1/a.txt a" // TCL namespace variable
 		_ = _h1 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h1 10 10 $bigtext")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h1 10 10 $bigtext")
 	}
 	{ // do_test "quota2-3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-3.3a"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fflush $::h1 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fflush $::h1 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-3.3b"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fflush $::h1 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fflush $::h1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-3.3c"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fflush $::h1")
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fflush $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fclose $::h1")
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fclose $::h1")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-3.5"
 		var _h2 = "sqlite3_quota_fopen quota2a/x2/b.txt a" // TCL namespace variable
 		_ = _h2 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h2 10 20 $bigtext")
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h2 10 20 $bigtext")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-3.6"
 		var _h3 = "sqlite3_quota_fopen quota2a/x1/c.txt a" // TCL namespace variable
 		_ = _h3 // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h3 10 50 $bigtext")
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fwrite $::h3 10 50 $bigtext")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-3.7"
 		// file exists "quota2a/x1/a.txt"
@@ -271,13 +271,13 @@ func Test_quota2(t *testing.T) {
 		// file exists "quota2a/x1/c.txt"
 	}
 	{ // do_test "quota2-3.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_remove quota2a/x1")
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_remove quota2a/x1")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-3.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fclose $::h2")
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_fclose $::h3")
-		t.Skipf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fclose $::h2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_fclose $::h3")
+		t.Errorf("TODO: %s not implemented in frigolite", "standard_path [sqlite3_quota_dump]")
 	}
 	{ // do_test "quota2-3.12"
 		// file exists "quota2a/x1/a.txt"
@@ -291,7 +291,7 @@ func Test_quota2(t *testing.T) {
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_shutdown")
 	}
 	{
 		var _catchErr error

@@ -236,7 +236,7 @@ func Test_qrf01(t *testing.T) {
 	{ // do_test "1.72"
 		var result = "\\n" + "db format -style html {\n     SELECT 'ab<cd' AS a, 'ab&cd' as b,\n            'ab>cd' AS c, 'ab"
 		_ = result // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "'xy''z' AS e}]\"")
+		t.Errorf("TODO: %s not implemented in frigolite", "'xy''z' AS e}]\"")
 	}
 	{ // do_test "1.73"
 		var result = "\\n" + "db format -style html -rowcount on {SELECT * FROM t1 WHERE a=1}"

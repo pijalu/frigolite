@@ -37,26 +37,26 @@ func Test_select9(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, indexes)
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.2 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {1 one 3 {} 5 five 7 seven 9 {} 2 two 4 four 6 {} 8...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.3 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {1 one 1 two 2 two 2 four 3 {} 3 {} 4 four 4 eight ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.4 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {3 {} 9 {} 6 {} 3 {} 6 {} 9 {} 8 eight 4 eight 5 fi...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.5 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {1 one 1 two 2 four 2 two 3 {} 3 {} 4 eight 4 four ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.6 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {3 {} 3 {} 6 {} 6 {} 9 {} 9 {} 4 eight 8 eight 5 fi...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.7 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.8 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.9 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {3 {} 6 {} 9 {} 4 eight 8 eight 5 five 2 four 4 fou...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.10 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.11 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {3 {} 6 {} 9 {} 4 eight 8 eight 5 five 2 four 4 fou...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.11 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.12 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.13 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.14 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.15 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.16 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.17 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.18 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {8 eight 5 five 4 four 1 one 7 seven 10 ten 2 two}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.19 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.20 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {8 eight 5 five 4 four 1 one 7 seven 10 ten 2 two}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.2 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {1 one 3 {} 5 five 7 seven 9 {} 2 two 4 four 6 {} 8...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.3 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {1 one 1 two 2 two 2 four 3 {} 3 {} 4 four 4 eight ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.4 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {3 {} 9 {} 6 {} 3 {} 6 {} 9 {} 8 eight 4 eight 5 fi...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.5 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {1 one 1 two 2 four 2 two 3 {} 3 {} 4 eight 4 four ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.6 {\n    SELECT a, b FROM t1 UNION ALL SELECT d, e FRO...} {3 {} 3 {} 6 {} 6 {} 9 {} 9 {} 4 eight 8 eight 5 fi...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.7 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.8 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.9 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {3 {} 6 {} 9 {} 4 eight 8 eight 5 five 2 four 4 fou...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.10 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {1 one 1 two 2 four 2 two 3 {} 4 eight 4 four 5 fiv...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.11 {\n    SELECT a, b FROM t1 UNION SELECT d, e FROM t2...} {3 {} 6 {} 9 {} 4 eight 8 eight 5 five 2 four 4 fou...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.11 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.12 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.13 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.14 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-1.$iOuterLoop.15 {\n    SELECT a, b FROM t1 INTERSECT SELECT d, e FRO...} {3 {} 6 {} 9 {}}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.16 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.17 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.18 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {8 eight 5 five 4 four 1 one 7 seven 10 ten 2 two}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.19 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.20 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {8 eight 5 five 4 four 1 one 7 seven 10 ten 2 two}")
 		// incr iOuterLoop 1
 		{
 			_n, _err := strconv.Atoi(iOuterLoop)
@@ -81,14 +81,14 @@ func Test_select9(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, indexes)
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.2 {\n    SELECT * FROM t1 WHERE a<5 UNION SELECT * FRO...} {1 one I 2 two II 3 {} {} 4 four IV 5 ten XX 6 {} {...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.2 {\n    SELECT * FROM t1 WHERE a<5 UNION SELECT * FRO...} {3 {} {} 6 {} {} 9 {} {} 4 four IV 7 fourteen XXVII...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.3 {\n    SELECT * FROM t1 WHERE a<5 UNION SELECT * FRO...} {3 {} {} 6 {} {} 9 {} {} 2 two II 10 twenty XL 5 te...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.4 {\n    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT *...} {1 one I 2 two II 3 {} {} 4 four IV 5 ten XX 6 {} {...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.5 {\n    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT *...} {3 {} {} 6 {} {} 9 {} {} 4 four IV 7 fourteen XXVII...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.6 {\n    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT *...} {3 {} {} 6 {} {} 9 {} {} 2 two II 10 twenty XL 5 te...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-2.$iOuterLoop.4 {\n    SELECT a FROM t1 WHERE a<8 EXCEPT SELECT d FR...} {4 5 6 7}")
-		t.Skipf("TODO: %s not implemented in frigolite", "test_compound_select select9-2.$iOuterLoop.4 {\n    SELECT a FROM t1 WHERE a<8 INTERSECT SELECT d...} {1 2 3}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.2 {\n    SELECT * FROM t1 WHERE a<5 UNION SELECT * FRO...} {1 one I 2 two II 3 {} {} 4 four IV 5 ten XX 6 {} {...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.2 {\n    SELECT * FROM t1 WHERE a<5 UNION SELECT * FRO...} {3 {} {} 6 {} {} 9 {} {} 4 four IV 7 fourteen XXVII...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.3 {\n    SELECT * FROM t1 WHERE a<5 UNION SELECT * FRO...} {3 {} {} 6 {} {} 9 {} {} 2 two II 10 twenty XL 5 te...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.4 {\n    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT *...} {1 one I 2 two II 3 {} {} 4 four IV 5 ten XX 6 {} {...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.5 {\n    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT *...} {3 {} {} 6 {} {} 9 {} {} 4 four IV 7 fourteen XXVII...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select_flippable select9-2.$iOuterLoop.6 {\n    SELECT * FROM t1 WHERE a<5 UNION ALL SELECT *...} {3 {} {} 6 {} {} 9 {} {} 2 two II 10 twenty XL 5 te...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-2.$iOuterLoop.4 {\n    SELECT a FROM t1 WHERE a<8 EXCEPT SELECT d FR...} {4 5 6 7}")
+		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-2.$iOuterLoop.4 {\n    SELECT a FROM t1 WHERE a<8 INTERSECT SELECT d...} {1 2 3}")
 	}
 	{ // do_test "select9-2.X"
 		_res = db.Exec("\n    DROP INDEX i1;\n    DROP INDEX i2;\n    DROP INDEX i3;\n  ")
@@ -98,31 +98,31 @@ func Test_select9(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "select9-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 ORDER BY 1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 ORDER BY 1 }")
 	}
 	{ // do_test "select9-3.2"
 		_res = db.Exec(" CREATE INDEX i1 ON t1(a) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(a) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 ORDER BY 1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 ORDER BY 1 }")
 	}
 	{ // do_test "select9-3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 UNION ALL SELECT d FROM t2 ORDER...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 UNION ALL SELECT d FROM t2 ORDER...}")
 	}
 	{ // do_test "select9-3.4"
 		_res = db.Exec(" CREATE INDEX i2 ON t2(d) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i2 ON t2(d) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 UNION ALL SELECT d FROM t2 ORDER...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 UNION ALL SELECT d FROM t2 ORDER...}")
 	}
 	{ // do_test "select9-3.5"
 		_res = db.Exec(" CREATE VIEW v1 AS SELECT a FROM t1 UNION ALL SELECT d FROM t2 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIEW v1 AS SELECT a FROM t1 UNION ALL SELECT d FROM t2 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM v1 ORDER BY 1 LIMIT 5 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM v1 ORDER BY 1 LIMIT 5 }")
 	}
 	{ // do_test "select9-3.X"
 		_res = db.Exec("\n    DROP INDEX i1;\n    DROP INDEX i2;\n    DROP VIEW v1;\n  ")
@@ -131,31 +131,31 @@ func Test_select9(t *testing.T) {
 		}
 	}
 	{ // do_test "select9-4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 ORDER BY 1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 ORDER BY 1 }")
 	}
 	{ // do_test "select9-4.2"
 		_res = db.Exec(" CREATE INDEX i1 ON t1(a) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i1 ON t1(a) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 ORDER BY 1 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 ORDER BY 1 }")
 	}
 	{ // do_test "select9-4.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 UNION SELECT d FROM t2 ORDER BY ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 UNION SELECT d FROM t2 ORDER BY ...}")
 	}
 	{ // do_test "select9-4.4"
 		_res = db.Exec(" CREATE INDEX i2 ON t2(d) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE INDEX i2 ON t2(d) ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 UNION SELECT d FROM t2 ORDER BY ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM t1 UNION SELECT d FROM t2 ORDER BY ...}")
 	}
 	{ // do_test "select9-4.5"
 		_res = db.Exec(" CREATE VIEW v1 AS SELECT a FROM t1 UNION SELECT d FROM t2 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIEW v1 AS SELECT a FROM t1 UNION SELECT d FROM t2 ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM v1 ORDER BY 1 LIMIT 5 }")
+		t.Errorf("TODO: %s not implemented in frigolite", "cksort { SELECT a FROM v1 ORDER BY 1 LIMIT 5 }")
 	}
 	{ // do_test "select9-4.X"
 		_res = db.Exec("\n    DROP INDEX i1;\n    DROP INDEX i2;\n    DROP VIEW v1;\n  ")

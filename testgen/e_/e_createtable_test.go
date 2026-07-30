@@ -25,14 +25,14 @@ func Test_e_createtable(t *testing.T) {
 	_ = _testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.1.1 -repair {\n  drop_all_tables\n} {\n  1   \"CREATE TABLE t1(c1 one)\"                  ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.1.2 -error {\n  near \"%s\": syntax error\n} {\n  1   \"CREATE TABLE t1(c1 one(number))\"          ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.2.1 -repair {\n  drop_all_tables \n  execsql { CREATE TABLE t2(x ...} {\n  1.1   \"CREATE TABLE t1(c1 text PRIMARY KEY)\"   ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.3.1 -repair {\n  drop_all_tables \n  execsql { CREATE TABLE t2(x ...} {\n  1.1   \"CREATE TABLE t1(c1, c2, PRIMARY KEY(c1))...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.4.1 -repair {\n  drop_all_tables \n} {\n  1     {CREATE TABLE t1(\n           col1,\n      ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.5.1 -repair {\n  drop_all_tables \n  execsql { CREATE TABLE t2(a,...} {\n  1     \"CREATE TABLE t1(a, b, c)\"               ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.6.1 -repair {\n  drop_all_tables \n  execsql { CREATE TABLE t2(x ...} {\n  11146 { CREATE TABLE t1(a \n    REFERENCES t2(x)...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.1.1 -repair {\n  drop_all_tables\n} {\n  1   \"CREATE TABLE t1(c1 one)\"                  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.1.2 -error {\n  near \"%s\": syntax error\n} {\n  1   \"CREATE TABLE t1(c1 one(number))\"          ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.2.1 -repair {\n  drop_all_tables \n  execsql { CREATE TABLE t2(x ...} {\n  1.1   \"CREATE TABLE t1(c1 text PRIMARY KEY)\"   ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.3.1 -repair {\n  drop_all_tables \n  execsql { CREATE TABLE t2(x ...} {\n  1.1   \"CREATE TABLE t1(c1, c2, PRIMARY KEY(c1))...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.4.1 -repair {\n  drop_all_tables \n} {\n  1     {CREATE TABLE t1(\n           col1,\n      ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.5.1 -repair {\n  drop_all_tables \n  execsql { CREATE TABLE t2(a,...} {\n  1     \"CREATE TABLE t1(a, b, c)\"               ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 0.6.1 -repair {\n  drop_all_tables \n  execsql { CREATE TABLE t2(x ...} {\n  11146 { CREATE TABLE t1(a \n    REFERENCES t2(x)...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	os.Remove("test.db2")
 	{ // "e_createtable-1.0"
 		_res = db.Exec("\n  ATTACH 'test.db2' AS auxa;\n  ATTACH 'test.db3' AS auxb;\n")
@@ -40,55 +40,55 @@ func Test_e_createtable(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  ATTACH 'test.db2' AS auxa;\n  ATTACH 'test.db3' AS auxb;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.1.1 -error {\n  object name reserved for internal use: %s\n} {\n  1    \"CREATE TABLE sqlite_abc(a, b, c)\"        ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.1.2 {\n  1    \"CREATE TABLE sqlit_abc(a, b, c)\"         ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.2.1 -error {\n  unknown database %s\n} {\n  1    \"CREATE TABLE george.t1(a, b)\"            ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.2.2 {\n  1    \"CREATE TABLE main.abc(a, b, c)\"          ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.1.1 -error {\n  object name reserved for internal use: %s\n} {\n  1    \"CREATE TABLE sqlite_abc(a, b, c)\"        ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.1.2 {\n  1    \"CREATE TABLE sqlit_abc(a, b, c)\"         ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.2.1 -error {\n  unknown database %s\n} {\n  1    \"CREATE TABLE george.t1(a, b)\"            ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.2.2 {\n  1    \"CREATE TABLE main.abc(a, b, c)\"          ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	if tclBool("permutation" + "!=\"maindbname\"") {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.3 -tclquery {\n    unset -nocomplain X\n    array set X [table_li...} {\n    1    \"CREATE TABLE main.abc(a, b, c)\"  {abc {...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.3 -tclquery {\n    unset -nocomplain X\n    array set X [table_li...} {\n    1    \"CREATE TABLE main.abc(a, b, c)\"  {abc {...}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	if tclBool("permutation" + "!=\"maindbname\"") {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.4 -tclquery {\n    unset -nocomplain X\n    array set X [table_li...} {\n    1    \"CREATE TEMP TABLE t1(a, b)\"      {{} t1...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.4 -tclquery {\n    unset -nocomplain X\n    array set X [table_li...} {\n    1    \"CREATE TEMP TABLE t1(a, b)\"      {{} t1...}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.5.1 -error {\n  temporary table name must be unqualified\n} {\n  1    \"CREATE TEMP TABLE main.t1(a, b)\"        {...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.5.1 -error {\n  temporary table name must be unqualified\n} {\n  1    \"CREATE TEMP TABLE main.t1(a, b)\"        {...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	if tclBool("permutation" + "!=\"maindbname\"") {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.5.2 -tclquery {\n    unset -nocomplain X\n    array set X [table_li...} {\n    1    \"CREATE TEMP TABLE temp.t1(a, b)\"       ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.5.2 -tclquery {\n    unset -nocomplain X\n    array set X [table_li...} {\n    1    \"CREATE TEMP TABLE temp.t1(a, b)\"       ...}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	if tclBool("permutation" + "!=\"maindbname\"") {
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.6 -tclquery {\n    unset -nocomplain X\n    array set X [table_li...} {\n    1    \"CREATE TABLE t1(a, b)\"   {t1 {} {} {}}\n...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.6 -tclquery {\n    unset -nocomplain X\n    array set X [table_li...} {\n    1    \"CREATE TABLE t1(a, b)\"   {t1 {} {} {}}\n...}")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	{ // "e_createtable-1.7.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  CREATE VIEW  v1 AS SELECT * FROM t1;\n\n  CREATE TABLE auxa.tbl1(x, y);\n  CREATE INDEX auxa.idx1 ON tbl1(x);\n  CREATE VIEW auxa.view1 AS SELECT * FROM tbl1;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  CREATE VIEW  v1 AS SELECT * FROM t1;\n\n  CREATE TABLE auxa.tbl1(x, y);\n  CREATE INDEX auxa.idx1 ON tbl1(x);\n  CREATE VIEW auxa.view1 AS SELECT * FROM tbl1;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.7.1 -error { %s } {\n  1    \"CREATE TABLE t1(a, b)\"   {{table t1 alrea...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.7.2 {\n  1    \"CREATE TABLE auxa.t1(a, b)\"   {}\n  2    \"...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.7.1 -error { %s } {\n  1    \"CREATE TABLE t1(a, b)\"   {{table t1 alrea...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.7.2 {\n  1    \"CREATE TABLE auxa.t1(a, b)\"   {}\n  2    \"...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	{ // "e_createtable-1.8.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  CREATE VIEW  v1 AS SELECT * FROM t1;\n  CREATE TABLE auxa.tbl1(x, y);\n  CREATE INDEX auxa.idx1 ON tbl1(x);\n  CREATE VIEW auxa.view1 AS SELECT * FROM tbl1;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX i1 ON t1(x);\n  CREATE VIEW  v1 AS SELECT * FROM t1;\n  CREATE TABLE auxa.tbl1(x, y);\n  CREATE INDEX auxa.idx1 ON tbl1(x);\n  CREATE VIEW auxa.view1 AS SELECT * FROM tbl1;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.8 {\n  1    \"CREATE TABLE IF NOT EXISTS t1(a, b)\"     ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.9 -error { %s } {\n  1    \"CREATE TABLE IF NOT EXISTS i1(a, b)\"   \n ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.8 {\n  1    \"CREATE TABLE IF NOT EXISTS t1(a, b)\"     ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.9 -error { %s } {\n  1    \"CREATE TABLE IF NOT EXISTS i1(a, b)\"   \n ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	{ // "e_createtable-1.10.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  CREATE TABLE auxb.t2(x, y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 1;\n  END;\n  CREATE TRIGGER auxb.tr2 AFTER INSERT ON t2 BEGIN\n    SELECT 1;\n  END;\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE TABLE auxb.t2(x, y);\n\n  CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n    SELECT 1;\n  END;\n  CREATE TRIGGER auxb.tr2 AFTER INSERT ON t2 BEGIN\n    SELECT 1;\n  END;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.10 {\n  1    \"CREATE TABLE tr1(a, b)\"          {}\n  2  ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 1.10 {\n  1    \"CREATE TABLE tr1(a, b)\"          {}\n  2  ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	{ // "e_createtable-1.11.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b);\n  CREATE TABLE t2(a, b);\n  CREATE TABLE auxa.t3(a, b);\n  CREATE TABLE auxa.t4(a, b);\n")
 		if _res.Error != nil {
@@ -160,16 +160,16 @@ func Test_e_createtable(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	{ // "e_createtable-2.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE TABLE t3(g BIGINT, h VARCHAR(10));\n  CREATE TABLE t4(i BLOB, j ANYOLDATA);\n  CREATE TABLE t5(k FLOAT, l INTEGER);\n  CREATE TABLE t6(m DEFAULT 10, n DEFAULT 5, PRIMARY KEY(m, n));\n  CREATE TABLE t7(x INTEGER PRIMARY KEY);\n  CREATE TABLE t8(o COLLATE nocase DEFAULT 'abc');\n  CREATE TABLE t9(p NOT NULL, q DOUBLE CHECK (q!=0), r STRING UNIQUE);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c);\n  CREATE TABLE t2(d, e, f);\n  CREATE TABLE t3(g BIGINT, h VARCHAR(10));\n  CREATE TABLE t4(i BLOB, j ANYOLDATA);\n  CREATE TABLE t5(k FLOAT, l INTEGER);\n  CREATE TABLE t6(m DEFAULT 10, n DEFAULT 5, PRIMARY KEY(m, n));\n  CREATE TABLE t7(x INTEGER PRIMARY KEY);\n  CREATE TABLE t8(o COLLATE nocase DEFAULT 'abc');\n  CREATE TABLE t9(p NOT NULL, q DOUBLE CHECK (q!=0), r STRING UNIQUE);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 2.1 -tclquery {\n  table_column_names x1\n} -repair {\n  catchsql { DROP TABLE x1 }\n} {\n  1    \"CREATE TABLE x1 AS SELECT * FROM t1\"     ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 2.2 -tclquery {\n  table_column_decltypes x1\n} -repair {\n  catchsql { DROP TABLE x1 }\n} {\n  1    \"CREATE TABLE x1 AS SELECT a FROM t1\"     ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 2.3.1 -query {\n  SELECT sql FROM sqlite_master ORDER BY rowid DE...} {\n  1    \"CREATE TABLE x1 AS SELECT * FROM t6\" {{CR...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 2.1 -tclquery {\n  table_column_names x1\n} -repair {\n  catchsql { DROP TABLE x1 }\n} {\n  1    \"CREATE TABLE x1 AS SELECT * FROM t1\"     ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 2.2 -tclquery {\n  table_column_decltypes x1\n} -repair {\n  catchsql { DROP TABLE x1 }\n} {\n  1    \"CREATE TABLE x1 AS SELECT a FROM t1\"     ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 2.3.1 -query {\n  SELECT sql FROM sqlite_master ORDER BY rowid DE...} {\n  1    \"CREATE TABLE x1 AS SELECT * FROM t6\" {{CR...}")
 	{ // "e_createtable-2.3.2.1"
 		_res = db.Exec("\n  INSERT INTO x1 DEFAULT VALUES;\n  INSERT INTO x2 DEFAULT VALUES;\n  INSERT INTO x3 DEFAULT VALUES;\n  INSERT INTO x4 DEFAULT VALUES;\n")
 		if _res.Error != nil {
@@ -224,7 +224,7 @@ func Test_e_createtable(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	{ // "e_createtable-2.4.0"
 		_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('i',   'one');\n  INSERT INTO t1 VALUES('ii',  'two');\n  INSERT INTO t1 VALUES('iii', 'three');\n")
 		if _res.Error != nil {
@@ -258,7 +258,7 @@ func Test_e_createtable(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 		{ // "e_createtable-3.1.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x VARCHAR(10), y INTEGER, z DOUBLE);\n  CREATE TABLE t2(a DATETIME, b STRING, c REAL);\n  CREATE TABLE t3(o, t);\n")
 			if _res.Error != nil {
@@ -295,21 +295,21 @@ func Test_e_createtable(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1; DELETE FROM t2; ")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.2.1 -query {\n  SELECT quote(x), quote(y), quote(z) FROM t1 ORD...} {\n  1   \"INSERT INTO t1 VALUES(15,   '22.0', '14')\"...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.2.2 -query {\n  SELECT quote(a), quote(b), quote(c) FROM t2 ORD...} {\n  1   \"INSERT INTO t2 VALUES(15,   '22.0', '14')\"...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.2.3 -query {\n  SELECT quote(o), quote(t) FROM t3 ORDER BY rowi...} {\n  1   \"INSERT INTO t3 VALUES('15', '22.0')\"      ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.2.3 -query {\n  SELECT quote(x), quote(y), quote(z) FROM t1\n} -repair {\n  execsql { DELETE FROM t1 }\n} {\n  1   \"INSERT INTO t1(x, y) VALUES('abc', 'xyz')\"...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.2.1 -query {\n  SELECT quote(x), quote(y), quote(z) FROM t1 ORD...} {\n  1   \"INSERT INTO t1 VALUES(15,   '22.0', '14')\"...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.2.2 -query {\n  SELECT quote(a), quote(b), quote(c) FROM t2 ORD...} {\n  1   \"INSERT INTO t2 VALUES(15,   '22.0', '14')\"...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.2.3 -query {\n  SELECT quote(o), quote(t) FROM t3 ORDER BY rowi...} {\n  1   \"INSERT INTO t3 VALUES('15', '22.0')\"      ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.2.3 -query {\n  SELECT quote(x), quote(y), quote(z) FROM t1\n} -repair {\n  execsql { DELETE FROM t1 }\n} {\n  1   \"INSERT INTO t1(x, y) VALUES('abc', 'xyz')\"...}")
 		{ // "e_createtable-3.3.1"
 			_res = db.Exec("\n  CREATE TABLE t4(\n    a DEFAULT NULL,\n    b DEFAULT 'string constant',\n    c DEFAULT X'424C4F42',\n    d DEFAULT 1,\n    e DEFAULT -1,\n    f DEFAULT 3.14,\n    g DEFAULT -3.14,\n    h DEFAULT ( substr('abcd', 0, 2) || 'cd' ),\n    i DEFAULT CURRENT_TIME,\n    j DEFAULT CURRENT_DATE,\n    k DEFAULT CURRENT_TIMESTAMP\n  );\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(\n    a DEFAULT NULL,\n    b DEFAULT 'string constant',\n    c DEFAULT X'424C4F42',\n    d DEFAULT 1,\n    e DEFAULT -1,\n    f DEFAULT 3.14,\n    g DEFAULT -3.14,\n    h DEFAULT ( substr('abcd', 0, 2) || 'cd' ),\n    i DEFAULT CURRENT_TIME,\n    j DEFAULT CURRENT_DATE,\n    k DEFAULT CURRENT_TIMESTAMP\n  );\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.4.1 -error {\n  default value of column [x] is not constant\n} {\n  1   {CREATE TABLE t5(x DEFAULT ( (SELECT 1) ))}...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.4.2 -repair {\n  catchsql { DROP TABLE t5 }\n} {\n  1   {CREATE TABLE t5(x DEFAULT ( 'abc' ))}  {}\n...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.4.1 -error {\n  default value of column [x] is not constant\n} {\n  1   {CREATE TABLE t5(x DEFAULT ( (SELECT 1) ))}...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.4.2 -repair {\n  catchsql { DROP TABLE t5 }\n} {\n  1   {CREATE TABLE t5(x DEFAULT ( 'abc' ))}  {}\n...}")
 		var sqlite_current_time = "1000000000"
 		_ = sqlite_current_time // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.5 -query {\n  SELECT quote(a), quote(b), quote(c), quote(d), ...} {\n  1 \"INSERT INTO t4 DEFAULT VALUES\" {\n    NULL {'...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.5 -query {\n  SELECT quote(a), quote(b), quote(c), quote(d), ...} {\n  1 \"INSERT INTO t4 DEFAULT VALUES\" {\n    NULL {'...}")
 		{ // "e_createtable-3.6.1"
 			_res = db.Exec("\n  CREATE TABLE t5(\n    a DEFAULT NULL,  \n    b DEFAULT 'text value',  \n    c DEFAULT X'424C4F42',\n    d DEFAULT -45678.6,\n    e DEFAULT 394507\n  );\n")
 			if _res.Error != nil {
@@ -393,14 +393,14 @@ func Test_e_createtable(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.8.3 -query {\n  SELECT a, b, c FROM t7 ORDER BY rowid DESC LIMI...} {\n  1 \"INSERT INTO t7(b, c) VALUES('x', 'y')\" {01:4...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.8.3 -query {\n  SELECT a, b, c FROM t7 ORDER BY rowid DESC LIMI...} {\n  1 \"INSERT INTO t7(b, c) VALUES('x', 'y')\" {01:4...}")
 		{ // "e_createtable-3-9.1"
 			_res = db.Exec("\n  CREATE TABLE t8(a COLLATE nocase, b COLLATE rtrim, c COLLATE binary, d);\n  INSERT INTO t8 VALUES('abc',   'abc',   'abc',   'abc');\n  INSERT INTO t8 VALUES('abc  ', 'abc  ', 'abc  ', 'abc  ');\n  INSERT INTO t8 VALUES('ABC  ', 'ABC  ', 'ABC  ', 'ABC  ');\n  INSERT INTO t8 VALUES('ABC',   'ABC',   'ABC',   'ABC');\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t8(a COLLATE nocase, b COLLATE rtrim, c COLLATE binary, d);\n  INSERT INTO t8 VALUES('abc',   'abc',   'abc',   'abc');\n  INSERT INTO t8 VALUES('abc  ', 'abc  ', 'abc  ', 'abc  ');\n  INSERT INTO t8 VALUES('ABC  ', 'ABC  ', 'ABC  ', 'ABC  ');\n  INSERT INTO t8 VALUES('ABC',   'ABC',   'ABC',   'ABC');\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.9 {\n  2    \"SELECT a FROM t8 ORDER BY a, rowid\"    {a...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 3.9 {\n  2    \"SELECT a FROM t8 ORDER BY a, rowid\"    {a...}")
 		// proc definition (not transpiled)
 		{ // "e_createtable-3.10.1"
 			_res = db.Exec("CREATE TABLE t9(" + "columns $::SQLITE_MAX_COLUMN" + ");")
@@ -414,7 +414,7 @@ func Test_e_createtable(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many columns on t10", _res.Error, "CREATE TABLE t10(" + "columns [expr $::SQLITE_MAX_COLUMN+1]" + ");")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN 500")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN 500")
 		{ // "e_createtable-3.11.1"
 			_res = db.Exec("CREATE TABLE t10(" + "columns 500" + ");")
 			if _res.Error != nil {
@@ -427,14 +427,14 @@ func Test_e_createtable(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many columns on t11", _res.Error, "CREATE TABLE t11(" + "columns 501" + ");")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN [expr $::SQLITE_MAX_COLUMN+2]")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COLUMN [expr $::SQLITE_MAX_COLUMN+2]")
 		{ // "e_createtable-3.11.3"
 			_res = db.Exec("CREATE TABLE t11(" + "columns [expr $::SQLITE_MAX_COLUMN+1]" + ");")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "too many columns on t11") {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "too many columns on t11", _res.Error, "CREATE TABLE t11(" + "columns [expr $::SQLITE_MAX_COLUMN+1]" + ");")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 90010")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_LENGTH 90010")
 		{ // "e_createtable-3.11.4"
 			_res = db.Exec("\n  CREATE TABLE t12(a, b, c);\n  INSERT INTO t12 VALUES(randomblob(30000),randomblob(30000),randomblob(30000));\n")
 			if _res.Error != nil {
@@ -447,9 +447,9 @@ func Test_e_createtable(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "string or blob too big", _res.Error, "\n  INSERT INTO t12 VALUES(randomblob(30001),randomblob(30000),randomblob(30000));\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.1.1 {\n  1    \"CREATE TABLE t1(a, b, c)\"                ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.1.2 -error {\n  table \"t5\" has more than one primary key\n} {\n  1    \"CREATE TABLE t5(a PRIMARY KEY, b PRIMARY ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.1.1 {\n  1    \"CREATE TABLE t1(a, b, c)\"                ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.1.2 -error {\n  table \"t5\" has more than one primary key\n} {\n  1    \"CREATE TABLE t5(a PRIMARY KEY, b PRIMARY ...}")
 		{ // "4.1.3"
 			_res = db.Exec("\n  CREATE TABLE t6(a, b); --ok\n")
 			if _res.Error == nil {
@@ -463,21 +463,21 @@ func Test_e_createtable(t *testing.T) {
 			}
 		}
 		// proc definition (not transpiled)
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.2 -repair {\n  catchsql { DROP TABLE t5 }\n} -tclquery {\n  table_pk t5\n} {\n  1.1    \"CREATE TABLE t5(a, b INTEGER PRIMARY KE...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.2 -repair {\n  catchsql { DROP TABLE t5 }\n} -tclquery {\n  table_pk t5\n} {\n  1.1    \"CREATE TABLE t5(a, b INTEGER PRIMARY KE...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 		{ // "4.3.0"
 			_res = db.Exec("\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(0,          'zero');\n  INSERT INTO t1 VALUES(45.5,       'one');\n  INSERT INTO t1 VALUES('brambles', 'two');\n  INSERT INTO t1 VALUES(X'ABCDEF',  'three');\n\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y));\n  INSERT INTO t2 VALUES(0,          'zero');\n  INSERT INTO t2 VALUES(45.5,       'one');\n  INSERT INTO t2 VALUES('brambles', 'two');\n  INSERT INTO t2 VALUES(X'ABCDEF',  'three');\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x PRIMARY KEY, y);\n  INSERT INTO t1 VALUES(0,          'zero');\n  INSERT INTO t1 VALUES(45.5,       'one');\n  INSERT INTO t1 VALUES('brambles', 'two');\n  INSERT INTO t1 VALUES(X'ABCDEF',  'three');\n\n  CREATE TABLE t2(x, y, PRIMARY KEY(x, y));\n  INSERT INTO t2 VALUES(0,          'zero');\n  INSERT INTO t2 VALUES(45.5,       'one');\n  INSERT INTO t2 VALUES('brambles', 'two');\n  INSERT INTO t2 VALUES(X'ABCDEF',  'three');\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.3.1 -error {UNIQUE constraint failed: t1.x} {\n  1    \"INSERT INTO t1 VALUES(0, 0)\"             ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.3.1 -error {UNIQUE constraint failed: t2.x, t2.y} {\n  6    \"INSERT INTO t2 VALUES(0, 'zero')\"        ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.3.2 {\n  1    \"INSERT INTO t1 VALUES(-1, 0)\"            ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.3.3 -error {UNIQUE constraint failed: t1.x} {\n  1    \"UPDATE t1 SET x=0           WHERE y='two'...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.3.3 -error {UNIQUE constraint failed: t2.x, t2.y} {\n  6    \"UPDATE t2 SET x=0, y='zero' WHERE y='two'...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.4 {\n  1    \"INSERT INTO t1 VALUES(NULL, 0)\"          ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.5.1 {\n  1    \"SELECT count(*) FROM t1 WHERE x IS NULL\" ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.3.1 -error {UNIQUE constraint failed: t1.x} {\n  1    \"INSERT INTO t1 VALUES(0, 0)\"             ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.3.1 -error {UNIQUE constraint failed: t2.x, t2.y} {\n  6    \"INSERT INTO t2 VALUES(0, 'zero')\"        ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.3.2 {\n  1    \"INSERT INTO t1 VALUES(-1, 0)\"            ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.3.3 -error {UNIQUE constraint failed: t1.x} {\n  1    \"UPDATE t1 SET x=0           WHERE y='two'...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.3.3 -error {UNIQUE constraint failed: t2.x, t2.y} {\n  6    \"UPDATE t2 SET x=0, y='zero' WHERE y='two'...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.4 {\n  1    \"INSERT INTO t1 VALUES(NULL, 0)\"          ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.5.1 {\n  1    \"SELECT count(*) FROM t1 WHERE x IS NULL\" ...}")
 		{ // "4.5.2"
 			r = db.Query("\n  CREATE TABLE t3(s, u INTEGER PRIMARY KEY, v);\n  INSERT INTO t3 VALUES(1, NULL, 2);\n  INSERT INTO t3 VALUES('x', NULL, 'y');\n  SELECT u FROM t3;\n")
 			if r.Error != nil {
@@ -520,44 +520,44 @@ func Test_e_createtable(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "NOT NULL constraint failed: t7.u", _res.Error, "\n  CREATE TABLE t7(s INT, u INT PRIMARY KEY NOT NULL, v INT) STRICT;\n  INSERT INTO t7 VALUES(1, NULL, 2);\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.6 {\n  1    \"CREATE TABLE t1(a UNIQUE, b UNIQUE)\"     ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.6 {\n  1    \"CREATE TABLE t1(a UNIQUE, b UNIQUE)\"     ...}")
 		{ // "4.7.0"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(4.3, 5.5);\n  INSERT INTO t1 VALUES('reveal', 'variableness');\n  INSERT INTO t1 VALUES(X'123456', X'654321');\n\n  INSERT INTO t4 VALUES('xyx', 1, 1);\n  INSERT INTO t4 VALUES('xyx', 2, 1);\n  INSERT INTO t4 VALUES('uvw', 1, 1);\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(4.3, 5.5);\n  INSERT INTO t1 VALUES('reveal', 'variableness');\n  INSERT INTO t1 VALUES(X'123456', X'654321');\n\n  INSERT INTO t4 VALUES('xyx', 1, 1);\n  INSERT INTO t4 VALUES('xyx', 2, 1);\n  INSERT INTO t4 VALUES('uvw', 1, 1);\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.7.1 -error {UNIQUE constraint failed: %s} {\n  1    \"INSERT INTO t1 VALUES(1, 'one')\"         ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.8 {\n  1    \"INSERT INTO t1 VALUES(NULL, NULL)\"       ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.9 -repair drop_all_tables -query {\n  SELECT count(*) FROM sqlite_master WHERE type='...} {\n  1    \"CREATE TABLE t1(a TEXT PRIMARY KEY, b)\"  ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.7.1 -error {UNIQUE constraint failed: %s} {\n  1    \"INSERT INTO t1 VALUES(1, 'one')\"         ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.8 {\n  1    \"INSERT INTO t1 VALUES(NULL, NULL)\"       ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.9 -repair drop_all_tables -query {\n  SELECT count(*) FROM sqlite_master WHERE type='...} {\n  1    \"CREATE TABLE t1(a TEXT PRIMARY KEY, b)\"  ...}")
 		{ // "4.10.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b PRIMARY KEY);\n  CREATE TABLE t2(a, b, c, UNIQUE(b, c));\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b PRIMARY KEY);\n  CREATE TABLE t2(a, b, c, UNIQUE(b, c));\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.10 {\n  1    \"EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.10 {\n  1    \"EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 		{ // "4.11"
 			_res = db.Exec("\n  CREATE TABLE x1(a TEXT, b INTEGER CHECK( b>0 ));\n  CREATE TABLE t1(a TEXT, b INTEGER, CHECK( b>0 ));\n  INSERT INTO x1 VALUES('x', 'xx');\n  INSERT INTO x1 VALUES('y', 'yy');\n  INSERT INTO t1 SELECT * FROM x1;\n\n  CREATE TABLE x2(a CHECK( a||b ), b);\n  CREATE TABLE t2(a, b, CHECK( a||b ));\n  INSERT INTO x2 VALUES(1, 'xx');\n  INSERT INTO x2 VALUES(1, 'yy');\n  INSERT INTO t2 SELECT * FROM x2;\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a TEXT, b INTEGER CHECK( b>0 ));\n  CREATE TABLE t1(a TEXT, b INTEGER, CHECK( b>0 ));\n  INSERT INTO x1 VALUES('x', 'xx');\n  INSERT INTO x1 VALUES('y', 'yy');\n  INSERT INTO t1 SELECT * FROM x1;\n\n  CREATE TABLE x2(a CHECK( a||b ), b);\n  CREATE TABLE t2(a, b, CHECK( a||b ));\n  INSERT INTO x2 VALUES(1, 'xx');\n  INSERT INTO x2 VALUES(1, 'yy');\n  INSERT INTO t2 SELECT * FROM x2;\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.11 -error {CHECK constraint failed: %s} {\n  1a    \"INSERT INTO x1 VALUES('one', 0)\"       {...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.12 {\n  1a    \"INSERT INTO x1 VALUES('one', NULL)\"    {...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.13.1 {\n  1     \"CREATE TABLE t1(a NOT NULL, b)\"         ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.13.2 -error {\n  near \"NOT\": syntax error\n} {\n  1     \"CREATE TABLE t4(a, b, NOT NULL(a))\"     ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.11 -error {CHECK constraint failed: %s} {\n  1a    \"INSERT INTO x1 VALUES('one', 0)\"       {...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.12 {\n  1a    \"INSERT INTO x1 VALUES('one', NULL)\"    {...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.13.1 {\n  1     \"CREATE TABLE t1(a NOT NULL, b)\"         ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.13.2 -error {\n  near \"NOT\": syntax error\n} {\n  1     \"CREATE TABLE t4(a, b, NOT NULL(a))\"     ...}")
 		{ // "4.14.0"
 			_res = db.Exec("\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t1 VALUES('z', NULL);\n\n  INSERT INTO t2 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('z', NULL);\n\n  INSERT INTO t3 VALUES('x', 'y', 'z');\n  INSERT INTO t3 VALUES(1, 2, 3);\n")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  INSERT INTO t1 VALUES('x', 'y');\n  INSERT INTO t1 VALUES('z', NULL);\n\n  INSERT INTO t2 VALUES('x', 'y');\n  INSERT INTO t2 VALUES('z', NULL);\n\n  INSERT INTO t3 VALUES('x', 'y', 'z');\n  INSERT INTO t3 VALUES(1, 2, 3);\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.14 -error {NOT NULL constraint failed: %s} {\n  1    \"INSERT INTO t1 VALUES(NULL, 'a')\"        ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 4.14 -error {NOT NULL constraint failed: %s} {\n  1    \"INSERT INTO t1 VALUES(NULL, 'a')\"        ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 		{ // "4.15.0"
 			_res = db.Exec("\n  CREATE TABLE t1_ab(a PRIMARY KEY ON CONFLICT ABORT, b);\n  CREATE TABLE t1_ro(a PRIMARY KEY ON CONFLICT ROLLBACK, b);\n  CREATE TABLE t1_ig(a PRIMARY KEY ON CONFLICT IGNORE, b);\n  CREATE TABLE t1_fa(a PRIMARY KEY ON CONFLICT FAIL, b);\n  CREATE TABLE t1_re(a PRIMARY KEY ON CONFLICT REPLACE, b);\n  CREATE TABLE t1_xx(a PRIMARY KEY, b);\n\n  INSERT INTO t1_ab VALUES(1, 'one');\n  INSERT INTO t1_ab VALUES(2, 'two');\n  INSERT INTO t1_ro SELECT * FROM t1_ab;\n  INSERT INTO t1_ig SELECT * FROM t1_ab;\n  INSERT INTO t1_fa SELECT * FROM t1_ab;\n  INSERT INTO t1_re SELECT * FROM t1_ab;\n  INSERT INTO t1_xx SELECT * FROM t1_ab;\n\n  CREATE TABLE t2_ab(a, b NOT NULL ON CONFLICT ABORT);\n  CREATE TABLE t2_ro(a, b NOT NULL ON CONFLICT ROLLBACK);\n  CREATE TABLE t2_ig(a, b NOT NULL ON CONFLICT IGNORE);\n  CREATE TABLE t2_fa(a, b NOT NULL ON CONFLICT FAIL);\n  CREATE TABLE t2_re(a, b NOT NULL ON CONFLICT REPLACE);\n  CREATE TABLE t2_xx(a, b NOT NULL);\n\n  INSERT INTO t2_ab VALUES(1, 'one');\n  INSERT INTO t2_ab VALUES(2, 'two');\n  INSERT INTO t2_ro SELECT * FROM t2_ab;\n  INSERT INTO t2_ig SELECT * FROM t2_ab;\n  INSERT INTO t2_fa SELECT * FROM t2_ab;\n  INSERT INTO t2_re SELECT * FROM t2_ab;\n  INSERT INTO t2_xx SELECT * FROM t2_ab;\n\n  CREATE TABLE t3_ab(a, b, UNIQUE(a, b) ON CONFLICT ABORT);\n  CREATE TABLE t3_ro(a, b, UNIQUE(a, b) ON CONFLICT ROLLBACK);\n  CREATE TABLE t3_ig(a, b, UNIQUE(a, b) ON CONFLICT IGNORE);\n  CREATE TABLE t3_fa(a, b, UNIQUE(a, b) ON CONFLICT FAIL);\n  CREATE TABLE t3_re(a, b, UNIQUE(a, b) ON CONFLICT REPLACE);\n  CREATE TABLE t3_xx(a, b, UNIQUE(a, b));\n\n  INSERT INTO t3_ab VALUES(1, 'one');\n  INSERT INTO t3_ab VALUES(2, 'two');\n  INSERT INTO t3_ro SELECT * FROM t3_ab;\n  INSERT INTO t3_ig SELECT * FROM t3_ab;\n  INSERT INTO t3_fa SELECT * FROM t3_ab;\n  INSERT INTO t3_re SELECT * FROM t3_ab;\n  INSERT INTO t3_xx SELECT * FROM t3_ab;\n")
 			if _res.Error != nil {
@@ -593,7 +593,7 @@ func Test_e_createtable(t *testing.T) {
 					}
 				}
 				{ // do_test "e_createtable-4.15." + tn + ".3"
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
 				}
 				{ // "4.15." + tn + ".4"
 					r = db.Query("SELECT * FROM " + tbl)
@@ -637,7 +637,7 @@ func Test_e_createtable(t *testing.T) {
 						}
 					}
 					{ // do_test "e_createtable-4.16." + tn + ".3"
-						t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+						t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
 					}
 					{ // "4.16." + tn + ".4"
 						r = db.Query("SELECT * FROM " + tbl)
@@ -681,7 +681,7 @@ func Test_e_createtable(t *testing.T) {
 							}
 						}
 						{ // do_test "e_createtable-4.17." + tn + ".3"
-							t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+							t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
 						}
 						{ // "4.17." + tn + ".4"
 							r = db.Query("SELECT * FROM " + tbl + " ORDER BY rowid")
@@ -717,7 +717,7 @@ func Test_e_createtable(t *testing.T) {
 						}
 					}
 					{ // do_test "e_createtable-4.18.4"
-						t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+						t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
 					}
 					{ // "4.18.5"
 						r = db.Query(" SELECT * FROM t4 ")
@@ -761,23 +761,23 @@ func Test_e_createtable(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM t5 ")
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 					{ // "5.1.0"
 						_res = db.Exec("\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('one', 'first');\n  INSERT INTO t1 VALUES('two', 'second');\n  INSERT INTO t1 VALUES('three', 'third');\n")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES('one', 'first');\n  INSERT INTO t1 VALUES('two', 'second');\n  INSERT INTO t1 VALUES('three', 'third');\n")
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.1 {\n  1   \"SELECT rowid FROM t1\"        {1 2 3}\n  2  ...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.1 {\n  1   \"SELECT rowid FROM t1\"        {1 2 3}\n  2  ...}")
 					{ // "5.2.0"
 						_res = db.Exec("\n  CREATE TABLE t2(oid, b);\n  CREATE TABLE t3(a, _rowid_);\n  CREATE TABLE t4(a, b, rowid);\n\n  INSERT INTO t2 VALUES('one', 'two');\n  INSERT INTO t2 VALUES('three', 'four');\n\n  INSERT INTO t3 VALUES('five', 'six');\n  INSERT INTO t3 VALUES('seven', 'eight');\n\n  INSERT INTO t4 VALUES('nine', 'ten', 'eleven');\n  INSERT INTO t4 VALUES('twelve', 'thirteen', 'fourteen');\n")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(oid, b);\n  CREATE TABLE t3(a, _rowid_);\n  CREATE TABLE t4(a, b, rowid);\n\n  INSERT INTO t2 VALUES('one', 'two');\n  INSERT INTO t2 VALUES('three', 'four');\n\n  INSERT INTO t3 VALUES('five', 'six');\n  INSERT INTO t3 VALUES('seven', 'eight');\n\n  INSERT INTO t4 VALUES('nine', 'ten', 'eleven');\n  INSERT INTO t4 VALUES('twelve', 'thirteen', 'fourteen');\n")
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.2 {\n  1   \"SELECT oid, rowid, _rowid_ FROM t2\"   {one...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.2 {\n  1   \"SELECT oid, rowid, _rowid_ FROM t2\"   {one...}")
 					// proc definition (not transpiled)
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.3 -tclquery { \n  is_integer_primary_key t5 pk\n} -repair {\n  catchsql { DROP TABLE t5 }\n} {\n  1   \"CREATE TABLE t5(pk integer primary key)\"  ...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.3 -tclquery { \n  is_integer_primary_key t5 pk\n} -repair {\n  catchsql { DROP TABLE t5 }\n} {\n  1   \"CREATE TABLE t5(pk integer primary key)\"  ...}")
 					{ // "5.4.1"
 						_res = db.Exec("\n  CREATE TABLE t6(pk INT primary key);\n  CREATE TABLE t7(pk BIGINT primary key);\n  CREATE TABLE t8(pk SHORT INTEGER primary key);\n  CREATE TABLE t9(pk UNSIGNED INTEGER primary key);\n")
 						if _res.Error != nil {
@@ -785,16 +785,16 @@ func Test_e_createtable(t *testing.T) {
 						}
 					}
 					{ // do_test "e_createtable-5.4.2.1"
-						t.Skipf("TODO: %s not implemented in frigolite", "is_integer_primary_key t6 pk")
+						t.Errorf("TODO: %s not implemented in frigolite", "is_integer_primary_key t6 pk")
 					}
 					{ // do_test "e_createtable-5.4.2.2"
-						t.Skipf("TODO: %s not implemented in frigolite", "is_integer_primary_key t7 pk")
+						t.Errorf("TODO: %s not implemented in frigolite", "is_integer_primary_key t7 pk")
 					}
 					{ // do_test "e_createtable-5.4.2.3"
-						t.Skipf("TODO: %s not implemented in frigolite", "is_integer_primary_key t8 pk")
+						t.Errorf("TODO: %s not implemented in frigolite", "is_integer_primary_key t8 pk")
 					}
 					{ // do_test "e_createtable-5.4.2.4"
-						t.Skipf("TODO: %s not implemented in frigolite", "is_integer_primary_key t9 pk")
+						t.Errorf("TODO: %s not implemented in frigolite", "is_integer_primary_key t9 pk")
 					}
 					{ // "5.4.3"
 						r = db.Query("\n  INSERT INTO t6 VALUES('2.0');\n  INSERT INTO t7 VALUES('2.0');\n  INSERT INTO t8 VALUES('2.0');\n  INSERT INTO t9 VALUES('2.0');\n  SELECT typeof(pk), pk FROM t6;\n  SELECT typeof(pk), pk FROM t7;\n  SELECT typeof(pk), pk FROM t8;\n  SELECT typeof(pk), pk FROM t9;\n")
@@ -832,39 +832,39 @@ func Test_e_createtable(t *testing.T) {
 							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: t9.pk", _res.Error, " \n  INSERT INTO t9 VALUES(2) \n")
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5 -tclquery { \n  is_integer_primary_key t x\n} -repair {\n  catchsql { DROP TABLE t }\n} {\n  5.1    \"CREATE TABLE t(x INTEGER PRIMARY KEY AS...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5 -tclquery { \n  is_integer_primary_key t x\n} -repair {\n  catchsql { DROP TABLE t }\n} {\n  5.1    \"CREATE TABLE t(x INTEGER PRIMARY KEY AS...}")
 					{ // "5.7.0"
 						_res = db.Exec("\n  CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES('ten', 10);\n\n  CREATE TABLE t11(a, b INTEGER PRIMARY KEY);\n  INSERT INTO t11 VALUES('ten', 10);\n")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t10(a, b);\n  INSERT INTO t10 VALUES('ten', 10);\n\n  CREATE TABLE t11(a, b INTEGER PRIMARY KEY);\n  INSERT INTO t11 VALUES('ten', 10);\n")
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.7.1 -query { \n  SELECT rowid, _rowid_, oid FROM t10;\n} {\n  1    \"UPDATE t10 SET rowid = 5\"   {5 5 5}\n  2  ...}")
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.7.2 -query { \n  SELECT rowid, _rowid_, oid, b FROM t11;\n} {\n  1    \"UPDATE t11 SET rowid = 5\"   {5 5 5 5}\n  2...}")
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.8.1 -query { \n  SELECT rowid, _rowid_, oid FROM t10;\n} -repair { \n  execsql { DELETE FROM t10 } \n} {\n  1    \"INSERT INTO t10(oid) VALUES(15)\"         ...}")
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.8.2 -query { \n  SELECT rowid, _rowid_, oid, b FROM t11;\n} -repair { \n  execsql { DELETE FROM t11 } \n} {\n  1    \"INSERT INTO t11(oid) VALUES(15)\"         ...}")
-					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.7.1 -query { \n  SELECT rowid, _rowid_, oid FROM t10;\n} {\n  1    \"UPDATE t10 SET rowid = 5\"   {5 5 5}\n  2  ...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.7.2 -query { \n  SELECT rowid, _rowid_, oid, b FROM t11;\n} {\n  1    \"UPDATE t11 SET rowid = 5\"   {5 5 5 5}\n  2...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.8.1 -query { \n  SELECT rowid, _rowid_, oid FROM t10;\n} -repair { \n  execsql { DELETE FROM t10 } \n} {\n  1    \"INSERT INTO t10(oid) VALUES(15)\"         ...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.8.2 -query { \n  SELECT rowid, _rowid_, oid, b FROM t11;\n} -repair { \n  execsql { DELETE FROM t11 } \n} {\n  1    \"INSERT INTO t11(oid) VALUES(15)\"         ...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 					{ // "5.9.0"
 						_res = db.Exec("\n  CREATE TABLE t12(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t12 VALUES(5, 'five');\n")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t12(x INTEGER PRIMARY KEY, y);\n  INSERT INTO t12 VALUES(5, 'five');\n")
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.9.1 -query { SELECT typeof(x), x FROM t12 } {\n  1   \"UPDATE t12 SET x = 4\"       {integer 4}\n  ...}")
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.9.2 -error {\n  datatype mismatch\n} {\n  1   \"UPDATE t12 SET x = 4.1\"         {}\n  2   \"...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.9.1 -query { SELECT typeof(x), x FROM t12 } {\n  1   \"UPDATE t12 SET x = 4\"       {integer 4}\n  ...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.9.2 -error {\n  datatype mismatch\n} {\n  1   \"UPDATE t12 SET x = 4.1\"         {}\n  2   \"...}")
 					{ // "5.10.0"
 						_res = db.Exec(" DELETE FROM t12 ")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t12 ")
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.10.1 -error { \n  datatype mismatch\n} {\n  1   \"INSERT INTO t12(x) VALUES(4.1)\"     {}\n  2...}")
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.10.2 -query { \n  SELECT typeof(x), x FROM t12 \n} -repair {\n  execsql { DELETE FROM t12 }\n} {\n  1   \"INSERT INTO t12(x) VALUES(4)\"       {integ...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.10.1 -error { \n  datatype mismatch\n} {\n  1   \"INSERT INTO t12(x) VALUES(4.1)\"     {}\n  2...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.10.2 -query { \n  SELECT typeof(x), x FROM t12 \n} -repair {\n  execsql { DELETE FROM t12 }\n} {\n  1   \"INSERT INTO t12(x) VALUES(4)\"       {integ...}")
 					{ // "5.11.0"
 						_res = db.Exec(" DELETE FROM t12 ")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t12 ")
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.11 -query { \n  SELECT typeof(x), x FROM t12 WHERE y IS (SELEC...} {\n  1   \"INSERT INTO t12 DEFAULT VALUES\"           ...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_createtable_tests 5.11 -query { \n  SELECT typeof(x), x FROM t12 WHERE y IS (SELEC...} {\n  1   \"INSERT INTO t12 DEFAULT VALUES\"           ...}")
 }

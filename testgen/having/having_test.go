@@ -56,7 +56,7 @@ func Test_having(t *testing.T) {
 			sql2 := _items[_idx+2]
 			_ = sql2 // suppress unused warning
 			_ = _idx
-				t.Skipf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 2.$tn $sql1 $sql2 1")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 2.$tn $sql1 $sql2 1")
 			}
 			{ // "2.4a"
 				r = db.Query("\n  SELECT x,y FROM (\n    SELECT a AS x, sum(b) AS y FROM t1 \n    GROUP BY a\n  ) WHERE x BETWEEN 2 AND 9999\n")
@@ -92,7 +92,7 @@ func Test_having(t *testing.T) {
 				sql2 := _items[_idx+2]
 				_ = sql2 // suppress unused warning
 				_ = _idx
-					t.Skipf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 3.$tn $sql1 $sql2 0")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 3.$tn $sql1 $sql2 0")
 				}
 				{ // "4.1"
 					_res = db.Exec("\n  CREATE TABLE t3(a, b);\n  INSERT INTO t3 VALUES(1, 1);\n  INSERT INTO t3 VALUES(1, 2);\n  INSERT INTO t3 VALUES(1, 3);\n  INSERT INTO t3 VALUES(2, 1);\n  INSERT INTO t3 VALUES(2, 2);\n  INSERT INTO t3 VALUES(2, 3);\n")

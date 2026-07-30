@@ -331,7 +331,7 @@ func Test_in(t *testing.T) {
 		}
 	}
 	{ // do_test "in-8.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
 		r = db.Query("\n    SELECT b FROM t1 WHERE a IN (\"hello\",'there')\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT b FROM t1 WHERE a IN (\"hello\",'there')\n  ")

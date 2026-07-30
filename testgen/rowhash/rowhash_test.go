@@ -27,9 +27,9 @@ func Test_rowhash(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.1 {1 2 3}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.2 {0 1 2 3}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.3 {62 125 188}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.1 {1 2 3}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.2 {0 1 2 3}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.3 {62 125 188}")
 	if tclBool("working_64bit_int") {
 		// expr srand(1) → "srand(1)"
 		var i = "4"
@@ -47,7 +47,7 @@ func Test_rowhash(t *testing.T) {
 					}
 				}
 			}
-			t.Skipf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.$i $L")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_keyset_test rowhash-2.$i $L")
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

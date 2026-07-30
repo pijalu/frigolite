@@ -45,7 +45,7 @@ func Test_fkey6(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "fkey6-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
 	}
 	{ // do_test "fkey6-1.4"
 		_res = db.Exec("\n    BEGIN;\n    DELETE FROM t1 WHERE x=1;\n  ")
@@ -54,10 +54,10 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	{ // do_test "fkey6-1.5.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 1")
 	}
 	{ // do_test "fkey6-1.5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
 	}
 	{ // do_test "fkey6-1.6"
 		_res = db.Exec("\n    ROLLBACK;\n  ")
@@ -66,7 +66,7 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	{ // do_test "fkey6-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
 	}
 	{ // do_test "fkey6-1.8"
 		_res = db.Exec("\n    PRAGMA defer_foreign_keys=ON;\n    BEGIN;\n    DELETE FROM t1 WHERE x=3;\n  ")
@@ -75,7 +75,7 @@ func Test_fkey6(t *testing.T) {
 		}
 	}
 	{ // do_test "fkey6-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
 	}
 	{ // "fkey6-1.10.1"
 		_res = db.Exec("\n  PRAGMA defer_foreign_keys;\n  ROLLBACK;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n  PRAGMA defer_foreign_keys=ON;\n  PRAGMA defer_foreign_keys;\n  COMMIT;\n  PRAGMA defer_foreign_keys;\n  BEGIN;\n")
@@ -96,14 +96,14 @@ func Test_fkey6(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    DELETE FROM t1 WHERE x=1;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
 	}
 	{ // do_test "fkey6-1.21"
 		_res = db.Exec("\n    DELETE FROM t2 WHERE y=1;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DELETE FROM t2 WHERE y=1;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_DEFERRED_FKS 0")
 	}
 	{ // do_test "fkey6-1.22"
 		_res = db.Exec("\n    COMMIT;\n  ")

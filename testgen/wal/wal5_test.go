@@ -19,7 +19,7 @@ func Test_wal5(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	var testprefix = "wal5"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
@@ -33,12 +33,12 @@ func Test_wal5(t *testing.T) {
 		_ = do_wal_checkpoint // suppress unused warning
 		_ = _idx
 			// eval $do_wal_checkpoint
-			t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    set ::nBusyHandler 0\n    set ::busy_handler_...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    set ::nBusyHandler 0\n    set ::busy_handler_...}")
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
-			t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    setup_and_attach_aux\n    do_test 2.1.$tn.1 {\n...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    setup_and_attach_aux\n    do_test 2.2.$tn.1 {\n...}")
-			t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    setup_and_attach_aux\n    do_test 2.3.$tn.1 {\n...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    setup_and_attach_aux\n    do_test 2.1.$tn.1 {\n...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    setup_and_attach_aux\n    do_test 2.2.$tn.1 {\n...}")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    setup_and_attach_aux\n    do_test 2.3.$tn.1 {\n...}")
 			// foreach {tn1 checkpoint busy_on ckpt_expected expected} "\n    1   PASSIVE   -   {0 3 3}   -\n    2   TYPO      -   {0 3 3}   -\n\n    3   FULL      -   {0 4 4}   2\n    4   FULL      1   {1 3 3}   1\n    5   FULL      2   {1 4 3}   2\n    6   FULL      3   {0 4 4}   2\n\n    7   RESTART   -   {0 4 4}   3\n    8   RESTART   1   {1 3 3}   1\n    9   RESTART   2   {1 4 3}   2\n    10  RESTART   3   {1 4 4}   3\n\n    11  TRUNCATE  -   {0 0 0}   3\n    12  TRUNCATE  1   {1 3 3}   1\n    13  TRUNCATE  2   {1 4 3}   2\n    14  TRUNCATE  3   {1 4 4}   3\n\n  "
 			_items := tclSplitList("\n    1   PASSIVE   -   {0 3 3}   -\n    2   TYPO      -   {0 3 3}   -\n\n    3   FULL      -   {0 4 4}   2\n    4   FULL      1   {1 3 3}   1\n    5   FULL      2   {1 4 3}   2\n    6   FULL      3   {0 4 4}   2\n\n    7   RESTART   -   {0 4 4}   3\n    8   RESTART   1   {1 3 3}   1\n    9   RESTART   2   {1 4 3}   2\n    10  RESTART   3   {1 4 4}   3\n\n    11  TRUNCATE  -   {0 0 0}   3\n    12  TRUNCATE  1   {1 3 3}   1\n    13  TRUNCATE  2   {1 4 3}   2\n    14  TRUNCATE  3   {1 4 4}   3\n\n  ")
 			for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
@@ -53,10 +53,10 @@ func Test_wal5(t *testing.T) {
 				expected := _items[_idx+4]
 				_ = expected // suppress unused warning
 				_ = _idx
-					t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n      setup_and_attach_aux\n\n      proc busyhandle...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n      setup_and_attach_aux\n\n      proc busyhandle...}")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    code1 $do_wal_checkpoint\n    code2 $do_wal_c...}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    code1 $do_wal_checkpoint\n    code2 $do_wal_c...}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    code1 $do_wal_checkpoint\n    code2 $do_wal_c...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    code1 $do_wal_checkpoint\n    code2 $do_wal_c...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    code1 $do_wal_checkpoint\n    code2 $do_wal_c...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    code1 $do_wal_checkpoint\n    code2 $do_wal_c...}")
 			}
 }

@@ -29,10 +29,10 @@ func Test_fts4merge(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "1.0"
-			t.Skipf("TODO: %s not implemented in frigolite", "fts3_build_db_1 -module $mod 1004")
+			t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_1 -module $mod 1004")
 		}
 		{ // do_test "1.1"
-			t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
+			t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
 		}
 		{ // "1.1"
 			r = db.Query(" \n    SELECT level, string_agg(idx, ' ') FROM t1_segdir GROUP BY level \n  ")
@@ -56,7 +56,7 @@ func Test_fts4merge(t *testing.T) {
 				}
 			}
 			{ // do_test "1.2." + i + ".2"
-				t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
+				t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
 			}
 			{ // "1.2." + i + ".3"
 				r = db.Query(" \n      SELECT docid FROM t1 WHERE t1 MATCH 'zero one two three'\n    ")
@@ -100,7 +100,7 @@ func Test_fts4merge(t *testing.T) {
 				}
 			}
 			{ // do_test "1.4." + i + ".2"
-				t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
+				t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
 			}
 			{ // "1.4." + i + ".3"
 				r = db.Query(" \n      SELECT docid FROM t1 WHERE t1 MATCH 'zero one two three'\n    ")
@@ -163,10 +163,10 @@ func Test_fts4merge(t *testing.T) {
 				if r.Error != nil {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA page_size = 512 ")
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "fts3_build_db_2 -module $mod 30040")
+				t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_2 -module $mod 30040")
 			}
 			{ // do_test "3.1"
-				t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity_check t2")
+				t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity_check t2")
 			}
 			{ // "3.2"
 				r = db.Query(" \n    SELECT level, string_agg(idx, ' ') FROM t2_segdir GROUP BY level \n  ")
@@ -252,7 +252,7 @@ func Test_fts4merge(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 				{ // "4.4.2"
 					r = db.Query("\n    DELETE FROM t4_stat WHERE rowid=1;\n    INSERT INTO t4(t4) VALUES('merge=1,12');\n    SELECT level, string_agg(idx, ' ') FROM t4_segdir GROUP BY level;\n  ")
 					if r.Error != nil {
@@ -269,7 +269,7 @@ func Test_fts4merge(t *testing.T) {
 					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
-					t.Skipf("TODO: %s not implemented in frigolite", "fts3_build_db_1 -module $mod 1000")
+					t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_1 -module $mod 1000")
 				}
 				{ // "5.2"
 					r = db.Query("\n    SELECT level, group_concat(idx, ' ') FROM t1_segdir GROUP BY level;\n  ")
@@ -352,7 +352,7 @@ func Test_fts4merge(t *testing.T) {
 					}
 				}
 				{ // do_test "5.8.1"
-					t.Skipf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
+					t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
 				}
 				{ // do_test "5.9"
 					L := "1852"
@@ -417,7 +417,7 @@ func Test_fts4merge(t *testing.T) {
 					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
-					t.Skipf("TODO: %s not implemented in frigolite", "fts3_build_db_1 -module $mod 1000")
+					t.Errorf("TODO: %s not implemented in frigolite", "fts3_build_db_1 -module $mod 1000")
 				}
 				{ // "7.1"
 					r = db.Query("\n    SELECT level, group_concat(idx, ' ') FROM t1_segdir GROUP BY level\n  ")

@@ -180,7 +180,7 @@ func Test_fuzz(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE t1 ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-2 -template { SELECT [Expr] }")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-2 -template { SELECT [Expr] }")
 	{ // do_test "fuzz-3.1"
 		_res = db.Exec("\n    CREATE TABLE abc(a, b, c);\n    CREATE TABLE def(a, b, c);\n    CREATE TABLE ghi(a, b, c);\n  ")
 		if _res.Error != nil {
@@ -189,21 +189,21 @@ func Test_fuzz(t *testing.T) {
 	}
 	var _TableList = "list abc def ghi" // TCL namespace variable
 	_ = _TableList // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-3.2 -template {[Select]}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-3.2 -template {[Select]}")
 	{ // do_test "fuzz-4.1"
 		_res = db.Exec("\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);\n    INSERT INTO def VALUES(1, 2, 3);\n    INSERT INTO def VALUES(4, 5, 6);\n    INSERT INTO def VALUES(7, 8, 9);\n    INSERT INTO ghi VALUES(1, 2, 3);\n    INSERT INTO ghi VALUES(4, 5, 6);\n    INSERT INTO ghi VALUES(7, 8, 9);\n    CREATE INDEX abc_i ON abc(a, b, c);\n    CREATE INDEX def_i ON def(c, a, b);\n    CREATE INDEX ghi_i ON ghi(b, c, a);\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO abc VALUES(1, 2, 3);\n    INSERT INTO abc VALUES(4, 5, 6);\n    INSERT INTO abc VALUES(7, 8, 9);\n    INSERT INTO def VALUES(1, 2, 3);\n    INSERT INTO def VALUES(4, 5, 6);\n    INSERT INTO def VALUES(7, 8, 9);\n    INSERT INTO ghi VALUES(1, 2, 3);\n    INSERT INTO ghi VALUES(4, 5, 6);\n    INSERT INTO ghi VALUES(7, 8, 9);\n    CREATE INDEX abc_i ON abc(a, b, c);\n    CREATE INDEX def_i ON def(c, a, b);\n    CREATE INDEX ghi_i ON ghi(b, c, a);\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-4.2 -template {[Select]}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-4.2 -template {[Select]}")
 	{ // do_test "fuzz-5.1"
 		_res = db.Exec("BEGIN")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-5.2 -template {[Insert]} -errorlist table")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-5.2 -template {[Insert]} -errorlist table")
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "fuzz-5.3"
@@ -218,7 +218,7 @@ func Test_fuzz(t *testing.T) {
 	_ = _ColumnList // suppress unused warning
 	var E = "{no such col} {ambiguous column name}"
 	_ = E // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-6.1 -template {[Select]} -errorlist $E")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-6.1 -template {[Select]} -errorlist $E")
 	var E = "{no such col} {ambiguous column name} {table}"
 	_ = E // suppress unused warning
 	{ // do_test "fuzz-7.1"
@@ -227,7 +227,7 @@ func Test_fuzz(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-7.2 -template {[Statement]} -errorlist $E")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-7.2 -template {[Statement]} -errorlist $E")
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "fuzz-7.4"
@@ -240,6 +240,6 @@ func Test_fuzz(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	var E = "list table view duplicate {no such col} {ambiguous column name} {use DROP}"
 	_ = E // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-8.1 -template {[CreateOrDropTableOrView]} -errorlist $E")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-8.1 -template {[CreateOrDropTableOrView]} -errorlist $E")
 	// close $::log
 }

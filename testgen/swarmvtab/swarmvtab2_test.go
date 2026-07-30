@@ -22,13 +22,13 @@ func Test_swarmvtab2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "swarmvtab2"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	for _, name := range tclSplitList("glob -nocomplain test*.db") {
 		os.Remove(name)
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db unionvtab")
 	// proc definition (not transpiled)
 	{ // "100"
 		_res = db.Exec("\n  CREATE TABLE t1(filename, tablename, istart, iend);\n  WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<99)\n  INSERT INTO t1 SELECT printf('test%03d.db',x),'t2',x*1000,x*1000+999 FROM c;\n  CREATE VIRTUAL TABLE temp.v1 USING swarmvtab(\n    'SELECT * FROM t1', 'create_database'\n  );\n")

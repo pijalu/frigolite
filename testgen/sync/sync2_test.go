@@ -35,7 +35,7 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.1 { INSERT INTO t1 VALUES(3, 4) } 4")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.1 { INSERT INTO t1 VALUES(3, 4) } 4")
 	{ // "1.2.1"
 		r = db.Query(" PRAGMA main.synchronous = NORMAL ")
 		if r.Error != nil {
@@ -54,7 +54,7 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.2.3 { INSERT INTO t1 VALUES(5, 6) } 3")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.2.3 { INSERT INTO t1 VALUES(5, 6) } 3")
 	{ // "1.3.1"
 		r = db.Query(" PRAGMA main.synchronous = OFF ")
 		if r.Error != nil {
@@ -73,7 +73,7 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.3.3 { INSERT INTO t1 VALUES(7, 8) } 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.3.3 { INSERT INTO t1 VALUES(7, 8) } 0")
 	{ // "1.4.1"
 		r = db.Query(" PRAGMA main.synchronous = FULL ")
 		if r.Error != nil {
@@ -92,7 +92,7 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.4.3 { INSERT INTO t1 VALUES(9, 10) } 4")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.4.3 { INSERT INTO t1 VALUES(9, 10) } 4")
 	{ // "1.5"
 		r = db.Query(" PRAGMA journal_mode = wal ")
 		if r.Error != nil {
@@ -105,8 +105,8 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.6 { INSERT INTO t1 VALUES(11, 12) } 3")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.7 { INSERT INTO t1 VALUES(13, 14) } 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.6 { INSERT INTO t1 VALUES(11, 12) } 3")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.7 { INSERT INTO t1 VALUES(13, 14) } 1")
 	{ // "1.8.1"
 		r = db.Query(" PRAGMA main.synchronous = NORMAL ")
 		if r.Error != nil {
@@ -125,8 +125,8 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.8.3 { INSERT INTO t1 VALUES(15, 16) } 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.9 { PRAGMA wal_checkpoint } {2 0 3 3}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.8.3 { INSERT INTO t1 VALUES(15, 16) } 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.9 { PRAGMA wal_checkpoint } {2 0 3 3}")
 	{ // "1.10.1"
 		r = db.Query(" PRAGMA main.synchronous = OFF ")
 		if r.Error != nil {
@@ -145,13 +145,13 @@ func Test_sync2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.10.3 { INSERT INTO t1 VALUES(17, 18) } 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.10.3 { INSERT INTO t1 VALUES(17, 18) } 0")
 	if func() bool { SQLITE_DEFAULT_SYNCHRONOUS_n, _SQLITE_DEFAULT_SYNCHRONOUS_e := strconv.Atoi(SQLITE_DEFAULT_SYNCHRONOUS); if _SQLITE_DEFAULT_SYNCHRONOUS_e != nil { return false }; SQLITE_DEFAULT_WAL_SYNCHRONOUS_n, _SQLITE_DEFAULT_WAL_SYNCHRONOUS_e := strconv.Atoi(SQLITE_DEFAULT_WAL_SYNCHRONOUS); if _SQLITE_DEFAULT_WAL_SYNCHRONOUS_e != nil { return false }; return SQLITE_DEFAULT_SYNCHRONOUS_n == 2 && SQLITE_DEFAULT_WAL_SYNCHRONOUS_n==1 }() {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.11.1 { INSERT INTO t1 VALUES(19, 20) } 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.11.2 { INSERT INTO t1 VALUES(21, 22) } 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.11.1 { INSERT INTO t1 VALUES(19, 20) } 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.11.2 { INSERT INTO t1 VALUES(21, 22) } 0")
 		{ // "1.11.3"
 			r = db.Query(" PRAGMA main.synchronous ")
 			if r.Error != nil {
@@ -164,9 +164,9 @@ func Test_sync2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.12 { PRAGMA wal_checkpoint } {2 0 2 2}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.13.1 { INSERT INTO t1 VALUES(22, 23) } 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.13.2 { INSERT INTO t1 VALUES(24, 25) } 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.12 { PRAGMA wal_checkpoint } {2 0 2 2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.13.1 { INSERT INTO t1 VALUES(22, 23) } 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.13.2 { INSERT INTO t1 VALUES(24, 25) } 0")
 		{ // "1.14"
 			r = db.Query(" PRAGMA journal_mode = delete ")
 			if r.Error != nil {
@@ -179,8 +179,8 @@ func Test_sync2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.15.1 { INSERT INTO t1 VALUES(26, 27) } 4")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.15.2 { INSERT INTO t1 VALUES(28, 29) } 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.15.1 { INSERT INTO t1 VALUES(26, 27) } 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.15.2 { INSERT INTO t1 VALUES(28, 29) } 4")
 		{ // "1.15.3"
 			r = db.Query(" PRAGMA main.synchronous ")
 			if r.Error != nil {
@@ -205,8 +205,8 @@ func Test_sync2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.17.1 { INSERT INTO t1 VALUES(30, 31) } 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.17.2 { INSERT INTO t1 VALUES(32, 33) } 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.17.1 { INSERT INTO t1 VALUES(30, 31) } 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.17.2 { INSERT INTO t1 VALUES(32, 33) } 0")
 		{ // "1.17.3"
 			r = db.Query(" PRAGMA main.synchronous ")
 			if r.Error != nil {
@@ -237,8 +237,8 @@ func Test_sync2(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.19.1 { INSERT INTO t1 VALUES(34, 35) } 0")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.19.2 { INSERT INTO t1 VALUES(36, 37) } 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.19.1 { INSERT INTO t1 VALUES(34, 35) } 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.19.2 { INSERT INTO t1 VALUES(36, 37) } 0")
 		{ // "1.19.3"
 			r = db.Query(" PRAGMA main.synchronous ")
 			if r.Error != nil {
@@ -253,8 +253,8 @@ func Test_sync2(t *testing.T) {
 		}
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.20.1 { INSERT INTO t1 VALUES(38, 39) } 4")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.20.2 { INSERT INTO t1 VALUES(40, 41) } 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.20.1 { INSERT INTO t1 VALUES(38, 39) } 4")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_execsql_sync_test 1.20.2 { INSERT INTO t1 VALUES(40, 41) } 4")
 		{ // "1.20.3"
 			r = db.Query(" PRAGMA main.synchronous ")
 			if r.Error != nil {

@@ -19,7 +19,7 @@ func Test_vtabE(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tclvar_module [sqlite3_connection_pointer db]")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tclvar_module [sqlite3_connection_pointer db]")
 	var vtabE_vtabE1 = "11"
 	_ = vtabE_vtabE1 // suppress unused warning
 	var vtabE_vtabE2 = "22"

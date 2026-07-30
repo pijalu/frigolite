@@ -25,7 +25,7 @@ func Test_mmap3(t *testing.T) {
 		return
 	}
 	{ // do_test "mmap3-1.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
+		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db wholenumber")
 		_res = db.Exec("\n    PRAGMA mmap_size=100000;\n    CREATE TABLE t1(x, y);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value, randomblob(value) FROM nums\n                    WHERE value BETWEEN 1 and 1000;\n    SELECT sum(x), sum(length(y)) from t1;\n    PRAGMA mmap_size;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA mmap_size=100000;\n    CREATE TABLE t1(x, y);\n    CREATE VIRTUAL TABLE nums USING wholenumber;\n    INSERT INTO t1 SELECT value, randomblob(value) FROM nums\n                    WHERE value BETWEEN 1 and 1000;\n    SELECT sum(x), sum(length(y)) from t1;\n    PRAGMA mmap_size;\n  ")

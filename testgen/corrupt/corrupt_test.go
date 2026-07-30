@@ -26,8 +26,8 @@ func Test_corrupt(t *testing.T) {
 		os.Remove("test.db")
 	}
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
-	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
 	{ // do_test "corrupt-1.1"
 		_res = db.Exec("\n    BEGIN;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(randstr(100,100));\n    INSERT INTO t1 VALUES(randstr(90,90));\n    INSERT INTO t1 VALUES(randstr(80,80));\n    INSERT INTO t1 SELECT x || randstr(5,5) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(6,6) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(7,7) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(8,8) FROM t1;\n    INSERT INTO t1 VALUES(randstr(3000,3000));\n    INSERT INTO t1 SELECT x || randstr(9,9) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(10,10) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(11,11) FROM t1;\n    INSERT INTO t1 SELECT x || randstr(12,12) FROM t1;\n    CREATE INDEX t1i1 ON t1(x);\n    CREATE TABLE t2 AS SELECT * FROM t1;\n    DELETE FROM t2 WHERE rowid%5!=0;\n    COMMIT;\n  ")
 		if _res.Error != nil {
@@ -54,8 +54,8 @@ func Test_corrupt(t *testing.T) {
 		tclFileCopy("test.bu", "test.db")
 		var fd = "open test.db r+"
 		_ = fd // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		t.Skipf("TODO: %s not implemented in frigolite", "seek $fd $i")
+		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
+		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd $i")
 		t.Log("-nonewline")
 		// close $fd
 		{ // do_test "corrupt-2." + tn + ".1"
@@ -106,8 +106,8 @@ func Test_corrupt(t *testing.T) {
 		{ // do_test "corrupt-2." + tn + ".8"
 			var bt = "btree_from_db db"
 			_ = bt // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "db_enter db")
-			t.Skipf("TODO: %s not implemented in frigolite", "db_leave db")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_enter db")
+			t.Errorf("TODO: %s not implemented in frigolite", "db_leave db")
 		}
 		// incr i 256
 		{
@@ -130,7 +130,7 @@ func Test_corrupt(t *testing.T) {
 		_ = t1i1_r // suppress unused warning
 		cookie := "[execsql {PRAGMA schema_version}] + 1"
 		_ = cookie // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 		r = db.Query("\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = " + t1_r + " WHERE name = 't1';\n    UPDATE sqlite_master SET rootpage = " + t1i1_r + " WHERE name = 't1i1';\n    PRAGMA writable_schema = 0;\n    PRAGMA schema_version = " + cookie + ";\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = " + t1_r + " WHERE name = 't1';\n    UPDATE sqlite_master SET rootpage = " + t1i1_r + " WHERE name = 't1i1';\n    PRAGMA writable_schema = 0;\n    PRAGMA schema_version = " + cookie + ";\n  ")
@@ -202,7 +202,7 @@ func Test_corrupt(t *testing.T) {
 		_ = iOffset // suppress unused warning
 		var data = "hexio_render_int32 [expr $iRoot - 1]"
 		_ = data // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr ($iRoot-1)*1024 + $iOffset] $data")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr ($iRoot-1)*1024 + $iOffset] $data")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -232,7 +232,7 @@ func Test_corrupt(t *testing.T) {
 		}
 	}
 	{ // do_test "corrupt-5.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 108 00000000")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 108 00000000")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
@@ -271,7 +271,7 @@ func Test_corrupt(t *testing.T) {
 		_ = rootpage // suppress unused warning
 		offset := "($rootpage * 1024)-14+2"
 		_ = offset // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $offset 00FF")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $offset 00FF")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 		_res = db.Exec(" INSERT INTO t1 VALUES( randomblob(10) ) ")
@@ -286,8 +286,8 @@ func Test_corrupt(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(1900));\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2044 [hexio_render_int32 2]")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 24 [hexio_render_int32 45]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2044 [hexio_render_int32 2]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 24 [hexio_render_int32 45]")
 		_res = db.Exec(" INSERT OR REPLACE INTO t1 VALUES(5, randomblob(1900)) ")
 		_ = _res // catchsql
 	}
@@ -300,8 +300,8 @@ func Test_corrupt(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA secure_delete = on;\n    PRAGMA auto_vacuum = 0;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y);\n    INSERT INTO t1 VALUES(5, randomblob(900));\n    INSERT INTO t1 VALUES(6, randomblob(900));\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 2047 FF")
-		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 24 [hexio_render_int32 45]")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 2047 FF")
+		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 24 [hexio_render_int32 45]")
 		_res = db.Exec(" INSERT INTO t1 VALUES(4, randomblob(1900)) ")
 		_ = _res // catchsql
 	}

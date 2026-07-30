@@ -45,7 +45,7 @@ func Test_whereL(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1, t2, t3\n   WHERE t1.a=t2.a AND t2.a=t3.j AND t3.j=abs(5)\n  ORDER BY t1.a;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
 	{ // "122"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1, t2, t3\n   WHERE t1.a=t2.a AND t2.a=t3.j AND t3.j=coalesce(5,random())\n  ORDER BY t1.a;\n")
 		if r.Error != nil {

@@ -43,7 +43,7 @@ func Test_fpconv1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db FP_DIGITS 15")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db FP_DIGITS 15")
 	{ // "fpconv1-1.2"
 		r = db.Query("\n  SELECT 1.23 - 2.34;\n")
 		if r.Error != nil {
@@ -68,19 +68,19 @@ func Test_fpconv1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db FP_DIGITS 17")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db FP_DIGITS 17")
 	if false {
 		t.Log("Skipping decimal tests, hit load error: " + error)
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
 	{ // "fpconv1-2.0"
 		_res = db.Exec("\n  WITH RECURSIVE\n       /* Number of random floating-point values to try.\n       ** On a circa 2021 Ryzen 5950X running Mint Linux, and\n       ** compiled with -O0 -DSQLITE_DEBUG, this test runs at\n       ** about 150000 cases per second  ------------------vvvvvvv */\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500_000),\n    fp(y) AS MATERIALIZED (\n       SELECT CAST( format('%+d.%019d0e%+03d',\n                           random()%10,abs(random()),random()%200) AS real)\n        FROM c\n    )\n  SELECT y FROM fp\n   WHERE -log10(abs(decimal_sub(dtostr(y,24),format('%!.24e',y))/y))<17.0;\n                     /* Number of digits of accuracy required -------^^^^ */\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  WITH RECURSIVE\n       /* Number of random floating-point values to try.\n       ** On a circa 2021 Ryzen 5950X running Mint Linux, and\n       ** compiled with -O0 -DSQLITE_DEBUG, this test runs at\n       ** about 150000 cases per second  ------------------vvvvvvv */\n    c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<500_000),\n    fp(y) AS MATERIALIZED (\n       SELECT CAST( format('%+d.%019d0e%+03d',\n                           random()%10,abs(random()),random()%200) AS real)\n        FROM c\n    )\n  SELECT y FROM fp\n   WHERE -log10(abs(decimal_sub(dtostr(y,24),format('%!.24e',y))/y))<17.0;\n                     /* Number of digits of accuracy required -------^^^^ */\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db ieee754")
+	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db ieee754")
 	{ // "fpconv1-3.0"
 		r = db.Query("\n  WITH RECURSIVE\n    c(x,s) AS MATERIALIZED (VALUES(1,random()&0xffefffffffffffff)\n               UNION ALL\n               SELECT x+1,random()&0xffefffffffffffff\n                 FROM c WHERE x<1_000_000),\n    fp(y,s) AS (\n       SELECT ieee754_from_int(s),s FROM c\n    ),\n    fp2(yt,y,s) AS (\n       SELECT y||'', y, s FROM fp\n    )\n  SELECT format('%#016x',s) aS 'orig-hex',\n         format('%#016x',ieee754_to_int(CAST(yt AS real))) AS 'full-roundtrip',\n         yt AS 'rendered-as',\n         decimal_exp(yt,30) AS 'text-decimal',\n         decimal_exp(ieee754_from_int(s),30) AS 'float-decimal'\n    FROM fp2\n   WHERE ieee754_to_int(CAST(yt AS real))<>s;\n")
 		if r.Error != nil {

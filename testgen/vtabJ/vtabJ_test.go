@@ -21,7 +21,7 @@ func Test_vtabJ(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtabJ"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tclvar_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tclvar_module db")
 	{ // do_test "100"
 		var vtabJ_1 = "this"
 		_ = vtabJ_1 // suppress unused warning

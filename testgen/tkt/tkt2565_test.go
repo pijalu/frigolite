@@ -20,11 +20,11 @@ func Test_tkt2565(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_alt_pcache 1 100 0 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_alt_pcache 1 100 0 1")
 	// proc definition (not transpiled)
 	{ // do_test "tkt2565-1.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "reopen_database")
+		t.Errorf("TODO: %s not implemented in frigolite", "reopen_database")
 		_res = db.Exec(" CREATE TABLE A(Id INTEGER, Name TEXT) ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE A(Id INTEGER, Name TEXT) ")
@@ -33,7 +33,7 @@ func Test_tkt2565(t *testing.T) {
 	var iFail = "1"
 	_ = iFail // suppress unused warning
 	for func() bool { iFail_n, _iFail_e := strconv.Atoi(iFail); if _iFail_e != nil { return false }; return iFail_n < 200 }() {
-		t.Skipf("TODO: %s not implemented in frigolite", "reopen_database")
+		t.Errorf("TODO: %s not implemented in frigolite", "reopen_database")
 		r = db.Query(" pragma locking_mode=exclusive ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " pragma locking_mode=exclusive ")
@@ -76,8 +76,8 @@ func Test_tkt2565(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_alt_pcache 0")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_alt_pcache 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 }

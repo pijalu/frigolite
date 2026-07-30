@@ -19,8 +19,8 @@ func Test_backup_malloc(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test backup_malloc-1 -tclprep {\n  execsql {\n    PRAGMA cache_size = 10;\n    BEGIN...} -tclbody {\n\n  # Create a backup object.\n  #\n  set rc [catch ...} -cleanup {\n  catch { B finish }\n  catch { db2 close }\n}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test backup_malloc-2 -tclprep {\n  sqlite3 db2 test2.db\n} -tclbody {\n  set rc [catch {sqlite3_backup B db2 temp db mai...} -cleanup {\n  catch { B finish }\n  db2 close\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test backup_malloc-1 -tclprep {\n  execsql {\n    PRAGMA cache_size = 10;\n    BEGIN...} -tclbody {\n\n  # Create a backup object.\n  #\n  set rc [catch ...} -cleanup {\n  catch { B finish }\n  catch { db2 close }\n}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test backup_malloc-2 -tclprep {\n  sqlite3 db2 test2.db\n} -tclbody {\n  set rc [catch {sqlite3_backup B db2 temp db mai...} -cleanup {\n  catch { B finish }\n  db2 close\n}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -30,5 +30,5 @@ func Test_backup_malloc(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size = 16384;\n  BEGIN;\n  CREATE TABLE t1(a, b);\n  INSERT INTO t1 VALUES(1, 2);\n  COMMIT;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n  catch { db close }\n  catch { db2 close }\n\n  for...} -body {\n\n  set rc [B step 50]\n  if {$rc == \"SQLITE_NOMEM\"...} -test {\n  faultsim_test_result {0 {}} \n  faultsim_integri...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n  catch { db close }\n  catch { db2 close }\n\n  for...} -body {\n\n  set rc [B step 50]\n  if {$rc == \"SQLITE_NOMEM\"...} -test {\n  faultsim_test_result {0 {}} \n  faultsim_integri...}")
 }

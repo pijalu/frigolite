@@ -22,7 +22,7 @@ func Test_wal8(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "wal8" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }

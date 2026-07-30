@@ -39,27 +39,27 @@ func Test_walseh1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = wal;\n  CREATE TABLE t1(x, y);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults seh -prep {\n  catch { db2 close }\n  faultsim_restore_and_reop...} -body {\n  execsql { SELECT * FROM t1 } db2\n} -test {\n  faultsim_test_result {0 {1 2 3 4}} \n  if {$test...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults seh -prep {\n  catch { db2 close }\n  faultsim_restore_and_reop...} -body {\n  execsql { SELECT * FROM t1 } db2\n} -test {\n  faultsim_test_result {0 {1 2 3 4}} \n  if {$test...}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { SELECT * FROM t1 } \n} -test {\n  faultsim_test_result {0 {1 2 3 4}} \n  if {$test...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { INSERT INTO t1 VALUES(5, 6) }\n  execs...} -test {\n  faultsim_test_result {0 {1 2 3 4 5 6}} \n  if {$...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { PRAGMA wal_checkpoint }\n  execsql { I...} -test {\n  faultsim_test_result {0 {1 2 3 4 7 8}} \n  if {$...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { SELECT * FROM t1 } \n} -test {\n  faultsim_test_result {0 {1 2 3 4}} \n  if {$test...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { INSERT INTO t1 VALUES(5, 6) }\n  execs...} -test {\n  faultsim_test_result {0 {1 2 3 4 5 6}} \n  if {$...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 4 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { PRAGMA wal_checkpoint }\n  execsql { I...} -test {\n  faultsim_test_result {0 {1 2 3 4 7 8}} \n  if {$...}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql ROLLBACK\n} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc} { te...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 5 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql ROLLBACK\n} -test {\n  faultsim_test_result {0 {}}\n  if {$testrc} { te...}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 6 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { PRAGMA wal_checkpoint = TRUNCATE }\n  ...} -test {\n  faultsim_test_result {0 {1 2 3 4 7 8}} \n  if {$...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 6 -faults seh -prep {\n  catch { db close }\n  faultsim_restore_and_reope...} -body {\n  execsql { PRAGMA wal_checkpoint = TRUNCATE }\n  ...} -test {\n  faultsim_test_result {0 {1 2 3 4 7 8}} \n  if {$...}")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning

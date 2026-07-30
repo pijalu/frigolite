@@ -20,7 +20,7 @@ func Test_fallocate(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main [expr 1024*1024]")
+	t.Errorf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main [expr 1024*1024]")
 	{ // do_test "fallocate-1.1"
 		_res = db.Exec("\n    PRAGMA page_size = 1024;\n    PRAGMA auto_vacuum = 1;\n    CREATE TABLE t1(a, b);\n  ")
 		if _res.Error != nil {
@@ -68,7 +68,7 @@ func Test_fallocate(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " BEGIN; INSERT INTO t1 VALUES(1, 2); ")
 		}
 		if tclBool("permutation" + " != \"inmemory_journal\"\n   && " + "permutation" + " != \"atomic-batch-write\"\n   && " + "atomic_batch_write test.db" + "==0") {
-			t.Skipf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db-journal 16 4]")
+			t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db-journal 16 4]")
 		} else {
 			var  = "1024"
 			_ =  // suppress unused warning
@@ -107,7 +107,7 @@ func Test_fallocate(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main [expr 32*1024]")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main [expr 32*1024]")
 		{ // do_test "fallocate-2.1"
 			_res = db.Exec("\n      PRAGMA page_size = 1024;\n      PRAGMA journal_mode = WAL;\n      CREATE TABLE t1(a, b);\n    ")
 			if _res.Error != nil {

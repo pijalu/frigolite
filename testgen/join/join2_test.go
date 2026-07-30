@@ -399,7 +399,7 @@ func Test_join2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 0")
 	{ // "9.11"
 		r = db.Query("\n  SELECT ccc, ccc IS NULL AS ddd FROM t1 LEFT JOIN v2;\n")
 		if r.Error != nil {
@@ -445,7 +445,7 @@ func Test_join2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 0")
 	{ // "10.4"
 		r = db.Query("\n  SELECT (\n    SELECT 1 FROM t2 LEFT JOIN (SELECT x AS v FROM t3) ON 500=v WHERE (v OR FALSE)\n  ) FROM t1;\n")
 		if r.Error != nil {
@@ -458,7 +458,7 @@ func Test_join2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
 	{ // "11.1"
 		r = db.Query("\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP TABLE t3;\n  CREATE TABLE t1(x TEXT, y INTEGER);\n  INSERT INTO t1(x,y) VALUES(NULL,-2),(NULL,1),('0',2);\n  CREATE TABLE t2(z INTEGER);\n  INSERT INTO t2(z) VALUES(2),(-2);\n  CREATE VIEW t3 AS SELECT z, (SELECT count(*) FROM t1) AS w FROM t2;\n  SELECT * FROM t1 LEFT JOIN t3 ON y=z;\n")
 		if r.Error != nil {
@@ -477,7 +477,7 @@ func Test_join2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t1;\n  DROP TABLE t2;\n  DROP VIEW t3;\n  CREATE TABLE t1(a INTEGER PRIMARY KEY);\n  WITH RECURSIVE c(n) AS (VALUES(1) UNION ALL SELECT n+1 FROM c WHERE n<100)\n    INSERT INTO t1(a) SELECT n FROM c;\n  CREATE VIEW t2(b) AS SELECT a FROM t1;\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_vmstep_test 12.2 {\n  SELECT * FROM t1 LEFT JOIN t2 ON a=b LIMIT 10 O...} 2000 {99 99 100 100}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_vmstep_test 12.2 {\n  SELECT * FROM t1 LEFT JOIN t2 ON a=b LIMIT 10 O...} 2000 {99 99 100 100}")
 	{ // "12.3"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 LEFT JOIN t2 ON a=b LIMIT 10 OFFSET 98;\n")
 		if r.Error != nil {

@@ -34,7 +34,7 @@ func Test_dataversion1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    ATTACH ':memory:' AS aux1;\n    CREATE TABLE aux1.t2(y);\n    CREATE TEMP TABLE t3(z);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_data_version db main")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_data_version db main")
 	}
 	{ // do_test "dataversion1-110"
 		_res = db.Exec("\n    UPDATE t1 SET x=x+1;\n  ")
@@ -52,7 +52,7 @@ func Test_dataversion1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t2 SET y=y+1;\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_data_version db")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_data_version db")
 	}
 	db2, err := frigolite.Open("test.db")
 	defer db2.Close()
@@ -62,7 +62,7 @@ func Test_dataversion1(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
 	{ // do_test "dataversion1-131"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_data_version db")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_data_version db")
 	}
 	{ // do_test "dataversion1-132"
 		db2.Exec("\n    UPDATE t1 SET x=x+1;\n  ")

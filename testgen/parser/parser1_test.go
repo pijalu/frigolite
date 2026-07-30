@@ -26,7 +26,7 @@ func Test_parser1(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "syntax error after column name \\\"b\\\"", _res.Error, "\n  CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE nocase DESC) REFERENCES t1(a COLLATE binary ASC)\n  );\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 	{ // "parser1-1.2"
 		r = db.Query("\n  CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b) REFERENCES t1(a)\n  );\n  INSERT INTO t1 VALUES('abc',NULL),('xyz','abc');\n  PRAGMA writable_schema=on;\n  UPDATE sqlite_master SET sql='CREATE TABLE t1(\n    a TEXT PRIMARY KEY,\n    b TEXT,\n    FOREIGN KEY(b COLLATE nocase) REFERENCES t1(a)\n  )' WHERE name='t1';\n  SELECT name FROM sqlite_master WHERE sql LIKE '%collate%';\n")
 		if r.Error != nil {

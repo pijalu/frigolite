@@ -19,6 +19,6 @@ func Test_attachmalloc(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test attachmalloc-1 -tclprep {\n  catch { db close }\n  for {set i 2} {$i<=4} {inc...} -tclbody {\n  if {[catch {sqlite3 db test.db}]} {\n    error \"...} -sqlbody {\n  ATTACH 'test2.db' AS two;\n  CREATE TABLE two.t1...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test attachmalloc-2 -tclprep {\n  forcedelete test2.db\n  forcedelete test2.db-jou...} -sqlbody {\n  CREATE TABLE t1(d, e, f);\n  ATTACH 'test2.db' A...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test attachmalloc-1 -tclprep {\n  catch { db close }\n  for {set i 2} {$i<=4} {inc...} -tclbody {\n  if {[catch {sqlite3 db test.db}]} {\n    error \"...} -sqlbody {\n  ATTACH 'test2.db' AS two;\n  CREATE TABLE two.t1...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test attachmalloc-2 -tclprep {\n  forcedelete test2.db\n  forcedelete test2.db-jou...} -sqlbody {\n  CREATE TABLE t1(d, e, f);\n  ATTACH 'test2.db' A...}")
 }

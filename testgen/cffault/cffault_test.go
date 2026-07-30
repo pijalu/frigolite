@@ -28,9 +28,9 @@ func Test_cffault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b);\n  CREATE INDEX i1 ON t1(b);\n  INSERT INTO t1 VALUES(1, 2);\n  INSERT INTO t1 VALUES(3, 4);\n  INSERT INTO t1 VALUES(5, 6);\n  INSERT INTO t1 VALUES(7, 8);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  sqlite3_db_cacheflush db\n} -test {\n  if {[sqlite3_get_autocommit db]} { error \"Trans...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  set result [list]\n  db eval { SELECT * FROM t1 ...} -test {\n  faultsim_test_result {0 {1 3 3 5 5 7 7 9}} {1 {...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.1 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  sqlite3_db_cacheflush db\n} -test {\n  if {[sqlite3_get_autocommit db]} { error \"Trans...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  set result [list]\n  db eval { SELECT * FROM t1 ...} -test {\n  faultsim_test_result {0 {1 3 3 5 5 7 7 9}} {1 {...}")
 	db.Close()
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
@@ -40,9 +40,9 @@ func Test_cffault(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a PRIMARY KEY, b, c);\n  CREATE INDEX i1 ON t1(b);\n  CREATE INDEX i2 ON t1(c, b);\n  INSERT INTO t1 VALUES(1, 2,  randomblob(600));\n  INSERT INTO t1 VALUES(3, 4,  randomblob(600));\n  INSERT INTO t1 VALUES(5, 6,  randomblob(600));\n  INSERT INTO t1 VALUES(7, 8,  randomblob(600));\n  INSERT INTO t1 VALUES(9, 10, randomblob(600));\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  set result [list]\n  db eval { SELECT * FROM t1 ...} -test {\n  faultsim_test_result {0 {1 3 3 5 5 7 7 9 9 11}}...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.2 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  sqlite3_db_cacheflush db\n} -test {\n  if {[sqlite3_get_autocommit db]} { error \"Trans...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.3 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  sqlite3_db_cacheflush db\n} -test {\n  if {[sqlite3_get_autocommit db]} { error \"Trans...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.4 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  catch { sqlite3_db_cacheflush db }\n  catch { sq...} -test {\n  faultsim_test_result {0 {1 1 3 3 5 5 7 7 9 9}} ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.1 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  set result [list]\n  db eval { SELECT * FROM t1 ...} -test {\n  faultsim_test_result {0 {1 3 3 5 5 7 7 9 9 11}}...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.2 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  sqlite3_db_cacheflush db\n} -test {\n  if {[sqlite3_get_autocommit db]} { error \"Trans...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.3 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  sqlite3_db_cacheflush db\n} -test {\n  if {[sqlite3_get_autocommit db]} { error \"Trans...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.4 -prep {\n  faultsim_restore_and_reopen\n  db eval {\n    BEG...} -body {\n  catch { sqlite3_db_cacheflush db }\n  catch { sq...} -test {\n  faultsim_test_result {0 {1 1 3 3 5 5 7 7 9 9}} ...}")
 }

@@ -29,55 +29,55 @@ func Test_where4(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	{ // do_test "where4-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL}")
 	}
 	{ // do_test "where4-1.1b"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS $null}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS $null}")
 	}
 	{ // do_test "where4-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE +w IS NULL}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE +w IS NULL}")
 	}
 	{ // do_test "where4-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x IS NULL}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x IS NULL}")
 	}
 	{ // do_test "where4-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND +x IS NULL}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND +x IS NULL}")
 	}
 	{ // do_test "where4-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x>0}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x>0}")
 	}
 	{ // do_test "where4-1.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x<9}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x<9}")
 	}
 	{ // do_test "where4-1.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x IS NULL AND y...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x IS NULL AND y...}")
 	}
 	{ // do_test "where4-1.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x IS NULL AND y...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=1 AND x IS NULL AND y...}")
 	}
 	{ // do_test "where4-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w='a' AND x IS NULL AND...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w='a' AND x IS NULL AND...}")
 	}
 	{ // do_test "where4-1.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL}")
 	}
 	{ // do_test "where4-1.11"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL A...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL A...}")
 	}
 	{ // do_test "where4-1.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL A...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w=x'78' AND x IS NULL A...}")
 	}
 	{ // do_test "where4-1.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL}")
 	}
 	{ // do_test "where4-1.14"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL...}")
 	}
 	{ // do_test "where4-1.15"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL...}")
 	}
 	{ // do_test "where4-1.16"
-		t.Skipf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "count {SELECT rowid FROM t1 WHERE w IS NULL AND x IS NULL...}")
 	}
 	{ // do_test "where4-2.1"
 		r = db.Query("SELECT rowid FROM t1 ORDER BY w, x, y")

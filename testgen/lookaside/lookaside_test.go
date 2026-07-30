@@ -22,37 +22,37 @@ func Test_lookaside(t *testing.T) {
 	if tclBool("info exists ::G(perm:dbconfig)" + " && " + _G + "(perm:dbconfig)!=\"\"") {
 		return
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")
 	{
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "lookaside-1.1"
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_config_error db")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_error db")
 		}
 	}
 	{ // do_test "lookaside-1.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 1 18 18")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 1 18 18")
 	}
 	{ // do_test "lookaside-1.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0")
 	}
 	{ // do_test "lookaside-1.3.2"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_LOOKASIDE_HIT 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_LOOKASIDE_HIT 0")
 	}
 	{ // do_test "lookaside-1.3.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_SIZE 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_SIZE 0")
 	}
 	{ // do_test "lookaside-1.3.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_FULL 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_LOOKASIDE_MISS_FULL 0")
 	}
 	{ // do_test "lookaside-1.4"
 		_res = db.Exec("CREATE TABLE t1(w,x,y,z);")
@@ -85,10 +85,10 @@ func Test_lookaside(t *testing.T) {
 		// expr $x==0 && $y==0 && $z<18 → "$x==0 && $y==0 && $z<18"
 	}
 	{ // do_test "lookaside-1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db DBSTATUS_LOOKASIDE_USED 0")
 	}
 	{ // do_test "lookaside-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 100 1000")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 100 1000")
 	}
 	{ // do_test "lookaside-2.2"
 		_res = db.Exec("CREATE TABLE t2(x);")
@@ -103,25 +103,25 @@ func Test_lookaside(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT 1")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 50 50")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 50 50")
 	}
 	{ // do_test "lookaside-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 50 50")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 50 50")
 	}
 	{ // do_test "lookaside-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 -1 50")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 -1 50")
 	}
 	{ // do_test "lookaside-2.6"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 50 -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 50 -1")
 	}
 	{ // do_test "lookaside-3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_status db 99999 0")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_status db 99999 0")
 	}
 	{ // do_test "lookaside-4.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 		// catch (non-braced)
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
-	t.Skipf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "autoinstall_test_functions")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_restore_config_pagecache")
 }

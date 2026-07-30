@@ -32,9 +32,9 @@ func Test_e_select(t *testing.T) {
 	var t1_cross_t1 = "list                  \\\n   a one   a one      a one   b two    \\\n   a one   c three    b two   a one    \\\n   b two   b two      b two   c three  \\\n   c three a one      c three b two    \\\n   c three c three                     \\"
 	_ = t1_cross_t1 // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-0.1.1 {\n  SELECT count(*) FROM t1 %JOIN% t2 ON (t1.a=t2.a...} {3}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-0.1.2 {\n  SELECT count(*) FROM t1 %JOIN% t2 USING (a)\n} {3}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-0.1.3 {\n  SELECT count(*) FROM t1 %JOIN% t2\n} {9}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-0.1.1 {\n  SELECT count(*) FROM t1 %JOIN% t2 ON (t1.a=t2.a...} {3}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-0.1.2 {\n  SELECT count(*) FROM t1 %JOIN% t2 USING (a)\n} {3}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-0.1.3 {\n  SELECT count(*) FROM t1 %JOIN% t2\n} {9}")
 	{ // "e_select-0.1.4"
 		_res = db.Exec("\n  SELECT count(*) FROM t1, t2 ON (t1.a=t2.a) USING (a)\n")
 		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "near \\\"USING\\\": syntax error") {
@@ -47,45 +47,45 @@ func Test_e_select(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "near \\\"ON\\\": syntax error", _res.Error, "\n  SELECT count(*) FROM t1, t2 USING (a) ON (t1.a=t2.a)\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.2 {\n  0000.1  \"SELECT 1, 2, 3 \" {1 2 3}\n  1000.1  \"SE...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.3 {\n  1  \"SELECT * FROM t1\" {a one b two c three}\n  2...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.4 {\n  1  \"SELECT t1.rowid FROM t1\" {1 2 3}\n  2  \"SELE...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.5 {\n  1  \"SELECT rowid FROM t1 UNION ALL SELECT rowid...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.6 {\n  1  \"SELECT b||a FROM t1 ORDER BY b||a\"         ...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.7 {\n  1  \"SELECT * FROM t1\" {a one b two c three}\n  2...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.1 {\n  1 \"SELECT 'abc'\"            {abc}\n  2 \"SELECT '...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.2 {\n  0000.1  \"SELECT 1, 2, 3 \" {1 2 3}\n  1000.1  \"SE...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.3 {\n  1  \"SELECT * FROM t1\" {a one b two c three}\n  2...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.4 {\n  1  \"SELECT t1.rowid FROM t1\" {1 2 3}\n  2  \"SELE...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.5 {\n  1  \"SELECT rowid FROM t1 UNION ALL SELECT rowid...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.6 {\n  1  \"SELECT b||a FROM t1 ORDER BY b||a\"         ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-0.7 {\n  1  \"SELECT * FROM t1\" {a one b two c three}\n  2...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.1 {\n  1 \"SELECT 'abc'\"            {abc}\n  2 \"SELECT '...}")
 	{ // "e_select-1.2.0"
 		_res = db.Exec("\n  CREATE TABLE xx(x, y);\n  INSERT INTO xx VALUES('IiJlsIPepMuAhU', X'10B00B897A15BAA02E3F98DCE8F2');\n  INSERT INTO xx VALUES(NULL, -16.87);\n  INSERT INTO xx VALUES(-17.89, 'linguistically');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE xx(x, y);\n  INSERT INTO xx VALUES('IiJlsIPepMuAhU', X'10B00B897A15BAA02E3F98DCE8F2');\n  INSERT INTO xx VALUES(NULL, -16.87);\n  INSERT INTO xx VALUES(-17.89, 'linguistically');\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.2 {\n  1  \"SELECT quote(x), quote(y) FROM xx\" {\n     '...}")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.3 {\n  1 \"SELECT * FROM t1, t2, t3\" {\n      a one a I ...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.2 {\n  1  \"SELECT quote(x), quote(y) FROM xx\" {\n     '...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.3 {\n  1 \"SELECT * FROM t1, t2, t3\" {\n      a one a I ...}")
 	{ // "e_select-1.4.0"
 		_res = db.Exec("\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d, e);\n  CREATE TABLE x3(f, g, h, i);\n\n  -- x1: 3 rows, 2 columns\n  INSERT INTO x1 VALUES(24, 'converging');\n  INSERT INTO x1 VALUES(NULL, X'CB71');\n  INSERT INTO x1 VALUES('blonds', 'proprietary');\n\n  -- x2: 2 rows, 3 columns\n  INSERT INTO x2 VALUES(-60.06, NULL, NULL);\n  INSERT INTO x2 VALUES(-58, NULL, 1.21);\n\n  -- x3: 5 rows, 4 columns\n  INSERT INTO x3 VALUES(-39.24, NULL, 'encompass', -1);\n  INSERT INTO x3 VALUES('presenting', 51, 'reformation', 'dignified');\n  INSERT INTO x3 VALUES('conducting', -87.24, 37.56, NULL);\n  INSERT INTO x3 VALUES('coldest', -96, 'dramatists', 82.3);\n  INSERT INTO x3 VALUES('alerting', NULL, -93.79, NULL);\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE x1(a, b);\n  CREATE TABLE x2(c, d, e);\n  CREATE TABLE x3(f, g, h, i);\n\n  -- x1: 3 rows, 2 columns\n  INSERT INTO x1 VALUES(24, 'converging');\n  INSERT INTO x1 VALUES(NULL, X'CB71');\n  INSERT INTO x1 VALUES('blonds', 'proprietary');\n\n  -- x2: 2 rows, 3 columns\n  INSERT INTO x2 VALUES(-60.06, NULL, NULL);\n  INSERT INTO x2 VALUES(-58, NULL, 1.21);\n\n  -- x3: 5 rows, 4 columns\n  INSERT INTO x3 VALUES(-39.24, NULL, 'encompass', -1);\n  INSERT INTO x3 VALUES('presenting', 51, 'reformation', 'dignified');\n  INSERT INTO x3 VALUES('conducting', -87.24, 37.56, NULL);\n  INSERT INTO x3 VALUES('coldest', -96, 'dramatists', 82.3);\n  INSERT INTO x3 VALUES('alerting', NULL, -93.79, NULL);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.1.1 {\n  SELECT * FROM x1 %JOIN% x2 LIMIT 1\n} [concat {24 converging} {-60.06 {} {}}]")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.1.2 {\n  SELECT * FROM x2 %JOIN% x1 LIMIT 1\n} [concat {-60.06 {} {}} {24 converging}]")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.1.3 {\n  SELECT * FROM x3 %JOIN% x2 LIMIT 1\n} [concat {-39.24 {} encompass -1} {-60.06 {} {}}]")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.1.4 {\n  SELECT * FROM x2 %JOIN% x3 LIMIT 1\n} [concat {-60.06 {} {}} {-39.24 {} encompass -1}]")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.2.1 {\n  SELECT * FROM x2 %JOIN% x3 ORDER BY +c, +f\n} [list -60.06 {} {}      -39.24 {} encompass -1    ...")
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.3.1 { \n  SELECT count(*) FROM x1 %JOIN% x2 \n} [expr 3*2]")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.1.1 {\n  SELECT * FROM x1 %JOIN% x2 LIMIT 1\n} [concat {24 converging} {-60.06 {} {}}]")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.1.2 {\n  SELECT * FROM x2 %JOIN% x1 LIMIT 1\n} [concat {-60.06 {} {}} {24 converging}]")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.1.3 {\n  SELECT * FROM x3 %JOIN% x2 LIMIT 1\n} [concat {-39.24 {} encompass -1} {-60.06 {} {}}]")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.1.4 {\n  SELECT * FROM x2 %JOIN% x3 LIMIT 1\n} [concat {-60.06 {} {}} {-39.24 {} encompass -1}]")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.2.1 {\n  SELECT * FROM x2 %JOIN% x3 ORDER BY +c, +f\n} [list -60.06 {} {}      -39.24 {} encompass -1    ...")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.3.1 { \n  SELECT count(*) FROM x1 %JOIN% x2 \n} [expr 3*2]")
 	{ // do_test "e_select-1.4.3.2"
 		// expr [llength [execsql {SELECT * FROM x1, x2}]] / 6 → "[llength [execsql {SELECT * FROM x1, x2}]] / 6"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.3.3 { \n  SELECT count(*) FROM x2 %JOIN% x3 \n} [expr 2*5]")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.3.3 { \n  SELECT count(*) FROM x2 %JOIN% x3 \n} [expr 2*5]")
 	{ // do_test "e_select-1.4.3.4"
 		// expr [llength [execsql {SELECT * FROM x2 JOIN x3}]] / 10 → "[llength [execsql {SELECT * FROM x2 JOIN x3}]] / 10"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.3.5 { \n  SELECT count(*) FROM x3 %JOIN% x1 \n} [expr 5*3]")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.3.5 { \n  SELECT count(*) FROM x3 %JOIN% x1 \n} [expr 5*3]")
 	{ // do_test "e_select-1.4.3.6"
 		// expr [llength [execsql {SELECT * FROM x3 CROSS JOIN x1}]] / 15 → "[llength [execsql {SELECT * FROM x3 CROSS JOIN x1}]] / 15"
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.3.7 { \n  SELECT count(*) FROM x3 %JOIN% x3 \n} [expr 5*5]")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.4.3.7 { \n  SELECT count(*) FROM x3 %JOIN% x3 \n} [expr 5*5]")
 	{ // do_test "e_select-1.4.3.8"
 		// expr [llength [execsql {SELECT * FROM x3 INNER JOIN x3 AS x4}]] / 25 → "[llength [execsql {SELECT * FROM x3 INNER JOIN x3 AS x4}]] / 25"
 	}
@@ -113,7 +113,7 @@ func Test_e_select(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.4.5 [list                                   \\\n    1 { ...")
+	t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.4.5 [list                                   \\\n    1 { ...")
 	// foreach {tn select res} "list                                              \\\n    1 { SELECT * FROM t1 %JOIN% t2 ON (1) }       $t1_cross_t2             \\\n    2 { SELECT * FROM t1 %JOIN% t2 ON (0) }       [list]                   \\\n    3 { SELECT * FROM t1 %JOIN% t2 ON (NULL) }    [list]                   \\\n    4 { SELECT * FROM t1 %JOIN% t2 ON ('abc') }   [list]                   \\\n    5 { SELECT * FROM t1 %JOIN% t2 ON ('1ab') }   $t1_cross_t2             \\\n    6 { SELECT * FROM t1 %JOIN% t2 ON (0.9) }     $t1_cross_t2             \\\n    7 { SELECT * FROM t1 %JOIN% t2 ON ('0.9') }   $t1_cross_t2             \\\n    8 { SELECT * FROM t1 %JOIN% t2 ON (0.0) }     [list]                   \\\n                                                                           \\\n    9 { SELECT t1.b, t2.b FROM t1 %JOIN% t2 ON (t1.a = t2.a) }             \\\n      {one I two II three III}                                             \\\n   10 { SELECT t1.b, t2.b FROM t1 %JOIN% t2 ON (t1.a = 'a') }              \\\n      {one I one II one III}                                               \\\n   11 { SELECT t1.b, t2.b \n        FROM t1 %JOIN% t2 ON (CASE WHEN t1.a = 'a' THEN NULL ELSE 1 END) } \\\n      {two I two II two III three I three II three III}                    \\"
 	_items := tclSplitList("list                                              \\\n    1 { SELECT * FROM t1 %JOIN% t2 ON (1) }       $t1_cross_t2             \\\n    2 { SELECT * FROM t1 %JOIN% t2 ON (0) }       [list]                   \\\n    3 { SELECT * FROM t1 %JOIN% t2 ON (NULL) }    [list]                   \\\n    4 { SELECT * FROM t1 %JOIN% t2 ON ('abc') }   [list]                   \\\n    5 { SELECT * FROM t1 %JOIN% t2 ON ('1ab') }   $t1_cross_t2             \\\n    6 { SELECT * FROM t1 %JOIN% t2 ON (0.9) }     $t1_cross_t2             \\\n    7 { SELECT * FROM t1 %JOIN% t2 ON ('0.9') }   $t1_cross_t2             \\\n    8 { SELECT * FROM t1 %JOIN% t2 ON (0.0) }     [list]                   \\\n                                                                           \\\n    9 { SELECT t1.b, t2.b FROM t1 %JOIN% t2 ON (t1.a = t2.a) }             \\\n      {one I two II three III}                                             \\\n   10 { SELECT t1.b, t2.b FROM t1 %JOIN% t2 ON (t1.a = 'a') }              \\\n      {one I one II one III}                                               \\\n   11 { SELECT t1.b, t2.b \n        FROM t1 %JOIN% t2 ON (CASE WHEN t1.a = 'a' THEN NULL ELSE 1 END) } \\\n      {two I two II two III three I three II three III}                    \\")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
@@ -124,10 +124,10 @@ func Test_e_select(t *testing.T) {
 		res := _items[_idx+2]
 		_ = res // suppress unused warning
 		_ = _idx
-			t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.3.$tn $select $res")
+			t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.3.$tn $select $res")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.4 -error {\n  cannot join using column %s - column not presen...} {\n  1 { SELECT * FROM t1, t3 USING (b) }   \"b\"\n  2 ...}")
-		t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.5 {\n  1 { SELECT * FROM t1, t3 USING (a)   }  {a one ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.4 -error {\n  cannot join using column %s - column not presen...} {\n  1 { SELECT * FROM t1, t3 USING (b) }   \"b\"\n  2 ...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.5 {\n  1 { SELECT * FROM t1, t3 USING (a)   }  {a one ...}")
 		{ // "e_select-1.6.0"
 			_res = db.Exec("\n  CREATE TABLE t5(a COLLATE nocase, b COLLATE binary);\n  INSERT INTO t5 VALUES('AA', 'cc');\n  INSERT INTO t5 VALUES('BB', 'dd');\n  INSERT INTO t5 VALUES(NULL, NULL);\n  CREATE TABLE t6(a COLLATE binary, b COLLATE nocase);\n  INSERT INTO t6 VALUES('aa', 'cc');\n  INSERT INTO t6 VALUES('bb', 'DD');\n  INSERT INTO t6 VALUES(NULL, NULL);\n")
 			if _res.Error != nil {
@@ -144,7 +144,7 @@ func Test_e_select(t *testing.T) {
 			res := _items[_idx+2]
 			_ = res // suppress unused warning
 			_ = _idx
-				t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.6.$tn $select $res")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.6.$tn $select $res")
 			}
 			// foreach {tn select res} "\n  1a { SELECT * FROM t1 %JOIN% t2 USING (a)      } \n     {a one I b two II c three III}\n  1b { SELECT * FROM t1 %JOIN% t2 ON (t1.a=t2.a) }\n     {a one a I b two b II c three c III}\n\n  2a { SELECT * FROM t3 %JOIN% t4 USING (a)      }  \n     {a 1 {} b 2 2}\n  2b { SELECT * FROM t3 %JOIN% t4 ON (t3.a=t4.a) } \n     {a 1 a {} b 2 b 2}\n\n  3a { SELECT * FROM t3 %JOIN% t4 USING (a,c)                  } {b 2}\n  3b { SELECT * FROM t3 %JOIN% t4 ON (t3.a=t4.a AND t3.c=t4.c) } {b 2 b 2}\n\n  4a { SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x \n       %JOIN% t5 USING (a) } \n     {aa cc cc bb DD dd}\n  4b { SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x\n       %JOIN% t5 ON (x.a=t5.a) } \n     {aa cc AA cc bb DD BB dd}\n"
 			_items := tclSplitList("\n  1a { SELECT * FROM t1 %JOIN% t2 USING (a)      } \n     {a one I b two II c three III}\n  1b { SELECT * FROM t1 %JOIN% t2 ON (t1.a=t2.a) }\n     {a one a I b two b II c three c III}\n\n  2a { SELECT * FROM t3 %JOIN% t4 USING (a)      }  \n     {a 1 {} b 2 2}\n  2b { SELECT * FROM t3 %JOIN% t4 ON (t3.a=t4.a) } \n     {a 1 a {} b 2 b 2}\n\n  3a { SELECT * FROM t3 %JOIN% t4 USING (a,c)                  } {b 2}\n  3b { SELECT * FROM t3 %JOIN% t4 ON (t3.a=t4.a AND t3.c=t4.c) } {b 2 b 2}\n\n  4a { SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x \n       %JOIN% t5 USING (a) } \n     {aa cc cc bb DD dd}\n  4b { SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x\n       %JOIN% t5 ON (x.a=t5.a) } \n     {aa cc AA cc bb DD BB dd}\n")
@@ -156,7 +156,7 @@ func Test_e_select(t *testing.T) {
 				res := _items[_idx+2]
 				_ = res // suppress unused warning
 				_ = _idx
-					t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.7.$tn $select $res")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.7.$tn $select $res")
 				}
 				{ // "e_select-1.8.0"
 					_res = db.Exec("\n  CREATE TABLE t7(a, b, c);\n  CREATE TABLE t8(a, d, e);\n\n  INSERT INTO t7 VALUES('x', 'ex',  24);\n  INSERT INTO t7 VALUES('y', 'why', 25);\n\n  INSERT INTO t8 VALUES('x', 'abc', 24);\n  INSERT INTO t8 VALUES('z', 'ghi', 26);\n")
@@ -164,16 +164,16 @@ func Test_e_select(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t7(a, b, c);\n  CREATE TABLE t8(a, d, e);\n\n  INSERT INTO t7 VALUES('x', 'ex',  24);\n  INSERT INTO t7 VALUES('y', 'why', 25);\n\n  INSERT INTO t8 VALUES('x', 'abc', 24);\n  INSERT INTO t8 VALUES('z', 'ghi', 26);\n")
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.8 {\n  1a \"SELECT count(*) FROM t7 JOIN t8 ON (t7.a=t8...}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.9 {\n  1a \"SELECT * FROM t7 JOIN t8 ON (t7.a=t8.a)\" {x...}")
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1-10 {\n  1a \"SELECT * FROM t7 JOIN t8 USING (a)\"        ...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.8 {\n  1a \"SELECT count(*) FROM t7 JOIN t8 ON (t7.a=t8...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1.9 {\n  1a \"SELECT * FROM t7 JOIN t8 ON (t7.a=t8.a)\" {x...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1-10 {\n  1a \"SELECT * FROM t7 JOIN t8 USING (a)\"        ...}")
 				{ // "e_select-1.11.0"
 					_res = db.Exec("\n  CREATE TABLE t10(x, y);\n  INSERT INTO t10 VALUES(1, 'true');\n  INSERT INTO t10 VALUES(0, 'false');\n")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t10(x, y);\n  INSERT INTO t10 VALUES(1, 'true');\n  INSERT INTO t10 VALUES(0, 'false');\n")
 					}
 				}
-				t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1-11 {\n  1a \"SELECT a, x FROM t1 CROSS JOIN t10\" {a 1 a ...}")
+				t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-1-11 {\n  1a \"SELECT a, x FROM t1 CROSS JOIN t10\" {a 1 a ...}")
 				// foreach {tn sql} "\n  1 {SELECT * FROM t1 NATURAL LEFT JOIN t2 USING (a)}\n  2 {SELECT * FROM t1 NATURAL LEFT JOIN t2 ON (t1.a=t2.a)}\n  3 {SELECT * FROM t1 NATURAL LEFT JOIN t2 ON (45)}\n"
 				_items := tclSplitList("\n  1 {SELECT * FROM t1 NATURAL LEFT JOIN t2 USING (a)}\n  2 {SELECT * FROM t1 NATURAL LEFT JOIN t2 ON (t1.a=t2.a)}\n  3 {SELECT * FROM t1 NATURAL LEFT JOIN t2 ON (45)}\n")
 				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
@@ -189,7 +189,7 @@ func Test_e_select(t *testing.T) {
 							}
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 					{ // "e_select-3.0"
 						_res = db.Exec("\n  CREATE TABLE x1(k, x, y, z);\n  INSERT INTO x1 VALUES(1, 'relinquished', 'aphasia', 78.43);\n  INSERT INTO x1 VALUES(2, X'A8E8D66F',    X'07CF',   -81);\n  INSERT INTO x1 VALUES(3, -22,            -27.57,    NULL);\n  INSERT INTO x1 VALUES(4, NULL,           'bygone',  'picky');\n  INSERT INTO x1 VALUES(5, NULL,           96.28,     NULL);\n  INSERT INTO x1 VALUES(6, 0,              1,         2);\n\n  CREATE TABLE x2(k, x, y2);\n  INSERT INTO x2 VALUES(1, 50, X'B82838');\n  INSERT INTO x2 VALUES(5, 84.79, 65.88);\n  INSERT INTO x2 VALUES(3, -22, X'0E1BE452A393');\n  INSERT INTO x2 VALUES(7, 'mistrusted', 'standardized');\n")
 						if _res.Error != nil {
@@ -322,14 +322,14 @@ func Test_e_select(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT k FROM x1 NATURAL JOIN x2 WHERE x2.k-3\n")
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 					{ // "e_select-4.0"
 						_res = db.Exec("\n  CREATE TABLE z1(a, b, c);\n  CREATE TABLE z2(d, e);\n  CREATE TABLE z3(a, b);\n\n  INSERT INTO z1 VALUES(51.65, -59.58, 'belfries');\n  INSERT INTO z1 VALUES(-5, NULL, 75);\n  INSERT INTO z1 VALUES(-2.2, -23.18, 'suiters');\n  INSERT INTO z1 VALUES(NULL, 67, 'quartets');\n  INSERT INTO z1 VALUES(-1.04, -32.3, 'aspen');\n  INSERT INTO z1 VALUES(63, 'born', -26);\n\n  INSERT INTO z2 VALUES(NULL, 21);\n  INSERT INTO z2 VALUES(36, 6);\n\n  INSERT INTO z3 VALUES('subsistence', 'gauze');\n  INSERT INTO z3 VALUES(49.17, -67);\n")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE z1(a, b, c);\n  CREATE TABLE z2(d, e);\n  CREATE TABLE z3(a, b);\n\n  INSERT INTO z1 VALUES(51.65, -59.58, 'belfries');\n  INSERT INTO z1 VALUES(-5, NULL, 75);\n  INSERT INTO z1 VALUES(-2.2, -23.18, 'suiters');\n  INSERT INTO z1 VALUES(NULL, 67, 'quartets');\n  INSERT INTO z1 VALUES(-1.04, -32.3, 'aspen');\n  INSERT INTO z1 VALUES(63, 'born', -26);\n\n  INSERT INTO z2 VALUES(NULL, 21);\n  INSERT INTO z2 VALUES(36, 6);\n\n  INSERT INTO z3 VALUES('subsistence', 'gauze');\n  INSERT INTO z3 VALUES(49.17, -67);\n")
 						}
 					}
-					t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.1 {\n  1  \"SELECT * FROM z1 LIMIT 1\"             {51.6...}")
+					t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.1 {\n  1  \"SELECT * FROM z1 LIMIT 1\"             {51.6...}")
 					// foreach {tn select err} "\n  1.1  \"SELECT a, b, c FROM z1 WHERE *\"    {near \"*\": syntax error}\n  1.2  \"SELECT a, b, c FROM z1 GROUP BY *\" {near \"*\": syntax error}\n  1.3  \"SELECT 1 + * FROM z1\"              {near \"*\": syntax error}\n  1.4  \"SELECT * + 1 FROM z1\"              {near \"+\": syntax error}\n\n  2.1 \"SELECT *\" {no tables specified}\n  2.2 \"SELECT * WHERE 1\" {no tables specified}\n  2.3 \"SELECT * WHERE 0\" {no tables specified}\n  2.4 \"SELECT count(*), *\" {no tables specified}\n"
 					_items := tclSplitList("\n  1.1  \"SELECT a, b, c FROM z1 WHERE *\"    {near \"*\": syntax error}\n  1.2  \"SELECT a, b, c FROM z1 GROUP BY *\" {near \"*\": syntax error}\n  1.3  \"SELECT 1 + * FROM z1\"              {near \"*\": syntax error}\n  1.4  \"SELECT * + 1 FROM z1\"              {near \"+\": syntax error}\n\n  2.1 \"SELECT *\" {no tables specified}\n  2.2 \"SELECT * WHERE 1\" {no tables specified}\n  2.3 \"SELECT * WHERE 0\" {no tables specified}\n  2.4 \"SELECT count(*), *\" {no tables specified}\n")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
@@ -360,21 +360,21 @@ func Test_e_select(t *testing.T) {
 								var _stmt = "" // TCL namespace variable
 								_ = _stmt // suppress unused warning
 								{ // do_test "e_select-4.3." + tn
-									t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_column_count $::stmt")
+									t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_column_count $::stmt")
 								}
-								t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
+								t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $::stmt")
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.4 {\n  1 \"SELECT a, b FROM z1\"\n    {51.65 -59.58 -5 {}...}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.5 {\n  1 \"SELECT count(a), max(a), count(b), max(b) FR...}")
-							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.4 {\n  1 \"SELECT a, b FROM z1\"\n    {51.65 -59.58 -5 {}...}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.5 {\n  1 \"SELECT count(a), max(a), count(b), max(b) FR...}")
+							t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 							{ // "e_select-4.6.0"
 								_res = db.Exec("\n  CREATE TABLE a1(one PRIMARY KEY, two);\n  INSERT INTO a1 VALUES(1, 1);\n  INSERT INTO a1 VALUES(2, 3);\n  INSERT INTO a1 VALUES(3, 6);\n  INSERT INTO a1 VALUES(4, 10);\n\n  CREATE TABLE a2(one PRIMARY KEY, three);\n  INSERT INTO a2 VALUES(1, 1);\n  INSERT INTO a2 VALUES(3, 2);\n  INSERT INTO a2 VALUES(6, 3);\n  INSERT INTO a2 VALUES(10, 4);\n")
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE a1(one PRIMARY KEY, two);\n  INSERT INTO a1 VALUES(1, 1);\n  INSERT INTO a1 VALUES(2, 3);\n  INSERT INTO a1 VALUES(3, 6);\n  INSERT INTO a1 VALUES(4, 10);\n\n  CREATE TABLE a2(one PRIMARY KEY, three);\n  INSERT INTO a2 VALUES(1, 1);\n  INSERT INTO a2 VALUES(3, 2);\n  INSERT INTO a2 VALUES(6, 3);\n  INSERT INTO a2 VALUES(10, 4);\n")
 								}
 							}
-							t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.6 {\n  1 \"SELECT one, two, count(*) FROM a1\"          ...}")
-							t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.7 {\n  1  \"SELECT one, two, count(*) FROM a1 WHERE 0\" ...}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.6 {\n  1 \"SELECT one, two, count(*) FROM a1\"          ...}")
+							t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.7 {\n  1  \"SELECT one, two, count(*) FROM a1 WHERE 0\" ...}")
 							// foreach {tn select} "\n  8.1  \"SELECT count(*) FROM a1\"\n  8.2  \"SELECT count(*) FROM a1 WHERE 0\"\n  8.3  \"SELECT count(*) FROM a1 WHERE 1\"\n  8.4  \"SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 1\"\n  8.5  \"SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 0\"\n"
 							_items := tclSplitList("\n  8.1  \"SELECT count(*) FROM a1\"\n  8.2  \"SELECT count(*) FROM a1 WHERE 0\"\n  8.3  \"SELECT count(*) FROM a1 WHERE 1\"\n  8.4  \"SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 1\"\n  8.5  \"SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 0\"\n")
 							for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
@@ -405,16 +405,16 @@ func Test_e_select(t *testing.T) {
 										}
 									}
 								}
-								t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+								t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 								{ // "e_select-4.9.0"
 									_res = db.Exec("\n  CREATE TABLE b1(one PRIMARY KEY, two);\n  INSERT INTO b1 VALUES(1, 'o');\n  INSERT INTO b1 VALUES(4, 'f');\n  INSERT INTO b1 VALUES(3, 't');\n  INSERT INTO b1 VALUES(2, 't');\n  INSERT INTO b1 VALUES(5, 'f');\n  INSERT INTO b1 VALUES(7, 's');\n  INSERT INTO b1 VALUES(6, 's');\n\n  CREATE TABLE b2(x, y);\n  INSERT INTO b2 VALUES(NULL, 0);\n  INSERT INTO b2 VALUES(NULL, 1);\n  INSERT INTO b2 VALUES('xyz', 2);\n  INSERT INTO b2 VALUES('abc', 3);\n  INSERT INTO b2 VALUES('xyz', 4);\n\n  CREATE TABLE b3(a COLLATE nocase, b COLLATE binary);\n  INSERT INTO b3 VALUES('abc', 'abc');\n  INSERT INTO b3 VALUES('aBC', 'aBC');\n  INSERT INTO b3 VALUES('Def', 'Def');\n  INSERT INTO b3 VALUES('dEF', 'dEF');\n")
 									if _res.Error != nil {
 										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE b1(one PRIMARY KEY, two);\n  INSERT INTO b1 VALUES(1, 'o');\n  INSERT INTO b1 VALUES(4, 'f');\n  INSERT INTO b1 VALUES(3, 't');\n  INSERT INTO b1 VALUES(2, 't');\n  INSERT INTO b1 VALUES(5, 'f');\n  INSERT INTO b1 VALUES(7, 's');\n  INSERT INTO b1 VALUES(6, 's');\n\n  CREATE TABLE b2(x, y);\n  INSERT INTO b2 VALUES(NULL, 0);\n  INSERT INTO b2 VALUES(NULL, 1);\n  INSERT INTO b2 VALUES('xyz', 2);\n  INSERT INTO b2 VALUES('abc', 3);\n  INSERT INTO b2 VALUES('xyz', 4);\n\n  CREATE TABLE b3(a COLLATE nocase, b COLLATE binary);\n  INSERT INTO b3 VALUES('abc', 'abc');\n  INSERT INTO b3 VALUES('aBC', 'aBC');\n  INSERT INTO b3 VALUES('Def', 'Def');\n  INSERT INTO b3 VALUES('dEF', 'dEF');\n")
 									}
 								}
-								t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.9 {\n  1  \"SELECT group_concat(one), two FROM b1 GROUP...}")
-								t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.10 {\n  1  \"SELECT group_concat(y) FROM b2 GROUP BY x\" ...}")
-								t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.11 {\n  1  \"SELECT count(*) FROM b3 GROUP BY b\"      {1...}")
+								t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.9 {\n  1  \"SELECT group_concat(one), two FROM b1 GROUP...}")
+								t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.10 {\n  1  \"SELECT group_concat(y) FROM b2 GROUP BY x\" ...}")
+								t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.11 {\n  1  \"SELECT count(*) FROM b3 GROUP BY b\"      {1...}")
 								// foreach {tn select} "\n  12.1  \"SELECT * FROM b3 GROUP BY count(*)\"\n  12.2  \"SELECT max(a) FROM b3 GROUP BY max(b)\"\n  12.3  \"SELECT group_concat(a) FROM b3 GROUP BY a, max(b)\"\n"
 								_items := tclSplitList("\n  12.1  \"SELECT * FROM b3 GROUP BY count(*)\"\n  12.2  \"SELECT max(a) FROM b3 GROUP BY max(b)\"\n  12.3  \"SELECT group_concat(a) FROM b3 GROUP BY a, max(b)\"\n")
 								for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
@@ -438,29 +438,29 @@ func Test_e_select(t *testing.T) {
 											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE c1(up, down);\n  INSERT INTO c1 VALUES('x', 1);\n  INSERT INTO c1 VALUES('x', 2);\n  INSERT INTO c1 VALUES('x', 4);\n  INSERT INTO c1 VALUES('x', 8);\n  INSERT INTO c1 VALUES('y', 16);\n  INSERT INTO c1 VALUES('y', 32);\n\n  CREATE TABLE c2(i, j);\n  INSERT INTO c2 VALUES(1, 0);\n  INSERT INTO c2 VALUES(2, 1);\n  INSERT INTO c2 VALUES(3, 3);\n  INSERT INTO c2 VALUES(4, 6);\n  INSERT INTO c2 VALUES(5, 10);\n  INSERT INTO c2 VALUES(6, 15);\n  INSERT INTO c2 VALUES(7, 21);\n  INSERT INTO c2 VALUES(8, 28);\n  INSERT INTO c2 VALUES(9, 36);\n\n  CREATE TABLE c3(i PRIMARY KEY, k TEXT);\n  INSERT INTO c3 VALUES(1,  'hydrogen');\n  INSERT INTO c3 VALUES(2,  'helium');\n  INSERT INTO c3 VALUES(3,  'lithium');\n  INSERT INTO c3 VALUES(4,  'beryllium');\n  INSERT INTO c3 VALUES(5,  'boron');\n  INSERT INTO c3 VALUES(94, 'plutonium');\n")
 										}
 									}
-									t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.13 {\n  1.1  \"SELECT up FROM c1 GROUP BY up HAVING coun...}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.15 {\n  1  \"SELECT sum(down) FROM c1 GROUP BY up\" {15 4...}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.15 {\n  1  \"SELECT i, j FROM c2 GROUP BY i%2\"          ...}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select.4.16 -count {\n  1  \"SELECT i, j FROM c2 GROUP BY i%2\"          ...}")
-									t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.13 {\n  1.1  \"SELECT up FROM c1 GROUP BY up HAVING coun...}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.15 {\n  1  \"SELECT sum(down) FROM c1 GROUP BY up\" {15 4...}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-4.15 {\n  1  \"SELECT i, j FROM c2 GROUP BY i%2\"          ...}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select.4.16 -count {\n  1  \"SELECT i, j FROM c2 GROUP BY i%2\"          ...}")
+									t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 									{ // "e_select-5.1.0"
 										_res = db.Exec("\n  CREATE TABLE h1(a, b);\n  INSERT INTO h1 VALUES(1, 'one');\n  INSERT INTO h1 VALUES(1, 'I');\n  INSERT INTO h1 VALUES(1, 'i');\n  INSERT INTO h1 VALUES(4, 'four');\n  INSERT INTO h1 VALUES(4, 'IV');\n  INSERT INTO h1 VALUES(4, 'iv');\n\n  CREATE TABLE h2(x COLLATE nocase);\n  INSERT INTO h2 VALUES('One');\n  INSERT INTO h2 VALUES('Two');\n  INSERT INTO h2 VALUES('Three');\n  INSERT INTO h2 VALUES('Four');\n  INSERT INTO h2 VALUES('one');\n  INSERT INTO h2 VALUES('two');\n  INSERT INTO h2 VALUES('three');\n  INSERT INTO h2 VALUES('four');\n\n  CREATE TABLE h3(c, d);\n  INSERT INTO h3 VALUES(1, NULL);\n  INSERT INTO h3 VALUES(2, NULL);\n  INSERT INTO h3 VALUES(3, NULL);\n  INSERT INTO h3 VALUES(4, '2');\n  INSERT INTO h3 VALUES(5, NULL);\n  INSERT INTO h3 VALUES(6, '2,3');\n  INSERT INTO h3 VALUES(7, NULL);\n  INSERT INTO h3 VALUES(8, '2,4');\n  INSERT INTO h3 VALUES(9, '3');\n")
 										if _res.Error != nil {
 											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE h1(a, b);\n  INSERT INTO h1 VALUES(1, 'one');\n  INSERT INTO h1 VALUES(1, 'I');\n  INSERT INTO h1 VALUES(1, 'i');\n  INSERT INTO h1 VALUES(4, 'four');\n  INSERT INTO h1 VALUES(4, 'IV');\n  INSERT INTO h1 VALUES(4, 'iv');\n\n  CREATE TABLE h2(x COLLATE nocase);\n  INSERT INTO h2 VALUES('One');\n  INSERT INTO h2 VALUES('Two');\n  INSERT INTO h2 VALUES('Three');\n  INSERT INTO h2 VALUES('Four');\n  INSERT INTO h2 VALUES('one');\n  INSERT INTO h2 VALUES('two');\n  INSERT INTO h2 VALUES('three');\n  INSERT INTO h2 VALUES('four');\n\n  CREATE TABLE h3(c, d);\n  INSERT INTO h3 VALUES(1, NULL);\n  INSERT INTO h3 VALUES(2, NULL);\n  INSERT INTO h3 VALUES(3, NULL);\n  INSERT INTO h3 VALUES(4, '2');\n  INSERT INTO h3 VALUES(5, NULL);\n  INSERT INTO h3 VALUES(6, '2,3');\n  INSERT INTO h3 VALUES(7, NULL);\n  INSERT INTO h3 VALUES(8, '2,4');\n  INSERT INTO h3 VALUES(9, '3');\n")
 										}
 									}
-									t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-5.1 {\n  1   \"SELECT ALL a FROM h1\"      {1 1 1 4 4 4}\n ...}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-5 {\n  3.1 \"SELECT ALL x FROM h2\" {One Two Three Four ...}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-5.5 {\n  1  \"SELECT DISTINCT d FROM h3\" {{} 2 2,3 2,4 3}...}")
-									t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-5.6 {\n  1  \"SELECT DISTINCT b FROM h1\"                 ...}")
-									t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-5.1 {\n  1   \"SELECT ALL a FROM h1\"      {1 1 1 4 4 4}\n ...}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-5 {\n  3.1 \"SELECT ALL x FROM h2\" {One Two Three Four ...}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-5.5 {\n  1  \"SELECT DISTINCT d FROM h3\" {{} 2 2,3 2,4 3}...}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-5.6 {\n  1  \"SELECT DISTINCT b FROM h1\"                 ...}")
+									t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 									{ // "e_select-7.1.0"
 										_res = db.Exec("\n  CREATE TABLE j1(a, b, c);\n  CREATE TABLE j2(e, f);\n  CREATE TABLE j3(g);\n")
 										if _res.Error != nil {
 											t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE j1(a, b, c);\n  CREATE TABLE j2(e, f);\n  CREATE TABLE j3(g);\n")
 										}
 									}
-									t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.1 -error {\n  SELECTs to the left and right of %s do not have...} {\n  1   \"SELECT a, b FROM j1    UNION ALL SELECT g ...}")
+									t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.1 -error {\n  SELECTs to the left and right of %s do not have...} {\n  1   \"SELECT a, b FROM j1    UNION ALL SELECT g ...}")
 									// foreach {tn select op1 op2} "\n  1   \"SELECT * FROM j1 ORDER BY a UNION ALL SELECT * FROM j2,j3\" \n      {ORDER BY} {UNION ALL}\n  2   \"SELECT count(*) FROM j1 ORDER BY 1 UNION ALL SELECT max(e) FROM j2\"\n      {ORDER BY} {UNION ALL}\n  3   \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 UNION ALL SELECT *,* FROM j2\"\n      {ORDER BY} {UNION ALL}\n  4   \"SELECT * FROM j1 LIMIT 10 UNION ALL SELECT * FROM j2,j3\" \n      LIMIT {UNION ALL}\n  5   \"SELECT * FROM j1 LIMIT 10 OFFSET 5 UNION ALL SELECT * FROM j2,j3\" \n      LIMIT {UNION ALL}\n  6   \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) UNION ALL SELECT g FROM j2,j3\" \n      LIMIT {UNION ALL}\n\n  7   \"SELECT * FROM j1 ORDER BY a UNION SELECT * FROM j2,j3\" \n      {ORDER BY} {UNION}\n  8   \"SELECT count(*) FROM j1 ORDER BY 1 UNION SELECT max(e) FROM j2\"\n      {ORDER BY} {UNION}\n  9   \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 UNION SELECT *,* FROM j2\"\n      {ORDER BY} {UNION}\n  10  \"SELECT * FROM j1 LIMIT 10 UNION SELECT * FROM j2,j3\" \n      LIMIT {UNION}\n  11  \"SELECT * FROM j1 LIMIT 10 OFFSET 5 UNION SELECT * FROM j2,j3\" \n      LIMIT {UNION}\n  12  \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) UNION SELECT g FROM j2,j3\" \n      LIMIT {UNION}\n\n  13  \"SELECT * FROM j1 ORDER BY a EXCEPT SELECT * FROM j2,j3\" \n      {ORDER BY} {EXCEPT}\n  14  \"SELECT count(*) FROM j1 ORDER BY 1 EXCEPT SELECT max(e) FROM j2\"\n      {ORDER BY} {EXCEPT}\n  15  \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 EXCEPT SELECT *,* FROM j2\"\n      {ORDER BY} {EXCEPT}\n  16  \"SELECT * FROM j1 LIMIT 10 EXCEPT SELECT * FROM j2,j3\" \n      LIMIT {EXCEPT}\n  17  \"SELECT * FROM j1 LIMIT 10 OFFSET 5 EXCEPT SELECT * FROM j2,j3\" \n      LIMIT {EXCEPT}\n  18  \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) EXCEPT SELECT g FROM j2,j3\" \n      LIMIT {EXCEPT}\n\n  19  \"SELECT * FROM j1 ORDER BY a INTERSECT SELECT * FROM j2,j3\" \n      {ORDER BY} {INTERSECT}\n  20  \"SELECT count(*) FROM j1 ORDER BY 1 INTERSECT SELECT max(e) FROM j2\"\n      {ORDER BY} {INTERSECT}\n  21  \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 INTERSECT SELECT *,* FROM j2\"\n      {ORDER BY} {INTERSECT}\n  22  \"SELECT * FROM j1 LIMIT 10 INTERSECT SELECT * FROM j2,j3\" \n      LIMIT {INTERSECT}\n  23  \"SELECT * FROM j1 LIMIT 10 OFFSET 5 INTERSECT SELECT * FROM j2,j3\" \n      LIMIT {INTERSECT}\n  24  \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) INTERSECT SELECT g FROM j2,j3\" \n      LIMIT {INTERSECT}\n"
 									_items := tclSplitList("\n  1   \"SELECT * FROM j1 ORDER BY a UNION ALL SELECT * FROM j2,j3\" \n      {ORDER BY} {UNION ALL}\n  2   \"SELECT count(*) FROM j1 ORDER BY 1 UNION ALL SELECT max(e) FROM j2\"\n      {ORDER BY} {UNION ALL}\n  3   \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 UNION ALL SELECT *,* FROM j2\"\n      {ORDER BY} {UNION ALL}\n  4   \"SELECT * FROM j1 LIMIT 10 UNION ALL SELECT * FROM j2,j3\" \n      LIMIT {UNION ALL}\n  5   \"SELECT * FROM j1 LIMIT 10 OFFSET 5 UNION ALL SELECT * FROM j2,j3\" \n      LIMIT {UNION ALL}\n  6   \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) UNION ALL SELECT g FROM j2,j3\" \n      LIMIT {UNION ALL}\n\n  7   \"SELECT * FROM j1 ORDER BY a UNION SELECT * FROM j2,j3\" \n      {ORDER BY} {UNION}\n  8   \"SELECT count(*) FROM j1 ORDER BY 1 UNION SELECT max(e) FROM j2\"\n      {ORDER BY} {UNION}\n  9   \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 UNION SELECT *,* FROM j2\"\n      {ORDER BY} {UNION}\n  10  \"SELECT * FROM j1 LIMIT 10 UNION SELECT * FROM j2,j3\" \n      LIMIT {UNION}\n  11  \"SELECT * FROM j1 LIMIT 10 OFFSET 5 UNION SELECT * FROM j2,j3\" \n      LIMIT {UNION}\n  12  \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) UNION SELECT g FROM j2,j3\" \n      LIMIT {UNION}\n\n  13  \"SELECT * FROM j1 ORDER BY a EXCEPT SELECT * FROM j2,j3\" \n      {ORDER BY} {EXCEPT}\n  14  \"SELECT count(*) FROM j1 ORDER BY 1 EXCEPT SELECT max(e) FROM j2\"\n      {ORDER BY} {EXCEPT}\n  15  \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 EXCEPT SELECT *,* FROM j2\"\n      {ORDER BY} {EXCEPT}\n  16  \"SELECT * FROM j1 LIMIT 10 EXCEPT SELECT * FROM j2,j3\" \n      LIMIT {EXCEPT}\n  17  \"SELECT * FROM j1 LIMIT 10 OFFSET 5 EXCEPT SELECT * FROM j2,j3\" \n      LIMIT {EXCEPT}\n  18  \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) EXCEPT SELECT g FROM j2,j3\" \n      LIMIT {EXCEPT}\n\n  19  \"SELECT * FROM j1 ORDER BY a INTERSECT SELECT * FROM j2,j3\" \n      {ORDER BY} {INTERSECT}\n  20  \"SELECT count(*) FROM j1 ORDER BY 1 INTERSECT SELECT max(e) FROM j2\"\n      {ORDER BY} {INTERSECT}\n  21  \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 INTERSECT SELECT *,* FROM j2\"\n      {ORDER BY} {INTERSECT}\n  22  \"SELECT * FROM j1 LIMIT 10 INTERSECT SELECT * FROM j2,j3\" \n      LIMIT {INTERSECT}\n  23  \"SELECT * FROM j1 LIMIT 10 OFFSET 5 INTERSECT SELECT * FROM j2,j3\" \n      LIMIT {INTERSECT}\n  24  \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) INTERSECT SELECT g FROM j2,j3\" \n      LIMIT {INTERSECT}\n")
 									for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
@@ -532,36 +532,36 @@ func Test_e_select(t *testing.T) {
 														}
 													}
 												}
-												t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+												t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 												{ // "e_select-7.4.0"
 													_res = db.Exec("\n  CREATE TABLE q1(a TEXT, b INTEGER, c);\n  CREATE TABLE q2(d NUMBER, e BLOB);\n  CREATE TABLE q3(f REAL, g);\n\n  INSERT INTO q1 VALUES(16, -87.66, NULL);\n  INSERT INTO q1 VALUES('legible', 94, -42.47);\n  INSERT INTO q1 VALUES('beauty', 36, NULL);\n\n  INSERT INTO q2 VALUES('legible', 1);\n  INSERT INTO q2 VALUES('beauty', 2);\n  INSERT INTO q2 VALUES(-65.91, 4);\n  INSERT INTO q2 VALUES('emanating', -16.56);\n\n  INSERT INTO q3 VALUES('beauty', 2);\n  INSERT INTO q3 VALUES('beauty', 2);\n")
 													if _res.Error != nil {
 														t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE q1(a TEXT, b INTEGER, c);\n  CREATE TABLE q2(d NUMBER, e BLOB);\n  CREATE TABLE q3(f REAL, g);\n\n  INSERT INTO q1 VALUES(16, -87.66, NULL);\n  INSERT INTO q1 VALUES('legible', 94, -42.47);\n  INSERT INTO q1 VALUES('beauty', 36, NULL);\n\n  INSERT INTO q2 VALUES('legible', 1);\n  INSERT INTO q2 VALUES('beauty', 2);\n  INSERT INTO q2 VALUES(-65.91, 4);\n  INSERT INTO q2 VALUES('emanating', -16.56);\n\n  INSERT INTO q3 VALUES('beauty', 2);\n  INSERT INTO q3 VALUES('beauty', 2);\n")
 													}
 												}
-												t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.4 {\n  1   {SELECT a FROM q1 UNION ALL SELECT d FROM q...}")
-												t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.5 {\n  1   {SELECT a FROM q1 UNION SELECT d FROM q2}\n ...}")
-												t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.6 {\n  1   {SELECT a FROM q1 INTERSECT SELECT d FROM q...}")
-												t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.7 {\n  1   {SELECT a FROM q1 EXCEPT SELECT d FROM q2} ...}")
-												t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.8 {\n  0   {SELECT * FROM q3} {beauty 2 beauty 2}\n\n  1...}")
-												t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.9 {\n  1   {SELECT NULL UNION ALL SELECT NULL} {null n...}")
-												t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+												t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.4 {\n  1   {SELECT a FROM q1 UNION ALL SELECT d FROM q...}")
+												t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.5 {\n  1   {SELECT a FROM q1 UNION SELECT d FROM q2}\n ...}")
+												t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.6 {\n  1   {SELECT a FROM q1 INTERSECT SELECT d FROM q...}")
+												t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.7 {\n  1   {SELECT a FROM q1 EXCEPT SELECT d FROM q2} ...}")
+												t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.8 {\n  0   {SELECT * FROM q3} {beauty 2 beauty 2}\n\n  1...}")
+												t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.9 {\n  1   {SELECT NULL UNION ALL SELECT NULL} {null n...}")
+												t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 												{ // "e_select-7.10.0"
 													_res = db.Exec("\n  CREATE TABLE y1(a COLLATE nocase, b COLLATE binary, c);\n  INSERT INTO y1 VALUES('Abc', 'abc', 'aBC');\n")
 													if _res.Error != nil {
 														t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE y1(a COLLATE nocase, b COLLATE binary, c);\n  INSERT INTO y1 VALUES('Abc', 'abc', 'aBC');\n")
 													}
 												}
-												t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.10 {\n  1   {SELECT 'abc'                UNION SELECT '...}")
-												t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+												t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.10 {\n  1   {SELECT 'abc'                UNION SELECT '...}")
+												t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 												{ // "e_select-7.10.0"
 													_res = db.Exec("\n  CREATE TABLE w1(a TEXT, b NUMBER);\n  CREATE TABLE w2(a, b TEXT);\n\n  INSERT INTO w1 VALUES('1', 4.1);\n  INSERT INTO w2 VALUES(1, 4.1);\n")
 													if _res.Error != nil {
 														t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE w1(a TEXT, b NUMBER);\n  CREATE TABLE w2(a, b TEXT);\n\n  INSERT INTO w1 VALUES('1', 4.1);\n  INSERT INTO w2 VALUES(1, 4.1);\n")
 													}
 												}
-												t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.11 {\n  1  { SELECT a FROM w1 UNION SELECT a FROM w2 } ...}")
-												t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+												t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-7.11 {\n  1  { SELECT a FROM w1 UNION SELECT a FROM w2 } ...}")
+												t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 												{ // "e_select-7.12.0"
 													_res = db.Exec("\n  CREATE TABLE t1(x);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n")
 													if _res.Error != nil {
@@ -587,20 +587,20 @@ func Test_e_select(t *testing.T) {
 															}
 														}
 													}
-													t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
+													t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 													{ // "e_select-8.1.0"
 														_res = db.Exec("\n  CREATE TABLE d1(x, y, z);\n\n  INSERT INTO d1 VALUES(1, 2, 3);\n  INSERT INTO d1 VALUES(2, 5, -1);\n  INSERT INTO d1 VALUES(1, 2, 8);\n  INSERT INTO d1 VALUES(1, 2, 7);\n  INSERT INTO d1 VALUES(2, 4, 93);\n  INSERT INTO d1 VALUES(1, 2, -20);\n  INSERT INTO d1 VALUES(1, 4, 93);\n  INSERT INTO d1 VALUES(1, 5, -1);\n\n  CREATE TABLE d2(a, b);\n  INSERT INTO d2 VALUES('gently', 'failings');\n  INSERT INTO d2 VALUES('commercials', 'bathrobe');\n  INSERT INTO d2 VALUES('iterate', 'sexton');\n  INSERT INTO d2 VALUES('babied', 'charitableness');\n  INSERT INTO d2 VALUES('solemnness', 'annexed');\n  INSERT INTO d2 VALUES('rejoicing', 'liabilities');\n  INSERT INTO d2 VALUES('pragmatist', 'guarded');\n  INSERT INTO d2 VALUES('barked', 'interrupted');\n  INSERT INTO d2 VALUES('reemphasizes', 'reply');\n  INSERT INTO d2 VALUES('lad', 'relenting');\n")
 														if _res.Error != nil {
 															t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE d1(x, y, z);\n\n  INSERT INTO d1 VALUES(1, 2, 3);\n  INSERT INTO d1 VALUES(2, 5, -1);\n  INSERT INTO d1 VALUES(1, 2, 8);\n  INSERT INTO d1 VALUES(1, 2, 7);\n  INSERT INTO d1 VALUES(2, 4, 93);\n  INSERT INTO d1 VALUES(1, 2, -20);\n  INSERT INTO d1 VALUES(1, 4, 93);\n  INSERT INTO d1 VALUES(1, 5, -1);\n\n  CREATE TABLE d2(a, b);\n  INSERT INTO d2 VALUES('gently', 'failings');\n  INSERT INTO d2 VALUES('commercials', 'bathrobe');\n  INSERT INTO d2 VALUES('iterate', 'sexton');\n  INSERT INTO d2 VALUES('babied', 'charitableness');\n  INSERT INTO d2 VALUES('solemnness', 'annexed');\n  INSERT INTO d2 VALUES('rejoicing', 'liabilities');\n  INSERT INTO d2 VALUES('pragmatist', 'guarded');\n  INSERT INTO d2 VALUES('barked', 'interrupted');\n  INSERT INTO d2 VALUES('reemphasizes', 'reply');\n  INSERT INTO d2 VALUES('lad', 'relenting');\n")
 														}
 													}
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.1 {\n  1  \"SELECT * FROM d1 ORDER BY x, y, z\" {\n     1...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8 {\n  2.1  \"SELECT * FROM d1 ORDER BY x ASC, y ASC, z...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.4 {\n  1  \"SELECT * FROM d1 ORDER BY 1 ASC, 2 ASC, 3 A...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.5 {\n  1   \"SELECT z+1 AS abc FROM d1 ORDER BY abc\" {\n...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.6 {\n  1   \"SELECT * FROM d1 ORDER BY x+y+z\" {\n    1 2...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.7.1 -error {\n  %s ORDER BY term does not match any column in t...} {\n  1   \"SELECT x FROM d1 UNION ALL SELECT a FROM d...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.7.2 {\n  1   \"SELECT x*z FROM d1 UNION ALL SELECT a FROM...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.1 {\n  1  \"SELECT * FROM d1 ORDER BY x, y, z\" {\n     1...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8 {\n  2.1  \"SELECT * FROM d1 ORDER BY x ASC, y ASC, z...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.4 {\n  1  \"SELECT * FROM d1 ORDER BY 1 ASC, 2 ASC, 3 A...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.5 {\n  1   \"SELECT z+1 AS abc FROM d1 ORDER BY abc\" {\n...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.6 {\n  1   \"SELECT * FROM d1 ORDER BY x+y+z\" {\n    1 2...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.7.1 -error {\n  %s ORDER BY term does not match any column in t...} {\n  1   \"SELECT x FROM d1 UNION ALL SELECT a FROM d...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.7.2 {\n  1   \"SELECT x*z FROM d1 UNION ALL SELECT a FROM...}")
 													{ // "e_select-8.8.0"
 														_res = db.Exec("\n  CREATE TABLE d3(a);\n  INSERT INTO d3 VALUES('text');\n  INSERT INTO d3 VALUES(14.1);\n  INSERT INTO d3 VALUES(13);\n  INSERT INTO d3 VALUES(X'78787878');\n  INSERT INTO d3 VALUES(15);\n  INSERT INTO d3 VALUES(12.9);\n  INSERT INTO d3 VALUES(null);\n\n  CREATE TABLE d4(x COLLATE nocase);\n  INSERT INTO d4 VALUES('abc');\n  INSERT INTO d4 VALUES('ghi');\n  INSERT INTO d4 VALUES('DEF');\n  INSERT INTO d4 VALUES('JKL');\n")
 														if _res.Error != nil {
@@ -733,20 +733,20 @@ func Test_e_select(t *testing.T) {
 															t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE d5(a, b);\n  CREATE TABLE d6(c, d);\n  CREATE TABLE d7(e, f);\n \n  INSERT INTO d5 VALUES(1, 'f');\n  INSERT INTO d6 VALUES(2, 'e');\n  INSERT INTO d7 VALUES(3, 'd');\n  INSERT INTO d5 VALUES(4, 'c');\n  INSERT INTO d6 VALUES(5, 'b');\n  INSERT INTO d7 VALUES(6, 'a');\n\n  CREATE TABLE d8(x COLLATE nocase);\n  CREATE TABLE d9(y COLLATE nocase);\n\n  INSERT INTO d8 VALUES('a');\n  INSERT INTO d9 VALUES('B');\n  INSERT INTO d8 VALUES('c');\n  INSERT INTO d9 VALUES('D');\n")
 														}
 													}
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.13 {\n  1   { SELECT a FROM d5 UNION ALL SELECT c FROM ...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.14 -error {\n  %s ORDER BY term does not match any column in t...} {\n  1   { SELECT a FROM d5 UNION SELECT c FROM d6 O...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.15 {\n  1  { SELECT a, b FROM d5 UNION ALL SELECT c-1, ...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.13 {\n  1   { SELECT a FROM d5 UNION ALL SELECT c FROM ...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.14 -error {\n  %s ORDER BY term does not match any column in t...} {\n  1   { SELECT a FROM d5 UNION SELECT c FROM d6 O...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-8.15 {\n  1  { SELECT a, b FROM d5 UNION ALL SELECT c-1, ...}")
 													{ // "e_select-9.0"
 														_res = db.Exec("\n  CREATE TABLE f1(a, b);\n  INSERT INTO f1 VALUES(26, 'z');\n  INSERT INTO f1 VALUES(25, 'y');\n  INSERT INTO f1 VALUES(24, 'x');\n  INSERT INTO f1 VALUES(23, 'w');\n  INSERT INTO f1 VALUES(22, 'v');\n  INSERT INTO f1 VALUES(21, 'u');\n  INSERT INTO f1 VALUES(20, 't');\n  INSERT INTO f1 VALUES(19, 's');\n  INSERT INTO f1 VALUES(18, 'r');\n  INSERT INTO f1 VALUES(17, 'q');\n  INSERT INTO f1 VALUES(16, 'p');\n  INSERT INTO f1 VALUES(15, 'o');\n  INSERT INTO f1 VALUES(14, 'n');\n  INSERT INTO f1 VALUES(13, 'm');\n  INSERT INTO f1 VALUES(12, 'l');\n  INSERT INTO f1 VALUES(11, 'k');\n  INSERT INTO f1 VALUES(10, 'j');\n  INSERT INTO f1 VALUES(9, 'i');\n  INSERT INTO f1 VALUES(8, 'h');\n  INSERT INTO f1 VALUES(7, 'g');\n  INSERT INTO f1 VALUES(6, 'f');\n  INSERT INTO f1 VALUES(5, 'e');\n  INSERT INTO f1 VALUES(4, 'd');\n  INSERT INTO f1 VALUES(3, 'c');\n  INSERT INTO f1 VALUES(2, 'b');\n  INSERT INTO f1 VALUES(1, 'a');\n")
 														if _res.Error != nil {
 															t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE f1(a, b);\n  INSERT INTO f1 VALUES(26, 'z');\n  INSERT INTO f1 VALUES(25, 'y');\n  INSERT INTO f1 VALUES(24, 'x');\n  INSERT INTO f1 VALUES(23, 'w');\n  INSERT INTO f1 VALUES(22, 'v');\n  INSERT INTO f1 VALUES(21, 'u');\n  INSERT INTO f1 VALUES(20, 't');\n  INSERT INTO f1 VALUES(19, 's');\n  INSERT INTO f1 VALUES(18, 'r');\n  INSERT INTO f1 VALUES(17, 'q');\n  INSERT INTO f1 VALUES(16, 'p');\n  INSERT INTO f1 VALUES(15, 'o');\n  INSERT INTO f1 VALUES(14, 'n');\n  INSERT INTO f1 VALUES(13, 'm');\n  INSERT INTO f1 VALUES(12, 'l');\n  INSERT INTO f1 VALUES(11, 'k');\n  INSERT INTO f1 VALUES(10, 'j');\n  INSERT INTO f1 VALUES(9, 'i');\n  INSERT INTO f1 VALUES(8, 'h');\n  INSERT INTO f1 VALUES(7, 'g');\n  INSERT INTO f1 VALUES(6, 'f');\n  INSERT INTO f1 VALUES(5, 'e');\n  INSERT INTO f1 VALUES(4, 'd');\n  INSERT INTO f1 VALUES(3, 'c');\n  INSERT INTO f1 VALUES(2, 'b');\n  INSERT INTO f1 VALUES(1, 'a');\n")
 														}
 													}
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.1 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 5 } {a b...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.2 -error datatype mismatch {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 'hello' ...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.4 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT -1 } \n  ...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.5 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 0 } {}\n ...}")
-													t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.6 {\n  1  { SELECT b FROM f1 WHERE a>21 ORDER BY a LIM...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.1 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 5 } {a b...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.2 -error datatype mismatch {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 'hello' ...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.4 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT -1 } \n  ...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.5 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 0 } {}\n ...}")
+													t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.6 {\n  1  { SELECT b FROM f1 WHERE a>21 ORDER BY a LIM...}")
 													// foreach {tn select} "\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET 'hello' } \n  2  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET NULL } \n  3  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET X'ABCD' } \n  4  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET 5.1 } \n  5  { SELECT b FROM f1 ORDER BY a \n       LIMIT 2 OFFSET (SELECT group_concat(b) FROM f1) \n  } \n"
 													_items := tclSplitList("\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET 'hello' } \n  2  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET NULL } \n  3  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET X'ABCD' } \n  4  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET 5.1 } \n  5  { SELECT b FROM f1 ORDER BY a \n       LIMIT 2 OFFSET (SELECT group_concat(b) FROM f1) \n  } \n")
 													for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
@@ -762,8 +762,8 @@ func Test_e_select(t *testing.T) {
 																}
 															}
 														}
-														t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.8 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 10 OFFSE...}")
-														t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.9 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 10 OFFSE...}")
-														t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.10 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 5 OFFSET...}")
-														t.Skipf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.11 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 5, 10 } ...}")
+														t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.8 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 10 OFFSE...}")
+														t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.9 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 10 OFFSE...}")
+														t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.10 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 5 OFFSET...}")
+														t.Errorf("TODO: %s not implemented in frigolite", "do_select_tests e_select-9.11 {\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 5, 10 } ...}")
 }

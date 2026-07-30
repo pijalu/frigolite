@@ -22,7 +22,7 @@ func Test_bestindex3(t *testing.T) {
 	var testprefix = "bestindex3"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING tcl(\"vtab_cmd 0\");\n")
 		if _res.Error != nil {

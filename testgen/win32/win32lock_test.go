@@ -25,8 +25,8 @@ func Test_win32lock(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "win32lock"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
 	// proc definition (not transpiled)
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -49,7 +49,7 @@ func Test_win32lock(t *testing.T) {
 	var delay1 = "25"
 	_ = delay1 // suppress unused warning
 	for true {
-		t.Skipf("TODO: %s not implemented in frigolite", "lock_win32_file test.db 0 $::delay1")
+		t.Errorf("TODO: %s not implemented in frigolite", "lock_win32_file test.db 0 $::delay1")
 		var _log = "" // TCL namespace variable
 		_ = _log // suppress unused warning
 	var rc string
@@ -98,13 +98,13 @@ func Test_win32lock(t *testing.T) {
 			t.Log("Timed out waiting for \\\"ok\\\" and \\\"error\\\" results.")
 			break
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_sleep 10")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_sleep 10")
 	}
 	{ // do_test "win32lock-2.0"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_win32_av_retry db -1 -1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_win32_av_retry db -1 -1")
 	}
 	{ // do_test "win32lock-2.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "file_control_win32_av_retry db 1 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "file_control_win32_av_retry db 1 1")
 	}
 	var win32_lock_ok = "list"
 	_ = win32_lock_ok // suppress unused warning
@@ -113,7 +113,7 @@ func Test_win32lock(t *testing.T) {
 	var delay1 = "1"
 	_ = delay1 // suppress unused warning
 	for true {
-		t.Skipf("TODO: %s not implemented in frigolite", "lock_win32_file test.db 0 $::delay1")
+		t.Errorf("TODO: %s not implemented in frigolite", "lock_win32_file test.db 0 $::delay1")
 		var _log = "" // TCL namespace variable
 		_ = _log // suppress unused warning
 	var rc string
@@ -162,10 +162,10 @@ func Test_win32lock(t *testing.T) {
 			t.Log("Timed out waiting for \\\"ok\\\" and \\\"error\\\" results.")
 			break
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_sleep 10")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_sleep 10")
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "file_control_win32_av_retry db 10 25")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte $old_pending_byte")
+	t.Errorf("TODO: %s not implemented in frigolite", "file_control_win32_av_retry db 10 25")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte $old_pending_byte")
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
@@ -201,7 +201,7 @@ func Test_win32lock(t *testing.T) {
 		_ = _list
 	}
 	db2.Close()
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
-	t.Skipf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
+	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 }

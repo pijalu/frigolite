@@ -26,7 +26,7 @@ func Test_temptrigger(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	var _enable_shared_cache = "sqlite3_enable_shared_cache" // TCL namespace variable
 	_ = _enable_shared_cache // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache 1")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	db2, err := frigolite.Open("test.db")
@@ -143,7 +143,7 @@ func Test_temptrigger(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 		db2.Close()
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 	{ // do_test "temptrigger-3.1"
 		{
 			var _catchErr error

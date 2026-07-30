@@ -82,30 +82,30 @@ func Test_count(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a, b);\n  ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM t2}")
 	}
 	{ // do_test "count-2.2"
 		_res = db.Exec("SELECT count(DISTINCT *) FROM t2")
 		_ = _res // catchsql
 	}
 	{ // do_test "count-2.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(DISTINCT a) FROM t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(DISTINCT a) FROM t2}")
 	}
 	{ // do_test "count-2.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(a) FROM t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(a) FROM t2}")
 	}
 	{ // do_test "count-2.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count() FROM t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count() FROM t2}")
 	}
 	{ // do_test "count-2.6"
 		_res = db.Exec("SELECT count(DISTINCT) FROM t2")
 		_ = _res // catchsql
 	}
 	{ // do_test "count-2.7"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*)+1 FROM t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*)+1 FROM t2}")
 	}
 	{ // do_test "count-2.8"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM t2 WHERE a IS NOT NULL}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM t2 WHERE a IS NOT NULL}")
 	}
 	{ // "count-2.9a"
 		r = db.Query("\n  SELECT count(*) FROM t2 HAVING count(*)>1;\n")
@@ -126,20 +126,20 @@ func Test_count(t *testing.T) {
 		}
 	}
 	{ // do_test "count-2.10"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM (SELECT 1)}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM (SELECT 1)}")
 	}
 	{ // do_test "count-2.11"
 		_res = db.Exec(" CREATE VIEW v1 AS SELECT 1 AS a ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIEW v1 AS SELECT 1 AS a ")
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM v1}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM v1}")
 	}
 	{ // do_test "count-2.12"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*), max(a) FROM t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*), max(a) FROM t2}")
 	}
 	{ // do_test "count-2.13"
-		t.Skipf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM t1, t2}")
+		t.Errorf("TODO: %s not implemented in frigolite", "uses_op_count {SELECT count(*) FROM t1, t2}")
 	}
 	{ // do_test "count-3.1"
 		r = db.Query("\n    CREATE TABLE t3(a, b);\n    SELECT a FROM (SELECT count(*) AS a FROM t3) WHERE a==0;\n  ")

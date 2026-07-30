@@ -21,7 +21,7 @@ func Test_bestindex6(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "bestindex6"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "register_tcl_module db")
+	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	// proc definition (not transpiled)
 	{ // "1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(id int, value text);\n  CREATE TABLE t2(ctx int, id int, value text); \n\n  INSERT INTO t1 VALUES(1,'try');\n  INSERT INTO t2 VALUES(1,1,'good');\n  INSERT INTO t2 VALUES(2,2,'evil');\n\n  CREATE VIRTUAL TABLE vt1 USING tcl(vtab_command t1);\n  CREATE VIRTUAL TABLE vt2 USING tcl(vtab_command t2);\n")

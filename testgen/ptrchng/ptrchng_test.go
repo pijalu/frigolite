@@ -19,7 +19,7 @@ func Test_ptrchng(t *testing.T) {
 	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")
 	{ // do_test "ptrchng-1.1"
 		r = db.Query("\n    CREATE TABLE t1(x INTEGER PRIMARY KEY, y BLOB);\n    INSERT INTO t1 VALUES(1, 'abc');\n    INSERT INTO t1 VALUES(2, \n       'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234356789');\n    INSERT INTO t1 VALUES(3, x'626c6f62');\n    INSERT INTO t1 VALUES(4,\n x'000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f2021222324'\n    );\n    SELECT count(*) FROM t1;\n  ")
 		if r.Error != nil {

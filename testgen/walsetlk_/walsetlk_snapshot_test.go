@@ -22,11 +22,11 @@ func Test_walsetlk_snapshot(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "walsetlk_snapshot"
 	_ = testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script sleep_callback")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xSleep")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script sleep_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xSleep")
 	var _sleep_count = "0" // TCL namespace variable
 	_ = _sleep_count // suppress unused warning
 	// proc definition (not transpiled)
@@ -48,7 +48,7 @@ func Test_walsetlk_snapshot(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO t1 VALUES(7, 8);\n    COMMIT;\n  ")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testfixture_nb myvar {\n\n  testvfs tvfs -fullshm 1\n  sqlite3 db test.db -...}")
+	t.Errorf("TODO: %s not implemented in frigolite", "testfixture_nb myvar {\n\n  testvfs tvfs -fullshm 1\n  sqlite3 db test.db -...}")
 	var tm = "lindex [time {\n  catch {\n    db eval BEGIN\n      sqlite3_snapshot_open db main $::snap\n  } msg\n}] 0"
 	_ = tm // suppress unused warning
 	{ // do_test "1.2"
@@ -69,7 +69,7 @@ func Test_walsetlk_snapshot(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_snapshot_free $::snap")
 	if func() bool { _sqlite_options_n, __sqlite_options_e := strconv.Atoi(_sqlite_options); if __sqlite_options_e != nil { return false }; return _sqlite_options_n(setlk_timeout) == 1 }() {
 		{ // do_test "1.5.1"
 			_ = _sleep_count // TCL namespace variable (query)

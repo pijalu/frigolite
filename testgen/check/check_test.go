@@ -23,8 +23,8 @@ func Test_check(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "check" // TCL namespace variable
 	_ = _testprefix // suppress unused warning
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
 	{ // do_test "check-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(\n      x INTEGER CHECK( x<5 ),\n      y REAL CHECK( y>x )\n    );\n  ")
 		if _res.Error != nil {
@@ -127,8 +127,8 @@ func Test_check(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DDL 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_DQS_DML 1")
 	{ // do_test "check-2.3"
 		r = db.Query("\n    INSERT INTO t2 VALUES(NULL, NULL, NULL);\n    SELECT * FROM t2;\n  ")
 		if r.Error != nil {

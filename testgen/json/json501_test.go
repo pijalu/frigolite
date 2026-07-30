@@ -740,7 +740,7 @@ func Test_json501(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "switch $c {\n    8   {set e \"\\\\b\"}\n    9   {set e \"\\\\t\"}\n    1...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "switch $c {\n    8   {set e \"\\\\b\"}\n    9   {set e \"\\\\t\"}\n    1...}")
 		{ // "14." + c + ".3"
 			r = db.Query("\n    SELECT json('{label:\"abc' || char($c) || 'xyz\"}');\n  ")
 			if r.Error != nil {

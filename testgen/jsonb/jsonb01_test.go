@@ -73,7 +73,7 @@ func Test_jsonb01(t *testing.T) {
 				t.Errorf("expected error containing %q, got: %v\n  sql: %s", "malformed JSON", _res.Error, "\n  SELECT json(x'6B37616263162d');\n")
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db strdup")
+		t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db strdup")
 		{ // "jsonb01-3.1"
 			_res = db.Exec("\n  SELECT json(strdup(x'6B37616263162d'));\n")
 			if _res.Error == nil || !strings.Contains(_res.Error.Error(), "malformed JSON") {

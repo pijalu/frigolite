@@ -29,7 +29,7 @@ func Test_fts4merge5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n  CREATE TABLE t1(docid, words);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
+	t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 	{ // "1.2"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE x1 USING fts3; \n  INSERT INTO x1(x1) VALUES('nodesize=64');\n  INSERT INTO x1(x1) VALUES('maxpending=64');\n")
 		if _res.Error != nil {

@@ -62,7 +62,7 @@ func Test_colmeta(t *testing.T) {
 				var res string // catch result ("0"=ok, "1"=error)
 				var _catchErrMsg string // catch error message
 				var _catchErr error
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main xyzzy")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main xyzzy")
 				if _catchErr != nil {
 					res = "1"
 					_catchErrMsg = _catchErr.Error()
@@ -77,7 +77,7 @@ func Test_colmeta(t *testing.T) {
 				var res string // catch result ("0"=ok, "1"=error)
 				var _catchErrMsg string // catch error message
 				var _catchErr error
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main abc")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main abc")
 				if _catchErr != nil {
 					res = "1"
 					_catchErrMsg = _catchErr.Error()

@@ -24,7 +24,7 @@ func Test_incrblob3(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
 	{ // "incrblob3-1.1"
 		_res = db.Exec("\n  CREATE TABLE blobs(k INTEGER PRIMARY KEY, v BLOB);\n  INSERT INTO blobs VALUES(1, zeroblob(100));\n  INSERT INTO blobs VALUES(2, zeroblob(100));\n")
 		if _res.Error != nil {
@@ -37,16 +37,16 @@ func Test_incrblob3(t *testing.T) {
 		t.Log(_blob)
 	}
 	{ // do_test "incrblob3-1.3"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_reopen $::blob 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_reopen $::blob 2")
 		t.Log(_blob)
 	}
 	{ // do_test "incrblob3-1.4"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_reopen $::blob 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "gets $::blob")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_reopen $::blob 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "gets $::blob")
 	}
 	{ // do_test "incrblob3-1.5"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_reopen $::blob 2")
-		t.Skipf("TODO: %s not implemented in frigolite", "gets $::blob")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_reopen $::blob 2")
+		t.Errorf("TODO: %s not implemented in frigolite", "gets $::blob")
 	}
 	{ // do_test "incrblob3-1.6"
 		// close $::blob
@@ -107,7 +107,7 @@ func Test_incrblob3(t *testing.T) {
 				_ = _list
 			}
 			{ // do_test "incrblob3-2.2." + tn + ".6"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
 			}
 			{ // do_test "incrblob3-2.2." + tn + ".7"
 				// close $::blob
@@ -126,15 +126,15 @@ func Test_incrblob3(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "incrblob3-3.4"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes {}")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes {}")
 		}
 		{ // do_test "incrblob3-3.5"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_close {}")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_close {}")
 		}
 		{ // do_test "incrblob3-4.1"
 			var _blob = "db incrblob blobs v 1" // TCL namespace variable
 			_ = _blob // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
 		}
 		{ // do_test "incrblob3-4.2"
 			_list := tclList([]string{"0", msg})
@@ -166,7 +166,7 @@ func Test_incrblob3(t *testing.T) {
 		{ // do_test "incrblob3-5.1"
 			var _blob = "db incrblob blobs v 1" // TCL namespace variable
 			_ = _blob // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_bytes $::blob")
 		}
 		{ // do_test "incrblob3-5.2"
 			_res = db.Exec(" UPDATE blobs SET v = '123456789012345678901234567890' WHERE k = 1 ")
@@ -229,7 +229,7 @@ func Test_incrblob3(t *testing.T) {
 			db2, err := frigolite.Open("test.db")
 			defer db2.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db2 0 0 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db2 0 0 0")
 			_res = db.Exec(" CREATE TABLE t2(x) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t2(x) ")
@@ -239,19 +239,19 @@ func Test_incrblob3(t *testing.T) {
 			// close $::blob
 		}
 		db2.Close()
-		t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xAccess")
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs script access_method")
+		t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xAccess")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs script access_method")
 		// proc definition (not transpiled)
 		{ // do_test "incrblob3-7.2"
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config_lookaside db 0 0 0")
 			_list := tclList([]string{"0", msg})
 			_ = _list
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "tvfs delete")
+		t.Errorf("TODO: %s not implemented in frigolite", "tvfs delete")
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
@@ -265,19 +265,19 @@ func Test_incrblob3(t *testing.T) {
 		{ // do_test "8.2"
 			var _blob = "db incrblob -readonly main t1 b 4" // TCL namespace variable
 			_ = _blob // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "read $::blob")
+			t.Errorf("TODO: %s not implemented in frigolite", "read $::blob")
 		}
 		// close $::blob
 		{ // do_test "8.3"
 			var _blob = "db incrblob -readonly aux t1 b 4" // TCL namespace variable
 			_ = _blob // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "read $::blob")
+			t.Errorf("TODO: %s not implemented in frigolite", "read $::blob")
 		}
 		// close $::blob
 		{ // do_test "8.4"
 			var _blob = "db incrblob -readonly t1 b 4" // TCL namespace variable
 			_ = _blob // suppress unused warning
-			t.Skipf("TODO: %s not implemented in frigolite", "read $::blob")
+			t.Errorf("TODO: %s not implemented in frigolite", "read $::blob")
 		}
 		// close $::blob
 		{ // do_test "8.5"

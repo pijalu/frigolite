@@ -40,8 +40,8 @@ func Test_thread001(t *testing.T) {
 			_res = db.Exec(" DROP TABLE ab; ")
 			_ = _res // catchsql
 			{ // do_test "thread001." + tn + ".0"
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $shared_cache")
-				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $shared_cache")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $shared_cache")
+				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $shared_cache")
 			}
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
@@ -75,7 +75,7 @@ func Test_thread001(t *testing.T) {
 			var i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _NTHREAD_n, __NTHREAD_e := strconv.Atoi(_NTHREAD); if __NTHREAD_e != nil { return false }; return i_n < _NTHREAD_n }() {
-				t.Skipf("TODO: %s not implemented in frigolite", "thread_spawn finished($i) $dbconfig $thread_procs $thread_program")
+				t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished($i) $dbconfig $thread_procs $thread_program")
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -119,7 +119,7 @@ func Test_thread001(t *testing.T) {
 				}
 			}
 		}
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_enable_shared_cache $::enable_shared_cache")
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning

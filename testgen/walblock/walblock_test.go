@@ -30,7 +30,7 @@ func Test_walblock(t *testing.T) {
 		var _catchErr error
 		_ = _catchErr // suppress unused warning
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
+	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
 	for _, f := range tclSplitList("glob test.db*") {
 		os.Remove(f)
 	}
@@ -48,12 +48,12 @@ func Test_walblock(t *testing.T) {
 	{ // do_test "1.1.2"
 		var C = "launch_testfixture"
 		_ = C // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "testfixture $C {\n    sqlite3 db test.db\n    db eval { SELECT * FRO...}")
+		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $C {\n    sqlite3 db test.db\n    db eval { SELECT * FRO...}")
 	}
 	{ // do_test "1.1.3"
 		var _out = "list" // TCL namespace variable
 		_ = _out // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "testfixture $C {\n    db eval { SELECT * FROM t1 }\n  } [list set ::out]")
+		t.Errorf("TODO: %s not implemented in frigolite", "testfixture $C {\n    db eval { SELECT * FROM t1 }\n  } [list set ::out]")
 		_ = _out // TCL namespace variable (query)
 	}
 	{ // do_test "1.1.4"
@@ -65,8 +65,8 @@ func Test_walblock(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  BEGIN;\n    INSERT INTO t1 VALUES(9, 10);\n")
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs script barrier_callback")
-	t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xShmBarrier")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs script barrier_callback")
+	t.Errorf("TODO: %s not implemented in frigolite", "tvfs filter xShmBarrier")
 	// proc definition (not transpiled)
 	_res = db.Exec("COMMIT")
 	if _res.Error != nil {

@@ -22,7 +22,7 @@ func Test_journal3(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool(_tcl_platform + "(os) != \"Windows NT\"\n && " + "atomic_batch_write test.db" + "==0") {
-		t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
+		t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 		{ // do_test "journal3-1.1"
 			_res = db.Exec(" CREATE TABLE tx(y, z) ")
 			if _res.Error != nil {

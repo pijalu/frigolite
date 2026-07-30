@@ -57,7 +57,7 @@ func Test_trans3(t *testing.T) {
 		_ = _ecode // TCL namespace variable (query)
 	}
 	{ // do_test "trans3-1.3.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
 	}
 	{ // do_test "trans3-1.4"
 		_res = db.Exec("SELECT * FROM t1")

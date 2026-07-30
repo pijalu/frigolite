@@ -86,8 +86,8 @@ func Test_walckptnoop(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	t.Skipf("TODO: %s not implemented in frigolite", "db_save_and_close")
-	t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
+	t.Errorf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
 	{ // "1.5"
 		r = db.Query("\n  PRAGMA wal_checkpoint = noop;\n")
 		if r.Error != nil {
@@ -131,7 +131,7 @@ func Test_walckptnoop(t *testing.T) {
 		}
 	}
 	{ // do_test "1.9"
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint_v2 db noop")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_wal_checkpoint_v2 db noop")
 	}
 	{ // "1.10"
 		r = db.Query("\n  PRAGMA journal_mode = delete;\n  PRAGMA wal_checkpoint = noop;\n")

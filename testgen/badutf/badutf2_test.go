@@ -38,7 +38,7 @@ func Test_badutf2(t *testing.T) {
 	{ // do_test "badutf2-4.0"
 		var S = ""
 		_ = S // suppress unused warning
-		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
+		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
 	}
 	// foreach {i len uval xstr ustr u2u} "\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n"
 	_items := tclSplitList("\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n")
@@ -70,14 +70,14 @@ func Test_badutf2(t *testing.T) {
 			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return i_n==5 && tcl_version_n >= 8.7 }() {
 			} else {
 				{ // do_test "badutf2-4.1." + i
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_reset $S")
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 $xstr $len")
-					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
-					t.Skipf("TODO: %s not implemented in frigolite", "utf8_to_ustr2 [ sqlite3_column_text $S 0 ]")
+					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $S")
+					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_bind_text $S 1 $xstr $len")
+					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $S")
+					t.Errorf("TODO: %s not implemented in frigolite", "utf8_to_ustr2 [ sqlite3_column_text $S 0 ]")
 				}
 			}
 		}
 		{ // do_test "badutf2-4.2"
-			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
+			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
 		}
 }

@@ -20,7 +20,7 @@ func Test_vtabB(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "vtabB-1.1"
-		t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
+		t.Errorf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    BEGIN;\n    CREATE VIRTUAL TABLE temp.echo_test1 USING echo(t1);\n    DROP TABLE echo_test1;\n    ROLLBACK;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    BEGIN;\n    CREATE VIRTUAL TABLE temp.echo_test1 USING echo(t1);\n    DROP TABLE echo_test1;\n    ROLLBACK;\n  ")
