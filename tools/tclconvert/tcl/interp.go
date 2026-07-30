@@ -319,6 +319,16 @@ func (i *Interp) execCommand(rawWords []rawWord, localVars map[string]string) er
 		i.vars[""] = args[0] // simplified
 	case "concat":
 		i.vars[""] = strings.Join(args, " ")
+	case "join":
+		// join LIST ?SEP? — join list elements with separator
+		if len(args) >= 1 {
+			sep := " "
+			if len(args) >= 2 {
+				sep = args[1]
+			}
+			items := splitList(args[0])
+			i.vars[""] = strings.Join(items, sep)
+		}
 	case "string":
 		return i.cmdString(args)
 	case "regexp":

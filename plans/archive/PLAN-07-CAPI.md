@@ -1,5 +1,7 @@
 # PLAN-P7 — C API Go Recreation Layer
 
+> **⚠️ DEPRECATED APPROACH**: This plan describes integration with the old Python converter (`convert_compat_json.py`) which has been deleted. The project now uses the **tcl2go** pipeline (Go TCL interpreter → Go test files). See [`PLAN.md`](./PLAN.md) for the current strategy.
+>
 > **Prerequisite**: P0 (test infrastructure). Independent of P1–P6.
 > **SQLite reference**: `/Users/muaddib/dev/sqlite/src/`
 >   - Prepared statements: `src/prepare.c`

@@ -1,5 +1,7 @@
 # PLAN-P10 — Quality Gates & Final Verification
 
+> **⚠️ DEPRECATED APPROACH**: This plan references the old Python converter (`convert_compat_json.py`) and JSON harness (`testdata/*.json`). The project now uses the **tcl2go** pipeline (Go TCL interpreter → Go test files). See [`PLAN.md`](./PLAN.md) for the current strategy.
+>
 > **Prerequisite**: All prior phases (P0–P9).
 > **Goal**: Ensure quality gates pass, SOLID architecture is maintained, and the
 > full test suite is green.
@@ -94,16 +96,17 @@ grep -c "panic:" /tmp/frigolite_final.log
 
 ### Step 6: Regenerate test data (final)
 
-If the converters were updated in P0, regenerate:
+If infrastructure was updated in P0, regenerate all tests:
 ```bash
 cd /Users/muaddib/dev/frigolite
-python3 tools/convert_compat_test.py
-python3 tools/convert_compat_json.py
-# If oracle_generate.py exists:
-python3 tools/oracle_generate.py
+go run ./tools/tcl2go/              # Generate all Go test files from TCL
+python3 tools/oracle_generate.py    # If oracle generation is needed
 ```
 
-Then run the full suite again to confirm.
+Then run the full suite again to confirm:
+```bash
+go test ./testgen/... -count=1
+```
 
 ### Step 7: Documentation cleanup
 

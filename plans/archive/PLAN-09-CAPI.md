@@ -1,5 +1,7 @@
 # G09 — C-API Test Pattern Migration
 
+> **⚠️ DEPRECATED APPROACH**: This plan describes modifications to the old Python converter (`convert_compat_json.py`) which has been deleted. The test data now uses the **tcl2go** pipeline (Go TCL interpreter → Go test files). See [`PLAN.md`](./PLAN.md) for the current strategy.
+>
 > **Prerequisite**: G00 (test infrastructure with oracle).
 > **SQLite reference**: `/Users/muaddib/dev/sqlite/src/tclsqlite.c` (TCL test wrapper),
 > `/Users/muaddib/dev/sqlite/src/main.c` (function `sqlite3_prepare()` and friends),

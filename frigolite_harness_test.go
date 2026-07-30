@@ -265,7 +265,7 @@ func TestSQLiteSuite(t *testing.T) {
 		t.Fatalf("failed to list test data: %v", err)
 	}
 	if len(files) == 0 {
-		t.Skip("no test data files found (run: python3 tools/convert_compat_json.py)")
+		t.Skip("no test data files found (run: go run ./tools/tclconvert/ or python3 tools/convert_compat_json.py)")
 		return
 	}
 	for _, fpath := range files {

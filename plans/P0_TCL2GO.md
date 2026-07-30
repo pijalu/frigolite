@@ -28,8 +28,8 @@ ori/sqlite/test/baz.test  ──┘              util/
 | `tools/tclconvert/tcl/interp.go` | TCL interpreter | ✅ DONE |
 | `tools/tclconvert/tcl/expr.go` | Expression evaluator | ✅ DONE |
 | `tools/tclconvert/tcl/list.go` | List helpers | ✅ DONE |
-| `tools/tcl2go/gen.go` | Go code generator | ❌ TO BUILD |
-| `tools/tcl2go/main.go` | Entry point | ❌ TO BUILD |
+| `tools/tcl2go/gen.go` | Go code generator | ✅ DONE |
+| `tools/tcl2go/main.go` | Entry point | ✅ DONE |
 
 ## Grouping Algorithm
 
@@ -76,7 +76,7 @@ func TestWith1(t *testing.T) {
 
 ## Micro-Tasks
 
-1. **Create `tools/tcl2go/gen.go`** — Go code generator:
+1. **Create `tools/tcl2go/gen.go`** — Go code generator: ✅ **DONE**
    - `generateTestFile(base string, stmts []tcl.Stmt) (filename, content)`
    - Groups statements by `TestName` into sub-tests
    - Generates `t.Run("NAME", ...)` for each group
@@ -84,18 +84,18 @@ func TestWith1(t *testing.T) {
    - Includes expected result comparison when present
    - Adds proper Go package declaration
 
-2. **Create `tools/tcl2go/main.go`** — Entry point:
+2. **Create `tools/tcl2go/main.go`** — Entry point: ✅ **DONE**
    - Reads all `.test` files
    - Groups by prefix
    - Calls generator for each
    - Writes output files
    - Cleans stale output dirs
 
-3. **Update `go.mod`** if needed (no, module already exists)
-
-4. **Generate tests** — Run the tool, then:
+3. **Generate tests** — Run the tool, then:
    ```bash
+   go run ./tools/tcl2go/
    go test ./testgen/... -count=1
    ```
 
-5. **Update PLAN.md** with new approach
+4. **Fix result mismatches** — The generated `select1` test exposes engine bugs.
+   See steps P0.7–P0.8 in PLAN.md.

@@ -152,7 +152,7 @@ func main() {
 		}
 	}
 
-	fmt.Printf("Processed %d/%d files\n", processed, len(files))
+	fmt.Printf("Processed %d/%d files (skipped %d, errors %d)\n", processed, len(files), skipped, errors)
 }
 
 // convertToJSON converts captured TCL statements into the JSON test format.

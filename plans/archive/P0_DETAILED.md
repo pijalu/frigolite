@@ -1,5 +1,9 @@
 # P0 Plan: Go TCL Interpreter + Converter for SQLite Test Data
 
+> **⚠️ SUPERSEDED**: This plan describes the JSON-based converter approach (`tools/tclconvert/` → `testdata/*.json`). The project has since adopted the **tcl2go** approach (Go TCL interpreter → Go test files in `testgen/`). See [`P0_TCL2GO.md`](./P0_TCL2GO.md) and [`PLAN.md`](./PLAN.md) for the current strategy.
+>
+> The TCL interpreter infrastructure (`tools/tclconvert/tcl/`) built here is shared by tcl2go.
+>
 > **Objective**: Build a Go-based mini TCL interpreter that executes TCL test
 > setup code (loops, variables, expressions) to capture real SQL statements.
 > This fixes 411 test files missing CREATE TABLE/INSERT setup.

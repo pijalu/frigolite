@@ -228,8 +228,10 @@ frigolite/
 ├── Makefile                        # Quality gate targets
 ├── testdata/                       # 702 JSON test data files (TCL → JSON conversion)
 ├── tools/
-│   ├── convert_compat_test.py      # Converter: SQLite TCL test files → Go tests
-│   └── convert_compat_json.py      # Converter: SQLite TCL test files → JSON test data
+│   ├── tclconvert/                   # Go TCL interpreter (shared lib for tcl2go)
+│   │   └── tcl/ → {parser, interp, expr, list}
+│   └── tcl2go/                       # TCL → Go test files generator (main.go, gen.go)
+├── testgen/                          # Generated Go test files (output of tcl2go)
 ├── internal/
 │   ├── sql/    (lexer, parser, AST)  
 │   ├── exec/   (query execution engine)
@@ -497,29 +499,31 @@ cat ori/sqlite/test/alter.test
 # 4. Implement the missing feature in the parser/executor
 
 # 5. Regenerate tests (only needed if converter changes)
-python3 tools/convert_compat_test.py
+go run ./tools/tcl2go/
 
 # 6. Verify
-go test -run TestSQLite_alter -v
+go test ./testgen/alter... -v
 
 # 7. Run quality gate
 make quality
 go test ./...
 ```
 
-### How to Regenerate Compat Tests
+### How to Regenerate Tests
 
 ```bash
-# Generate Go-based compat tests (1067 test functions)
-python3 tools/convert_compat_test.py
+# Generate Go-based test files from TCL source (via tcl2go pipeline)
+go run ./tools/tcl2go/
 
-# Generate JSON-based test data (702 test files)
-python3 tools/convert_compat_json.py
+# Run the generated tests
+go test ./testgen/... -count=1
 ```
 
-The `convert_compat_test.py` regenerates `frigolite_sqlite_compat_test.go` from the SQLite TCL test files in `ori/sqlite/test/`. It extracts SQL statements and expected results from `do_execsql_test`, `execsql`, and `db eval` directives.
+The **tcl2go** pipeline (`tools/tcl2go/main.go` + `gen.go`) converts each TCL test file to a standalone Go `_test.go` file using a Go-based TCL interpreter (`tools/tclconvert/tcl/`). It handles `db eval`, `db onecolumn`, loops, variable substitution, and expression evaluation — capturing ALL setup SQL including CREATE TABLE statements.
 
-The `convert_compat_json.py` regenerates JSON test data files in `testdata/` from the same TCL source. It preserves the file-per-TCL structure and groups consecutive `execsql`/`db eval` blocks into implicit unnamed test cases.
+Generated tests run directly via `go test ./testgen/...` — no JSON parsing, no harness overhead.
+
+> **DEPRECATED**: The old Python converters (`convert_compat_json.py`, `convert_compat_test.py`) have been deleted. The JSON harness (`frigolite_harness_test.go`) and `testdata/*.json` will be retired once tcl2go covers all 1002 test files.
 
 ## Architecture Notes
 
@@ -623,34 +627,27 @@ Frigolite has three layers of testing:
 
 | Converter | Source | Output | Runner |
 |-----------|--------|--------|--------|
-| `tools/convert_compat_test.py` | `ori/sqlite/test/*.test` (TCL) | `frigolite_sqlite_compat_test.go` (Go) | `go test -run TestSQLite_` |
-| `tools/convert_compat_json.py` | `ori/sqlite/test/*.test` (TCL) | `testdata/*.json` (JSON) | `go test -run TestSQLiteSuite` |
+| `tools/tcl2go/` (main.go + gen.go) | `ori/sqlite/test/*.test` (TCL) | `testgen/*/*_test.go` (Go) | `go test ./testgen/...` |
+| Go TCL interpreter | `tools/tclconvert/tcl/` (parser, interp, expr, list) | Shared lib used by tcl2go | — |
 
-#### `tools/convert_compat_test.py`
-- Legacy converter (also at `/tmp/convert_final3.py`)
-- Extracts SQL from `do_execsql_test`, `execsql`, `db eval` patterns
-- Generates Go test functions with `checkExecOK` and `checkQueryResult` calls
-- Filters out C API tests and tests with unsupported SQL features
-- Limits each test function to 40 SQL pairs
-- Tests prefixed with `TestSQLite_f_` are fts/8_3_names tests from TCL files starting with numbers
+**Architecture**: A Go-based TCL interpreter (`tools/tclconvert/tcl/`) parses and executes TCL test source. The tcl2go entry point (`tools/tcl2go/main.go`) reads all `.test` files, groups them by prefix, and calls `gen.go` to produce standalone Go test files.
 
-#### `tools/convert_compat_json.py`
-- Newer converter, produces JSON test data
-- Extracts `do_execsql_test`, `do_catchsql_test`, `execsql`, `db eval`, `reset_db` patterns
-- Each TCL file becomes one JSON file with all test cases in file order
-- Filters out tests with unsupported features (WAL, WINDOW, JSON functions, RAISE, zeroblob, etc.)
-- C API test files are pre-scanned and excluded entirely
-- Stores test cases with typed steps preserving the original TCL structure
-- Unnamed `execsql`/`db eval` blocks are grouped into implicit unnamed test cases
+Key capabilities:
+- Full TCL execution (variables, commands, expressions)
+- Handles `db eval`, `db onecolumn`, `do_execsql_test`, `do_catchsql_test`, `execsql`, `reset_db`
+- Variable substitution (`$var`, `${var}`, `[cmd]`)
+- Loop unrolling for `for`/`foreach` data generation
+- Each `.test` file becomes a `_test.go` file in a package group
+- Tests run independently via `go test ./testgen/<group>/...`
 
 ### How to Generate Test Data
 
 ```bash
-# Generate Go compat tests
-python3 tools/convert_compat_test.py
+# Generate all test files from TCL source
+go run ./tools/tcl2go/
 
-# Generate JSON test data
-python3 tools/convert_compat_json.py
+# Run all generated tests
+go test ./testgen/... -count=1
 ```
 
 ### How to Run Specific Tests

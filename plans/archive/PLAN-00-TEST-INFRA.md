@@ -1,5 +1,7 @@
 # PLAN-P0 — Test Infrastructure Overhaul
 
+> **⚠️ DEPRECATED APPROACH**: This plan describes the old test harness infrastructure based on JSON test data (`testdata/*.json`) and the Python converter (`convert_compat_json.py`). The project now uses the **tcl2go** pipeline (Go TCL interpreter → Go test files in `testgen/`). See [`PLAN.md`](./PLAN.md) for the current strategy.
+>
 > **Prerequisite**: None. This is the first phase — it reveals the true failure surface.
 > **SQLite reference**: N/A (this is test-tooling work).
 > **Goal**: Make the test harness and compat-test helpers *actually verify* results instead of silently swallowing errors.
@@ -234,12 +236,13 @@ Usage: python3 tools/oracle_generate.py --testdir <dir> --outdir <dir>
 **Why this works:** We're targeting SQLite3 compatibility. Real sqlite3 IS the
 correct expected output. Using it at generation time (not runtime) is allowed.
 
-**Regenerate:**
+**Regenerate (old approach, DEPRECATED):**
 ```bash
 cd /Users/muaddib/dev/frigolite
-python3 tools/oracle_generate.py   # generates new expected values
-python3 tools/convert_compat_test.py   # regenerates Go compat tests
-python3 tools/convert_compat_json.py   # regenerates JSON harness data
+# OLD: python3 tools/oracle_generate.py
+# OLD: python3 tools/convert_compat_json.py
+# NEW (tcl2go - Go TCL interpreter → Go test files):
+go run ./tools/tcl2go/
 ```
 
 ### Step 5: Remove over-aggressive SQL filtering from converters
