@@ -470,12 +470,12 @@ func Test_shared(t *testing.T) {
 				// proc definition (not transpiled)
 				var scans = "locktblrows db t2 {\n    execsql {\n      DELETE FROM t1;\n    } db2\n  }"
 				_ = scans // suppress unused warning
-				var error = "0"
-				_ = error // suppress unused warning
+				var _error = "0"
+				_ = _error // suppress unused warning
 				for _, s := range tclSplitList(scans) {
 					if tclBool("lsort -integer -index 0 $s" + "!=" + _contents) {
-						var error = "1"
-						_ = error // suppress unused warning
+						var _error = "1"
+						_ = _error // suppress unused warning
 					}
 				}
 			}

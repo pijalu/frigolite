@@ -919,8 +919,8 @@ func Test_window1(t *testing.T) {
 				_ = tn // suppress unused warning
 				sql := _items2[_idx2+1]
 				_ = sql // suppress unused warning
-				error := _items2[_idx2+2]
-				_ = error // suppress unused warning
+				_error := _items2[_idx2+2]
+				_ = _error // suppress unused warning
 				_ = _idx2
 					{ // "18.1." + tn
 						_res = db.Exec(sql)
@@ -936,8 +936,8 @@ func Test_window1(t *testing.T) {
 					_ = tn // suppress unused warning
 					sql := _items3[_idx3+1]
 					_ = sql // suppress unused warning
-					error := _items3[_idx3+2]
-					_ = error // suppress unused warning
+					_error := _items3[_idx3+2]
+					_ = _error // suppress unused warning
 					_ = _idx3
 						{ // "18.2." + tn
 							_res = db.Exec(sql)

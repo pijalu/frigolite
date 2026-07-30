@@ -44,7 +44,7 @@ func Test_basexx1(t *testing.T) {
 	var testprefix = "basexx"
 	_ = testprefix // suppress unused warning
 	if false {
-		t.Log("Skipping basexx tests, hit load error: " + error)
+		t.Log("Skipping basexx tests, hit load error: " + _error)
 		return
 	}
 	{ // "100"

@@ -133,9 +133,9 @@ func Test_skipscan5(t *testing.T) {
 					var i = "0"
 					_ = i // suppress unused warning
 					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-						for _, var := range tclSplitList("a b c d") {
-							var var = "lindex $vocab($var) [expr $i % [llength $vocab($var)]]"
-							_ = var // suppress unused warning
+						for _, _var := range tclSplitList("a b c d") {
+							var _var = "lindex $vocab($var) [expr $i % [llength $vocab($var)]]"
+							_ = _var // suppress unused warning
 						}
 						_res = db.Exec(" INSERT INTO t2 VALUES($a, $b, $c, $d) ")
 						if _res.Error != nil {

@@ -50,11 +50,11 @@ func Test_zipfile(t *testing.T) {
 	var testprefix = "zipfile"
 	_ = testprefix // suppress unused warning
 	if false {
-		t.Log("Skipping zipfile tests, hit load error: " + error)
+		t.Log("Skipping zipfile tests, hit load error: " + _error)
 		return
 	}
 	if false {
-		t.Log("Skipping zipfile tests, hit load error: " + error)
+		t.Log("Skipping zipfile tests, hit load error: " + _error)
 		return
 	}
 	// proc definition (not transpiled)

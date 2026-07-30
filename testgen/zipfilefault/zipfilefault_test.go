@@ -44,7 +44,7 @@ func Test_zipfilefault(t *testing.T) {
 	var testprefix = "zipfilefault"
 	_ = testprefix // suppress unused warning
 	if false {
-		t.Log("Skipping zipfile2 tests, hit load error: " + error)
+		t.Log("Skipping zipfile2 tests, hit load error: " + _error)
 		return
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")

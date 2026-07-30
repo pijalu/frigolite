@@ -90,11 +90,11 @@ func Test_vtab2(t *testing.T) {
 	}
 	var result = ""
 	_ = result // suppress unused warning
-	for _, var := range tclSplitList("lsort [info vars tcl_*]") {
+	for _, _var := range tclSplitList("lsort [info vars tcl_*]") {
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
-			result = tclListAppend(result, var, "set $var")
+			result = tclListAppend(result, _var, "set $var")
 		}
 	}
 	{ // do_test "vtab2-2.3"

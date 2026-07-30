@@ -485,8 +485,8 @@ func Test_altercol(t *testing.T) {
 			_ = tn // suppress unused warning
 			old := _items1[_idx1+1]
 			_ = old // suppress unused warning
-			new := _items1[_idx1+2]
-			_ = new // suppress unused warning
+			_new := _items1[_idx1+2]
+			_ = _new // suppress unused warning
 			lSchema := _items1[_idx1+3]
 			_ = lSchema // suppress unused warning
 			_ = _idx1
@@ -629,8 +629,8 @@ func Test_altercol(t *testing.T) {
 				_ = tn // suppress unused warning
 				trigger := _items2[_idx2+1]
 				_ = trigger // suppress unused warning
-				error := _items2[_idx2+2]
-				_ = error // suppress unused warning
+				_error := _items2[_idx2+2]
+				_ = _error // suppress unused warning
 				_ = _idx2
 					{ // "13.2." + tn + ".1"
 						_res = db.Exec("\n    DROP TRIGGER IF EXISTS tr1;\n    " + trigger + "\n  ")
@@ -640,8 +640,8 @@ func Test_altercol(t *testing.T) {
 					}
 					{ // "13.2." + tn + ".2"
 						_res = db.Exec("\n    ALTER TABLE x1 RENAME COLUMN t TO ttt;\n  ")
-						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger tr1: \" + error + \"") {
-							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger tr1: \" + error + \"", _res.Error, "\n    ALTER TABLE x1 RENAME COLUMN t TO ttt;\n  ")
+						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "error in trigger tr1: \" + _error + \"") {
+							t.Errorf("expected error containing %q, got: %v\n  sql: %s", "error in trigger tr1: \" + _error + \"", _res.Error, "\n    ALTER TABLE x1 RENAME COLUMN t TO ttt;\n  ")
 						}
 					}
 				}

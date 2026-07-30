@@ -153,6 +153,17 @@ var _tcl_version = "8.6"
 var SQL = ""
 var TAIL = ""
 var TAIL_ = ""
+var _G = "0"
+var G = "0"
+var argv = ""
+var has_codec = "0"
+var bitmask_size = "8"
+var tcl_precision = "17"
+var highPrecision = "17"
+var file_dest = ""
+var upperBound = "1000"
+var prefix = ""
+var dirname = ""
 // suppress unused warnings
 var _ = tcl_platform_platform
 var _ = tcl_platform_byteOrder
@@ -186,6 +197,17 @@ var _ = _tcl_version
 var _ = SQL
 var _ = TAIL
 var _ = TAIL_
+var _ = _G
+var _ = G
+var _ = argv
+var _ = has_codec
+var _ = bitmask_size
+var _ = tcl_precision
+var _ = highPrecision
+var _ = file_dest
+var _ = upperBound
+var _ = prefix
+var _ = dirname
 
 // flatten converts a query result to a space-separated string.
 func flatten(res *frigolite.Result) string {

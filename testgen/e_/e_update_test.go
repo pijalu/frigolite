@@ -106,8 +106,8 @@ func Test_e_update(t *testing.T) {
 		_ = tn // suppress unused warning
 		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		error := _items0[_idx0+2]
-		_ = error // suppress unused warning
+		_error := _items0[_idx0+2]
+		_ = _error // suppress unused warning
 		ac := _items0[_idx0+3]
 		_ = ac // suppress unused warning
 		data := _items0[_idx0+4]

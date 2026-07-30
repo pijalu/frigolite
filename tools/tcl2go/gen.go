@@ -205,7 +205,11 @@ func tclVarToGo(name string) string {
 	// Avoid Go keywords and names that shadow test framework variables
 	switch name {
 	case "type", "range", "string", "func", "go", "map", "chan",
-		"interface", "struct", "select", "import", "defer":
+		"interface", "struct", "select", "import", "defer",
+		"error", "len", "cap", "copy", "append", "new", "make",
+		"panic", "print", "println", "complex", "real", "imag",
+		"iota", "nil", "true", "false", "var", "const", "package",
+		"continue", "break", "goto", "fallthrough", "switch", "case", "default":
 		name = "_" + name
 	// Avoid shadowing the test framework variable t (*testing.T) and result vars r/_res
 	case "t":

@@ -41,8 +41,8 @@ func Test_fts3ah(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
-	var len = "5000"
-	_ = len // suppress unused warning
+	var _len = "5000"
+	_ = _len // suppress unused warning
 	var doc1 = "bigtermdoc {a b c d} $len"
 	_ = doc1 // suppress unused warning
 	var doc2 = "bigtermdoc {b d e f} $len"

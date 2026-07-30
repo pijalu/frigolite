@@ -91,7 +91,7 @@ func Test_fpconv1(t *testing.T) {
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db FP_DIGITS 17")
 	if false {
-		t.Log("Skipping decimal tests, hit load error: " + error)
+		t.Log("Skipping decimal tests, hit load error: " + _error)
 		return
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_create_function db")

@@ -53,15 +53,15 @@ func Test_fts3rnd(t *testing.T) {
 	var i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nVocab_n, _nVocab_e := strconv.Atoi(nVocab); if _nVocab_e != nil { return false }; return i_n < nVocab_n }() {
-		var len = "2"
-		_ = len // suppress unused warning
+		var _len = "2"
+		_ = _len // suppress unused warning
 		var word = "lindex $lChar [expr int(rand()*26)]"
 		_ = word // suppress unused warning
 		word += "lindex $lChar [expr int(rand()*26)]"
-		if func() bool { len_n, _len_e := strconv.Atoi(len); if _len_e != nil { return false }; return len_n > 2 }() {
+		if func() bool { _len_n, __len_e := strconv.Atoi(_len); if __len_e != nil { return false }; return _len_n > 2 }() {
 			word += "lindex $lChar [expr int(rand()*26)]"
 		}
-		if func() bool { len_n, _len_e := strconv.Atoi(len); if _len_e != nil { return false }; return len_n > 3 }() {
+		if func() bool { _len_n, __len_e := strconv.Atoi(_len); if __len_e != nil { return false }; return _len_n > 3 }() {
 			word += "lindex $lChar [expr int(rand()*26)]"
 		}
 		lVocab = tclListAppend(lVocab, word)

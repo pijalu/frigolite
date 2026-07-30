@@ -135,8 +135,8 @@ func Test_e_uri(t *testing.T) {
 			_ = tn // suppress unused warning
 			uri := _items0[_idx0+1]
 			_ = uri // suppress unused warning
-			error := _items0[_idx0+2]
-			_ = error // suppress unused warning
+			_error := _items0[_idx0+2]
+			_ = _error // suppress unused warning
 			_ = _idx0
 				{ // do_test "2." + tn
 					var DB = "sqlite3_open_v2 $uri $flags \"\""
@@ -177,8 +177,8 @@ func Test_e_uri(t *testing.T) {
 				for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
 					name := _items2[_idx2+0]
 					_ = name // suppress unused warning
-					default := _items2[_idx2+1]
-					_ = default // suppress unused warning
+					_default := _items2[_idx2+1]
+					_ = _default // suppress unused warning
 					_ = _idx2
 						t.Errorf("TODO: %s not implemented in frigolite", "testvfs $name -default $default")
 						t.Errorf("TODO: %s not implemented in frigolite", "$name filter xOpen")
@@ -224,8 +224,8 @@ func Test_e_uri(t *testing.T) {
 							_ = tn // suppress unused warning
 							uri := _items4[_idx4+1]
 							_ = uri // suppress unused warning
-							error := _items4[_idx4+2]
-							_ = error // suppress unused warning
+							_error := _items4[_idx4+2]
+							_ = _error // suppress unused warning
 							_ = _idx4
 								{ // do_test "7." + tn
 									t.Errorf("TODO: %s not implemented in frigolite", "open_uri_error $uri")
@@ -304,8 +304,8 @@ func Test_e_uri(t *testing.T) {
 									_ = uri // suppress unused warning
 									flags := _items6[_idx6+2]
 									_ = flags // suppress unused warning
-									error := _items6[_idx6+3]
-									_ = error // suppress unused warning
+									_error := _items6[_idx6+3]
+									_ = _error // suppress unused warning
 									_ = _idx6
 										var f_ro = "list SQLITE_OPEN_READONLY SQLITE_OPEN_URI"
 										_ = f_ro // suppress unused warning
@@ -330,8 +330,8 @@ func Test_e_uri(t *testing.T) {
 										_ = tn // suppress unused warning
 										uri := _items7[_idx7+1]
 										_ = uri // suppress unused warning
-										error := _items7[_idx7+2]
-										_ = error // suppress unused warning
+										_error := _items7[_idx7+2]
+										_ = _error // suppress unused warning
 										_ = _idx7
 											{ // do_test "10." + tn
 												t.Errorf("TODO: %s not implemented in frigolite", "open_uri_error $uri")

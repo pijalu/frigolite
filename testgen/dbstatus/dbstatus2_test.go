@@ -94,8 +94,8 @@ func Test_dbstatus2(t *testing.T) {
 		var fd = "db incrblob main t1 b 1"
 		_ = fd // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")
-		var len = strconv.Itoa(len("[read $fd]"))
-		_ = len // suppress unused warning
+		var _len = strconv.Itoa(len("[read $fd]"))
+		_ = _len // suppress unused warning
 		// close $fd
 	}
 	{ // do_test "1.8"

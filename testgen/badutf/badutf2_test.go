@@ -66,8 +66,8 @@ func Test_badutf2(t *testing.T) {
 	for _idx0 := 0; _idx0+6 <= len(_items0); _idx0 += 6 {
 		i := _items0[_idx0+0]
 		_ = i // suppress unused warning
-		len := _items0[_idx0+1]
-		_ = len // suppress unused warning
+		_len := _items0[_idx0+1]
+		_ = _len // suppress unused warning
 		uval := _items0[_idx0+2]
 		_ = uval // suppress unused warning
 		xstr := _items0[_idx0+3]

@@ -465,8 +465,8 @@ func Test_e_fkey(t *testing.T) {
 			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
 				sql := _items1[_idx1+0]
 				_ = sql // suppress unused warning
-				error := _items1[_idx1+1]
-				_ = error // suppress unused warning
+				_error := _items1[_idx1+1]
+				_ = _error // suppress unused warning
 				_ = _idx1
 					{ // do_test "e_fkey-22." + fk + "." + "incr i"
 						_res = db.Exec(sql)

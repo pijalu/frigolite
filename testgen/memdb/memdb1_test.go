@@ -395,8 +395,8 @@ func Test_memdb1(t *testing.T) {
 	defer dbempty.Close()
 	if err != nil { t.Fatal(err) }
 	{ // do_test "900"
-		var len = strconv.Itoa(len("[dbempty serialize]"))
-		_ = len // suppress unused warning
+		var _len = strconv.Itoa(len("[dbempty serialize]"))
+		_ = _len // suppress unused warning
 		// expr $len>0 → "$len>0"
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "dbempty close")

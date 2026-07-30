@@ -43,7 +43,7 @@ func Test_decimal(t *testing.T) {
 	var testprefix = "decimal"
 	_ = testprefix // suppress unused warning
 	if false {
-		t.Log("Skipping decimal tests, hit load error: " + error)
+		t.Log("Skipping decimal tests, hit load error: " + _error)
 		return
 	}
 	{ // "1000"
@@ -383,7 +383,7 @@ func Test_decimal(t *testing.T) {
 		}
 	}
 	if false {
-		t.Log("Skipping ieee754 tests, hit load error: " + error)
+		t.Log("Skipping ieee754 tests, hit load error: " + _error)
 		return
 	}
 	{ // "6000"

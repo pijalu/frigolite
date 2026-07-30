@@ -74,8 +74,8 @@ func Test_incrblob4(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "read $blob 10")
 	}
 	{ // do_test "2.3"
-		var new = "% 900"
-		_ = new // suppress unused warning
+		var _new = "% 900"
+		_ = _new // suppress unused warning
 		_res = db.Exec(" DELETE FROM t1 WHERE k=10 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t1 WHERE k=10 ")
@@ -102,8 +102,8 @@ func Test_incrblob4(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "read $blob 10")
 	}
 	{ // do_test "3.3"
-		var new = "% 900"
-		_ = new // suppress unused warning
+		var _new = "% 900"
+		_ = _new // suppress unused warning
 		_res = db.Exec(" UPDATE t1 SET v = $new WHERE k = 20 ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE t1 SET v = $new WHERE k = 20 ")

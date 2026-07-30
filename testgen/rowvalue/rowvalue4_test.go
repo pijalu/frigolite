@@ -71,8 +71,8 @@ func Test_rowvalue4(t *testing.T) {
 			_ = tn // suppress unused warning
 			s := _items1[_idx1+1]
 			_ = s // suppress unused warning
-			error := _items1[_idx1+2]
-			_ = error // suppress unused warning
+			_error := _items1[_idx1+2]
+			_ = _error // suppress unused warning
 			_ = _idx1
 				{ // "2." + tn
 					_res = db.Exec(s)
