@@ -66,8 +66,8 @@ func (r *Registry) registerDefaults() {
 	r.register(&Func{Name: "COUNT", Type: TypeAggregate, MinArgs: 0, MaxArgs: 1, AggregateFn: func() Aggregator { return &countAgg{} }})
 	r.register(&Func{Name: "SUM", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return &sumAgg{} }})
 	r.register(&Func{Name: "AVG", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return &avgAgg{} }})
-	r.register(&Func{Name: "MIN", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return &minAgg{} }})
-	r.register(&Func{Name: "MAX", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return &maxAgg{} }})
+	r.register(&Func{Name: "MIN", Type: TypeAggregate, MinArgs: 1, MaxArgs: -1, AggregateFn: func() Aggregator { return &minAgg{} }})
+	r.register(&Func{Name: "MAX", Type: TypeAggregate, MinArgs: 1, MaxArgs: -1, AggregateFn: func() Aggregator { return &maxAgg{} }})
 	r.register(&Func{Name: "TOTAL", Type: TypeAggregate, MinArgs: 1, MaxArgs: 1, AggregateFn: func() Aggregator { return &totalAgg{} }})
 	r.register(&Func{Name: "GROUP_CONCAT", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return &groupConcatAgg{} }})
 	r.register(&Func{Name: "STRING_AGG", Type: TypeAggregate, MinArgs: 1, MaxArgs: 2, AggregateFn: func() Aggregator { return &groupConcatAgg{} }})
@@ -288,12 +288,14 @@ type minAgg struct {
 }
 
 func (m *minAgg) Step(args []interface{}) error {
-	if args[0] == nil {
-		return nil
-	}
-	if !m.set || less(args[0], m.min) {
-		m.min = args[0]
-		m.set = true
+	for _, arg := range args {
+		if arg == nil {
+			continue
+		}
+		if !m.set || less(arg, m.min) {
+			m.min = arg
+			m.set = true
+		}
 	}
 	return nil
 }

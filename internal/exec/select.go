@@ -2143,6 +2143,15 @@ func (e *Engine) validateSelectExprs(s *sql.SelectStmt) error {
 		}
 	}
 
+	// Check for aggregates in ORDER BY when SELECT doesn't use aggregates and no GROUP BY
+	if len(s.OrderBy) > 0 && len(s.GroupBy) == 0 && !e.hasAggregates(s.Columns) {
+		for _, ob := range s.OrderBy {
+			if nested := findAggregateInExpr(ob.Expr); nested != "" {
+				return fmt.Errorf("misuse of aggregate: %s()", nested)
+			}
+		}
+	}
+
 	return nil
 }
 

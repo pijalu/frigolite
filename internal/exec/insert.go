@@ -35,7 +35,7 @@ func (e *Engine) execInsert(s *sql.InsertStmt) *Result {
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 
 	if s.Select != nil {
-		return e.execInsertSelect(tableEntry, colDefs, s.Select)
+		return e.execInsertSelect(tableEntry, colDefs, s.Select, s.Columns)
 	}
 	if len(s.Values) == 0 {
 		return e.execInsertDefault(tableEntry)
@@ -446,16 +446,46 @@ func gatherUniqueColIndices(colDefs []sql.ColumnDef, colIndex map[string]int, va
 	return uniqueCols
 }
 
-func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.ColumnDef, selectStmt *sql.SelectStmt) *Result {
+func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.ColumnDef, selectStmt *sql.SelectStmt, columns []string) *Result {
 	selectResult := e.execSelect(selectStmt)
 	if selectResult.Error != nil {
 		return selectResult
 	}
+
+	// Determine the effective number of columns we expect.
+	// If specific columns are given in the INSERT, the SELECT
+	// must produce that many values; otherwise it must produce
+	// one per table column.
+	expectedCount := len(colDefs)
+	if len(columns) > 0 {
+		expectedCount = len(columns)
+	}
+	numSelectCols := len(selectResult.Columns)
+	if expectedCount != numSelectCols {
+		return &Result{Error: fmt.Errorf("table %s has %d columns but %d values were supplied",
+			tableEntry.Name, expectedCount, numSelectCols)}
+	}
+
 	var changes int64
 	for _, row := range selectResult.Rows {
-		// Determine rowid from INTEGER PRIMARY KEY value if present
-		rowID := e.pkRowID(colDefs, row, tableEntry.RootPage)
-		record, err := storage.EncodeRecord(row)
+		// If specific columns were requested, map the SELECT values
+		// to the full colDefs positions (matching evalTuple semantics).
+		values := row
+		if len(columns) > 0 {
+			mapped := make([]interface{}, len(colDefs))
+			for i, col := range columns {
+				for j, cd := range colDefs {
+					if cd.Name == col && i < len(values) {
+						mapped[j] = values[i]
+						break
+					}
+				}
+			}
+			values = mapped
+		}
+
+		rowID := e.pkRowID(colDefs, values, tableEntry.RootPage)
+		record, err := storage.EncodeRecord(values)
 		if err != nil {
 			return &Result{Error: err}
 		}
@@ -469,8 +499,9 @@ func (e *Engine) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.Column
 			return &Result{Error: err}
 		}
 		changes++
+		e.lastRowID = rowID
 	}
-	return &Result{Changes: changes}
+	return &Result{Changes: changes, LastInsertRowID: e.lastRowID}
 }
 
 // pkRowID returns the rowid for a new row, using the INTEGER PRIMARY KEY value
@@ -633,4 +664,3 @@ func (e *Engine) evalTuple(tuple []sql.Expr, columns []string, colDefs []sql.Col
 	}
 	return values
 }
-
