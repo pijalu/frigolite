@@ -17,6 +17,8 @@ func Test_io(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "io" // TCL namespace variable
@@ -161,8 +163,11 @@ func Test_io(t *testing.T) {
 	_items := tclSplitList("\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		char := _items[_idx+0]
+		_ = char // suppress unused warning
 		sectorsize := _items[_idx+1]
+		_ = sectorsize // suppress unused warning
 		pgsize := _items[_idx+2]
+		_ = pgsize // suppress unused warning
 		_ = _idx
 			// incr tn 1
 			{
@@ -206,7 +211,9 @@ func Test_io(t *testing.T) {
 		_items := tclSplitList("\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			_ = _idx
 				if tclBool("permutation" + " == \"memsubsys1\"") {
 				}

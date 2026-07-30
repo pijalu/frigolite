@@ -17,6 +17,8 @@ func Test_rowid(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "rowid"
@@ -83,6 +85,7 @@ func Test_rowid(t *testing.T) {
 	{ // do_test "rowid-1.7.1"
 		for true {
 			norow := "0"
+			_ = norow // suppress unused warning
 			if func() bool { norow_n, _norow_e := strconv.Atoi(norow); if _norow_e != nil { return false }; x2rowid_n, _x2rowid_e := strconv.Atoi(x2rowid); if _x2rowid_e != nil { return false }; return norow_n != x2rowid_n(1) && norow_n!=x2rowid_n(3) }() {
 			}
 		}
@@ -162,9 +165,8 @@ func Test_rowid(t *testing.T) {
 	}
 	if false {
 		{ // do_test "rowid-2.9"
-			var v string
-			var msg string
-			_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				_res = db.Exec("CREATE INDEX idxt1 ON t1(rowid)")
@@ -180,9 +182,8 @@ func Test_rowid(t *testing.T) {
 			v = tclListAppend(v, msg)
 		}
 		{ // do_test "rowid-2.10"
-			var v string
-			var msg string
-			_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				_res = db.Exec("CREATE INDEX idxt1 ON t1(_rowid_)")
@@ -198,9 +199,8 @@ func Test_rowid(t *testing.T) {
 			v = tclListAppend(v, msg)
 		}
 		{ // do_test "rowid-2.11"
-			var v string
-			var msg string
-			_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				_res = db.Exec("CREATE INDEX idxt1 ON t1(oid)")
@@ -216,9 +216,8 @@ func Test_rowid(t *testing.T) {
 			v = tclListAppend(v, msg)
 		}
 		{ // do_test "rowid-2.12"
-			var v string
-			var msg string
-			_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				_res = db.Exec("CREATE INDEX idxt1 ON t1(x, rowid)")

@@ -15,6 +15,8 @@ func Test_lock(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "lock-1.0"
@@ -186,9 +188,8 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("UPDATE t1 SET a = 0 WHERE 0")
@@ -215,9 +216,8 @@ func Test_lock(t *testing.T) {
 		// proc definition (not transpiled)
 		var _callback_value = "" // TCL namespace variable
 		_ = _callback_value // suppress unused warning
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("UPDATE t1 SET a=b, b=a")
@@ -240,9 +240,8 @@ func Test_lock(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		}
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("UPDATE t1 SET a=b, b=a")
@@ -268,9 +267,8 @@ func Test_lock(t *testing.T) {
 		// proc definition (not transpiled)
 		var _callback_value = "" // TCL namespace variable
 		_ = _callback_value // suppress unused warning
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("UPDATE t1 SET a=b, b=a")
@@ -294,9 +292,8 @@ func Test_lock(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		}
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("UPDATE t1 SET a=b, b=a")
@@ -322,9 +319,8 @@ func Test_lock(t *testing.T) {
 		// proc definition (not transpiled)
 		var _callback_value = "" // TCL namespace variable
 		_ = _callback_value // suppress unused warning
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT * FROM t1")
@@ -411,9 +407,8 @@ func Test_lock(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("BEGIN TRANSACTION")
@@ -459,9 +454,8 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-4.2"
 		var _callback_value = "" // TCL namespace variable
 		_ = _callback_value // suppress unused warning
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db2.Exec("UPDATE t1 SET a=0")
@@ -478,9 +472,8 @@ func Test_lock(t *testing.T) {
 	}
 	{ // do_test "lock-4.3"
 		// proc definition (not transpiled)
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db2.Exec("UPDATE t1 SET a=0")

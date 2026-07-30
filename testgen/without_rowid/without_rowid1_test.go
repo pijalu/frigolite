@@ -16,6 +16,8 @@ func Test_without_rowid1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "without_rowid1"
@@ -388,9 +390,13 @@ func Test_without_rowid1(t *testing.T) {
 	_items := tclSplitList(queries)
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		cnt := _items[_idx+1]
+		_ = cnt // suppress unused warning
 		where := _items[_idx+2]
+		_ = where // suppress unused warning
 		eqp := _items[_idx+3]
+		_ = eqp // suppress unused warning
 		_ = _idx
 			{ // "5.5." + tn + ".1"
 				r = db.Query("SELECT count(*) FROM t46 WHERE " + where)
@@ -415,9 +421,13 @@ func Test_without_rowid1(t *testing.T) {
 		_items := tclSplitList(queries)
 		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			cnt := _items[_idx+1]
+			_ = cnt // suppress unused warning
 			where := _items[_idx+2]
+			_ = where // suppress unused warning
 			eqp := _items[_idx+3]
+			_ = eqp // suppress unused warning
 			_ = _idx
 				{ // "5.7." + tn + ".1"
 					r = db.Query("SELECT count(*) FROM t46 WHERE " + where)

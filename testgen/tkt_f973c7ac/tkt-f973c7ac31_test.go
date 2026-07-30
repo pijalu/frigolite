@@ -15,6 +15,8 @@ func Test_tkt_f973c7ac31(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-f973c7ac3-1.0"
@@ -27,7 +29,9 @@ func Test_tkt_f973c7ac31(t *testing.T) {
 	_items := tclSplitList("\n  1 \"\"\n  2 \"CREATE INDEX i1 ON t(c1, c2)\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			_res = db.Exec(sql)
 			if _res.Error != nil {

@@ -16,6 +16,8 @@ func Test_fts4onepass(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4onepass" // TCL namespace variable
@@ -30,8 +32,11 @@ func Test_fts4onepass(t *testing.T) {
 	_items := tclSplitList("\n  1.1 { DELETE FROM ft } 1\n  1.2 { DELETE FROM ft WHERE docid=? } 0\n  1.3 { DELETE FROM ft WHERE rowid=? } 0\n  1.4 { DELETE FROM ft WHERE ft MATCH '1' } 1\n  1.5 { DELETE FROM ft WHERE ft MATCH '1' AND docid=? } 1\n  1.6 { DELETE FROM ft WHERE ft MATCH '1' AND rowid=? } 1\n\n  2.1 { UPDATE ft SET content='a b c' } 1\n  2.2 { UPDATE ft SET content='a b c' WHERE docid=? } 0\n  2.3 { UPDATE ft SET content='a b c' WHERE rowid=? } 0\n  2.4 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' } 1\n  2.5 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' AND docid=? } 1\n  2.6 { UPDATE ft SET content='a b c' WHERE ft MATCH '1' AND rowid=? } 1\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		uses := _items[_idx+2]
+		_ = uses // suppress unused warning
 		_ = _idx
 			{ // do_test "1." + tn
 				t.Skipf("TODO: %s not implemented in frigolite", "sql_uses_stmt db $sql")
@@ -47,8 +52,11 @@ func Test_fts4onepass(t *testing.T) {
 		_items := tclSplitList("\n  1 { INSERT INTO t1 VALUES(1)      } 1\n  2 { DELETE FROM t1 WHERE x=4      } 1\n  3 { UPDATE t1 SET x=10 WHERE x=11 } 1\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			uses := _items[_idx+2]
+			_ = uses // suppress unused warning
 			_ = _idx
 				{ // do_test "2." + tn
 					t.Skipf("TODO: %s not implemented in frigolite", "sql_uses_stmt db $sql")
@@ -58,8 +66,11 @@ func Test_fts4onepass(t *testing.T) {
 			_items := tclSplitList("\n  1 {} {}\n\n  2 {\n    execsql BEGIN\n  } {\n    if {[sqlite3_get_autocommit db]==1} { error \"transaction rolled back!\" }\n    execsql COMMIT\n  }\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				tcl1 := _items[_idx+1]
+				_ = tcl1 // suppress unused warning
 				tcl2 := _items[_idx+2]
+				_ = tcl2 // suppress unused warning
 				_ = _idx
 					{ // "3." + tn + ".0"
 						_res = db.Exec("\n    DROP TABLE IF EXISTS ft2;\n    CREATE VIRTUAL TABLE ft2 USING fts4;\n    INSERT INTO ft2(rowid, content) VALUES(1, 'a b c');\n    INSERT INTO ft2(rowid, content) VALUES(2, 'a b d');\n    INSERT INTO ft2(rowid, content) VALUES(3, 'a b e');\n  ")
@@ -72,8 +83,11 @@ func Test_fts4onepass(t *testing.T) {
 					_items := tclSplitList("\n    1 { UPDATE ft2 SET docid=2 WHERE docid=1 }\n      { 1 {a b c} 2 {a b d} 3 {a b e} }\n\n    2 { \n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b f');\n      UPDATE ft2 SET docid=5 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=5;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    3 {\n      UPDATE ft2 SET docid=3 WHERE docid=4;           -- matches 0 rows\n      UPDATE ft2 SET docid=2 WHERE docid=3;\n    } { 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    4 {\n      INSERT INTO ft2(rowid, content) VALUES(4, 'a b g');\n      UPDATE ft2 SET docid=-1 WHERE docid=4;\n      UPDATE ft2 SET docid=3 WHERE docid=-1;\n    } {-1 {a b g} 1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n\n    5 {\n      DELETE FROM ft2 WHERE rowid=451;\n      DELETE FROM ft2 WHERE rowid=-1;\n      UPDATE ft2 SET docid = 2 WHERE docid = 1;\n    } {1 {a b c} 2 {a b d} 3 {a b e} 5 {a b f} }\n  ")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 						tn2 := _items[_idx+0]
+						_ = tn2 // suppress unused warning
 						sql := _items[_idx+1]
+						_ = sql // suppress unused warning
 						content := _items[_idx+2]
+						_ = content // suppress unused warning
 						_ = _idx
 							{ // "3." + tn + "." + tn2 + ".a"
 								_res = db.Exec(sql)

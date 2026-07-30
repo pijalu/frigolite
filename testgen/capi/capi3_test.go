@@ -17,6 +17,8 @@ func Test_capi3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "capi3" // TCL namespace variable
@@ -311,7 +313,9 @@ func Test_capi3(t *testing.T) {
 	_items := tclSplitList(code2english)
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		code := _items[_idx+0]
+		_ = code // suppress unused warning
 		english := _items[_idx+1]
+		_ = english // suppress unused warning
 		_ = _idx
 			{ // do_test "capi3-9." + test_number
 				_res = db.Exec("sqlite3_test_errstr " + code)
@@ -560,9 +564,8 @@ func Test_capi3(t *testing.T) {
 		}
 		if tclBool("clang_sanitize_address" + "==0") {
 			{ // do_test "capi3-14.1-misuse"
-				var rc string
-				var msg string
-				_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
 					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text 0 1 hello 5")

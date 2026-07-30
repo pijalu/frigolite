@@ -16,6 +16,8 @@ func Test_autovacuum_ioerr2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test autovacuum-ioerr2-1 -sqlprep {\n  PRAGMA auto_vacuum = 1;\n  CREATE TABLE abc(a);\n...} -sqlbody {\n  CREATE TABLE abc2(a);\n  BEGIN;\n  DELETE FROM ab...}")

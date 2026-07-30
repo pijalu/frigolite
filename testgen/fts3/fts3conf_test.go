@@ -16,6 +16,8 @@ func Test_fts3conf(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3conf"
@@ -40,10 +42,15 @@ func Test_fts3conf(t *testing.T) {
 	_items := tclSplitList("1    \"INSERT OR ROLLBACK " + T1 + "\"   0 1 {{a b c d} {e f g h}}\n  2    \"INSERT OR ABORT    " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  3    \"INSERT OR FAIL     " + T1 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  4    \"INSERT OR IGNORE   " + T1 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  5    \"INSERT OR REPLACE  " + T1 + "\"   0 0 {x {e f g h} {i j k l}}\n\n  6    \"INSERT OR ROLLBACK " + T2 + "\"   1 1 {{a b c d} {e f g h}}\n  7    \"INSERT OR ABORT    " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  8    \"INSERT OR FAIL     " + T2 + "\"   1 1 {{a b c d} {e f g h} {i j k l} z}\n  9    \"INSERT OR IGNORE   " + T2 + "\"   1 0 {{a b c d} {e f g h} {i j k l} z}\n  10   \"INSERT OR REPLACE  " + T2 + "\"   1 0 {{a b c d} y {i j k l} z}\n\n  11   \"UPDATE OR ROLLBACK " + T3 + "\"   0 1 {{a b c d} {e f g h}}\n  12   \"UPDATE OR ABORT    " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  13   \"UPDATE OR FAIL     " + T3 + "\"   0 1 {{a b c d} {e f g h} {i j k l}}\n  14   \"UPDATE OR IGNORE   " + T3 + "\"   0 0 {{a b c d} {e f g h} {i j k l}}\n  15   \"UPDATE OR REPLACE  " + T3 + "\"   0 0 {{a b c d} {i j k l}}\n\n  16   \"UPDATE OR ROLLBACK " + T4 + "\"   1 1 {{a b c d} {e f g h}}\n  17   \"UPDATE OR ABORT    " + T4 + "\"   1 1 {{a b c d} {e f g h} {i j k l}}\n  18   \"UPDATE OR FAIL     " + T4 + "\"   1 1 {{e f g h} {i j k l} {a b c d}}\n  19   \"UPDATE OR IGNORE   " + T4 + "\"   1 0 {{e f g h} {i j k l} {a b c d}}\n  20   \"UPDATE OR REPLACE  " + T4 + "\"   1 0 {{e f g h} {a b c d}}")
 	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		uses := _items[_idx+2]
+		_ = uses // suppress unused warning
 		constraint := _items[_idx+3]
+		_ = constraint // suppress unused warning
 		data := _items[_idx+4]
+		_ = data // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
 			_res = db.Exec(" \n    BEGIN;\n      INSERT INTO t1(rowid, x) VALUES(3, 'i j k l');\n  ")

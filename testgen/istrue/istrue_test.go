@@ -16,6 +16,8 @@ func Test_istrue(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "istrue-100"
@@ -258,7 +260,9 @@ func Test_istrue(t *testing.T) {
 	_items := tclSplitList("list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		val := _items[_idx+1]
+		_ = val // suppress unused warning
 		_ = _idx
 			{ // "istrue-600." + tn + ".1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n  ")

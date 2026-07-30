@@ -16,6 +16,8 @@ func Test_tkt2332(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt2332.1"
@@ -29,6 +31,7 @@ func Test_tkt2332(t *testing.T) {
 	for _, Len := range tclSplitList("list 10000 100000 1000000") {
 		{ // do_test "tkt2332." + Len + ".1"
 			val := "6.099e-320"
+			_ = val // suppress unused warning
 			var _blobstr = "\\\n      [string repeat $val [expr ($Len/[string length $val])+1]] 0 [expr $Len-1]" // TCL namespace variable
 			_ = _blobstr // suppress unused warning
 			_res = db.Exec(" INSERT INTO blobs VALUES($::iKey, zeroblob($Len)) ")

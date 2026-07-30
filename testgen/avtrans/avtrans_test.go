@@ -16,6 +16,8 @@ func Test_avtrans(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "avtrans-1.0"
@@ -60,9 +62,8 @@ func Test_avtrans(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	t.Skipf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-1.12")
 	{ // do_test "avtrans-2.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("BEGIN")
@@ -78,9 +79,8 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-2.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("END")
@@ -96,9 +96,8 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-2.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("BEGIN TRANSACTION")
@@ -114,9 +113,8 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-2.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("COMMIT TRANSACTION")
@@ -132,9 +130,8 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-2.5"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("BEGIN TRANSACTION 'foo'")
@@ -150,9 +147,8 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-2.6"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("ROLLBACK TRANSACTION 'foo'")
@@ -222,9 +218,8 @@ func Test_avtrans(t *testing.T) {
 		}
 	}
 	{ // do_test "avtrans-3.11"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT a FROM two ORDER BY a;\n  ")
@@ -240,9 +235,8 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-3.12"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT a FROM one ORDER BY a;\n  ")
@@ -258,9 +252,8 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-3.13"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT a FROM two ORDER BY a;\n  ")
@@ -276,9 +269,8 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-3.14"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT a FROM one ORDER BY a;\n  ")
@@ -297,9 +289,8 @@ func Test_avtrans(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "avtrans-4.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    COMMIT;\n  ")
@@ -315,9 +306,8 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-4.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    ROLLBACK;\n  ")
@@ -357,9 +347,8 @@ func Test_avtrans(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "avtrans-4.9"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    END TRANSACTION;\n    SELECT a FROM two ORDER BY a;\n  ")
@@ -375,9 +364,8 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-4.10"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT a FROM two ORDER BY a;\n  ")
@@ -393,9 +381,8 @@ func Test_avtrans(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "avtrans-4.11"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT a FROM one ORDER BY a;\n  ")
@@ -474,9 +461,8 @@ func Test_avtrans(t *testing.T) {
 		}
 	}
 	{ // do_test "avtrans-5.7"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT a,b FROM one ORDER BY b")
@@ -570,9 +556,8 @@ func Test_avtrans(t *testing.T) {
 		}
 	}
 	{ // do_test "avtrans-5.21"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT * FROM t2\n  ")
@@ -806,8 +791,11 @@ func Test_avtrans(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			r1 := "6.099e-320"
+			_ = r1 // suppress unused warning
 			r2 := "6.099e-320"
+			_ = r2 // suppress unused warning
 			r3 := "6.099e-320"
+			_ = r3 // suppress unused warning
 			_res = db.Exec("INSERT INTO t2 VALUES(" + r1 + "," + r2 + "," + r3 + ")")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES(" + r1 + "," + r2 + "," + r3 + ")")

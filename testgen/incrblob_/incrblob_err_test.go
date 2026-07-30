@@ -15,6 +15,8 @@ func Test_incrblob_err(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "incrblob_err" // TCL namespace variable

@@ -16,6 +16,8 @@ func Test_without_rowid5(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "without_rowid5-1.1"
@@ -253,9 +255,8 @@ func Test_without_rowid5(t *testing.T) {
 		}
 	}
 	{ // do_test "without_rowid5-6.2"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {

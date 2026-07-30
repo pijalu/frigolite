@@ -16,6 +16,8 @@ func Test_tkt1873(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("test2.db")
@@ -26,9 +28,8 @@ func Test_tkt1873(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt1873-1.2"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("SELECT * FROM t2 LIMIT 1")
@@ -45,9 +46,8 @@ func Test_tkt1873(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "tkt1873-1.3"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("SELECT * FROM t1 LIMIT 1")

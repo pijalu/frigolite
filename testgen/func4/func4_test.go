@@ -16,6 +16,8 @@ func Test_func4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var saved_tcl_precision = tcl_precision
@@ -24,8 +26,11 @@ func Test_func4(t *testing.T) {
 	_ = tcl_precision // suppress unused warning
 	t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db totype")
 	highPrecision_1 := "\\\n    {[db eval {SELECT tointeger(9223372036854775807 + 1);}] eq {{}}}"
+	_ = highPrecision_1 // suppress unused warning
 	highPrecision_2 := "\\\n    {[db eval {SELECT toreal(-9223372036854775808 + 1);}] eq {{}}}"
+	_ = highPrecision_2 // suppress unused warning
 	highPrecision_3 := "\\\n    {[db eval {SELECT toreal(9007199254740992 + 1);}] eq {{}}}"
+	_ = highPrecision_3 // suppress unused warning
 	if tclBool("!" + highPrecision + "(1) || !" + highPrecision + "(2) || !" + highPrecision + "(3)") {
 		t.Log("NOTICE:\\\n        highPrecision: " + highPrecision + "(1) " + highPrecision + "(2) " + highPrecision + "(3)")
 	}

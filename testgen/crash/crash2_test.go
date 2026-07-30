@@ -16,6 +16,8 @@ func Test_crash2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "crash2-1.1"
@@ -80,6 +82,7 @@ func Test_crash2(t *testing.T) {
 		var sig = "signature"
 		_ = sig // suppress unused warning
 		sector := "1024 * 1<<($i%4)"
+		_ = sector // suppress unused warning
 		{ // do_test "crash2-2." + i + ".1"
 			t.Skipf("TODO: %s not implemented in frigolite", "crashsql -blocksize $sector -delay [expr $i%5 + 1] -file test.db-journal \n       PRAGMA temp_store = memory;\n       BEGIN;\n...")
 		}
@@ -103,6 +106,7 @@ func Test_crash2(t *testing.T) {
 		var sig = "signature"
 		_ = sig // suppress unused warning
 		sector := "1024 * 1<<($i%4)"
+		_ = sector // suppress unused warning
 		{ // do_test "crash2-3." + i + ".1"
 			t.Skipf("TODO: %s not implemented in frigolite", "crashsql -blocksize $sector -file test.db \n       BEGIN;\n       SELECT random() FROM abc LIM...")
 		}

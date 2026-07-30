@@ -16,6 +16,8 @@ func Test_in(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "in-1.0"
@@ -140,9 +142,8 @@ func Test_in(t *testing.T) {
 		}
 	}
 	{ // do_test "in-2.11"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT a FROM t1 WHERE c IN (10,20)")

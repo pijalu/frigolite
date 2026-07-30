@@ -18,6 +18,8 @@ func Test_memdb1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "memdb1"
@@ -222,9 +224,8 @@ func Test_memdb1(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	{ // do_test "500"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -244,9 +245,8 @@ func Test_memdb1(t *testing.T) {
 		}
 	}
 	{ // do_test "600"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -260,9 +260,8 @@ func Test_memdb1(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "610"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -276,9 +275,8 @@ func Test_memdb1(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "620"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -299,9 +297,9 @@ func Test_memdb1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE t0(a);\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT random() FROM c;\n  ")
 		}
-		var rc string
-		var err string
-		_ = err // suppress unused warning
+	var rc string
+	var err string
+	_ = err // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {

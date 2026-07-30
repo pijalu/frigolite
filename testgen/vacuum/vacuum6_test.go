@@ -15,6 +15,8 @@ func Test_vacuum6(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vacuum6"
@@ -47,7 +49,9 @@ func Test_vacuum6(t *testing.T) {
 	_items := tclSplitList("1 400 2 4000 3 9999")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sz := _items[_idx+1]
+		_ = sz // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")
@@ -123,8 +127,11 @@ func Test_vacuum6(t *testing.T) {
 		_items := tclSplitList("\n  1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			pgsz := _items[_idx+1]
+			_ = pgsz // suppress unused warning
 			av := _items[_idx+2]
+			_ = av // suppress unused warning
 			_ = _idx
 				{ // "4.1." + tn + ".1"
 					r = db.Query("\n    PRAGMA page_size = " + pgsz + ";\n    PRAGMA auto_vacuum = " + av + ";\n  ")

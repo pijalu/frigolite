@@ -17,6 +17,8 @@ func Test_mjournal(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "mjournal"
@@ -187,8 +189,11 @@ func Test_mjournal(t *testing.T) {
 	_items := tclSplitList(tests)
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		mjname := _items[_idx+1]
+		_ = mjname // suppress unused warning
 		bDel := _items[_idx+2]
+		_ = bDel // suppress unused warning
 		_ = _idx
 			var content = "0"
 			_ = content // suppress unused warning
@@ -213,6 +218,7 @@ func Test_mjournal(t *testing.T) {
 					t.Log("-nonewline")
 					t.Log("-nonewline")
 					mjexists := "!$bDel"
+					_ = mjexists // suppress unused warning
 				} else {
 					t.Log("-nonewline")
 					var mjexists = "1"

@@ -16,6 +16,8 @@ func Test_fts3defer(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var sqlite_fts3_enable_parentheses = "1"
@@ -61,7 +63,9 @@ func Test_fts3defer(t *testing.T) {
 	_items := tclSplitList("\n  1 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS3 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  2 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  3 {\n    set dmt_modes {0 1 2}\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  4 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    execsql \"INSERT INTO t1(t1) VALUES('optimize')\"\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  5 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4(matchinfo=fts3) }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		setup := _items[_idx+1]
+		_ = setup // suppress unused warning
 		_ = _idx
 			_res = db.Exec(" DROP TABLE IF EXISTS t1 ")
 			if _res.Error != nil {
@@ -181,7 +185,9 @@ func Test_fts3defer(t *testing.T) {
 		_items := tclSplitList(tokenizers)
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			tokenizer := _items[_idx+1]
+			_ = tokenizer // suppress unused warning
 			_ = _idx
 				{ // "5." + tn + ".1"
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE x3 USING FTS4(a, b, TOKENIZE " + tokenizer + ")\n  ")

@@ -16,6 +16,8 @@ func Test_literal(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "literal" // TCL namespace variable
@@ -52,8 +54,11 @@ func Test_literal(t *testing.T) {
 	_items := tclSplitList("\n  0    123a456       123a456\n  1    1_            1_\n  2    1_.4          1_.4\n  3    1e_4          1e_4\n  4    1_e4          1_e4\n  5    1.4_e4        1.4_e4\n  6    1.4e+_4       1.4e\n  7    1.4e-_4       1.4e\n  8    1.4e4_        1.4e4_\n  9    1.4_e4        1.4_e4\n  10   1.4e_4        1.4e_4\n  11   12__34        12__34\n  12   1234_         1234_\n  13   12._34        12._34\n  14   12_.34        12_.34\n  15   12.34_        12.34_\n  16   1.0e1_______2 1.0e1_______2 \n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		lit := _items[_idx+1]
+		_ = lit // suppress unused warning
 		unrec := _items[_idx+2]
+		_ = unrec // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "test_literal_error 4.$tn $lit $unrec")
 		}

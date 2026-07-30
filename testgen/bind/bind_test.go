@@ -15,6 +15,8 @@ func Test_bind(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -98,9 +100,8 @@ func Test_bind(t *testing.T) {
 		}
 	}
 	{ // do_test "bind-1.10"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare db {INSERT INTO t1 VALUES($abc:123,?,:abc)} -1 TAIL")
@@ -115,9 +116,8 @@ func Test_bind(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "bind-1.11"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare db {INSERT INTO t1 VALUES(@abc:xyz,?,:abc)} -1 TAIL")
@@ -451,9 +451,8 @@ func Test_bind(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a,b,c,d,e,f);\n  ")
 		}
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {\n      INSERT INTO t2(a) VALUES(?0)\n    } -1 TAIL")
@@ -468,9 +467,8 @@ func Test_bind(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "bind-9.2"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB INSERT INTO t2(a) VALUES(?[expr $iMaxVar+1]) -1 TAIL")
@@ -559,9 +557,8 @@ func Test_bind(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_step $VM")
 	}
 	{ // do_test "bind-10.8.1"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_int $VM 1 1")

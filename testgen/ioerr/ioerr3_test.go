@@ -15,6 +15,8 @@ func Test_ioerr3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test ioerr3-1 -sqlprep {\n  CREATE TABLE t1(id INTEGER, name TEXT);\n} -tclbody {\n  sqlite3_soft_heap_limit 8192\n  db cache size 0\n...}")

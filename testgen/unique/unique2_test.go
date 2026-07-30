@@ -16,13 +16,17 @@ func Test_unique2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// foreach {id sql} "\n   1 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL) WITHOUT ROWID}\n   2 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL)}\n   3 {CREATE TABLE t1(x TEXT PRIMARY KEY, y) WITHOUT ROWID}\n   4 {CREATE TABLE t1(x TEXT PRIMARY KEY, y)}\n"
 	_items := tclSplitList("\n   1 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL) WITHOUT ROWID}\n   2 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL)}\n   3 {CREATE TABLE t1(x TEXT PRIMARY KEY, y) WITHOUT ROWID}\n   4 {CREATE TABLE t1(x TEXT PRIMARY KEY, y)}\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		id := _items[_idx+0]
+		_ = id // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			{ // do_test id + ".1"
 				_res = db.Exec("DROP TABLE IF EXISTS t1")
@@ -47,7 +51,9 @@ func Test_unique2(t *testing.T) {
 		_items := tclSplitList("\n   5 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   6 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x))}\n   7 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   8 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x))}\n   9 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  10 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x))}\n  11 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  12 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x))}\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			id := _items[_idx+0]
+			_ = id // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			_ = _idx
 				{ // do_test id + ".1"
 					_res = db.Exec("DROP TABLE IF EXISTS t1")

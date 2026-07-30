@@ -16,6 +16,8 @@ func Test_pcache2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "test_set_config_pagecache 0 0")

@@ -17,6 +17,8 @@ func Test_crash8(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
@@ -106,6 +108,7 @@ func Test_crash8(t *testing.T) {
 		}
 		{ // do_test "crash8-3.9"
 			big := "$SQLITE_MAX_PAGE_SIZE * 2"
+			_ = big // suppress unused warning
 			var zJournal2 = "$zJournal 24 27 [binary format I $big]"
 			_ = zJournal2 // suppress unused warning
 			t.Skipf("TODO: %s not implemented in frigolite", "write_file test.db-journal $zJournal2")

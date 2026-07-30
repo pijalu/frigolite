@@ -15,6 +15,8 @@ func Test_without_rowid3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	r = db.Query(" PRAGMA foreign_keys = on ")
@@ -35,8 +37,11 @@ func Test_without_rowid3(t *testing.T) {
 	_items := tclSplitList(FkeySimpleTests)
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		zSql := _items[_idx+1]
+		_ = zSql // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			{ // do_test "without_rowid3-1.1." + tn + ".1"
 				_res = db.Exec(zSql)
@@ -90,8 +95,11 @@ func Test_without_rowid3(t *testing.T) {
 		_items := tclSplitList(FkeySimpleTests)
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			zSql := _items[_idx+1]
+			_ = zSql // suppress unused warning
 			res := _items[_idx+2]
+			_ = res // suppress unused warning
 			_ = _idx
 				{ // do_test "without_rowid3-1.2." + tn
 					_res = db.Exec(zSql)
@@ -149,8 +157,11 @@ func Test_without_rowid3(t *testing.T) {
 			_items := tclSplitList(FkeySimpleTests)
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				zSql := _items[_idx+1]
+				_ = zSql // suppress unused warning
 				res := _items[_idx+2]
+				_ = res // suppress unused warning
 				_ = _idx
 					if res == "0 {}" {
 						var res = "0 1"
@@ -216,8 +227,11 @@ func Test_without_rowid3(t *testing.T) {
 				_items := tclSplitList(FkeySimpleTests)
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					zSql := _items[_idx+1]
+					_ = zSql // suppress unused warning
 					res := _items[_idx+2]
+					_ = res // suppress unused warning
 					_ = _idx
 						if res == "0 {}" {
 							var res = "0 1"
@@ -729,7 +743,9 @@ func Test_without_rowid3(t *testing.T) {
 					_items := tclSplitList("\n  1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n")
 					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						stmt := _items[_idx+1]
+						_ = stmt // suppress unused warning
 						_ = _idx
 							{ // do_test "without_rowid3-13.1." + tn + ".1"
 								_res = db.Exec(stmt)
@@ -908,7 +924,9 @@ func Test_without_rowid3(t *testing.T) {
 						_items := tclSplitList("\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a))\n             WITHOUT rowid }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) WITHOUT rowid }\n  3 { CREATE TABLE self(a UNIQUE, b INT PRIMARY KEY REFERENCES self(a))\n             WITHOUT rowid }\n")
 						for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 							tn := _items[_idx+0]
+							_ = tn // suppress unused warning
 							zSchema := _items[_idx+1]
+							_ = zSchema // suppress unused warning
 							_ = _idx
 								t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
 								{ // do_test "without_rowid3-16.1." + tn + ".1"
@@ -1226,7 +1244,9 @@ func Test_without_rowid3(t *testing.T) {
 							_items := tclSplitList("\n  1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"\n")
 							for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 								tn := _items[_idx+0]
+								_ = tn // suppress unused warning
 								insert := _items[_idx+1]
+								_ = insert // suppress unused warning
 								_ = _idx
 									{ // do_test "without_rowid3-20.2." + tn + ".1"
 										_res = db.Exec(insert + " INTO cc VALUES(1, 2)")
@@ -1263,7 +1283,9 @@ func Test_without_rowid3(t *testing.T) {
 								_items := tclSplitList("\n  1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"\n")
 								for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 									tn := _items[_idx+0]
+									_ = tn // suppress unused warning
 									update := _items[_idx+1]
+									_ = update // suppress unused warning
 									_ = _idx
 										{ // do_test "without_rowid3-20.3." + tn + ".1"
 											_res = db.Exec("\n      INSERT INTO pp VALUES(2, 'two');\n      INSERT INTO cc VALUES(1, 2);\n    ")

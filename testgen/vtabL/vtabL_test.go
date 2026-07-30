@@ -16,6 +16,8 @@ func Test_vtabL(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtabL"
@@ -26,7 +28,9 @@ func Test_vtabL(t *testing.T) {
 	_items := tclSplitList("\n  1 {SELECT 123}\n  2 {SELECT 123, 456}\n  3 {INSERT INTO t1 VALUES(5, 6)}\n  4 {CREATE INDEX i1 ON t1(a)}\n  5 {CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END;}\n  6 {DROP TABLE nosuchtable}\n  7 {DROP TABLE x1}\n  8 {DROP TABLE t1}\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		cts := _items[_idx+1]
+		_ = cts // suppress unused warning
 		_ = _idx
 			var _create_table_sql = cts // TCL namespace variable
 			_ = _create_table_sql // suppress unused warning
@@ -41,7 +45,9 @@ func Test_vtabL(t *testing.T) {
 		_items := tclSplitList("\n  9 {CREATE TABLE xyz AS SELECT * FROM sqlite_schema}\n  10 {CREATE TABLE xyz AS SELECT 1 AS 'col'}\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			cts := _items[_idx+1]
+			_ = cts // suppress unused warning
 			_ = _idx
 				var _create_table_sql = cts // TCL namespace variable
 				_ = _create_table_sql // suppress unused warning
@@ -56,7 +62,9 @@ func Test_vtabL(t *testing.T) {
 			_items := tclSplitList("\n  1 {CREATE TABLE IF NOT EXISTS t1(a, b)}\n  2 {CREATE TABLE \"\"(a, b PRIMARY KEY) WITHOUT ROWID}\n")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				cts := _items[_idx+1]
+				_ = cts // suppress unused warning
 				_ = _idx
 					var _create_table_sql = cts // TCL namespace variable
 					_ = _create_table_sql // suppress unused warning

@@ -15,6 +15,8 @@ func Test_func3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "func3-2.1"
@@ -39,9 +41,8 @@ func Test_func3(t *testing.T) {
 	{ // do_test "func3-4.1"
 		var destroyed = "0"
 		_ = destroyed // suppress unused warning
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_create_function_v2 db f3 -1 any -func f3 -step f3 -destroy destroy")

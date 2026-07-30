@@ -16,6 +16,8 @@ func Test_fts4noti(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4noti" // TCL namespace variable
@@ -30,8 +32,11 @@ func Test_fts4noti(t *testing.T) {
 	_items := tclSplitList("\n  1 \"(b, c, notindexed=a)\"                  {1 {no such column: a}}\n  2 \"(a, b, notindexed=a)\"                                   {0 {}}\n  3 \"(a, b, notindexed=a, notindexed=a)\"                     {0 {}}\n  4 \"(notindexed=a, a, b)\"                                   {0 {}}\n  5 \"(notindexed=a, notindexed=b, notindexed=c, a, b, c, d)\" {0 {}}\n  6 \"(notindexed=a, notindexed=B, notindexed=c, a, b, c, d)\" {0 {}}\n  7 \"(notindexed=a, notindexed=b, notindexed=c, a, B, c, d)\" {0 {}}\n  8 \"(notindexed=d, content=cc)\" {1 {no such column: d}}\n  9 \"(notindexed=a, content=cc)\" {0 {}}\n  10 \"(notindexed=a, notindexed=b, a)\" {1 {no such column: b}}\n  11 \"(notindexed=a, notindexed=b, b)\" {1 {no such column: a}}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		arg := _items[_idx+1]
+		_ = arg // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			{ // "1." + tn
 				_res = db.Exec("CREATE VIRTUAL TABLE t1 USING fts4 " + arg)
@@ -62,7 +67,9 @@ func Test_fts4noti(t *testing.T) {
 		_items := tclSplitList("\n  1 { \n    CREATE VIRTUAL TABLE t1 USING fts4(a, b, c, notindexed=b); \n  }\n  2 { \n    CREATE TABLE c1(a, b, c);\n    INSERT INTO c1 VALUES('one two', 'three four', 'five six');\n    INSERT INTO c1 VALUES('three four', 'five six', 'one two');\n    CREATE VIRTUAL TABLE t1 USING fts4(content=c1, notindexed=b); \n  }\n  3 { \n    CREATE VIRTUAL TABLE t1 USING fts4(content=\"\", a, b, c, notindexed=b); \n  }\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			schema := _items[_idx+1]
+			_ = schema // suppress unused warning
 			_ = _idx
 				_res = db.Exec(schema)
 				if _res.Error != nil {

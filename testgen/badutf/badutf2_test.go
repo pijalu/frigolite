@@ -17,6 +17,8 @@ func Test_badutf2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -42,11 +44,17 @@ func Test_badutf2(t *testing.T) {
 	_items := tclSplitList("\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n")
 	for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
 		i := _items[_idx+0]
+		_ = i // suppress unused warning
 		len := _items[_idx+1]
+		_ = len // suppress unused warning
 		uval := _items[_idx+2]
+		_ = uval // suppress unused warning
 		xstr := _items[_idx+3]
+		_ = xstr // suppress unused warning
 		ustr := _items[_idx+4]
+		_ = ustr // suppress unused warning
 		u2u := _items[_idx+5]
+		_ = u2u // suppress unused warning
 		_ = _idx
 			var hstr = "utf8_to_hstr $uval"
 			_ = hstr // suppress unused warning

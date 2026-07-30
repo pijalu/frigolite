@@ -15,6 +15,8 @@ func Test_fts3near(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(content);\n  INSERT INTO t1(content) VALUES('one three four five');\n  INSERT INTO t1(content) VALUES('two three four five');\n  INSERT INTO t1(content) VALUES('one two three four five');\n")

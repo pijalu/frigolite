@@ -16,6 +16,8 @@ func Test_analyzeF(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "analyzeF" // TCL namespace variable
@@ -32,8 +34,11 @@ func Test_analyzeF(t *testing.T) {
 	_items := tclSplitList("\n  1 \"x = 4 AND y = 19\"     {t1x (x=?)}\n  2 \"x = 19 AND y = 4\"     {t1y (y=?)}\n  3 \"x = '4' AND y = '19'\" {t1x (x=?)}\n  4 \"x = '19' AND y = '4'\" {t1y (y=?)}\n  5 \"x = substr('5195', 2, 2) AND y = substr('145', 2, 1)\" {t1y (y=?)}\n  6 \"x = substr('145', 2, 1) AND y = substr('5195', 2, 2)\" {t1x (x=?)}\n\n  7  \"x = substr('5195', 2, 2+0) AND y = substr('145', 2, 1+0)\" {t1y (y=?)}\n  8  \"x = substr('145', 2, 1+0) AND y = substr('5195', 2, 2+0)\" {t1y (y=?)}\n\n  9  \"x = str('19') AND y = str('4')\" {t1y (y=?)}\n  10 \"x = str('4') AND y = str('19')\" {t1y (y=?)}\n\n  11 \"x = nullif('19', 0) AND y = nullif('4', 0)\" {t1y (y=?)}\n  12 \"x = nullif('4', 0) AND y = nullif('19', 0)\" {t1y (y=?)}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		where := _items[_idx+1]
+		_ = where // suppress unused warning
 		idx := _items[_idx+2]
+		_ = idx // suppress unused warning
 		_ = _idx
 			var res = "SEARCH t1 USING INDEX " + idx
 			_ = res // suppress unused warning
@@ -61,8 +66,11 @@ func Test_analyzeF(t *testing.T) {
 		_items := tclSplitList("\n  1 \"x = det4() AND y = det19()\"     {t1x (x=?)}\n  2 \"x = det19() AND y = det4()\"     {t1y (y=?)}\n\n  3 \"x = nondet4() AND y = nondet19()\"     {t1y (y=?)}\n  4 \"x = nondet19() AND y = nondet4()\"     {t1y (y=?)}\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			where := _items[_idx+1]
+			_ = where // suppress unused warning
 			idx := _items[_idx+2]
+			_ = idx // suppress unused warning
 			_ = _idx
 				var res = "SEARCH t1 USING INDEX " + idx
 				_ = res // suppress unused warning

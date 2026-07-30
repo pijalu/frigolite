@@ -16,6 +16,8 @@ func Test_upfromfault(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "upfromfault"
@@ -24,7 +26,9 @@ func Test_upfromfault(t *testing.T) {
 	_items := tclSplitList("\n  1 {\n    CREATE TABLE t1(x PRIMARY KEY, y, z UNIQUE);\n    CREATE INDEX t1y ON t1(y);\n  }\n  2 {\n    CREATE TABLE t1(x PRIMARY KEY, y, z UNIQUE) WITHOUT ROWID;\n    CREATE INDEX t1y ON t1(y);\n  }\n  3 {\n    CREATE TABLE t1(x, y, z UNIQUE, PRIMARY KEY(x,y)) WITHOUT ROWID;\n  }\n  4 {\n    CREATE VIRTUAL TABLE t1 USING fts5(x, y, z);\n  }\n  5 {\n    CREATE TABLE real(x, y, z);\n    CREATE VIEW t1 AS SELECT * FROM real;\n    CREATE TRIGGER t1_insert INSTEAD OF INSERT ON t1 BEGIN\n      INSERT INTO real VALUES(new.x, new.y, new.z);\n    END;\n    CREATE TRIGGER t1_update INSTEAD OF UPDATE ON t1 BEGIN\n      INSERT INTO log VALUES(old.z || '->' || new.z);\n      UPDATE real SET y=new.y, z=new.z WHERE x=old.x;\n    END;\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n < 5 }() {
 			}

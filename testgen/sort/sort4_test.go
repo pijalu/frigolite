@@ -16,6 +16,8 @@ func Test_sort4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sort4"
@@ -59,6 +61,7 @@ func Test_sort4(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "populate_table 100000 500")
 	}
 	iTimeLimit := "[clock_seconds] + $SORT4TIMEOUT"
+	_ = iTimeLimit // suppress unused warning
 	var t = "2"
 	_ = t // suppress unused warning
 	for true {

@@ -16,6 +16,8 @@ func Test_tkt_5ee23731f(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-5ee237-1.1"
@@ -29,9 +31,8 @@ func Test_tkt_5ee23731f(t *testing.T) {
 		}
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("SELECT rowid, x FROM t1 ORDER BY x")

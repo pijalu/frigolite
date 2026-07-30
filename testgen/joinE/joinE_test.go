@@ -15,6 +15,8 @@ func Test_joinE(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE t1(a INT);\n  INSERT INTO t1 VALUES(1),(NULL);\n  CREATE TABLE t2(b INT);\n  INSERT INTO t2 VALUES(2),(NULL);\n")

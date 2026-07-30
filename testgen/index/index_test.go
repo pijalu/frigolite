@@ -16,6 +16,8 @@ func Test_index(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "index-1.1"
@@ -67,9 +69,8 @@ func Test_index(t *testing.T) {
 		}
 	}
 	{ // do_test "index-2.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE INDEX index1 ON test1(f1)")
@@ -89,9 +90,8 @@ func Test_index(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(f1 int, f2 int, f3 int)")
 		}
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE INDEX index1 ON test1(f4)")
@@ -107,9 +107,8 @@ func Test_index(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "index-2.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE INDEX index1 ON test1(f1, f2, f4, f3)")
@@ -311,9 +310,8 @@ func Test_index(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "index-5.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE INDEX index1 ON sqlite_master(name)")
@@ -347,9 +345,8 @@ func Test_index(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX index1 ON test1(f1)")
 		}
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE INDEX index1 ON test2(g1)")
@@ -379,9 +376,8 @@ func Test_index(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "index-6.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE INDEX test1 ON test2(g1)")
@@ -474,9 +470,8 @@ func Test_index(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "index-8.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("DROP INDEX index1")

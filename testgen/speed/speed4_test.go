@@ -16,6 +16,8 @@ func Test_speed4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_init speed1")
@@ -41,6 +43,7 @@ func Test_speed4(t *testing.T) {
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 50000 }() {
 			i := "0"
+			_ = i // suppress unused warning
 			var t = "number_name $i"
 			_ = t // suppress unused warning
 			_res = db.Exec(stmt)
@@ -143,6 +146,7 @@ func Test_speed4(t *testing.T) {
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
 		ii2 := "$ii*2"
+		_ = ii2 // suppress unused warning
 		sql += "\n    UPDATE t4 SET i = " + ii2 + ", t = '" + "number_name $ii2" + "' WHERE rowid = " + ii + ";\n  "
 		// incr ii 2
 		{
@@ -197,6 +201,7 @@ func Test_speed4(t *testing.T) {
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
 		ii2 := "$ii*2"
+		_ = ii2 // suppress unused warning
 		sql += "\n    UPDATE t4 SET i = " + ii2 + ", t = '" + "number_name $ii2" + "' WHERE rowid = " + ii + ";\n  "
 		// incr ii 2
 		{

@@ -16,6 +16,8 @@ func Test_vacuum3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "vacuum3-1.1"
@@ -39,8 +41,11 @@ func Test_vacuum3(t *testing.T) {
 	_items := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		request := _items[_idx+0]
+		_ = request // suppress unused warning
 		actual := _items[_idx+1]
+		_ = actual // suppress unused warning
 		database := _items[_idx+2]
+		_ = database // suppress unused warning
 		_ = _idx
 			{ // do_test "vacuum3-1." + I + ".1"
 				_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
@@ -99,8 +104,11 @@ func Test_vacuum3(t *testing.T) {
 		_items := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			request := _items[_idx+0]
+			_ = request // suppress unused warning
 			actual := _items[_idx+1]
+			_ = actual // suppress unused warning
 			database := _items[_idx+2]
+			_ = database // suppress unused warning
 			_ = _idx
 				{ // do_test "vacuum3-2." + I + ".1"
 					_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
@@ -152,7 +160,9 @@ func Test_vacuum3(t *testing.T) {
 			_items := tclSplitList("list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				request := _items[_idx+0]
+				_ = request // suppress unused warning
 				actual := _items[_idx+1]
+				_ = actual // suppress unused warning
 				_ = _idx
 					{ // do_test "vacuum3-3." + I + ".1"
 						_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")

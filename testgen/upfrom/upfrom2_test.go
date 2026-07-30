@@ -16,6 +16,8 @@ func Test_upfrom2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "upfrom2"
@@ -24,7 +26,9 @@ func Test_upfrom2(t *testing.T) {
 	_items := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		wo := _items[_idx+1]
+		_ = wo // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")
@@ -51,7 +55,9 @@ func Test_upfrom2(t *testing.T) {
 		_items := tclSplitList("\n  2 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n  }\n  1 { \n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  }\n  3 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c);\n  }\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			_ = _idx
 				db.Close()
 				db, err = frigolite.Open("")
@@ -92,8 +98,11 @@ func Test_upfrom2(t *testing.T) {
 			_items := tclSplitList("\n  1 \"UPDATE x1 SET a=5 FROM x1\" x1\n  2 \"UPDATE x1 AS grapes SET a=5 FROM x1 AS grapes\" grapes\n  3 \"UPDATE x1 SET a=5 FROM x2, x1\" x1\n  4 \"UPDATE x1 AS grapes SET a=5 FROM x2, x1 AS grapes\" grapes\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				update := _items[_idx+1]
+				_ = update // suppress unused warning
 				nm := _items[_idx+2]
+				_ = nm // suppress unused warning
 				_ = _idx
 					{ // "5." + tn
 						_res = db.Exec(update)

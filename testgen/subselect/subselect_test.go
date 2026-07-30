@@ -15,6 +15,8 @@ func Test_subselect(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "subselect-1.1"
@@ -28,9 +30,8 @@ func Test_subselect(t *testing.T) {
 		}
 	}
 	{ // do_test "subselect-1.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT * FROM t1 WHERE a = (SELECT * FROM t1)")

@@ -16,6 +16,8 @@ func Test_rowvalue4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "rowvalue4" // TCL namespace variable
@@ -30,7 +32,9 @@ func Test_rowvalue4(t *testing.T) {
 	_items := tclSplitList("\n  1 \"(1, 2, 3)\"\n  2 \"1 + (1, 2)\"\n  3 \"(1,2,3) == (1, 2)\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		e := _items[_idx+1]
+		_ = e // suppress unused warning
 		_ = _idx
 			{ // "1." + tn
 				_res = db.Exec("SELECT " + e)
@@ -43,8 +47,11 @@ func Test_rowvalue4(t *testing.T) {
 		_items := tclSplitList("\n  1 \"SELECT * FROM t1 WHERE a = (1, 2)\"       {row value misused}\n  2 \"SELECT * FROM t1 WHERE b = (1, 2)\"       {row value misused}\n  3 \"SELECT * FROM t1 WHERE NOT (b = (1, 2))\" {row value misused}\n  4 \"SELECT * FROM t1 LIMIT (1, 2)\"           {row value misused}\n  5 \"SELECT (a, b) IN (SELECT * FROM t1) FROM t1\" \n                             {sub-select returns 3 columns - expected 2}\n\n  6 \"SELECT * FROM t1 WHERE (a, b) IN (SELECT * FROM t1)\" \n                             {sub-select returns 3 columns - expected 2}\n  7 \"SELECT * FROM t1 WHERE (c, c) <= 1\" {row value misused}\n  8 \"SELECT * FROM t1 WHERE (b, b) <= 1\" {row value misused}\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			s := _items[_idx+1]
+			_ = s // suppress unused warning
 			error := _items[_idx+2]
+			_ = error // suppress unused warning
 			_ = _idx
 				{ // "2." + tn
 					_res = db.Exec(s)
@@ -63,7 +70,9 @@ func Test_rowvalue4(t *testing.T) {
 			_items := tclSplitList("\n  idx1 {}\n  idx2 { CREATE INDEX t2abc ON t2(a, b, c); }\n  idx3 { CREATE INDEX t2abc ON t2(a, b DESC, c); }\n  idx4 { CREATE INDEX t2abc ON t2(a DESC, b DESC, c DESC); }\n  idx5 { CREATE INDEX t2abc ON t2(a ASC, b ASC, c ASC); }\n  idx6 { CREATE INDEX t2abc ON t2(a DESC, b, c); }\n  idx7 { CREATE INDEX t2abc ON t2(a DESC, b DESC) }\n  idx8 { CREATE INDEX t2abc ON t2(c, b, a); }\n  idx9 { CREATE INDEX t2d ON t2(d); }\n  idx10 { CREATE INDEX t2abc ON t2(a DESC, b, c DESC); }\n")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				nm := _items[_idx+0]
+				_ = nm // suppress unused warning
 				idx := _items[_idx+1]
+				_ = idx // suppress unused warning
 				_ = _idx
 					t.Skipf("TODO: %s not implemented in frigolite", "drop_all_indexes")
 					_res = db.Exec(idx)
@@ -74,8 +83,11 @@ func Test_rowvalue4(t *testing.T) {
 					_items := tclSplitList("\n    1 \"(a, b, c) < (2, 2, 2)\"  {1 2 3 4 5 6 7 8 9 10 11 12 13}\n    2 \"(a, b, c) <= (2, 2, 2)\" {1 2 3 4 5 6 7 8 9 10 11 12 13 14}\n    3 \"(a, b, c) > (2, 2, 2)\"  {15 16 17 18 19 20 21 22 23 24 25 26 27}\n    4 \"(a, b, c) >= (2, 2, 2)\" {14 15 16 17 18 19 20 21 22 23 24 25 26 27}\n    5 \"(a, b, c) >= (2, 2, NULL)\" {16 17 18 19 20 21 22 23 24 25 26 27}\n    6 \"(a, b, c) <= (2, 2, NULL)\" {1 2 3 4 5 6 7 8 9 10 11 12}\n    7 \"(a, b, c) >= (2, NULL, NULL)\" {19 20 21 22 23 24 25 26 27}\n    8 \"(a, b, c) <= (2, NULL, NULL)\" {1 2 3 4 5 6 7 8 9}\n\n    9 \"(a, b, c) < (SELECT a, b, c FROM t2 WHERE d=14)\"  \n      {1 2 3 4 5 6 7 8 9 10 11 12 13}\n\n    10 \"(a, b, c) = (SELECT a, b, c FROM t2 WHERE d=14)\" 14\n\n    11 \"a = 2 AND (b, c) > (2, 2)\" {15 16 17 18}\n    12 \"a = 2 AND (b, c) < (3, 3) AND (b, c) > (1, 1)\" {11 12 13 14 15 16 17}\n  ")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						where := _items[_idx+1]
+						_ = where // suppress unused warning
 						res := _items[_idx+2]
+						_ = res // suppress unused warning
 						_ = _idx
 							var result = "db eval \"SELECT d FROM t2 WHERE $where\""
 							_ = result // suppress unused warning
@@ -87,8 +99,11 @@ func Test_rowvalue4(t *testing.T) {
 						_items := tclSplitList("\n    1 \"(2, 1) IN (SELECT a, b FROM t2)\" 1\n    2 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d)\" 1\n    3 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 9)\" 0\n    4 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 10)\" 1\n\n    5 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d DESC LIMIT 1)\" 1\n    6 \"(3, 3) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" 0\n    7 \"(1, NULL) = (SELECT a, b FROM t2 ORDER BY d ASC LIMIT 1)\" {{}}\n\n    8 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d DESC LIMIT 1 OFFSET 2)\" 1\n    9 \"(3, 1) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" 0\n    10 \"(1, NULL) = (SELECT b, c FROM t2 ORDER BY d ASC LIMIT 1 OFFSET 2)\" {{}}\n\n    11 \"(3, 3) = (SELECT max(a), max(b) FROM t2)\" 1\n    12 \"(3, 1) = (SELECT max(a), min(b) FROM t2)\" 1\n    13 \"(NULL, NULL) = (SELECT max(a), min(b) FROM t2)\" {{}}\n\n    14 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 11)\" 1\n    15 \"(2, 1) IN (SELECT a, b FROM t2 ORDER BY d LIMIT 5 OFFSET 12)\" 0\n  ")
 						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 							tn := _items[_idx+0]
+							_ = tn // suppress unused warning
 							e := _items[_idx+1]
+							_ = e // suppress unused warning
 							res := _items[_idx+2]
+							_ = res // suppress unused warning
 							_ = _idx
 								{ // "2.2." + nm + "." + tn
 									r = db.Query("SELECT " + e)

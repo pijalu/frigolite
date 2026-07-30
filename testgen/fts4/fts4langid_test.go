@@ -17,6 +17,8 @@ func Test_fts4langid(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4langid" // TCL namespace variable
@@ -399,6 +401,7 @@ func Test_fts4langid(t *testing.T) {
 		}
 	}
 	lid := "1073741824"
+	_ = lid // suppress unused warning
 	{ // "5.3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t6 USING fts4(languageid=lid);\n  INSERT INTO t6 VALUES('I belong to language 0!');\n")
 		if _res.Error != nil {
@@ -463,6 +466,7 @@ func Test_fts4langid(t *testing.T) {
 		}
 	}
 	lid := "1073741824"
+	_ = lid // suppress unused warning
 	for _, lid := range tclSplitList("list 4 [expr 1<<30]") {
 		{ // "5.4." + lid + ".1"
 			r = db.Query("\n    DELETE FROM t6;\n    SELECT count(*) FROM t6_segdir;\n    SELECT count(*) FROM t6_segments;\n  ")

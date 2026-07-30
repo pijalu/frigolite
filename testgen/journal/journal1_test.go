@@ -15,6 +15,8 @@ func Test_journal1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool(tcl_platform + "(platform) == \"windows\"\n || " + "atomic_batch_write test.db") {

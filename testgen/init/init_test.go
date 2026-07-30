@@ -15,6 +15,8 @@ func Test_init(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("db eval {SELECT sqlite_compileoption_used('THREADSAFE=0')}") {
@@ -24,9 +26,13 @@ func Test_init(t *testing.T) {
 	_items := tclSplitList("\n  1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		t := _items[_idx+0]
+		_ = t // suppress unused warning
 		failed := _items[_idx+1]
+		_ = failed // suppress unused warning
 		rc := _items[_idx+2]
+		_ = rc // suppress unused warning
 		started := _items[_idx+3]
+		_ = started // suppress unused warning
 		_ = _idx
 			{ // do_test "init-" + t + ".1"
 				// eval init_wrapper_install $failed

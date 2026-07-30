@@ -16,6 +16,8 @@ func Test_speed1p(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	{
 		var _catchErr error
@@ -52,6 +54,7 @@ func Test_speed1p(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		r := "0"
+		_ = r // suppress unused warning
 		var x = "number_name $r"
 		_ = x // suppress unused warning
 		list = tclListAppend(list, i, r, x)
@@ -80,6 +83,7 @@ func Test_speed1p(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		r := "0"
+		_ = r // suppress unused warning
 		var x = "number_name $r"
 		_ = x // suppress unused warning
 		list = tclListAppend(list, i, r, x)
@@ -108,7 +112,9 @@ func Test_speed1p(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
 		lwr := "$i*100"
+		_ = lwr // suppress unused warning
 		upr := "($i+10)*100"
+		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1
 		{
@@ -169,7 +175,9 @@ func Test_speed1p(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
 		lwr := "$i*100"
+		_ = lwr // suppress unused warning
 		upr := "($i+10)*100"
+		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1
 		{
@@ -196,6 +204,7 @@ func Test_speed1p(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id := "1"
+		_ = id // suppress unused warning
 		list = tclListAppend(list, id)
 		// incr i 1
 		{
@@ -222,6 +231,7 @@ func Test_speed1p(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id := "1"
+		_ = id // suppress unused warning
 		list = tclListAppend(list, id)
 		// incr i 1
 		{
@@ -262,7 +272,9 @@ func Test_speed1p(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
 		lwr := "$i*2"
+		_ = lwr // suppress unused warning
 		upr := "($i+1)*2"
+		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1
 		{
@@ -289,6 +301,7 @@ func Test_speed1p(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50000 }() {
 		r := "0"
+		_ = r // suppress unused warning
 		list = tclListAppend(list, i, r)
 		// incr i 1
 		{
@@ -316,6 +329,7 @@ func Test_speed1p(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		r := "0"
+		_ = r // suppress unused warning
 		list = tclListAppend(list, i, "number_name $r")
 		// incr i 1
 		{

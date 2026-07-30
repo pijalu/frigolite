@@ -63,7 +63,9 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	body.WriteString("\tdefer db.Close()\n\n")
 	// Common vars used by generated code
 	body.WriteString("\tvar _res *frigolite.Result\n")
-	body.WriteString("\tvar r *frigolite.Result\n\n")
+	body.WriteString("\tvar r *frigolite.Result\n")
+	body.WriteString("\tvar msg string\n")
+	body.WriteString("\t_ = msg // suppress unused warning\n\n")
 
 	// Process top-level TCL commands
 	tp := &transpiler{
@@ -973,6 +975,7 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 		tp.indent++
 		for i, vn := range varNames {
 			tp.emitLine("%s := _items[_idx+%d]", tclVarToGo(vn), i)
+			tp.emitLine("_ = %s // suppress unused warning", tclVarToGo(vn))
 		}
 		tp.emitLine("_ = _idx") // suppress unused warning
 	}
@@ -1443,8 +1446,10 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 			result, err := tcl.EvalExpr(exprStr, nil, nil)
 			if err == nil {
 				tp.emitLine("%s := %q", goName, result)
+				tp.emitLine("_ = %s // suppress unused warning", goName)
 			} else {
 				tp.emitLine("%s := tclExpr(%q)", goName, exprStr)
+				tp.emitLine("_ = %s // suppress unused warning", goName)
 			}
 			return
 		}
@@ -1477,10 +1482,17 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 							if restStr != "" {
 								errVar = tclVarToGo(restStr)
 							}
-							// Declare variables at this scope (before catch block)
+							// Declare variables at function scope (indent 1)
+							// so they're accessible from all do_test blocks.
+							savedIndent := tp.indent
+							tp.indent = 1
 							tp.emitLine("var %s string", varName)
-							tp.emitLine("var %s string", errVar)
+							// msg is declared at function level in preamble
+							if errVar != "msg" {
+								tp.emitLine("var %s string", errVar)
+							}
 							tp.emitLine("_ = %s // suppress unused warning", errVar)
+							tp.indent = savedIndent
 							tp.emitLine("{ // catch block")
 							tp.indent++
 							tp.emitLine("var _catchErr error")

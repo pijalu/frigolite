@@ -15,6 +15,8 @@ func Test_whereF(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "whereF"
@@ -29,7 +31,9 @@ func Test_whereF(t *testing.T) {
 	_items := tclSplitList("\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			{ // do_test "1." + tn
 				_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
@@ -48,7 +52,9 @@ func Test_whereF(t *testing.T) {
 		_items := tclSplitList("\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			_ = _idx
 				{ // do_test "2." + tn
 					_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
@@ -67,7 +73,9 @@ func Test_whereF(t *testing.T) {
 			_items := tclSplitList("\n  1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				sql := _items[_idx+1]
+				_ = sql // suppress unused warning
 				_ = _idx
 					{ // do_test "3." + tn
 						_res = db.Exec("EXPLAIN QUERY PLAN " + sql)

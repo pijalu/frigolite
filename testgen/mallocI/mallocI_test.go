@@ -15,6 +15,8 @@ func Test_mallocI(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test mallocI-1 -sqlprep {\n  CREATE TABLE t1(a,b,c,d);\n  CREATE VIEW v1 AS S...} -sqlbody {\n  SELECT * FROM v1\n}")

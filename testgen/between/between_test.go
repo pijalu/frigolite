@@ -16,6 +16,8 @@ func Test_between(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "between-1.0"
@@ -29,8 +31,11 @@ func Test_between(t *testing.T) {
 			var w = i
 			_ = w // suppress unused warning
 			x := "int(log($i)/log(2))"
+			_ = x // suppress unused warning
 			y := "$i*$i + 2*$i + 1"
+			_ = y // suppress unused warning
 			z := "$x+$y"
+			_ = z // suppress unused warning
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -88,8 +93,11 @@ func Test_between(t *testing.T) {
 	_items := tclSplitList("\n  1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		expr := _items[_idx+1]
+		_ = expr // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			var sql = "SELECT " + expr + " FROM t1"
 			_ = sql // suppress unused warning

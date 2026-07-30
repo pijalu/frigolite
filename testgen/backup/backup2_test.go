@@ -16,6 +16,8 @@ func Test_backup2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
@@ -41,9 +43,9 @@ func Test_backup2(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		db2.Exec("BEGIN EXCLUSIVE")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		var rc string
-		var res string
-		_ = res // suppress unused warning
+	var rc string
+	var res string
+	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -88,9 +90,9 @@ func Test_backup2(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			// file attributes bu2.db -readonly 1
 		}
-		var rc string
-		var res string
-		_ = res // suppress unused warning
+	var rc string
+	var res string
+	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -118,9 +120,9 @@ func Test_backup2(t *testing.T) {
 		_ = out // suppress unused warning
 		t.Log(out)
 		// close $out
-		var rc string
-		var res string
-		_ = res // suppress unused warning
+	var rc string
+	var res string
+	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -135,9 +137,9 @@ func Test_backup2(t *testing.T) {
 	}
 	{ // do_test "backup2-8"
 		os.Remove("bu1.db")
-		var rc string
-		var res string
-		_ = res // suppress unused warning
+	var rc string
+	var res string
+	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -151,9 +153,9 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 	}
 	{ // do_test "backup2-9"
-		var rc string
-		var res string
-		_ = res // suppress unused warning
+	var rc string
+	var res string
+	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -179,9 +181,9 @@ func Test_backup2(t *testing.T) {
 	{ // do_test "backup2-10"
 		os.Remove("bu3.db")
 		// file mkdir bu3.db
-		var rc string
-		var res string
-		_ = res // suppress unused warning
+	var rc string
+	var res string
+	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -200,9 +202,9 @@ func Test_backup2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "backup2-11"
-		var rc string
-		var res string
-		_ = res // suppress unused warning
+	var rc string
+	var res string
+	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -216,9 +218,9 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 	}
 	{ // do_test "backup2-12"
-		var rc string
-		var res string
-		_ = res // suppress unused warning
+	var rc string
+	var res string
+	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -233,9 +235,9 @@ func Test_backup2(t *testing.T) {
 	}
 	{ // do_test "backup2-13"
 		os.Remove("bu4.db")
-		var rc string
-		var res string
-		_ = res // suppress unused warning
+	var rc string
+	var res string
+	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -249,9 +251,9 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 	}
 	{ // do_test "backup2-14"
-		var rc string
-		var res string
-		_ = res // suppress unused warning
+	var rc string
+	var res string
+	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {

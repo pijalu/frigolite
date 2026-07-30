@@ -16,6 +16,8 @@ func Test_indexexpr2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "indexexpr2"
@@ -409,7 +411,9 @@ func Test_indexexpr2(t *testing.T) {
 	_items := tclSplitList("\n  1 \" 0  ==  (34 BETWEEN c0 AND 33)\"\n  2 \" 1  !=  (34 BETWEEN c0 AND 33)\"\n  3 \"-1   <  (34 BETWEEN c0 AND 33)\"\n  4 \"-1  <=  (34 BETWEEN c0 AND 33)\"\n  5 \" 1   >  (34 BETWEEN c0 AND 33)\"\n  6 \" 1  >=  (34 BETWEEN c0 AND 33)\"\n  7 \" 1   -  (34 BETWEEN c0 AND 33)\"\n  8 \"-1   +  (34 BETWEEN c0 AND 33)\"\n  9 \" 1   |  (34 BETWEEN c0 AND 33)\"\n 10 \" 1  <<  (34 BETWEEN c0 AND 33)\"\n 11 \" 1  >>  (34 BETWEEN c0 AND 33)\"\n 12 \" 1  ||  (34 BETWEEN c0 AND 33)\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		expr := _items[_idx+1]
+		_ = expr // suppress unused warning
 		_ = _idx
 			{ // "8.3." + tn + ".1"
 				r = db.Query("SELECT * FROM t0 WHERE " + expr + " ORDER BY c0")
@@ -446,7 +450,9 @@ func Test_indexexpr2(t *testing.T) {
 		_items := tclSplitList("\n  1 \" 0  ==  (a=0 AND y=1)\"\n  2 \" 1  !=  (a=0 AND y=1)\"\n  3 \"-1  <   (a=0 AND y=1)\"\n  4 \"-1  <=  (a=0 AND y=1)\"\n  5 \" 1   >  (a=0 AND y=1)\"\n  6 \" 1  >=  (a=0 AND y=1)\"\n  7 \" 1   -  (a=0 AND y=1)\"\n  8 \"-1   +  (a=0 AND y=1)\"\n  9 \" 1   |  (a=0 AND y=1)\"\n  10 \"1  <<  (a=0 AND y=1)\"\n  11 \"1  >>  (a=0 AND y=1)\"\n  12 \"1  ||  (a=0 AND y=1)\"\n\n  13 \" 0  ==  (10 BETWEEN y AND b)\"\n  14 \" 1  !=  (10 BETWEEN y AND b)\"\n  15 \"-1  <   (10 BETWEEN y AND b)\"\n  16 \"-1  <=  (10 BETWEEN y AND b)\"\n  17 \" 1   >  (10 BETWEEN y AND b)\"\n  18 \" 1  >=  (10 BETWEEN y AND b)\"\n  19 \" 1   -  (10 BETWEEN y AND b)\"\n  20 \"-1   +  (10 BETWEEN y AND b)\"\n  21 \" 1   |  (10 BETWEEN y AND b)\"\n  22 \" 1  <<  (10 BETWEEN y AND b)\"\n  23 \" 1  >>  (10 BETWEEN y AND b)\"\n  24 \" 1  ||  (10 BETWEEN y AND b)\"\n\n  25 \" 1  ||  (10 BETWEEN y AND b)\"\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			expr := _items[_idx+1]
+			_ = expr // suppress unused warning
 			_ = _idx
 				{ // "8.5." + tn + ".1"
 					r = db.Query("\n    SELECT * FROM t1 LEFT JOIN t2 WHERE " + expr + "\n  ")

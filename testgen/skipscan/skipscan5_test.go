@@ -16,6 +16,8 @@ func Test_skipscan5(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "skipscan5"
@@ -32,7 +34,9 @@ func Test_skipscan5(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			a := "1"
+			_ = a // suppress unused warning
 			b := "1"
+			_ = b // suppress unused warning
 			_res = db.Exec(" INSERT INTO t1 VALUES($a, $b, NULL) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($a, $b, NULL) ")
@@ -54,8 +58,11 @@ func Test_skipscan5(t *testing.T) {
 	_items := tclSplitList("\n  1  \"b = 5\"                   {/*ANY(a) AND b=?*/}\n  2  \"b > 12 AND b < 16\"       {/*ANY(a) AND b>? AND b<?*/}\n  3  \"b > 2 AND b < 16\"        {/*SCAN t1*/}\n  4  \"b > 18 AND b < 25\"       {/*ANY(a) AND b>? AND b<?*/}\n  5  \"b > 16\"                  {/*ANY(a) AND b>?*/}\n  6  \"b > 5\"                   {/*SCAN t1*/}\n  7  \"b < 15\"                  {/*SCAN t1*/}\n  8  \"b < 5\"                   {/*ANY(a) AND b<?*/}\n  9  \"5 > b\"                   {/*ANY(a) AND b<?*/}\n  10 \"b = '5'\"                 {/*ANY(a) AND b=?*/}\n  11 \"b > '12' AND b < '16'\"   {/*ANY(a) AND b>? AND b<?*/}\n  12 \"b > '2' AND b < '16'\"    {/*SCAN t1*/}\n  13 \"b > '18' AND b < '25'\"   {/*ANY(a) AND b>? AND b<?*/}\n  14 \"b > '16'\"                {/*ANY(a) AND b>?*/}\n  15 \"b > '5'\"                 {/*SCAN t1*/}\n  16 \"b < '15'\"                {/*SCAN t1*/}\n  17 \"b < '5'\"                 {/*ANY(a) AND b<?*/}\n  18 \"'5' > b\"                 {/*ANY(a) AND b<?*/}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		q := _items[_idx+1]
+		_ = q // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			var sql = "EXPLAIN QUERY PLAN SELECT * FROM t1 WHERE " + q
 			_ = sql // suppress unused warning
@@ -71,8 +78,11 @@ func Test_skipscan5(t *testing.T) {
 		_items := tclSplitList("\n  1 UTF-8   { add_test_collate db 0 0 1 }\n  2 UTF-16  { add_test_collate db 1 0 0 }\n  3 UTF-8   { add_test_collate db 0 1 0 }\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			dbenc := _items[_idx+1]
+			_ = dbenc // suppress unused warning
 			coll := _items[_idx+2]
+			_ = coll // suppress unused warning
 			_ = _idx
 				db.Close()
 				db, err = frigolite.Open("")
@@ -127,8 +137,11 @@ func Test_skipscan5(t *testing.T) {
 				_items := tclSplitList("\n    1 { c BETWEEN 'd' AND 'e' }       {/*ANY(a) AND ANY(b) AND c>? AND c<?*/}\n    2 { c BETWEEN 'b' AND 'r' }       {/*SCAN t2*/}\n    3 { c > 'q' }                     {/*ANY(a) AND ANY(b) AND c>?*/}\n    4 { c > 'e' }                     {/*SCAN t2*/}\n    5 { c < 'q' }                     {/*SCAN t2*/}\n    6 { c < 'b' }                     {/*ANY(a) AND ANY(b) AND c<?*/}\n  ")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn2 := _items[_idx+0]
+					_ = tn2 // suppress unused warning
 					q := _items[_idx+1]
+					_ = q // suppress unused warning
 					res := _items[_idx+2]
+					_ = res // suppress unused warning
 					_ = _idx
 						var sql = "EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE " + q
 						_ = sql // suppress unused warning
@@ -176,8 +189,11 @@ func Test_skipscan5(t *testing.T) {
 				_items := tclSplitList("\n  1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}\n")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					q := _items[_idx+1]
+					_ = q // suppress unused warning
 					res := _items[_idx+2]
+					_ = res // suppress unused warning
 					_ = _idx
 						var sql = "EXPLAIN QUERY PLAN SELECT * FROM t3 WHERE " + q
 						_ = sql // suppress unused warning

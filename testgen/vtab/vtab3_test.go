@@ -15,6 +15,8 @@ func Test_vtab3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _auth_fail = "0" // TCL namespace variable
@@ -87,9 +89,8 @@ func Test_vtab3(t *testing.T) {
 		var _auth_fail = i // TCL namespace variable
 		_ = _auth_fail // suppress unused warning
 		{ // do_test "vtab3-1.7." + i + ".1"
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				_res = db.Exec("DROP TABLE pachyderm;")

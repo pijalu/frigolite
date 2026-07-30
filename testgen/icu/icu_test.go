@@ -16,6 +16,8 @@ func Test_icu(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("CREATE TABLE test1(i1 int, i2 int, r1 real, r2 real, t1 text, t2 text)")

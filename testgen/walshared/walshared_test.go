@@ -15,6 +15,8 @@ func Test_walshared(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable

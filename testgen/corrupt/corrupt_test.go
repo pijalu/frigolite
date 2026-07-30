@@ -17,6 +17,8 @@ func Test_corrupt(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	{
 		var _catchErr error
@@ -45,8 +47,10 @@ func Test_corrupt(t *testing.T) {
 	var junk = "$junk 0 255"
 	_ = junk // suppress unused warning
 	i := "256"
+	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; fsize_n, _fsize_e := strconv.Atoi(fsize); if _fsize_e != nil { return false }; return i_n < fsize_n-256 }() {
 		tn := "$i/256"
+		_ = tn // suppress unused warning
 		tclFileCopy("test.bu", "test.db")
 		var fd = "open test.db r+"
 		_ = fd // suppress unused warning
@@ -125,6 +129,7 @@ func Test_corrupt(t *testing.T) {
 		var t1i1_r = "execsql {SELECT rootpage FROM sqlite_master WHERE name = 't1'}"
 		_ = t1i1_r // suppress unused warning
 		cookie := "[execsql {PRAGMA schema_version}] + 1"
+		_ = cookie // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 		r = db.Query("\n    PRAGMA writable_schema = 1;\n    UPDATE sqlite_master SET rootpage = " + t1_r + " WHERE name = 't1';\n    UPDATE sqlite_master SET rootpage = " + t1i1_r + " WHERE name = 't1i1';\n    PRAGMA writable_schema = 0;\n    PRAGMA schema_version = " + cookie + ";\n  ")
 		if r.Error != nil {
@@ -265,6 +270,7 @@ func Test_corrupt(t *testing.T) {
 		var rootpage = "db one {SELECT rootpage FROM sqlite_master WHERE name = 't1'}"
 		_ = rootpage // suppress unused warning
 		offset := "($rootpage * 1024)-14+2"
+		_ = offset // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $offset 00FF")
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }

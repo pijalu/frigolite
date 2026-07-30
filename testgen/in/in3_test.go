@@ -16,6 +16,8 @@ func Test_in3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -82,7 +84,9 @@ func Test_in3(t *testing.T) {
 			var w = i
 			_ = w // suppress unused warning
 			x := "int(log($i)/log(2))"
+			_ = x // suppress unused warning
 			y := "$i*$i + 2*$i + 1"
+			_ = y // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + w + "," + x + "," + y + ")")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + w + "," + x + "," + y + ")")

@@ -16,12 +16,13 @@ func Test_insert(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "insert-1.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("INSERT INTO test1 VALUES(1,2,3)")
@@ -37,9 +38,8 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "insert-1.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("INSERT INTO sqlite_master VALUES(1,2,3,4)")
@@ -59,9 +59,8 @@ func Test_insert(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(one int, two int, three int)")
 		}
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("INSERT INTO test1 VALUES(1,2)")
@@ -77,9 +76,8 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "insert-1.3b"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("INSERT INTO test1 VALUES(1,2,3,4)")
@@ -95,9 +93,8 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "insert-1.3c"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("INSERT INTO test1(one,two) VALUES(1,2,3,4)")
@@ -113,9 +110,8 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "insert-1.3d"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("INSERT INTO test1(one,two) VALUES(1)")
@@ -131,9 +127,8 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "insert-1.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("INSERT INTO test1(one,four) VALUES(1,2)")

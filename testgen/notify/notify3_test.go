@@ -16,6 +16,8 @@ func Test_notify3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var esc = "sqlite3_enable_shared_cache 1"
@@ -97,12 +99,19 @@ func Test_notify3(t *testing.T) {
 		_items := tclSplitList("\n    0   0 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n  ")
 		for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			db1_loaded := _items[_idx+1]
+			_ = db1_loaded // suppress unused warning
 			db2_loaded := _items[_idx+2]
+			_ = db2_loaded // suppress unused warning
 			enable_extended_errors := _items[_idx+3]
+			_ = enable_extended_errors // suppress unused warning
 			result := _items[_idx+4]
+			_ = result // suppress unused warning
 			error1 := _items[_idx+5]
+			_ = error1 // suppress unused warning
 			error2 := _items[_idx+6]
+			_ = error2 // suppress unused warning
 			_ = _idx
 				{ // do_test "notify3-2." + tn + ".1"
 					{

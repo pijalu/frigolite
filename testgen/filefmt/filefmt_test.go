@@ -16,6 +16,8 @@ func Test_filefmt(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
@@ -32,9 +34,9 @@ func Test_filefmt(t *testing.T) {
 	}
 	{ // do_test "filefmt-1.2"
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db 0 54")
-		var x string
-		var err string
-		_ = err // suppress unused warning
+	var x string
+	var err string
+	_ = err // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db, err := frigolite.Open("test.db")

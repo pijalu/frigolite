@@ -16,6 +16,8 @@ func Test_fts3aj(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("test2.db")

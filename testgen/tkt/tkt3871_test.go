@@ -16,6 +16,8 @@ func Test_tkt3871(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "register_echo_module [sqlite3_connection_pointer db]")

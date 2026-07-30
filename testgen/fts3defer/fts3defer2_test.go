@@ -15,6 +15,8 @@ func Test_fts3defer2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3defer2"
@@ -139,7 +141,9 @@ func Test_fts3defer2(t *testing.T) {
 	_items := tclSplitList("\n  1 {}\n  2 { INSERT INTO t2(t2) VALUES('optimize') }\n  3 { UPDATE t2_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 			_res = db.Exec(sql)
@@ -215,7 +219,9 @@ func Test_fts3defer2(t *testing.T) {
 		_items := tclSplitList("\n  1 {}\n  2 { INSERT INTO t3(t3) VALUES('optimize') }\n  3 { UPDATE t3_segments SET block = zeroblob(length(block)) \n      WHERE length(block)>10000;\n  }\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			_ = _idx
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 				_res = db.Exec(sql)

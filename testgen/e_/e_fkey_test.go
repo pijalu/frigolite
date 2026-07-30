@@ -16,6 +16,8 @@ func Test_e_fkey(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -167,8 +169,11 @@ func Test_e_fkey(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 500 }() {
 		a := "0"
+		_ = a // suppress unused warning
 		a2 := "0"
+		_ = a2 // suppress unused warning
 		t := "0"
+		_ = t // suppress unused warning
 		var sql = "lindex $Template [expr int(rand()*6)]"
 		_ = sql // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "test_r52486_21352 $i $sql")
@@ -354,9 +359,13 @@ func Test_e_fkey(t *testing.T) {
 	_items := tclSplitList("\n  2 c1 {} \"no such table: main.nosuchtable\"\n  3 c2 p2 \"foreign key mismatch - \\\"c2\\\" referencing \\\"p2\\\"\"\n  4 c3 p3 \"foreign key mismatch - \\\"c3\\\" referencing \\\"p3\\\"\"\n  5 c4 p4 \"foreign key mismatch - \\\"c4\\\" referencing \\\"p4\\\"\"\n  6 c5 p5 \"foreign key mismatch - \\\"c5\\\" referencing \\\"p5\\\"\"\n  7 c6 p6 \"foreign key mismatch - \\\"c6\\\" referencing \\\"p6\\\"\"\n  8 c7 p7 \"foreign key mismatch - \\\"c7\\\" referencing \\\"p7\\\"\"\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		tbl := _items[_idx+1]
+		_ = tbl // suppress unused warning
 		ptbl := _items[_idx+2]
+		_ = ptbl // suppress unused warning
 		err := _items[_idx+3]
+		_ = err // suppress unused warning
 		_ = _idx
 			{ // do_test "e_fkey-20." + tn + ".1"
 				_res = db.Exec("INSERT INTO " + tbl + " VALUES('a', 'b')")
@@ -434,7 +443,9 @@ func Test_e_fkey(t *testing.T) {
 			_items := tclSplitList("\n    \"CREATE TABLE child1(a, b, FOREIGN KEY(a, b) REFERENCES p(c))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, b) REFERENCES p(c, d, e))\"\n      {number of columns in foreign key does not match the number of columns in the referenced table}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(a, c) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n    \"CREATE TABLE child2(a, b, FOREIGN KEY(c, b) REFERENCES p(c, d))\"\n      {unknown column \"c\" in foreign key definition}\n  ")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				sql := _items[_idx+0]
+				_ = sql // suppress unused warning
 				error := _items[_idx+1]
+				_ = error // suppress unused warning
 				_ = _idx
 					{ // do_test "e_fkey-22." + fk + "." + "incr i"
 						_res = db.Exec(sql)
@@ -467,7 +478,9 @@ func Test_e_fkey(t *testing.T) {
 			_items := tclSplitList("list 2 c1 3 c2 4 c3")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				c := _items[_idx+1]
+				_ = c // suppress unused warning
 				_ = _idx
 					t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_61 $tn.1 1 INSERT INTO $c VALUES(1, 2)")
 					t.Skipf("TODO: %s not implemented in frigolite", "test_efkey_61 $tn.2 0 INSERT INTO parent VALUES(1, 2)")
@@ -514,7 +527,9 @@ func Test_e_fkey(t *testing.T) {
 				_items := tclSplitList("\n  2 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y))\n  }\n  3 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE INDEX childi ON child(a, b);\n  }\n  4 { \n    CREATE TABLE child(a, b, FOREIGN KEY(a, b) REFERENCES parent(x, y));\n    CREATE UNIQUE INDEX childi ON child(b, a);\n  }\n")
 				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					sql := _items[_idx+1]
+					_ = sql // suppress unused warning
 					_ = _idx
 						_res = db.Exec(sql)
 						if _res.Error != nil {
@@ -559,8 +574,11 @@ func Test_e_fkey(t *testing.T) {
 					_items := tclSplitList("\n  1 \"CREATE TABLE c(jj REFERENCES p(x, y))\" \n    {foreign key on jj should reference only one column of table p}\n\n  2 \"CREATE TABLE c(jj REFERENCES p())\" {near \")\": syntax error}\n\n  3 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p(x, y))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  4 \"CREATE TABLE c(jj, FOREIGN KEY(jj) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  5 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p())\" \n    {near \")\": syntax error}\n\n  6 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n\n  7 \"CREATE TABLE c(ii, jj, FOREIGN KEY(jj, ii) REFERENCES p(x,y,z))\" \n    {number of columns in foreign key does not match the number of columns in the referenced table}\n")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						sql := _items[_idx+1]
+						_ = sql // suppress unused warning
 						err := _items[_idx+2]
+						_ = err // suppress unused warning
 						_ = _idx
 							t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
 							{ // do_test "e_fkey-28." + tn
@@ -873,8 +891,11 @@ func Test_e_fkey(t *testing.T) {
 						_items := tclSplitList("\n  2 child1 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  3 child2 {0 0 parent b {} RESTRICT {SET NULL} NONE}\n  4 child3 {0 0 parent b {} {SET NULL} {SET DEFAULT} NONE}\n  5 child4 {0 0 parent b {} {SET DEFAULT} CASCADE NONE}\n  6 child5 {0 0 parent b {} CASCADE {NO ACTION} NONE}\n  7 child6 {0 0 parent b {} {NO ACTION} RESTRICT NONE}\n  8 child7 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n  9 child8 {0 0 parent b {} {NO ACTION} {NO ACTION} NONE}\n")
 						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 							tn := _items[_idx+0]
+							_ = tn // suppress unused warning
 							zTab := _items[_idx+1]
+							_ = zTab // suppress unused warning
 							lRes := _items[_idx+2]
+							_ = lRes // suppress unused warning
 							_ = _idx
 								{ // do_test "e_fkey-40." + tn
 									r = db.Query("PRAGMA foreign_key_list(" + zTab + ")")
@@ -1311,8 +1332,11 @@ func Test_e_fkey(t *testing.T) {
 							_items := tclSplitList("\n  1 \"CREATE TABLE t1(a, b REFERENCES t1)\"                            {0 {}}\n  2 \"CREATE TABLE t1(a, b REFERENCES t2)\"                            {0 {}}\n  3 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1)\"          {0 {}}\n  4 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  5 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2)\"          {0 {}}\n  6 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t2(n,d))\"     {0 {}}\n  7 \"CREATE TABLE t1(a, b, FOREIGN KEY(a,b) REFERENCES t1(a,b))\"     {0 {}}\n\n  A \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2)\"          \n     {1 {unknown column \"c\" in foreign key definition}}\n  B \"CREATE TABLE t1(a, b, FOREIGN KEY(c,b) REFERENCES t2(d))\"          \n     {1 {number of columns in foreign key does not match the number of columns in the referenced table}}\n")
 							for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 								tn := _items[_idx+0]
+								_ = tn // suppress unused warning
 								zCreateTbl := _items[_idx+1]
+								_ = zCreateTbl // suppress unused warning
 								lRes := _items[_idx+2]
+								_ = lRes // suppress unused warning
 								_ = _idx
 									{ // do_test "e_fkey-54." + tn + ".off"
 										t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")

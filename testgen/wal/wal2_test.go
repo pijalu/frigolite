@@ -17,6 +17,8 @@ func Test_wal2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "wal2"
@@ -60,10 +62,15 @@ func Test_wal2(t *testing.T) {
 	_items := tclSplitList("\n         2    5   {5 15}    0             {" + RECOVER + " " + READ + "}\n         3    6   {6 21}    1             {" + RECOVER + " " + READ + "}\n         4    7   {7 28}    2             {" + RECOVER + " " + READ + "}\n         5    8   {8 36}    3             {" + RECOVER + " " + READ + "}\n         6    9   {9 45}    4             {" + RECOVER + " " + READ + "}\n         7   10   {10 55}   5             {" + RECOVER + " " + READ + "}\n         8   11   {11 66}   6             {" + RECOVER + " " + READ + "}\n         9   12   {12 78}   7             {" + RECOVER + " " + READ + "}\n        10   13   {13 91}   8             {" + RECOVER + " " + READ + "}\n        11   14   {14 105}  9             {" + RECOVER + " " + READ + "}\n        12   15   {15 120}  -1            {" + INITSLOT + " " + READ + "}\n")
 	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		iInsert := _items[_idx+1]
+		_ = iInsert // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		wal_index_hdr_mod := _items[_idx+3]
+		_ = wal_index_hdr_mod // suppress unused warning
 		wal_locks := _items[_idx+4]
+		_ = wal_locks // suppress unused warning
 		_ = _idx
 			{ // do_test "wal2-1." + tn + ".1"
 				_res = db.Exec(" INSERT INTO t1 VALUES($iInsert) ")
@@ -123,10 +130,15 @@ func Test_wal2(t *testing.T) {
 		_items := tclSplitList("\n         2    5   {4 10}   {5 15}    0\n         3    6   {5 15}   {6 21}    1\n         4    7   {6 21}   {7 28}    2\n         5    8   {7 28}   {8 36}    3\n         6    9   {8 36}   {9 45}    4\n         7   10   {9 45}   {10 55}   5\n         8   11   {10 55}  {11 66}   6\n         9   12   {11 66}  {12 78}   7\n")
 		for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			iInsert := _items[_idx+1]
+			_ = iInsert // suppress unused warning
 			res0 := _items[_idx+2]
+			_ = res0 // suppress unused warning
 			res1 := _items[_idx+3]
+			_ = res1 // suppress unused warning
 			wal_index_hdr_mod := _items[_idx+4]
+			_ = wal_index_hdr_mod // suppress unused warning
 			_ = _idx
 				t.Skipf("TODO: %s not implemented in frigolite", "tvfs filter xShmLock")
 				{ // do_test "wal2-2." + tn + ".1"
@@ -486,9 +498,13 @@ func Test_wal2(t *testing.T) {
 			_items := tclSplitList("\n  2 {\n    PRAGMA auto_vacuum = 0;\n    PRAGMA journal_mode = WAL;\n    BEGIN;\n      CREATE TABLE t1(x);\n      INSERT INTO t1 VALUES('Leonard');\n      INSERT INTO t1 VALUES('Arthur');\n    COMMIT;\n  } {wal} {\n    $RECOVERY \n    $READMARK0_WRITE\n  }\n\n  3 {\n    # This test should do the READMARK1_SET locking to populate the \n    # aReadMark[1] slot with the current mxFrame value. Followed by\n    # READMARK1_READ to read the database.\n    #\n    SELECT * FROM t1\n  } {Leonard Arthur} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n\n  4 {\n    # aReadMark[1] is already set to mxFrame. So just READMARK1_READ\n    # this time, not READMARK1_SET.\n    #\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur Leonard} { \n    $READMARK1_READ \n  }\n\n  5 {\n    PRAGMA locking_mode = exclusive\n  } {exclusive} { } \n\n  6 {\n    INSERT INTO t1 VALUES('Julius Henry');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry}} {\n    $READMARK1_READ\n  }\n\n  7 {\n    INSERT INTO t1 VALUES('Karl');\n    SELECT * FROM t1;\n  } {Leonard Arthur {Julius Henry} Karl} { }\n\n  8 {\n    PRAGMA locking_mode = normal\n  } {normal} { }\n\n  9 {\n    SELECT * FROM t1 ORDER BY x\n  } {Arthur {Julius Henry} Karl Leonard} $READMARK1_READ\n\n  10 { DELETE FROM t1 } {} $READMARK1_WRITE\n\n  11 {\n    SELECT * FROM t1\n  } {} {\n    $READMARK1_SET\n    $READMARK1_READ\n  }\n")
 			for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				sql := _items[_idx+1]
+				_ = sql // suppress unused warning
 				res := _items[_idx+2]
+				_ = res // suppress unused warning
 				expected_locks := _items[_idx+3]
+				_ = expected_locks // suppress unused warning
 				_ = _idx
 					var L = "list"
 					_ = L // suppress unused warning
@@ -697,9 +713,13 @@ func Test_wal2(t *testing.T) {
 				_items := tclSplitList("list                                            \\\n  3  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  4  $wih(1)                $wih(2)                {Barton Deakin Watson}   \\\n  5  $wih(2)                $wih(1)                {Barton Deakin Watson}   \\\n  6  $wih(2)                $wih(2)                {Barton Deakin Watson}   \\\n  7  $wih(1)                $wih(1)                {Barton Deakin}          \\\n  8  {0 0 0 0 0 0 0 0 0 0 0 0} {0 0 0 0 0 0 0 0 0 0 0 0} {Barton Deakin Watson}")
 				for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					hdr1 := _items[_idx+1]
+					_ = hdr1 // suppress unused warning
 					hdr2 := _items[_idx+2]
+					_ = hdr2 // suppress unused warning
 					res := _items[_idx+3]
+					_ = res // suppress unused warning
 					_ = _idx
 						{ // do_test "wal2-9." + tn
 							t.Skipf("TODO: %s not implemented in frigolite", "set_tvfs_hdr $::filename $hdr1 $hdr2")
@@ -822,7 +842,9 @@ func Test_wal2(t *testing.T) {
 						_items := tclSplitList("\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  ")
 						for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 							tn := _items[_idx+0]
+							_ = tn // suppress unused warning
 							permissions := _items[_idx+1]
+							_ = permissions // suppress unused warning
 							_ = _idx
 								if func() bool { tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return tcl_version_n >= 9.0 }() {
 									var effective = "format %.5d [expr $permissions & ~$umask]"
@@ -877,12 +899,19 @@ func Test_wal2(t *testing.T) {
 							_items := tclSplitList("\n    2   00644   00644   00644   1   1   1\n    3   00644   00400   00644   1   1   0\n    4   00644   00644   00400   1   1   0\n    5   00400   00644   00644   1   1   0\n\n    7   00644   00000   00644   1   0   0\n    8   00644   00644   00000   1   0   0\n    9   00000   00644   00644   0   0   0\n  ")
 							for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
 								tn := _items[_idx+0]
+								_ = tn // suppress unused warning
 								db_perm := _items[_idx+1]
+								_ = db_perm // suppress unused warning
 								wal_perm := _items[_idx+2]
+								_ = wal_perm // suppress unused warning
 								shm_perm := _items[_idx+3]
+								_ = shm_perm // suppress unused warning
 								can_open := _items[_idx+4]
+								_ = can_open // suppress unused warning
 								can_read := _items[_idx+5]
+								_ = can_read // suppress unused warning
 								can_write := _items[_idx+6]
+								_ = can_write // suppress unused warning
 								_ = _idx
 									t.Skipf("TODO: %s not implemented in frigolite", "faultsim_restore")
 									{ // do_test "wal2-13." + tn + ".1"
@@ -933,8 +962,11 @@ func Test_wal2(t *testing.T) {
 							_items := tclSplitList("\n  1 { }                                 {10 0 4 0 6 0}\n  2 { PRAGMA checkpoint_fullfsync = 1 } {10 6 4 3 6 3}\n  3 { PRAGMA checkpoint_fullfsync = 0 } {10 0 4 0 6 0}\n")
 							for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 								tn := _items[_idx+0]
+								_ = tn // suppress unused warning
 								sql := _items[_idx+1]
+								_ = sql // suppress unused warning
 								reslist := _items[_idx+2]
+								_ = reslist // suppress unused warning
 								_ = _idx
 									t.Skipf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 									r = db.Query("PRAGMA auto_vacuum = 0; PRAGMA synchronous = FULL;")
@@ -1023,10 +1055,15 @@ func Test_wal2(t *testing.T) {
 								_items := tclSplitList("\n  1  {0 0 off}     {0 0}  {0 0}  {0 0}\n  2  {0 0 normal}  {1 0}  {0 0}  {2 0}\n  3  {0 0 full}    {2 0}  {1 0}  {2 0}\n\n  4  {0 1 off}     {0 0}  {0 0}  {0 0}\n  5  {0 1 normal}  {0 1}  {0 0}  {0 2}\n  6  {0 1 full}    {0 2}  {0 1}  {0 2}\n\n  7  {1 0 off}     {0 0}  {0 0}  {0 0}\n  8  {1 0 normal}  {0 1}  {0 0}  {0 2}\n  9  {1 0 full}    {1 1}  {1 0}  {0 2}\n\n  10 {1 1 off}     {0 0}  {0 0}  {0 0}\n  11 {1 1 normal}  {0 1}  {0 0}  {0 2}\n  12 {1 1 full}    {0 2}  {0 1}  {0 2}\n")
 								for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 									tn := _items[_idx+0]
+									_ = tn // suppress unused warning
 									settings := _items[_idx+1]
+									_ = settings // suppress unused warning
 									restart_sync := _items[_idx+2]
+									_ = restart_sync // suppress unused warning
 									commit_sync := _items[_idx+3]
+									_ = commit_sync // suppress unused warning
 									ckpt_sync := _items[_idx+4]
+									_ = ckpt_sync // suppress unused warning
 									_ = _idx
 										os.Remove("test.db")
 										t.Skipf("TODO: %s not implemented in frigolite", "testvfs tvfs -default 1")

@@ -16,6 +16,8 @@ func Test_speed2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "speed_trial_init speed2")
@@ -44,6 +46,7 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		r := "0"
+		_ = r // suppress unused warning
 		sql += "INSERT INTO t1 VALUES(" + i + "," + r + ",'" + "number_name $r" + "');\\n"
 		// incr i 1
 		{
@@ -68,6 +71,7 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		r := "0"
+		_ = r // suppress unused warning
 		sql += "INSERT INTO t2 VALUES(" + i + "," + r + ",'" + "number_name $r" + "');\\n"
 		// incr i 1
 		{
@@ -92,7 +96,9 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
 		lwr := "$i*100"
+		_ = lwr // suppress unused warning
 		upr := "($i+10)*100"
+		_ = upr // suppress unused warning
 		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
 		// incr i 1
 		{
@@ -125,7 +131,9 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
 		lwr := "$i*100"
+		_ = lwr // suppress unused warning
 		upr := "($i+10)*100"
+		_ = upr // suppress unused warning
 		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
 		// incr i 1
 		{
@@ -166,7 +174,9 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
 		lwr := "$i*100"
+		_ = lwr // suppress unused warning
 		upr := "($i+10)*100"
+		_ = upr // suppress unused warning
 		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
 		// incr i 1
 		{
@@ -183,6 +193,7 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id := "1"
+		_ = id // suppress unused warning
 		sql += "SELECT c=='hi' FROM t1 WHERE rowid=" + id + ";\\n"
 		// incr i 1
 		{
@@ -199,6 +210,7 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id := "1"
+		_ = id // suppress unused warning
 		sql += "SELECT c FROM t1 WHERE a=" + id + ";"
 		// incr i 1
 		{
@@ -223,7 +235,9 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
 		lwr := "$i*100"
+		_ = lwr // suppress unused warning
 		upr := "($i+10)*100"
+		_ = upr // suppress unused warning
 		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
 		// incr i 1
 		{
@@ -240,6 +254,7 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id := "1"
+		_ = id // suppress unused warning
 		sql += "SELECT c=='hi' FROM t1 WHERE rowid=" + id + ";\\n"
 		// incr i 1
 		{
@@ -256,6 +271,7 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
 		id := "1"
+		_ = id // suppress unused warning
 		sql += "SELECT c FROM t1 WHERE a=" + id + ";"
 		// incr i 1
 		{
@@ -279,7 +295,9 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
 		lwr := "$i*2"
+		_ = lwr // suppress unused warning
 		upr := "($i+1)*2"
+		_ = upr // suppress unused warning
 		sql += "UPDATE t1 SET b=b*2 WHERE a>=" + lwr + " AND a<" + upr + ";"
 		// incr i 1
 		{
@@ -304,6 +322,7 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50000 }() {
 		r := "0"
+		_ = r // suppress unused warning
 		sql += "UPDATE t1 SET b=" + r + " WHERE a=" + i + ";"
 		// incr i 1
 		{
@@ -329,6 +348,7 @@ func Test_speed2(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
 		r := "0"
+		_ = r // suppress unused warning
 		sql += "UPDATE t1 SET c='" + "number_name $r" + "' WHERE a=" + i + ";"
 		// incr i 1
 		{

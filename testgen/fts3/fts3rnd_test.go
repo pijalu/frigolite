@@ -16,6 +16,8 @@ func Test_fts3rnd(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var G_nVocab = "100"
@@ -31,6 +33,7 @@ func Test_fts3rnd(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nVocab_n, _nVocab_e := strconv.Atoi(nVocab); if _nVocab_e != nil { return false }; return i_n < nVocab_n }() {
 		len := "2"
+		_ = len // suppress unused warning
 		var word = "lindex $lChar [expr int(rand()*26)]"
 		_ = word // suppress unused warning
 		word += "lindex $lChar [expr int(rand()*26)]"
@@ -70,7 +73,9 @@ func Test_fts3rnd(t *testing.T) {
 	_items := tclSplitList("\n  50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		nodesize := _items[_idx+0]
+		_ = nodesize // suppress unused warning
 		order := _items[_idx+1]
+		_ = order // suppress unused warning
 		_ = _idx
 			{
 				var _catchErr error
@@ -133,6 +138,7 @@ func Test_fts3rnd(t *testing.T) {
 				_ = iInsert // suppress unused warning
 				for tclBool("info exists ::t1($iInsert)") {
 					iInsert := "0"
+					_ = iInsert // suppress unused warning
 				}
 				_res = db.Exec("BEGIN")
 				if _res.Error != nil {
@@ -268,8 +274,11 @@ func Test_fts3rnd(t *testing.T) {
 				_items := tclSplitList("\n      8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and\n    ")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					op := _items[_idx+1]
+					_ = op // suppress unused warning
 					proc := _items[_idx+2]
+					_ = proc // suppress unused warning
 					_ = _idx
 						var i = "0"
 						_ = i // suppress unused warning
@@ -294,8 +303,11 @@ func Test_fts3rnd(t *testing.T) {
 					_items := tclSplitList("\n      11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and\n    ")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						op := _items[_idx+1]
+						_ = op // suppress unused warning
 						proc := _items[_idx+2]
+						_ = proc // suppress unused warning
 						_ = _idx
 							var i = "0"
 							_ = i // suppress unused warning

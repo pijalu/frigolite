@@ -16,6 +16,8 @@ func Test_fts4content(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4content" // TCL namespace variable
@@ -126,8 +128,11 @@ func Test_fts4content(t *testing.T) {
 	_items := tclSplitList("\n  1   {S}        {1 3 6 7 9 10 13 15 16 17 19}\n  2   {\"S R\"}    {7 19}\n  3   {\"N K N\"}  {6}\n  4   {\"Q Q\"}    {20}\n  5   {\"B Y D\"}  {17}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		match := _items[_idx+1]
+		_ = match // suppress unused warning
 		rowidlist := _items[_idx+2]
+		_ = rowidlist // suppress unused warning
 		_ = _idx
 			{ // "2.2.1." + tn
 				r = db.Query("\n    SELECT rowid FROM ft2 WHERE ft2 MATCH $match\n  ")
@@ -158,8 +163,11 @@ func Test_fts4content(t *testing.T) {
 		_items := tclSplitList("\n  1   {\"N K N\"}  {{J O B N K N E C H Z R K J O U G M K L S}}\n  2   {\"Q Q\"}    {{a b c d e f g h i j}}\n  3   {\"B Y D\"}  {{}}\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			match := _items[_idx+1]
+			_ = match // suppress unused warning
 			result := _items[_idx+2]
+			_ = result // suppress unused warning
 			_ = _idx
 				{ // "2.3." + tn
 					r = db.Query("\n    SELECT * FROM ft2 WHERE ft2 MATCH $match\n  ")
@@ -178,8 +186,11 @@ func Test_fts4content(t *testing.T) {
 			_items := tclSplitList("\n  1   {\"N K N\"}  {{..O B [N] [K] [N] E..}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{a [b] [c] [d] e f..}}\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				match := _items[_idx+1]
+				_ = match // suppress unused warning
 				result := _items[_idx+2]
+				_ = result // suppress unused warning
 				_ = _idx
 					{ // "2.4." + tn
 						r = db.Query("\n    SELECT snippet(ft2, '[', ']', '..', -1, 6) FROM ft2 WHERE ft2 MATCH $match\n  ")
@@ -198,8 +209,11 @@ func Test_fts4content(t *testing.T) {
 				_items := tclSplitList("\n  1   {\"N K N\"}  {{0 0 6 1 0 1 8 1 0 2 10 1}}\n  2   {\"B Y D\"}  {{}}\n  3   {\"Q Q\"}    {{0 0 2 1 0 0 4 1 0 1 4 1 0 1 6 1}}\n  4   {\"Q D L\"}  {{}}\n")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					match := _items[_idx+1]
+					_ = match // suppress unused warning
 					result := _items[_idx+2]
+					_ = result // suppress unused warning
 					_ = _idx
 						{ // "2.5." + tn
 							r = db.Query("\n    SELECT offsets(ft2) FROM ft2 WHERE ft2 MATCH $match\n  ")
@@ -284,8 +298,11 @@ func Test_fts4content(t *testing.T) {
 					_items := tclSplitList("\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {1 2 10 11 17}\n  3   \"y:O\"    {0 2 6 7 18 19}\n")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						match := _items[_idx+1]
+						_ = match // suppress unused warning
 						rowidlist := _items[_idx+2]
+						_ = rowidlist // suppress unused warning
 						_ = _idx
 							var res = "list"
 							_ = res // suppress unused warning
@@ -327,8 +344,11 @@ func Test_fts4content(t *testing.T) {
 						_items := tclSplitList("\n  1   \"N A\"    {5 19}\n  2   \"x:O\"    {0 2 10 11 17}\n  3   \"y:O\"    {1 2 6 7 18 19}\n")
 						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 							tn := _items[_idx+0]
+							_ = tn // suppress unused warning
 							match := _items[_idx+1]
+							_ = match // suppress unused warning
 							rowidlist := _items[_idx+2]
+							_ = rowidlist // suppress unused warning
 							_ = _idx
 								var res = "list"
 								_ = res // suppress unused warning
@@ -370,8 +390,11 @@ func Test_fts4content(t *testing.T) {
 							_items := tclSplitList("\n  1   \"N A\"    {5}\n  2   \"x:O\"    {0 2 10 11}\n  3   \"y:O\"    {1 2 6 7}\n")
 							for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 								tn := _items[_idx+0]
+								_ = tn // suppress unused warning
 								match := _items[_idx+1]
+								_ = match // suppress unused warning
 								rowidlist := _items[_idx+2]
+								_ = rowidlist // suppress unused warning
 								_ = _idx
 									var res = "list"
 									_ = res // suppress unused warning

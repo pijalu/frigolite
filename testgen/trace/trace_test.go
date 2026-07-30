@@ -15,14 +15,15 @@ func Test_trace(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _stmtlist = "" // TCL namespace variable
 	_ = _stmtlist // suppress unused warning
 	{ // do_test "trace-1.1"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -110,9 +111,8 @@ func Test_trace(t *testing.T) {
 		}
 	}
 	{ // do_test "trace-3.1"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {

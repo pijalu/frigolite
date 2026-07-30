@@ -15,6 +15,8 @@ func Test_triggerE(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "triggerE"
@@ -31,7 +33,9 @@ func Test_triggerE(t *testing.T) {
 	_items := tclSplitList("\n  1 { AFTER INSERT ON t1 WHEN new.a = ? BEGIN SELECT 1; END; }\n  2 { BEFORE DELETE ON t1 BEGIN SELECT ?; END; }\n  3 { BEFORE DELETE ON t1 BEGIN SELECT * FROM (SELECT * FROM (SELECT ?)); END; }\n  5 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 GROUP BY ?; END; }\n  6 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 LIMIT ?; END; }\n  7 { BEFORE DELETE ON t1 BEGIN SELECT * FROM t2 ORDER BY ?; END; }\n  8 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = ?; END; }\n  9 { BEFORE UPDATE ON t1 BEGIN UPDATE t2 SET c = 1 WHERE d = ?; END; }\n 10 { AFTER INSERT ON t1 BEGIN SELECT * FROM pragma_stats(?); END; }\n 11 { BEFORE INSERT ON t1 BEGIN \n      INSERT INTO t1 SELECT max(b) OVER(ORDER BY $1) FROM t1; END }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		defn := _items[_idx+1]
+		_ = defn // suppress unused warning
 		_ = _idx
 			_res = db.Exec("drop trigger tr1")
 			_ = _res // catchsql

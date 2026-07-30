@@ -15,6 +15,8 @@ func Test_hidden(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "hidden"
@@ -53,7 +55,9 @@ func Test_hidden(t *testing.T) {
 	_items := tclSplitList("\n  1 { CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1 }\n  2 { CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1 }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		view := _items[_idx+1]
+		_ = view // suppress unused warning
 		_ = _idx
 			{ // "2." + tn + ".1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);\n  ")

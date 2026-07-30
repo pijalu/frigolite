@@ -15,6 +15,8 @@ func Test_colmeta(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "colmeta-0"
@@ -29,8 +31,11 @@ func Test_colmeta(t *testing.T) {
 	_items := tclSplitList(tests)
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		params := _items[_idx+1]
+		_ = params // suppress unused warning
 		results := _items[_idx+2]
+		_ = results // suppress unused warning
 		_ = _idx
 			var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
 			_ = _DB // suppress unused warning

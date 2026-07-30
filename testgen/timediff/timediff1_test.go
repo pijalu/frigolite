@@ -15,6 +15,8 @@ func Test_timediff1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -56,13 +58,17 @@ func Test_timediff1(t *testing.T) {
 	_items := tclSplitList(p1)
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		x1 := _items[_idx+0]
+		_ = x1 // suppress unused warning
 		d1 := _items[_idx+1]
+		_ = d1 // suppress unused warning
 		_ = _idx
 			// foreach {x2 d2} p2
 			_items := tclSplitList(p2)
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				x2 := _items[_idx+0]
+				_ = x2 // suppress unused warning
 				d2 := _items[_idx+1]
+				_ = d2 // suppress unused warning
 				_ = _idx
 					var r1 = "db one {SELECT datetime($d1)}"
 					_ = r1 // suppress unused warning
@@ -122,13 +128,17 @@ func Test_timediff1(t *testing.T) {
 			_items := tclSplitList(p1)
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				x1 := _items[_idx+0]
+				_ = x1 // suppress unused warning
 				d1 := _items[_idx+1]
+				_ = d1 // suppress unused warning
 				_ = _idx
 					// foreach {x2 d2} p2
 					_items := tclSplitList(p2)
 					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 						x2 := _items[_idx+0]
+						_ = x2 // suppress unused warning
 						d2 := _items[_idx+1]
+						_ = d2 // suppress unused warning
 						_ = _idx
 							var r1 = "db one {SELECT datetime($d1)}"
 							_ = r1 // suppress unused warning

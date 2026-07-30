@@ -17,6 +17,8 @@ func Test_func(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "func"
@@ -64,9 +66,8 @@ func Test_func(t *testing.T) {
 		}
 	}
 	{ // do_test "func-1.1"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT length(*) FROM tbl1 ORDER BY t1")
@@ -82,9 +83,8 @@ func Test_func(t *testing.T) {
 		r = tclListAppend(r, msg)
 	}
 	{ // do_test "func-1.2"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT length(t1,5) FROM tbl1 ORDER BY t1")
@@ -860,7 +860,9 @@ func Test_func(t *testing.T) {
 		_items := tclSplitList("\n    euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000\n  ")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			name := _items[_idx+0]
+			_ = name // suppress unused warning
 			sdx := _items[_idx+1]
+			_ = sdx // suppress unused warning
 			_ = _idx
 				// incr i 1
 				{
@@ -1219,6 +1221,7 @@ func Test_func(t *testing.T) {
 			var a = ""
 			_ = a // suppress unused warning
 			limit := "$::SQLITE_MAX_FUNCTION_ARG-1"
+			_ = limit // suppress unused warning
 			var i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n <= limit_n }() {

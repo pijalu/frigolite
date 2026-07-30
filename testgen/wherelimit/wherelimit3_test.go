@@ -15,6 +15,8 @@ func Test_wherelimit3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "wherelimit3"
@@ -32,6 +34,7 @@ func Test_wherelimit3(t *testing.T) {
 		}
 	}
 	N := "5"
+	_ = N // suppress unused warning
 	{ // "1.3"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a>=100 AND a<300 ORDER BY b LIMIT $::N;\n")
 		if r.Error != nil {

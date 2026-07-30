@@ -15,6 +15,8 @@ func Test_tkt_b75a9ca6b0(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tkt-b75a9ca6b0"
@@ -43,9 +45,13 @@ func Test_tkt_b75a9ca6b0(t *testing.T) {
 	_items := tclSplitList("-nocommands {\n  1 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x,y\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  2 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  3 \"SELECT * FROM t1 GROUP BY y, x ORDER BY y, x\"\n  {3 1  2 2  1 3} {" + idxscan + "*" + sort + "}\n  \n  4 \"SELECT * FROM t1 GROUP BY x ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  5 \"SELECT * FROM t1 GROUP BY y ORDER BY y\"\n  {3 1  2 2  1 3} {" + tblscan + "*" + grpsort + "}\n\n  6 \"SELECT * FROM t1 GROUP BY y ORDER BY x\"\n  {1 3  2 2  3 1} {" + tblscan + "*" + grpsort + "*" + sort + "}\n\n  7 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x, y DESC\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  8 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x DESC, y DESC\"\n  {3 1  2 2  1 3} {" + idxscan + "}\n\n  9 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x ASC, y ASC\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  10 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x COLLATE nocase, y\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n}")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		q := _items[_idx+1]
+		_ = q // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		eqp := _items[_idx+3]
+		_ = eqp // suppress unused warning
 		_ = _idx
 			{ // "1." + tn + ".1"
 				_res = db.Exec(q)

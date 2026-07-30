@@ -17,6 +17,8 @@ func Test_syscall(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("llength [info commands test_syscall]" + "==0") {
@@ -170,7 +172,9 @@ func Test_syscall(t *testing.T) {
 	_items := tclSplitList("\n  1      {0 {}}\n  2      {1 {file is not a database}}\n  3      {1 {file is not a database}}\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		nByte := _items[_idx+0]
+		_ = nByte // suppress unused warning
 		res := _items[_idx+1]
+		_ = res // suppress unused warning
 		_ = _idx
 			{ // do_test "7." + nByte
 				t.Skipf("TODO: %s not implemented in frigolite", "create_db_file $nByte")
@@ -198,8 +202,11 @@ func Test_syscall(t *testing.T) {
 		_items := tclSplitList("\n  1  1000    4096 \n  2  1000    4096 \n  3  3000    4096 \n  4  4096    4096 \n  5  4197    8192 \n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			hint := _items[_idx+1]
+			_ = hint // suppress unused warning
 			size := _items[_idx+2]
+			_ = size // suppress unused warning
 			_ = _idx
 				{ // do_test "8.2." + tn
 					t.Skipf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")
@@ -218,8 +225,11 @@ func Test_syscall(t *testing.T) {
 			_items := tclSplitList("\n  1  5       16 \n  2  13      16 \n  3  45      48 \n  4  48      48 \n  5  49      64 \n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				hint := _items[_idx+1]
+				_ = hint // suppress unused warning
 				size := _items[_idx+2]
+				_ = size // suppress unused warning
 				_ = _idx
 					{ // do_test "8.4." + tn
 						t.Skipf("TODO: %s not implemented in frigolite", "file_control_sizehint_test db main $hint")

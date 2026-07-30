@@ -16,6 +16,8 @@ func Test_autoinc(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "autoinc"
@@ -361,9 +363,8 @@ func Test_autoinc(t *testing.T) {
 		}
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		var res string
-		var msg string
-		_ = msg // suppress unused warning
+	var res string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT, b TEXT);\n    INSERT INTO t1(b) VALUES('one');\n  ")
@@ -390,9 +391,8 @@ func Test_autoinc(t *testing.T) {
 		}
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		var res string
-		var msg string
-		_ = msg // suppress unused warning
+	var res string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
@@ -419,9 +419,8 @@ func Test_autoinc(t *testing.T) {
 		}
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		var res string
-		var msg string
-		_ = msg // suppress unused warning
+	var res string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
@@ -456,9 +455,8 @@ func Test_autoinc(t *testing.T) {
 		}
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		var res string
-		var msg string
-		_ = msg // suppress unused warning
+	var res string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
@@ -485,9 +483,8 @@ func Test_autoinc(t *testing.T) {
 		}
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		var res string
-		var msg string
-		_ = msg // suppress unused warning
+	var res string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two');\n  ")
@@ -514,9 +511,8 @@ func Test_autoinc(t *testing.T) {
 		}
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		var res string
-		var msg string
-		_ = msg // suppress unused warning
+	var res string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two'),('three'),('four');\n    INSERT INTO t1(b) VALUES('five');\n    PRAGMA integrity_check;\n  ")
@@ -543,9 +539,8 @@ func Test_autoinc(t *testing.T) {
 		}
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		var res string
-		var msg string
-		_ = msg // suppress unused warning
+	var res string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1(b) VALUES('two'),('three'),('four');\n    INSERT INTO t1(b) VALUES('five');\n    PRAGMA integrity_check;\n  ")

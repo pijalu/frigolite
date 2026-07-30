@@ -15,6 +15,8 @@ func Test_rowvalue2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "rowvalue2" // TCL namespace variable
@@ -139,7 +141,9 @@ func Test_rowvalue2(t *testing.T) {
 	_items := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i3 ON t3(a, b, c); }\n  IDX3 { CREATE INDEX i3 ON t3(a, b); }\n  IDX4 { CREATE INDEX i3 ON t3(a); }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		idx := _items[_idx+1]
+		_ = idx // suppress unused warning
 		_ = _idx
 			_res = db.Exec(" DROP INDEX IF EXISTS i3 ")
 			if _res.Error != nil {
@@ -185,7 +189,9 @@ func Test_rowvalue2(t *testing.T) {
 		_items := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			idx := _items[_idx+1]
+			_ = idx // suppress unused warning
 			_ = _idx
 				_res = db.Exec(" DROP INDEX IF EXISTS i4 ")
 				if _res.Error != nil {
@@ -199,7 +205,9 @@ func Test_rowvalue2(t *testing.T) {
 				_items := tclSplitList("\n    1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}\n  ")
 				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 					tn2 := _items[_idx+0]
+					_ = tn2 // suppress unused warning
 					vector := _items[_idx+1]
+					_ = vector // suppress unused warning
 					_ = _idx
 						for _, op := range tclSplitList(" IS == < <= > >= ") {
 							var e1 = "make_expr1 {a b c} $vector $op"
@@ -231,8 +239,11 @@ func Test_rowvalue2(t *testing.T) {
 				_items := tclSplitList("\n  1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}\n")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					lhs := _items[_idx+1]
+					_ = lhs // suppress unused warning
 					rhs := _items[_idx+2]
+					_ = rhs // suppress unused warning
 					_ = _idx
 						for _, op := range tclSplitList(" IS == < <= > >= ") {
 							var e1 = "make_expr1 $lhs $rhs $op"

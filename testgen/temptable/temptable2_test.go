@@ -16,6 +16,8 @@ func Test_temptable2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "temptable2"
@@ -320,7 +322,9 @@ func Test_temptable2(t *testing.T) {
 	_items := tclSplitList("\n  1 delete\n  2 wal\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		mode := _items[_idx+1]
+		_ = mode // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")

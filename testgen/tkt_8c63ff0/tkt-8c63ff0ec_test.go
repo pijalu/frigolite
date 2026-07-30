@@ -15,6 +15,8 @@ func Test_tkt_8c63ff0ec(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "tkt-8c63ff0ec" // TCL namespace variable

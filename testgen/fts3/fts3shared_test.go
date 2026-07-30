@@ -16,6 +16,8 @@ func Test_fts3shared(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts3shared" // TCL namespace variable
@@ -154,7 +156,9 @@ func Test_fts3shared(t *testing.T) {
 	_items := tclSplitList("\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			{ // do_test "2.4." + tn
 				_res = db.Exec("BEGIN")
@@ -185,7 +189,9 @@ func Test_fts3shared(t *testing.T) {
 		_items := tclSplitList("\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			_ = _idx
 				{ // do_test "2.5." + tn
 					_res = db.Exec("BEGIN")

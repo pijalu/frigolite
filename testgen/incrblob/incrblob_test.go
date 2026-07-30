@@ -17,6 +17,8 @@ func Test_incrblob(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "incrblob-1.1"
@@ -188,9 +190,8 @@ func Test_incrblob(t *testing.T) {
 	}
 	{ // do_test "incrblob-3.2"
 		t.Skipf("TODO: %s not implemented in frigolite", "seek $::blob 0")
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Log("-nonewline")
@@ -213,9 +214,8 @@ func Test_incrblob(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "read $::blob 20")
 	}
 	{ // do_test "incrblob-3.4"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::blob 20 qwertyuioplkjhgfds")
@@ -236,9 +236,8 @@ func Test_incrblob(t *testing.T) {
 		// close $::blob
 	}
 	{ // do_test "incrblob-4.1"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _blob = "db incrblob blobs v 2" // TCL namespace variable
@@ -255,9 +254,8 @@ func Test_incrblob(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "incrblob-4.2"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _blob = "db incrblob blobs blue 1" // TCL namespace variable
@@ -274,9 +272,8 @@ func Test_incrblob(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "incrblob-4.3"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _blob = "db incrblob nosuchtable blue 1" // TCL namespace variable
@@ -293,9 +290,8 @@ func Test_incrblob(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "incrblob-4.4"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _blob = "db incrblob nosuchdb blobs v 1" // TCL namespace variable
@@ -312,9 +308,8 @@ func Test_incrblob(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "incrblob-4.5"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _blob = "db incrblob blobs i 1" // TCL namespace variable
@@ -335,9 +330,8 @@ func Test_incrblob(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO blobs(k, v, i) VALUES(123, 567.765, NULL);\n  ")
 		}
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _blob = "db incrblob blobs v 2" // TCL namespace variable
@@ -354,9 +348,8 @@ func Test_incrblob(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "incrblob-4.7"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _blob = "db incrblob blobs i 2" // TCL namespace variable
@@ -377,9 +370,8 @@ func Test_incrblob(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO blobs(k, v, i) VALUES(X'010203040506070809', 'hello', 'world');\n  ")
 		}
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _blob = "db incrblob blobs k 3" // TCL namespace variable
@@ -400,9 +392,8 @@ func Test_incrblob(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(a INTEGER PRIMARY KEY, b);\n    INSERT INTO t3 VALUES(1, 2);\n  ")
 		}
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _blob = "db incrblob -readonly t3 a 1" // TCL namespace variable
@@ -419,9 +410,8 @@ func Test_incrblob(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "incrblob-4.8.3"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _blob = "db incrblob -readonly t3 rowid 1" // TCL namespace variable
@@ -438,9 +428,8 @@ func Test_incrblob(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "incrblob-4.9.1"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _blob = "db incrblob -readonly blobs k 3" // TCL namespace variable
@@ -461,9 +450,8 @@ func Test_incrblob(t *testing.T) {
 	{ // do_test "incrblob-4.10"
 		var _blob = "db incrblob -readonly blobs k 3" // TCL namespace variable
 		_ = _blob // suppress unused warning
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $::blob 10 100")
@@ -499,9 +487,8 @@ func Test_incrblob(t *testing.T) {
 			}
 		}
 		{ // do_test "incrblob-6.3"
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				if _catchErr != nil {
@@ -516,9 +503,8 @@ func Test_incrblob(t *testing.T) {
 			_ = _list
 		}
 		{ // do_test "incrblob-6.4"
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				if _catchErr != nil {
@@ -588,7 +574,9 @@ func Test_incrblob(t *testing.T) {
 	_items := tclSplitList("1 \"\" 2 -readonly")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		arg := _items[_idx+1]
+		_ = arg // suppress unused warning
 		_ = _idx
 			_res = db.Exec("\n    UPDATE t1 SET d = zeroblob(10000);\n  ")
 			if _res.Error != nil {
@@ -606,9 +594,8 @@ func Test_incrblob(t *testing.T) {
 				}
 			}
 			{ // do_test "incrblob-7.1." + tn + ".3"
-				var rc string
-				var msg string
-				_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
 					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $::b 5000 5")
@@ -630,9 +617,8 @@ func Test_incrblob(t *testing.T) {
 				}
 			}
 			{ // do_test "incrblob-7.1." + tn + ".5"
-				var rc string
-				var msg string
-				_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
 					// close $::b
@@ -712,9 +698,8 @@ func Test_incrblob(t *testing.T) {
 			t.Skipf("TODO: %s not implemented in frigolite", "read $::b")
 		}
 		{ // do_test "incrblob-7.4"
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b 10 HELLO")
@@ -742,9 +727,8 @@ func Test_incrblob(t *testing.T) {
 			var _b = "db incrblob t1 b 314159" // TCL namespace variable
 			_ = _b // suppress unused warning
 			t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $::b -translation binary")
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b 10 HELLO -1")
@@ -762,9 +746,8 @@ func Test_incrblob(t *testing.T) {
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 		}
 		{ // do_test "incrblob-8.3"
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b -1 HELLO 5")
@@ -788,9 +771,8 @@ func Test_incrblob(t *testing.T) {
 			}
 		}
 		{ // do_test "incrblob-8.6"
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::b 0 etilqs 6")

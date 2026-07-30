@@ -15,6 +15,8 @@ func Test_types3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "types3-1.1"
@@ -25,25 +27,30 @@ func Test_types3(t *testing.T) {
 	}
 	{ // do_test "types3-1.2"
 		V := "3"
+		_ = V // suppress unused warning
 		_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
 		_ = _r
 	}
 	V := "12345678012346"
+	_ = V // suppress unused warning
 	if tclBool("tcl_variable_type V" + "==\"wideInt\"") {
 		{ // do_test "types3-1.3"
 			V := "123456789012346"
+			_ = V // suppress unused warning
 			_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
 			_ = _r
 		}
 	} else {
 		{ // do_test "types3-1.3"
 			V := "123456789012346"
+			_ = V // suppress unused warning
 			_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
 			_ = _r
 		}
 	}
 	{ // do_test "types3-1.4"
 		V := "2"
+		_ = V // suppress unused warning
 		_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
 		_ = _r
 	}
@@ -66,6 +73,7 @@ func Test_types3(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
 	}
 	Vx := "123456789123457"
+	_ = Vx // suppress unused warning
 	{ // do_test "types3-2.3"
 		var V = "db one {SELECT 1234567890123456}"
 		_ = V // suppress unused warning

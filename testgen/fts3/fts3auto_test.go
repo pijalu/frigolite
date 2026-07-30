@@ -16,6 +16,8 @@ func Test_fts3auto(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3auto"
@@ -55,7 +57,9 @@ func Test_fts3auto(t *testing.T) {
 	_items := tclSplitList("\n  1    \"fts4(a, b)\"\n  2    \"fts4(a, b, order=DESC)\"\n  3    \"fts4(a, b, order=ASC)\"\n  4    \"fts4(a, b, prefix=1)\"\n  5    \"fts4(a, b, order=DESC, prefix=1)\"\n  6    \"fts4(a, b, order=ASC, prefix=1)\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		create := _items[_idx+1]
+		_ = create // suppress unused warning
 		_ = _idx
 			{ // do_test "2." + tn + ".1"
 				_res = db.Exec(" DROP TABLE t1 ")
@@ -101,7 +105,9 @@ func Test_fts3auto(t *testing.T) {
 			_items := tclSplitList("\n    1     {one}\n    2     {one NEAR/1 five}\n    3     {t*}\n    4     {t* NEAR/0 five}\n    5     {o* NEAR/1 f*}\n    6     {one NEAR five NEAR two NEAR four NEAR three}\n    7     {one NEAR xyz}\n    8     {one OR two}\n    9     {one AND two}\n    10    {one NOT two}\n    11    {one AND two OR three}\n    12    {three OR one AND two}\n    13    {(three OR one) AND two}\n    14    {(three OR one) AND two NOT (five NOT four)}\n    15    {\"one two\"}\n    16    {\"one two\" NOT \"three four\"}\n  ")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn2 := _items[_idx+0]
+				_ = tn2 // suppress unused warning
 				expr := _items[_idx+1]
+				_ = expr // suppress unused warning
 				_ = _idx
 					t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 2.$tn.2.$tn2 t1 $expr")
 				}
@@ -110,7 +116,9 @@ func Test_fts3auto(t *testing.T) {
 			_items := tclSplitList("\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				create := _items[_idx+1]
+				_ = create // suppress unused warning
 				_ = _idx
 					_res = db.Exec(" DROP TABLE t1 ")
 					_ = _res // catchsql
@@ -131,8 +139,11 @@ func Test_fts3auto(t *testing.T) {
 					_items := tclSplitList("\n    1     {a NEAR c}            {}\n    2     {a AND c}             c\n    3     {\"a c\"}               c\n    4     {\"c a\"}               c\n    5     {\"a c\" NEAR/1 g}      {}\n    6     {\"a c\" NEAR/0 g}      {}\n  ")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 						tn2 := _items[_idx+0]
+						_ = tn2 // suppress unused warning
 						expr := _items[_idx+1]
+						_ = expr // suppress unused warning
 						def := _items[_idx+2]
+						_ = def // suppress unused warning
 						_ = _idx
 							t.Skipf("TODO: %s not implemented in frigolite", "do_fts3query_test 3.$tn.4.$tn2 -deferred $def t1 $expr")
 						}
@@ -141,7 +152,9 @@ func Test_fts3auto(t *testing.T) {
 					_items := tclSplitList("\n  1    \"fts4(x, y)\"\n  2    \"fts4(x, y, order=DESC)\"\n  3    \"fts4(x, y, order=DESC, prefix=2)\"\n")
 					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						create := _items[_idx+1]
+						_ = create // suppress unused warning
 						_ = _idx
 							_res = db.Exec("DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";\n    INSERT INTO t1 VALUES('one two five four five', '');\n    INSERT INTO t1 VALUES('', 'one two five four five');\n    INSERT INTO t1 VALUES('one two', 'five four five');")
 							if _res.Error != nil {
@@ -177,8 +190,11 @@ func Test_fts3auto(t *testing.T) {
 						_items := tclSplitList("\n  1    \"fts4(a, b)\"                                  1\n  2    \"fts4(a, b, order=ASC, prefix=1)\"             1\n  3    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n  4    \"fts4(a, b, order=DESC, prefix=\\\"2,4\\\")\"      0\n  5    \"fts4(a, b, order=DESC, prefix=\\\"1\\\")\"        0\n  6    \"fts4(a, b, order=ASC,  prefix=\\\"1,3\\\")\"      0\n")
 						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 							tn := _items[_idx+0]
+							_ = tn // suppress unused warning
 							create := _items[_idx+1]
+							_ = create // suppress unused warning
 							pending := _items[_idx+2]
+							_ = pending // suppress unused warning
 							_ = _idx
 								_res = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
 								if _res.Error != nil {
@@ -194,7 +210,9 @@ func Test_fts3auto(t *testing.T) {
 								_items := tclSplitList("\n    \"the song of songs which is solomons\"\n    \"let him kiss me with the kisses of his mouth for thy love is better than wine\"\n    \"because of the savour of thy good ointments thy name is as ointment poured forth therefore do the virgins love thee\"\n    \"draw me we will run after thee the king hath brought me into his chambers we will be glad and rejoice in thee we will remember thy love more than wine the upright love thee\"\n    \"i am black but comely o ye daughters of jerusalem as the tents of kedar as the curtains of solomon\"\n    \"look not upon me because i am black because the sun hath looked upon me my mothers children were angry with me they made me the keeper of the vineyards but mine own vineyard have i not kept\"\n    \"tell me o thou whom my soul loveth where thou feedest where thou makest thy flock to rest at noon for why should i be as one that turneth aside by the flocks of thy companions?\"\n    \"if thou know not o thou fairest among women go thy way forth by the footsteps of the flock and feed thy kids beside the shepherds tents\"\n    \"i have compared thee o my love to a company of horses in pharaohs chariots\"\n    \"thy cheeks are comely with rows of jewels thy neck with chains of gold\"\n    \"we will make thee borders of gold with studs of silver\"\n    \"while the king sitteth at his table my spikenard sendeth forth the smell thereof\"\n    \"a bundle of myrrh is my wellbeloved unto me he shall lie all night betwixt my breasts\"\n    \"my beloved is unto me as a cluster of camphire in the vineyards of en gedi\"\n    \"behold thou art fair my love behold thou art fair thou hast doves eyes\"\n    \"behold thou art fair my beloved yea pleasant also our bed is green\"\n    \"the beams of our house are cedar and our rafters of fir\"\n  ")
 								for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 									a := _items[_idx+0]
+									_ = a // suppress unused warning
 									b := _items[_idx+1]
+									_ = b // suppress unused warning
 									_ = _idx
 										_res = db.Exec("INSERT INTO t1(a, b) VALUES($a, $b)")
 										if _res.Error != nil {
@@ -220,8 +238,11 @@ func Test_fts3auto(t *testing.T) {
 								_items := tclSplitList("\n  1    0 \"fts4(a, b, c, d)\"\n  2    1 \"fts4(a, b, c, d)\"\n  3    0 \"fts4(a, b, c, d, order=DESC)\"\n  4    1 \"fts4(a, b, c, d, order=DESC)\"\n")
 								for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 									tn := _items[_idx+0]
+									_ = tn // suppress unused warning
 									pending := _items[_idx+1]
+									_ = pending // suppress unused warning
 									create := _items[_idx+2]
+									_ = create // suppress unused warning
 									_ = _idx
 										_res = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
 										if _res.Error != nil {
@@ -237,9 +258,13 @@ func Test_fts3auto(t *testing.T) {
 										_items := tclSplitList("\n    \"A B C\" \"D E F\" \"G H I\" \"J K L\"\n    \"B C D\" \"E F G\" \"H I J\" \"K L A\"\n    \"C D E\" \"F G H\" \"I J K\" \"L A B\"\n    \"D E F\" \"G H I\" \"J K L\" \"A B C\"\n    \"E F G\" \"H I J\" \"K L A\" \"B C D\"\n    \"F G H\" \"I J K\" \"L A B\" \"C D E\"\n  ")
 										for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 											a := _items[_idx+0]
+											_ = a // suppress unused warning
 											b := _items[_idx+1]
+											_ = b // suppress unused warning
 											c := _items[_idx+2]
+											_ = c // suppress unused warning
 											d := _items[_idx+3]
+											_ = d // suppress unused warning
 											_ = _idx
 												_res = db.Exec(" INSERT INTO t1 VALUES($a, $b, $c, $d) ")
 												if _res.Error != nil {
@@ -258,7 +283,9 @@ func Test_fts3auto(t *testing.T) {
 										_items := tclSplitList("\n  1    \"fts4(x)\"\n  2    \"fts4(x, order=DESC)\"\n")
 										for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 											tn := _items[_idx+0]
+											_ = tn // suppress unused warning
 											create := _items[_idx+1]
+											_ = create // suppress unused warning
 											_ = _idx
 												_res = db.Exec("DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING " + create + ";")
 												if _res.Error != nil {

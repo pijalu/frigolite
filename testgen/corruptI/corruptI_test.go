@@ -17,6 +17,8 @@ func Test_corruptI(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "corruptI"
@@ -38,6 +40,7 @@ func Test_corruptI(t *testing.T) {
 		var offset = "hexio_get_int [hexio_read test.db [expr 2*1024 + 8] 2]"
 		_ = offset // suppress unused warning
 		off := "2*1024 + $offset + 1"
+		_ = off // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $off 7f06")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -49,6 +52,7 @@ func Test_corruptI(t *testing.T) {
 		var offset = "hexio_get_int [hexio_read test.db [expr 2*1024 + 8] 2]"
 		_ = offset // suppress unused warning
 		off := "2*1024 + $offset + 1"
+		_ = off // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $off FFFF7f02")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -68,6 +72,7 @@ func Test_corruptI(t *testing.T) {
 		var offset = "hexio_get_int [hexio_read test.db [expr (5-1)*1024 + 8] 2]"
 		_ = offset // suppress unused warning
 		off := "(5-1)*1024 + $offset + 1"
+		_ = off // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $off FFFF0004")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -126,6 +131,7 @@ func Test_corruptI(t *testing.T) {
 	var root = "db one {SELECT rootpage FROM sqlite_master}"
 	_ = root // suppress unused warning
 	offset := "($root-1) * 65536"
+	_ = offset // suppress unused warning
 	{ // do_test "4.1"
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset + 8 + 2] 0000")
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset + 5] 0000")

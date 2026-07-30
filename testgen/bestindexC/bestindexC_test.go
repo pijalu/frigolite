@@ -16,6 +16,8 @@ func Test_bestindexC(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "bestindexC"
@@ -38,13 +40,17 @@ func Test_bestindexC(t *testing.T) {
 	_items := tclSplitList("\n  1 \"LIMIT 8\" \n  2 \"LIMIT 4\" \n  3 \"LIMIT 4 OFFSET 2\" \n  4 \"LIMIT 8 OFFSET 4\" \n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		limit := _items[_idx+1]
+		_ = limit // suppress unused warning
 		_ = _idx
 			// foreach {op tbl} "\n    \"UNION ALL\" t_unionall\n    \"UNION\"     t_union\n    \"INTERSECT\" t_intersect\n    \"EXCEPT\"    t_except\n  "
 			_items := tclSplitList("\n    \"UNION ALL\" t_unionall\n    \"UNION\"     t_union\n    \"INTERSECT\" t_intersect\n    \"EXCEPT\"    t_except\n  ")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				op := _items[_idx+0]
+				_ = op // suppress unused warning
 				tbl := _items[_idx+1]
+				_ = tbl // suppress unused warning
 				_ = _idx
 					var expect = "execsql \"SELECT * FROM $tbl $limit\""
 					_ = expect // suppress unused warning
@@ -220,8 +226,11 @@ func Test_bestindexC(t *testing.T) {
 			_items := tclSplitList("\n  0    \"WHERE a=? AND b=? AND c=? AND c=?\"              1\n  1    \"WHERE a=? AND b=? AND c=?\"                      1\n  2    \"WHERE a=? AND b=? AND (c=? OR c=?)\"             1\n  3    \"WHERE a=? AND b=? AND (c=? OR c=? OR c=?)\"      1\n  4    \"WHERE a=? AND b=? AND (c IS ? OR c IS ?)\"       1\n  5    \"WHERE a=? AND ((b=? AND c=?) OR (c=? AND b=?))\" 1\n  6    \"WHERE a=? AND ((b=? AND c=?) OR (c=?))\"         0\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				where := _items[_idx+1]
+				_ = where // suppress unused warning
 				ok := _items[_idx+2]
+				_ = ok // suppress unused warning
 				_ = _idx
 					{ // do_test "5.2." + tn
 						{

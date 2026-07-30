@@ -15,6 +15,8 @@ func Test_alterfault(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "alterfault"
@@ -41,7 +43,9 @@ func Test_alterfault(t *testing.T) {
 	_items := tclSplitList("\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql $::sql\n  } -test {\n    faultsim_test_result {0 {}}\n  }")
 		}

@@ -18,6 +18,8 @@ func Test_fts4aa(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var fts4aa_queries = "\n  {abraham}\n  {the king}\n  {\"the king\"}\n  {abraham OR joseph}\n  {ab* OR jos*}\n  {lived t*}\n  {spake hebrew}\n  {melchizedek}\n  {t* melchizedek}\n  {melchizedek t*}\n"
@@ -97,7 +99,9 @@ func Test_fts4aa(t *testing.T) {
 	_items := tclSplitList("array get fts4aa_res")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		q := _items[_idx+0]
+		_ = q // suppress unused warning
 		r := _items[_idx+1]
+		_ = r // suppress unused warning
 		_ = _idx
 			// incr ii 1
 			{
@@ -130,7 +134,9 @@ func Test_fts4aa(t *testing.T) {
 		_items := tclSplitList("array get fts4aa_res")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			q := _items[_idx+0]
+			_ = q // suppress unused warning
 			r := _items[_idx+1]
+			_ = r // suppress unused warning
 			_ = _idx
 				// incr ii 1
 				{
@@ -160,7 +166,9 @@ func Test_fts4aa(t *testing.T) {
 			_items := tclSplitList("array get fts4aa_res")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				q := _items[_idx+0]
+				_ = q // suppress unused warning
 				r := _items[_idx+1]
+				_ = r // suppress unused warning
 				_ = _idx
 					// incr ii 1
 					{

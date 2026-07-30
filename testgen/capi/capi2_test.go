@@ -15,6 +15,8 @@ func Test_capi2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -97,9 +99,8 @@ func Test_capi2(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "capi2-3.1"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {select bogus from sqlite_master} -1 TAIL")
@@ -114,9 +115,8 @@ func Test_capi2(t *testing.T) {
 		rc = tclListAppend(rc, msg, TAIL)
 	}
 	{ // do_test "capi2-3.2"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {select bogus from } -1 TAIL")
@@ -131,9 +131,8 @@ func Test_capi2(t *testing.T) {
 		rc = tclListAppend(rc, msg, TAIL)
 	}
 	{ // do_test "capi2-3.3"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {;;;;select bogus from sqlite_master} -1 TAIL")
@@ -148,9 +147,8 @@ func Test_capi2(t *testing.T) {
 		rc = tclListAppend(rc, msg, TAIL)
 	}
 	{ // do_test "capi2-3.4"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {select bogus from sqlite_master;x;} -1 TAIL")
@@ -165,9 +163,8 @@ func Test_capi2(t *testing.T) {
 		rc = tclListAppend(rc, msg, TAIL)
 	}
 	{ // do_test "capi2-3.5"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {select bogus from sqlite_master;;;x;} -1 TAIL")
@@ -182,9 +179,9 @@ func Test_capi2(t *testing.T) {
 		rc = tclListAppend(rc, msg, TAIL)
 	}
 	{ // do_test "capi2-3.6"
-		var rc string
-		var VM string
-		_ = VM // suppress unused warning
+	var rc string
+	var VM string
+	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB {select 5/0;} -1 TAIL")

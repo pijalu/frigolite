@@ -17,6 +17,8 @@ func Test_misc1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -372,9 +374,8 @@ func Test_misc1(t *testing.T) {
 		db2, err := frigolite.Open("test.db")
 		defer db2.Close()
 		if err != nil { t.Fatal(err) }
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db2.Exec("SELECT count(*) FROM t1")
@@ -394,9 +395,8 @@ func Test_misc1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db2.Exec("SELECT count(*) FROM t1")

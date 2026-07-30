@@ -17,6 +17,8 @@ func Test_where(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "where-1.0"
@@ -30,7 +32,9 @@ func Test_where(t *testing.T) {
 			var w = i
 			_ = w // suppress unused warning
 			x := "int(log($i)/log(2))"
+			_ = x // suppress unused warning
 			y := "$i*$i + 2*$i + 1"
+			_ = y // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES(" + w + "," + x + "," + y + ")")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(" + w + "," + x + "," + y + ")")
@@ -1021,8 +1025,11 @@ func Test_where(t *testing.T) {
 	_items := tclSplitList("\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			var rev = "list"
 			_ = rev // suppress unused warning

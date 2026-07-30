@@ -15,6 +15,8 @@ func Test_tkt_f67b41381a(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tkt-f67b41381a"
@@ -35,8 +37,11 @@ func Test_tkt_f67b41381a(t *testing.T) {
 	_items := tclSplitList("\n  1 { CREATE TABLE t1(a, b); CREATE TABLE t2(a, b)             }             1\n  2 { CREATE TABLE t1(a, b DEFAULT 'x'); CREATE TABLE t2(a, b) }             0\n  3 { CREATE TABLE t1(a, b DEFAULT 'x'); CREATE TABLE t2(a, b DEFAULT 'x') } 1\n  4 { CREATE TABLE t1(a, b DEFAULT NULL); CREATE TABLE t2(a, b) }            0\n  5 { CREATE TABLE t1(a DEFAULT 2, b); CREATE TABLE t2(a DEFAULT 1, b) }     1\n  6 { CREATE TABLE t1(a DEFAULT 1, b); CREATE TABLE t2(a DEFAULT 1, b) }     1\n  7 { CREATE TABLE t1(a DEFAULT 1, b DEFAULT 1);\n      CREATE TABLE t2(a DEFAULT 3, b DEFAULT 1) }                            1\n  8 { CREATE TABLE t1(a DEFAULT 1, b DEFAULT 1);\n      CREATE TABLE t2(a DEFAULT 3, b DEFAULT 3) }                            0\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		tbls := _items[_idx+1]
+		_ = tbls // suppress unused warning
 		xfer := _items[_idx+2]
+		_ = xfer // suppress unused warning
 		_ = _idx
 			_res = db.Exec(" DROP TABLE t1; DROP TABLE t2 ")
 			if _res.Error != nil {

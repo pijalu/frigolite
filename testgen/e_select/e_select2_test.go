@@ -15,6 +15,8 @@ func Test_e_select2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -42,7 +44,9 @@ func Test_e_select2(t *testing.T) {
 	_items := tclSplitList("\n  e_select-2.1.1 { }\n  e_select-2.1.2 { CREATE INDEX i1 ON t1(a) }\n  e_select-2.1.3 { CREATE INDEX i1 ON t2(a) }\n  e_select-2.1.4 { CREATE INDEX i1 ON t3(b) }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		indexes := _items[_idx+1]
+		_ = indexes // suppress unused warning
 		_ = _idx
 			_res = db.Exec(" DROP INDEX i1 ")
 			_ = _res // catchsql
@@ -120,9 +124,13 @@ func Test_e_select2(t *testing.T) {
 		_items := tclSplitList("\n  1   \"SELECT * FROM t2\"   \"SELECT * FROM t1 JOIN %ss%\" \n      {t1 %ss%}\n\n  2   \"SELECT * FROM t2\"   \"SELECT * FROM t1 JOIN %ss% AS x ON (t1.a=x.a)\" \n      {t1 %ss% -on {te_equals 0 0}}\n\n  3   \"SELECT * FROM t2\"   \"SELECT * FROM %ss% AS x JOIN t1 ON (t1.a=x.a)\" \n      {%ss% t1 -on {te_equals 0 0}}\n\n  4   \"SELECT * FROM t1, t2\" \"SELECT * FROM %ss% AS x JOIN t3\"\n      {%ss% t3}\n\n  5   \"SELECT * FROM t1, t2\" \"SELECT * FROM %ss% NATURAL JOIN t3\"\n      {%ss% t3 -using b -on {te_equals 1 0}}\n\n  6   \"SELECT * FROM t1, t2\" \"SELECT * FROM t3 NATURAL JOIN %ss%\"\n      {t3 %ss% -using b -on {te_equals -nocase 0 1}}\n\n  7   \"SELECT * FROM t1, t2\" \"SELECT * FROM t3 NATURAL LEFT JOIN %ss%\"\n      {t3 %ss% -left -using b -on {te_equals -nocase 0 1}}\n\n  8   \"SELECT count(*) AS y FROM t4\"   \"SELECT * FROM t5, %ss% USING (y)\"\n      {t5 %ss% -using y -on {te_equals -affinity text 0 0}}\n\n  9   \"SELECT count(*) AS y FROM t4\"   \"SELECT * FROM %ss%, t5 USING (y)\"\n      {%ss% t5 -using y -on {te_equals -affinity text 0 0}}\n\n  10  \"SELECT x AS y FROM t4\"   \"SELECT * FROM %ss% JOIN t5 USING (y)\"\n      {%ss% t5 -using y -on {te_equals -nocase -affinity integer 0 0}}\n\n  11  \"SELECT x AS y FROM t4\"   \"SELECT * FROM t5 JOIN %ss% USING (y)\"\n      {t5 %ss% -using y -on {te_equals -nocase -affinity integer 0 0}}\n\n  12  \"SELECT y AS x FROM t5\"   \"SELECT * FROM %ss% JOIN t4 USING (x)\"\n      {%ss% t4 -using x -on {te_equals -nocase -affinity integer 0 0}}\n\n  13  \"SELECT y AS x FROM t5\"   \"SELECT * FROM t4 JOIN %ss% USING (x)\"\n      {t4 %ss% -using x -on {te_equals -nocase -affinity integer 0 0}}\n\n  14  \"SELECT +y AS x FROM t5\"   \"SELECT * FROM %ss% JOIN t4 USING (x)\"\n      {%ss% t4 -using x -on {te_equals -nocase -affinity text 0 0}}\n\n  15  \"SELECT +y AS x FROM t5\"   \"SELECT * FROM t4 JOIN %ss% USING (x)\"\n      {t4 %ss% -using x -on {te_equals -nocase -affinity text 0 0}}\n")
 		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			subselect := _items[_idx+1]
+			_ = subselect // suppress unused warning
 			_select := _items[_idx+2]
+			_ = _select // suppress unused warning
 			spec := _items[_idx+3]
+			_ = spec // suppress unused warning
 			_ = _idx
 				_res = db.Exec("CREATE TEMP TABLE '%ss%' AS " + subselect)
 				if _res.Error != nil {

@@ -16,6 +16,8 @@ func Test_loadext(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if _tcl_platform(platform) == "windows" {
@@ -104,9 +106,8 @@ func Test_loadext(t *testing.T) {
 	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_enable_load_extension db 1")
 	{ // do_test "loadext-2.1"
 		os.Remove("$")
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db ${testextension}xx")
@@ -130,9 +131,8 @@ func Test_loadext(t *testing.T) {
 		_ = fd // suppress unused warning
 		t.Log(fd)
 		// close $fd
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db ./notasharedlib")
@@ -148,9 +148,8 @@ func Test_loadext(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "loadext-2.3"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db $testextension icecream")
@@ -170,9 +169,8 @@ func Test_loadext(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "loadext-2.4"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_load_extension db $testextension testbrokenext_init")

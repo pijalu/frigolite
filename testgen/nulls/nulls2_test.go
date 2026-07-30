@@ -15,6 +15,8 @@ func Test_nulls2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "nulls2"
@@ -23,7 +25,9 @@ func Test_nulls2(t *testing.T) {
 	_items := tclSplitList("\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		idx := _items[_idx+1]
+		_ = idx // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")
@@ -49,7 +53,9 @@ func Test_nulls2(t *testing.T) {
 		_items := tclSplitList("\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			idx := _items[_idx+1]
+			_ = idx // suppress unused warning
 			_ = _idx
 				db.Close()
 				db, err = frigolite.Open("")

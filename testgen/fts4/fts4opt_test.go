@@ -16,6 +16,8 @@ func Test_fts4opt(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4opt" // TCL namespace variable
@@ -37,7 +39,9 @@ func Test_fts4opt(t *testing.T) {
 		_items := tclSplitList("db eval { SELECT * FROM t1 }")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			docid := _items[_idx+0]
+			_ = docid // suppress unused warning
 			words := _items[_idx+1]
+			_ = words // suppress unused warning
 			_ = _idx
 				_res = db.Exec(" INSERT INTO t2(docid, words) VALUES($docid, $words) ")
 				if _res.Error != nil {
@@ -129,7 +133,9 @@ func Test_fts4opt(t *testing.T) {
 			_items := tclSplitList("db eval { SELECT * FROM t1 }")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				docid := _items[_idx+0]
+				_ = docid // suppress unused warning
 				words := _items[_idx+1]
+				_ = words // suppress unused warning
 				_ = _idx
 					_res = db.Exec(" INSERT INTO t2(docid, words) VALUES($docid, $words) ")
 					if _res.Error != nil {
@@ -142,7 +148,9 @@ func Test_fts4opt(t *testing.T) {
 				_items := tclSplitList("db eval { SELECT * FROM t1 }")
 				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 					docid := _items[_idx+0]
+					_ = docid // suppress unused warning
 					words := _items[_idx+1]
+					_ = words // suppress unused warning
 					_ = _idx
 						if tclBool("incr i" + " % 2") {
 							_res = db.Exec(" DELETE FROM t2 WHERE docid = $docid ")
@@ -157,7 +165,9 @@ func Test_fts4opt(t *testing.T) {
 					_items := tclSplitList("db eval { SELECT * FROM t1 }")
 					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 						docid := _items[_idx+0]
+						_ = docid // suppress unused warning
 						words := _items[_idx+1]
+						_ = words // suppress unused warning
 						_ = _idx
 							if tclBool("incr i" + " % 3") {
 								_res = db.Exec(" INSERT OR REPLACE INTO t2(docid, words) VALUES($docid, $words) ")

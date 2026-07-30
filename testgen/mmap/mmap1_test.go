@@ -16,6 +16,8 @@ func Test_mmap1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "mmap1"
@@ -26,9 +28,13 @@ func Test_mmap1(t *testing.T) {
 	_items := tclSplitList("\n  1.1 { PRAGMA mmap_size = 67108864 } /8|12/   {PRAGMA mmap_size = 0}\n  1.2 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 0}\n  1.3 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 0}\n  1.4 { PRAGMA mmap_size = 67108864 } /12|8/   {PRAGMA mmap_size = 67108864 }\n  1.5 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 67108864 }\n  1.6 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 67108864 }\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		t := _items[_idx+0]
+		_ = t // suppress unused warning
 		mmap_size := _items[_idx+1]
+		_ = mmap_size // suppress unused warning
 		nRead := _items[_idx+2]
+		_ = nRead // suppress unused warning
 		c2init := _items[_idx+3]
+		_ = c2init // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    sql1 {PRAGMA cache_size=2000}\n    sql2 {PRAGM...}")
 		}

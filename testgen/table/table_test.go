@@ -18,6 +18,8 @@ func Test_table(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "table-1.1"
@@ -117,9 +119,8 @@ func Test_table(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "table-2.1b"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE TABLE sqlite_master(two text)")
@@ -138,9 +139,8 @@ func Test_table(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE TABLE sqlite_master(two text)")
@@ -185,9 +185,8 @@ func Test_table(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE TABLE test3(two text)")
@@ -213,9 +212,8 @@ func Test_table(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX test3")
 		}
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE TABLE test3(two text)")
@@ -259,9 +257,8 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-3.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE TABLE BIG(xyz foo)")
@@ -277,9 +274,8 @@ func Test_table(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "table-3.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE TABLE biG(xyz foo)")
@@ -295,9 +291,8 @@ func Test_table(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "table-3.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE TABLE bIg(xyz foo)")
@@ -316,9 +311,8 @@ func Test_table(t *testing.T) {
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("CREATE TABLE Big(xyz foo)")
@@ -511,9 +505,8 @@ func Test_table(t *testing.T) {
 		}
 	}
 	{ // do_test "table-7.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    CREATE TABLE weird(\n      desc text,\n      asc text,\n      key int,\n      [14_vac] boolean,\n      fuzzy_dog_12 varchar(10),\n      begin blob,\n      end clob\n    )\n  ")
@@ -651,8 +644,11 @@ func Test_table(t *testing.T) {
 	_items := tclSplitList("\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		date := _items[_idx+0]
+		_ = date // suppress unused warning
 		time := _items[_idx+1]
+		_ = time // suppress unused warning
 		seconds := _items[_idx+2]
+		_ = seconds // suppress unused warning
 		_ = _idx
 			// incr i 1
 			{

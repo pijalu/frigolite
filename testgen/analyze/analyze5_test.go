@@ -17,6 +17,8 @@ func Test_analyze5(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "analyze5"
@@ -32,12 +34,15 @@ func Test_analyze5(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			y := "$i>=25 && $i<=50"
+			_ = y // suppress unused warning
 			z := "($i>=400) + ($i>=700) + ($i>=875)"
+			_ = z // suppress unused warning
 			var x = z
 			_ = x // suppress unused warning
 			var w = z
 			_ = w // suppress unused warning
 			t := "$z+0.5"
+			_ = t // suppress unused warning
 			t.Skipf("TODO: %s not implemented in frigolite", "switch $z {\n      0 {set u \"alpha\"; unset x}\n      1 {set u \"...}")
 			if tclBool(i + "%2") {
 				var v = u
@@ -81,9 +86,13 @@ func Test_analyze5(t *testing.T) {
 	_items := tclSplitList("\n    1  {z>=0 AND z<=0}       t1z  400\n    2  {z>=1 AND z<=1}       t1z  300\n    3  {z>=2 AND z<=2}       t1z  175\n    4  {z>=3 AND z<=3}       t1z  125\n    5  {z>=4 AND z<=4}       t1z    1\n    6  {z>=-1 AND z<=-1}     t1z    1\n    7  {z>1 AND z<3}         t1z  175\n    8  {z>0 AND z<100}       t1z  600\n    9  {z>=1 AND z<100}      t1z  600\n   10  {z>1 AND z<100}       t1z  300\n   11  {z>=2 AND z<100}      t1z  300\n   12  {z>2 AND z<100}       t1z  125\n   13  {z>=3 AND z<100}      t1z  125\n   14  {z>3 AND z<100}       t1z    1\n   15  {z>=4 AND z<100}      t1z    1\n   16  {z>=-100 AND z<=-1}   t1z    1\n   17  {z>=-100 AND z<=0}    t1z  400\n   18  {z>=-100 AND z<0}     t1z    1\n   19  {z>=-100 AND z<=1}    t1z  700\n   20  {z>=-100 AND z<2}     t1z  700\n   21  {z>=-100 AND z<=2}    t1z  875\n   22  {z>=-100 AND z<3}     t1z  875\n  \n   31  {z>=0.0 AND z<=0.0}   t1z  400\n   32  {z>=1.0 AND z<=1.0}   t1z  300\n   33  {z>=2.0 AND z<=2.0}   t1z  175\n   34  {z>=3.0 AND z<=3.0}   t1z  125\n   35  {z>=4.0 AND z<=4.0}   t1z    1\n   36  {z>=-1.0 AND z<=-1.0} t1z    1\n   37  {z>1.5 AND z<3.0}     t1z  174\n   38  {z>0.5 AND z<100}     t1z  599\n   39  {z>=1.0 AND z<100}    t1z  600\n   40  {z>1.5 AND z<100}     t1z  299\n   41  {z>=2.0 AND z<100}    t1z  300\n   42  {z>2.1 AND z<100}     t1z  124\n   43  {z>=3.0 AND z<100}    t1z  125\n   44  {z>3.2 AND z<100}     t1z    1\n   45  {z>=4.0 AND z<100}    t1z    1\n   46  {z>=-100 AND z<=-1.0} t1z    1\n   47  {z>=-100 AND z<=0.0}  t1z  400\n   48  {z>=-100 AND z<0.0}   t1z    1\n   49  {z>=-100 AND z<=1.0}  t1z  700\n   50  {z>=-100 AND z<2.0}   t1z  700\n   51  {z>=-100 AND z<=2.0}  t1z  875\n   52  {z>=-100 AND z<3.0}   t1z  875\n  \n  101  {z=-1}                t1z    1\n  102  {z=0}                 t1z  400\n  103  {z=1}                 t1z  300\n  104  {z=2}                 t1z  175\n  105  {z=3}                 t1z  125\n  106  {z=4}                 t1z    1\n  107  {z=-10.0}             t1z    1\n  108  {z=0.0}               t1z  400\n  109  {z=1.0}               t1z  300\n  110  {z=2.0}               t1z  175\n  111  {z=3.0}               t1z  125\n  112  {z=4.0}               t1z    1\n  113  {z=1.5}               t1z    1\n  114  {z=2.5}               t1z    1\n  \n  201  {z IN (-1)}           t1z    1\n  202  {z IN (0)}            t1z  400\n  203  {z IN (1)}            t1z  300\n  204  {z IN (2)}            t1z  175\n  205  {z IN (3)}            t1z  125\n  206  {z IN (4)}            t1z    1\n  207  {z IN (0.5)}          t1z    1\n  208  {z IN (0,1)}          t1z  700\n  209  {z IN (0,1,2)}        t1z  875\n  210  {z IN (0,1,2,3)}      {}   100\n  211  {z IN (0,1,2,3,4,5)}  {}   100\n  212  {z IN (1,2)}          t1z  475\n  213  {z IN (2,3)}          t1z  300\n  214  {z=3 OR z=2}          t1z  300\n  215  {z IN (-1,3)}         t1z  126\n  216  {z=-1 OR z=3}         t1z  126\n\n  300  {y=0}                 t1y  974\n  301  {y=1}                 t1y   26\n  302  {y=0.1}               t1y    1\n\n  400  {x IS NULL}           t1x  400\n\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		testid := _items[_idx+0]
+		_ = testid // suppress unused warning
 		where := _items[_idx+1]
+		_ = where // suppress unused warning
 		index := _items[_idx+2]
+		_ = index // suppress unused warning
 		rows := _items[_idx+3]
+		_ = rows // suppress unused warning
 		_ = _idx
 			{ // do_test "analyze5-1.$"
 				t.Skipf("TODO: %s not implemented in frigolite", "testid")
@@ -97,9 +106,13 @@ func Test_analyze5(t *testing.T) {
 		_items := tclSplitList("\n  500  {x IS NULL AND u='charlie'}         t1u  17\n  501  {x=1 AND u='charlie'}               t1x   1\n  502  {x IS NULL}                         t1x 995\n  503  {x=1}                               t1x   1\n  504  {x IS NOT NULL}                     t1x   2\n  505  {+x IS NOT NULL}                     {} 500\n  506  {upper(x) IS NOT NULL}               {} 500\n\n")
 		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 			testid := _items[_idx+0]
+			_ = testid // suppress unused warning
 			where := _items[_idx+1]
+			_ = where // suppress unused warning
 			index := _items[_idx+2]
+			_ = index // suppress unused warning
 			rows := _items[_idx+3]
+			_ = rows // suppress unused warning
 			_ = _idx
 				{ // do_test "analyze5-1.$"
 					t.Skipf("TODO: %s not implemented in frigolite", "testid")

@@ -17,6 +17,8 @@ func Test_swarmvtab3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "swarmvtab3"
@@ -66,8 +68,11 @@ func Test_swarmvtab3(t *testing.T) {
 	_items := tclSplitList("\n  1 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n\n  2 3 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 3\n    )\n  }\n\n  3 1 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix||''.''||:suffix||id, tbl, minval, minval FROM swarm',\n        :prefix=test, :suffix=db,\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 1\n    )\n  }\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		nMaxOpen := _items[_idx+1]
+		_ = nMaxOpen // suppress unused warning
 		cvt := _items[_idx+2]
+		_ = cvt // suppress unused warning
 		_ = _idx
 			_res = db.Exec(" DROP TABLE IF EXISTS s ")
 			if _res.Error != nil {
@@ -146,6 +151,7 @@ func Test_swarmvtab3(t *testing.T) {
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 				for true {
 					ctx := "0"
+					_ = ctx // suppress unused warning
 					if tclBool("info exists ctx_used($ctx)" + "==0") {
 					}
 				}
@@ -182,8 +188,11 @@ func Test_swarmvtab3(t *testing.T) {
 		_items := tclSplitList("\n  2 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT file, tbl, minval, minval, ctx FROM swarm',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			nMaxOpen := _items[_idx+1]
+			_ = nMaxOpen // suppress unused warning
 			cvt := _items[_idx+2]
+			_ = cvt // suppress unused warning
 			_ = _idx
 				_res = db.Exec(" DROP TABLE IF EXISTS s ")
 				if _res.Error != nil {

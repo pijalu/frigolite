@@ -17,6 +17,8 @@ func Test_pragma4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "pragma4"
@@ -26,7 +28,9 @@ func Test_pragma4(t *testing.T) {
 	_items := tclSplitList("\n  1 \"PRAGMA application_id = 10\"\n  2 \"PRAGMA automatic_index = 1\"\n  3 \"PRAGMA auto_vacuum = 1\"\n  4 \"PRAGMA cache_size = -100\"\n  5 \"PRAGMA cache_spill = 1\"\n  6 \"PRAGMA cell_size_check = 1\"\n  7 \"PRAGMA checkpoint_fullfsync = 1\"\n  8 \"PRAGMA count_changes = 1\"\n  9 \"PRAGMA default_cache_size = 100\"\n 10 \"PRAGMA defer_foreign_keys = 1\"\n 11 \"PRAGMA empty_result_callbacks = 1\"\n 12 \"PRAGMA encoding = 'utf-8'\"\n 13 \"PRAGMA foreign_keys = 1\"\n 14 \"PRAGMA full_column_names = 1\"\n 15 \"PRAGMA fullfsync = 1\"\n 16 \"PRAGMA ignore_check_constraints = 1\"\n 18 \"PRAGMA page_size = 511\"\n 19 \"PRAGMA page_size = 512\"\n 20 \"PRAGMA query_only = false\"\n 21 \"PRAGMA read_uncommitted = true\"\n 22 \"PRAGMA recursive_triggers = false\"\n 23 \"PRAGMA reverse_unordered_selects = false\"\n 24 \"PRAGMA schema_version = 211\"\n 25 \"PRAGMA short_column_names = 1\"\n 26 \"PRAGMA synchronous = full\"\n 29 \"PRAGMA temp_store = memory\"\n 30 \"PRAGMA user_version = 405\"\n 31 \"PRAGMA writable_schema = 1\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")
@@ -38,7 +42,9 @@ func Test_pragma4(t *testing.T) {
 		_items := tclSplitList("\n  1 \"PRAGMA shrink_memory\"\n  2 \"PRAGMA shrink_memory = 10\"\n  3 \"PRAGMA case_sensitive_like = 0\"\n  4 \"PRAGMA case_sensitive_like = 1\"\n  5 \"PRAGMA case_sensitive_like\"\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			_ = _idx
 				t.Skipf("TODO: %s not implemented in frigolite", "do_pragma_ncol_test 1.$tn.1 $sql 0")
 			}

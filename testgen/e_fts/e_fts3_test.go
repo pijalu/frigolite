@@ -16,6 +16,8 @@ func Test_e_fts3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -26,7 +28,9 @@ func Test_e_fts3(t *testing.T) {
 	_items := tclSplitList("\n  0 utf-8\n  1 utf-8\n  2 utf-8\n  1 utf-16\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		DO_MALLOC_TEST := _items[_idx+0]
+		_ = DO_MALLOC_TEST // suppress unused warning
 		enc := _items[_idx+1]
+		_ = enc // suppress unused warning
 		_ = _idx
 			os.Remove("test.db")
 			db, err := frigolite.Open("test.db")
@@ -104,8 +108,11 @@ func Test_e_fts3(t *testing.T) {
 			_items := tclSplitList("\n  2 \"linux driver\" \"a device\"\n  3 \"driver\"       \"linguistic trick\"\n  4 \"problems\"     \"linux problems\"\n  5 \"linux\"        \"big problems\"\n  6 \"linux driver\" \"a device driver problem\"\n  7 \"good times\"   \"applications for linux\"\n  8 \"not so good\"  \"linux applications\"\n  9 \"alternative\"  \"linoleum appliances\"\n 10 \"no L I N\"     \"to be seen\"\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				title := _items[_idx+1]
+				_ = title // suppress unused warning
 				body := _items[_idx+2]
+				_ = body // suppress unused warning
 				_ = _idx
 					t.Skipf("TODO: %s not implemented in frigolite", "write_test 1.4.1.$tn docs_content { INSERT INTO docs VALUES($title,$body) }")
 					var R_$tn = "list $title $body"
@@ -124,8 +131,11 @@ func Test_e_fts3(t *testing.T) {
 				_items := tclSplitList("\n3 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR database'} 1\n4 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/6 sqlite'} 1\n5 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/5 sqlite'} 0\n6 {SELECT * FROM docs WHERE docs MATCH 'database NEAR/2 \"ACID compliant\"'} 1\n7 {SELECT * FROM docs WHERE docs MATCH '\"ACID compliant\" NEAR/2 sqlite'} 1\n8 {SELECT * FROM docs WHERE docs MATCH 'sqlite NEAR/2 acid NEAR/2 relational'} 1\n9 {SELECT * FROM docs WHERE docs MATCH 'acid NEAR/2 sqlite NEAR/2 relational'} 0\n")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					query := _items[_idx+1]
+					_ = query // suppress unused warning
 					hit := _items[_idx+2]
+					_ = hit // suppress unused warning
 					_ = _idx
 						var res = "db eval {SELECT * FROM docs WHERE $hit}"
 						_ = res // suppress unused warning
@@ -139,8 +149,11 @@ func Test_e_fts3(t *testing.T) {
 					_items := tclSplitList("\n  2 1 \"a database is a software system\"\n  3 2 \"sqlite is a software system\"\n  4 3 \"sqlite is a database\"\n")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						docid := _items[_idx+1]
+						_ = docid // suppress unused warning
 						content := _items[_idx+2]
+						_ = content // suppress unused warning
 						_ = _idx
 							var R_$docid = content
 							_ = R_$docid // suppress unused warning

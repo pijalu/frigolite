@@ -15,6 +15,8 @@ func Test_incrvacuum_ioerr(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test incrvacuum-ioerr-1 -cksum 1 -sqlprep {\n  PRAGMA auto_vacuum = 'incremental';\n  CREATE TA...} -sqlbody {\n  BEGIN;\n  CREATE TABLE abc2(a);\n  DELETE FROM ab...}")

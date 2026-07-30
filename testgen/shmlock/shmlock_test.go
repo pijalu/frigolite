@@ -16,6 +16,8 @@ func Test_shmlock(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "shmlock"
@@ -48,9 +50,13 @@ func Test_shmlock(t *testing.T) {
 	_items := tclSplitList("\n  1    db  {shared    lock   7 1}    OK\n  2    db2 {exclusive lock   7 1}    BUSY\n  3    db  {shared    unlock 7 1}    OK\n  4    db2 {exclusive lock   7 1}    OK\n  5    db  {shared    lock   7 1}    BUSY\n  6    db  {exclusive lock   7 1}    BUSY\n  7    db2 {exclusive unlock 7 1}    OK\n\n  8    db  {exclusive lock   0 8}    OK\n  9    db  {exclusive unlock 0 8}    OK\n  10   db2 {exclusive lock   0 8}    OK\n  11   db2 {exclusive unlock 0 8}    OK\n\n  12   db  {shared    lock   0 1}    OK\n  13   db2 {shared    lock   0 1}    OK\n  14   db3 {shared    lock   0 1}    OK\n  15   db3 {shared    unlock 0 1}    OK\n  16   db3 {exclusive lock   0 1}    BUSY\n  17   db2 {shared    unlock 0 1}    OK\n  18   db3 {exclusive lock   0 1}    BUSY\n  19   db  {shared    unlock 0 1}    OK\n  20   db3 {exclusive lock   0 1}    OK\n  21   db3 {exclusive unlock 0 1}    OK\n\n  22   db  {shared    lock   3 1}    OK\n  23   db2 {exclusive lock   2 2}    BUSY\n  24   db  {shared    lock   2 1}    OK\n  25   db2 {exclusive lock   0 5}    BUSY\n  26   db2 {exclusive lock   0 4}    BUSY\n  27   db2 {exclusive lock   0 3}    BUSY\n  28   db  {shared    unlock 3 1}    OK\n  29   db2 {exclusive lock   2 2}    BUSY\n  28   db  {shared    unlock 2 1}    OK\n  29   db2 {exclusive lock   2 2}    OK\n  29   db2 {exclusive unlock 2 2}    OK\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		dbhandle := _items[_idx+1]
+		_ = dbhandle // suppress unused warning
 		cmd := _items[_idx+2]
+		_ = cmd // suppress unused warning
 		res := _items[_idx+3]
+		_ = res // suppress unused warning
 		_ = _idx
 			{ // do_test "1.3." + tn
 				_res = db.Exec("list vfs_shmlock $dbhandle main {*}$cmd")

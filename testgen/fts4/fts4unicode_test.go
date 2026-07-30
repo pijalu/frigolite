@@ -16,6 +16,8 @@ func Test_fts4unicode(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4unicode" // TCL namespace variable
@@ -86,8 +88,11 @@ func Test_fts4unicode(t *testing.T) {
 	_items := tclSplitList("\n  2 \"row\" {\n     ...returns the value of y on the same [row] that contains \n     the maximum x value.\n  }\n  3 \"ROW\" {\n     ...returns the value of y on the same [row] that contains \n     the maximum x value.\n  }\n  4 \"rollback\" {\n     ...[ROLLBACK]. Instead, the pending statement\n     will return SQLITE_ABORT upon next access after the [ROLLBACK].\n  }\n  5 \"rOllback\" {\n     ...[ROLLBACK]. Instead, the pending statement\n     will return SQLITE_ABORT upon next access after the [ROLLBACK].\n  }\n  6 \"lang*\" {\n     Added support for the FTS4 [languageid] option.\n  }\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		query := _items[_idx+1]
+		_ = query // suppress unused warning
 		snippet := _items[_idx+2]
+		_ = snippet // suppress unused warning
 		_ = _idx
 			{ // do_test "2." + tn
 				var q = "mapdoc $query"
@@ -234,14 +239,19 @@ func Test_fts4unicode(t *testing.T) {
 		_items := tclSplitList("\n  1 \\ue000 2 \\ue001 3 \\uf000 4 \\uf8fe 5 \\uf8ff\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn1 := _items[_idx+0]
+			_ = tn1 // suppress unused warning
 			c := _items[_idx+1]
+			_ = c // suppress unused warning
 			_ = _idx
 				// foreach {tn2 config res} "\n    1 \"\"             \"0 hello*world hello*world\"\n    2 \"separators=*\" \"0 hello hello 1 world world\"\n  "
 				_items := tclSplitList("\n    1 \"\"             \"0 hello*world hello*world\"\n    2 \"separators=*\" \"0 hello hello 1 world world\"\n  ")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn2 := _items[_idx+0]
+					_ = tn2 // suppress unused warning
 					config := _items[_idx+1]
+					_ = config // suppress unused warning
 					res := _items[_idx+2]
+					_ = res // suppress unused warning
 					_ = _idx
 						var config = "[list * $c] $config"
 						_ = config // suppress unused warning
@@ -316,7 +326,9 @@ func Test_fts4unicode(t *testing.T) {
 				_items := tclSplitList("\n  1 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 [tokenchars= .]);\n    CREATE VIRTUAL TABLE t6 USING fts4(\n        tokenize=unicode61 [tokenchars==\"] \"tokenchars=[]\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 [separators=x\\xC4]);\n  }\n  2 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 \"tokenchars= .\");\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 \"tokenchars=[=\"\"]\");\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 \"separators=x\\xC4\");\n  }\n  3 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 'tokenchars= .');\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 'tokenchars==\"[]');\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 'separators=x\\xC4');\n  }\n  4 {\n    CREATE VIRTUAL TABLE t5 USING fts4(tokenize=unicode61 `tokenchars= .`);\n    CREATE VIRTUAL TABLE t6 USING fts4(tokenize=unicode61 `tokenchars=[=\"]`);\n    CREATE VIRTUAL TABLE t7 USING fts4(tokenize=unicode61 `separators=x\\xC4`);\n  }\n")
 				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					sql := _items[_idx+1]
+					_ = sql // suppress unused warning
 					_ = _idx
 						{ // "9." + tn + ".0"
 							_res = db.Exec(" \n    DROP TABLE IF EXISTS t5;\n    DROP TABLE IF EXISTS t5aux;\n    DROP TABLE IF EXISTS t6;\n    DROP TABLE IF EXISTS t6aux;\n    DROP TABLE IF EXISTS t7;\n    DROP TABLE IF EXISTS t7aux;\n  ")

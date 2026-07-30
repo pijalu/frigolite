@@ -16,6 +16,8 @@ func Test_values(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "values"
@@ -216,7 +218,9 @@ func Test_values(t *testing.T) {
 	_items := tclSplitList("1 0    2 3")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		iLimit := _items[_idx+1]
+		_ = iLimit // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_limit db SQLITE_LIMIT_COMPOUND_SELECT $iLimit")
 			{ // "4.1.1"
@@ -372,8 +376,11 @@ func Test_values(t *testing.T) {
 		_items := tclSplitList("\n  1 \"SELECT * FROM t1 LEFT JOIN VVV\" {\n    d a b   d c d   d 123 {}\n    {} a b   {} c d   {} 123 {}\n    123 a b   123 c d   123 123 {}\n  }\n\n  2 \"SELECT * FROM t1 LEFT JOIN VVV ON (column1=x)\" {\n    d {} {}\n    {} {} {}\n    123 123 {}\n  }\n\n  3 \"SELECT * FROM t1 RIGHT JOIN VVV\" {\n    d a b   d c d   d 123 {}\n    {} a b   {} c d   {} 123 {}\n    123 a b   123 c d   123 123 {}\n  }\n\n  4 \"SELECT * FROM t1 RIGHT JOIN VVV ON (column1=x)\" {\n    123 123 {}\n    {} a b\n    {} c d\n  }\n\n  5 \"SELECT * FROM t1 FULL OUTER JOIN VVV ON (column1=x)\" {\n    d {} {}\n    {} {} {}\n    123 123 {}\n    {} a b\n    {} c d\n  }\n\n  6 \"SELECT count(*) FROM VVV\" { 3 }\n\n  7 \"SELECT (SELECT column1 FROM VVV)\" { a }\n\n  8 \"SELECT * FROM VVV UNION ALL SELECT * FROM VVV\" {\n    a b c d 123 {}\n    a b c d 123 {}\n  }\n\n  9 \"SELECT * FROM VVV INTERSECT SELECT * FROM VVV\" {\n    123 {} a b c d \n  }\n\n  10 \"SELECT * FROM VVV eXCEPT SELECT * FROM VVV\" { }\n\n  11 \"SELECT * FROM VVV eXCEPT SELECT 'a', 'b'\" { 123 {} c d }\n\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			q := _items[_idx+1]
+			_ = q // suppress unused warning
 			res := _items[_idx+2]
+			_ = res // suppress unused warning
 			_ = _idx
 				var q1 = "[list VVV $VVV] $q"
 				_ = q1 // suppress unused warning

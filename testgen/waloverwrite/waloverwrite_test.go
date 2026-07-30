@@ -17,6 +17,8 @@ func Test_waloverwrite(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "waloverwrite"
@@ -25,7 +27,9 @@ func Test_waloverwrite(t *testing.T) {
 	_items := tclSplitList("\n  1 {}\n  2 { UPDATE t1 SET y = randomblob(799) WHERE x=4 }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		xtra := _items[_idx+1]
+		_ = xtra // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")

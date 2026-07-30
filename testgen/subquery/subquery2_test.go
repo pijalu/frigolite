@@ -15,6 +15,8 @@ func Test_subquery2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "subquery2" // TCL namespace variable
@@ -123,7 +125,9 @@ func Test_subquery2(t *testing.T) {
 	_items := tclSplitList("\n  1 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  2 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  3 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  4 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			{ // "4." + tn
 				_res = db.Exec(sql)

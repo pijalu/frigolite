@@ -17,6 +17,8 @@ func Test_backup_ioerr(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -25,6 +27,7 @@ func Test_backup_ioerr(t *testing.T) {
 	{ // do_test "backup_ioerr-1.1"
 		t.Skipf("TODO: %s not implemented in frigolite", "populate_database db")
 		nPage := "[file size test.db] / 1024"
+		_ = nPage // suppress unused warning
 		// expr $nPage>130 && $nPage<160 → "$nPage>130 && $nPage<160"
 	}
 	{ // do_test "backup_ioerr-1.2"
@@ -182,6 +185,7 @@ func Test_backup_ioerr(t *testing.T) {
 					_res = db.Exec("PRAGMA integrity_check")
 					if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 					bStop := "$::sqlite_io_error_pending<=0"
+					_ = bStop // suppress unused warning
 					// incr iError 1
 					{
 						_n, _err := strconv.Atoi(iError)

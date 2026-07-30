@@ -17,6 +17,8 @@ func Test_sort(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sort"
@@ -393,12 +395,19 @@ func Test_sort(t *testing.T) {
 	_items := tclSplitList("\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n")
 	for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		mmap_limit := _items[_idx+1]
+		_ = mmap_limit // suppress unused warning
 		nWorker := _items[_idx+2]
+		_ = nWorker // suppress unused warning
 		tmpstore := _items[_idx+3]
+		_ = tmpstore // suppress unused warning
 		coremutex := _items[_idx+4]
+		_ = coremutex // suppress unused warning
 		fakeheap := _items[_idx+5]
+		_ = fakeheap // suppress unused warning
 		softheaplimit := _items[_idx+6]
+		_ = softheaplimit // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 			if tclBool(coremutex) {

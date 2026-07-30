@@ -15,6 +15,8 @@ func Test_fts4umlaut(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts4umlaut"
@@ -29,9 +31,13 @@ func Test_fts4umlaut(t *testing.T) {
 	_items := tclSplitList("\n  1 \"Hà Nội\"                  0 1\n  2 \"Hà Noi\"                  1 1\n  3 \"Ha Noi\"                  1 1\n  4 \"Ha N\\u1ed9i\"             0 1\n  5 \"Ha N\\u006fi\"             1 1\n  6 \"Ha N\\u006f\\u0302i\"       1 1\n  7 \"Ha N\\u006f\\u0323\\u0302i\" 1 1\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		q := _items[_idx+1]
+		_ = q // suppress unused warning
 		res1 := _items[_idx+2]
+		_ = res1 // suppress unused warning
 		res2 := _items[_idx+3]
+		_ = res2 // suppress unused warning
 		_ = _idx
 			{ // "1." + tn + ".1"
 				r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH $q\n  ")

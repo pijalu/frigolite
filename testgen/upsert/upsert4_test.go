@@ -16,6 +16,8 @@ func Test_upsert4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "upsert4"
@@ -24,7 +26,9 @@ func Test_upsert4(t *testing.T) {
 	_items := tclSplitList("\n  1 { CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c UNIQUE) }\n  2 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) }\n  3 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE) WITHOUT ROWID}\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")
@@ -140,7 +144,9 @@ func Test_upsert4(t *testing.T) {
 		_items := tclSplitList("\n  1 { \n      CREATE TABLE xyz(a INTEGER PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  2 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d);\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n\n  3 { \n      CREATE TABLE xyz(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n      CREATE UNIQUE INDEX xyz1 ON xyz(d, c, b COLLATE nocase);\n  }\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			_ = _idx
 				db.Close()
 				db, err = frigolite.Open("")
@@ -159,8 +165,11 @@ func Test_upsert4(t *testing.T) {
 				_items := tclSplitList("\n    1 \"ON CONFLICT (b COLLATE nocase, c, d) DO NOTHING\"   0\n    2 \"ON CONFLICT (b, c, d) DO NOTHING\"                  0\n    3 \"ON CONFLICT (b, c COLLATE nocase, d) DO NOTHING\"   2\n    4 \"ON CONFLICT (a) DO NOTHING\"                        1\n    5 \"ON CONFLICT DO NOTHING\"                            0\n    6 \"ON CONFLICT (b, c, d) WHERE a!=0 DO NOTHING\"       0\n    7 \"ON CONFLICT (d, c, c) WHERE a!=0 DO NOTHING\"       2\n    8 \"ON CONFLICT (b COLLATE nocase, c COLLATE nocase, d) DO NOTHING\"   2\n    9 \"ON CONFLICT (b, c, d) WHERE b==45 DO NOTHING\"      0\n  ")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn2 := _items[_idx+0]
+					_ = tn2 // suppress unused warning
 					oc := _items[_idx+1]
+					_ = oc // suppress unused warning
 					res := _items[_idx+2]
+					_ = res // suppress unused warning
 					_ = _idx
 						{ // "2." + tn + ".2." + tn2
 							_res = db.Exec("\n      INSERT INTO xyz VALUES(11, 1, 1, 'one') " + oc + "\n    ")
@@ -186,7 +195,9 @@ func Test_upsert4(t *testing.T) {
 				_items := tclSplitList("\n  1 {\n    CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n  2 {\n    CREATE TABLE abc(a INT PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n  3 { \n    CREATE TABLE abc(a INT PRIMARY KEY, x, y) WITHOUT ROWID;\n    CREATE UNIQUE INDEX abc1 ON abc(('x' || x) COLLATE nocase);\n  }\n")
 				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					sql := _items[_idx+1]
+					_ = sql // suppress unused warning
 					_ = _idx
 						db.Close()
 						db, err = frigolite.Open("")
@@ -205,8 +216,11 @@ func Test_upsert4(t *testing.T) {
 						_items := tclSplitList("\n    1 \"ON CONFLICT DO NOTHING\"                             0\n    2 \"ON CONFLICT ('x' || x) DO NOTHING\"                  0\n    3 \"ON CONFLICT (('x' || x) COLLATE nocase) DO NOTHING\" 0\n    4 \"ON CONFLICT (('x' || x) COLLATE binary) DO NOTHING\" 2\n    5 \"ON CONFLICT (x || 'x') DO NOTHING\"                  2\n    6 \"ON CONFLICT ((('x' || x))) DO NOTHING\"              0\n  ")
 						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 							tn2 := _items[_idx+0]
+							_ = tn2 // suppress unused warning
 							oc := _items[_idx+1]
+							_ = oc // suppress unused warning
 							res := _items[_idx+2]
+							_ = res // suppress unused warning
 							_ = _idx
 								{ // "3." + tn + ".2." + tn2
 									_res = db.Exec("\n      INSERT INTO abc VALUES(2, 'one', NULL) " + oc + ";\n    ")
@@ -232,7 +246,9 @@ func Test_upsert4(t *testing.T) {
 						_items := tclSplitList("\n  1 {\n    CREATE TABLE abc(a INTEGER PRIMARY KEY, x, y);\n    CREATE UNIQUE INDEX abc1 ON abc(x) WHERE y>0;\n    CREATE UNIQUE INDEX abc2 ON abc(y) WHERE x='xyz' COLLATE nocase;\n  }\n")
 						for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 							tn := _items[_idx+0]
+							_ = tn // suppress unused warning
 							sql := _items[_idx+1]
+							_ = sql // suppress unused warning
 							_ = _idx
 								db.Close()
 								db, err = frigolite.Open("")
@@ -251,8 +267,11 @@ func Test_upsert4(t *testing.T) {
 								_items := tclSplitList("\n    1 \"ON CONFLICT DO NOTHING\"                                 0\n    2 \"ON CONFLICT(x) WHERE y>0 DO NOTHING\"                    0\n    3 \"ON CONFLICT(x) DO NOTHING\"                              2\n    4 \"ON CONFLICT(x) WHERE y>=0 DO NOTHING\"                   2\n    5 \"ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING\" 1\n  ")
 								for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 									tn2 := _items[_idx+0]
+									_ = tn2 // suppress unused warning
 									oc := _items[_idx+1]
+									_ = oc // suppress unused warning
 									res := _items[_idx+2]
+									_ = res // suppress unused warning
 									_ = _idx
 										{ // "4." + tn + ".2." + tn2
 											_res = db.Exec("\n      INSERT INTO abc VALUES(5, 'one', 10) " + oc + "\n    ")
@@ -277,8 +296,11 @@ func Test_upsert4(t *testing.T) {
 									_items := tclSplitList("\n    1 \"ON CONFLICT DO NOTHING\"                                 0\n    2 \"ON CONFLICT(y) WHERE x='xyz' COLLATE nocase DO NOTHING\" 0\n    3 \"ON CONFLICT(y) WHERE x='xyz' COLLATE binary DO NOTHING\" 2\n    4 \"ON CONFLICT(x) WHERE y>0 DO NOTHING\"                    1\n  ")
 									for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 										tn2 := _items[_idx+0]
+										_ = tn2 // suppress unused warning
 										oc := _items[_idx+1]
+										_ = oc // suppress unused warning
 										res := _items[_idx+2]
+										_ = res // suppress unused warning
 										_ = _idx
 											{ // "4." + tn + ".2." + tn2
 												_res = db.Exec("\n      INSERT INTO abc VALUES(5, 'xYz', 3) " + oc + "\n    ")
@@ -298,7 +320,9 @@ func Test_upsert4(t *testing.T) {
 									_items := tclSplitList("\n  1 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);\n  }\n  2 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c);\n  }\n  3 {\n    CREATE TABLE t1(a INT PRIMARY KEY, b UNIQUE, c) WITHOUT ROWID;\n  }\n")
 									for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 										tn := _items[_idx+0]
+										_ = tn // suppress unused warning
 										sql := _items[_idx+1]
+										_ = sql // suppress unused warning
 										_ = _idx
 											db.Close()
 											db, err = frigolite.Open("")
@@ -324,7 +348,9 @@ func Test_upsert4(t *testing.T) {
 										_items := tclSplitList("\n  1 {\n    CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c UNIQUE);\n  }\n")
 										for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 											tn := _items[_idx+0]
+											_ = tn // suppress unused warning
 											sql := _items[_idx+1]
+											_ = sql // suppress unused warning
 											_ = _idx
 												db.Close()
 												db, err = frigolite.Open("")
@@ -392,7 +418,9 @@ func Test_upsert4(t *testing.T) {
 											_items := tclSplitList("\n  1 {\n    CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y));\n    CREATE UNIQUE INDEX zz ON t1(z);\n  }\n  2 {\n    CREATE TABLE t1(w, x, y, z, PRIMARY KEY(x, y)) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON t1(z);\n  }\n")
 											for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 												tn := _items[_idx+0]
+												_ = tn // suppress unused warning
 												sql := _items[_idx+1]
+												_ = sql // suppress unused warning
 												_ = _idx
 													db.Close()
 													db, err = frigolite.Open("")
@@ -460,7 +488,9 @@ func Test_upsert4(t *testing.T) {
 												_items := tclSplitList("\n  1 {\n    CREATE TABLE excluded(w, x INTEGER, 'a b', z, PRIMARY KEY(x, 'a b'));\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);\n  }\n  2 {\n    CREATE TABLE excluded(w, x, 'a b', z, PRIMARY KEY(x, 'a b')) WITHOUT ROWID;\n    CREATE UNIQUE INDEX zz ON excluded(z);\n    CREATE INDEX zz2 ON excluded(z);\n  }\n")
 												for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 													tn := _items[_idx+0]
+													_ = tn // suppress unused warning
 													sql := _items[_idx+1]
+													_ = sql // suppress unused warning
 													_ = _idx
 														db.Close()
 														db, err = frigolite.Open("")

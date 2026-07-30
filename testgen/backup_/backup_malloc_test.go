@@ -15,6 +15,8 @@ func Test_backup_malloc(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test backup_malloc-1 -tclprep {\n  execsql {\n    PRAGMA cache_size = 10;\n    BEGIN...} -tclbody {\n\n  # Create a backup object.\n  #\n  set rc [catch ...} -cleanup {\n  catch { B finish }\n  catch { db2 close }\n}")

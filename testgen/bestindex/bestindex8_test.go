@@ -15,6 +15,8 @@ func Test_bestindex8(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "bestindex8"
@@ -31,11 +33,17 @@ func Test_bestindex8(t *testing.T) {
 	_items := tclSplitList("\n  1 \"SELECT a, b FROM vt1\"                              0 0 0 {a b c d a b c d}\n  2 \"SELECT DISTINCT a, b FROM vt1\"                     2 0 1 {a b c d}\n  3 \"SELECT DISTINCT a FROM vt1\"                        2 0 1 {a c}\n  4 \"SELECT DISTINCT b FROM vt1\"                        2 1 0 {b d}\n  5 \"SELECT DISTINCT b FROM vt1 ORDER BY a\"             3 1 1 {b d}\n  6 \"SELECT DISTINCT t0.c0 FROM vt1, t0 ORDER BY vt1.a\" 3 1 1 {1 0}\n  7 \"SELECT DISTINCT a, b FROM vt1 ORDER BY a, b\"       3 0 1 {a b c d}\n  8 \"SELECT DISTINCT a, b FROM vt1 ORDER BY a\"          3 1 1 {a b c d}\n  9 \"SELECT DISTINCT a FROM vt1 ORDER BY a, b\"          3 1 1 {a c}\n\n 10 \"SELECT DISTINCT a, b FROM vt1 WHERE b='b'\"         2 0 1 {a b}\n 11 \"SELECT DISTINCT a, b FROM vt1 WHERE +b='b'\"        2 0 1 {a b}\n")
 	for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		bDistinct := _items[_idx+2]
+		_ = bDistinct // suppress unused warning
 		idxinsert := _items[_idx+3]
+		_ = idxinsert // suppress unused warning
 		bConsumed := _items[_idx+4]
+		_ = bConsumed // suppress unused warning
 		res := _items[_idx+5]
+		_ = res // suppress unused warning
 		_ = _idx
 			var _lBestIndexDistinct = "" // TCL namespace variable
 			_ = _lBestIndexDistinct // suppress unused warning
@@ -119,8 +127,11 @@ func Test_bestindex8(t *testing.T) {
 		_items := tclSplitList("\n  1 \"SELECT * FROM vt1 WHERE b IN (10, 20, 30)\" {{10 20 30}}\n  2 \"SELECT * FROM vt1 WHERE b IN ('abc', 'def')\" {{abc def}}\n  3 \"SELECT * FROM vt1 WHERE a IS NULL AND b IN ('abc', 'def')\" {{} {abc def}}\n  4 \"SELECT * FROM vt1 WHERE a IN (1,2,3) AND b IN ('abc', 'def')\" \n     {{1 2 3} {abc def}}\n\n  5 \"SELECT * FROM vt1 \n     WHERE a IN (SELECT 1 UNION SELECT 2) AND b IN ('abc', 'def')\"\n     {{1 2} {abc def}}\n\n  6 \"SELECT * FROM vt1 \n     WHERE b IN ('abc', 'def') AND a IN (SELECT 1 UNION SELECT 2)\"\n     {{abc def} {1 2}}\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			lfa := _items[_idx+2]
+			_ = lfa // suppress unused warning
 			_ = _idx
 				{ // do_test "3." + tn
 					var _lFilterArg = "list" // TCL namespace variable
@@ -147,8 +158,11 @@ func Test_bestindex8(t *testing.T) {
 			_items := tclSplitList("\n  1 \"SELECT * FROM vt1 WHERE b = 10\" {10}\n  2 \"SELECT * FROM vt1 WHERE a = 'abc' AND b < 30\" {abc 30}\n  3 \"SELECT * FROM vt1 WHERE a = 'abc' AND b < 30+2\" {abc -}\n  4 \"SELECT * FROM vt1 WHERE a IN (1,2,3) AND b < 30+2\" {- -}\n  5 \"SELECT * FROM vt1 WHERE a IS 111 AND b < 30+2\" {111 -}\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				sql := _items[_idx+1]
+				_ = sql // suppress unused warning
 				lbir := _items[_idx+2]
+				_ = lbir // suppress unused warning
 				_ = _idx
 					{ // do_test "4." + tn
 						var _lBestIndexRhs = "list" // TCL namespace variable

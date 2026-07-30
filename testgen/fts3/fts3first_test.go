@@ -15,6 +15,8 @@ func Test_fts3first(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3first"
@@ -32,8 +34,11 @@ func Test_fts3first(t *testing.T) {
 		_items := tclSplitList("\n    1  \"^K\"              {0 1 14}\n    2  \"^S\"              {0 1 14}\n    3  \"^W\"              {9 15 17}\n    4  \"^J\"              {}\n    5  \"^E\"              {12}\n    6  \"V ^-E\"           {0 3 4 6 7 9 17 19}\n    7  \"V -^E\"           {0 3 4 6 7 9 17 19}\n    8  \"^-E V\"           {0 3 4 6 7 9 17 19}\n    9  \"-^E V\"           {0 3 4 6 7 9 17 19}\n    10 \"V\"               {0 3 4 6 7 9 12 17 19}\n\n    11 {\"^K H\"}          {0 14}\n    12 {\"K H\"}           {0 10 14}\n    13 {\"K ^H\"}          {}\n  ")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			match := _items[_idx+1]
+			_ = match // suppress unused warning
 			res := _items[_idx+2]
+			_ = res // suppress unused warning
 			_ = _idx
 				var rev = "lreverse $res"
 				_ = rev // suppress unused warning
@@ -73,8 +78,11 @@ func Test_fts3first(t *testing.T) {
 		_items := tclSplitList("\n  1  {^K}    {{[K] H D S T} {[K] N J L W} {[K] H A B L}}\n  2  {^X}    {{[X] Y D L S} {[X] J P K R} {[X] S B X Y}}\n  3  {^X Y}  {{[X] [Y] D L S} {D [Y] P O I...[X] J P K R} {[X] S B X [Y]}}\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			match := _items[_idx+1]
+			_ = match // suppress unused warning
 			res := _items[_idx+2]
+			_ = res // suppress unused warning
 			_ = _idx
 				var rev = "lreverse $res"
 				_ = rev // suppress unused warning
@@ -107,8 +115,11 @@ func Test_fts3first(t *testing.T) {
 			_items := tclSplitList("\n  1  {^K}    {\n                {1 3 3 0 0 0 0 0 0}\n                {1 3 3 0 0 0 0 0 0}\n                {1 3 3 0 0 0 0 0 0}\n             }\n  2  {^X}    {\n                {0 1 1 0 1 1 1 2 2}\n                {0 1 1 1 1 1 0 2 2}\n                {1 1 1 0 1 1 1 2 2}\n             }\n  3  {^X Y}  {\n                {0 1 1 0 1 1 1 2 2 0 6 5 0 5 4 1 4 4} \n                {0 1 1 1 1 1 0 2 2 1 6 5 0 5 4 0 4 4} \n                {1 1 1 0 1 1 1 2 2 1 6 5 0 5 4 1 4 4}\n             }\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				match := _items[_idx+1]
+				_ = match // suppress unused warning
 				res := _items[_idx+2]
+				_ = res // suppress unused warning
 				_ = _idx
 					var rev = "lreverse $res"
 					_ = rev // suppress unused warning

@@ -15,6 +15,8 @@ func Test_sort3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sort3"
@@ -30,7 +32,9 @@ func Test_sort3(t *testing.T) {
 	_items := tclSplitList("\n  1 0\n  2 1000000\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		mmap_limit := _items[_idx+1]
+		_ = mmap_limit // suppress unused warning
 		_ = _idx
 			{ // do_test "1." + tn
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit")
@@ -48,7 +52,9 @@ func Test_sort3(t *testing.T) {
 		_items := tclSplitList("\n  1 5000000\n  2 0x7FFFFFFF\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			itest := _items[_idx+0]
+			_ = itest // suppress unused warning
 			limit := _items[_idx+1]
+			_ = limit // suppress unused warning
 			_ = _idx
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $limit")
 				{ // "2." + itest

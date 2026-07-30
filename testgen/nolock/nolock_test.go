@@ -16,6 +16,8 @@ func Test_nolock(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -192,9 +194,8 @@ func Test_nolock(t *testing.T) {
 			db, err := frigolite.Open("file:test.db?nolock=1")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				_res = db.Exec("SELECT * FROM t1")

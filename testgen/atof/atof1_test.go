@@ -16,6 +16,8 @@ func Test_atof1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var mxpow = "35"
@@ -25,7 +27,9 @@ func Test_atof1(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20000 }() {
 		pow := "int((rand()-0.5)*$mxpow)"
+		_ = pow // suppress unused warning
 		x := "pow((rand()-0.5)*2*rand(),$pow)"
+		_ = x // suppress unused warning
 		var xf = "format %.32e $x"
 		_ = xf // suppress unused warning
 		{ // do_test "atof1-1." + i + ".1"

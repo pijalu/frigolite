@@ -17,6 +17,8 @@ func Test_tabfunc01(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tabfunc01"
@@ -654,6 +656,7 @@ func Test_tabfunc01(t *testing.T) {
 	}
 	{ // do_test "tabfunc01-722"
 		PTR3 := "$PTR2+16"
+		_ = PTR3 // suppress unused warning
 		_res = db.Exec("\n    SELECT remember(987,inttoptr($PTR3));\n    SELECT value FROM carray(inttoptr($PTR2),5,'int64');\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    SELECT remember(987,inttoptr($PTR3));\n    SELECT value FROM carray(inttoptr($PTR2),5,'int64');\n  ")
@@ -865,8 +868,11 @@ func Test_tabfunc01(t *testing.T) {
 	_items := tclSplitList("\n  1000 \"where value = 2\" 2\n  1010 \"where value in (2)\" 2\n  1020 \"where value in (select 2)\" 2\n  1030 \"where value = 2 OR value = 4\" {2 4}\n  1040 \"where value in (2, 4)\" {2 4}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		where := _items[_idx+1]
+		_ = where // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			{ // tn
 				r = db.Query("\n    SELECT value FROM generate_series(1, 5) " + where + "\n  ")
@@ -1260,7 +1266,9 @@ func Test_tabfunc01(t *testing.T) {
 			_items := tclSplitList("\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  ")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				_range := _items[_idx+0]
+				_ = _range // suppress unused warning
 				boundsign := _items[_idx+1]
+				_ = boundsign // suppress unused warning
 				_ = _idx
 					var bx = boundsign + bound
 					_ = bx // suppress unused warning

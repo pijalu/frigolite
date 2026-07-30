@@ -16,12 +16,13 @@ func Test_select1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "select1-1.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT * FROM test1")
@@ -41,9 +42,8 @@ func Test_select1(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(f1 int, f2 int)")
 	}
 	{ // do_test "select1-1.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT * FROM test1, test2")
@@ -59,9 +59,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-1.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT * FROM test2, test1")
@@ -199,9 +198,8 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-2.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT count(f1,f2) FROM test1")
@@ -217,9 +215,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT count(f1) FROM test1")
@@ -235,9 +232,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT Count() FROM test1")
@@ -253,9 +249,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT COUNT(*) FROM test1")
@@ -271,9 +266,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.5"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT COUNT(*)+1 FROM test1")
@@ -307,9 +301,8 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-2.6"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT min(*) FROM test1")
@@ -325,9 +318,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.7"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT Min(f1) FROM test1")
@@ -343,9 +335,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.8"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT MIN(f1,f2) FROM test1")
@@ -379,9 +370,8 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-2.9"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT MAX(*) FROM test1")
@@ -397,9 +387,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.10"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT Max(f1) FROM test1")
@@ -415,9 +404,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.11"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT max(f1,f2) FROM test1")
@@ -433,9 +421,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-2.12"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT MAX(f1,f2)+1 FROM test1")
@@ -451,9 +438,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-2.13"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT MAX(f1)+1 FROM test1")
@@ -481,9 +467,8 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-2.14"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT SUM(*) FROM test1")
@@ -499,9 +484,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.15"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT Sum(f1) FROM test1")
@@ -517,9 +501,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.16"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT sum(f1,f2) FROM test1")
@@ -535,9 +518,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.17"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT SUM(f1)+1 FROM test1")
@@ -559,9 +541,8 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-2.18"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT XYZZY(f1) FROM test1")
@@ -577,9 +558,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.19"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT SUM(min(f1,f2)) FROM test1")
@@ -595,9 +575,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-2.20"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT SUM(min(f1)) FROM test1")
@@ -629,9 +608,8 @@ func Test_select1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "select1-3.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 WHERE f1<11")
@@ -647,9 +625,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-3.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 WHERE f1<=11")
@@ -665,9 +642,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-3.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 WHERE f1=11")
@@ -683,9 +659,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-3.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 WHERE f1>=11")
@@ -701,9 +676,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-3.5"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 WHERE f1>11")
@@ -719,9 +693,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-3.6"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 WHERE f1!=11")
@@ -737,9 +710,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-3.7"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 WHERE min(f1,f2)!=11")
@@ -755,9 +727,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-3.8"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 WHERE max(f1,f2)!=11")
@@ -773,9 +744,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, "lsort $msg")
 	}
 	{ // do_test "select1-3.9"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 WHERE count(f1,f2)!=11")
@@ -791,9 +761,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-4.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 ORDER BY f1")
@@ -809,9 +778,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-4.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 ORDER BY -f1")
@@ -827,9 +795,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-4.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 ORDER BY min(f1,f2)")
@@ -845,9 +812,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-4.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 ORDER BY min(f1)")
@@ -925,9 +891,8 @@ func Test_select1(t *testing.T) {
 		}
 	}
 	{ // do_test "select1-5.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT max(f1) FROM test1 ORDER BY f2")
@@ -951,9 +916,8 @@ func Test_select1(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO test2 VALUES('abc','xyz')")
 	}
 	{ // do_test "select1-6.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 ORDER BY f2")
@@ -973,9 +937,8 @@ func Test_select1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA full_column_names=on")
 		}
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 ORDER BY f2")
@@ -991,9 +954,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.1.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 as 'f1' FROM test1 ORDER BY f2")
@@ -1009,9 +971,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.1.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT * FROM test1 WHERE f1==11")
@@ -1027,9 +988,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.1.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT DISTINCT * FROM test1 WHERE f1==11")
@@ -1049,9 +1009,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.1.5"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT * FROM test1 WHERE f1==11")
@@ -1067,9 +1026,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.1.6"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT DISTINCT * FROM test1 WHERE f1==11")
@@ -1085,9 +1043,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 as xyzzy FROM test1 ORDER BY f2")
@@ -1103,9 +1060,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 as \"xyzzy\" FROM test1 ORDER BY f2")
@@ -1121,9 +1077,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.3.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 as 'xyzzy ' FROM test1 ORDER BY f2")
@@ -1139,9 +1094,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1+F2 as xyzzy FROM test1 ORDER BY f2")
@@ -1157,9 +1111,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.4a"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1+F2 FROM test1 ORDER BY f2")
@@ -1175,9 +1128,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.5"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT test1.f1+F2 FROM test1 ORDER BY f2")
@@ -1197,9 +1149,8 @@ func Test_select1(t *testing.T) {
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA full_column_names=on")
 		}
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT test1.f1+F2 FROM test1 ORDER BY f2")
@@ -1219,9 +1170,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.6"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT test1.f1+F2, t1 FROM test1, test2 \n         ORDER BY f2")
@@ -1237,9 +1187,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.7"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT A.f1, t1 FROM test1 as A, test2 \n         ORDER BY f2")
@@ -1255,9 +1204,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.8"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT A.f1, f1 FROM test1 as A, test1 as B \n         ORDER BY f2")
@@ -1273,9 +1221,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.8b"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT A.f1, B.f1 FROM test1 as A, test1 as B \n         ORDER BY f2")
@@ -1291,9 +1238,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.8c"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT A.f1, f1 FROM test1 as A, test1 as A \n         ORDER BY f2")
@@ -1309,9 +1255,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.9.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT A.f1, B.f1 FROM test1 as A, test1 as B \n         ORDER BY A.f1, B.f1")
@@ -1327,9 +1272,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-6.9.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT A.f1, B.f1 FROM test1 as A, test1 as B \n         ORDER BY A.f1, B.f1")
@@ -1457,9 +1401,8 @@ func Test_select1(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA short_column_names=ON;\n  PRAGMA full_column_names=OFF;\n")
 	}
 	{ // do_test "select1-7.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n     SELECT f1 FROM test1 WHERE f2=;\n  ")
@@ -1475,9 +1418,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT f1 FROM test1 as 'hi', test2 as")
@@ -1493,9 +1435,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n     SELECT f1 FROM test1 ORDER BY;\n  ")
@@ -1511,9 +1452,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.5"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n     SELECT f1 FROM test1 ORDER BY f1 desc, f2 where;\n  ")
@@ -1529,9 +1469,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.6"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n     SELECT count(f1,f2 FROM test1;\n  ")
@@ -1547,9 +1486,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.7"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n     SELECT count(f1,f2+) FROM test1;\n  ")
@@ -1565,9 +1503,8 @@ func Test_select1(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select1-7.8"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n     SELECT f1 FROM test1 ORDER BY f2, f1+;\n  ")

@@ -15,6 +15,8 @@ func Test_tkt3838(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test tkt3838-1.1 {\n  db eval {\n    PRAGMA encoding=UTF16;\n    CREATE...} {2 999 9e+99 xyzzy}")

@@ -15,6 +15,8 @@ func Test_sort2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sort2"
@@ -28,7 +30,9 @@ func Test_sort2(t *testing.T) {
 	_items := tclSplitList("\n  1 { }\n  2 {\n    catch { db close }\n    reset_db\n    catch { db eval {PRAGMA threads=7} }\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		script := _items[_idx+1]
+		_ = script // suppress unused warning
 		_ = _idx
 			// eval $script
 			{ // tn + ".1"

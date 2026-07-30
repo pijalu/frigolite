@@ -15,6 +15,8 @@ func Test_eqp2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "eqp2"
@@ -53,6 +55,7 @@ func Test_eqp2(t *testing.T) {
 		}
 	}
 	zero := "0"
+	_ = zero // suppress unused warning
 	if tclBool("permutation" + " != \"prepare\"") {
 		{ // "2.1"
 			r = db.Query("EXPLAIN QUERY PLAN " + "\n    SELECT * FROM t1 JOIN t2 ON t1.b = t2.x\n    WHERE t1.a = 5 AND t2.y = $zero\n  ")

@@ -18,6 +18,8 @@ func Test_swarmvtab(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "swarmvtab"
@@ -37,7 +39,9 @@ func Test_swarmvtab(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
 			iMin := "$i*10 + 1"
+			_ = iMin // suppress unused warning
 			iMax := "$iMin+9"
+			_ = iMax // suppress unused warning
 			os.Remove("test.db" + i)
 			_res = db.Exec("ATTACH 'test.db" + i + "' AS aux;\n      CREATE TABLE aux.t" + i + " (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t" + i + " SELECT * FROM t0 WHERE a BETWEEN " + iMin + " AND " + iMax + ";\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db" + i + "', 't" + i + "', " + iMin + ", " + iMax + ");")
 			if _res.Error != nil {
@@ -170,7 +174,9 @@ func Test_swarmvtab(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
 			iMin := "$i*10 + 1"
+			_ = iMin // suppress unused warning
 			iMax := "$iMin+9"
+			_ = iMax // suppress unused warning
 			os.Remove("test.db" + i)
 			_res = db.Exec("ATTACH 'test.db" + i + "' AS aux;\n      CREATE TABLE aux.t" + i + " (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t" + i + " SELECT * FROM t0 WHERE a BETWEEN " + iMin + " AND " + iMax + ";\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db" + i + "', 't" + i + "', " + iMin + ", " + iMax + ");")
 			if _res.Error != nil {

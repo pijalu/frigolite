@@ -16,6 +16,8 @@ func Test_sidedelete(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "sidedelete-1.1"
@@ -53,6 +55,7 @@ func Test_sidedelete(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 		n := "($i+2)/2"
+		_ = n // suppress unused warning
 		{ // do_test "sidedelete-2." + i + ".1"
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT a, a FROM sequence WHERE a<=$i;\n      DELETE FROM chng;\n      INSERT INTO chng SELECT a*2, a*2+1 FROM sequence WHERE a<=$i/2;\n      UPDATE OR REPLACE t1 SET a=(SELECT b FROM chng WHERE a=t1.a);\n      SELECT count(*), sum(a) FROM t1;\n    ")
 			if r.Error != nil {
@@ -79,6 +82,7 @@ func Test_sidedelete(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 		n := "($i+1)/2"
+		_ = n // suppress unused warning
 		{ // do_test "sidedelete-3." + i + ".1"
 			r = db.Query("\n      DELETE FROM t1;\n      INSERT INTO t1 SELECT a FROM sequence WHERE a<=$i;\n      UPDATE OR REPLACE t1 SET a=a+1;\n      SELECT count(*), sum(a) FROM t1;\n    ")
 			if r.Error != nil {

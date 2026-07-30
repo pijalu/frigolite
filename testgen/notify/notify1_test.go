@@ -17,6 +17,8 @@ func Test_notify1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
@@ -128,9 +130,8 @@ func Test_notify1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "notify1-2.2.5"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -191,9 +192,8 @@ func Test_notify1(t *testing.T) {
 		// db2.unlock_notify (db command)
 	}
 	{ // do_test "notify1-2.3.7"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			// db3.unlock_notify (db command)
@@ -247,7 +247,9 @@ func Test_notify1(t *testing.T) {
 	_items := tclSplitList("3 20 4 76")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		nConn := _items[_idx+1]
+		_ = nConn // suppress unused warning
 		_ = _idx
 			{ // do_test "notify1-" + tn + ".1"
 				db, err := frigolite.Open("test.db")

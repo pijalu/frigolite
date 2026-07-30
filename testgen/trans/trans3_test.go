@@ -15,6 +15,8 @@ func Test_trans3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "trans3-1.1"
@@ -34,9 +36,9 @@ func Test_trans3(t *testing.T) {
 		}
 		var _ecode = "" // TCL namespace variable
 		_ = _ecode // suppress unused warning
-		var x string
-		var errmsg string
-		_ = errmsg // suppress unused warning
+	var x string
+	var errmsg string
+	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("SELECT * FROM t1 LIMIT 1")
@@ -74,9 +76,9 @@ func Test_trans3(t *testing.T) {
 		}
 		var _ecode = "" // TCL namespace variable
 		_ = _ecode // suppress unused warning
-		var x string
-		var errmsg string
-		_ = errmsg // suppress unused warning
+	var x string
+	var errmsg string
+	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("SELECT * FROM t1")

@@ -16,6 +16,8 @@ func Test_symlink(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "symlink"
@@ -39,9 +41,8 @@ func Test_symlink(t *testing.T) {
 	}
 	{ // do_test "1.1.2"
 		db2.Close()
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db2, err := frigolite.Open("test.db2")
@@ -104,6 +105,7 @@ func Test_symlink(t *testing.T) {
 	}
 	{ // do_test "1.5"
 		r := "510 - [string length test.db] - [string length [pwd]]"
+		_ = r // suppress unused warning
 		var name = "test.db" + "x $r"
 		_ = name // suppress unused warning
 		_list := tclList([]string{"0", msg})
@@ -136,7 +138,9 @@ func Test_symlink(t *testing.T) {
 	_items := tclSplitList("1 test.db2 2 test.db3")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		f := _items[_idx+1]
+		_ = f // suppress unused warning
 		_ = _idx
 			{ // do_test "2." + tn + ".1"
 				db2, err := frigolite.Open(f)

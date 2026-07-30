@@ -16,6 +16,8 @@ func Test_analyze3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "analyze3"
@@ -131,7 +133,9 @@ func Test_analyze3(t *testing.T) {
 	}
 	{ // do_test "analyze3-1.1.6"
 		l := "200"
+		_ = l // suppress unused warning
 		u := "300"
+		_ = u // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u }")
 	}
 	{ // do_test "analyze3-1.1.7"
@@ -146,7 +150,9 @@ func Test_analyze3(t *testing.T) {
 	}
 	{ // do_test "analyze3-1.1.9"
 		l := "0"
+		_ = l // suppress unused warning
 		u := "1100"
+		_ = u // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u }")
 	}
 	{ // do_test "analyze3-1.2.1"
@@ -191,7 +197,9 @@ func Test_analyze3(t *testing.T) {
 	}
 	{ // do_test "analyze3-1.2.6"
 		l := "12"
+		_ = l // suppress unused warning
 		u := "20"
+		_ = u // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...}")
 	}
 	{ // do_test "analyze3-1.2.7"
@@ -206,7 +214,9 @@ func Test_analyze3(t *testing.T) {
 	}
 	{ // do_test "analyze3-1.2.9"
 		l := "0"
+		_ = l // suppress unused warning
 		u := "99"
+		_ = u // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...}")
 	}
 	{ // do_test "analyze3-1.3.1"
@@ -251,7 +261,9 @@ func Test_analyze3(t *testing.T) {
 	}
 	{ // do_test "analyze3-1.3.6"
 		l := "200"
+		_ = l // suppress unused warning
 		u := "300"
+		_ = u // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u }")
 	}
 	{ // do_test "analyze3-1.3.7"
@@ -266,7 +278,9 @@ func Test_analyze3(t *testing.T) {
 	}
 	{ // do_test "analyze3-1.3.9"
 		l := "0"
+		_ = l // suppress unused warning
 		u := "1100"
+		_ = u // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u }")
 	}
 	t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")

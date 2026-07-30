@@ -17,6 +17,8 @@ func Test_fts3query(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var DO_MALLOC_TEST = "0"
@@ -160,12 +162,15 @@ func Test_fts3query(t *testing.T) {
 		_items := tclSplitList("0                      100\n      " + SMALLINT + "              100\n      " + "$LARGEINT - 99" + "  100")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			iFirst := _items[_idx+0]
+			_ = iFirst // suppress unused warning
 			nEntry := _items[_idx+1]
+			_ = nEntry // suppress unused warning
 			_ = _idx
 				var i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nEntry_n, _nEntry_e := strconv.Atoi(nEntry); if _nEntry_e != nil { return false }; return i_n < nEntry_n }() {
 					iRowid := "$i + $iFirst"
+					_ = iRowid // suppress unused warning
 					_res = db.Exec("\n          INSERT INTO ft4(rowid, x) VALUES($iRowid, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES($iRowid, 'x y z');\n        ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n          INSERT INTO ft4(rowid, x) VALUES($iRowid, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES($iRowid, 'x y z');\n        ")
@@ -184,8 +189,11 @@ func Test_fts3query(t *testing.T) {
 		_items := tclSplitList("1   5 10\n  2   " + SMALLINT + " " + "$SMALLINT+5" + "\n  3   " + SMALLINT + " " + "$SMALLINT+50" + "\n  4   " + "$LARGEINT-5" + " " + LARGEINT + "\n  5   " + LARGEINT + " " + LARGEINT + "\n  6   " + SMALLINT + " " + LARGEINT + "\n  7   " + SMALLINT + " " + SMALLINT + "\n  8   " + LARGEINT + " " + SMALLINT)
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			iFirst := _items[_idx+1]
+			_ = iFirst // suppress unused warning
 			iLast := _items[_idx+2]
+			_ = iLast // suppress unused warning
 			_ = _idx
 				var res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n  }"
 				_ = res // suppress unused warning

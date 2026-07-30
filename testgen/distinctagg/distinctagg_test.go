@@ -15,6 +15,8 @@ func Test_distinctagg(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "distinctagg"
@@ -64,9 +66,13 @@ func Test_distinctagg(t *testing.T) {
 	_items := tclSplitList("\n  1  0  \"SELECT count(DISTINCT a) FROM t1\"                5\n  2  0  \"SELECT count(DISTINCT b) FROM t1\"                3\n  3  1  \"SELECT count(DISTINCT c) FROM t1\"                4\n  4  0  \"SELECT count(DISTINCT c) FROM t1 WHERE b=3\"      3\n  5  0  \"SELECT count(DISTINCT rowid) FROM t1\"           10\n  6  0  \"SELECT count(DISTINCT a) FROM t1, t2\"            5\n  7  0  \"SELECT count(DISTINCT a) FROM t2, t1\"            5\n  8  1  \"SELECT count(DISTINCT a+b) FROM t1, t2, t2, t2\"  6\n  9  0  \"SELECT count(DISTINCT c) FROM t1 WHERE c=2\"      1\n 10  0  \"SELECT count(DISTINCT t1.rowid) FROM t1, t2\"    10\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		use_eph := _items[_idx+1]
+		_ = use_eph // suppress unused warning
 		sql := _items[_idx+2]
+		_ = sql // suppress unused warning
 		res := _items[_idx+3]
+		_ = res // suppress unused warning
 		_ = _idx
 			{ // do_test "3." + tn + ".1"
 				var prg = "db eval \"EXPLAIN $sql\""
@@ -107,9 +113,13 @@ func Test_distinctagg(t *testing.T) {
 		_items := tclSplitList("\n  1 0  \"SELECT count(DISTINCT c) FROM t1 GROUP BY b\"   {2 3 0 1}\n  2 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b\"   {2 3 0 1}\n  3 1  \"SELECT count(DISTINCT a) FROM t1 GROUP BY b+c\" {0 1 1 1 1}\n\n  4 0  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d, e\" {1 2 2 3}\n  5 1  \"SELECT count(DISTINCT f) FROM t2 GROUP BY d\" {2 3}\n  6 0  \"SELECT count(DISTINCT f) FROM t2 WHERE d IS 1 GROUP BY e\" {1 2 2}\n\n  7 0  \"SELECT count(DISTINCT a) FROM t1\" {4}\n  8 0  \"SELECT count(DISTINCT a) FROM t4\" {3}\n")
 		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			use_eph := _items[_idx+1]
+			_ = use_eph // suppress unused warning
 			sql := _items[_idx+2]
+			_ = sql // suppress unused warning
 			res := _items[_idx+3]
+			_ = res // suppress unused warning
 			_ = _idx
 				{ // do_test "4." + tn + ".1"
 					var prg = "db eval \"EXPLAIN $sql\""
@@ -131,9 +141,13 @@ func Test_distinctagg(t *testing.T) {
 			_items := tclSplitList("\n  1 1 \"SELECT count(*) FROM t3\"   2\n  2 0 \"SELECT count(*) FROM t1\"   10\n  2 1 \"SELECT count(DISTINCT a) FROM t1, t3\" 4\n  3 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3\" 4\n  4 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 4\n  5 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n  6 1 \"SELECT count(DISTINCT a) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  4\n  7 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3\" 2\n  8 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=1\" 1\n  9 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 WHERE t3.x=0\" 0\n 10 1 \"SELECT count(DISTINCT x) FROM t1 LEFT JOIN t3 ON (t3.x=0)\"  0\n\n")
 			for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				use_t3 := _items[_idx+1]
+				_ = use_t3 // suppress unused warning
 				sql := _items[_idx+2]
+				_ = sql // suppress unused warning
 				res := _items[_idx+3]
+				_ = res // suppress unused warning
 				_ = _idx
 					{ // do_test "5." + tn + ".1"
 						var bUse = "0"

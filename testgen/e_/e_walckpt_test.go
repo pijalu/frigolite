@@ -17,6 +17,8 @@ func Test_e_walckpt(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "e_walckpt"
@@ -28,7 +30,9 @@ func Test_e_walckpt(t *testing.T) {
 	_items := tclSplitList("\n  1 {\n    proc checkpoint {db mode args} {\n      eval wal_checkpoint_v2 [list $db] [list $mode] $args\n    }\n  }\n\n  2 {\n    proc checkpoint {db mode args} {\n      set sql \"PRAGMA wal_checkpoint = $mode\"\n      if {[llength $args] && [lindex $args 0]!=\"\"} {\n        set sql \"PRAGMA [lindex $args 0].wal_checkpoint = $mode\"\n      }\n      set rc [catch { $db eval $sql } msg]\n      if {$rc} {\n        regsub {database} $msg {database:} msg\n        error \"[sqlite3_errcode $db] - $msg\"\n      }\n      set msg\n    }\n  }\n\n  3 {\n    proc checkpoint {db mode args} {\n      if {$mode == \"passive\"} {\n        set rc [eval sqlite3_wal_checkpoint [list $db] $args]\n        if {$rc != \"SQLITE_OK\"} {\n          error \"$rc - [sqlite3_errmsg $db]\"\n        }\n      } else {\n        eval wal_checkpoint_v2 [list $db] [list $mode] $args\n      }\n    }\n  }\n\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		script := _items[_idx+1]
+		_ = script // suppress unused warning
 		_ = _idx
 			// eval $script
 			db.Close()
@@ -43,8 +47,11 @@ func Test_e_walckpt(t *testing.T) {
 			_items := tclSplitList("\n    1 main  test.db\n    2 aux   test.db2\n    3 aux2  test.db3\n    4 \"\"    {test.db test.db2 test.db3}\n    5 -     {test.db test.db2 test.db3}\n    6 temp  {}\n  ")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn2 := _items[_idx+0]
+				_ = tn2 // suppress unused warning
 				zDb := _items[_idx+1]
+				_ = zDb // suppress unused warning
 				dblist := _items[_idx+2]
+				_ = dblist // suppress unused warning
 				_ = _idx
 					{ // do_test tn + ".1." + tn2
 						_res = db.Exec("\n        INSERT INTO t1 VALUES(1);\n        INSERT INTO t2 VALUES(2);\n        INSERT INTO t3 VALUES(3);\n      ")
@@ -129,7 +136,9 @@ func Test_e_walckpt(t *testing.T) {
 				_items := tclSplitList(" \n    passive  1\n    full     1       full     2       full    3\n    restart  1       restart  2       restart  3\n    truncate 1       truncate 2       truncate 3\n  ")
 				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 					mode := _items[_idx+0]
+					_ = mode // suppress unused warning
 					busy_handler_mode := _items[_idx+1]
+					_ = busy_handler_mode // suppress unused warning
 					_ = _idx
 						var tp = tn + "." + mode + "." + busy_handler_mode
 						_ = tp // suppress unused warning
@@ -309,8 +318,11 @@ func Test_e_walckpt(t *testing.T) {
 				_items := tclSplitList("\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					mode := _items[_idx+1]
+					_ = mode // suppress unused warning
 					res := _items[_idx+2]
+					_ = res // suppress unused warning
 					_ = _idx
 						{ // do_test "4." + tn
 							_list := tclList([]string{"0", msg})

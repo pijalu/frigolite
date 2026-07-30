@@ -16,6 +16,8 @@ func Test_walro2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "walro2" // TCL namespace variable
@@ -36,8 +38,10 @@ func Test_walro2(t *testing.T) {
 		_ = pgsz // suppress unused warning
 		for func() bool { pgsz_n, _pgsz_e := strconv.Atoi(pgsz); if _pgsz_e != nil { return false }; return pgsz_n <= 65536 }() {
 			TN := "$bZeroShm+1]-$pgsz"
+			_ = TN // suppress unused warning
 			t.Skipf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n      \n      # Close all connections and delete t...}")
 			pgsz := "$pgsz*2"
+			_ = pgsz // suppress unused warning
 		}
 	}
 }

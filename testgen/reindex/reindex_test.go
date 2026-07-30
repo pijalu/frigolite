@@ -15,6 +15,8 @@ func Test_reindex(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "reindex"
@@ -136,7 +138,9 @@ func Test_reindex(t *testing.T) {
 	_items := tclSplitList("1 \"\" 2 \"WITHOUT ROWID\"")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		wo := _items[_idx+1]
+		_ = wo // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")

@@ -16,6 +16,8 @@ func Test_incrblob3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "incrblob3"
@@ -76,8 +78,11 @@ func Test_incrblob3(t *testing.T) {
 	_items := tclSplitList("\n  1 3 integer\n  2 4 real\n  3 5 null\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		rowid := _items[_idx+1]
+		_ = rowid // suppress unused warning
 		_type := _items[_idx+2]
+		_ = _type // suppress unused warning
 		_ = _idx
 			{ // do_test "incrblob3-2.2." + tn + ".1"
 				var _blob = "db incrblob blobs v 1" // TCL namespace variable

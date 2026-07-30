@@ -17,6 +17,8 @@ func Test_nulls1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "nulls1"
@@ -34,7 +36,9 @@ func Test_nulls1(t *testing.T) {
 		_items := tclSplitList("\n    1 \"\"\n    2 \"LIMIT 10\"\n  ")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			limit := _items[_idx+1]
+			_ = limit // suppress unused warning
 			_ = _idx
 				{ // "1." + a + "." + tn + ".1"
 					r = db.Query("\n      SELECT a FROM t3 ORDER BY a nULLS FIRST " + limit + "\n    ")
@@ -140,8 +144,11 @@ func Test_nulls1(t *testing.T) {
 		_items := tclSplitList("\n  1 { CREATE INDEX i1 ON t1(a ASC NULLS LAST) }           LAST\n  2 { CREATE INDEX i1 ON t1(a ASC NULLS FIRST) }          FIRST\n  3 { CREATE INDEX i1 ON t1(a, b ASC NULLS LAST) }        LAST\n  4 { CREATE INDEX i1 ON t1(a, b ASC NULLS FIRST) }       FIRST\n  5 { CREATE INDEX i1 ON t1(a DESC NULLS LAST) }          LAST\n  6 { CREATE INDEX i1 ON t1(a DESC NULLS FIRST) }         FIRST\n  7 { CREATE INDEX i1 ON t1(a, b DESC NULLS LAST) }       LAST\n  8 { CREATE INDEX i1 ON t1(a, b DESC NULLS FIRST) }      FIRST\n  9  { CREATE TABLE t2(a, b, PRIMARY KEY(a DESC, b NULLS FIRST)) } FIRST\n  10 { CREATE TABLE t2(a, b, UNIQUE(a DESC NULLS FIRST, b)) }      FIRST\n  11 { INSERT INTO t1 VALUES(1, 2, 3, 4)\n          ON CONFLICT (b DESC NULLS LAST) DO UPDATE SET a = a+1 } LAST\n  12 {\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t1 VALUES(1, 2, 3, 4)\n      ON CONFLICT (b DESC NULLS FIRST) DO UPDATE SET a = a+1;\n    END\n  } FIRST\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			err := _items[_idx+2]
+			_ = err // suppress unused warning
 			_ = _idx
 				{ // "3.1." + tn
 					_res = db.Exec(sql)
@@ -416,7 +423,9 @@ func Test_nulls1(t *testing.T) {
 			_items := tclSplitList("\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b) }\n  3 { CREATE INDEX i1 ON t1(b, a) }\n")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				idx := _items[_idx+1]
+				_ = idx // suppress unused warning
 				_ = _idx
 					db.Close()
 					db, err = frigolite.Open("")
@@ -437,8 +446,11 @@ func Test_nulls1(t *testing.T) {
 					_items := tclSplitList("\n    0 \"SELECT null\" NULL\n  \n    1 \"SELECT     ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    2 \"SELECT NOT ('hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n  \n    3 \"SELECT ('Hello', NULL) IN (SELECT a, b FROM t1)\"  NULL\n    4 \"SELECT ('Hello' COLLATE NOCASE, NULL) IN (SELECT a, b FROM t1)\"  NULL\n    5 \"SELECT ('hello', 'world') IN (SELECT a, b FROM t1)\" 1\n  \n    6 \"SELECT ('hi', NULL) IN (SELECT a, b FROM t1)\" 0\n     \n    7 \"SELECT ('hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  0\n    8 \"SELECT (a, b) IN (('hello', NULL), (3, 4), (5, 6)) FROM t1\"  NULL\n  \n    9 \"SELECT ('Hello', NULL) IN ((a, b), (3, 4), (5, 6)) FROM t1\"  NULL\n  ")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						sql := _items[_idx+1]
+						_ = sql // suppress unused warning
 						res := _items[_idx+2]
+						_ = res // suppress unused warning
 						_ = _idx
 							{ // "11." + tn + ".3." + tn
 								_res = db.Exec(sql)

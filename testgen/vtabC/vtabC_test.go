@@ -17,6 +17,8 @@ func Test_vtabC(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var N = "1"
@@ -166,6 +168,7 @@ func Test_vtabC(t *testing.T) {
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return j_n <= _N_n }() {
 			res := "$j+1000"
+			_ = res // suppress unused warning
 			res = tclListAppend(res, "$j*100+9000000")
 			res = tclListAppend(res, "$j*10000+9000000")
 			res = tclListAppend(res, "$j+9000000")

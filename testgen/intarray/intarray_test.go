@@ -16,6 +16,8 @@ func Test_intarray(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "intarray-1.0"
@@ -64,9 +66,9 @@ func Test_intarray(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE ia1")
 		}
-		var rc string
-		var ia1 string
-		_ = ia1 // suppress unused warning
+	var rc string
+	var ia1 string
+	_ = ia1 // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_intarray_create db ia1")

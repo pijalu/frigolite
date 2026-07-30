@@ -16,6 +16,8 @@ func Test_where2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "where2-1.0"
@@ -29,8 +31,11 @@ func Test_where2(t *testing.T) {
 			var w = i
 			_ = w // suppress unused warning
 			x := "int(log($i)/log(2))"
+			_ = x // suppress unused warning
 			y := "$i*$i + 2*$i + 1"
+			_ = y // suppress unused warning
 			z := "$x+$y"
+			_ = z // suppress unused warning
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

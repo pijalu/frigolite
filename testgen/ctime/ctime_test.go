@@ -16,6 +16,8 @@ func Test_ctime(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "ctime-1.1.1"
@@ -145,9 +147,9 @@ func Test_ctime(t *testing.T) {
 	for _, opt := range tclSplitList(opts) {
 		{ // do_test "ctime-2.5." + tc
 			N := "expr"
-			var ans1 string
-			var msg string
-			_ = msg // suppress unused warning
+			_ = N // suppress unused warning
+	var ans1 string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				if _catchErr != nil {
@@ -174,6 +176,7 @@ func Test_ctime(t *testing.T) {
 	}
 	{ // do_test "ctime-2.5." + tc
 		N := "expr"
+		_ = N // suppress unused warning
 		var ans = "catchsql {\n    SELECT sqlite_compileoption_get($N);\n  }"
 		_ = ans // suppress unused warning
 	}

@@ -17,9 +17,12 @@ func Test_multiplex(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	g_chunk_size := "expr ($::SQLITE_MAX_PAGE_SIZE*16384)"
+	_ = g_chunk_size // suppress unused warning
 	var g_max_chunks = "32"
 	_ = g_max_chunks // suppress unused warning
 	// proc definition (not transpiled)
@@ -384,6 +387,7 @@ func Test_multiplex(t *testing.T) {
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_shutdown")
 			}
 			sz := "$sz+419"
+			_ = sz // suppress unused warning
 		}
 	}
 	{ // do_test "multiplex-2.7.1"

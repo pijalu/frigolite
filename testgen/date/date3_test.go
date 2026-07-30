@@ -16,6 +16,8 @@ func Test_date3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -31,6 +33,7 @@ func Test_date3(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 		x := "-4294967295"
+		_ = x // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "datetest 1.7.$i unixepoch($x,'unixepoch')==$x {1}")
 		// incr i 1
 		{
@@ -45,8 +48,11 @@ func Test_date3(t *testing.T) {
 	_items := tclSplitList("\n  2.1  0.0              {-4713-11-24 12:00:00}\n  2.2  5373484.4999999  {9999-12-31 23:59:59}\n  2.3  2440587.5        {1970-01-01 00:00:00}\n  2.4  2440587.49998843 {1969-12-31 23:59:59}\n  2.5  2440615.7475463  {1970-01-29 05:56:28}\n\n  2.10 -1               {1969-12-31 23:59:59}\n  2.11 5373485          {1970-03-04 04:38:05}\n  2.12 -210866760000    {-4713-11-24 12:00:00}\n  2.13 253402300799     {9999-12-31 23:59:59}\n\n  2.20 -210866760001    {NULL}\n  2.21 253402300800     {NULL}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		jd := _items[_idx+1]
+		_ = jd // suppress unused warning
 		date := _items[_idx+2]
+		_ = date // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "datetest $tn datetime($jd,'auto') $date")
 		}

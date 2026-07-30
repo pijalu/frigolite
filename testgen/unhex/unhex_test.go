@@ -16,6 +16,8 @@ func Test_unhex(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "unhex"
@@ -24,7 +26,9 @@ func Test_unhex(t *testing.T) {
 	_items := tclSplitList("\n  1  0000\n  2  FFFF\n  3  0123456789ABCDEF\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		hex := _items[_idx+1]
+		_ = hex // suppress unused warning
 		_ = _idx
 			{ // "1." + tn + ".1"
 				r = db.Query("\n    SELECT hex( unhex( $hex ) );\n  ")
@@ -67,7 +71,9 @@ func Test_unhex(t *testing.T) {
 		_items := tclSplitList("\n  1  ABC\n  2  hello\n  3  123456x7\n  4  0xff\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			hex := _items[_idx+1]
+			_ = hex // suppress unused warning
 			_ = _idx
 				{ // "2." + tn
 					r = db.Query("\n    SELECT unhex( $hex ) IS NULL;\n  ")
@@ -100,7 +106,9 @@ func Test_unhex(t *testing.T) {
 			_items := tclSplitList("\n  1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"\n")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				hex := _items[_idx+1]
+				_ = hex // suppress unused warning
 				_ = _idx
 					var out = ""
 					_ = out // suppress unused warning

@@ -15,6 +15,8 @@ func Test_fordelete(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fordelete" // TCL namespace variable
@@ -31,8 +33,11 @@ func Test_fordelete(t *testing.T) {
 	_items := tclSplitList("\n  1 { DELETE FROM t1 WHERE a=?}          { sqlite_autoindex_t1_1  t1*+ }\n  2 { DELETE FROM t1 WHERE a=? AND b=? } { sqlite_autoindex_t1_1  t1+  }\n  3 { DELETE FROM t1 WHERE a>? }         { sqlite_autoindex_t1_1  t1*+ }\n  4 { DELETE FROM t1 WHERE rowid=? }     { sqlite_autoindex_t1_1*  t1  }\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "do_adp_test 1.$tn $sql $res")
 		}
@@ -46,8 +51,11 @@ func Test_fordelete(t *testing.T) {
 		_items := tclSplitList("\n  1 { DELETE FROM t2 WHERE a=?}          { t2*+ t2a t2b* t2c* }\n  2 { DELETE FROM t2 WHERE a=? AND +b=?} { t2+ t2a t2b* t2c* }\n  3 { DELETE FROM t2 WHERE a=? OR b=?}   { t2 t2a* t2b* t2c* }\n  4 { DELETE FROM t2 WHERE +a=? }        { t2 t2a* t2b* t2c* }\n  5 { DELETE FROM t2 WHERE rowid=? }     { t2 t2a* t2b* t2c* }\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			res := _items[_idx+2]
+			_ = res // suppress unused warning
 			_ = _idx
 				t.Skipf("TODO: %s not implemented in frigolite", "do_adp_test 2.$tn $sql $res")
 			}

@@ -17,6 +17,8 @@ func Test_manydb(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var N = "300"
@@ -27,7 +29,9 @@ func Test_manydb(t *testing.T) {
 	_items := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		name := _items[_idx+0]
+		_ = name // suppress unused warning
 		value := _items[_idx+1]
+		_ = value // suppress unused warning
 		_ = _idx
 			var using_proxy = "value"
 			_ = using_proxy // suppress unused warning
@@ -65,6 +69,7 @@ func Test_manydb(t *testing.T) {
 			os.Remove("testfile.1")
 		}
 		N := "$i / $num_fd_per_openwrite_db"
+		_ = N // suppress unused warning
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {

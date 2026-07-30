@@ -16,6 +16,8 @@ func Test_select5(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE t1(x int, y int);\n  BEGIN;\n")
@@ -85,9 +87,8 @@ func Test_select5(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "select5-2.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT y, count(*) FROM t1 GROUP BY z(y) ORDER BY y\n  ")
@@ -103,9 +104,8 @@ func Test_select5(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select5-2.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT y, count(*) FROM t1 GROUP BY y HAVING count(*)<3 ORDER BY y\n  ")
@@ -121,9 +121,8 @@ func Test_select5(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select5-2.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT y, count(*) FROM t1 GROUP BY y HAVING z(y)<3 ORDER BY y\n  ")
@@ -139,9 +138,8 @@ func Test_select5(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "select5-2.5"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT y, count(*) FROM t1 GROUP BY y HAVING count(*)<z ORDER BY y\n  ")

@@ -16,6 +16,8 @@ func Test_fts3expr(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var sqlite_fts3_enable_parentheses = "1"
@@ -349,8 +351,11 @@ func Test_fts3expr(t *testing.T) {
 	_items := tclSplitList("\n\n  2 \"five four NOT one\" {24 26 28 30}\n\n  3 \"five AND four OR one\" \n      {1 3 5 7 9 11 13 15 17 19 21 23 24 25 26 27 28 29 30 31}\n\n  4 \"five AND (four OR one)\" {17 19 21 23 24 25 26 27 28 29 30 31}\n\n  5 \"five NOT (four OR one)\" {16 18 20 22}\n\n  6 \"(five NOT (four OR one)) OR (five AND (four OR one))\"\n      {16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  7 \"(five OR one) AND two AND three\" {7 15 22 23 30 31}\n\n  8 \"five OR one AND two AND three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  9 \"five OR one two three\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  10 \"five OR \\\"one two three\\\"\" \n    {7 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31}\n\n  11 \"one two OR four five NOT three\" {3 7 11 15 19 23 24 25 26 27 31}\n\n  12 \"(one two OR four five) NOT three\" {3 11 19 24 25 26 27}\n\n  13 \"((((((one two OR four five)))))) NOT three\" {3 11 19 24 25 26 27}\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		id := _items[_idx+0]
+		_ = id // suppress unused warning
 		expr := _items[_idx+1]
+		_ = expr // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			{ // do_test "fts3expr-6.1." + id
 				r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")
@@ -365,8 +370,11 @@ func Test_fts3expr(t *testing.T) {
 		_items := tclSplitList("\n  1 \"one -two three\"  {5 13 21 29}\n  2 \"-two one three\"  {5 13 21 29}\n  3 \"one three -two\"  {5 13 21 29}\n  4 \"-one -two three\" {4 12 20 28}\n  5 \"three -one -two\" {4 12 20 28}\n  6 \"-one three -two\" {4 12 20 28}\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			id := _items[_idx+0]
+			_ = id // suppress unused warning
 			expr := _items[_idx+1]
+			_ = expr // suppress unused warning
 			res := _items[_idx+2]
+			_ = res // suppress unused warning
 			_ = _idx
 				{ // do_test "fts3expr-6.2." + id
 					r = db.Query(" SELECT rowid FROM t1 WHERE t1 MATCH $expr ORDER BY rowid ")

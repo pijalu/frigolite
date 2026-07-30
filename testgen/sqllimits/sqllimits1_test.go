@@ -17,6 +17,8 @@ func Test_sqllimits1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sqllimits1"
@@ -323,6 +325,7 @@ func Test_sqllimits1(t *testing.T) {
 	}
 	{ // do_test "sqllimits1-5.14.4"
 		np1 := "$SQLITE_LIMIT_LENGTH + 1"
+		_ = np1 // suppress unused warning
 		var _str1 = "A $np1" // TCL namespace variable
 		_ = _str1 // suppress unused warning
 		{
@@ -356,6 +359,7 @@ func Test_sqllimits1(t *testing.T) {
 	}
 	{ // do_test "sqllimits1-5.14.8"
 		n := "$np1-1"
+		_ = n // suppress unused warning
 		{
 			var res string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
@@ -436,6 +440,7 @@ func Test_sqllimits1(t *testing.T) {
 		var tail = " /* A comment to take up space in order to make the string\\\n                longer without increasing the expression depth */\\\n                AND   1  ==  1"
 		_ = tail // suppress unused warning
 		N := "(50000 / [string length $tail])+1"
+		_ = N // suppress unused warning
 		sql += "$tail $N"
 		_res = db.Exec(sql)
 		_ = _res // catchsql
@@ -447,13 +452,14 @@ func Test_sqllimits1(t *testing.T) {
 		var tail = " /* A comment to take up space in order to make the string\\\n                longer without increasing the expression depth */\\\n                AND   1  ==  1"
 		_ = tail // suppress unused warning
 		N := "(50000 / [string length $tail])+1"
+		_ = N // suppress unused warning
 		sql += "$tail $N"
 		var nbytes = strconv.Itoa(len("$sql"))
 		_ = nbytes // suppress unused warning
 		sql += " AND 0"
-		var rc string
-		var STMT string
-		_ = STMT // suppress unused warning
+	var rc string
+	var STMT string
+	_ = STMT // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare db $sql $nbytes TAIL")
@@ -930,7 +936,9 @@ func Test_sqllimits1(t *testing.T) {
 	_items := tclSplitList("array get saved")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		key := _items[_idx+0]
+		_ = key // suppress unused warning
 		value := _items[_idx+1]
+		_ = value // suppress unused warning
 		_ = _idx
 			{
 				var _catchErr error

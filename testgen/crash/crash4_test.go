@@ -17,6 +17,8 @@ func Test_crash4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var sql_cmd_list = "\n  {CREATE TABLE a(id INTEGER, name CHAR(50))}\n  {INSERT INTO a(id,name) VALUES(1,'one')}\n  {INSERT INTO a(id,name) VALUES(2,'two')}\n  {INSERT INTO a(id,name) VALUES(3,'three')}\n  {INSERT INTO a(id,name) VALUES(4,'four')}\n  {INSERT INTO a(id,name) VALUES(5,'five')}\n  {INSERT INTO a(id,name) VALUES(6,'six')}\n  {INSERT INTO a(id,name) VALUES(7,'seven')}\n  {INSERT INTO a(id,name) VALUES(8,'eight')}\n  {INSERT INTO a(id,name) VALUES(9,'nine')}\n  {INSERT INTO a(id,name) VALUES(10,'ten')}\n  {UPDATE A SET name='new text for row 3' WHERE id=3}\n"
@@ -39,8 +41,11 @@ func Test_crash4(t *testing.T) {
 		os.Remove("test.db")
 		{ // do_test "crash4-1." + cnt + ".1"
 			seed := "0"
+			_ = seed // suppress unused warning
 			delay := "int($cnt/50)+1"
+			_ = delay // suppress unused warning
 			file := "($cnt&1)?\"test.db\":\"test.db-journal\""
+			_ = file // suppress unused warning
 			var c = "crashsql -delay $delay -file $file -seed $seed -tclbody {\n      db eval {CREATE TABLE a(id INTEGER, name CHAR(50))}\n      db eval {INSERT INTO a(id,name) VALUES(1,'one')}\n      db eval {INSERT INTO a(id,name) VALUES(2,'two')}\n      db eval {INSERT INTO a(id,name) VALUES(3,'three')}\n      db eval {INSERT INTO a(id,name) VALUES(4,'four')}\n      db eval {INSERT INTO a(id,name) VALUES(5,'five')}\n      db eval {INSERT INTO a(id,name) VALUES(6,'six')}\n      db eval {INSERT INTO a(id,name) VALUES(7,'seven')}\n      db eval {INSERT INTO a(id,name) VALUES(8,'eight')}\n      db eval {INSERT INTO a(id,name) VALUES(9,'nine')}\n      db eval {INSERT INTO a(id,name) VALUES(10,'ten')}\n      db close\n      sqlite3 db test.db\n      db eval {UPDATE A SET name='new text for row 3' WHERE id=3}\n      db close\n    } {}"
 			_ = c // suppress unused warning
 			if tclBool(c + "==" + "list 0 {}") {

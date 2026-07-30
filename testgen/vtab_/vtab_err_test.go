@@ -15,6 +15,8 @@ func Test_vtab_err(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_ioerr_test vtab_err-1 -tclprep {\n  register_echo_module [sqlite3_connection_pointe...} -sqlbody {\n  BEGIN;\n  CREATE TABLE r(a PRIMARY KEY, b, c);\n ...}")

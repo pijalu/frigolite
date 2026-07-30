@@ -15,6 +15,8 @@ func Test_in7(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "in7"
@@ -29,9 +31,13 @@ func Test_in7(t *testing.T) {
 	_items := tclSplitList("\n  1 1 {\n    CREATE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE (a, b) IN (SELECT x, y FROM t2)\n  } \n\n  2 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE (a, b) IN (SELECT x, y FROM t2)\n  } \n\n  3 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b = ?\n  } \n\n  3 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IS ?\n  } \n\n  4 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IN (?, ?, ?);\n  } \n\n  5 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b, c);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b = ?\n  } \n\n  6 0 {\n  } {\n    SELECT * FROM t1 WHERE c IN (SELECT z FROM t2)\n  } \n\n  7 0 {\n  } {\n    SELECT * FROM t1 WHERE (a, c) IN (SELECT z, x FROM t2)\n  } \n\n  8 1 {\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2)\n  } \n\n  9 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2) AND b IS ?\n  } \n  10 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IN (SELECT z FROM t2) AND b = ?\n  } \n  11 1 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a IS NULL AND b IN (SELECT z FROM t2)\n  } \n  12 0 {\n    CREATE UNIQUE INDEX i1 ON t1(a, b);\n  } {\n    SELECT * FROM t1 WHERE a = ? AND b IN (SELECT z FROM t2)\n  } \n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		nNext := _items[_idx+1]
+		_ = nNext // suppress unused warning
 		idx := _items[_idx+2]
+		_ = idx // suppress unused warning
 		sql := _items[_idx+3]
+		_ = sql // suppress unused warning
 		_ = _idx
 			{ // do_test "1.1." + tn
 				_res = db.Exec("BEGIN")

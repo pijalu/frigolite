@@ -15,6 +15,8 @@ func Test_orderby6(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "orderby6" // TCL namespace variable
@@ -23,7 +25,9 @@ func Test_orderby6(t *testing.T) {
 	_items := tclSplitList("1 {} 2 {WITHOUT ROWID}")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		rowidclause := _items[_idx+1]
+		_ = rowidclause // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")
@@ -186,9 +190,13 @@ func Test_orderby6(t *testing.T) {
 			_items := tclSplitList("\n     1  10 24 {+b,+a}\n     2  10 25 {+b,+a}\n     3  10 26 {+b,+a}\n     4  10 39 {+b,+a}\n     5  10 40 {+b,+a}\n     6  10 41 {+b,+a}\n     7  27 24 {+b,+a}\n     8  27 49 {+b,+a}\n     11 10 24 {+b DESC,+a}\n     12 10 25 {+b DESC,+a}\n     13 10 26 {+b DESC,+a}\n     14 10 39 {+b DESC,+a}\n     15 10 40 {+b DESC,+a}\n     16 10 41 {+b DESC,+a}\n     17 27 24 {+b DESC,+a}\n     18 27 49 {+b DESC,+a}\n     21 10 24 {+b,+a DESC}\n     22 10 25 {+b,+a DESC}\n     23 10 26 {+b,+a DESC}\n     24 10 39 {+b,+a DESC}\n     25 10 40 {+b,+a DESC}\n     26 10 41 {+b,+a DESC}\n     27 27 24 {+b,+a DESC}\n     28 27 49 {+b,+a DESC}\n     31 10 24 {+b DESC,+a DESC}\n     32 10 25 {+b DESC,+a DESC}\n     33 10 26 {+b DESC,+a DESC}\n     34 10 39 {+b DESC,+a DESC}\n     35 10 40 {+b DESC,+a DESC}\n     36 10 41 {+b DESC,+a DESC}\n     37 27 24 {+b DESC,+a DESC}\n     38 27 49 {+b DESC,+a DESC}\n  ")
 			for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 				tx := _items[_idx+0]
+				_ = tx // suppress unused warning
 				limit := _items[_idx+1]
+				_ = limit // suppress unused warning
 				offset := _items[_idx+2]
+				_ = offset // suppress unused warning
 				orderby := _items[_idx+3]
+				_ = orderby // suppress unused warning
 				_ = _idx
 					var sql1 = "SELECT a FROM t1 ORDER BY " + orderby + " LIMIT " + limit + " OFFSET " + offset + ";"
 					_ = sql1 // suppress unused warning

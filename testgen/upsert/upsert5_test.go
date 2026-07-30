@@ -16,6 +16,8 @@ func Test_upsert5(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "upsert5"
@@ -24,7 +26,9 @@ func Test_upsert5(t *testing.T) {
 	_items := tclSplitList("\n  1 { CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c UNIQUE, d UNIQUE, e UNIQUE) }\n  2 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE, d UNIQUE, e UNIQUE) }\n  3 { CREATE TABLE t1(a INT PRIMARY KEY, b, c UNIQUE, d UNIQUE, e UNIQUE) WITHOUT ROWID}\n  4 { CREATE TABLE t1(e UNIQUE, d UNIQUE, c UNIQUE, a INTEGER PRIMARY KEY, b) }\n  5 { CREATE TABLE t1(e UNIQUE, d UNIQUE, c UNIQUE, a INT PRIMARY KEY, b) }\n  6 { CREATE TABLE t1(e UNIQUE, d UNIQUE, c UNIQUE, a INT PRIMARY KEY, b) WITHOUT ROWID}\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")
@@ -599,7 +603,9 @@ func Test_upsert5(t *testing.T) {
 		_items := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			WO := _items[_idx+1]
+			_ = WO // suppress unused warning
 			_ = _idx
 				db.Close()
 				db, err = frigolite.Open("")

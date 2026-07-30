@@ -17,12 +17,13 @@ func Test_delete(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "delete-1.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("DELETE FROM test1")
@@ -38,9 +39,8 @@ func Test_delete(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "delete-2.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("DELETE FROM sqlite_master")
@@ -134,9 +134,8 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE table2(f1 int, f2 int)")
 		}
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("DELETE FROM table2 WHERE f3=5")
@@ -152,9 +151,8 @@ func Test_delete(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "delete-4.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("DELETE FROM table2 WHERE xyzzy(f1+4)")

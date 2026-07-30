@@ -15,6 +15,8 @@ func Test_e_droptrigger(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "e_droptrigger" // TCL namespace variable
@@ -27,10 +29,15 @@ func Test_e_droptrigger(t *testing.T) {
 	_items := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
 	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		tbl := _items[_idx+1]
+		_ = tbl // suppress unused warning
 		droptrigger := _items[_idx+2]
+		_ = droptrigger // suppress unused warning
 		before := _items[_idx+3]
+		_ = before // suppress unused warning
 		after := _items[_idx+4]
+		_ = after // suppress unused warning
 		_ = _idx
 			{ // do_test "2." + tn + ".1"
 				t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
@@ -57,10 +64,15 @@ func Test_e_droptrigger(t *testing.T) {
 		_items := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
 		for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			tbl := _items[_idx+1]
+			_ = tbl // suppress unused warning
 			droptrigger := _items[_idx+2]
+			_ = droptrigger // suppress unused warning
 			before := _items[_idx+3]
+			_ = before // suppress unused warning
 			after := _items[_idx+4]
+			_ = after // suppress unused warning
 			_ = _idx
 				{ // do_test "3.1." + tn + ".1"
 					t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db UPDATE")
@@ -87,10 +99,15 @@ func Test_e_droptrigger(t *testing.T) {
 			_items := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
 			for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				tbl := _items[_idx+1]
+				_ = tbl // suppress unused warning
 				droptrigger := _items[_idx+2]
+				_ = droptrigger // suppress unused warning
 				before := _items[_idx+3]
+				_ = before // suppress unused warning
 				after := _items[_idx+4]
+				_ = after // suppress unused warning
 				_ = _idx
 					{ // do_test "3.2." + tn + ".1"
 						t.Skipf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db DELETE")

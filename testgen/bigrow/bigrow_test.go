@@ -16,6 +16,8 @@ func Test_bigrow(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "bigrow-1.0"
@@ -70,9 +72,8 @@ func Test_bigrow(t *testing.T) {
 		var sql = "INSERT INTO t1 VALUES('abc2',"
 		_ = sql // suppress unused warning
 		sql += "'" + _big2 + "', 'xyz2');"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec(sql)

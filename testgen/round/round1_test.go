@@ -16,6 +16,8 @@ func Test_round1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "round1"
@@ -25,8 +27,11 @@ func Test_round1(t *testing.T) {
 	_ = iTest // suppress unused warning
 	for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return iTest_n <= 50000 }() {
 		x1 := "0"
+		_ = x1 // suppress unused warning
 		x2 := "0"
+		_ = x2 // suppress unused warning
 		n := "1"
+		_ = n // suppress unused warning
 		var x3 = "[format %09d $x2] [expr {9-$n}] end"
 		_ = x3 // suppress unused warning
 		var r = x1 + "." + x3

@@ -15,6 +15,8 @@ func Test_shared_err(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// proc definition (not transpiled)
 	// set testdir: test directory (not used in Go test context)

@@ -15,6 +15,8 @@ func Test_qrf05(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "qrf05"
@@ -26,9 +28,8 @@ func Test_qrf05(t *testing.T) {
 		}
 	}
 	{ // do_test "1.1"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -43,9 +44,8 @@ func Test_qrf05(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.2"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -60,9 +60,8 @@ func Test_qrf05(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.3"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {

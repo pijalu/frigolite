@@ -17,6 +17,8 @@ func Test_wal(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "wal"
@@ -738,10 +740,15 @@ func Test_wal(t *testing.T) {
 	_items := tclSplitList("\n  1 {sqlite3_wal_checkpoint db}              SQLITE_OK     1 1\n  2 {sqlite3_wal_checkpoint db \"\"}           SQLITE_OK     1 1\n  3 {db eval \"PRAGMA wal_checkpoint\"}        {0 10 10}     1 1\n\n  4 {sqlite3_wal_checkpoint db main}         SQLITE_OK     1 0\n  5 {sqlite3_wal_checkpoint db aux}          SQLITE_OK     0 1\n  6 {sqlite3_wal_checkpoint db temp}         SQLITE_OK     0 0\n  7 {db eval \"PRAGMA main.wal_checkpoint\"}   {0 10 10}     1 0\n  8 {db eval \"PRAGMA aux.wal_checkpoint\"}    {0 13 13}     0 1\n  9 {db eval \"PRAGMA temp.wal_checkpoint\"}   {0 -1 -1}     0 0\n")
 	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		ckpt_cmd := _items[_idx+1]
+		_ = ckpt_cmd // suppress unused warning
 		ckpt_res := _items[_idx+2]
+		_ = ckpt_res // suppress unused warning
 		ckpt_main := _items[_idx+3]
+		_ = ckpt_main // suppress unused warning
 		ckpt_aux := _items[_idx+4]
+		_ = ckpt_aux // suppress unused warning
 		_ = _idx
 			{ // do_test "wal-16." + tn + ".1"
 				os.Remove("test2.db")
@@ -795,8 +802,11 @@ func Test_wal(t *testing.T) {
 		_items := tclSplitList("\n  1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512" + "\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sectorsize := _items[_idx+1]
+			_ = sectorsize // suppress unused warning
 			logsize := _items[_idx+2]
+			_ = logsize // suppress unused warning
 			_ = _idx
 				os.Remove("test.db")
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize $sectorsize")
@@ -859,7 +869,9 @@ func Test_wal(t *testing.T) {
 			_items := tclSplitList("\n         0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}\n")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				nFrame := _items[_idx+0]
+				_ = nFrame // suppress unused warning
 				result := _items[_idx+1]
+				_ = result // suppress unused warning
 				_ = _idx
 					{ // do_test "wal-18.1." + nFrame
 						tclFileCopy("testX.db", "test.db")
@@ -881,8 +893,11 @@ func Test_wal(t *testing.T) {
 				_items := tclSplitList(" \n  1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0\n")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					pgsz := _items[_idx+1]
+					_ = pgsz // suppress unused warning
 					works := _items[_idx+2]
+					_ = works // suppress unused warning
 					_ = _idx
 						if func() bool { _SQLITE_MAX_PAGE_SIZE_n, __SQLITE_MAX_PAGE_SIZE_e := strconv.Atoi(_SQLITE_MAX_PAGE_SIZE); if __SQLITE_MAX_PAGE_SIZE_e != nil { return false }; pgsz_n, _pgsz_e := strconv.Atoi(pgsz); if _pgsz_e != nil { return false }; return _SQLITE_MAX_PAGE_SIZE_n < pgsz_n }() {
 							var works = "0"
@@ -932,9 +947,8 @@ func Test_wal(t *testing.T) {
 								db, err := frigolite.Open("test.db")
 								defer db.Close()
 								if err != nil { t.Fatal(err) }
-								var rc string
-								var msg string
-								_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 								{ // catch block
 									var _catchErr error
 									if _catchErr != nil {
@@ -1189,6 +1203,7 @@ func Test_wal(t *testing.T) {
 						}
 					}
 					i := "$SQLITE_MAX_ATTACHED-1"
+					_ = i // suppress unused warning
 					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0 }() {
 						{ // do_test "wal-26.2." + i
 							_res = db.Exec("PRAGMA a" + i + ".wal_checkpoint(TRUNCATE);")

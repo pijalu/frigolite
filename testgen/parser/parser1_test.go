@@ -16,6 +16,8 @@ func Test_parser1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "parser1-1.1"
@@ -95,6 +97,7 @@ func Test_parser1(t *testing.T) {
 		}
 	}
 	zero := "0"
+	_ = zero // suppress unused warning
 	{ // "parser1-4.1"
 		r = db.Query("\n  DROP TABLE IF EXISTS t1;\n  CREATE TABLE t1(x);\n  SELECT max(x) AND $zero FROM t1;\n")
 		if r.Error != nil {

@@ -16,6 +16,8 @@ func Test_joinI(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "joinI"
@@ -30,7 +32,9 @@ func Test_joinI(t *testing.T) {
 	_items := tclSplitList("\n  1 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=t3.c CROSS JOIN t3\"\n  2 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=(SELECT t3.c) CROSS JOIN t3\"\n  3 \"SELECT * FROM t1 RIGHT JOIN t2 ON CASE WHEN t2.b THEN t3.c ELSE 1 END CROSS JOIN t3\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			{ // "1.1." + tn
 				_res = db.Exec(sql)

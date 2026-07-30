@@ -17,6 +17,8 @@ func Test_win32lock(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	if tcl_platform(platform) != "windows" {
 	}
@@ -50,9 +52,8 @@ func Test_win32lock(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "lock_win32_file test.db 0 $::delay1")
 		var _log = "" // TCL namespace variable
 		_ = _log // suppress unused warning
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("SELECT x, length(y) FROM t1 ORDER BY rowid")
@@ -115,9 +116,8 @@ func Test_win32lock(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "lock_win32_file test.db 0 $::delay1")
 		var _log = "" // TCL namespace variable
 		_ = _log // suppress unused warning
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("SELECT x, length(y) FROM t1 ORDER BY rowid")

@@ -16,6 +16,8 @@ func Test_e_update(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("test.db2")
@@ -80,10 +82,15 @@ func Test_e_update(t *testing.T) {
 	_items := tclSplitList("\n  1  \"UPDATE t3 SET b='one' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 1 {1 one 2 two 3 three 4 four}\n\n  2  \"UPDATE OR REPLACE t3 SET b='one' WHERE a=3\" \n     {} 1 {2 two 3 one 4 four}\n\n  3  \"UPDATE OR FAIL t3 SET b='three'\"\n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n\n  4  \"UPDATE OR IGNORE t3 SET b='three' WHERE a=3\" \n     {} 1 {2 three 3 one 4 four}\n\n  5  \"UPDATE OR ABORT t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n\n  6  \"BEGIN\" {} 0 {2 three 3 one 4 four}\n\n  7  \"UPDATE t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 0 {2 three 3 one 4 four}\n\n  8  \"UPDATE OR ABORT t3 SET b='three' WHERE a=3\" \n     {UNIQUE constraint failed: t3.b} 0 {2 three 3 one 4 four}\n\n  9  \"UPDATE OR FAIL t3 SET b='two'\"\n     {UNIQUE constraint failed: t3.b} 0 {2 two 3 one 4 four}\n\n  10 \"UPDATE OR IGNORE t3 SET b='four' WHERE a=3\"\n     {} 0 {2 two 3 one 4 four}\n\n  11 \"UPDATE OR REPLACE t3 SET b='four' WHERE a=3\"\n     {} 0 {2 two 3 four}\n\n  12 \"UPDATE OR ROLLBACK t3 SET b='four'\"\n     {UNIQUE constraint failed: t3.b} 1 {2 three 3 one 4 four}\n")
 	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		error := _items[_idx+2]
+		_ = error // suppress unused warning
 		ac := _items[_idx+3]
+		_ = ac // suppress unused warning
 		data := _items[_idx+4]
+		_ = data // suppress unused warning
 		_ = _idx
 			{ // "e_update-1.8." + tn + ".1"
 				_res = db.Exec(sql)

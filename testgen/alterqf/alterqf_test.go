@@ -15,6 +15,8 @@ func Test_alterqf(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "alterqf"
@@ -32,8 +34,11 @@ func Test_alterqf(t *testing.T) {
 	_items := tclSplitList("\n  1 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"notacolumn!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'notacolumn!', \"c\" FROM t1}\n\n  2 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"not'a'column!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'not''a''column!', \"c\" FROM t1}\n\n  3 {CREATE VIEW v1 AS SELECT \"a\", \"b\", \"not\"\"a\"\"column!\", \"c\" FROM t1}\n    {CREATE VIEW v1 AS SELECT \"a\", \"b\", 'not\"a\"column!', \"c\" FROM t1}\n\n  4 {CREATE VIEW v1 AS SELECT \"val\", count(\"b\") FROM t1 GROUP BY \"abc\"}\n    {CREATE VIEW v1 AS SELECT 'val', count(\"b\") FROM t1 GROUP BY 'abc'}\n\n  5 {CREATE TABLE xyz(a CHECK (a!=\"str\"), b AS (a||\"str\"))}\n    {CREATE TABLE xyz(a CHECK (a!='str'), b AS (a||'str'))}\n\n  6 {CREATE INDEX i1 ON t1(a || \"str\", \"b\", \"val\")}\n    {CREATE INDEX i1 ON t1(a || 'str', \"b\", 'val')}\n\n  7 {CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN SELECT \"abcd\"; END}\n    {CREATE TRIGGER tr AFTER INSERT ON t1 BEGIN SELECT 'abcd'; END}\n\n  8 {CREATE VIEW v1 AS SELECT \"string\"'alias' FROM t1}\n    {CREATE VIEW v1 AS SELECT 'string' 'alias' FROM t1}\n\n  9 {CREATE INDEX i1 ON t1(a) WHERE \"b\"=\"bb\"}\n    {CREATE INDEX i1 ON t1(a) WHERE \"b\"='bb'}\n\n 10 {CREATE TABLE t2(abc, xyz CHECK (xyz != \"123\"))} \n    {CREATE TABLE t2(abc, xyz CHECK (xyz != '123'))} \n\n 11 {CREATE TRIGGER ott AFTER UPDATE ON t1 BEGIN \n      SELECT max(\"str\", new.\"a\") FROM t1 \n          WHERE string_agg(\"b\", \",\") OVER (ORDER BY c||\"str\");\n      UPDATE t1 SET c= b + \"str\";\n      DELETE FROM t1 WHERE EXISTS (\n        SELECT 1 FROM t1 AS o WHERE o.\"a\" = \"o.a\" AND t1.b IN(\"t1.b\")\n      );\n    END;\n } {CREATE TRIGGER ott AFTER UPDATE ON t1 BEGIN \n      SELECT max('str', new.\"a\") FROM t1 \n          WHERE string_agg(\"b\", ',') OVER (ORDER BY c||'str');\n      UPDATE t1 SET c= b + 'str';\n      DELETE FROM t1 WHERE EXISTS (\n        SELECT 1 FROM t1 AS o WHERE o.\"a\" = 'o.a' AND t1.b IN('t1.b')\n      );\n    END;\n }\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		before := _items[_idx+1]
+		_ = before // suppress unused warning
 		after := _items[_idx+2]
+		_ = after // suppress unused warning
 		_ = _idx
 			{ // "1." + tn
 				r = db.Query("\n    SELECT sqlite_rename_quotefix('main', $before)\n  ")

@@ -15,6 +15,8 @@ func Test_qrf01(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "qrf01"
@@ -349,9 +351,9 @@ func Test_qrf01(t *testing.T) {
 		_ = result // suppress unused warning
 	}
 	{ // do_test "1.118"
-		var rc string
-		var res string
-		_ = res // suppress unused warning
+	var rc string
+	var res string
+	_ = res // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {

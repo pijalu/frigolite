@@ -15,6 +15,8 @@ func Test_tkt_26ff0c2d1e(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "bug-20100512-1"

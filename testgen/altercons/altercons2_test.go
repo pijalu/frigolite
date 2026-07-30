@@ -16,6 +16,8 @@ func Test_altercons2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "altercons2"
@@ -24,10 +26,15 @@ func Test_altercons2(t *testing.T) {
 	_items := tclSplitList("\n  1 \"CREATE TABLE t1(a, b\"\n    \"ALTER TABLE t1 ALTER c SET NOT NULL\"\n    {1 {database disk image is malformed}}\n    \"CREATE TABLE t1(a, b\"\n\n  2 \"CREATE TABLE t1(a, b, \"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {0 {}}\n    \"CREATE TABLE t1(a, b, \"\n\n  3 \"CREATE TABLE t1(a, b, CHECK( ...\"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {0 {}}\n    \"CREATE TABLE t1(a, b, CHECK( ...\"\n\n  4 \"CREATE TABLE t1(a, b, c NOT NULL\"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {0 {}}\n    \"CREATE TABLE t1(a, b, c \"\n\n  5 \"CREATE TABLE\"\n    \"ALTER TABLE t1 ALTER c DROP NOT NULL\"\n    {1 {database disk image is malformed}}\n    \"CREATE TABLE\"\n\n  6 \"CREATE TABLE\"\n    \"ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a!=0)\"\n    {1 {database disk image is malformed}}\n    \"CREATE TABLE\"\n\n")
 	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		newsql := _items[_idx+1]
+		_ = newsql // suppress unused warning
 		alter := _items[_idx+2]
+		_ = alter // suppress unused warning
 		res := _items[_idx+3]
+		_ = res // suppress unused warning
 		final := _items[_idx+4]
+		_ = final // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")

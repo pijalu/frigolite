@@ -16,6 +16,8 @@ func Test_upfrom3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "upfrom3"
@@ -24,7 +26,9 @@ func Test_upfrom3(t *testing.T) {
 	_items := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		wo := _items[_idx+1]
+		_ = wo // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")
@@ -79,7 +83,9 @@ func Test_upfrom3(t *testing.T) {
 		_items := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			wo := _items[_idx+1]
+			_ = wo // suppress unused warning
 			_ = _idx
 				db.Close()
 				db, err = frigolite.Open("")
@@ -95,7 +101,9 @@ func Test_upfrom3(t *testing.T) {
 			_items := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				wo := _items[_idx+1]
+				_ = wo // suppress unused warning
 				_ = _idx
 					db.Close()
 					db, err = frigolite.Open("")

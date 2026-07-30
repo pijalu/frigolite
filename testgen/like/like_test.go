@@ -15,6 +15,8 @@ func Test_like(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "like"
@@ -741,6 +743,7 @@ func Test_like(t *testing.T) {
 		var x = "lindex [time {\n    db one {SELECT 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaz'GLOB'*a*a*a*a*a*a*a*a*y'}\n  }] 0"
 		_ = x // suppress unused warning
 		tlimit := "1000 * $::sqlite_options(configslower)"
+		_ = tlimit // suppress unused warning
 		t.Log("-nonewline")
 		// expr $x<$tlimit → "$x<$tlimit"
 	}

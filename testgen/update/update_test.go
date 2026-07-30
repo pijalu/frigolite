@@ -17,12 +17,13 @@ func Test_update(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "update-1.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("UPDATE test1 SET f2=5 WHERE f1<1")
@@ -70,9 +71,8 @@ func Test_update(t *testing.T) {
 		}
 	}
 	{ // do_test "update-3.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("UPDATE test1 SET f1=f3*2 WHERE f2==32")
@@ -88,9 +88,8 @@ func Test_update(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "update-3.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("UPDATE test1 SET f1=test2.f1*2 WHERE f2==32")
@@ -106,9 +105,8 @@ func Test_update(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "update-3.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("UPDATE test1 SET f3=f1*2 WHERE f2==32")
@@ -770,9 +768,8 @@ func Test_update(t *testing.T) {
 		}
 	}
 	{ // do_test "update-9.1"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    UPDATE test1 SET x=11 WHERE f1=1025\n  ")
@@ -788,9 +785,8 @@ func Test_update(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "update-9.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    UPDATE test1 SET f1=x(11) WHERE f1=1025\n  ")
@@ -806,9 +802,8 @@ func Test_update(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "update-9.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    UPDATE test1 SET f1=11 WHERE x=1025\n  ")
@@ -824,9 +819,8 @@ func Test_update(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "update-9.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    UPDATE test1 SET f1=11 WHERE x(f1)=1025\n  ")

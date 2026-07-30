@@ -17,6 +17,8 @@ func Test_triggerA(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "triggerA-1.1"
@@ -28,6 +30,7 @@ func Test_triggerA(t *testing.T) {
 		_ = i // suppress unused warning
 		for _, word := range tclSplitList("one two three four five six seven eight nine ten") {
 			j := "$i*100 + [string length $word]"
+			_ = j // suppress unused warning
 			_res = db.Exec("\n       INSERT INTO t1 VALUES($i,$word);\n       INSERT INTO t2 VALUES(20-$i,$j,$word);\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n       INSERT INTO t1 VALUES($i,$word);\n       INSERT INTO t2 VALUES(20-$i,$j,$word);\n    ")

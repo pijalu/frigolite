@@ -15,6 +15,8 @@ func Test_fkey_malloc(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_malloc_test fkey_malloc-1 -sqlprep {\n  PRAGMA foreign_keys = 1;\n  CREATE TABLE t1(a PR...} -sqlbody {\n  INSERT INTO t1 VALUES('aaa', 1);\n  INSERT INTO ...}")

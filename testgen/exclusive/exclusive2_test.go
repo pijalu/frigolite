@@ -17,6 +17,8 @@ func Test_exclusive2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
@@ -38,6 +40,7 @@ func Test_exclusive2(t *testing.T) {
 	}
 	{ // do_test "exclusive2-1.2.1"
 		nPage := "[file size test.db]/1024"
+		_ = nPage // suppress unused warning
 		if func() bool { _SQLITE_DEFAULT_CACHE_SIZE_n, __SQLITE_DEFAULT_CACHE_SIZE_e := strconv.Atoi(_SQLITE_DEFAULT_CACHE_SIZE); if __SQLITE_DEFAULT_CACHE_SIZE_e != nil { return false }; nPage_n, _nPage_e := strconv.Atoi(nPage); if _nPage_e != nil { return false }; return _SQLITE_DEFAULT_CACHE_SIZE_n < nPage_n }() {
 			r = db.Query("PRAGMA cache_size = " + nPage)
 			if r.Error != nil {
@@ -102,6 +105,7 @@ func Test_exclusive2(t *testing.T) {
 	}
 	{ // do_test "exclusive2-2.2.1"
 		nPage := "[file size test.db]/1024"
+		_ = nPage // suppress unused warning
 		if func() bool { _SQLITE_DEFAULT_CACHE_SIZE_n, __SQLITE_DEFAULT_CACHE_SIZE_e := strconv.Atoi(_SQLITE_DEFAULT_CACHE_SIZE); if __SQLITE_DEFAULT_CACHE_SIZE_e != nil { return false }; nPage_n, _nPage_e := strconv.Atoi(nPage); if _nPage_e != nil { return false }; return _SQLITE_DEFAULT_CACHE_SIZE_n < nPage_n }() {
 			r = db.Query("PRAGMA cache_size = " + nPage)
 			if r.Error != nil {
@@ -140,9 +144,8 @@ func Test_exclusive2(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "t1sig")
 	}
 	{ // do_test "exclusive2-2.8"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "t1sig")

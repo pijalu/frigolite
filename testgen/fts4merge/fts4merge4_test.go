@@ -16,6 +16,8 @@ func Test_fts4merge4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4merge4" // TCL namespace variable
@@ -147,14 +149,19 @@ func Test_fts4merge4(t *testing.T) {
 	_items := tclSplitList("\n  1 {automerge=2} {1 1   2 1   4 1   6 1}\n  2 {automerge=4} {1 2   2 1   3 1}\n  3 {automerge=8} {0 4   1 3   2 1}\n  4 {automerge=1} {0 4   1 3   2 1}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		am := _items[_idx+1]
+		_ = am // suppress unused warning
 		expected := _items[_idx+2]
+		_ = expected // suppress unused warning
 		_ = _idx
 			// foreach {tn2 openclose} "1 {} 2 { db close ; sqlite3 db test.db }"
 			_items := tclSplitList("1 {} 2 { db close ; sqlite3 db test.db }")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn2 := _items[_idx+0]
+				_ = tn2 // suppress unused warning
 				openclose := _items[_idx+1]
+				_ = openclose // suppress unused warning
 				_ = _idx
 					{ // do_test "2.2." + tn + "." + tn2
 						_res = db.Exec(" DELETE FROM t2 ")

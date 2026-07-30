@@ -18,6 +18,8 @@ func Test_temptrigger(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "temptrigger"
@@ -477,6 +479,7 @@ func Test_temptrigger(t *testing.T) {
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDb_n, _nDb_e := strconv.Atoi(nDb); if _nDb_e != nil { return false }; return ii_n < (nDb_n-1) }() {
 			jj := "$ii+1"
+			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER tr" + ii + " AFTER INSERT ON db" + ii + ".tbl BEGIN\n        INSERT INTO db" + jj + ".tbl VALUES(new.b, new.c, new.a);\n      END;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TRIGGER tr" + ii + " AFTER INSERT ON db" + ii + ".tbl BEGIN\n        INSERT INTO db" + jj + ".tbl VALUES(new.b, new.c, new.a);\n      END;\n    ")
@@ -597,6 +600,7 @@ func Test_temptrigger(t *testing.T) {
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDb_n, _nDb_e := strconv.Atoi(nDb); if _nDb_e != nil { return false }; return ii_n < (nDb_n-1) }() {
 			jj := "$ii+1"
+			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER tru" + ii + " AFTER UPDATE ON db" + ii + ".tbl BEGIN\n        UPDATE db" + jj + ".tbl SET a=new.b, b=new.c, c=new.a;\n      END;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TRIGGER tru" + ii + " AFTER UPDATE ON db" + ii + ".tbl BEGIN\n        UPDATE db" + jj + ".tbl SET a=new.b, b=new.c, c=new.a;\n      END;\n    ")
@@ -717,6 +721,7 @@ func Test_temptrigger(t *testing.T) {
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nDb_n, _nDb_e := strconv.Atoi(nDb); if _nDb_e != nil { return false }; return ii_n < (nDb_n-1) }() {
 			jj := "$ii+1"
+			_ = jj // suppress unused warning
 			_res = db.Exec("\n      CREATE TEMP TRIGGER trd" + ii + " BEFORE DELETE ON db" + ii + ".tbl BEGIN\n        DELETE FROM db" + jj + ".tbl;\n      END;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      CREATE TEMP TRIGGER trd" + ii + " BEFORE DELETE ON db" + ii + ".tbl BEGIN\n        DELETE FROM db" + jj + ".tbl;\n      END;\n    ")

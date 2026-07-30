@@ -15,6 +15,8 @@ func Test_altercons3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "altercons3"
@@ -86,8 +88,11 @@ func Test_altercons3(t *testing.T) {
 	_items := tclSplitList("\n  1 \"CREATE TABLE c1(b CONSTRAINT fk REFERENCES p1(a))\"\n    \"CREATE TABLE c1(b)\"\n\n  2 \"CREATE TABLE c1(b, c, CONSTRAINT fk FOREIGN key (c, b) REFERENCES p1(o,t))\"\n    \"CREATE TABLE c1(b, c)\"\n\n  3 \"CREATE TABLE c1(b, generated, \n       CONSTRAINT fk FOREIGN key (generated) REFERENCES p1(o))\"\n    \"CREATE TABLE c1(b, generated)\"\n\n  4 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES p1(o) NOT NULL)\"\n    \"CREATE TABLE c1(b, generated NOT NULL)\"\n\n  5 \"CREATE TABLE c1(b, generated CONSTRAINT fk REFERENCES x1)\"\n    \"CREATE TABLE c1(b, generated)\"\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		before := _items[_idx+1]
+		_ = before // suppress unused warning
 		after := _items[_idx+2]
+		_ = after // suppress unused warning
 		_ = _idx
 			{ // "4." + tn + ".1"
 				_res = db.Exec(" DROP TABLE IF EXISTS c1 ")

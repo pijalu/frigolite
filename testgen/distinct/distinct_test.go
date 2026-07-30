@@ -15,6 +15,8 @@ func Test_distinct(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "distinct"
@@ -33,8 +35,11 @@ func Test_distinct(t *testing.T) {
 	_items := tclSplitList("\n\n  1.1 0   \"SELECT DISTINCT b, c FROM t1\"\n  1.2 1   \"SELECT DISTINCT b, c FROM t4\"\n  2.1 0   \"SELECT DISTINCT c FROM t1 WHERE b = ?\"\n  2.2 1   \"SELECT DISTINCT c FROM t4 WHERE b = ?\"\n  3   1   \"SELECT DISTINCT rowid FROM t1\"\n  4   1   \"SELECT DISTINCT rowid, a FROM t1\"\n  5   1   \"SELECT DISTINCT x FROM t2\"\n  6   1   \"SELECT DISTINCT * FROM t2\"\n  7   1   \"SELECT DISTINCT * FROM (SELECT * FROM t2)\"\n\n  8.1 0   \"SELECT DISTINCT * FROM t1\"\n  8.2 1   \"SELECT DISTINCT * FROM t4\"\n\n  8   0   \"SELECT DISTINCT a, b FROM t1\"\n\n  9   0   \"SELECT DISTINCT c FROM t1 WHERE b IN (1,2)\"\n  10  0   \"SELECT DISTINCT c FROM t1\"\n  11  0   \"SELECT DISTINCT b FROM t1\"\n\n  12.1 0   \"SELECT DISTINCT a, d FROM t1\"\n  12.2 0   \"SELECT DISTINCT a, d FROM t4\"\n  13.1 0   \"SELECT DISTINCT a, b, c COLLATE nocase FROM t1\"\n  13.2 0   \"SELECT DISTINCT a, b, c COLLATE nocase FROM t4\"\n  14.1 0   \"SELECT DISTINCT a, d COLLATE nocase FROM t1\"\n  14.2 1   \"SELECT DISTINCT a, d COLLATE nocase FROM t4\"\n\n  15   0   \"SELECT DISTINCT a, d COLLATE binary FROM t1\"\n  16.1 0   \"SELECT DISTINCT a, b, c COLLATE binary FROM t1\"\n  16.2 1   \"SELECT DISTINCT a, b, c COLLATE binary FROM t4\"\n\n  16  0   \"SELECT DISTINCT t1.rowid FROM t1, t2\"\n  17  0   { /* Technically, it would be possible to detect that DISTINCT\n            ** is a no-op in cases like the following. But SQLite does not\n            ** do so. */\n            SELECT DISTINCT t1.rowid FROM t1, t2 WHERE t1.rowid=t2.rowid }\n\n  18  1   \"SELECT DISTINCT c1, c2 FROM t3\"\n  19  1   \"SELECT DISTINCT c1 FROM t3\"\n  20  1   \"SELECT DISTINCT * FROM t3\"\n  21  0   \"SELECT DISTINCT c2 FROM t3\"\n\n  22  0   \"SELECT DISTINCT * FROM (SELECT 1, 2, 3 UNION SELECT 4, 5, 6)\"\n\n  24  0   \"SELECT DISTINCT rowid/2 FROM t1\"\n  25  1   \"SELECT DISTINCT rowid/2, rowid FROM t1\"\n  26.1  0   \"SELECT DISTINCT rowid/2, b FROM t1 WHERE c = ?\"\n  26.2  1   \"SELECT DISTINCT rowid/2, b FROM t4 WHERE c = ?\"\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		noop := _items[_idx+1]
+		_ = noop // suppress unused warning
 		sql := _items[_idx+2]
+		_ = sql // suppress unused warning
 		_ = _idx
 			if tclBool(noop) {
 				t.Skipf("TODO: %s not implemented in frigolite", "do_distinct_noop_test 1.$tn $sql")
@@ -53,9 +58,13 @@ func Test_distinct(t *testing.T) {
 		_items := tclSplitList("\n  1   \"a, b FROM t1\"                                       {}      {A B a b}\n  2   \"b, a FROM t1\"                                       {}      {B A b a}\n  3   \"a, b, c FROM t1\"                                    {hash}  {A B C a b c}\n  4   \"a, b, c FROM t1 ORDER BY a, b, c\"                   {btree} {A B C a b c}\n  5   \"b FROM t1 WHERE a = 'a'\"                            {}      {b}\n  6   \"b FROM t1 ORDER BY +b COLLATE binary\"          {btree hash} {B b}\n  7   \"a FROM t1\"                                          {}      {A a}\n  8   \"b COLLATE nocase FROM t1\"                           {}      {b}\n  9   \"b COLLATE nocase FROM t1 ORDER BY b COLLATE nocase\" {}      {b}\n")
 		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			temptables := _items[_idx+2]
+			_ = temptables // suppress unused warning
 			res := _items[_idx+3]
+			_ = res // suppress unused warning
 			_ = _idx
 				{ // "2." + tn + ".1"
 					r = db.Query("SELECT DISTINCT " + sql)
@@ -251,7 +260,9 @@ func Test_distinct(t *testing.T) {
 			_items := tclSplitList("\n  1 { }\n  2 { CREATE INDEX i1 ON t1(a, b); }\n  3 { CREATE INDEX i1 ON t1(b, a); }\n  4 { CREATE INDEX i1 ON t1(a COLLATE nocase, b COLLATE nocase); }\n  5 { CREATE INDEX i1 ON t1(b COLLATE nocase, a COLLATE nocase); }\n")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				idx := _items[_idx+1]
+				_ = idx // suppress unused warning
 				_ = _idx
 					_res = db.Exec(" DROP INDEX IF EXISTS i1 ")
 					if _res.Error != nil {

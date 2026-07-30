@@ -15,6 +15,8 @@ func Test_journal2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("permutation" + " == \"inmemory_journal\"") {
@@ -112,6 +114,7 @@ func Test_journal2(t *testing.T) {
 	}
 	{ // do_test "journal2-1.11"
 		sz := "[file size test.db] / 1024"
+		_ = sz // suppress unused warning
 		// expr $sz>120 && $sz<200 → "$sz>120 && $sz<200"
 	}
 	{ // do_test "journal2-1.12"
@@ -143,6 +146,7 @@ func Test_journal2(t *testing.T) {
 	}
 	{ // do_test "journal2-1.16"
 		sz := "[file size testX.db] / 1024"
+		_ = sz // suppress unused warning
 		// expr $sz>240 && $sz<400 → "$sz>240 && $sz<400"
 	}
 	{ // do_test "journal2-1.17"

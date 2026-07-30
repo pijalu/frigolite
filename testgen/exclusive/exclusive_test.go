@@ -17,6 +17,8 @@ func Test_exclusive(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("test2.db-journal")
@@ -252,7 +254,9 @@ func Test_exclusive(t *testing.T) {
 		_items := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			name := _items[_idx+0]
+			_ = name // suppress unused warning
 			value := _items[_idx+1]
+			_ = value // suppress unused warning
 			_ = _idx
 				var using_proxy = value
 				_ = using_proxy // suppress unused warning

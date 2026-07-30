@@ -15,6 +15,8 @@ func Test_fuzzer2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fuzzer2" // TCL namespace variable
@@ -41,6 +43,7 @@ func Test_fuzzer2(t *testing.T) {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1_rules VALUES(0, $c1||$c2, $c3||$c4, $cost)")
 						}
 						cost := "($cost%1000) + 1"
+						_ = cost // suppress unused warning
 					}
 				}
 			}

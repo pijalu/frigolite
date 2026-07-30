@@ -15,6 +15,8 @@ func Test_tkt_ba7cbfaedc(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tkt-ba7cbfaedc"
@@ -35,7 +37,9 @@ func Test_tkt_ba7cbfaedc(t *testing.T) {
 	_items := tclSplitList("\n  1 { CREATE INDEX i1 ON t1(x, y) }\n  2 { CREATE INDEX i1 ON t1(x DESC, y) }\n  3 { CREATE INDEX i1 ON t1(x, y DESC) }\n  4 { CREATE INDEX i1 ON t1(x DESC, y DESC) }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		n := _items[_idx+0]
+		_ = n // suppress unused warning
 		idx := _items[_idx+1]
+		_ = idx // suppress unused warning
 		_ = _idx
 			_res = db.Exec(" DROP INDEX i1 ")
 			_ = _res // catchsql
@@ -47,8 +51,11 @@ func Test_tkt_ba7cbfaedc(t *testing.T) {
 			_items := tclSplitList("\n    1 \"GROUP BY x, y ORDER BY x, y\"            {1 a 1 b   2 a 2 b   3 a 3 b}\n    2 \"GROUP BY x, y ORDER BY x DESC, y\"       {3 a 3 b   2 a 2 b   1 a 1 b}\n    3 \"GROUP BY x, y ORDER BY x, y DESC\"       {1 b 1 a   2 b 2 a   3 b 3 a}\n    4 \"GROUP BY x, y ORDER BY x DESC, y DESC\"  {3 b 3 a   2 b 2 a   1 b 1 a}\n  ")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				q := _items[_idx+1]
+				_ = q // suppress unused warning
 				res := _items[_idx+2]
+				_ = res // suppress unused warning
 				_ = _idx
 					{ // "1." + n + "." + tn
 						r = db.Query("SELECT * FROM t1 " + q)

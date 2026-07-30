@@ -16,6 +16,8 @@ func Test_sortfault(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sortfault"
@@ -35,12 +37,19 @@ func Test_sortfault(t *testing.T) {
 	_items := tclSplitList("\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n")
 	for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		mmap_limit := _items[_idx+1]
+		_ = mmap_limit // suppress unused warning
 		nWorker := _items[_idx+2]
+		_ = nWorker // suppress unused warning
 		tmpstore := _items[_idx+3]
+		_ = tmpstore // suppress unused warning
 		threadsmode := _items[_idx+4]
+		_ = threadsmode // suppress unused warning
 		fakeheap := _items[_idx+5]
+		_ = fakeheap // suppress unused warning
 		lookaside := _items[_idx+6]
+		_ = lookaside // suppress unused warning
 		_ = _idx
 			if tclBool(sqlite_options + "(threadsafe)") {
 				var threadsmode = "singlethread"

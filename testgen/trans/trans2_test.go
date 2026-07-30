@@ -16,6 +16,8 @@ func Test_trans2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -40,6 +42,7 @@ func Test_trans2(t *testing.T) {
 		}
 	}
 	max_rowid := "$i-1"
+	_ = max_rowid // suppress unused warning
 	{ // do_test "trans2-1.1"
 		_res = db.Exec("\n    PRAGMA cache_size=100;\n    CREATE TABLE t1(\n      id INTEGER PRIMARY KEY,\n      u1 TEXT UNIQUE,\n      z BLOB NOT NULL,\n      u2 TEXT UNIQUE\n    );\n  ")
 		if _res.Error != nil {
@@ -63,6 +66,7 @@ func Test_trans2(t *testing.T) {
 		var todel = ""
 		_ = todel // suppress unused warning
 		n := "[llength $data]/10"
+		_ = n // suppress unused warning
 		var data = "scramble $data"
 		_ = data // suppress unused warning
 		for _, rec := range tclSplitList("lrange $data 0 $n") {
@@ -106,6 +110,7 @@ func Test_trans2(t *testing.T) {
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n < 50 }() {
 			id := "$max_rowid+$j"
+			_ = id // suppress unused warning
 			todel = tclListAppend(todel, id)
 			var rec = "list $id [random_uuid] \\\n                      [expr {int(rand()*5000)+1000}] [random_uuid]"
 			_ = rec // suppress unused warning
@@ -120,6 +125,7 @@ func Test_trans2(t *testing.T) {
 			}
 		}
 		max_rowid := "$max_rowid+$j-1"
+		_ = max_rowid // suppress unused warning
 		var modsql = ""
 		_ = modsql // suppress unused warning
 		var inssql = ""

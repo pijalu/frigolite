@@ -16,6 +16,8 @@ func Test_sysfault(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("llength [info commands test_syscall]" + "==0") {
@@ -39,8 +41,11 @@ func Test_sysfault(t *testing.T) {
 	_items := tclSplitList("\n  1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		errno := _items[_idx+1]
+		_ = errno // suppress unused warning
 		errlist := _items[_idx+2]
+		_ = errlist // suppress unused warning
 		_ = _idx
 			// proc definition (not transpiled)
 			var errs = "list"
@@ -55,8 +60,11 @@ func Test_sysfault(t *testing.T) {
 			_items := tclSplitList("\n    1 EAGAIN       {{database is locked} {disk I/O error}}\n    2 ETIMEDOUT    {{database is locked} {disk I/O error}}\n    3 EBUSY        {{database is locked} {disk I/O error}}\n    4 EINTR        {{database is locked} {disk I/O error}}\n    5 ENOLCK       {{database is locked} {disk I/O error}}\n    6 EACCES       {{database is locked} {disk I/O error}}\n    7 EPERM        {{access permission denied} {disk I/O error}}\n    8 EDEADLK      {{disk I/O error}}\n    9 ENOMEM       {{disk I/O error}}\n  ")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				errno := _items[_idx+1]
+				_ = errno // suppress unused warning
 				errlist := _items[_idx+2]
+				_ = errlist // suppress unused warning
 				_ = _idx
 					// proc definition (not transpiled)
 					var errs = "list"

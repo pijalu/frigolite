@@ -17,6 +17,8 @@ func Test_tkt2686(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA max_page_count=50;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE filler (fill);\n")
@@ -31,9 +33,8 @@ func Test_tkt2686(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 			}
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				for true {
@@ -89,9 +90,8 @@ func Test_tkt2686(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 			}
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				for true {

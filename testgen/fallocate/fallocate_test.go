@@ -16,6 +16,8 @@ func Test_fallocate(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "file_control_chunksize_test db main [expr 1024*1024]")
@@ -82,6 +84,7 @@ func Test_fallocate(t *testing.T) {
 		var nPg = "db one {PRAGMA page_count}"
 		_ = nPg // suppress unused warning
 		nFile := "[file size test.db] / 1024"
+		_ = nFile // suppress unused warning
 		_list := tclList([]string{"$nPg<100", "$nFile>100"})
 		_ = _list
 	}
@@ -98,6 +101,7 @@ func Test_fallocate(t *testing.T) {
 		}
 	}
 	skipwaltests := "[permutation]==\"journaltest\" || [permutation]==\"inmemory_journal\""
+	_ = skipwaltests // suppress unused warning
 	if tclBool("!" + skipwaltests) {
 		os.Remove("test.db")
 		db, err := frigolite.Open("test.db")

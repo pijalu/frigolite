@@ -15,6 +15,8 @@ func Test_tkt_3a77c9714e(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tkt-3a77c9714e"

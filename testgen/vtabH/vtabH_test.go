@@ -16,6 +16,8 @@ func Test_vtabH(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtabH"
@@ -68,9 +70,13 @@ func Test_vtabH(t *testing.T) {
 		_items := tclSplitList("\n    1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000\n  ")
 		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			expr := _items[_idx+1]
+			_ = expr // suppress unused warning
 			res := _items[_idx+2]
+			_ = res // suppress unused warning
 			cnt := _items[_idx+3]
+			_ = cnt // suppress unused warning
 			_ = _idx
 				var _gfunc = "0" // TCL namespace variable
 				_ = _gfunc // suppress unused warning
@@ -160,7 +166,9 @@ func Test_vtabH(t *testing.T) {
 				_items := tclSplitList("\n      subdir/x1.txt     143\n      subdir/x2.txt     153\n    ")
 				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 					path := _items[_idx+0]
+					_ = path // suppress unused warning
 					sz := _items[_idx+1]
+					_ = sz // suppress unused warning
 					_ = _idx
 						var dir = "file dirname $path"
 						_ = dir // suppress unused warning

@@ -16,6 +16,8 @@ func Test_orderbyA(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "orderbyA" // TCL namespace variable
@@ -31,7 +33,9 @@ func Test_orderbyA(t *testing.T) {
 	_items := tclSplitList("\n  1 {}\n  2 {CREATE INDEX i1 ON t1(a)}\n  3 {CREATE INDEX i1 ON t1(a DESC)}\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		idx := _items[_idx+1]
+		_ = idx // suppress unused warning
 		_ = _idx
 			_res = db.Exec(" DROP INDEX IF EXISTS i1 ")
 			if _res.Error != nil {
@@ -68,7 +72,9 @@ func Test_orderbyA(t *testing.T) {
 		_items := tclSplitList("\n  1 {}\n\n  2 { CREATE INDEX i2 ON t2(a, b)           }\n  3 { CREATE INDEX i2 ON t2(a DESC, b DESC) }\n\n  4 { CREATE INDEX i2 ON t2(a, b DESC)      }\n  5 { CREATE INDEX i2 ON t2(a DESC, b)      }\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			idx := _items[_idx+1]
+			_ = idx // suppress unused warning
 			_ = _idx
 				_res = db.Exec(" DROP INDEX IF EXISTS i2 ")
 				if _res.Error != nil {
@@ -79,12 +85,15 @@ func Test_orderbyA(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
 				}
 				nSort := "($tn==2 || $tn==3) ? 0 : 1"
+				_ = nSort // suppress unused warning
 				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.1.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {{} one 45  {} two 48  1 one 9  1 two 12  2 one 27 ...}")
 				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.1.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort {2 two 30  2 one 27  1 two 12  1 one 9  {} two 48  ...}")
 				nSort := "($tn==4 || $tn==5) ? 0 : 1"
+				_ = nSort // suppress unused warning
 				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.2.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...}")
 				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.2.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...}")
 				nSort := "$tn==1 ? 2 : 1"
+				_ = nSort // suppress unused warning
 				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.3.1 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { {} two 48  {} one 45  1 two 12  1 one 9  2 two 30...}")
 				t.Skipf("TODO: %s not implemented in frigolite", "do_sortcount_test 2.$tn.3.2 {\n    SELECT a, b, sum(c) FROM t2 GROUP BY a, b ORD...} $nSort { 2 one 27  2 two 30  1 one 9  1 two 12  {} one 45 ...}")
 			}

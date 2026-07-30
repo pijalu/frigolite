@@ -17,6 +17,8 @@ func Test_rowvalue(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "rowvalue" // TCL namespace variable
@@ -31,12 +33,19 @@ func Test_rowvalue(t *testing.T) {
 	_items := tclSplitList("\n  1 \"1, 2, 3\"    \"1, 2, 3\"                   1  0     1 0\n  2 \"1, 0, 3\"    \"1, 2, 3\"                   0  1     0 1\n  3 \"1, 2, NULL\" \"1, 2, 3\"                   {} {}    0 1\n  4 \"1, 2, NULL\" \"1, 2, NULL\"                {} {}    1 0\n  5 \"NULL, NULL, NULL\" \"NULL, NULL, NULL\"    {} {}    1 0\n\n  6 \"1, NULL, 1\" \"1, 1, 1\"                   {} {}    0 1\n  7 \"1, NULL, 1\" \"1, 1, 2\"                   0  1     0 1\n")
 	for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		v1 := _items[_idx+1]
+		_ = v1 // suppress unused warning
 		v2 := _items[_idx+2]
+		_ = v2 // suppress unused warning
 		eq := _items[_idx+3]
+		_ = eq // suppress unused warning
 		ne := _items[_idx+4]
+		_ = ne // suppress unused warning
 		is := _items[_idx+5]
+		_ = is // suppress unused warning
 		isnot := _items[_idx+6]
+		_ = isnot // suppress unused warning
 		_ = _idx
 			{ // "1." + tn + ".eq"
 				r = db.Query("SELECT (" + v1 + ") == (" + v2 + ")")
@@ -115,19 +124,29 @@ func Test_rowvalue(t *testing.T) {
 		_items := tclSplitList("\n  1 \"(1, 1, 3)\"    \"(1, 2, 3)\"                   1 0      1 0\n  2 \"(1, 2, 3)\"    \"(1, 2, 3)\"                   0 0      1 1\n  3 \"(1, 3, 3)\"    \"(1, 2, 3)\"                   0 1      0 1\n\n  4 \"(1, NULL, 3)\"    \"(1, 2, 3)\"                {} {}      {} {}\n  5 \"(1, 3, 3)\"    \"(1, NULL, 3)\"                {} {}      {} {}\n  6 \"(1, NULL, 3)\"    \"(1, NULL, 3)\"             {} {}      {} {}\n")
 		for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			v1 := _items[_idx+1]
+			_ = v1 // suppress unused warning
 			v2 := _items[_idx+2]
+			_ = v2 // suppress unused warning
 			lt := _items[_idx+3]
+			_ = lt // suppress unused warning
 			gt := _items[_idx+4]
+			_ = gt // suppress unused warning
 			le := _items[_idx+5]
+			_ = le // suppress unused warning
 			ge := _items[_idx+6]
+			_ = ge // suppress unused warning
 			_ = _idx
 				// foreach {tn2 expr res} "list \\\n    2.$tn.lt \"$v1 < $v2\" $lt   \\\n    2.$tn.gt \"$v1 > $v2\" $gt   \\\n    2.$tn.le \"$v1 <= $v2\" $le   \\\n    2.$tn.ge \"$v1 >= $v2\" $ge   \\"
 				_items := tclSplitList("list \\\n    2.$tn.lt \"$v1 < $v2\" $lt   \\\n    2.$tn.gt \"$v1 > $v2\" $gt   \\\n    2.$tn.le \"$v1 <= $v2\" $le   \\\n    2.$tn.ge \"$v1 >= $v2\" $ge   \\")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn2 := _items[_idx+0]
+					_ = tn2 // suppress unused warning
 					expr := _items[_idx+1]
+					_ = expr // suppress unused warning
 					res := _items[_idx+2]
+					_ = res // suppress unused warning
 					_ = _idx
 						{ // tn2
 							r = db.Query("SELECT " + expr)
@@ -189,8 +208,11 @@ func Test_rowvalue(t *testing.T) {
 				_items := tclSplitList("\n  1 \"(1, 1)\"           \"ORDER BY y\"\n  2 \"(1, 1)\"           \"ORDER BY x, y\"\n  3 \"(1, 2)\"           \"ORDER BY x, y DESC\"\n  4 \"(3, 6)\"           \"ORDER BY x DESC, y DESC\"\n  5 \"((3, 5))\"         \"ORDER BY x DESC, y\"\n  6 \"(SELECT 3, 5)\"    \"ORDER BY x DESC, y\"\n")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					r := _items[_idx+1]
+					_ = r // suppress unused warning
 					order := _items[_idx+2]
+					_ = order // suppress unused warning
 					_ = _idx
 						{ // "3." + tn + ".1"
 							r = db.Query("SELECT " + r + " == (SELECT x,y FROM t1 " + order + ")")
@@ -245,8 +267,11 @@ func Test_rowvalue(t *testing.T) {
 					_items := tclSplitList("\n  1 {(2, 2) BETWEEN (2, 2) AND (3, 3)} 1\n  2 {(2, 2) BETWEEN (2, NULL) AND (3, 3)} {}\n  3 {(2, 2) BETWEEN (3, NULL) AND (3, 3)} 0\n")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						expr := _items[_idx+1]
+						_ = expr // suppress unused warning
 						res := _items[_idx+2]
+						_ = res // suppress unused warning
 						_ = _idx
 							{ // "4." + tn
 								r = db.Query("SELECT " + expr)
@@ -265,8 +290,11 @@ func Test_rowvalue(t *testing.T) {
 						_items := tclSplitList("\n  1 {(2, 4) IN (SELECT * FROM t1)} 1\n  2 {(3, 4) IN (SELECT * FROM t1)} 0\n\n  3 {(NULL, 4) IN (SELECT * FROM t1)} {}\n  4 {(NULL, 0) IN (SELECT * FROM t1)} 0\n\n  5 {(NULL, 4) NOT IN (SELECT * FROM t1)} {}\n  6 {(NULL, 0) NOT IN (SELECT * FROM t1)} 1\n")
 						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 							tn := _items[_idx+0]
+							_ = tn // suppress unused warning
 							expr := _items[_idx+1]
+							_ = expr // suppress unused warning
 							res := _items[_idx+2]
+							_ = res // suppress unused warning
 							_ = _idx
 								{ // "5." + tn
 									r = db.Query("SELECT " + expr)
@@ -405,9 +433,13 @@ func Test_rowvalue(t *testing.T) {
 							_items := tclSplitList("\n  1 \"SELECT * FROM xy WHERE (i, j) IS (2, 2)\" {2 2 2} \n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid=?)\"\n\n  2 \"SELECT * FROM xy WHERE (k, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SCAN xy\"\n\n  3 \"SELECT * FROM xy WHERE (i, j) < (2, 3)\" {1 1 1 2 2 2}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid<?)\"\n\n  4 \"SELECT * FROM xy WHERE (i, j) > (2, 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n  5 \"SELECT * FROM xy WHERE (i, j) > ('2', 1)\" {2 2 2 3 3 3 4 4 4}\n    \"SEARCH xy USING INTEGER PRIMARY KEY (rowid>?)\"\n\n")
 							for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 								tn := _items[_idx+0]
+								_ = tn // suppress unused warning
 								sql := _items[_idx+1]
+								_ = sql // suppress unused warning
 								res := _items[_idx+2]
+								_ = res // suppress unused warning
 								eqp := _items[_idx+3]
+								_ = eqp // suppress unused warning
 								_ = _idx
 									{ // "7." + tn + ".1"
 										r = db.Query("EXPLAIN QUERY PLAN " + sql)
@@ -444,8 +476,11 @@ func Test_rowvalue(t *testing.T) {
 								_items := tclSplitList("\n  1 \"(a, b) > (2, 1)\" {2 3 4 5}\n  2 \"(a, b) > (2, 2)\" {3 4 5}\n  3 \"(a, b) < (4, 5)\" {1 2 3 4}\n  4 \"(a, b) < (4, 3)\" {1 2 3}\n")
 								for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 									tn := _items[_idx+0]
+									_ = tn // suppress unused warning
 									q := _items[_idx+1]
+									_ = q // suppress unused warning
 									res := _items[_idx+2]
+									_ = res // suppress unused warning
 									_ = _idx
 										{ // "9." + tn
 											r = db.Query("SELECT c FROM t2 WHERE " + q)
@@ -554,7 +589,9 @@ func Test_rowvalue(t *testing.T) {
 									_items := tclSplitList("\n  0 \"SELECT (1,2) AS x WHERE x=3\"\n  1 \"SELECT (1,2) BETWEEN 1 AND 2\"\n  2 \"SELECT 1 BETWEEN (1,2) AND 2\"\n  3 \"SELECT 2 BETWEEN 1 AND (1,2)\"\n  4 \"SELECT (1,2) FROM (SELECT 1) ORDER BY 1\"\n  5 \"SELECT (1,2) FROM (SELECT 1) GROUP BY 1\"\n")
 									for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 										tn := _items[_idx+0]
+										_ = tn // suppress unused warning
 										sql := _items[_idx+1]
+										_ = sql // suppress unused warning
 										_ = _idx
 											{ // "13." + tn
 												_res = db.Exec(sql)
@@ -651,8 +688,11 @@ func Test_rowvalue(t *testing.T) {
 										_items := tclSplitList("\n  1 0 \"SELECT * FROM (SELECT (1, 1) AS c FROM x1) WHERE c=1\"\n  2 2 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9) AS y) WHERE y<1\"\n  3 3 \"SELECT * FROM (SELECT 1 AS x, (SELECT 8,9,10) AS y) WHERE y<1\"\n  4 0 \"SELECT * FROM (SELECT (a, b) AS c FROM x1), x2 WHERE c=a\"\n  5 0 \"SELECT * FROM (SELECT a AS c, (1, 2, 3) FROM x1), x2 WHERE c=a\"\n  6 0 \"SELECT * FROM (SELECT 1 AS c, (1, 2, 3) FROM x1) WHERE c=1\"\n")
 										for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 											tn := _items[_idx+0]
+											_ = tn // suppress unused warning
 											n := _items[_idx+1]
+											_ = n // suppress unused warning
 											sql := _items[_idx+2]
+											_ = sql // suppress unused warning
 											_ = _idx
 												if func() bool { n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return n_n == 0 }() {
 													var err = "row value misused"

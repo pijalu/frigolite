@@ -18,6 +18,8 @@ func Test_e_vacuum(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte 0x1000000")
@@ -33,8 +35,11 @@ func Test_e_vacuum(t *testing.T) {
 	_items := tclSplitList("\n  1 none        7 \n  2 full        8 \n  3 incremental 8\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		avmode := _items[_idx+1]
+		_ = avmode // suppress unused warning
 		sz := _items[_idx+2]
+		_ = sz // suppress unused warning
 		_ = _idx
 			var nPage = "create_db \"PRAGMA auto_vacuum = $avmode\""
 			_ = nPage // suppress unused warning
@@ -59,6 +64,7 @@ func Test_e_vacuum(t *testing.T) {
 				}
 			} else {
 				freelist := "$nPage - $sz"
+				_ = freelist // suppress unused warning
 				if avmode == "incremental" {
 					// incr freelist -2
 					{

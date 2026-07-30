@@ -16,6 +16,8 @@ func Test_spellfix(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "spellfix"
@@ -39,8 +41,11 @@ func Test_spellfix(t *testing.T) {
 	_items := tclSplitList("\n  1   raxpi*     {rasping 5 rasped 5 ragweed 5 raspberry 6 rasp 4}\n  2   ril*       {rail 4 railed 4 railer 4 railers 4 railing 4}\n  3   rilis*     {realism 6 realist 6 realistic 6 realistically 6 realists 6}\n  4   reail*     {real 3 realest 3 realign 3 realigned 3 realigning 3}\n  5   ras*       {rascal 3 rascally 3 rascals 3 rash 3 rasher 3}\n  6   realistss* {realists 8 realigns 8 realistic 9 realistically 9 realest 7}\n  7   realistss  {realists 8 realist 7 realigns 8 realistic 9 realest 7}\n  8   rllation*  {realities 9 reality 7 rallied 7 railed 4}\n  9   renstom*   {rainstorm 8 ransom 6 ransomer 6 ransoming 6 ransoms 6}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		word := _items[_idx+1]
+		_ = word // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			{ // "1.2." + tn
 				r = db.Query("\n    SELECT word, matchlen FROM t1 WHERE word MATCH $word \n     ORDER BY score, word LIMIT 5\n  ")
@@ -245,8 +250,11 @@ func Test_spellfix(t *testing.T) {
 		_items := tclSplitList("\n  1   kos*     {kosher 3 kiosk 4 kudo 2 kiss 3 kissed 3}\n  2   kellj*   {killjoy 5 kill 4 killed 4 killer 4 killers 4}\n  3   kellj    {kill 4 kills 5 killjoy 7 keel 4 killed 6}\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			word := _items[_idx+1]
+			_ = word // suppress unused warning
 			res := _items[_idx+2]
+			_ = res // suppress unused warning
 			_ = _idx
 				{ // "3.2." + tn
 					r = db.Query("\n    SELECT word, matchlen FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
@@ -271,8 +279,11 @@ func Test_spellfix(t *testing.T) {
 			_items := tclSplitList("\n  1   kosher     {kosher 0 kisser 51 kissers 76 kissed 126 kisses 126}\n  2   kellj      {keels 60 killjoy 68 kills 80 keel 120 kill 125}\n  3   kashar     {kosher 80 kisser 91 kissers 116 kissed 166 kisses 166}\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				word := _items[_idx+1]
+				_ = word // suppress unused warning
 				res := _items[_idx+2]
+				_ = res // suppress unused warning
 				_ = _idx
 					{ // "4.1." + tn
 						r = db.Query("\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 5\n  ")
@@ -297,8 +308,11 @@ func Test_spellfix(t *testing.T) {
 				_items := tclSplitList("\n  1   kasher     {kosher 1}\n  2   kesher     {kosher 4}\n  3   kisher     {kosher 8}\n  4   kosher     {kosher 0}\n  5   kusher     {kosher 16}\n")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					word := _items[_idx+1]
+					_ = word // suppress unused warning
 					res := _items[_idx+2]
+					_ = res // suppress unused warning
 					_ = _idx
 						{ // "5.1." + tn
 							r = db.Query("\n    SELECT word, distance FROM t3 WHERE word MATCH $word\n     ORDER BY score, word LIMIT 1\n  ")
@@ -456,10 +470,15 @@ func Test_spellfix(t *testing.T) {
 					_items := tclSplitList("\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Chronos 30 Hera}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {5 Poseidon 10 Agamemnon 20 Patroclus 30 Chryses}\n")
 					for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						conflict := _items[_idx+1]
+						_ = conflict // suppress unused warning
 						err := _items[_idx+2]
+						_ = err // suppress unused warning
 						bRollback := _items[_idx+3]
+						_ = bRollback // suppress unused warning
 						res := _items[_idx+4]
+						_ = res // suppress unused warning
 						_ = _idx
 							t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
 							t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")
@@ -497,10 +516,15 @@ func Test_spellfix(t *testing.T) {
 						_items := tclSplitList("\n  0 \"\"            {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  1 \"OR REPLACE\"  {0 {}} 0\n                  {15 Agamemnon 45 Chryses}\n  2 \"OR ABORT\"    {1 {constraint failed}} 0\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  3 \"OR ROLLBACK\" {1 {constraint failed}} 1\n                  {10 Agamemnon 20 Patroclus 30 Chryses}\n  5 \"OR IGNORE\"   {0 {}} 0\n                  {15 Agamemnon 20 Patroclus 45 Chryses}\n")
 						for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 							tn := _items[_idx+0]
+							_ = tn // suppress unused warning
 							conflict := _items[_idx+1]
+							_ = conflict // suppress unused warning
 							err := _items[_idx+2]
+							_ = err // suppress unused warning
 							bRollback := _items[_idx+3]
+							_ = bRollback // suppress unused warning
 							res := _items[_idx+4]
+							_ = res // suppress unused warning
 							_ = _idx
 								t.Skipf("TODO: %s not implemented in frigolite", "db_restore_and_reopen")
 								t.Skipf("TODO: %s not implemented in frigolite", "load_static_extension db spellfix nextchar")

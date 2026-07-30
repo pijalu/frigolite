@@ -16,6 +16,8 @@ func Test_jrnlmode(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("info exists TEMP_STORE" + " && " + TEMP_STORE + ">=2") {

@@ -16,6 +16,8 @@ func Test_bigmmap(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	if tclBool("file exists skip-big-file") {
 	}
@@ -66,6 +68,7 @@ func Test_bigmmap(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 9 }() {
 		val := "$i*1024*1024*1024"
+		_ = val // suppress unused warning
 		r = db.Query("PRAGMA main.mmap_size = " + val)
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA main.mmap_size = " + val)

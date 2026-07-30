@@ -17,6 +17,8 @@ func Test_gencol1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "gencol1-100"
@@ -35,7 +37,9 @@ func Test_gencol1(t *testing.T) {
 	_items := tclSplitList(" \n1 {\n   CREATE TABLE t1(\n     a INT,\n     b TEXT,\n     c ANY,\n     w INT GENERATED ALWAYS AS (a*10),\n     x TEXT AS (typeof(c)),\n     y TEXT AS (substr(b,a,a+2))\n   );\n  }\n2 {\n   CREATE TABLE t1(\n     w INT GENERATED ALWAYS AS (a*10),\n     x TEXT AS (typeof(c)),\n     y TEXT AS (substr(b,a,a+2)),\n     a INT,\n     b TEXT,\n     c ANY\n   );\n  }\n3 {\n   CREATE TABLE t1(\n     w INT GENERATED ALWAYS AS (a*10),\n     a INT,\n     x TEXT AS (typeof(c)) STORED,\n     b TEXT,\n     y TEXT AS (substr(b,a,a+2)),\n     c ANY\n   );\n  }\n4 {\n   CREATE TABLE t1(\n     a INTEGER PRIMARY KEY,\n     w INT GENERATED ALWAYS AS (a*10),\n     b TEXT,\n     x TEXT AS (typeof(c)),\n     y TEXT AS (substr(b,a,a+2)) STORED,\n     c ANY\n   );\n  }\n5 {\n   CREATE TABLE t1(\n     w INT GENERATED ALWAYS AS (a*10),\n     a INT,\n     x TEXT AS (typeof(c)),\n     b TEXT,\n     y TEXT AS (substr(b,a,a+2)) STORED,\n     c ANY,\n     PRIMARY KEY(a,b)\n   ) WITHOUT ROWID;\n  }\n6 {\n   CREATE TABLE t1(\n     w INT GENERATED ALWAYS AS (m*5),\n     m INT AS (a*2) STORED,\n     a INT,\n     x TEXT AS (typeof(c)),\n     b TEXT,\n     y TEXT AS (substr(b,m/2,m/2+2)) STORED,\n     c ANY,\n     PRIMARY KEY(a,b)\n   );\n  }\n7 {\n   CREATE TABLE t1(\n     w INT GENERATED ALWAYS AS (m*5),\n     m INT AS (a*2) NOT NULL,\n     a INT,\n     x TEXT AS (typeof(c)) CHECK (x<>'blank'),\n     b TEXT,\n     y TEXT AS (substr(b,m/2,m/2+2)) STORED,\n     c ANY,\n     PRIMARY KEY(b,a)\n   ) WITHOUT ROWID;\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		schema := _items[_idx+1]
+		_ = schema // suppress unused warning
 		_ = _idx
 			{
 				var _catchErr error

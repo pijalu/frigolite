@@ -15,6 +15,8 @@ func Test_fts3sort(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -24,7 +26,9 @@ func Test_fts3sort(t *testing.T) {
 	_items := tclSplitList("\n  1     \"\"\n  2     \"order=asc\"\n  3     \"order=desc\"\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		t := _items[_idx+0]
+		_ = t // suppress unused warning
 		param := _items[_idx+1]
+		_ = param // suppress unused warning
 		_ = _idx
 			var testprefix = "fts3sort-1." + t
 			_ = testprefix // suppress unused warning
@@ -41,7 +45,9 @@ func Test_fts3sort(t *testing.T) {
 			_items := tclSplitList("\n  1   \"SELECT docid, * FROM t1\"\n  2   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa'\"\n  3   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a*'\"\n  4   \"SELECT docid, quote(matchinfo(t1)) FROM t1 WHERE t1 MATCH 'a*'\"\n  5   \"SELECT docid, quote(matchinfo(t1,'pcnxals')) FROM t1 WHERE t1 MATCH 'b*'\"\n  6   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'a* b* c*'\"\n  7   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  8   \"SELECT docid, * FROM t1 WHERE t1 MATCH 'nosuchtoken'\"\n  9   \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR da'\"\n  10  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa OR nosuchtoken'\"\n  11  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH 'aa NEAR bb'\"\n  12  \"SELECT docid, snippet(t1) FROM t1 WHERE t1 MATCH '\\\"aa bb\\\"'\"\n  13  \"SELECT docid, content FROM t1 WHERE t1 MATCH 'aa NEAR/2 bb NEAR/3 cc'\"\n  14  \"SELECT docid, content FROM t1 WHERE t1 MATCH '\\\"aa bb cc\\\"'\"\n  ")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				query := _items[_idx+1]
+				_ = query // suppress unused warning
 				_ = _idx
 					var A_list = "list"
 					_ = A_list // suppress unused warning
@@ -106,8 +112,11 @@ func Test_fts3sort(t *testing.T) {
 			_items := tclSplitList("\n  1 \"order=asc\"             {0 {}}\n  2 \"order=desc\"            {0 {}}\n  3 \"order=dec\"             {1 {unrecognized order: dec}}\n  4 \"order=xxx, order=asc\"  {1 {unrecognized order: xxx}}\n  5 \"order=desc, order=asc\" {0 {}}\n  6 \"order=xxxx, order=asc\" {1 {unrecognized order: xxxx}}\n  7 \"order=desk\"            {1 {unrecognized order: desk}}\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				param := _items[_idx+1]
+				_ = param // suppress unused warning
 				res := _items[_idx+2]
+				_ = res // suppress unused warning
 				_ = _idx
 					_res = db.Exec(" DROP TABLE IF EXISTS t1 ")
 					if _res.Error != nil {

@@ -16,6 +16,8 @@ func Test_tkt2409(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_extended_result_codes $::DB 1")
@@ -130,6 +132,7 @@ func Test_tkt2409(t *testing.T) {
 			_ = r // suppress unused warning
 			for tclBool("info exists t1($r)") {
 				r := "0"
+				_ = r // suppress unused warning
 			}
 			var t1_$r = "1"
 			_ = t1_$r // suppress unused warning

@@ -15,6 +15,8 @@ func Test_normalize(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "normalize"
@@ -23,8 +25,11 @@ func Test_normalize(t *testing.T) {
 	_items := tclSplitList("\n  100\n  {SELECT * FROM t1 WHERE a IN (1) AND b=51.42}\n  {select*from t1 where a in(?,?,?)and b=?;}\n\n  110\n  {SELECT a, b+15, c FROM t1 WHERE d NOT IN (SELECT x FROM t2);}\n  {select a,b+?,c from t1 where d not in(select x from t2);}\n\n  120\n  { SELECT NULL, b FROM t1 -- comment text\n     WHERE d IN (WITH t(a) AS (VALUES(5)) /* CTE */\n                 SELECT a FROM t)\n        OR e='hello';\n  }\n  {select?,b from t1 where d in(with t(a)as(values(?))select a from t)or e=?;}\n\n  121\n  {/*Initial comment*/\n   -- another comment line\n   SELECT NULL  /* comment */ , b FROM t1 -- comment text\n     WHERE d IN (WITH t(a) AS (VALUES(5)) /* CTE */\n                 SELECT a FROM t)\n        OR e='hello';\n  }\n  {select?,b from t1 where d in(with t(a)as(values(?))select a from t)or e=?;}\n\n  130\n  {/* Query containing parameters */\n   SELECT x,$::abc(15),y,@abc,z,?99,w FROM t1 /* Trailing comment */}\n  {select x,?,y,?,z,?,w from t1;}\n\n  140\n  {/* Long list on the RHS of IN */\n   SELECT 15 IN (1,2,3,(SELECT * FROM t1),'xyz',x'abcd',22*(x+5),null);}\n  {select?in(?,?,?);}\n\n  150\n  {SELECT x'abc'; -- illegal token}\n  {}\n\n  160\n  {SELECT a,NULL,b FROM t1 WHERE c IS NOT NULL or D is null or e=5}\n  {select a,?,b from t1 where c is not null or d is null or e=?;}\n\n  170\n  {/* IN list exactly 5 bytes long */\n   SELECT * FROM t1 WHERE x IN (1,2,3);}\n  {select*from t1 where x in(?,?,?);}\n  180\n  {    }\n  {}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tnum := _items[_idx+0]
+		_ = tnum // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		norm := _items[_idx+2]
+		_ = norm // suppress unused warning
 		_ = _idx
 			{ // do_test tnum
 				_res = db.Exec("list sqlite3_normalize $sql")

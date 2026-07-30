@@ -15,6 +15,8 @@ func Test_changes(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "changes"
@@ -23,13 +25,17 @@ func Test_changes(t *testing.T) {
 	_items := tclSplitList("\n  1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		nRow := _items[_idx+1]
+		_ = nRow // suppress unused warning
 		wor := _items[_idx+2]
+		_ = wor // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
 			nBig := "$nRow"
+			_ = nBig // suppress unused warning
 			{ // "1." + tn + ".0"
 				_res = db.Exec("\n    PRAGMA journal_mode = off;\n    CREATE TABLE t1(x INTEGER PRIMARY KEY) " + wor + ";\n  ")
 				if _res.Error != nil {

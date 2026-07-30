@@ -16,6 +16,8 @@ func Test_fts4check(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4check" // TCL namespace variable
@@ -31,7 +33,9 @@ func Test_fts4check(t *testing.T) {
 	_items := tclSplitList("\n  1 {\n    INSERT INTO t1_content(docid, c0x, c1y) VALUES(NULL, 'a', 'b');\n  }\n  2 {\n    DELETE FROM t1_content WHERE docid = (SELECT max(docid) FROM t1_content);\n  }\n  3 {\n    DELETE FROM t1_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t1_segdir WHERE level=0\n    );\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		disruption := _items[_idx+1]
+		_ = disruption // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 			{ // "1.2.1." + tn
@@ -78,7 +82,9 @@ func Test_fts4check(t *testing.T) {
 		_items := tclSplitList("\n  1 {\n    INSERT INTO t2_content VALUES(NULL, 'xyz')\n  }\n  3 {\n    DELETE FROM t2_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t2_segdir WHERE level=1024\n    );\n  }\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			disruption := _items[_idx+1]
+			_ = disruption // suppress unused warning
 			_ = _idx
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 				{ // "2.2.1." + tn
@@ -129,7 +135,9 @@ func Test_fts4check(t *testing.T) {
 			_items := tclSplitList("\n  1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }\n")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				disruption := _items[_idx+1]
+				_ = disruption // suppress unused warning
 				_ = _idx
 					t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 					{ // "3.2.1." + tn

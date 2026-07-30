@@ -15,11 +15,14 @@ func Test_update2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "update2"
 	_ = testprefix // suppress unused warning
 	nrow := "10"
+	_ = nrow // suppress unused warning
 	{ // "1.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<$nrow )\n  INSERT INTO t1(b) SELECT char((i % 26) + 65) FROM s;\n  INSERT INTO t2 SELECT * FROM t1;\n")
 		if _res.Error != nil {
@@ -108,7 +111,9 @@ func Test_update2(t *testing.T) {
 	_items := tclSplitList("\n  1 { \n    CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)\n  }\n  2 { \n    CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			_res = db.Exec(" DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1; ")
 			if _res.Error != nil {

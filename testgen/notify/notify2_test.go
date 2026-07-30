@@ -17,6 +17,8 @@ func Test_notify2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
@@ -34,8 +36,11 @@ func Test_notify2(t *testing.T) {
 	_items := tclSplitList("\n  1 sqlite3_blocking_step sqlite3_blocking_prepare_v2\n  2 sqlite3_step          sqlite3_nonblocking_prepare_v2\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		iTest := _items[_idx+0]
+		_ = iTest // suppress unused warning
 		xStep := _items[_idx+1]
+		_ = xStep // suppress unused warning
 		xPrepare := _items[_idx+2]
+		_ = xPrepare // suppress unused warning
 		_ = _idx
 			os.Remove("test.db")
 			var ThreadSetup = "set xStep " + xStep + ";set xPrepare " + xPrepare + ";set nSecond " + nSecond
@@ -112,7 +117,9 @@ func Test_notify2(t *testing.T) {
 		t.Log("array get anWrite")
 		{ // do_test "notify2-3"
 			blocking := "double($anSuccess(sqlite3_blocking_step)) /\n    double($anAttempt(sqlite3_blocking_step))"
+			_ = blocking // suppress unused warning
 			non := "double($anSuccess(sqlite3_step)) /\n    double($anAttempt(sqlite3_step))"
+			_ = non // suppress unused warning
 			t.Log("-nonewline")
 			// expr $blocking > $non → "$blocking > $non"
 		}

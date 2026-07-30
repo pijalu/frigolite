@@ -16,6 +16,8 @@ func Test_misuse(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -70,9 +72,8 @@ func Test_misuse(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 	}
 	{ // do_test "misuse-2.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("SELECT * FROM t1")
@@ -109,9 +110,8 @@ func Test_misuse(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 	}
 	{ // do_test "misuse-3.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("SELECT * FROM t1")
@@ -148,9 +148,8 @@ func Test_misuse(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 	}
 	{ // do_test "misuse-4.3"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("SELECT * FROM t1")
@@ -189,9 +188,8 @@ func Test_misuse(t *testing.T) {
 			t.Skipf("TODO: %s not implemented in frigolite", "catchsql2 {SELECT * FROM t1}")
 		}
 		{ // do_test "misuse-5.3"
-			var r string
-			var msg string
-			_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $::DB {SELECT * FROM t1} -1 TAIL")

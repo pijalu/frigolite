@@ -16,6 +16,8 @@ func Test_memjournal2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "memjournal2"
@@ -27,6 +29,7 @@ func Test_memjournal2(t *testing.T) {
 		}
 	}
 	nRow := "2000"
+	_ = nRow // suppress unused warning
 	{ // "1.1"
 		r = db.Query("\n  BEGIN;\n    WITH s(i) AS (\n      SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n    )\n    INSERT INTO t1 SELECT NULL, randomblob(700) FROM s;\n")
 		if r.Error != nil {

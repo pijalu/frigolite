@@ -16,6 +16,8 @@ func Test_conflict2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "conflict2-1.0"
@@ -28,18 +30,24 @@ func Test_conflict2(t *testing.T) {
 	_items := tclSplitList("\n  1 INSERT                  1 {}  1  0\n  2 {INSERT OR IGNORE}      0 3   1  0\n  3 {INSERT OR REPLACE}     0 4   1  0\n  4 REPLACE                 0 4   1  0\n  5 {INSERT OR FAIL}        1 {}  1  0\n  6 {INSERT OR ABORT}       1 {}  1  0\n  7 {INSERT OR ROLLBACK}    1 {}  {} 0\n")
 	for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
 		i := _items[_idx+0]
+		_ = i // suppress unused warning
 		cmd := _items[_idx+1]
+		_ = cmd // suppress unused warning
 		t0 := _items[_idx+2]
+		_ = t0 // suppress unused warning
 		t1 := _items[_idx+3]
+		_ = t1 // suppress unused warning
 		t2 := _items[_idx+4]
+		_ = t2 // suppress unused warning
 		t3 := _items[_idx+5]
+		_ = t3 // suppress unused warning
 		_ = _idx
 			{ // do_test "conflict2-1." + i
 				var _sqlite_opentemp_count = "0" // TCL namespace variable
 				_ = _sqlite_opentemp_count // suppress unused warning
-				var r0 string
-				var r1 string
-				_ = r1 // suppress unused warning
+	var r0 string
+	var r1 string
+	_ = r1 // suppress unused warning
 				{ // catch block
 					var _catchErr error
 					_res = db.Exec("DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
@@ -81,15 +89,20 @@ func Test_conflict2(t *testing.T) {
 		_items := tclSplitList("\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n")
 		for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 			i := _items[_idx+0]
+			_ = i // suppress unused warning
 			cmd := _items[_idx+1]
+			_ = cmd // suppress unused warning
 			t0 := _items[_idx+2]
+			_ = t0 // suppress unused warning
 			t1 := _items[_idx+3]
+			_ = t1 // suppress unused warning
 			t2 := _items[_idx+4]
+			_ = t2 // suppress unused warning
 			_ = _idx
 				{ // do_test "conflict2-2." + i
-					var r0 string
-					var r1 string
-					_ = r1 // suppress unused warning
+	var r0 string
+	var r1 string
+	_ = r1 // suppress unused warning
 					{ // catch block
 						var _catchErr error
 						_res = db.Exec("DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
@@ -129,15 +142,20 @@ func Test_conflict2(t *testing.T) {
 			_items := tclSplitList("\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n")
 			for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 				i := _items[_idx+0]
+				_ = i // suppress unused warning
 				cmd := _items[_idx+1]
+				_ = cmd // suppress unused warning
 				t0 := _items[_idx+2]
+				_ = t0 // suppress unused warning
 				t1 := _items[_idx+3]
+				_ = t1 // suppress unused warning
 				t2 := _items[_idx+4]
+				_ = t2 // suppress unused warning
 				_ = _idx
 					{ // do_test "conflict2-3." + i
-						var r0 string
-						var r1 string
-						_ = r1 // suppress unused warning
+	var r0 string
+	var r1 string
+	_ = r1 // suppress unused warning
 						{ // catch block
 							var _catchErr error
 							_res = db.Exec("DELETE FROM t1;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
@@ -177,20 +195,26 @@ func Test_conflict2(t *testing.T) {
 				_items := tclSplitList("\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1\n")
 				for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
 					i := _items[_idx+0]
+					_ = i // suppress unused warning
 					conf1 := _items[_idx+1]
+					_ = conf1 // suppress unused warning
 					cmd := _items[_idx+2]
+					_ = cmd // suppress unused warning
 					t0 := _items[_idx+3]
+					_ = t0 // suppress unused warning
 					t1 := _items[_idx+4]
+					_ = t1 // suppress unused warning
 					t2 := _items[_idx+5]
+					_ = t2 // suppress unused warning
 					_ = _idx
 						{ // do_test "conflict2-4." + i
 							if conf1 != "" {
 								var conf1 = "ON CONFLICT " + conf1
 								_ = conf1 // suppress unused warning
 							}
-							var r0 string
-							var r1 string
-							_ = r1 // suppress unused warning
+	var r0 string
+	var r1 string
+	_ = r1 // suppress unused warning
 							{ // catch block
 								var _catchErr error
 								_res = db.Exec("DROP TABLE t1;\n      CREATE TABLE t1(a,b,c,PRIMARY KEY(a,b) " + conf1 + ") WITHOUT rowid;\n      DELETE FROM t2;\n      INSERT INTO t1 VALUES(1,2,3);\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,4);")
@@ -230,11 +254,17 @@ func Test_conflict2(t *testing.T) {
 					_items := tclSplitList("\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}\n")
 					for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
 						i := _items[_idx+0]
+						_ = i // suppress unused warning
 						conf1 := _items[_idx+1]
+						_ = conf1 // suppress unused warning
 						cmd := _items[_idx+2]
+						_ = cmd // suppress unused warning
 						t0 := _items[_idx+3]
+						_ = t0 // suppress unused warning
 						t1 := _items[_idx+4]
+						_ = t1 // suppress unused warning
 						t2 := _items[_idx+5]
+						_ = t2 // suppress unused warning
 						_ = _idx
 							if tclBool(t0) {
 								var t1 = "NOT NULL constraint failed: t1.c"
@@ -245,9 +275,9 @@ func Test_conflict2(t *testing.T) {
 									var conf1 = "ON CONFLICT " + conf1
 									_ = conf1 // suppress unused warning
 								}
-								var r0 string
-								var r1 string
-								_ = r1 // suppress unused warning
+	var r0 string
+	var r1 string
+	_ = r1 // suppress unused warning
 								{ // catch block
 									var _catchErr error
 									_res = db.Exec("DROP TABLE t1;\n      CREATE TABLE t1(a,b,c NOT NULL " + conf1 + " DEFAULT 5);\n      DELETE FROM t2;\n      BEGIN;\n      INSERT INTO t2 VALUES(1); \n      " + cmd + " INTO t1 VALUES(1,2,NULL);")
@@ -286,13 +316,21 @@ func Test_conflict2(t *testing.T) {
 						_items := tclSplitList("\n  1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0\n")
 						for _idx := 0; _idx+8 <= len(_items); _idx += 8 {
 							i := _items[_idx+0]
+							_ = i // suppress unused warning
 							conf1 := _items[_idx+1]
+							_ = conf1 // suppress unused warning
 							cmd := _items[_idx+2]
+							_ = cmd // suppress unused warning
 							t0 := _items[_idx+3]
+							_ = t0 // suppress unused warning
 							t1 := _items[_idx+4]
+							_ = t1 // suppress unused warning
 							t2 := _items[_idx+5]
+							_ = t2 // suppress unused warning
 							t3 := _items[_idx+6]
+							_ = t3 // suppress unused warning
 							t4 := _items[_idx+7]
+							_ = t4 // suppress unused warning
 							_ = _idx
 								if tclBool("permutation" + " == \"inmemory_journal\"") {
 									var t4 = "0"
@@ -307,6 +345,7 @@ func Test_conflict2(t *testing.T) {
 									_ = t3 // suppress unused warning
 								} else {
 									t3 := "$t3+$t4"
+									_ = t3 // suppress unused warning
 								}
 								{ // do_test "conflict2-6." + i
 									db, err := frigolite.Open("test.db")
@@ -322,9 +361,9 @@ func Test_conflict2(t *testing.T) {
 									}
 									var _sqlite_opentemp_count = "0" // TCL namespace variable
 									_ = _sqlite_opentemp_count // suppress unused warning
-									var r0 string
-									var r1 string
-									_ = r1 // suppress unused warning
+	var r0 string
+	var r1 string
+	_ = r1 // suppress unused warning
 									{ // catch block
 										var _catchErr error
 										_res = db.Exec("DROP TABLE t1;\n      CREATE TABLE t1(a,b,c, PRIMARY KEY(a) " + conf1 + ") WITHOUT rowid;\n      INSERT INTO t1 SELECT * FROM t2;\n      UPDATE t3 SET x=0;\n      BEGIN;\n      " + cmd + " t3 SET x=1;\n      " + cmd + " t1 SET b=b*2;\n      " + cmd + " t1 SET a=c+5;")

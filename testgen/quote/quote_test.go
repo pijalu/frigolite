@@ -16,6 +16,8 @@ func Test_quote(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "quote"
@@ -57,9 +59,8 @@ func Test_quote(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "quote-1.3.4"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'")
@@ -75,9 +76,8 @@ func Test_quote(t *testing.T) {
 		r = tclListAppend(r, msg)
 	}
 	{ // do_test "quote-1.4"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("UPDATE '@abc' SET '#xyz'=11")
@@ -93,9 +93,8 @@ func Test_quote(t *testing.T) {
 		r = tclListAppend(r, msg)
 	}
 	{ // do_test "quote-1.5"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT '@abc'.'!pqr', '@abc'.'#xyz'+5 FROM '@abc'")
@@ -111,9 +110,8 @@ func Test_quote(t *testing.T) {
 		r = tclListAppend(r, msg)
 	}
 	{ // do_test "quote-1.6"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("DROP TABLE '@abc'")
@@ -143,8 +141,11 @@ func Test_quote(t *testing.T) {
 	_items := tclSplitList("\n  1 { CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") ) } null\n  2 { CREATE INDEX i2 ON t1(x, y, z||\"abc\") }        abc\n  3 { CREATE INDEX i3 ON t1(\"w\") }                   w\n  4 { CREATE INDEX i4 ON t1(x) WHERE z=\"w\" }         w\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		errname := _items[_idx+2]
+		_ = errname // suppress unused warning
 		_ = _idx
 			{ // "2.1." + tn
 				_res = db.Exec(sql)

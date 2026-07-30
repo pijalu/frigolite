@@ -16,6 +16,8 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	for _, f := range tclSplitList("glob -nocomplain test.db*mj*") {

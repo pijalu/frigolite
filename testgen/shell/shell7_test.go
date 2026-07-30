@@ -16,6 +16,8 @@ func Test_shell7(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "shell7"
@@ -32,8 +34,11 @@ func Test_shell7(t *testing.T) {
 	_items := tclSplitList("db eval { SELECT tn, length(x) AS l, x FROM f1 }")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		l := _items[_idx+1]
+		_ = l // suppress unused warning
 		x := _items[_idx+2]
+		_ = x // suppress unused warning
 		_ = _idx
 			os.Remove("shell7_test.bin")
 			var fd = "open shell7_test.bin w"

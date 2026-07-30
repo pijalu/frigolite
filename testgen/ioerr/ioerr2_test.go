@@ -16,6 +16,8 @@ func Test_ioerr2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "ioerr2-1.1"
@@ -88,9 +90,8 @@ func Test_ioerr2(t *testing.T) {
 		_ = _sqlite_io_error_persist // suppress unused warning
 		var _go = "1" // TCL namespace variable
 		_ = _go // suppress unused warning
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var _N = "2" // TCL namespace variable

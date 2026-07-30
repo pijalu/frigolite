@@ -17,6 +17,8 @@ func Test_memdb2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "memdb2"
@@ -26,7 +28,9 @@ func Test_memdb2(t *testing.T) {
 	_items := tclSplitList("\n    1   file:/test.db?vfs=memdb\n    2   file:\\\\test.db?vfs=memdb\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		fname := _items[_idx+1]
+		_ = fname // suppress unused warning
 		_ = _idx
 			if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
 			}

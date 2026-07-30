@@ -16,6 +16,8 @@ func Test_fts3corrupt2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts3corrupt2" // TCL namespace variable
@@ -62,8 +64,11 @@ func Test_fts3corrupt2(t *testing.T) {
 	_items := tclSplitList("db eval {SELECT rowid, length(block), block FROM t2_segments}")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		rowid := _items[_idx+0]
+		_ = rowid // suppress unused warning
 		sz := _items[_idx+1]
+		_ = sz // suppress unused warning
 		blob := _items[_idx+2]
+		_ = blob // suppress unused warning
 		_ = _idx
 			// incr tn 1
 			{
@@ -73,6 +78,7 @@ func Test_fts3corrupt2(t *testing.T) {
 				}
 			}
 			c := "(($c+255)%256)"
+			_ = c // suppress unused warning
 			var i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; sz_n, _sz_e := strconv.Atoi(sz); if _sz_e != nil { return false }; return i_n < sz_n }() {
@@ -106,8 +112,11 @@ func Test_fts3corrupt2(t *testing.T) {
 			_items := tclSplitList("db eval {SELECT rowid, length(root), root FROM t2_segdir}")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				rowid := _items[_idx+0]
+				_ = rowid // suppress unused warning
 				sz := _items[_idx+1]
+				_ = sz // suppress unused warning
 				blob := _items[_idx+2]
+				_ = blob // suppress unused warning
 				_ = _idx
 					// incr tn 1
 					{

@@ -17,6 +17,8 @@ func Test_attach2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "attach2"
@@ -100,9 +102,9 @@ func Test_attach2(t *testing.T) {
 	{ // do_test "attach2-3.1"
 		var DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
-		var rc string
-		var VM string
-		_ = VM // suppress unused warning
+	var rc string
+	var VM string
+	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB ATTACH 'test2.db' AS t2 -1 TAIL")
@@ -121,9 +123,9 @@ func Test_attach2(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_finalize $VM")
 	}
 	{ // do_test "attach2-3.2"
-		var rc string
-		var VM string
-		_ = VM // suppress unused warning
+	var rc string
+	var VM string
+	_ = VM // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_prepare $DB DETACH t2 -1 TAIL")

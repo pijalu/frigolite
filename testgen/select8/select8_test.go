@@ -15,6 +15,8 @@ func Test_select8(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE songs(songid, artist, timesplayed);\n  INSERT INTO songs VALUES(1,'one',1);\n  INSERT INTO songs VALUES(2,'one',2);\n  INSERT INTO songs VALUES(3,'two',3);\n  INSERT INTO songs VALUES(4,'three',5);\n  INSERT INTO songs VALUES(5,'one',7);\n  INSERT INTO songs VALUES(6,'two',11);\n")

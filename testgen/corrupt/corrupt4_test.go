@@ -17,6 +17,8 @@ func Test_corrupt4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "corrupt4"
@@ -43,6 +45,7 @@ func Test_corrupt4(t *testing.T) {
 	var trunkpgno = "hexio_get_int [hexio_read test.db 32 4]"
 	_ = trunkpgno // suppress unused warning
 	baseaddr := "($trunkpgno-1)*1024"
+	_ = baseaddr // suppress unused warning
 	{ // do_test "corrupt4-1.3"
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db [expr {$::baseaddr+4}] 4]")
 	}

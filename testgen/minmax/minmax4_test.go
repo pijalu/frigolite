@@ -15,6 +15,8 @@ func Test_minmax4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "minmax4"
@@ -149,7 +151,9 @@ func Test_minmax4(t *testing.T) {
 	_items := tclSplitList("\n  1 { CREATE INDEX i1 ON t1(a) }\n  2 { CREATE INDEX i1 ON t1(a DESC) }\n  3 { }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")

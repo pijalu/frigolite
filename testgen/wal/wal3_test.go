@@ -17,6 +17,8 @@ func Test_wal3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var a_string_counter = "1"
@@ -116,8 +118,11 @@ func Test_wal3(t *testing.T) {
 	_items := tclSplitList("\n  1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		syncmode := _items[_idx+1]
+		_ = syncmode // suppress unused warning
 		synccount := _items[_idx+2]
+		_ = synccount // suppress unused warning
 		_ = _idx
 			// proc definition (not transpiled)
 			{ // do_test "wal3-3." + tn
@@ -477,6 +482,7 @@ func Test_wal3(t *testing.T) {
 			}
 		}
 		sz := "1024 * (2+$AUTOVACUUM)"
+		_ = sz // suppress unused warning
 		{ // do_test "wal3-9.3"
 			var i = "0"
 			_ = i // suppress unused warning

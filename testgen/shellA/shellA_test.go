@@ -17,6 +17,8 @@ func Test_shellA(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var CLI = "test_cli_invocation"
@@ -50,9 +52,8 @@ func Test_shellA(t *testing.T) {
 		strings.TrimSpace(res)
 	}
 	{ // do_test "shellA-1.9"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI -noinit test.db {.mode test --escape xyz}")
@@ -67,9 +68,8 @@ func Test_shellA(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "shellA-1.10"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "exec {*} $CLI --noinit --escape abc test.db .q")

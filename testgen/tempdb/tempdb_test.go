@@ -15,6 +15,8 @@ func Test_tempdb(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("atomic_batch_write test.db") {
@@ -38,7 +40,9 @@ func Test_tempdb(t *testing.T) {
 	}
 	{ // do_test "tempdb-2.1"
 		jrnl_in_memory := "[permutation] eq \"inmemory_journal\""
+		_ = jrnl_in_memory // suppress unused warning
 		subj_in_memory := "$jrnl_in_memory || $TEMP_STORE>=2"
+		_ = subj_in_memory // suppress unused warning
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }

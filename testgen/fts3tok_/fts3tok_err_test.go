@@ -15,6 +15,8 @@ func Test_fts3tok_err(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts3tok_err" // TCL namespace variable

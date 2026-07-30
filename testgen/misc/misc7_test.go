@@ -17,6 +17,8 @@ func Test_misc7(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "misc7"
@@ -35,9 +37,8 @@ func Test_misc7(t *testing.T) {
 	{ // do_test "misc7-4"
 		t.Skipf("TODO: %s not implemented in frigolite", "delete_file mydir")
 		// file mkdir mydir
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db2, err := frigolite.Open("./mydir")
@@ -258,9 +259,8 @@ func Test_misc7(t *testing.T) {
 	{ // do_test "misc7-21.1"
 		var zFile = "file join [get_pwd] \"[string repeat abcde 104].db\""
 		_ = zFile // suppress unused warning
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db2, err := frigolite.Open(zFile)

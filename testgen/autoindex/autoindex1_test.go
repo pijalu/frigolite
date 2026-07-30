@@ -17,6 +17,8 @@ func Test_autoindex1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
@@ -116,6 +118,7 @@ func Test_autoindex1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 SELECT a+$n, b+$n FROM t4")
 			}
 			n := "$n+$n"
+			_ = n // suppress unused warning
 		}
 		_res = db.Exec("\n    SELECT count(*) FROM t4;\n  ")
 		if _res.Error != nil {

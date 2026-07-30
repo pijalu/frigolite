@@ -17,6 +17,8 @@ func Test_fkey8(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fkey8"
@@ -31,9 +33,13 @@ func Test_fkey8(t *testing.T) {
 	_items := tclSplitList("\n  1   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1);\n  }\n\n  2.1     0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE);\n  }\n  2.2   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE SET NULL);\n  }\n  2.3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE SET DEFAULT);\n  }\n\n  3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE);\n    CREATE TRIGGER ct1 AFTER DELETE ON c1 BEGIN\n      INSERT INTO p1 VALUES('x');\n    END;\n  }\n\n  4   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1);\n  }\n\n  5.1   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE CASCADE);\n  }\n  5.2   0 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE SET NULL);\n  }\n  5.3   1 \"DELETE FROM p1\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON DELETE CASCADE, c PRIMARY KEY);\n    CREATE TABLE cc1(d REFERENCES c1 ON DELETE SET DEFAULT);\n  }\n\n  6.1   1 \"UPDATE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n  6.2   0 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n  6.3   1 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b REFERENCES p1 ON UPDATE CASCADE, c);\n  }\n  6.4   1 \"UPDATE OR IGNORE p1 SET a = ?\" {\n    CREATE TABLE p1(a PRIMARY KEY);\n    CREATE TABLE c1(b NOT NULL REFERENCES p1 ON UPDATE SET NULL, c);\n  }\n\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		use_stmt := _items[_idx+1]
+		_ = use_stmt // suppress unused warning
 		sql := _items[_idx+2]
+		_ = sql // suppress unused warning
 		schema := _items[_idx+3]
+		_ = schema // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
 			{ // do_test "1." + tn

@@ -17,6 +17,8 @@ func Test_journal3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool(_tcl_platform + "(os) != \"Windows NT\"\n && " + "atomic_batch_write test.db" + "==0") {
@@ -31,7 +33,9 @@ func Test_journal3(t *testing.T) {
 		_items := tclSplitList("\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  ")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			permissions := _items[_idx+1]
+			_ = permissions // suppress unused warning
 			_ = _idx
 				var res = "/" + "regsub {^00} $permissions {0.}" + "/"
 				_ = res // suppress unused warning

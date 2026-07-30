@@ -15,6 +15,8 @@ func Test_sharedlock(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sharedlock"
@@ -44,7 +46,9 @@ func Test_sharedlock(t *testing.T) {
 	_items := tclSplitList("\n  1 { DELETE FROM t2 WHERE 1 }\n  2 { DELETE FROM t2 }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		delete_sql := _items[_idx+1]
+		_ = delete_sql // suppress unused warning
 		_ = _idx
 			{ // "2.1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS t2;\n    CREATE TABLE t2(x, y);\n    INSERT INTO t2 VALUES(1, 2);\n    INSERT INTO t2 VALUES(3, 4);\n  ")

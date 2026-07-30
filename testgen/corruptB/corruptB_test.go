@@ -15,6 +15,8 @@ func Test_corruptB(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
@@ -71,6 +73,7 @@ func Test_corruptB(t *testing.T) {
 		var iRightChild = "hexio_get_int [hexio_read test.db [expr $offset+8] 4]"
 		_ = iRightChild // suppress unused warning
 		c_offset := "($iRightChild-1)*1024"
+		_ = c_offset // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root]")
 	}
 	{ // do_test "corruptB-1.6.2"
@@ -99,6 +102,7 @@ func Test_corruptB(t *testing.T) {
 		var iLeftChild = "hexio_get_int [hexio_read test.db [expr $offset+$cell_offset] 4]"
 		_ = iLeftChild // suppress unused warning
 		c_offset := "($iLeftChild-1)*1024"
+		_ = c_offset // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root]")
 	}
 	{ // do_test "corruptB-1.8.2"
@@ -146,7 +150,9 @@ func Test_corruptB(t *testing.T) {
 		var t2_root = "execsql {SELECT rootpage FROM sqlite_master WHERE name = 't2'}"
 		_ = t2_root // suppress unused warning
 		iPage := "($t2_root-1)*1024"
+		_ = iPage // suppress unused warning
 		iCellarray := "$iPage + 8"
+		_ = iCellarray // suppress unused warning
 		var iRecord = "hexio_get_int [hexio_read test.db $iCellarray 2]"
 		_ = iRecord // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $iPage+$iRecord+3] FF00")

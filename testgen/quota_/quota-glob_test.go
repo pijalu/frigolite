@@ -15,6 +15,8 @@ func Test_quota_glob(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{
@@ -37,9 +39,13 @@ func Test_quota_glob(t *testing.T) {
 	_items := tclSplitList("\n   1  abcdefg   abcdefg   1\n   2  abcdefG   abcdefg   0\n   3  abcdef    abcdefg   0\n   4  abcdefgh  abcdefg   0\n   5  abcdef?   abcdefg   1\n   6  abcdef?   abcdef    0\n   7  abcdef?   abcdefgh  0\n   8  abcdefg   abcdef?   0\n   9  abcdef?   abcdef?   1\n  10  abc/def   abc/def   1\n  11  abc//def  abc/def   0\n  12  */abc/*   x/abc/y   1\n  13  */abc/*   /abc/     1\n  16  */abc/*   x///a/ab/abc   0\n  17  */abc/*   x//a/ab/abc/   1\n  16  */abc/*   x///a/ab/abc   0\n  17  */abc/*   x//a/ab/abc/   1\n  18  **/abc/** x//a/ab/abc/   1\n  19  *?/abc/*? x//a/ab/abc/y  1\n  20  ?*/abc/?* x//a/ab/abc/y  1\n  21  {abc[cde]efg}   abcbefg  0\n  22  {abc[cde]efg}   abccefg  1\n  23  {abc[cde]efg}   abcdefg  1\n  24  {abc[cde]efg}   abceefg  1\n  25  {abc[cde]efg}   abcfefg  0\n  26  {abc[^cde]efg}  abcbefg  1\n  27  {abc[^cde]efg}  abccefg  0\n  28  {abc[^cde]efg}  abcdefg  0\n  29  {abc[^cde]efg}  abceefg  0\n  30  {abc[^cde]efg}  abcfefg  1\n  31  {abc[c-e]efg}   abcbefg  0\n  32  {abc[c-e]efg}   abccefg  1\n  33  {abc[c-e]efg}   abcdefg  1\n  34  {abc[c-e]efg}   abceefg  1\n  35  {abc[c-e]efg}   abcfefg  0\n  36  {abc[^c-e]efg}  abcbefg  1\n  37  {abc[^c-e]efg}  abccefg  0\n  38  {abc[^c-e]efg}  abcdefg  0\n  39  {abc[^c-e]efg}  abceefg  0\n  40  {abc[^c-e]efg}  abcfefg  1\n  41  {abc[c-e]efg}   abc-efg  0\n  42  {abc[-ce]efg}   abc-efg  1\n  43  {abc[ce-]efg}   abc-efg  1\n  44  {abc[][*?]efg}  {abc]efg} 1\n  45  {abc[][*?]efg}  {abc*efg} 1\n  46  {abc[][*?]efg}  {abc?efg} 1\n  47  {abc[][*?]efg}  {abc[efg} 1\n  48  {abc[^][*?]efg} {abc]efg} 0\n  49  {abc[^][*?]efg} {abc*efg} 0\n  50  {abc[^][*?]efg} {abc?efg} 0\n  51  {abc[^][*?]efg} {abc[efg} 0\n  52  {abc[^][*?]efg} {abcdefg} 1\n  53  {*[xyz]efg}     {abcxefg} 1\n  54  {*[xyz]efg}     {abcwefg} 0\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		testnum := _items[_idx+0]
+		_ = testnum // suppress unused warning
 		pattern := _items[_idx+1]
+		_ = pattern // suppress unused warning
 		text := _items[_idx+2]
+		_ = text // suppress unused warning
 		ans := _items[_idx+3]
+		_ = ans // suppress unused warning
 		_ = _idx
 			{ // do_test "quota-glob-" + testnum + ".1"
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_quota_glob $::pattern $::text")

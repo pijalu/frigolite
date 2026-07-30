@@ -15,6 +15,8 @@ func Test_bigfile2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	if tclBool("file exists skip-big-file") {
 	}

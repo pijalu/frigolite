@@ -17,6 +17,8 @@ func Test_crash3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -26,7 +28,9 @@ func Test_crash3(t *testing.T) {
 	_items := tclSplitList("list \\\n  {INSERT INTO abc VALUES(4, 5, 6)}                    {1 2 3 4 5 6} \\\n  {DELETE FROM abc}                                    {}    \\\n  {INSERT INTO abc SELECT * FROM abc}                  {1 2 3 1 2 3} \\\n  {UPDATE abc SET a = 2}                               {2 2 3}       \\\n  {INSERT INTO abc VALUES(4, 5, randstr(1000,1000))}   {n/a} \\\n  {CREATE TABLE def(d, e, f)}                          {n/a} \\")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		sql := _items[_idx+0]
+		_ = sql // suppress unused warning
 		res2 := _items[_idx+1]
+		_ = res2 // suppress unused warning
 		_ = _idx
 			var ii = "0"
 			_ = ii // suppress unused warning
@@ -86,8 +90,11 @@ func Test_crash3(t *testing.T) {
 		_items := tclSplitList("\n  test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			_crashfile := _items[_idx+0]
+			_ = _crashfile // suppress unused warning
 			_delay := _items[_idx+1]
+			_ = _delay // suppress unused warning
 			_char := _items[_idx+2]
+			_ = _char // suppress unused warning
 			_ = _idx
 				var ii = "0"
 				_ = ii // suppress unused warning

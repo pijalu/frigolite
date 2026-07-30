@@ -15,6 +15,8 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tkt-bdc6bbbb38"
@@ -25,7 +27,9 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 	_items := tclSplitList("1 ASC 2 DESC")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		idxdir := _items[_idx+1]
+		_ = idxdir // suppress unused warning
 		_ = _idx
 			_res = db.Exec(" DROP TABLE IF EXISTS t2 ")
 			if _res.Error != nil {

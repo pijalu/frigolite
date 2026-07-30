@@ -15,6 +15,8 @@ func Test_loadext2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("info command sqlite3_auto_extension_sqr" + "==\"\"") {
@@ -105,9 +107,9 @@ func Test_loadext2(t *testing.T) {
 	}
 	{ // do_test "loadext2-1.13"
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_broken")
-		var rc string
-		var errmsg string
-		_ = errmsg // suppress unused warning
+	var rc string
+	var errmsg string
+	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db, err := frigolite.Open("test.db")

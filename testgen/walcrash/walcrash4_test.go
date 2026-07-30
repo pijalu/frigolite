@@ -16,6 +16,8 @@ func Test_walcrash4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "walcrash4"
@@ -53,9 +55,8 @@ func Test_walcrash4(t *testing.T) {
 				_ = fd // suppress unused warning
 				t.Log(fd)
 				// close $fd
-				var r string
-				var msg string
-				_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
 					t.Skipf("TODO: %s not implemented in frigolite", "exec [info nameofexec] crash.tcl >@stdout")

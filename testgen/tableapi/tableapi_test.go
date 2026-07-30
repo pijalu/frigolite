@@ -16,6 +16,8 @@ func Test_tableapi(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tableapi-1.0"
@@ -129,9 +131,8 @@ func Test_tableapi(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n    SELECT * FROM xyz WHERE a>1000\n  } {}")
 	}
 	{ // do_test "tableapi-4.1"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx {\n      SELECT * FROM xyz;  SELECT * FROM sqlite_ma...} {}")

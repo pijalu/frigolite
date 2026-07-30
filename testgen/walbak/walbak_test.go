@@ -17,6 +17,8 @@ func Test_walbak(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
@@ -192,7 +194,9 @@ func Test_walbak(t *testing.T) {
 	_items := tclSplitList("\n  1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }\n\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		setup := _items[_idx+1]
+		_ = setup // suppress unused warning
 		_ = _idx
 			if tclBool(tn + "==4 && " + "sqlite3 -has-codec") {
 			}
@@ -264,9 +268,13 @@ func Test_walbak(t *testing.T) {
 		_items := tclSplitList("\n  1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal\n")
 		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			src := _items[_idx+1]
+			_ = src // suppress unused warning
 			dest := _items[_idx+2]
+			_ = dest // suppress unused warning
 			dest_final := _items[_idx+3]
+			_ = dest_final // suppress unused warning
 			_ = _idx
 				{
 					var _catchErr error

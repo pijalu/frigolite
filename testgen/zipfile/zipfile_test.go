@@ -18,6 +18,8 @@ func Test_zipfile(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	if func() bool { tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return tcl_version_n < 8.6 }() {
 		t.Log("Requires TCL 8.6 or later")
@@ -381,9 +383,8 @@ func Test_zipfile(t *testing.T) {
 				var null = "NUL"
 				_ = null // suppress unused warning
 			}
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				t.Skipf("TODO: %s not implemented in frigolite", "exec $::UNZIP test.zip > $null")
@@ -431,7 +432,9 @@ func Test_zipfile(t *testing.T) {
 	_items := tclSplitList("\n  1 dir1\n  2 file1\n  3 dir1/file2\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		fname := _items[_idx+1]
+		_ = fname // suppress unused warning
 		_ = _idx
 			{ // "3.1." + tn + ".0"
 				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES($fname, NULL);\n  ")
@@ -486,7 +489,9 @@ func Test_zipfile(t *testing.T) {
 		_items := tclSplitList("\n  1 abcd\n  2 brwxrwxrwx\n  3 lrwxrrxrwx\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			mode := _items[_idx+1]
+			_ = mode // suppress unused warning
 			_ = _idx
 				{ // "4.5." + tn
 					_res = db.Exec("\n    WITH m(m) AS ( SELECT $mode)\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
@@ -820,7 +825,9 @@ func Test_zipfile(t *testing.T) {
 					_items := tclSplitList("\n      subdir/x1.txt     143\n      subdir/x2.txt     153\n    ")
 					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 						path := _items[_idx+0]
+						_ = path // suppress unused warning
 						sz := _items[_idx+1]
+						_ = sz // suppress unused warning
 						_ = _idx
 							var dir = "file dirname $path"
 							_ = dir // suppress unused warning
@@ -1032,6 +1039,7 @@ func Test_zipfile(t *testing.T) {
 					var off = "\"504B0102\" $zip"
 					_ = off // suppress unused warning
 					off := "$off + 56"
+					_ = off // suppress unused warning
 					var zip = "$zip $off [expr $off+3] 1F1F"
 					_ = zip // suppress unused warning
 					len(zip)

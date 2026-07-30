@@ -17,6 +17,8 @@ func Test_capi3c(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "capi3c"
@@ -270,7 +272,9 @@ func Test_capi3c(t *testing.T) {
 	_items := tclSplitList(code2english)
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		code := _items[_idx+0]
+		_ = code // suppress unused warning
 		english := _items[_idx+1]
+		_ = english // suppress unused warning
 		_ = _idx
 			{ // do_test "capi3c-9." + test_number
 				_res = db.Exec("sqlite3_test_errstr " + code)
@@ -504,9 +508,8 @@ func Test_capi3c(t *testing.T) {
 			}
 		}
 		{ // do_test "capi3c-14.1"
-			var rc string
-			var msg string
-			_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_bind_text 0 1 hello 5")
@@ -792,7 +795,9 @@ func Test_capi3c(t *testing.T) {
 		_items := tclSplitList("\n  1 \"SELECT * FROM t11 UNION ALL SELECT * FROM t12\"\n  2 \"SELECT * FROM t11 UNION SELECT * FROM t12\"\n  3 \"SELECT * FROM t11 EXCEPT SELECT * FROM t12\"\n  4 \"SELECT * FROM t11 INTERSECT SELECT * FROM t12\"\n\n  5 \"SELECT * FROM t11 UNION ALL SELECT * FROM t12 ORDER BY 1\"\n  6 \"SELECT * FROM t11 UNION SELECT * FROM t12 ORDER BY 1\"\n  7 \"SELECT * FROM t11 EXCEPT SELECT * FROM t12 ORDER BY 1\"\n  8 \"SELECT * FROM t11 INTERSECT SELECT * FROM t12 ORDER BY 1\"\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			_ = _idx
 				{ // do_test "25." + tn
 					t.Skipf("TODO: %s not implemented in frigolite", "decltype $sql")

@@ -16,6 +16,8 @@ func Test_trace3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "trace3" // TCL namespace variable
@@ -30,9 +32,8 @@ func Test_trace3(t *testing.T) {
 		}
 	}
 	{ // do_test "trace3-1.1"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -46,9 +47,8 @@ func Test_trace3(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 	}
 	{ // do_test "trace3-1.2"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {

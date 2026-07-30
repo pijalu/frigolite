@@ -17,6 +17,8 @@ func Test_vacuum_into(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("out.db")
@@ -198,8 +200,11 @@ func Test_vacuum_into(t *testing.T) {
 	_items := tclSplitList("\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		pragma := _items[_idx+1]
+		_ = pragma // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			os.Remove("test.db2")
 			{ // "vacuum-into-" + tn + ".1"

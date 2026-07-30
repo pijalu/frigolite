@@ -16,6 +16,8 @@ func Test_pragma3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("sqlite3 -has-codec") {
@@ -185,7 +187,9 @@ func Test_pragma3(t *testing.T) {
 	_items := tclSplitList("\n  A {\n  }\n  B {\n    PRAGMA journal_mode = PERSIST;\n    PRAGMA locking_mode = EXCLUSIVE;\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		_ = _idx
 			db.Close()
 			db, err = frigolite.Open("")

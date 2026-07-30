@@ -17,6 +17,8 @@ func Test_expr(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -247,6 +249,7 @@ func Test_expr(t *testing.T) {
 	var CSL = sqlite_options + "(casesensitivelike)"
 	_ = CSL // suppress unused warning
 	NCSL := "!$CSL"
+	_ = NCSL // suppress unused warning
 	t.Skipf("TODO: %s not implemented in frigolite", "test_expr expr-5.1 {t1='abc', t2='xyz'} {t1 LIKE t2} 0")
 	t.Skipf("TODO: %s not implemented in frigolite", "test_expr expr-5.2a {t1='abc', t2='abc'} {t1 LIKE t2} 1")
 	t.Skipf("TODO: %s not implemented in frigolite", "test_expr expr-5.2b {t1='abc', t2='ABC'} {t1 LIKE t2} $NCSL")
@@ -716,7 +719,9 @@ func Test_expr(t *testing.T) {
 	_items := tclSplitList("list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		val := _items[_idx+1]
+		_ = val // suppress unused warning
 		_ = _idx
 			{ // "expr-15." + tn + ".1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  ")

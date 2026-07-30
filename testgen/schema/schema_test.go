@@ -15,6 +15,8 @@ func Test_schema(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "schema-1.1"
@@ -141,9 +143,8 @@ func Test_schema(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_delete_function $::DB tstfunc")
 	}
 	{ // do_test "schema-11.3"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -171,9 +172,8 @@ func Test_schema(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite_delete_collation $::DB tstcollate")
 	}
 	{ // do_test "schema-11.7"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {

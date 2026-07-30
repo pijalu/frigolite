@@ -16,6 +16,8 @@ func Test_indexA(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "indexA"
@@ -105,7 +107,9 @@ func Test_indexA(t *testing.T) {
 	_items := tclSplitList("\n  0 {\n  }\n  1 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;\n  }\n  2 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;\n  }\n  3 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';\n  }\n  4 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		idx := _items[_idx+1]
+		_ = idx // suppress unused warning
 		_ = _idx
 			_res = db.Exec(" DROP INDEX IF EXISTS i1 ")
 			if _res.Error != nil {
@@ -281,7 +285,9 @@ func Test_indexA(t *testing.T) {
 		_items := tclSplitList("\n  0 {\n  }\n  1 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;\n  }\n  2 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;\n  }\n  3 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';\n  }\n  4 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';\n  }\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			idx := _items[_idx+1]
+			_ = idx // suppress unused warning
 			_ = _idx
 				_res = db.Exec(" DROP INDEX IF EXISTS i1 ")
 				if _res.Error != nil {

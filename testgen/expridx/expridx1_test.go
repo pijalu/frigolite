@@ -16,6 +16,8 @@ func Test_expridx1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "expridx1"
@@ -150,7 +152,9 @@ func Test_expridx1(t *testing.T) {
 	_items := tclSplitList("\n  1 15   2 30   3 20   4 10   5 25\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		a := _items[_idx+1]
+		_ = a // suppress unused warning
 		_ = _idx
 			{ // "1.3.3." + tn
 				_res = db.Exec("\n    DELETE FROM t1 WHERE a=$a\n  ")
@@ -181,6 +185,7 @@ func Test_expridx1(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		nRow := "1000"
+		_ = nRow // suppress unused warning
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);\n")
 			if _res.Error != nil {

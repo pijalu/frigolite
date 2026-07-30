@@ -17,6 +17,8 @@ func Test_enc4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var encodings = "list UTF-8 UTF-16le UTF-16be"
@@ -57,6 +59,7 @@ func Test_enc4(t *testing.T) {
 				_ = x // suppress unused warning
 				for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 16 }() {
 					part := "$init + [string range $val 0 [expr $x-1]]"
+					_ = part // suppress unused warning
 					t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test enc4-$i.$j.$k.3.$x {\n          sqlite3_reset $S\n          sqlite3_bind...} [list $part]")
 					t.Skipf("TODO: %s not implemented in frigolite", "do_realnum_test enc4-$i.$j.$k.4.$x {\n          sqlite3_reset $S\n          sqlite3_bind...} [list $part]")
 					// incr x 1

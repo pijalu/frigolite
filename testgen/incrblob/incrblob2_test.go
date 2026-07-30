@@ -16,6 +16,8 @@ func Test_incrblob2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "incrblob2-1.0"
@@ -101,9 +103,8 @@ func Test_incrblob2(t *testing.T) {
 		}
 	}
 	{ // do_test "incrblob2-3.3"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "read $fd1 6")
@@ -177,9 +178,8 @@ func Test_incrblob2(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "aborted_handles")
 	}
 	{ // do_test "incrblob2-4.3.1"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $::handles(3) 10 HELLO")
@@ -280,9 +280,9 @@ func Test_incrblob2(t *testing.T) {
 	}
 	if func() bool { _tcl_platform_n, __tcl_platform_e := strconv.Atoi(_tcl_platform); if __tcl_platform_e != nil { return false }; return _tcl_platform_n(pointerSize) >= 8 }() {
 		{ // do_test "incrblob2-6.2b"
-			var rc string
-			var errmsg string
-			_ = errmsg // suppress unused warning
+	var rc string
+	var errmsg string
+	_ = errmsg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2147483647 2147483647")
@@ -302,9 +302,9 @@ func Test_incrblob2(t *testing.T) {
 		}
 	}
 	{ // do_test "incrblob2-6.2c"
-		var rc string
-		var errmsg string
-		_ = errmsg // suppress unused warning
+	var rc string
+	var errmsg string
+	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2147483647 100")
@@ -325,9 +325,9 @@ func Test_incrblob2(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $rdHandle 2 4")
 	}
 	{ // do_test "incrblob2-6.3b"
-		var rc string
-		var errmsg string
-		_ = errmsg // suppress unused warning
+	var rc string
+	var errmsg string
+	_ = errmsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_write $wrHandle 2147483647 YYYYYYYYYYYYYYYYYY")
@@ -378,9 +378,8 @@ func Test_incrblob2(t *testing.T) {
 		}
 		var h = "db incrblob t2 B 1"
 		_ = h // suppress unused warning
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("SELECT rowid FROM t2")
@@ -434,9 +433,8 @@ func Test_incrblob2(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "incrblob2-8.9"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_blob_read $h 0 20")

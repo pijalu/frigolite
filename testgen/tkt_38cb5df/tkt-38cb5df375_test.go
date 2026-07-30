@@ -15,6 +15,8 @@ func Test_tkt_38cb5df375(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-38cb5df375.0"
@@ -249,6 +251,7 @@ func Test_tkt_38cb5df375(t *testing.T) {
 	}
 	for _, ii := range tclSplitList("1 2 3 4 5 6 7") {
 		jj := "7-$ii"
+		_ = jj // suppress unused warning
 		{ // do_test "tkt-38cb5df375.51." + ii
 			r = db.Query("\n      SELECT a FROM (SELECT * FROM t1 ORDER BY a)\n      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT $::ii)\n      ORDER BY a DESC\n      LIMIT $::jj;\n    ")
 			if r.Error != nil {

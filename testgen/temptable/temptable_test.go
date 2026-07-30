@@ -16,6 +16,8 @@ func Test_temptable(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "temptable-1.0"
@@ -104,9 +106,8 @@ func Test_temptable(t *testing.T) {
 	{ // do_test "temptable-1.12"
 		db2.Exec("DROP TABLE t2;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db2.Exec("SELECT * FROM t2")
@@ -150,9 +151,8 @@ func Test_temptable(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "temptable-2.5"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			db2.Exec("SELECT * FROM t2")

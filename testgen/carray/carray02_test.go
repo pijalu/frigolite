@@ -15,6 +15,8 @@ func Test_carray02(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "carray02"
@@ -42,8 +44,11 @@ func Test_carray02(t *testing.T) {
 	_items := tclSplitList("\n  1 { SELECT value FROM carray(?) WHERE value>2 } {3 4 5}\n  2 { \n    WITH s(i) AS ( VALUES(1) UNION ALL VALUES(2) )\n    SELECT i, value FROM s, carray(?) WHERE i=value;\n  } {1 1 2 2}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			{ // do_test "2.2." + tn
 				var STMT = ""
@@ -58,8 +63,11 @@ func Test_carray02(t *testing.T) {
 		_items := tclSplitList("\n  1 { SELECT value FROM carray(?, 5) } {1 2 3 4 5}\n  2 { SELECT value FROM carray(?, 3, 'int32') } {1 2 3}\n  3 { SELECT value, pointer, count, ctype FROM carray(?, 5, 'int32') } \n    {1 {} 5 int32 2 {} 5 int32 3 {} 5 int32 4 {} 5 int32 5 {} 5 int32}\n  4 { SELECT rowid, value FROM carray(?, 5, 'int32') } \n    {1 1 2 2 3 3 4 4 5 5}\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			res := _items[_idx+2]
+			_ = res // suppress unused warning
 			_ = _idx
 				{ // do_test "2.3." + tn
 					var STMT = ""
@@ -74,8 +82,11 @@ func Test_carray02(t *testing.T) {
 			_items := tclSplitList("\n  1 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3 4 4 5 5}\n\n  2 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value=b.value AND a.value<3 AND b.value<3\n  } {1 1 2 2 3 3}\n\n  3 { \n    SELECT * FROM carray(?1) AS a, carray(?2) AS b \n    WHERE a.value<3 AND b.value<3 AND a.value=b.value\n  } {1 1 2 2 3 3}\n\n  4 { \n    SELECT * FROM carray(?1) AS a, carray(?2, a.value) AS b \n    WHERE a.value=b.value\n  } {1 1 2 2 3 3}\n\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				sql := _items[_idx+1]
+				_ = sql // suppress unused warning
 				res := _items[_idx+2]
+				_ = res // suppress unused warning
 				_ = _idx
 					{ // do_test "2.4." + tn
 						var STMT = ""

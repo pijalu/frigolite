@@ -17,6 +17,8 @@ func Test_e_select(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "e_select-1.0"
@@ -116,8 +118,11 @@ func Test_e_select(t *testing.T) {
 	_items := tclSplitList("list                                              \\\n    1 { SELECT * FROM t1 %JOIN% t2 ON (1) }       $t1_cross_t2             \\\n    2 { SELECT * FROM t1 %JOIN% t2 ON (0) }       [list]                   \\\n    3 { SELECT * FROM t1 %JOIN% t2 ON (NULL) }    [list]                   \\\n    4 { SELECT * FROM t1 %JOIN% t2 ON ('abc') }   [list]                   \\\n    5 { SELECT * FROM t1 %JOIN% t2 ON ('1ab') }   $t1_cross_t2             \\\n    6 { SELECT * FROM t1 %JOIN% t2 ON (0.9) }     $t1_cross_t2             \\\n    7 { SELECT * FROM t1 %JOIN% t2 ON ('0.9') }   $t1_cross_t2             \\\n    8 { SELECT * FROM t1 %JOIN% t2 ON (0.0) }     [list]                   \\\n                                                                           \\\n    9 { SELECT t1.b, t2.b FROM t1 %JOIN% t2 ON (t1.a = t2.a) }             \\\n      {one I two II three III}                                             \\\n   10 { SELECT t1.b, t2.b FROM t1 %JOIN% t2 ON (t1.a = 'a') }              \\\n      {one I one II one III}                                               \\\n   11 { SELECT t1.b, t2.b \n        FROM t1 %JOIN% t2 ON (CASE WHEN t1.a = 'a' THEN NULL ELSE 1 END) } \\\n      {two I two II two III three I three II three III}                    \\")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		_select := _items[_idx+1]
+		_ = _select // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.3.$tn $select $res")
 		}
@@ -133,8 +138,11 @@ func Test_e_select(t *testing.T) {
 		_items := tclSplitList("\n  1 { SELECT * FROM t5 %JOIN% t6 USING (a) } {AA cc cc BB dd DD}\n  2 { SELECT * FROM t6 %JOIN% t5 USING (a) } {}\n  3 { SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) %JOIN% t5 USING (a) } \n    {aa cc cc bb DD dd}\n  4 { SELECT * FROM t5 %JOIN% t6 USING (a,b) } {AA cc}\n  5 { SELECT * FROM t6 %JOIN% t5 USING (a,b) } {}\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			_select := _items[_idx+1]
+			_ = _select // suppress unused warning
 			res := _items[_idx+2]
+			_ = res // suppress unused warning
 			_ = _idx
 				t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.6.$tn $select $res")
 			}
@@ -142,8 +150,11 @@ func Test_e_select(t *testing.T) {
 			_items := tclSplitList("\n  1a { SELECT * FROM t1 %JOIN% t2 USING (a)      } \n     {a one I b two II c three III}\n  1b { SELECT * FROM t1 %JOIN% t2 ON (t1.a=t2.a) }\n     {a one a I b two b II c three c III}\n\n  2a { SELECT * FROM t3 %JOIN% t4 USING (a)      }  \n     {a 1 {} b 2 2}\n  2b { SELECT * FROM t3 %JOIN% t4 ON (t3.a=t4.a) } \n     {a 1 a {} b 2 b 2}\n\n  3a { SELECT * FROM t3 %JOIN% t4 USING (a,c)                  } {b 2}\n  3b { SELECT * FROM t3 %JOIN% t4 ON (t3.a=t4.a AND t3.c=t4.c) } {b 2 b 2}\n\n  4a { SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x \n       %JOIN% t5 USING (a) } \n     {aa cc cc bb DD dd}\n  4b { SELECT * FROM (SELECT a COLLATE nocase, b FROM t6) AS x\n       %JOIN% t5 ON (x.a=t5.a) } \n     {aa cc AA cc bb DD BB dd}\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				_select := _items[_idx+1]
+				_ = _select // suppress unused warning
 				res := _items[_idx+2]
+				_ = res // suppress unused warning
 				_ = _idx
 					t.Skipf("TODO: %s not implemented in frigolite", "do_join_test e_select-1.7.$tn $select $res")
 				}
@@ -167,7 +178,9 @@ func Test_e_select(t *testing.T) {
 				_items := tclSplitList("\n  1 {SELECT * FROM t1 NATURAL LEFT JOIN t2 USING (a)}\n  2 {SELECT * FROM t1 NATURAL LEFT JOIN t2 ON (t1.a=t2.a)}\n  3 {SELECT * FROM t1 NATURAL LEFT JOIN t2 ON (45)}\n")
 				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					sql := _items[_idx+1]
+					_ = sql // suppress unused warning
 					_ = _idx
 						{ // "e_select-1.12." + tn
 							_res = db.Exec("\n    " + sql + "\n  ")
@@ -321,8 +334,11 @@ func Test_e_select(t *testing.T) {
 					_items := tclSplitList("\n  1.1  \"SELECT a, b, c FROM z1 WHERE *\"    {near \"*\": syntax error}\n  1.2  \"SELECT a, b, c FROM z1 GROUP BY *\" {near \"*\": syntax error}\n  1.3  \"SELECT 1 + * FROM z1\"              {near \"*\": syntax error}\n  1.4  \"SELECT * + 1 FROM z1\"              {near \"+\": syntax error}\n\n  2.1 \"SELECT *\" {no tables specified}\n  2.2 \"SELECT * WHERE 1\" {no tables specified}\n  2.3 \"SELECT * WHERE 0\" {no tables specified}\n  2.4 \"SELECT count(*), *\" {no tables specified}\n")
 					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						_select := _items[_idx+1]
+						_ = _select // suppress unused warning
 						err := _items[_idx+2]
+						_ = err // suppress unused warning
 						_ = _idx
 							{ // "e_select-4.2." + tn
 								_res = db.Exec(_select)
@@ -335,8 +351,11 @@ func Test_e_select(t *testing.T) {
 						_items := tclSplitList("\n  1   \"SELECT * FROM z1\"   3\n  2   \"SELECT * FROM z1 NATURAL JOIN z3\"            3\n  3   \"SELECT z1.* FROM z1 NATURAL JOIN z3\"         3\n  4   \"SELECT z3.* FROM z1 NATURAL JOIN z3\"         2\n  5   \"SELECT z1.*, z3.* FROM z1 NATURAL JOIN z3\"   5\n  6   \"SELECT 1, 2, z1.* FROM z1\"                   5\n  7   \"SELECT a, *, b, c FROM z1\"                   6\n")
 						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 							tn := _items[_idx+0]
+							_ = tn // suppress unused warning
 							_select := _items[_idx+1]
+							_ = _select // suppress unused warning
 							nCol := _items[_idx+2]
+							_ = nCol // suppress unused warning
 							_ = _idx
 								var _stmt = "" // TCL namespace variable
 								_ = _stmt // suppress unused warning
@@ -360,7 +379,9 @@ func Test_e_select(t *testing.T) {
 							_items := tclSplitList("\n  8.1  \"SELECT count(*) FROM a1\"\n  8.2  \"SELECT count(*) FROM a1 WHERE 0\"\n  8.3  \"SELECT count(*) FROM a1 WHERE 1\"\n  8.4  \"SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 1\"\n  8.5  \"SELECT max(a1.one)+min(two), a1.one, two, * FROM a1, a2 WHERE 0\"\n")
 							for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 								tn := _items[_idx+0]
+								_ = tn // suppress unused warning
 								_select := _items[_idx+1]
+								_ = _select // suppress unused warning
 								_ = _idx
 									var _stmt = "" // TCL namespace variable
 									_ = _stmt // suppress unused warning
@@ -398,7 +419,9 @@ func Test_e_select(t *testing.T) {
 								_items := tclSplitList("\n  12.1  \"SELECT * FROM b3 GROUP BY count(*)\"\n  12.2  \"SELECT max(a) FROM b3 GROUP BY max(b)\"\n  12.3  \"SELECT group_concat(a) FROM b3 GROUP BY a, max(b)\"\n")
 								for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 									tn := _items[_idx+0]
+									_ = tn // suppress unused warning
 									_select := _items[_idx+1]
+									_ = _select // suppress unused warning
 									_ = _idx
 										var res = "1 {aggregate functions are not allowed in the GROUP BY clause}"
 										_ = res // suppress unused warning
@@ -442,9 +465,13 @@ func Test_e_select(t *testing.T) {
 									_items := tclSplitList("\n  1   \"SELECT * FROM j1 ORDER BY a UNION ALL SELECT * FROM j2,j3\" \n      {ORDER BY} {UNION ALL}\n  2   \"SELECT count(*) FROM j1 ORDER BY 1 UNION ALL SELECT max(e) FROM j2\"\n      {ORDER BY} {UNION ALL}\n  3   \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 UNION ALL SELECT *,* FROM j2\"\n      {ORDER BY} {UNION ALL}\n  4   \"SELECT * FROM j1 LIMIT 10 UNION ALL SELECT * FROM j2,j3\" \n      LIMIT {UNION ALL}\n  5   \"SELECT * FROM j1 LIMIT 10 OFFSET 5 UNION ALL SELECT * FROM j2,j3\" \n      LIMIT {UNION ALL}\n  6   \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) UNION ALL SELECT g FROM j2,j3\" \n      LIMIT {UNION ALL}\n\n  7   \"SELECT * FROM j1 ORDER BY a UNION SELECT * FROM j2,j3\" \n      {ORDER BY} {UNION}\n  8   \"SELECT count(*) FROM j1 ORDER BY 1 UNION SELECT max(e) FROM j2\"\n      {ORDER BY} {UNION}\n  9   \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 UNION SELECT *,* FROM j2\"\n      {ORDER BY} {UNION}\n  10  \"SELECT * FROM j1 LIMIT 10 UNION SELECT * FROM j2,j3\" \n      LIMIT {UNION}\n  11  \"SELECT * FROM j1 LIMIT 10 OFFSET 5 UNION SELECT * FROM j2,j3\" \n      LIMIT {UNION}\n  12  \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) UNION SELECT g FROM j2,j3\" \n      LIMIT {UNION}\n\n  13  \"SELECT * FROM j1 ORDER BY a EXCEPT SELECT * FROM j2,j3\" \n      {ORDER BY} {EXCEPT}\n  14  \"SELECT count(*) FROM j1 ORDER BY 1 EXCEPT SELECT max(e) FROM j2\"\n      {ORDER BY} {EXCEPT}\n  15  \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 EXCEPT SELECT *,* FROM j2\"\n      {ORDER BY} {EXCEPT}\n  16  \"SELECT * FROM j1 LIMIT 10 EXCEPT SELECT * FROM j2,j3\" \n      LIMIT {EXCEPT}\n  17  \"SELECT * FROM j1 LIMIT 10 OFFSET 5 EXCEPT SELECT * FROM j2,j3\" \n      LIMIT {EXCEPT}\n  18  \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) EXCEPT SELECT g FROM j2,j3\" \n      LIMIT {EXCEPT}\n\n  19  \"SELECT * FROM j1 ORDER BY a INTERSECT SELECT * FROM j2,j3\" \n      {ORDER BY} {INTERSECT}\n  20  \"SELECT count(*) FROM j1 ORDER BY 1 INTERSECT SELECT max(e) FROM j2\"\n      {ORDER BY} {INTERSECT}\n  21  \"SELECT count(*), * FROM j1 ORDER BY 1,2,3 INTERSECT SELECT *,* FROM j2\"\n      {ORDER BY} {INTERSECT}\n  22  \"SELECT * FROM j1 LIMIT 10 INTERSECT SELECT * FROM j2,j3\" \n      LIMIT {INTERSECT}\n  23  \"SELECT * FROM j1 LIMIT 10 OFFSET 5 INTERSECT SELECT * FROM j2,j3\" \n      LIMIT {INTERSECT}\n  24  \"SELECT a FROM j1 LIMIT (SELECT e FROM j2) INTERSECT SELECT g FROM j2,j3\" \n      LIMIT {INTERSECT}\n")
 									for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 										tn := _items[_idx+0]
+										_ = tn // suppress unused warning
 										_select := _items[_idx+1]
+										_ = _select // suppress unused warning
 										op1 := _items[_idx+2]
+										_ = op1 // suppress unused warning
 										op2 := _items[_idx+3]
+										_ = op2 // suppress unused warning
 										_ = _idx
 											var err = op1 + " clause should come after " + op2 + " not before"
 											_ = err // suppress unused warning
@@ -459,7 +486,9 @@ func Test_e_select(t *testing.T) {
 										_items := tclSplitList("\n  1   \"SELECT * FROM j1 UNION ALL SELECT * FROM j2,j3 ORDER BY a\"\n  2   \"SELECT count(*) FROM j1 UNION ALL SELECT max(e) FROM j2 ORDER BY 1\"\n  3   \"SELECT count(*), * FROM j1 UNION ALL SELECT *,* FROM j2 ORDER BY 1,2,3\"\n  4   \"SELECT * FROM j1 UNION ALL SELECT * FROM j2,j3 LIMIT 10\" \n  5   \"SELECT * FROM j1 UNION ALL SELECT * FROM j2,j3 LIMIT 10 OFFSET 5\" \n  6   \"SELECT a FROM j1 UNION ALL SELECT g FROM j2,j3 LIMIT (SELECT 10)\" \n\n  7   \"SELECT * FROM j1 UNION SELECT * FROM j2,j3 ORDER BY a\"\n  8   \"SELECT count(*) FROM j1 UNION SELECT max(e) FROM j2 ORDER BY 1\"\n  8b  \"VALUES('8b') UNION SELECT max(e) FROM j2 ORDER BY 1\"\n  9   \"SELECT count(*), * FROM j1 UNION SELECT *,* FROM j2 ORDER BY 1,2,3\"\n  10  \"SELECT * FROM j1 UNION SELECT * FROM j2,j3 LIMIT 10\" \n  11  \"SELECT * FROM j1 UNION SELECT * FROM j2,j3 LIMIT 10 OFFSET 5\" \n  12  \"SELECT a FROM j1 UNION SELECT g FROM j2,j3 LIMIT (SELECT 10)\" \n\n  13  \"SELECT * FROM j1 EXCEPT SELECT * FROM j2,j3 ORDER BY a\"\n  14  \"SELECT count(*) FROM j1 EXCEPT SELECT max(e) FROM j2 ORDER BY 1\"\n  15  \"SELECT count(*), * FROM j1 EXCEPT SELECT *,* FROM j2 ORDER BY 1,2,3\"\n  16  \"SELECT * FROM j1 EXCEPT SELECT * FROM j2,j3 LIMIT 10\" \n  17  \"SELECT * FROM j1 EXCEPT SELECT * FROM j2,j3 LIMIT 10 OFFSET 5\" \n  18  \"SELECT a FROM j1 EXCEPT SELECT g FROM j2,j3 LIMIT (SELECT 10)\" \n\n  19  \"SELECT * FROM j1 INTERSECT SELECT * FROM j2,j3 ORDER BY a\"\n  20  \"SELECT count(*) FROM j1 INTERSECT SELECT max(e) FROM j2 ORDER BY 1\"\n  21  \"SELECT count(*), * FROM j1 INTERSECT SELECT *,* FROM j2 ORDER BY 1,2,3\"\n  22  \"SELECT * FROM j1 INTERSECT SELECT * FROM j2,j3 LIMIT 10\" \n  23  \"SELECT * FROM j1 INTERSECT SELECT * FROM j2,j3 LIMIT 10 OFFSET 5\" \n  24  \"SELECT a FROM j1 INTERSECT SELECT g FROM j2,j3 LIMIT (SELECT 10)\" \n")
 										for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 											tn := _items[_idx+0]
+											_ = tn // suppress unused warning
 											_select := _items[_idx+1]
+											_ = _select // suppress unused warning
 											_ = _idx
 												{ // do_test "e_select-7.3." + tn
 													{
@@ -482,7 +511,9 @@ func Test_e_select(t *testing.T) {
 											_items := tclSplitList("\n  50   \"SELECT * FROM j1 ORDER BY 1 UNION ALL SELECT * FROM j2,j3\"\n  51   \"SELECT * FROM j1 LIMIT 1 UNION ALL SELECT * FROM j2,j3\"\n  52   \"SELECT count(*) FROM j1 UNION ALL VALUES(11) ORDER BY 1\"\n  53   \"SELECT count(*) FROM j1 UNION ALL VALUES(11) LIMIT 1\"\n")
 											for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 												tn := _items[_idx+0]
+												_ = tn // suppress unused warning
 												_select := _items[_idx+1]
+												_ = _select // suppress unused warning
 												_ = _idx
 													{ // do_test "e_select-7.3." + tn
 														{
@@ -541,8 +572,11 @@ func Test_e_select(t *testing.T) {
 												_items := tclSplitList("\n  1a \"(1,2) INTERSECT (1)   UNION     (3)\"   {1 3}\n  1b \"(3)   UNION     (1,2) INTERSECT (1)\"   {1}\n\n  2a \"(1,2) UNION     (3)   UNION ALL (1)\"   {1 2 3 1}\n  2b \"(1)   UNION ALL (3)   UNION     (1,2)\" {1 2 3}\n\n  3a \"(1,2) UNION     (3)   EXCEPT    (1)\"   {2 3}\n  3b \"(1,2) EXCEPT    (3)   UNION     (1)\"   {1 2}\n\n  4a \"(1,2) INTERSECT (1)   UNION ALL (3)\"   {1 3}\n  4b \"(3)   UNION     (1,2) INTERSECT (1)\"   {1}\n\n  5a \"(1,2) INTERSECT (2)   EXCEPT    (2)\"   {}\n  5b \"(2,3) EXCEPT    (2)   INTERSECT (2)\"   {}\n\n  6a \"(2)   UNION ALL (2)   EXCEPT    (2)\"   {}\n  6b \"(2)   EXCEPT    (2)   UNION ALL (2)\"   {2}\n\n  7  \"(2,3) EXCEPT    (2)   EXCEPT    (3)\"   {}\n")
 												for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 													tn := _items[_idx+0]
+													_ = tn // suppress unused warning
 													_select := _items[_idx+1]
+													_ = _select // suppress unused warning
 													res := _items[_idx+2]
+													_ = res // suppress unused warning
 													_ = _idx
 														var _select = "{( {SELECT x FROM t1 WHERE x IN (}} $select"
 														_ = _select // suppress unused warning
@@ -717,7 +751,9 @@ func Test_e_select(t *testing.T) {
 													_items := tclSplitList("\n  1  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET 'hello' } \n  2  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET NULL } \n  3  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET X'ABCD' } \n  4  { SELECT b FROM f1 ORDER BY a LIMIT 2 OFFSET 5.1 } \n  5  { SELECT b FROM f1 ORDER BY a \n       LIMIT 2 OFFSET (SELECT group_concat(b) FROM f1) \n  } \n")
 													for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 														tn := _items[_idx+0]
+														_ = tn // suppress unused warning
 														_select := _items[_idx+1]
+														_ = _select // suppress unused warning
 														_ = _idx
 															{ // "e_select-9.7." + tn
 																_res = db.Exec(_select)

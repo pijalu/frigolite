@@ -17,6 +17,8 @@ func Test_autovacuum(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -211,6 +213,7 @@ func Test_autovacuum(t *testing.T) {
 	var root_page_list = "list"
 	_ = root_page_list // suppress unused warning
 	pending_byte_page := "($::sqlite_pending_byte / 1024) + 1"
+	_ = pending_byte_page // suppress unused warning
 	if tclBool("sqlite3 -has-codec") {
 	} else {
 	}

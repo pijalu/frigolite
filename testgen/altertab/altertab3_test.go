@@ -16,6 +16,8 @@ func Test_altertab3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "altertab3"
@@ -419,8 +421,11 @@ func Test_altertab3(t *testing.T) {
 	_items := tclSplitList("\n  1 {\n    CREATE VIEW q AS SELECT 123\n    \n      WINDOW x AS (\n        RANGE BETWEEN UNBOUNDED PRECEDING AND INDEXED() OVER(\n          PARTITION BY ( WITH x AS(VALUES(col1)) VALUES(453) )\n        )\n      FOLLOWING\n    ) \n  } {1 {error in view q: no such column: col1}}\n\n  2 {\n    CREATE VIEW q AS SELECT\n    CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(CAST(RIGHT\n    AS)AS)AS)AS)AS)AS)AS)AS)AS)AS)AS)WINDOW x AS(RANGE BETWEEN UNBOUNDED\n    PRECEDING AND INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,NATURAL,sqlite_master(*)OVER a,(WITH a AS(VALUES(LEFT)UNION\n    VALUES(LEFT)UNION VALUES(LEFT)UNION VALUES(LEFT)UNION VALUES(LEFT)UNION\n    VALUES(LEFT)UNION VALUES(LEFT))VALUES(LEFT))IN\n    STORED,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT)*LEFT FOLLOWING)ORDER BY\n    LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT LIMIT\n    LEFT,INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,CROSS,LEFT,INDEXED(*)OVER(PARTITION BY\n    CROSS,CROSS,CROSS),INDEXED(*)OVER(PARTITION BY\n    LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT,LEFT),\n    LEFT,LEFT,INNER,CROSS,CROSS,CROSS,INNER,NATURAL ORDER BY\n    OUTER,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,NATURAL,INNER,\n    INNER,INNER NULLS LAST GROUPS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED\n    FOLLOWING); \n  } {1 {error in view q: no such column: LEFT}}\n\n  3 {\n    CREATE VIEW q AS SELECT 99 WINDOW x AS (RANGE BETWEEN UNBOUNDED PRECEDING\n    AND count(*)OVER(PARTITION BY (WITH a AS(VALUES(2),(x3))VALUES(0)))\n    FOLLOWING)ORDER BY x2,sum(1)OVER(PARTITION BY avg(5)OVER(PARTITION BY x1));\n  } {1 {error in view q: no such column: x3}}\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		v := _items[_idx+1]
+		_ = v // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		_ = _idx
 			{ // "19." + tn + ".1"
 				_res = db.Exec("\n    DROP VIEW IF EXISTS q;\n    " + v + "\n  ")

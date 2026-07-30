@@ -17,6 +17,8 @@ func Test_backup(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
@@ -74,6 +76,7 @@ func Test_backup(t *testing.T) {
 							}
 							// eval $zOpenScript
 							isMemDest := "$zDestFile eq \":memory:\" || $file_dest eq \"temp\""
+							_ = isMemDest // suppress unused warning
 							if false {
 								t.Log("-nonewline")
 								t.Log("-nonewline")
@@ -353,9 +356,9 @@ func Test_backup(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "B finish")
 	}
 	{ // do_test "backup-4.4.1"
-		var rc string
-		var _catchErrMsg string
-		_ = _catchErrMsg // suppress unused warning
+	var rc string
+	var _catchErrMsg string
+	_ = _catchErrMsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db main db aux1")
@@ -407,7 +410,9 @@ func Test_backup(t *testing.T) {
 	_items := tclSplitList("db test.db db3 test.db db :memory:")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		writer := _items[_idx+0]
+		_ = writer // suppress unused warning
 		file := _items[_idx+1]
+		_ = file // suppress unused warning
 		_ = _idx
 			// incr iTest 1
 			{
@@ -620,6 +625,7 @@ func Test_backup(t *testing.T) {
 		}
 		{ // do_test "backup-6.2"
 			nTotal := "[file size test.db]/1024"
+			_ = nTotal // suppress unused warning
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 			t.Skipf("TODO: %s not implemented in frigolite", "B step 1")
 		}
@@ -869,8 +875,11 @@ func Test_backup(t *testing.T) {
 		_items := tclSplitList("\n  1 test.db  SQLITE_DONE\n  2 :memory: SQLITE_OK\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			file := _items[_idx+1]
+			_ = file // suppress unused warning
 			rc := _items[_idx+2]
+			_ = rc // suppress unused warning
 			_ = _idx
 				{ // do_test "backup-10." + tn + ".1"
 					db, err := frigolite.Open(file)

@@ -15,6 +15,8 @@ func Test_alter2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
@@ -128,6 +130,7 @@ func Test_alter2(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
 	default_file_format := "$SQLITE_DEFAULT_FILE_FORMAT==4 ? 4 : 1"
+	_ = default_file_format // suppress unused warning
 	{ // do_test "alter2-6.1"
 		t.Skipf("TODO: %s not implemented in frigolite", "set_file_format 2")
 		db, err := frigolite.Open("test.db")

@@ -16,6 +16,8 @@ func Test_rollback(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var DB = "sqlite3_connection_pointer db"
@@ -68,9 +70,11 @@ func Test_rollback(t *testing.T) {
 			}
 		}
 		mj_pgno := "$sqlite_pending_byte / 1024"
+		_ = mj_pgno // suppress unused warning
 		var zAppend = "binary format Ia*IIa8 $mj_pgno $mj [string length $mj] $cksum \\\n    \"\\xd9\\xd5\\x05\\xf9\\x20\\xa1\\x63\\xd7\""
 		_ = zAppend // suppress unused warning
 		iOffset := "(([file size testA.db-journal] + 511)/512)*512"
+		_ = iOffset // suppress unused warning
 		var fd = "open testA.db-journal a+"
 		_ = fd // suppress unused warning
 		t.Skipf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary")

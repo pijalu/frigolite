@@ -15,6 +15,8 @@ func Test_uri2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "uri2"
@@ -25,12 +27,13 @@ func Test_uri2(t *testing.T) {
 	_items := tclSplitList("\n  1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		uri := _items[_idx+1]
+		_ = uri // suppress unused warning
 		_ = _idx
 			{ // do_test "1." + tn + ".1"
-				var rc string
-				var msg string
-				_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
 					db, err := frigolite.Open(uri)

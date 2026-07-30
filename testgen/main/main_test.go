@@ -16,6 +16,8 @@ func Test_main(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "main-1.30"
@@ -49,9 +51,8 @@ func Test_main(t *testing.T) {
 			_ = fd // suppress unused warning
 			t.Log(fd)
 			// close $fd
-			var v string
-			var msg string
-			_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
 				db, err := frigolite.Open("test.db")
@@ -83,9 +84,8 @@ func Test_main(t *testing.T) {
 		db, err := frigolite.Open("testdb")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT * from T1 where x!!5")
@@ -112,9 +112,8 @@ func Test_main(t *testing.T) {
 		db, err := frigolite.Open("testdb")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("SELECT * from T1 where ^x")
@@ -293,9 +292,8 @@ func Test_main(t *testing.T) {
 		}
 	}
 	{ // do_test "main-3.4"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("create bogus")
@@ -311,9 +309,8 @@ func Test_main(t *testing.T) {
 		v = tclListAppend(v, msg)
 	}
 	{ // do_test "main-3.5"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("create")

@@ -15,6 +15,8 @@ func Test_tkt3457(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("llength [info commands test_syscall]" + "==0") {

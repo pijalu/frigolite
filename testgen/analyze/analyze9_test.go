@@ -17,6 +17,8 @@ func Test_analyze9(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "analyze9"
@@ -89,7 +91,9 @@ func Test_analyze9(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
 			a := "$i / 10"
+			_ = a // suppress unused warning
 			b := "0"
+			_ = b // suppress unused warning
 			_res = db.Exec(" INSERT INTO t2 VALUES($a, $b) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES($a, $b) ")
@@ -451,6 +455,7 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	value_d := "101"
+	_ = value_d // suppress unused warning
 	{ // "9.4.1"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='x' AND b='y' AND c='z' AND d=$value_d AND e=5\n")
 		if r.Error != nil {
@@ -458,6 +463,7 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	value_d := "99"
+	_ = value_d // suppress unused warning
 	{ // "9.4.2"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='x' AND b='y' AND c='z' AND d=$value_d AND e=5\n")
 		if r.Error != nil {
@@ -482,6 +488,7 @@ func Test_analyze9(t *testing.T) {
 				_ = a // suppress unused warning
 			}
 			b := "$i % 5"
+			_ = b // suppress unused warning
 			_res = db.Exec("INSERT INTO t3 VALUES(" + a + ", " + b + ")")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t3 VALUES(" + a + ", " + b + ")")
@@ -529,6 +536,7 @@ func Test_analyze9(t *testing.T) {
 				_ = a // suppress unused warning
 			}
 			b := "$i % 5"
+			_ = b // suppress unused warning
 			_res = db.Exec("INSERT INTO t3 VALUES('xyz', " + a + ", " + b + ")")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t3 VALUES('xyz', " + a + ", " + b + ")")
@@ -562,7 +570,9 @@ func Test_analyze9(t *testing.T) {
 	_items := tclSplitList("\n  1 {\n    CREATE TABLE t4(a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(a);\n    CREATE INDEX t4b ON t4(b);\n  }\n  2 {\n    CREATE TABLE t4(a, b);\n    CREATE INDEX t4a ON t4(a COLLATE nocase);\n    CREATE INDEX t4b ON t4(b);\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		schema := _items[_idx+1]
+		_ = schema // suppress unused warning
 		_ = _idx
 			t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
 			{ // do_test "11." + tn + ".1"
@@ -583,6 +593,7 @@ func Test_analyze9(t *testing.T) {
 						_ = a // suppress unused warning
 					}
 					b := "$i % 5"
+					_ = b // suppress unused warning
 					_res = db.Exec(" INSERT INTO t4 VALUES($a, $b) ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES($a, $b) ")
@@ -638,7 +649,9 @@ func Test_analyze9(t *testing.T) {
 		_items := tclSplitList("\n  1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			schema := _items[_idx+1]
+			_ = schema // suppress unused warning
 			_ = _idx
 				t.Skipf("TODO: %s not implemented in frigolite", "drop_all_tables")
 				{ // do_test "12." + tn + ".1"
@@ -659,6 +672,7 @@ func Test_analyze9(t *testing.T) {
 							_ = a // suppress unused warning
 						}
 						b := "$i % 5"
+						_ = b // suppress unused warning
 						_res = db.Exec(" INSERT INTO t4 VALUES(X'abcdef', $a, $b) ")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t4 VALUES(X'abcdef', $a, $b) ")
@@ -777,6 +791,7 @@ func Test_analyze9(t *testing.T) {
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 					c := "$i % 3"
+					_ = c // suppress unused warning
 					_res = db.Exec(" INSERT INTO t1 VALUES('ott', $i, $c) ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES('ott', $i, $c) ")
@@ -921,6 +936,7 @@ func Test_analyze9(t *testing.T) {
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 160 }() {
 					b := "$i % 10"
+					_ = b // suppress unused warning
 					if func() bool { b_n, _b_e := strconv.Atoi(b); if _b_e != nil { return false }; return b_n == 0 || b_n==2 }() {
 						var b = "1"
 						_ = b // suppress unused warning
@@ -1318,8 +1334,11 @@ func Test_analyze9(t *testing.T) {
 			_items := tclSplitList("\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				where := _items[_idx+1]
+				_ = where // suppress unused warning
 				res := _items[_idx+2]
+				_ = res // suppress unused warning
 				_ = _idx
 					{ // "22.2." + tn
 						r = db.Query("EXPLAIN QUERY PLAN " + "SELECT * FROM t3 WHERE " + where)
@@ -1357,8 +1376,11 @@ func Test_analyze9(t *testing.T) {
 				_items := tclSplitList("\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					where := _items[_idx+1]
+					_ = where // suppress unused warning
 					eqp := _items[_idx+2]
+					_ = eqp // suppress unused warning
 					_ = _idx
 						{ // "24." + tn
 							r = db.Query("EXPLAIN QUERY PLAN " + "SeLeCt * FROM t5 WHERE " + where)

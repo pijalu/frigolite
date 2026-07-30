@@ -16,6 +16,8 @@ func Test_interrupt(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var DB = "sqlite3_connection_pointer db"
@@ -70,6 +72,7 @@ func Test_interrupt(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 	}
 	max_count := "1000000-$sqlite_interrupt_count"
+	_ = max_count // suppress unused warning
 	var i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; max_count_n, _max_count_e := strconv.Atoi(max_count); if _max_count_e != nil { return false }; return i_n < max_count_n-5 }() {

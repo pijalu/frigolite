@@ -15,6 +15,8 @@ func Test_progress(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  BEGIN;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n  INSERT INTO t1 VALUES(5);\n  INSERT INTO t1 VALUES(6);\n  INSERT INTO t1 VALUES(7);\n  INSERT INTO t1 VALUES(8);\n  INSERT INTO t1 VALUES(9);\n  INSERT INTO t1 VALUES(10);\n  COMMIT;\n")
@@ -33,9 +35,8 @@ func Test_progress(t *testing.T) {
 	{ // do_test "progress-1.0.1"
 	}
 	{ // do_test "progress-1.0.2"
-		var v string
-		var msg string
-		_ = msg // suppress unused warning
+	var v string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			if _catchErr != nil {
@@ -51,9 +52,9 @@ func Test_progress(t *testing.T) {
 	{ // do_test "progress-1.1"
 		var counter = "0"
 		_ = counter // suppress unused warning
-		var rc string
-		var _catchErrMsg string
-		_ = _catchErrMsg // suppress unused warning
+	var rc string
+	var _catchErrMsg string
+	_ = _catchErrMsg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			r = db.Query("\n    SELECT * FROM t1\n  ")

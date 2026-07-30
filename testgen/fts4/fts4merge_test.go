@@ -17,6 +17,8 @@ func Test_fts4merge(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -142,7 +144,9 @@ func Test_fts4merge(t *testing.T) {
 		_items := tclSplitList("\n    1   {merge=abc}\n    2   {merge=%%%}\n    3   {merge=,}\n    4   {merge=5,}\n    5   {merge=6,%}\n    6   {merge=6,six}\n    7   {merge=6,1}\n  ")
 		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			arg := _items[_idx+1]
+			_ = arg // suppress unused warning
 			_ = _idx
 				{ // "2." + tn
 					_res = db.Exec(" \n      INSERT INTO t2(t2) VALUES($arg);\n    ")
@@ -219,7 +223,9 @@ func Test_fts4merge(t *testing.T) {
 			_items := tclSplitList("\n    1  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 1 0\"\n    2  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12}    1 0\"\n    3  \"0 {0 1 2 3 4 5 6 7 8 9 10 11}       1 0\"\n    4  \"0 {0 1 2 3 4 5 6 7 8 9 10}          1 0\"\n    5  \"0 {0 1 2 3 4 5 6 7 8 9}             1 0\"\n    6  \"0 {0 1 2 3 4 5 6 7 8}               1 0\"\n    7  \"0 {0 1 2 3 4 5 6 7}                 1 0\"\n    8  \"0 {0 1 2 3 4 5 6}                   1 0\"\n    9  \"0 {0 1 2 3 4 5}                     1 0\"\n  ")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				expect := _items[_idx+1]
+				_ = expect // suppress unused warning
 				_ = _idx
 					{ // "4.3." + tn
 						r = db.Query("\n      INSERT INTO t4(t4) VALUES('merge=1,16');\n      SELECT level, group_concat(idx, ' ') FROM t4_segdir GROUP BY level;\n    ")
@@ -350,6 +356,7 @@ func Test_fts4merge(t *testing.T) {
 				}
 				{ // do_test "5.9"
 					L := "1852"
+					_ = L // suppress unused warning
 					for _, docid := range tclSplitList("execsql {\n        SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L\n    }") {
 						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=$docid")
 						if _res.Error != nil {

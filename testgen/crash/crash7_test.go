@@ -17,6 +17,8 @@ func Test_crash7(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "crash7"
@@ -31,7 +33,9 @@ func Test_crash7(t *testing.T) {
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
 			from_size := "1024 << ($ii&3)"
+			_ = from_size // suppress unused warning
 			to_size := "1024 << (($ii>>2)&3)"
+			_ = to_size // suppress unused warning
 			_res = db.Exec("\n      PRAGMA page_size = " + from_size + ";\n      BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY, b, c);\n      INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n      INSERT INTO abc \n          SELECT randomblob(1000), randomblob(200), randomblob(100)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc WHERE " + "$ii&16" + ";\n      INSERT INTO abc \n          SELECT randomblob(25), randomblob(45), randomblob(9456)\n          FROM abc WHERE " + "$ii&32" + ";\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc WHERE " + "$ii&8" + ";\n      INSERT INTO abc \n          SELECT randomblob(25), randomblob(45), randomblob(9456)\n          FROM abc WHERE " + "$ii&4" + ";\n      COMMIT;\n    ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      PRAGMA page_size = " + from_size + ";\n      BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY, b, c);\n      INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n      INSERT INTO abc \n          SELECT randomblob(1000), randomblob(200), randomblob(100)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc WHERE " + "$ii&16" + ";\n      INSERT INTO abc \n          SELECT randomblob(25), randomblob(45), randomblob(9456)\n          FROM abc WHERE " + "$ii&32" + ";\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc WHERE " + "$ii&8" + ";\n      INSERT INTO abc \n          SELECT randomblob(25), randomblob(45), randomblob(9456)\n          FROM abc WHERE " + "$ii&4" + ";\n      COMMIT;\n    ")

@@ -17,6 +17,8 @@ func Test_fts3snippet(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3snippet"
@@ -33,7 +35,9 @@ func Test_fts3snippet(t *testing.T) {
 	_items := tclSplitList("\n  0 utf8\n  1 utf8\n  1 utf16\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		DO_MALLOC_TEST := _items[_idx+0]
+		_ = DO_MALLOC_TEST // suppress unused warning
 		enc := _items[_idx+1]
+		_ = enc // suppress unused warning
 		_ = _idx
 			os.Remove("test.db")
 			db, err := frigolite.Open("test.db")
@@ -197,6 +201,7 @@ func Test_fts3snippet(t *testing.T) {
 					var v2 = "[string repeat \"$numbers \" $n]"
 					_ = v2 // suppress unused warning
 					docid := "$n * 1000000"
+					_ = docid // suppress unused warning
 					_res = db.Exec(" INSERT INTO ft(docid, x, y) VALUES($docid, $v1, $v2) ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO ft(docid, x, y) VALUES($docid, $v1, $v2) ")

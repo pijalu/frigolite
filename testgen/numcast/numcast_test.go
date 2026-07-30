@@ -15,6 +15,8 @@ func Test_numcast(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	for _, enc := range tclSplitList("utf8 utf16le utf16be") {
@@ -34,9 +36,13 @@ func Test_numcast(t *testing.T) {
 		_items := tclSplitList("\n     1 12345.0       12345.0    12345\n     2 12345.0e0     12345.0    12345\n     3 -12345.0e0   -12345.0   -12345\n     4 -12345.25    -12345.25  -12345\n     5 { -12345.0}  -12345.0   -12345\n     6 { 876xyz}       876.0      876\n     7 { 456ķ89}       456.0      456\n     8 { Ġ 321.5}        0.0        0\n  ")
 		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 			idx := _items[_idx+0]
+			_ = idx // suppress unused warning
 			str := _items[_idx+1]
+			_ = str // suppress unused warning
 			rval := _items[_idx+2]
+			_ = rval // suppress unused warning
 			ival := _items[_idx+3]
+			_ = ival // suppress unused warning
 			_ = _idx
 				{ // do_test "numcast-" + enc + "." + idx + ".1"
 					_res = db.Exec("SELECT CAST($str AS real)")

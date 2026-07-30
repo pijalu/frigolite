@@ -15,6 +15,8 @@ func Test_intpkey(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "intpkey-1.0"
@@ -54,9 +56,8 @@ func Test_intpkey(t *testing.T) {
 		}
 	}
 	{ // do_test "intpkey-1.6"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n     INSERT INTO t1 VALUES(5,'second','entry');\n  ")
@@ -78,9 +79,8 @@ func Test_intpkey(t *testing.T) {
 		}
 	}
 	{ // do_test "intpkey-1.8"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n     INSERT INTO t1 VALUES(6,'second','entry');\n  ")
@@ -128,9 +128,8 @@ func Test_intpkey(t *testing.T) {
 		}
 	}
 	{ // do_test "intpkey-1.13.1"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1 VALUES('x','y','z');\n  ")
@@ -146,9 +145,8 @@ func Test_intpkey(t *testing.T) {
 		r = tclListAppend(r, msg)
 	}
 	{ // do_test "intpkey-1.13.2"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1 VALUES('','y','z');\n  ")
@@ -164,9 +162,8 @@ func Test_intpkey(t *testing.T) {
 		r = tclListAppend(r, msg)
 	}
 	{ // do_test "intpkey-1.14"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1 VALUES(3.4,'y','z');\n  ")
@@ -182,9 +179,8 @@ func Test_intpkey(t *testing.T) {
 		r = tclListAppend(r, msg)
 	}
 	{ // do_test "intpkey-1.15"
-		var r string
-		var msg string
-		_ = msg // suppress unused warning
+	var r string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    INSERT INTO t1 VALUES(-3,'y','z');\n  ")

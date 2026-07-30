@@ -16,6 +16,8 @@ func Test_e_uri(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "e_uri"
@@ -109,8 +111,11 @@ func Test_e_uri(t *testing.T) {
 		_items := tclSplitList("\n    1  {file://localhost" + "test_pwd /" + "test.db}   {not an error}\n    2  {file://" + "test_pwd /" + "test.db}            {not an error}\n    3  {file://x" + "test_pwd /" + "test.db}           {invalid uri authority: x}\n    4  {file://invalid" + "test_pwd /" + "test.db}     {invalid uri authority: invalid}\n  ")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			uri := _items[_idx+1]
+			_ = uri // suppress unused warning
 			error := _items[_idx+2]
+			_ = error // suppress unused warning
 			_ = _idx
 				{ // do_test "2." + tn
 					var DB = "sqlite3_open_v2 $uri $flags \"\""
@@ -125,8 +130,11 @@ func Test_e_uri(t *testing.T) {
 		_items := tclSplitList("\n  1    {file:test.db#abc}      {" + "test_pwd / {}" + "test.db {}}\n  2    {file:test.db?a=b#abc}  {" + "test_pwd / {}" + "test.db {a b}}\n  3    {file:test.db?a=b#?c=d} {" + "test_pwd / {}" + "test.db {a b}}\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			uri := _items[_idx+1]
+			_ = uri // suppress unused warning
 			parse := _items[_idx+2]
+			_ = parse // suppress unused warning
 			_ = _idx
 				t.Skipf("TODO: %s not implemented in frigolite", "do_filepath_test 3.$tn { parse_uri $uri } $parse")
 			}
@@ -134,8 +142,11 @@ func Test_e_uri(t *testing.T) {
 			_items := tclSplitList("\n  1    {file:test.db}             {" + "test_pwd / {}" + "test.db {}}\n  2    {file:/test.db}            {/test.db {}}\n  3    {file:///test.db}          {/test.db {}}\n  4    {file://localhost/test.db} {/test.db {}}\n  5    {file:/a/b/c/test.db}      {/a/b/c/test.db {}}\n")
 			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				uri := _items[_idx+1]
+				_ = uri // suppress unused warning
 				parse := _items[_idx+2]
+				_ = parse // suppress unused warning
 				_ = _idx
 					t.Skipf("TODO: %s not implemented in frigolite", "do_filepath_test 4.$tn { parse_uri $uri } $parse")
 				}
@@ -144,7 +155,9 @@ func Test_e_uri(t *testing.T) {
 				_items := tclSplitList("vfs1 0 vfs2 0 vfs3 1")
 				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 					name := _items[_idx+0]
+					_ = name // suppress unused warning
 					default := _items[_idx+1]
+					_ = default // suppress unused warning
 					_ = _idx
 						t.Skipf("TODO: %s not implemented in frigolite", "testvfs $name -default $default")
 						t.Skipf("TODO: %s not implemented in frigolite", "$name filter xOpen")
@@ -154,9 +167,13 @@ func Test_e_uri(t *testing.T) {
 					_items := tclSplitList("\n  1.1    \"file:test.db?vfs=vfs1\"    \"\"    vfs1\n  1.2    \"file:test.db?vfs=vfs2\"    \"\"    vfs2\n\n  2.1    \"file:test.db\"             vfs1  vfs1\n  2.2    \"file:test.db?vfs=\"        vfs1  vfs3\n\n  3.1    \"file:test.db?vfs=vfs1\"    vfs2  vfs1\n  3.2    \"file:test.db?vfs=vfs2\"    vfs1  vfs2\n  3.3    \"file:test.db?xvfs=vfs1\"   vfs2  vfs2\n  3.4    \"file:test.db?xvfs=vfs2\"   vfs1  vfs1\n")
 					for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 						tn := _items[_idx+0]
+						_ = tn // suppress unused warning
 						uri := _items[_idx+1]
+						_ = uri // suppress unused warning
 						defvfs := _items[_idx+2]
+						_ = defvfs // suppress unused warning
 						vfs := _items[_idx+3]
+						_ = vfs // suppress unused warning
 						_ = _idx
 							{ // do_test "5." + tn
 								var flags = "list SQLITE_OPEN_READWRITE SQLITE_OPEN_CREATE SQLITE_OPEN_URI"
@@ -183,8 +200,11 @@ func Test_e_uri(t *testing.T) {
 						_items := tclSplitList("\n  1    {file:test.db?mode=ro}    {not an error}\n  2    {file:test.db?mode=rw}    {not an error}\n  3    {file:test.db?mode=rwc}   {not an error}\n  4    {file:test.db?mode=Ro}    {no such access mode: Ro}\n  5    {file:test.db?mode=Rw}    {no such access mode: Rw}\n  6    {file:test.db?mode=Rwc}   {no such access mode: Rwc}\n  7    {file:test.db?mode=memory} {not an error}\n  8    {file:test.db?mode=MEMORY} {no such access mode: MEMORY}\n")
 						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 							tn := _items[_idx+0]
+							_ = tn // suppress unused warning
 							uri := _items[_idx+1]
+							_ = uri // suppress unused warning
 							error := _items[_idx+2]
+							_ = error // suppress unused warning
 							_ = _idx
 								{ // do_test "7." + tn
 									t.Skipf("TODO: %s not implemented in frigolite", "open_uri_error $uri")
@@ -194,10 +214,15 @@ func Test_e_uri(t *testing.T) {
 							_items := tclSplitList("\n  1    {file:test.db?mode=ro}     1 0 0\n  2    {file:test.db?mode=rw}     1 1 0\n  3    {file:test.db?mode=rwc}    1 1 1\n")
 							for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 								tn := _items[_idx+0]
+								_ = tn // suppress unused warning
 								uri := _items[_idx+1]
+								_ = uri // suppress unused warning
 								read := _items[_idx+2]
+								_ = read // suppress unused warning
 								write := _items[_idx+3]
+								_ = write // suppress unused warning
 								create := _items[_idx+4]
+								_ = create // suppress unused warning
 								_ = _idx
 									var RES_c,0 = "1 {unable to open database file}"
 									_ = RES_c,0 // suppress unused warning
@@ -253,9 +278,13 @@ func Test_e_uri(t *testing.T) {
 								_items := tclSplitList("\n  1   {file:test.db?mode=ro}   ro    {not an error}\n  2   {file:test.db?mode=ro}   rw    {not an error}\n  3   {file:test.db?mode=ro}   rwc   {not an error}\n\n  4   {file:test.db?mode=rw}   ro    {access mode not allowed: rw}\n  5   {file:test.db?mode=rw}   rw    {not an error}\n  6   {file:test.db?mode=rw}   rwc   {not an error}\n\n  7   {file:test.db?mode=rwc}  ro    {access mode not allowed: rwc}\n  8   {file:test.db?mode=rwc}  rw    {access mode not allowed: rwc}\n  9   {file:test.db?mode=rwc}  rwc   {not an error}\n")
 								for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 									tn := _items[_idx+0]
+									_ = tn // suppress unused warning
 									uri := _items[_idx+1]
+									_ = uri // suppress unused warning
 									flags := _items[_idx+2]
+									_ = flags // suppress unused warning
 									error := _items[_idx+3]
+									_ = error // suppress unused warning
 									_ = _idx
 										var f_ro = "list SQLITE_OPEN_READONLY SQLITE_OPEN_URI"
 										_ = f_ro // suppress unused warning
@@ -277,8 +306,11 @@ func Test_e_uri(t *testing.T) {
 									_items := tclSplitList("\n  1    {file:test.db?cache=private}    {not an error}\n  2    {file:test.db?cache=shared}     {not an error}\n  3    {file:test.db?cache=yes}        {no such cache mode: yes}\n  4    {file:test.db?cache=}           {no such cache mode: }\n")
 									for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 										tn := _items[_idx+0]
+										_ = tn // suppress unused warning
 										uri := _items[_idx+1]
+										_ = uri // suppress unused warning
 										error := _items[_idx+2]
+										_ = error // suppress unused warning
 										_ = _idx
 											{ // do_test "10." + tn
 												t.Skipf("TODO: %s not implemented in frigolite", "open_uri_error $uri")
@@ -290,8 +322,11 @@ func Test_e_uri(t *testing.T) {
 										_items := tclSplitList("\n  1  {file:/test.%64%62}                             {/test.db {}}\n  2  {file:/test.db?%68%65%6c%6c%6f=%77%6f%72%6c%64} {/test.db {hello world}}\n  3  {file:/%C3%BF.db}                               {/\\xFF.db {}}\n")
 										for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 											tn := _items[_idx+0]
+											_ = tn // suppress unused warning
 											uri := _items[_idx+1]
+											_ = uri // suppress unused warning
 											parse := _items[_idx+2]
+											_ = parse // suppress unused warning
 											_ = _idx
 												t.Skipf("TODO: %s not implemented in frigolite", "do_filepath_test 13.$tn { parse_uri $uri } $parse")
 											}

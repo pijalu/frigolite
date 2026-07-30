@@ -17,6 +17,8 @@ func Test_avfs(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "avfs" // TCL namespace variable
@@ -179,6 +181,7 @@ func Test_avfs(t *testing.T) {
 		var adaSz = "file size $::fa"
 		_ = adaSz // suppress unused warning
 		adba := "($adbSz + 0.1)/$adaSz"
+		_ = adba // suppress unused warning
 		var results = "concat $results [lrange $qr 0 2]"
 		_ = results // suppress unused warning
 		results = tclListAppend(results, "$adba > 10.0")
@@ -219,7 +222,9 @@ func Test_avfs(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
 		t.Skipf("TODO: %s not implemented in frigolite", "adb close")
 		adaSzr := "[file size $::fa] / 300.0 / 1500"
+		_ = adaSzr // suppress unused warning
 		okSzr := "$adaSzr > 1.0 && $adaSzr < 1.3"
+		_ = okSzr // suppress unused warning
 		results = tclListAppend(results, okSzr)
 		var _result = "join $results \" | \"" // TCL namespace variable
 		_ = _result // suppress unused warning

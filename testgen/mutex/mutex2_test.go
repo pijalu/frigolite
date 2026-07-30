@@ -15,6 +15,8 @@ func Test_mutex2(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{
@@ -38,9 +40,8 @@ func Test_mutex2(t *testing.T) {
 	{ // do_test "mutex2-2.1"
 		var _disable_mutex_init = "7" // TCL namespace variable
 		_ = _disable_mutex_init // suppress unused warning
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			t.Skipf("TODO: %s not implemented in frigolite", "sqlite db test.db")

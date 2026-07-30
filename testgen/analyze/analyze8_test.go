@@ -16,6 +16,8 @@ func Test_analyze8(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "analyze8"
@@ -35,8 +37,11 @@ func Test_analyze8(t *testing.T) {
 			} else if tclBool("set a " + "($i%8)*100") {
 			}
 			b := "$i/10"
+			_ = b // suppress unused warning
 			c := "$i/8"
+			_ = c // suppress unused warning
 			c := "$c*$c*$c"
+			_ = c // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES($a,$b,$c,$i)")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES($a,$b,$c,$i)")

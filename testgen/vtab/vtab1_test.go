@@ -17,6 +17,8 @@ func Test_vtab1(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtab1"
@@ -692,9 +694,8 @@ func Test_vtab1(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // do_test "vtab1.10-2"
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			var ptr = "sqlite3_connection_pointer db"
@@ -1048,9 +1049,13 @@ func Test_vtab1(t *testing.T) {
 	_items := tclSplitList("\n  2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		filter := _items[_idx+3]
+		_ = filter // suppress unused warning
 		_ = _idx
 			var echo_module = ""
 			_ = echo_module // suppress unused warning

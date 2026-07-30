@@ -16,6 +16,8 @@ func Test_corrupt8(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "do_not_use_codec")
@@ -79,6 +81,7 @@ func Test_corrupt8(t *testing.T) {
 		t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $i $oldval")
 		if func() bool { oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return oldval_n > 2 }() {
 			i2 := "$i+1+$i%4"
+			_ = i2 // suppress unused warning
 			var oldval = "hexio_read test.db $i2 1"
 			_ = oldval // suppress unused warning
 			t.Skipf("TODO: %s not implemented in frigolite", "hexio_write test.db $i2 [format %02x [expr {($oldval+1)&0xff}]]")

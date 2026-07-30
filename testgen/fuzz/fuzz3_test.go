@@ -16,6 +16,8 @@ func Test_fuzz3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Skipf("TODO: %s not implemented in frigolite", "database_may_be_corrupt")
@@ -65,6 +67,7 @@ func Test_fuzz3(t *testing.T) {
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 5000 }() {
 		t.Skipf("TODO: %s not implemented in frigolite", "purge_pcache")
 		iNew := "0"
+		_ = iNew // suppress unused warning
 		var iOld = "modify_database $iNew"
 		_ = iOld // suppress unused warning
 		var iTest = "0"

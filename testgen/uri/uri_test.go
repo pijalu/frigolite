@@ -18,6 +18,8 @@ func Test_uri(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "uri"
@@ -28,8 +30,11 @@ func Test_uri(t *testing.T) {
 	_items := tclSplitList("\n  1      test.db                              test.db\n  2      file:test.db                         test.db\n  3      file://PWD/test.db                   test.db\n  4      file:PWD/test.db                     test.db\n  5      file:test.db?mork=1                  test.db\n  6      file:test.db?mork=1&tonglor=2        test.db\n  7      file:test.db?mork=1#boris            test.db\n  8      file:test.db#boris                   test.db\n  9      test.db#boris                        test.db#boris\n  10     file:test%2Edb                       test.db\n  11     file                                 file\n  12     http:test.db                         http:test.db\n  13     file:test.db%00extra                 test.db\n  14     file:testdb%00.db%00extra            testdb\n\n  15     test.db?mork=1#boris                 test.db?mork=1#boris\n  16     file://localhostPWD/test.db%3Fhello  test.db?hello\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		uri := _items[_idx+1]
+		_ = uri // suppress unused warning
 		file := _items[_idx+2]
+		_ = file // suppress unused warning
 		_ = _idx
 			if tcl_platform(platform) == "windows" {
 				if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n > 14 }() {
@@ -77,8 +82,11 @@ func Test_uri(t *testing.T) {
 		_items := tclSplitList("\n  1      file:test.db?hello=world                     {hello world}\n  2      file:test.db?hello&world                     {hello {} world {}}\n  3      file:test.db?hello=1&world=2&vfs=tvfs        {hello 1 world 2 vfs tvfs}\n  4      file:test.db?hello=1&world=2&vfs=tvfs2        {}\n  5      file:test.db?%68%65%6C%6C%6F=%77%6F%72%6C%64 {hello world}\n  6      file:testdb%00.db?hello%00extra=world%00ex   {hello world}\n  7      file:testdb%00.db?hello%00=world%00          {hello world}\n  8      file:testdb%00.db?=world&xyz=abc             {xyz abc}\n  9      file:test.db?%00hello=world&xyz=abc          {xyz abc}\n  10     file:test.db?hello=%00world&xyz=             {hello {} xyz {}}\n  11     file:test.db?=#ravada                        {}\n  12     file:test.db?&&&&&&&&hello=world&&&&&&&      {hello world}\n\n  13     test.db?&&&&&&&&hello=world&&&&&&&           {}\n  14     http:test.db?hello&world                     {}\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			uri := _items[_idx+1]
+			_ = uri // suppress unused warning
 			kvlist := _items[_idx+2]
+			_ = kvlist // suppress unused warning
 			_ = _idx
 				if func() bool { tcl_platform_n, _tcl_platform_e := strconv.Atoi(tcl_platform); if _tcl_platform_e != nil { return false }; tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tcl_platform_n(platform) == "windows" && tn_n>12 }() {
 					continue
@@ -114,10 +122,15 @@ func Test_uri(t *testing.T) {
 			_items := tclSplitList("\n  1    ro    0   0   1\n  2    rw    0   1   0\n  3    rwc   1   1   0\n")
 			for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				mode := _items[_idx+1]
+				_ = mode // suppress unused warning
 				create_ok := _items[_idx+2]
+				_ = create_ok // suppress unused warning
 				write_ok := _items[_idx+3]
+				_ = write_ok // suppress unused warning
 				readonly_ok := _items[_idx+4]
+				_ = readonly_ok // suppress unused warning
 				_ = _idx
 					{
 						var _catchErr error
@@ -180,8 +193,11 @@ func Test_uri(t *testing.T) {
 				_items := tclSplitList("\n  1     \"file://localhost/PWD/test.db\"   {not an error}\n  2     \"file:///PWD/test.db\"            {not an error}\n  3     \"file:/PWD/test.db\"              {not an error}\n  4     \"file://l%6Fcalhost/PWD/test.db\" {invalid uri authority: l%6Fcalhost}\n  5     \"file://lbcalhost/PWD/test.db\"   {invalid uri authority: lbcalhost}\n  6     \"file://x/PWD/test.db\"           {invalid uri authority: x}\n")
 				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 					tn := _items[_idx+0]
+					_ = tn // suppress unused warning
 					uri := _items[_idx+1]
+					_ = uri // suppress unused warning
 					res := _items[_idx+2]
+					_ = res // suppress unused warning
 					_ = _idx
 						if tcl_platform(platform) == "windows" {
 							var uri = "[list PWD [string range [get_pwd] 3 end]] $uri"

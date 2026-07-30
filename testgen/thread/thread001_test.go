@@ -16,6 +16,8 @@ func Test_thread001(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
@@ -29,8 +31,11 @@ func Test_thread001(t *testing.T) {
 	_items := tclSplitList("list \\\n         1  1       0                   \\\n         2  0       0                   \\\n         3  0       1                   \\")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		same_db := _items[_idx+1]
+		_ = same_db // suppress unused warning
 		shared_cache := _items[_idx+2]
+		_ = shared_cache // suppress unused warning
 		_ = _idx
 			_res = db.Exec(" DROP TABLE ab; ")
 			_ = _res // catchsql

@@ -16,6 +16,8 @@ func Test_e_walauto(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "e_walauto"
@@ -33,7 +35,9 @@ func Test_e_walauto(t *testing.T) {
 	_items := tclSplitList("\n  1 {\n    proc autocheckpoint {db value} {\n      uplevel [list $db eval \"PRAGMA wal_autocheckpoint = $value\"]\n    }\n  }\n\n  2 {\n    proc autocheckpoint {db value} {\n      uplevel [list sqlite3_wal_autocheckpoint $db $value]\n      return $value\n    }\n  }\n")
 	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		code := _items[_idx+1]
+		_ = code // suppress unused warning
 		_ = _idx
 			// eval $code
 			db.Close()

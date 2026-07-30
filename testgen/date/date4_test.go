@@ -16,6 +16,8 @@ func Test_date4(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tcl_platform(os) == "Linux" {
@@ -34,6 +36,7 @@ func Test_date4(t *testing.T) {
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 24858 }() {
 		TS := "$i*86390"
+		_ = TS // suppress unused warning
 		{ // "date4-" + i
 			r = db.Query("\n    SELECT strftime($::FMT,$::TS,'unixepoch');\n  ")
 			if r.Error != nil {

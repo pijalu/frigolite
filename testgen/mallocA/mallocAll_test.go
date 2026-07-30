@@ -16,6 +16,8 @@ func Test_mallocAll(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// proc definition (not transpiled)
 	for tclBool("set arg [lshift argv]" + " != \"\"") {

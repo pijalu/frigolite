@@ -16,6 +16,8 @@ func Test_fts3malloc(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	db, err = frigolite.Open("test.db")
@@ -86,8 +88,11 @@ func Test_fts3malloc(t *testing.T) {
 	_items := tclSplitList("\n  1 \"SELECT count(*) FROM sqlite_master\" {5}\n  2 \"SELECT * FROM ft WHERE docid = 1\"   {one neung}\n  3 \"SELECT * FROM ft WHERE docid = 2\"   {two song}\n  4 \"SELECT * FROM ft WHERE docid = 3\"   {{one two} {neung song}}\n\n  5 \"SELECT a FROM ft\" {\n    {one}                     {two}                 {one two}\n    {three}                   {one three}           {two three}     \n    {one two three}           {four}                {one four} \n    {two four}                {one two four}        {three four}   \n    {one three four}          {two three four}      {one two three four}  \n    {five}                    {one five}            {two five}            \n    {one two five}            {three five}          {one three five} \n    {two three five}          {one two three five}  {four five}\n    {one four five}           {two four five}       {one two four five}\n    {three four five}         {one three four five} {two three four five}\n    {one two three four five}\n  }\n\n  6 \"SELECT a FROM ft WHERE a MATCH 'one'\" {\n    {one} {one two} {one three} {one two three}\n    {one four} {one two four} {one three four} {one two three four}\n    {one five} {one two five} {one three five} {one two three five}\n    {one four five} {one two four five} \n    {one three four five} {one two three four five}\n  }\n\n  7 \"SELECT a FROM ft WHERE a MATCH 'o*'\" {\n    {one} {one two} {one three} {one two three}\n    {one four} {one two four} {one three four} {one two three four}\n    {one five} {one two five} {one three five} {one two three five}\n    {one four five} {one two four five} \n    {one three four five} {one two three four five}\n  }\n\n  8 \"SELECT a FROM ft WHERE a MATCH 'o* t*'\" {\n    {one two}             {one three}           {one two three} \n    {one two four}        {one three four}      {one two three four} \n    {one two five}        {one three five}      {one two three five} \n    {one two four five}   {one three four five} {one two three four five}\n  }\n\n  9 \"SELECT a FROM ft WHERE a MATCH '\\\"o* t*\\\"'\" {\n    {one two}             {one three}           {one two three} \n    {one two four}        {one three four}      {one two three four} \n    {one two five}        {one three five}      {one two three five} \n    {one two four five}   {one three four five} {one two three four five}\n  }\n\n  10 {SELECT a FROM ft WHERE a MATCH '\"o* f*\"'} {\n    {one four}            {one five}            {one four five}\n  }\n\n  11 {SELECT a FROM ft WHERE a MATCH '\"one two three\"'} {\n    {one two three}\n    {one two three four}  \n    {one two three five}\n    {one two three four five}\n  }\n\n  12 {SELECT a FROM ft WHERE a MATCH '\"two three four\"'} {\n    {two three four}\n    {one two three four}\n    {two three four five}\n    {one two three four five}\n  }\n\n  12 {SELECT a FROM ft WHERE a MATCH '\"two three\" five'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  13 {SELECT a FROM ft WHERE ft MATCH '\"song sahm\" hah'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  14 {SELECT a FROM ft WHERE b MATCH 'neung'} {\n    {one}                    {one two} \n    {one three}              {one two three}\n    {one four}               {one two four} \n    {one three four}         {one two three four}\n    {one five}               {one two five} \n    {one three five}         {one two three five}\n    {one four five}          {one two four five} \n    {one three four five}    {one two three four five}\n  }\n\n  15 {SELECT a FROM ft WHERE b MATCH '\"neung song sahm\"'} {\n    {one two three}          {one two three four}  \n    {one two three five}     {one two three four five}\n  }\n\n  16 {SELECT a FROM ft WHERE b MATCH 'hah \"song sahm\"'} {\n    {two three five}         {one two three five}\n    {two three four five}    {one two three four five}\n  }\n\n  17 {SELECT a FROM ft WHERE b MATCH 'song OR sahm'} {\n    {two}                     {one two}             {three}\n    {one three}               {two three}           {one two three}\n    {two four}                {one two four}        {three four}   \n    {one three four}          {two three four}      {one two three four}  \n    {two five}                {one two five}        {three five}\n    {one three five}          {two three five}      {one two three five}\n    {two four five}           {one two four five}   {three four five}\n    {one three four five}     {two three four five} {one two three four five}\n  }\n\n  18 {SELECT a FROM ft WHERE a MATCH 'three NOT two'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  19 {SELECT a FROM ft WHERE b MATCH 'sahm NOT song'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  20 {SELECT a FROM ft WHERE ft MATCH 'sahm NOT song'} {\n    {three}                   {one three}           {three four}   \n    {one three four}          {three five}          {one three five}\n    {three four five}         {one three four five}\n  }\n\n  21 {SELECT a FROM ft WHERE b MATCH 'neung NEAR song NEAR sahm'} {\n    {one two three}           {one two three four}  \n    {one two three five}      {one two three four five}\n  }\n\n")
 	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		result := _items[_idx+2]
+		_ = result // suppress unused warning
 		_ = _idx
 			var result = "normal_list $result"
 			_ = result // suppress unused warning
@@ -166,8 +171,11 @@ func Test_fts3malloc(t *testing.T) {
 		_items := tclSplitList("\n  1 \"SELECT count(*) FROM ft\" {1023}\n\n  2 \"SELECT a FROM ft WHERE a MATCH 'one two three four five six seven eight'\" {\n     {one two three four five six seven eight}\n     {one two three four five six seven eight nine}\n     {one two three four five six seven eight ten}\n     {one two three four five six seven eight nine ten}\n  }\n\n  3 {SELECT count(*), sum(docid) FROM ft WHERE a MATCH 'o*'} {\n    512 262144\n  }\n\n  4 {SELECT count(*), sum(docid) FROM ft WHERE a MATCH '\"two three four\"'} {\n    128 66368\n  }\n")
 		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
 			tn := _items[_idx+0]
+			_ = tn // suppress unused warning
 			sql := _items[_idx+1]
+			_ = sql // suppress unused warning
 			result := _items[_idx+2]
+			_ = result // suppress unused warning
 			_ = _idx
 				var result = "normal_list $result"
 				_ = result // suppress unused warning
@@ -183,7 +191,9 @@ func Test_fts3malloc(t *testing.T) {
 			_items := tclSplitList("\n  1 \"DELETE FROM ft WHERE ft MATCH 'one'\"\n  2 \"DELETE FROM ft WHERE ft MATCH 'three'\"\n  3 \"DELETE FROM ft WHERE ft MATCH 'five'\"\n")
 			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
 				tn := _items[_idx+0]
+				_ = tn // suppress unused warning
 				sql := _items[_idx+1]
+				_ = sql // suppress unused warning
 				_ = _idx
 					t.Skipf("TODO: %s not implemented in frigolite", "do_write_test fts3_malloc-4.1.$tn ft_content $sql")
 				}

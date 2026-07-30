@@ -15,6 +15,8 @@ func Test_pager3(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("atomic_batch_write test.db") {
@@ -24,9 +26,13 @@ func Test_pager3(t *testing.T) {
 	_items := tclSplitList("\n  1 \"PRAGMA journal_mode = DELETE\"  delete        0\n  2 \"CREATE TABLE t1(a, b)\"         {}            0\n  3 \"PRAGMA locking_mode=EXCLUSIVE\" {exclusive}   0\n  4 \"INSERT INTO t1 VALUES(1, 2)\"   {}            1\n  5 \"PRAGMA locking_mode=NORMAL\"    {normal}      1\n  6 \"SELECT * FROM t1\"              {1 2}         0\n")
 	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
 		tn := _items[_idx+0]
+		_ = tn // suppress unused warning
 		sql := _items[_idx+1]
+		_ = sql // suppress unused warning
 		res := _items[_idx+2]
+		_ = res // suppress unused warning
 		j := _items[_idx+3]
+		_ = j // suppress unused warning
 		_ = _idx
 			{ // "pager3-1." + tn + ".1"
 				_res = db.Exec(sql)

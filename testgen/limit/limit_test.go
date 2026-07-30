@@ -16,6 +16,8 @@ func Test_limit(t *testing.T) {
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
+	var msg string
+	_ = msg // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE t1(x int, y int);\n  BEGIN;\n")
@@ -293,9 +295,8 @@ func Test_limit(t *testing.T) {
 	{ // do_test "limit-10.4"
 		var limit = "1.5"
 		_ = limit // suppress unused warning
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    SELECT x FROM t1 WHERE x<10 LIMIT :limit;\n  ")
@@ -314,9 +315,8 @@ func Test_limit(t *testing.T) {
 	{ // do_test "limit-10.5"
 		var limit = "hello world"
 		_ = limit // suppress unused warning
-		var rc string
-		var msg string
-		_ = msg // suppress unused warning
+	var rc string
+	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
 			_res = db.Exec("\n    SELECT x FROM t1 WHERE x<10 LIMIT :limit;\n  ")
