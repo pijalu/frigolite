@@ -53,6 +53,7 @@ func Test_walblock(t *testing.T) {
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs -fullshm 1")
 	for _, f := range tclSplitList("glob test.db*") {
+	_ = f // suppress unused warning
 		os.Remove(f)
 	}
 	db, err = frigolite.Open("test.db")

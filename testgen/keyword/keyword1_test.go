@@ -49,6 +49,7 @@ func Test_keyword1(t *testing.T) {
 	var exprkw = "\n  cast\n  current_date\n  current_time\n  current_timestamp\n  raise\n"
 	_ = exprkw // suppress unused warning
 	for _, kw := range tclSplitList(kwlist) {
+	_ = kw // suppress unused warning
 		{ // do_test "keyword1-" + kw + ".1"
 			if kw == "if" {
 				_res = db.Exec("CREATE TABLE \\\"" + kw + "\\\"(" + kw + " " + kw + ")")

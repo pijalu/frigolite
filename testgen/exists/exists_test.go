@@ -41,6 +41,7 @@ func Test_exists(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	for _, jm := range tclSplitList("rollback wal") {
+	_ = jm // suppress unused warning
 		if tclBool("!" + "wal_is_capable" + " && " + jm + "==\"wal\"") {
 		}
 		var testprefix = "exists-" + jm

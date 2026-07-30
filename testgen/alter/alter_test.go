@@ -177,6 +177,7 @@ func Test_alter(t *testing.T) {
 		db2.Close()
 	}
 	for _, tblname := range tclSplitList("execsql {\n  SELECT name FROM sqlite_master\n   WHERE type='table' AND name NOT GLOB 'sqlite*'\n}") {
+	_ = tblname // suppress unused warning
 		_res = db.Exec("DROP TABLE \\\"" + tblname + "\\\"")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE \\\"" + tblname + "\\\"")

@@ -49,7 +49,9 @@ func Test_trigger2(t *testing.T) {
 	var ii = "0"
 	_ = ii // suppress unused warning
 	for _, tr_program := range tclSplitList("\n  {UPDATE tbl SET b = old.b;}\n  {INSERT INTO log VALUES(new.c, 2, 3);}\n  {DELETE FROM log WHERE a = 1;}\n  {INSERT INTO tbl VALUES(500, new.b * 10, 700); \n    UPDATE tbl SET c = old.c; \n    DELETE FROM log;}\n  {INSERT INTO log select * from tbl;} \n") {
+	_ = tr_program // suppress unused warning
 		for _, test_varset := range tclSplitList("list \\\n    {\n      set statement {UPDATE tbl SET c = 10 WHERE a = 1;} \n      set prep      {INSERT INTO tbl VALUES(1, 2, 3);}\n      set newC 10\n      set newB 2\n      set newA 1\n      set oldA 1\n      set oldB 2\n      set oldC 3\n    } \\\n    {\n      set statement {DELETE FROM tbl WHERE a = 1;}\n      set prep      {INSERT INTO tbl VALUES(1, 2, 3);}\n      set oldA 1\n      set oldB 2\n      set oldC 3\n    } \\\n    {\n      set statement {INSERT INTO tbl VALUES(1, 2, 3);}\n      set newA 1\n      set newB 2\n      set newC 3\n    }") {
+		_ = test_varset // suppress unused warning
 			var statement = ""
 			_ = statement // suppress unused warning
 			var prep = ""
@@ -190,6 +192,7 @@ func Test_trigger2(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE tbl (a, b, c, d);\n  CREATE TABLE log (a);\n  INSERT INTO log VALUES (0);\n")
 	}
 	for _, trig := range tclSplitList(when_triggers) {
+	_ = trig // suppress unused warning
 		_res = db.Exec("CREATE TRIGGER " + trig + " BEGIN UPDATE log set a = a + 1; END;")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TRIGGER " + trig + " BEGIN UPDATE log set a = a + 1; END;")

@@ -299,6 +299,7 @@ func Test_existsexpr(t *testing.T) {
 	}
 	{ // do_test "5.3"
 		for _, v := range tclSplitList("1 2 3 4 5 6") {
+		_ = v // suppress unused warning
 			_res = db.Exec("INSERT INTO a1 VALUES( " + "vals 100 $v" + " )")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a1 VALUES( " + "vals 100 $v" + " )")

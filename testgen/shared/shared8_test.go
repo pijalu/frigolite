@@ -116,6 +116,7 @@ func Test_shared8(t *testing.T) {
 		_ = _res // catchsql
 	}
 	for _, db := range tclSplitList("db1 db2 db3 db4") {
+	_ = db // suppress unused warning
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning

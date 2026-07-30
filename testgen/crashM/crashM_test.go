@@ -47,6 +47,7 @@ func Test_crashM(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
 	for _, f := range tclSplitList("glob -nocomplain test1.* test2.*") {
+	_ = f // suppress unused warning
 		os.Remove(f)
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_multiplex_initialize  1")

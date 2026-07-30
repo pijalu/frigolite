@@ -62,6 +62,7 @@ func Test_rollbackfault(t *testing.T) {
 		}
 	}
 	for _, f := range tclSplitList("oom ioerr") {
+	_ = f // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2 -faults $f* -prep {\n    set sql1 { SELECT i FROM t1 WHERE (i%2)==0 }\n...} -body {\n    execsql { ROLLBACK }\n  } -test {\n  \n    set res1 [list]\n    set res2 [list]\n    wh...}")
 	}
 }

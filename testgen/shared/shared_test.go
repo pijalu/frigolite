@@ -45,6 +45,7 @@ func Test_shared(t *testing.T) {
 	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
 	_ = _enable_shared_cache // suppress unused warning
 	for _, av := range tclSplitList("list 0 1") {
+	_ = av // suppress unused warning
 		os.Remove("test.db")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -347,6 +348,7 @@ func Test_shared(t *testing.T) {
 				_ = _catchErr // suppress unused warning
 			}
 			for _, db := range tclSplitList("list test.db test1.db test2.db test3.db") {
+			_ = db // suppress unused warning
 				os.Remove(db)
 			}
 			{ // do_test "shared-" + av + ".5.1.1"
@@ -426,6 +428,7 @@ func Test_shared(t *testing.T) {
 				db2.Close()
 			}
 			for _, f := range tclSplitList("list test.db test2.db") {
+			_ = f // suppress unused warning
 				os.Remove(f)
 			}
 			{ // do_test "shared-" + av + ".7.1"
@@ -473,6 +476,7 @@ func Test_shared(t *testing.T) {
 				var _error = "0"
 				_ = _error // suppress unused warning
 				for _, s := range tclSplitList(scans) {
+				_ = s // suppress unused warning
 					if tclBool("lsort -integer -index 0 $s" + "!=" + _contents) {
 						var _error = "1"
 						_ = _error // suppress unused warning
@@ -668,6 +672,7 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + ".12.X"
 				for _, h := range tclSplitList(_db_handles) {
+				_ = h // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "$h close")
 				}
 			}

@@ -1055,6 +1055,7 @@ func Test_where(t *testing.T) {
 			var rev = "list"
 			_ = rev // suppress unused warning
 			for _, _r := range tclSplitList(res) {
+			_ = _r // suppress unused warning
 				var rev = "concat $r $rev"
 				_ = rev // suppress unused warning
 			}

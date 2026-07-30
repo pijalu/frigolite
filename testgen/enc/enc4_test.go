@@ -51,6 +51,7 @@ func Test_enc4(t *testing.T) {
 	var i = "1"
 	_ = i // suppress unused warning
 	for _, enc := range tclSplitList(encodings) {
+	_ = enc // suppress unused warning
 		os.Remove("test.db")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
@@ -68,6 +69,7 @@ func Test_enc4(t *testing.T) {
 		var j = "1"
 		_ = j // suppress unused warning
 		for _, init := range tclSplitList(inits) {
+		_ = init // suppress unused warning
 			{ // do_test "enc4-" + i + "." + j + ".2"
 				var S = ""
 				_ = S // suppress unused warning
@@ -76,6 +78,7 @@ func Test_enc4(t *testing.T) {
 			var k = "1"
 			_ = k // suppress unused warning
 			for _, val := range tclSplitList(vals) {
+			_ = val // suppress unused warning
 				var x = "1"
 				_ = x // suppress unused warning
 				for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 16 }() {

@@ -217,6 +217,8 @@ func Test_symlink(t *testing.T) {
 			{
 				var res string // catch result ("0"=ok, "1"=error)
 				var _catchErrMsg string // catch error message
+				_ = res // suppress unused warning
+				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
 				db, err := frigolite.Open("[string repeat x 100]/ 6")
 				defer db.Close()

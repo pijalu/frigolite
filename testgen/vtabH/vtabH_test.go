@@ -87,6 +87,7 @@ func Test_vtabH(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	for _, _tclvar_set_omit := range tclSplitList("0 1") {
+	_ = _tclvar_set_omit // suppress unused warning
 		// foreach {tn expr res cnt} "\n    1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000\n  "
 		_items0 := tclSplitList("\n    1 {value GLOB 'aban*'} {x3 abandon x4 abandonint} 2\n    2 {value LIKE '%ac%'}  {x1 aback x7 backbone x8 backarrow} 300\n    3 {value REGEXP '^......$'}  {x5 babble x6 baboon x9 castle} 30000\n  ")
 		for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
@@ -147,6 +148,7 @@ func Test_vtabH(t *testing.T) {
 			var root_files = "list_root_files"
 			_ = root_files // suppress unused warning
 			for _, p := range tclSplitList(root_files) {
+			_ = p // suppress unused warning
 				if _tcl_platform_platform == "windows" {
 					if tclBool("!" + "regexp {\\$} $p") {
 						res = tclListAppend(res, p)

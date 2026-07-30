@@ -55,6 +55,7 @@ func Test_mallocAll(t *testing.T) {
 	var INCLUDE = "\n"
 	_ = INCLUDE // suppress unused warning
 	for _, testfile := range tclSplitList("lsort -dictionary [glob $testdir/*malloc*.test]") {
+	_ = testfile // suppress unused warning
 		var tail = "file tail $testfile"
 		_ = tail // suppress unused warning
 		if tclBool("lsearch -exact $EXCLUDE $tail" + ">=0") {

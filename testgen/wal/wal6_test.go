@@ -48,6 +48,7 @@ func Test_wal6(t *testing.T) {
 	var all_journal_modes = "delete persist truncate memory off"
 	_ = all_journal_modes // suppress unused warning
 	for _, jmode := range tclSplitList(all_journal_modes) {
+	_ = jmode // suppress unused warning
 		{ // do_test "wal6-1.0." + jmode
 			db, err := frigolite.Open("test.db")
 			defer db.Close()

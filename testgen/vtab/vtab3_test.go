@@ -107,6 +107,7 @@ func Test_vtab3(t *testing.T) {
 		}
 	}
 	for _, i := range tclSplitList("list 1 2 3 4") {
+	_ = i // suppress unused warning
 		var _auth_fail = i // TCL namespace variable
 		_ = _auth_fail // suppress unused warning
 		{ // do_test "vtab3-1.7." + i + ".1"

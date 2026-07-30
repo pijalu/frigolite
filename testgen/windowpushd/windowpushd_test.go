@@ -95,6 +95,7 @@ func Test_windowpushd(t *testing.T) {
 		}
 	}
 	for _, tn := range tclSplitList("0 1") {
+	_ = tn // suppress unused warning
 		if tclBool(tn) {
 			t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all on")
 		} else {

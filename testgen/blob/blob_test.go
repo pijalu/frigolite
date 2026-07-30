@@ -116,6 +116,7 @@ func Test_blob(t *testing.T) {
 		var blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
+		_ = b // suppress unused warning
 			blobs2 = tclListAppend(blobs2, "bin_to_hex $b")
 		}
 	}
@@ -129,6 +130,7 @@ func Test_blob(t *testing.T) {
 		var blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
+		_ = b // suppress unused warning
 			blobs2 = tclListAppend(blobs2, "bin_to_hex $b")
 		}
 	}
@@ -138,6 +140,7 @@ func Test_blob(t *testing.T) {
 		var blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
+		_ = b // suppress unused warning
 			blobs2 = tclListAppend(blobs2, "bin_to_hex $b")
 		}
 	}
@@ -147,6 +150,7 @@ func Test_blob(t *testing.T) {
 		var blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
+		_ = b // suppress unused warning
 			blobs2 = tclListAppend(blobs2, "bin_to_hex $b")
 		}
 	}
@@ -156,6 +160,7 @@ func Test_blob(t *testing.T) {
 		var blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
+		_ = b // suppress unused warning
 			blobs2 = tclListAppend(blobs2, "bin_to_hex $b")
 		}
 	}
@@ -179,6 +184,7 @@ func Test_blob(t *testing.T) {
 		var blobs2 = "list"
 		_ = blobs2 // suppress unused warning
 		for _, b := range tclSplitList(blobs) {
+		_ = b // suppress unused warning
 			blobs2 = tclListAppend(blobs2, "bin_to_hex $b")
 		}
 	}

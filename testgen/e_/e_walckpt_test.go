@@ -65,6 +65,7 @@ func Test_e_walckpt(t *testing.T) {
 			}
 		}
 		for _, tn := range tclSplitList("1 2 3") {
+		_ = tn // suppress unused warning
 			os.Remove("test.db")
 			t.Errorf("TODO: %s not implemented in frigolite", "testvfs tvfs")
 			db, err := frigolite.Open("test.db")

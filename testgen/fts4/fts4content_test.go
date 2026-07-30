@@ -328,6 +328,7 @@ func Test_fts4content(t *testing.T) {
 							var res = "list"
 							_ = res // suppress unused warning
 							for _, rowid := range tclSplitList(rowidlist) {
+							_ = rowid // suppress unused warning
 								res = tclListAppend(res, rowid, "", "")
 							}
 							{ // "3.2.2." + tn
@@ -374,6 +375,7 @@ func Test_fts4content(t *testing.T) {
 								var res = "list"
 								_ = res // suppress unused warning
 								for _, rowid := range tclSplitList(rowidlist) {
+								_ = rowid // suppress unused warning
 									res = tclListAppend(res, rowid, "", "")
 								}
 								{ // "3.3.2." + tn
@@ -420,6 +422,7 @@ func Test_fts4content(t *testing.T) {
 									var res = "list"
 									_ = res // suppress unused warning
 									for _, rowid := range tclSplitList(rowidlist) {
+									_ = rowid // suppress unused warning
 										res = tclListAppend(res, rowid, "", "")
 									}
 									{ // "3.3.2." + tn

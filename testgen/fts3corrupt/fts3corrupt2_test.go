@@ -61,6 +61,7 @@ func Test_fts3corrupt2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('nodesize=32') ")
 		}
 		for _, d := range tclSplitList(data) {
+		_ = d // suppress unused warning
 			_res = db.Exec(" INSERT INTO t2 VALUES($d, $d) ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES($d, $d) ")
@@ -82,6 +83,7 @@ func Test_fts3corrupt2(t *testing.T) {
 	_ = c // suppress unused warning
 	// skip: foreach over unresolved TCL command
 	for _, c := range tclSplitList("50 100 150 200 250") {
+	_ = c // suppress unused warning
 		// skip: foreach over unresolved TCL command
 	}
 }

@@ -454,6 +454,7 @@ func Test_e_fkey(t *testing.T) {
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 		for _, fk := range tclSplitList("list OFF ON") {
+		_ = fk // suppress unused warning
 			r = db.Query("PRAGMA foreign_keys = " + fk)
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA foreign_keys = " + fk)
@@ -1536,6 +1537,7 @@ func Test_e_fkey(t *testing.T) {
 									}
 								}
 								for _, zMatch := range tclSplitList("list SIMPLE PARTIAL FULL Simple parTIAL FuLL") {
+								_ = zMatch // suppress unused warning
 									t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 									{ // do_test "e_fkey-62." + zMatch + ".1"
 										_res = db.Exec("\n      CREATE TABLE p(a, b, c, PRIMARY KEY(b, c));\n      CREATE TABLE c(d, e, f, FOREIGN KEY(e, f) REFERENCES p MATCH " + zMatch + ");\n    ")
@@ -1638,6 +1640,7 @@ func Test_e_fkey(t *testing.T) {
 									}
 								}
 								for _, recursive_triggers_setting := range tclSplitList("list 0 1 ON OFF") {
+								_ = recursive_triggers_setting // suppress unused warning
 									t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 									r = db.Query("PRAGMA recursive_triggers = " + recursive_triggers_setting)
 									if r.Error != nil {

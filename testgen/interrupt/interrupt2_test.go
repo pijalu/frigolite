@@ -69,6 +69,7 @@ func Test_interrupt2(t *testing.T) {
 		}
 	}
 	for _, idelay := range tclSplitList("\n  5\n  10\n  15\n  20\n") {
+	_ = idelay // suppress unused warning
 		var _trigger_interrupt = idelay // TCL namespace variable
 		_ = _trigger_interrupt // suppress unused warning
 		{ // "1." + idelay + ".1"

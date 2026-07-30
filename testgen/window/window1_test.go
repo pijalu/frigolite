@@ -2297,6 +2297,7 @@ func Test_window1(t *testing.T) {
 							}
 						}
 						for _, tn := range tclSplitList("1 2") {
+						_ = tn // suppress unused warning
 							if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 2 }() {
 								t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db query-flattener 0")
 							}

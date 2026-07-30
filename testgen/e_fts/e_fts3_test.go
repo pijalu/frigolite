@@ -298,6 +298,7 @@ func Test_e_fts3(t *testing.T) {
 					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 8.2.1 { CREATE VIRTUAL TABLE t9c USING fts3(\"c\"\"1\", 'c''2...}")
 					t.Errorf("TODO: %s not implemented in frigolite", "read_test 8.2.2 { PRAGMA table_info(t9c) } {0 c\\\"1 {} 0 {} 0 1 c'2 {} 0 {} 0}")
 					for _, DO_MALLOC_TEST := range tclSplitList("0 1 2") {
+					_ = DO_MALLOC_TEST // suppress unused warning
 						os.Remove("test.db")
 						db, err := frigolite.Open("test.db")
 						defer db.Close()

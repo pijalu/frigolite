@@ -82,6 +82,7 @@ func Test_rollback(t *testing.T) {
 		var cksum = "0"
 		_ = cksum // suppress unused warning
 		for _, i := range tclSplitList(a) {
+		_ = i // suppress unused warning
 			var cksum = "0"
 			// incr cksum i
 			{

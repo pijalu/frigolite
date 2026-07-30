@@ -231,6 +231,7 @@ func Test_pager1(t *testing.T) {
 			{ // do_test "pager1.4.2.3"
 				t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 				for _, f := range tclSplitList("glob test.db-mj*") {
+				_ = f // suppress unused warning
 					os.Remove(f)
 				}
 				r = db.Query("\n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check;\n  ")
@@ -250,6 +251,7 @@ func Test_pager1(t *testing.T) {
 				t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
 				t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db-journal [expr [file size test.db-journal]-30] 123456")
 				for _, f := range tclSplitList("glob test.db-mj*") {
+				_ = f // suppress unused warning
 					os.Remove(f)
 				}
 				r = db.Query("\n    SELECT count(*) FROM t1;\n    PRAGMA integrity_check;\n  ")
@@ -400,6 +402,7 @@ func Test_pager1(t *testing.T) {
 								if func() bool { _mj_delete_cnt_n, __mj_delete_cnt_e := strconv.Atoi(_mj_delete_cnt); if __mj_delete_cnt_e != nil { return false }; return _mj_delete_cnt_n > 0 }() {
 									t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen $prefix")
 									for _, f := range tclSplitList("glob ${prefix}-mj*") {
+									_ = f // suppress unused warning
 										os.Remove(f)
 									}
 								} else {
@@ -720,6 +723,8 @@ func Test_pager1(t *testing.T) {
 						{
 							var msg string // catch result ("0"=ok, "1"=error)
 							var _catchErrMsg string // catch error message
+							_ = msg // suppress unused warning
+							_ = _catchErrMsg // suppress unused warning
 							var _catchErr error
 							// file attributes test.db -permissions rw-rw-rw-
 							if _catchErr != nil {
@@ -1157,6 +1162,7 @@ func Test_pager1(t *testing.T) {
 						db2.Close()
 						t.Errorf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
 						for _, sectorsize := range tclSplitList("\n    16\n    32   64   128   256   512   1024   2048 \n    4096 8192 16384 32768 65536 131072 262144\n") {
+						_ = sectorsize // suppress unused warning
 							t.Errorf("TODO: %s not implemented in frigolite", "tv sectorsize $sectorsize")
 							t.Errorf("TODO: %s not implemented in frigolite", "tv devchar {}")
 							var eff = sectorsize
@@ -1302,6 +1308,7 @@ func Test_pager1(t *testing.T) {
 						t.Errorf("TODO: %s not implemented in frigolite", "testvfs tv -default 1")
 						t.Errorf("TODO: %s not implemented in frigolite", "tv sectorsize 1024")
 						for _, pagesize := range tclSplitList("\n    512   1024   2048 4096 8192 16384 32768 \n") {
+						_ = pagesize // suppress unused warning
 							t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 							var eff = pagesize
 							_ = eff // suppress unused warning

@@ -147,6 +147,7 @@ func Test_pagerfault(t *testing.T) {
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-9.1 -prep {\n  faultsim_restore_and_reopen\n  execsql { \n    BE...} -body {\n  execsql {\n    ROLLBACK TO abc;\n    COMMIT;\n    ...} -test {\n  faultsim_test_result {0 2}\n  faultsim_integrity...}")
 	for _, v := range tclSplitList("a b") {
+	_ = v // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-10$v -prep {\n    sqlite3 db \"\"\n    db func a_string a_string;\n...} -body {\n    execsql { UPDATE xx SET a = a_string(300) }\n ...} -test {\n    faultsim_test_result {0 {}}\n    if {$::v == \"...}")
 	}
 	{ // do_test "pagerfault-9-pre1"

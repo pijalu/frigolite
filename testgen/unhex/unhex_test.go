@@ -134,6 +134,7 @@ func Test_unhex(t *testing.T) {
 					var out = ""
 					_ = out // suppress unused warning
 					for _, x := range tclSplitList("split $hex \"\"") {
+					_ = x // suppress unused warning
 						if tclBool("xdigit $x") {
 							out += x
 						}

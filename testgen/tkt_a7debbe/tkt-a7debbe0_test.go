@@ -44,6 +44,7 @@ func Test_tkt_a7debbe0(t *testing.T) {
 	var testprefix = "tkt-a7debbe0"
 	_ = testprefix // suppress unused warning
 	for _, tn := range tclSplitList("1 2") {
+	_ = tn // suppress unused warning
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

@@ -50,6 +50,7 @@ func Test_triggerA(t *testing.T) {
 		var i = "1"
 		_ = i // suppress unused warning
 		for _, word := range tclSplitList("one two three four five six seven eight nine ten") {
+		_ = word // suppress unused warning
 			var j = "$i*100 + [string length $word]"
 			_ = j // suppress unused warning
 			_res = db.Exec("\n       INSERT INTO t1 VALUES($i,$word);\n       INSERT INTO t2 VALUES(20-$i,$j,$word);\n    ")

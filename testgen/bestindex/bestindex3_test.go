@@ -81,6 +81,7 @@ func Test_bestindex3(t *testing.T) {
 		}
 	}
 	for _, omit := range tclSplitList("0 1") {
+	_ = omit // suppress unused warning
 		{ // "1.6." + omit + ".0"
 			_res = db.Exec("\n    DROP TABLE t1;\n    CREATE VIRTUAL TABLE t1 USING tcl('vtab_cmd " + omit + "');\n  ")
 			if _res.Error != nil {

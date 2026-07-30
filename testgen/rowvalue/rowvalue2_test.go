@@ -80,8 +80,11 @@ func Test_rowvalue2(t *testing.T) {
 	}
 	{ // do_test "2.0.2"
 		for _, a := range tclSplitList("0 1 2 3") {
+		_ = a // suppress unused warning
 			for _, b := range tclSplitList("0 1 2 3") {
+			_ = b // suppress unused warning
 				for _, c := range tclSplitList("0 1 2 3") {
+				_ = c // suppress unused warning
 					_res = db.Exec(" INSERT INTO t2 VALUES($a, $b, $c, $c + $b*4 + $a*16); ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2 VALUES($a, $b, $c, $c + $b*4 + $a*16); ")
@@ -146,6 +149,7 @@ func Test_rowvalue2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t3(a, b, c, w); ")
 		}
 		for _, w := range tclSplitList(words) {
+		_ = w // suppress unused warning
 			var a = "$w 0 2"
 			_ = a // suppress unused warning
 			var b = "$w 3 5"
@@ -175,6 +179,7 @@ func Test_rowvalue2(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
 			}
 			for _, w := range tclSplitList(words) {
+			_ = w // suppress unused warning
 				var a = "$w 0 2"
 				_ = a // suppress unused warning
 				var b = "$w 3 5"
@@ -182,6 +187,7 @@ func Test_rowvalue2(t *testing.T) {
 				var c = "$w 6 end"
 				_ = c // suppress unused warning
 				for _, op := range tclSplitList("list > >= < <= == IS") {
+				_ = op // suppress unused warning
 					{ // "3.1." + tn + "." + w + "." + op
 						_res = db.Exec("-novar {\n        SELECT rowid FROM t3 WHERE (a, b, c) " + "set op" + " (" + a + ", " + b + ", " + c + ") \n        ORDER BY +rowid\n      }")
 						if _res.Error != nil {
@@ -231,6 +237,7 @@ func Test_rowvalue2(t *testing.T) {
 					_ = vector // suppress unused warning
 					_ = _idx2
 						for _, op := range tclSplitList(" IS == < <= > >= ") {
+						_ = op // suppress unused warning
 							var e1 = "make_expr1 {a b c} $vector $op"
 							_ = e1 // suppress unused warning
 							var e2 = "make_expr2 {a b c} $vector $op"
@@ -267,6 +274,7 @@ func Test_rowvalue2(t *testing.T) {
 					_ = rhs // suppress unused warning
 					_ = _idx3
 						for _, op := range tclSplitList(" IS == < <= > >= ") {
+						_ = op // suppress unused warning
 							var e1 = "make_expr1 $lhs $rhs $op"
 							_ = e1 // suppress unused warning
 							var e2 = "make_expr2 $lhs $rhs $op"

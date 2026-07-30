@@ -48,6 +48,7 @@ func Test_crash4(t *testing.T) {
 	_ = crash4_cksum_set // suppress unused warning
 	crash4_cksum_set = tclListAppend(crash4_cksum_set, "allcksum db")
 	for _, cmd := range tclSplitList(sql_cmd_list) {
+	_ = cmd // suppress unused warning
 		_res = db.Exec(cmd)
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, cmd)

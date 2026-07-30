@@ -207,6 +207,7 @@ func Test_where3(t *testing.T) {
 	var cnt = "0"
 	_ = cnt // suppress unused warning
 	for _, predicate := range tclSplitList("\n   {}\n   {ORDER BY a}\n   {ORDER BY t6w.a}\n   {WHERE a>0}\n   {WHERE t6y.a>0}\n   {WHERE a>0 ORDER BY a}\n") {
+	_ = predicate // suppress unused warning
 		var cnt = "0"
 		// incr cnt 1
 		{
@@ -303,6 +304,7 @@ func Test_where3(t *testing.T) {
 		}
 	}
 	for _, disabled_opt := range tclSplitList("none omit-noop-join all") {
+	_ = disabled_opt // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db all 1")
 		t.Errorf("TODO: %s not implemented in frigolite", "optimization_control db $disabled_opt 0")
 		{ // "where3-7." + disabled_opt + ".1"

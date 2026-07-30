@@ -254,6 +254,7 @@ func Test_unionvtab(t *testing.T) {
 			var iMin = "0"
 			_ = iMin // suppress unused warning
 			for _, e := range tclSplitList(dbs) {
+			_ = e // suppress unused warning
 				var E = "split $e ."
 				_ = E // suppress unused warning
 				if tclBool("llength $E" + ">1") {

@@ -170,6 +170,7 @@ func Test_notify1(t *testing.T) {
 		db2.Close()
 		os.Remove("test.db")
 		for _, con := range tclSplitList("db db2 db3") {
+		_ = con // suppress unused warning
 			con, err := frigolite.Open("test.db")
 			defer con.Close()
 			if err != nil { t.Fatal(err) }
@@ -337,6 +338,7 @@ func Test_notify1(t *testing.T) {
 		{ // do_test "notify1-6.1.1"
 			os.Remove("test.db")
 			for _, conn := range tclSplitList("db db2 db3") {
+			_ = conn // suppress unused warning
 				conn, err := frigolite.Open("test.db")
 				defer conn.Close()
 				if err != nil { t.Fatal(err) }
@@ -429,6 +431,7 @@ func Test_notify1(t *testing.T) {
 		// proc definition (not transpiled)
 		{ // do_test "notify1-7.1"
 			for _, conn := range tclSplitList("db db2 db3") {
+			_ = conn // suppress unused warning
 				conn, err := frigolite.Open("test.db")
 				defer conn.Close()
 				if err != nil { t.Fatal(err) }

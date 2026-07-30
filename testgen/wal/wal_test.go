@@ -370,8 +370,10 @@ func Test_wal(t *testing.T) {
 		}
 	}
 	for _, sector := range tclSplitList("512 4096") {
+	_ = sector // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize $sector")
 		for _, pgsz := range tclSplitList("512 1024 2048 4096") {
+		_ = pgsz // suppress unused warning
 			os.Remove("test.db")
 			{ // do_test "wal-6." + sector + "." + pgsz + ".1"
 				db, err := frigolite.Open("test.db")
@@ -478,6 +480,7 @@ func Test_wal(t *testing.T) {
 		}
 	}
 	for _, handle := range tclSplitList("db db2 db3") {
+	_ = handle // suppress unused warning
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
@@ -1053,6 +1056,7 @@ func Test_wal(t *testing.T) {
 					}
 				}
 				for _, pgsz := range tclSplitList("512 1024 2048 4096 8192 16384 32768 65536") {
+				_ = pgsz // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn [string map [list %PGSZ% $pgsz] {\n    do_test wal-...")
 				}
 				// incr _do_not_use_codec -1
@@ -1105,6 +1109,7 @@ func Test_wal(t *testing.T) {
 				t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log")
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 				for _, mode := range tclSplitList("OFF MEMORY PERSIST DELETE TRUNCATE WAL") {
+				_ = mode // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "delete_file test.db test2.db")
 					db, err := frigolite.Open("test.db")
 					defer db.Close()

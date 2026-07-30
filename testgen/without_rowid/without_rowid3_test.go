@@ -611,6 +611,7 @@ func Test_without_rowid3(t *testing.T) {
 					var tn = "0"
 					_ = tn // suppress unused warning
 					for _, zSql := range tclSplitList("list {\n  CREATE TABLE p(a PRIMARY KEY, b) WITHOUT rowid;\n  CREATE TABLE c(x REFERENCES p(c));\n} {\n  CREATE TABLE c(x REFERENCES v(y));\n  CREATE VIEW v AS SELECT x AS y FROM c;\n} {\n  CREATE TABLE p(a, b, PRIMARY KEY(a, b)) WITHOUT rowid;\n  CREATE TABLE c(x REFERENCES p);\n} {\n  CREATE TABLE p(a COLLATE binary, b);\n  CREATE UNIQUE INDEX i ON p(a COLLATE nocase);\n  CREATE TABLE c(x REFERENCES p(a));\n}") {
+					_ = zSql // suppress unused warning
 						t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 						{ // do_test "without_rowid3-10.1." + "incr tn"
 							_res = db.Exec(zSql)

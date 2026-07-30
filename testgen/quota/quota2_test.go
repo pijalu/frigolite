@@ -44,9 +44,11 @@ func Test_quota2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_quota_initialize  1")
 	for _, dir := range tclSplitList("quota2a/x1 quota2a/x2 quota2a quota2b quota2c") {
+	_ = dir // suppress unused warning
 		os.Remove(dir)
 	}
 	for _, dir := range tclSplitList("quota2a quota2a/x1 quota2a/x2 quota2b quota2c") {
+	_ = dir // suppress unused warning
 		// file mkdir $dir
 	}
 	var _quota_pwd = "{\\\\ /} [get_pwd]" // TCL namespace variable

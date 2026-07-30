@@ -235,6 +235,7 @@ func Test_date(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 3.16 strftime('[repeat 200 %Y]','2003-10-31') [repeat 200 2003]")
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 3.17 strftime('[repeat 200 abc%m123]','2003-10-31') [repeat 200 abc10123]")
 	for _, c := range tclSplitList("a b c h i n o q r t v x y z\n           A B C D E K L N O Q Z\n           0 1 2 3 4 5 6 6 7 9 _") {
+	_ = c // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "datetest 3.18.$c strftime('%$c','2003-10-31') NULL")
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 3.20 {strftime('%e','2023-08-09')} { 9}")

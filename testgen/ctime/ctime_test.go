@@ -166,6 +166,7 @@ func Test_ctime(t *testing.T) {
 	var tc = "1"
 	_ = tc // suppress unused warning
 	for _, opt := range tclSplitList(opts) {
+	_ = opt // suppress unused warning
 		{ // do_test "ctime-2.5." + tc
 			var N = "expr"
 			_ = N // suppress unused warning

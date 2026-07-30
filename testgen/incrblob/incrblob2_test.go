@@ -48,6 +48,7 @@ func Test_incrblob2(t *testing.T) {
 		}
 	}
 	for _, iOffset := range tclSplitList("list 0 256 4094") {
+	_ = iOffset // suppress unused warning
 		{ // do_test "incrblob2-1." + iOffset + ".1"
 			var fd = "db incrblob blobs data 1"
 			_ = fd // suppress unused warning
@@ -93,6 +94,7 @@ func Test_incrblob2(t *testing.T) {
 		}
 	}
 	for _, iOffset := range tclSplitList("list 0 256 4094") {
+	_ = iOffset // suppress unused warning
 		{ // do_test "incrblob2-2." + iOffset + ".1"
 			var fd1 = "db incrblob blobs data 1"
 			_ = fd1 // suppress unused warning

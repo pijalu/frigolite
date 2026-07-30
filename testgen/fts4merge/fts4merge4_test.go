@@ -158,8 +158,11 @@ func Test_fts4merge4(t *testing.T) {
 	var doc = ""
 	_ = doc // suppress unused warning
 	for _, c1 := range tclSplitList("a b c d e f g h i j") {
+	_ = c1 // suppress unused warning
 		for _, c2 := range tclSplitList("a b c d e f g h i j") {
+		_ = c2 // suppress unused warning
 			for _, c3 := range tclSplitList("a b c d e f g h i j") {
+			_ = c3 // suppress unused warning
 				doc = tclListAppend(doc, c1 + c2 + c3)
 			}
 		}

@@ -73,6 +73,7 @@ func Test_fts4incr(t *testing.T) {
 		_ = res // suppress unused warning
 		_ = _idx0
 			for _, s := range tclSplitList("0 1") {
+			_ = s // suppress unused warning
 				_res = db.Exec("INSERT INTO t1(t1) VALUES('test-no-incr-doclist=" + s + "')")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1(t1) VALUES('test-no-incr-doclist=" + s + "')")

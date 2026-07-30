@@ -90,6 +90,7 @@ func Test_pagesize(t *testing.T) {
 		}
 	}
 	for _, PGSZ := range tclSplitList("512 2048 4096 8192") {
+	_ = PGSZ // suppress unused warning
 		if tclBool("info exists SQLITE_MAX_PAGE_SIZE" + "\n           && " + SQLITE_MAX_PAGE_SIZE + "<" + PGSZ) {
 		}
 		{ // do_test "pagesize-2." + PGSZ + ".1"

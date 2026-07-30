@@ -82,6 +82,7 @@ func Test_syscall(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall exists nosuchcall")
 	}
 	for _, s := range tclSplitList("\n    open close access getcwd stat fstat ftruncate\n    fcntl read pread write pwrite fchmod fallocate\n    pread64 pwrite64 unlink openDirectory mkdir rmdir \n    statvfs fchown geteuid umask mmap munmap mremap\n    getpagesize readlink lstat ioctl\n") {
+	_ = s // suppress unused warning
 		if tclBool("test_syscall exists $s") {
 			syscall_list = tclListAppend(syscall_list, s)
 		}
@@ -100,6 +101,7 @@ func Test_syscall(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
 	t.Errorf("TODO: %s not implemented in frigolite", "test_syscall install open")
 	for _, jrnl := range tclSplitList("list wal delete") {
+	_ = jrnl // suppress unused warning
 		var i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {

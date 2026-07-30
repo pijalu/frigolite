@@ -149,6 +149,7 @@ func Test_mjournal(t *testing.T) {
 		var cksum = "0"
 		_ = cksum // suppress unused warning
 		for _, b := range tclSplitList(bytes) {
+		_ = b // suppress unused warning
 			var cksum = "0"
 			// incr cksum b
 			{

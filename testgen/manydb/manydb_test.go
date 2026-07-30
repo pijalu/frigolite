@@ -82,6 +82,7 @@ func Test_manydb(t *testing.T) {
 			}
 		}
 		for _, fd := range tclSplitList(filehandles) {
+		_ = fd // suppress unused warning
 			// close $fd
 		}
 		{

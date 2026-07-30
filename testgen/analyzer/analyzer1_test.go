@@ -69,6 +69,8 @@ func Test_analyzer1(t *testing.T) {
 		{
 			var _MSG string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
+			_ = _MSG // suppress unused warning
+			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			// eval $line
 			if _catchErr != nil {

@@ -806,7 +806,9 @@ func Test_gencol1(t *testing.T) {
 		var cnt = "0"
 		_ = cnt // suppress unused warning
 		for _, t1 := range tclSplitList(typelist) {
+		_ = t1 // suppress unused warning
 			for _, t2 := range tclSplitList(typelist) {
+			_ = t2 // suppress unused warning
 				var cnt = "0"
 				// incr cnt 1
 				{

@@ -56,6 +56,7 @@ func Test_ioerr5(t *testing.T) {
 		}
 	}
 	for _, locking_mode := range tclSplitList("normal exclusive") {
+	_ = locking_mode // suppress unused warning
 		var nPage = "2"
 		_ = nPage // suppress unused warning
 		var iFail = "1"
@@ -150,6 +151,7 @@ func Test_ioerr5(t *testing.T) {
 		}
 	}
 	for _, locking_mode := range tclSplitList("exclusive normal") {
+	_ = locking_mode // suppress unused warning
 		var iFail = "1"
 		_ = iFail // suppress unused warning
 		for func() bool { iFail_n, _iFail_e := strconv.Atoi(iFail); if _iFail_e != nil { return false }; return iFail_n < 200 }() {

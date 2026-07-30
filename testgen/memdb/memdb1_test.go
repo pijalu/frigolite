@@ -111,6 +111,8 @@ func Test_memdb1(t *testing.T) {
 		{
 			var msg string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
+			_ = msg // suppress unused warning
+			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			if _catchErr != nil {
 				msg = "1"

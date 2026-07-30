@@ -207,6 +207,7 @@ func Test_zipfile2(t *testing.T) {
 	var a = archive2
 	_ = a // suppress unused warning
 	for _, i := range tclSplitList(L) {
+	_ = i // suppress unused warning
 		var a = "$a $i [expr $i+7] 16000000"
 		_ = a // suppress unused warning
 	}

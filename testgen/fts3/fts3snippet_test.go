@@ -217,6 +217,7 @@ func Test_fts3snippet(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      DROP TABLE IF EXISTS ft;\n      CREATE VIRTUAL TABLE ft USING fts3(x, y);\n    ")
 				}
 				for _, n := range tclSplitList("1 2 3") {
+				_ = n // suppress unused warning
 					var v1 = "lrange $numbers 0 [expr $n*100]"
 					_ = v1 // suppress unused warning
 					var v2 = "[string repeat \"$numbers \" $n]"

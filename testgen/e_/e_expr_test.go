@@ -67,6 +67,7 @@ func Test_e_expr(t *testing.T) {
 			_ = opl // suppress unused warning
 			_ = _idx1
 				for _, op := range tclSplitList(opl) {
+				_ = op // suppress unused warning
 					var _opprec_op = prec // TCL namespace variable
 					_ = _opprec_op // suppress unused warning
 					oplist = tclListAppend(oplist, op)
@@ -75,7 +76,9 @@ func Test_e_expr(t *testing.T) {
 			// proc definition (not transpiled)
 			// proc definition (not transpiled)
 			for _, op1 := range tclSplitList(oplist) {
+			_ = op1 // suppress unused warning
 				for _, op2 := range tclSplitList(oplist) {
+				_ = op2 // suppress unused warning
 					var untested_op1,op2 = "1"
 					_ = untested_op1,op2 // suppress unused warning
 					// foreach {tn A B C} "\n       1     22   45    66\n       2      0    0     0\n       3      0    0     1\n       4      0    1     0\n       5      0    1     1\n       6      1    0     0\n       7      1    0     1\n       8      1    1     0\n       9      1    1     1\n      10      5    6     1\n      11      1    5     6\n      12      1    5     5\n      13      5    5     1\n\n      14      5    2     1\n      15      1    4     1\n      16     -1    0     1\n      17      0    1    -1\n\n    "
@@ -114,6 +117,7 @@ func Test_e_expr(t *testing.T) {
 					}
 				}
 				for _, op := range tclSplitList("* AND OR + || & |") {
+				_ = op // suppress unused warning
 				}
 				{ // do_test "e_expr-1.1"
 				}
@@ -369,6 +373,7 @@ func Test_e_expr(t *testing.T) {
 							var literals = "\n  1 'abc'        2 'hexadecimal'       3 ''\n  4 123          5 -123                6 0\n  7 123.4        8 0.0                 9 -123.4\n 10 X'ABCDEF'   11 X''                12 X'0000'\n 13     NULL\n"
 							_ = literals // suppress unused warning
 							for _, op := range tclSplitList(oplist) {
+							_ = op // suppress unused warning
 								if op == "AND" || op == "OR" {
 									continue
 								}
@@ -1496,7 +1501,9 @@ func Test_e_expr(t *testing.T) {
 																		var elist2 = "list"
 																		_ = elist2 // suppress unused warning
 																		for _, el := range tclSplitList(elist) {
+																		_ = el // suppress unused warning
 																			for _, e := range tclSplitList(" cname \"34+22\" ") {
+																			_ = e // suppress unused warning
 																				elist2 = tclListAppend(elist2, "[list EXPR $e] $el")
 																			}
 																		}
@@ -1506,6 +1513,7 @@ func Test_e_expr(t *testing.T) {
 																	var x = "0"
 																	_ = x // suppress unused warning
 																	for _, e := range tclSplitList(elist) {
+																	_ = e // suppress unused warning
 																		var x = "0"
 																		// incr x 1
 																		{

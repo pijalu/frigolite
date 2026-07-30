@@ -1002,7 +1002,9 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	}
 
 	if len(varNames) == 1 {
-		tp.emitLine("for _, %s := range tclSplitList(%s) {", tclVarToGo(varNames[0]), listExpr)
+		goVN := tclVarToGo(varNames[0])
+		tp.emitLine("for _, %s := range tclSplitList(%s) {", goVN, listExpr)
+		tp.emitLine("_ = %s // suppress unused warning", goVN)
 	} else {
 		// Use unique variable names per foreach to avoid redeclaration
 		itemsVar := fmt.Sprintf("_items%d", tp.varCount)
@@ -1681,6 +1683,8 @@ func (tp *transpiler) processCatch(args []tcl.RawWord) {
 	if hasResult {
 		tp.emitLine("var %s string // catch result (\"0\"=ok, \"1\"=error)", resultVar)
 		tp.emitLine("var %s string // catch error message", errVar)
+		tp.emitLine("_ = %s // suppress unused warning", resultVar)
+		tp.emitLine("_ = %s // suppress unused warning", errVar)
 	}
 	tp.emitLine("var _catchErr error")
 	if !hasResult {

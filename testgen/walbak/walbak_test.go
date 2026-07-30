@@ -220,6 +220,7 @@ func Test_walbak(t *testing.T) {
 			if tclBool(tn + "==4 && " + "sqlite3 -has-codec") {
 			}
 			for _, f := range tclSplitList("glob -nocomplain test.db*") {
+			_ = f // suppress unused warning
 				os.Remove(f)
 			}
 			// eval $setup

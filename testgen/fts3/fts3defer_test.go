@@ -136,6 +136,7 @@ func Test_fts3defer(t *testing.T) {
 			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 4.2 {\n    SELECT offsets(t1) FROM t1 WHERE t1 MATCH 'du...} {\n    {0 2 3 8 0 1 36 2 0 0 58 9} \n    {0 0 0 9 0 1...}")
 			t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 4.3 {\n    SELECT offsets(t1) FROM t1 \n    WHERE t1 MATC...} {{0 0 0 5 0 1 15 7 0 0 36 5}}")
 			for _, DO_MALLOC_TEST := range tclSplitList(dmt_modes) {
+			_ = DO_MALLOC_TEST // suppress unused warning
 				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.1 {\n      SELECT rowid FROM t1 WHERE t1 MATCH '\"jk mj...} {8 15 36 64 67 72}")
 				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.2 {\n      SELECT rowid FROM t1 WHERE t1 MATCH 'duszem...} {3 5 8 10 12 13 18 20 23 37 43 55 60 65 67 72 74 81...}")
 				t.Errorf("TODO: %s not implemented in frigolite", "do_select_test 5.$DO_MALLOC_TEST.3 {\n      SELECT snippet(t1, '[', ']') FROM t1 WHERE ...} {\n      {[zm] [aayxpmve] csjqxhgj xnxhf xr jk aayxp...}")

@@ -72,11 +72,13 @@ func Test_sysfault(t *testing.T) {
 			var errs = "list"
 			_ = errs // suppress unused warning
 			for _, e := range tclSplitList(errlist) {
+			_ = e // suppress unused warning
 				errs = tclListAppend(errs, "list 1 $e")
 			}
 			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1.2.$tn -faults vfsfault-* -prep {\n    faultsim_restore\n  } -body \n    test_syscall errno fstat $errno\n    $open_and... -test \n    faultsim_test_result {0 {wal 1 2 3 4}} $errs\n...")
 		}
 		for _, vfs := range tclSplitList("unix unix-excl") {
+		_ = vfs // suppress unused warning
 			// foreach {tn errno errlist} "\n    1 EAGAIN       {{database is locked} {disk I/O error}}\n    2 ETIMEDOUT    {{database is locked} {disk I/O error}}\n    3 EBUSY        {{database is locked} {disk I/O error}}\n    4 EINTR        {{database is locked} {disk I/O error}}\n    5 ENOLCK       {{database is locked} {disk I/O error}}\n    6 EACCES       {{database is locked} {disk I/O error}}\n    7 EPERM        {{access permission denied} {disk I/O error}}\n    8 EDEADLK      {{disk I/O error}}\n    9 ENOMEM       {{disk I/O error}}\n  "
 			_items1 := tclSplitList("\n    1 EAGAIN       {{database is locked} {disk I/O error}}\n    2 ETIMEDOUT    {{database is locked} {disk I/O error}}\n    3 EBUSY        {{database is locked} {disk I/O error}}\n    4 EINTR        {{database is locked} {disk I/O error}}\n    5 ENOLCK       {{database is locked} {disk I/O error}}\n    6 EACCES       {{database is locked} {disk I/O error}}\n    7 EPERM        {{access permission denied} {disk I/O error}}\n    8 EDEADLK      {{disk I/O error}}\n    9 ENOMEM       {{disk I/O error}}\n  ")
 			for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
@@ -91,6 +93,7 @@ func Test_sysfault(t *testing.T) {
 					var errs = "list"
 					_ = errs // suppress unused warning
 					for _, e := range tclSplitList(errlist) {
+					_ = e // suppress unused warning
 						errs = tclListAppend(errs, "list 1 $e")
 					}
 					var body = "[list %VFS% $vfs] {\n      sqlite3 db test.db\n      db eval {\n        CREATE TABLE t1(a, b);\n        INSERT INTO t1 VALUES(1, 2);\n      }\n      set fd [open test.db-journal w]\n      puts $fd \"hello world\"\n      close $fd\n      sqlite3 db test.db -vfs %VFS%\n      db eval {\n        SELECT * FROM t1;\n      }\n    }"

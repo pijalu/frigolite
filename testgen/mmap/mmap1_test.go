@@ -117,6 +117,7 @@ func Test_mmap1(t *testing.T) {
 		}
 		{ // do_test "4.3"
 			for _, _r := range tclSplitList("2 3 4") {
+			_ = _r // suppress unused warning
 				var fd = "db incrblob t1 x $r"
 				_ = fd // suppress unused warning
 				t.Log("-nonewline")

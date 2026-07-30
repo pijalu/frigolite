@@ -151,6 +151,7 @@ func Test_tkt_2d1a5c67d(t *testing.T) {
 	}
 	{ // do_test "3.5"
 		for _, b := range tclSplitList(blobs) {
+		_ = b // suppress unused warning
 			// close $b
 		}
 		r = db.Query(" SELECT * FROM t4 WHERE a = 'xyz' ")

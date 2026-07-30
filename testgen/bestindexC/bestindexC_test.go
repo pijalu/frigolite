@@ -257,6 +257,8 @@ func Test_bestindexC(t *testing.T) {
 						{
 							var msg string // catch result ("0"=ok, "1"=error)
 							var _catchErrMsg string // catch error message
+							_ = msg // suppress unused warning
+							_ = _catchErrMsg // suppress unused warning
 							var _catchErr error
 							r = db.Query("SELECT * FROM x1 " + _where)
 							if r.Error != nil { _catchErr = r.Error }

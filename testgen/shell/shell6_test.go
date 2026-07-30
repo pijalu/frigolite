@@ -71,6 +71,7 @@ func Test_shell6(t *testing.T) {
 			var expected = ""
 			_ = expected // suppress unused warning
 			for _, line := range tclSplitList("split $output \"\\n\"") {
+			_ = line // suppress unused warning
 				var line = "$line"
 				_ = line // suppress unused warning
 				if line != "" {

@@ -50,6 +50,7 @@ func Test_mmap2(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "test_sqlite3_log xLog")
 	// proc definition (not transpiled)
 	for _, syscall := range tclSplitList("mmap mremap") {
+	_ = syscall // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "test_syscall uninstall")
 		if false {
 		}

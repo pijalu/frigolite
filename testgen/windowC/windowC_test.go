@@ -59,12 +59,14 @@ func Test_windowC(t *testing.T) {
 		_ = seps // suppress unused warning
 		_ = _idx0
 			for _, _type := range tclSplitList("text blob") {
+			_ = _type // suppress unused warning
 				{ // do_test "1." + _type + "." + tn + ".1"
 					_res = db.Exec(" DELETE FROM x1 ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM x1 ")
 					}
 					for _, s := range tclSplitList(seps) {
+					_ = s // suppress unused warning
 						if _type == "text" {
 							_res = db.Exec("INSERT INTO x1 VALUES(NULL, $s)")
 							if _res.Error != nil {

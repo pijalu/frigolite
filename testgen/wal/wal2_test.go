@@ -528,11 +528,13 @@ func Test_wal2(t *testing.T) {
 					var L = "list"
 					_ = L // suppress unused warning
 					for _, el := range tclSplitList(expected_locks) {
+					_ = el // suppress unused warning
 						L = tclListAppend(L, el)
 					}
 					var S = ""
 					_ = S // suppress unused warning
 					for _, sq := range tclSplitList("split $sql \"\\n\"") {
+					_ = sq // suppress unused warning
 						var sq = "$sq"
 						_ = sq // suppress unused warning
 						if tclBool("{#*} $sq" + "==0") {
@@ -817,6 +819,7 @@ func Test_wal2(t *testing.T) {
 						I = "list"
 						_ = I // suppress unused warning
 						for _, p := range tclSplitList(L) {
+						_ = p // suppress unused warning
 							I = tclListAppend(I, "$p ? $p : 400")
 						}
 						blob += "binary format t* $I"

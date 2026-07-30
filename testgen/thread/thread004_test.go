@@ -65,6 +65,7 @@ func Test_thread004(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(1) $thread_procs $ThreadOne")
 		t.Errorf("TODO: %s not implemented in frigolite", "thread_spawn finished(2) $thread_procs $ThreadTwo")
 		for _, _t := range tclSplitList("1 2") {
+		_ = _t // suppress unused warning
 			if tclBool("!" + "info exists finished($t)") {
 			}
 		}

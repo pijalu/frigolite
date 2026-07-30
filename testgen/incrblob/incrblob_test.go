@@ -102,6 +102,7 @@ func Test_incrblob(t *testing.T) {
 	// proc definition (not transpiled)
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_soft_heap_limit 0")
 	for _, AutoVacuumMode := range tclSplitList("list 0 1") {
+	_ = AutoVacuumMode // suppress unused warning
 		if func() bool { AutoVacuumMode_n, _AutoVacuumMode_e := strconv.Atoi(AutoVacuumMode); if _AutoVacuumMode_e != nil { return false }; return AutoVacuumMode_n > 0 }() {
 		}
 		os.Remove("test.db")

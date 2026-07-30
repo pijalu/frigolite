@@ -42,6 +42,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	for _, f := range tclSplitList("glob -nocomplain test.db*mj*") {
+	_ = f // suppress unused warning
 		os.Remove(f)
 	}
 	os.Remove("test.db2")
@@ -84,6 +85,7 @@ func Test_tkt_f3e5abed55(t *testing.T) {
 		tclGlob("-nocomplain")
 	}
 	for _, f := range tclSplitList("glob -nocomplain test.db*mj*") {
+	_ = f // suppress unused warning
 		os.Remove(f)
 	}
 	db2.Close()

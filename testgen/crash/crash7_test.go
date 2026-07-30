@@ -46,6 +46,7 @@ func Test_crash7(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	for _, f := range tclSplitList("list test.db test.db-journal") {
+	_ = f // suppress unused warning
 		var ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 64 }() {

@@ -206,6 +206,8 @@ func Test_tclsqlite(t *testing.T) {
 	{
 		var msg string // catch result ("0"=ok, "1"=error)
 		var _catchErrMsg string // catch error message
+		_ = msg // suppress unused warning
+		_ = _catchErrMsg // suppress unused warning
 		var _catchErr error
 		// expr x* → "x*"
 		if _catchErr != nil {
@@ -1374,6 +1376,8 @@ func Test_tclsqlite(t *testing.T) {
 		{
 			var msg string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
+			_ = msg // suppress unused warning
+			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			_res = db.Exec("SELECT 1 2 3;")
 			if _res.Error != nil { _catchErr = _res.Error }

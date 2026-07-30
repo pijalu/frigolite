@@ -89,6 +89,7 @@ func Test_savepoint6(t *testing.T) {
 		}
 	}
 	for _, zSetup := range tclSplitList("list {\n  set testname normal\n  sqlite3 db test.db\n} {\n  if {[wal_is_wal_mode]} continue\n  set testname tempdb\n  sqlite3 db \"\"\n} {\n  if {[permutation] eq \"journaltest\"} {\n    continue\n  }\n  set testname nosync\n  sqlite3 db test.db\n  sql { PRAGMA synchronous = off }\n} {\n  set testname smallcache\n  sqlite3 db test.db\n  sql { PRAGMA cache_size = 10 }\n}") {
+	_ = zSetup // suppress unused warning
 		{
 			var _catchErr error
 			_ = _catchErr // suppress unused warning

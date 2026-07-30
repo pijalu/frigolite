@@ -50,6 +50,7 @@ func Test_func(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE tbl1(t1 text)")
 		}
 		for _, word := range tclSplitList("this program is free software") {
+		_ = word // suppress unused warning
 			_res = db.Exec("INSERT INTO tbl1 VALUES('" + word + "')")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl1 VALUES('" + word + "')")
@@ -285,6 +286,7 @@ func Test_func(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl1")
 			}
 			for _, word := range tclSplitList("contains UTF-8 characters hi\\u1234ho") {
+			_ = word // suppress unused warning
 				_res = db.Exec("INSERT INTO tbl1 VALUES('" + word + "')")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl1 VALUES('" + word + "')")
@@ -361,6 +363,7 @@ func Test_func(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM tbl1")
 			}
 			for _, word := range tclSplitList("this program is free software") {
+			_ = word // suppress unused warning
 				_res = db.Exec("INSERT INTO tbl1 VALUES('" + word + "')")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO tbl1 VALUES('" + word + "')")

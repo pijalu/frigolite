@@ -153,6 +153,7 @@ func Test_collate5(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE collate5t3(a, b);\n  ")
 		}
 		for _, ii := range tclSplitList(_lens) {
+		_ = ii // suppress unused warning
 			_res = db.Exec("INSERT INTO collate5t3 VALUES(" + ii + ", '" + "a $ii" + "');")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO collate5t3 VALUES(" + ii + ", '" + "a $ii" + "');")

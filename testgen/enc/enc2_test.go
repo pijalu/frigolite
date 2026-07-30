@@ -53,6 +53,7 @@ func Test_enc2(t *testing.T) {
 	var i = "1"
 	_ = i // suppress unused warning
 	for _, enc := range tclSplitList(encodings) {
+	_ = enc // suppress unused warning
 		os.Remove("test.db")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()

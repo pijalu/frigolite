@@ -48,12 +48,15 @@ func Test_permutations(t *testing.T) {
 	var alltests = "list"
 	_ = alltests // suppress unused warning
 	for _, f := range tclSplitList("glob $testdir/*.test") {
+	_ = f // suppress unused warning
 		alltests = tclListAppend(alltests, "file tail $f")
 	}
 	for _, f := range tclSplitList("glob -nocomplain            \\\n    $testdir/../ext/rtree/*.test       \\\n    $testdir/../ext/fts5/test/*.test   \\\n    $testdir/../ext/expert/*.test      \\\n    $testdir/../ext/lsm1/test/*.test   \\\n    $testdir/../ext/recover/*.test     \\\n    $testdir/../ext/rbu/*.test         \\\n    $testdir/../ext/intck/*.test       \\") {
+	_ = f // suppress unused warning
 		alltests = tclListAppend(alltests, f)
 	}
 	for _, f := range tclSplitList("glob -nocomplain $testdir/../ext/session/*.test") {
+	_ = f // suppress unused warning
 		alltests = tclListAppend(alltests, f)
 	}
 	if _tcl_platform_platform != "unix" {
@@ -72,9 +75,11 @@ func Test_permutations(t *testing.T) {
 		var all = "list"
 		_ = all // suppress unused warning
 		for _, a := range tclSplitList(allquicktests) {
+		_ = a // suppress unused warning
 			var bIn = "1"
 			_ = bIn // suppress unused warning
 			for _, x := range tclSplitList("split $::env(QUICKTEST_OMIT) ,") {
+			_ = x // suppress unused warning
 				if tclBool("regexp $x [file tail $a]") {
 					var bIn = "0"
 					_ = bIn // suppress unused warning
@@ -144,6 +149,7 @@ func Test_permutations(t *testing.T) {
 	var perm_alt_pcache_testset = "\n  attach.test\n  delete.test delete2.test\n  index.test\n  insert.test insert2.test\n  join.test join2.test\n  rollback.test\n  select1.test select2.test\n  trans.test\n  update.test\n"
 	_ = perm_alt_pcache_testset // suppress unused warning
 	for _, discard_rate := range tclSplitList("0 10 50 90 100") {
+	_ = discard_rate // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "test_suite pcache${discard_rate} -description \n    Alternative pcache implementation with ${disc... -initialize \n    catch {db close}\n    sqlite3_shutdown\n    sql... -shutdown {\n    catch {db close}\n    sqlite3_shutdown\n    sql...} -files $ {perm-alt-pcache-testset}")
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "test_suite journaltest -description {\n  Check that pages are synced before being writte...} -initialize {\n  catch {db close}\n  register_jt_vfs -default \"\"\n} -shutdown {\n  unregister_jt_vfs\n} -files [test_set $::allquicktests -exclude {\n  wal* incrv...")

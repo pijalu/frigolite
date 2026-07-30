@@ -79,6 +79,7 @@ func Test_fts4unicode(t *testing.T) {
 	var map_x = "list \"\\u1E8C\" \"\\u1E8D\""
 	_ = map_x // suppress unused warning
 	for _, k := range tclSplitList("array names map") {
+	_ = k // suppress unused warning
 		mappings = tclListAppend(mappings, strings.ToUpper("$k"), "lindex $map($k) 0")
 		mappings = tclListAppend(mappings, k, "lindex $map($k) 1")
 	}
@@ -89,6 +90,7 @@ func Test_fts4unicode(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE VIRTUAL TABLE t2 USING fts4(tokenize=unicode61, x); ")
 		}
 		for _, doc := range tclSplitList(docs) {
+		_ = doc // suppress unused warning
 			var d = "mapdoc $doc"
 			_ = d // suppress unused warning
 			_res = db.Exec(" INSERT INTO t2 VALUES($d) ")
@@ -224,6 +226,7 @@ func Test_fts4unicode(t *testing.T) {
 		var tokenizers = "list unicode61"
 		_ = tokenizers // suppress unused warning
 		for _, T := range tclSplitList(tokenizers) {
+		_ = T // suppress unused warning
 			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.1 $T 32")
 			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.2 $T 160")
 			t.Errorf("TODO: %s not implemented in frigolite", "do_isspace_test 6.$T.3 $T 5760")

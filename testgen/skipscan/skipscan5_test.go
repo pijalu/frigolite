@@ -134,6 +134,7 @@ func Test_skipscan5(t *testing.T) {
 					_ = i // suppress unused warning
 					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 						for _, _var := range tclSplitList("a b c d") {
+						_ = _var // suppress unused warning
 							var _var = "lindex $vocab($var) [expr $i % [llength $vocab($var)]]"
 							_ = _var // suppress unused warning
 						}
@@ -189,6 +190,7 @@ func Test_skipscan5(t *testing.T) {
 					var c = "0"
 					_ = c // suppress unused warning
 					for _, v := range tclSplitList(values) {
+					_ = v // suppress unused warning
 						_res = db.Exec("INSERT INTO t3 VALUES(" + c + " % 2, " + v + ", " + c + ")")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t3 VALUES(" + c + " % 2, " + v + ", " + c + ")")

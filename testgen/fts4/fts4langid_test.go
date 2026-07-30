@@ -408,6 +408,7 @@ func Test_fts4langid(t *testing.T) {
 		}
 	}
 	for _, langid := range tclSplitList("list 0 1 2 [expr 1<<30]") {
+	_ = langid // suppress unused warning
 		{ // "5.2." + langid
 			r = db.Query(" \n    SELECT docid FROM t5 WHERE t5 MATCH 'language' AND lid = $langid\n  ")
 			if r.Error != nil {
@@ -489,6 +490,7 @@ func Test_fts4langid(t *testing.T) {
 	lid = "1073741824"
 	_ = lid // suppress unused warning
 	for _, lid := range tclSplitList("list 4 [expr 1<<30]") {
+	_ = lid // suppress unused warning
 		{ // "5.4." + lid + ".1"
 			r = db.Query("\n    DELETE FROM t6;\n    SELECT count(*) FROM t6_segdir;\n    SELECT count(*) FROM t6_segments;\n  ")
 			if r.Error != nil {

@@ -82,6 +82,8 @@ func Test_colmeta(t *testing.T) {
 			{
 				var res string // catch result ("0"=ok, "1"=error)
 				var _catchErrMsg string // catch error message
+				_ = res // suppress unused warning
+				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main xyzzy")
 				if _catchErr != nil {
@@ -97,6 +99,8 @@ func Test_colmeta(t *testing.T) {
 			{
 				var res string // catch result ("0"=ok, "1"=error)
 				var _catchErrMsg string // catch error message
+				_ = res // suppress unused warning
+				_ = _catchErrMsg // suppress unused warning
 				var _catchErr error
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_table_column_metadata $::DB main abc")
 				if _catchErr != nil {

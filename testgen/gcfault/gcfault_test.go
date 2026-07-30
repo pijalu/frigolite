@@ -43,6 +43,7 @@ func Test_gcfault(t *testing.T) {
 	var testprefix = "gcfault"
 	_ = testprefix // suppress unused warning
 	for _, enc := range tclSplitList("\n  utf16\n  utf8\n") {
+	_ = enc // suppress unused warning
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }

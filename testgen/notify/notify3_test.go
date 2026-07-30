@@ -83,6 +83,8 @@ func Test_notify3(t *testing.T) {
 		{
 			var msg string // catch result ("0"=ok, "1"=error)
 			var _catchErrMsg string // catch error message
+			_ = msg // suppress unused warning
+			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			var _stmt = "" // TCL namespace variable
 			_ = _stmt // suppress unused warning

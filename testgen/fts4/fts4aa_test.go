@@ -52,6 +52,7 @@ func Test_fts4aa(t *testing.T) {
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 		for _, q := range tclSplitList(_fts4aa_queries) {
+		_ = q // suppress unused warning
 			var _r = "db eval {SELECT docid FROM t1 WHERE words MATCH $q ORDER BY docid}"
 			_ = _r // suppress unused warning
 			var _fts4aa_res_q = _r // TCL namespace variable

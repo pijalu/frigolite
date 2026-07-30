@@ -164,6 +164,7 @@ func Test_fts3an(t *testing.T) {
 	var bigtext = text
 	_ = bigtext // suppress unused warning
 	for _, c := range tclSplitList("a b c d e") {
+	_ = c // suppress unused warning
 		&c := tclRegsub("-all", "[A-Za-z]+", bigtext)
 		_ = &c // suppress unused warning
 		bigtext += _t

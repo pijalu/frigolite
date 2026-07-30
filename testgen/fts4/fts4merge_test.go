@@ -44,6 +44,7 @@ func Test_fts4merge(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
 	for _, mod := range tclSplitList("fts3 fts4") {
+	_ = mod // suppress unused warning
 		var _testprefix = "fts4merge-" + mod // TCL namespace variable
 		_ = _testprefix // suppress unused warning
 		db.Close()
@@ -230,6 +231,7 @@ func Test_fts4merge(t *testing.T) {
 			}
 			{ // do_test "4.2"
 				for _, x := range tclSplitList("a c b d e f g h i j k l m n o p") {
+				_ = x // suppress unused warning
 					_res = db.Exec("INSERT INTO t4 VALUES('" + "$x 600" + "')")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES('" + "$x 600" + "')")
@@ -330,6 +332,7 @@ func Test_fts4merge(t *testing.T) {
 				}
 				{ // do_test "5.5"
 					for _, docid := range tclSplitList("execsql {SELECT docid FROM t1}") {
+					_ = docid // suppress unused warning
 						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=$docid")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=$docid")
@@ -379,6 +382,7 @@ func Test_fts4merge(t *testing.T) {
 					var L = "1852"
 					_ = L // suppress unused warning
 					for _, docid := range tclSplitList("execsql {\n        SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L\n    }") {
+					_ = docid // suppress unused warning
 						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=$docid")
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 SELECT * FROM t1 WHERE docid=$docid")

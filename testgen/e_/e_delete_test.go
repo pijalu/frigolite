@@ -52,6 +52,7 @@ func Test_e_delete(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 	{ // do_test "e_delete-1.0"
 		for _, _t := range tclSplitList("t1 t2 t3 t4 t5 t6") {
+		_ = _t // suppress unused warning
 			_res = db.Exec("[list %T% $t] {\n        CREATE TABLE %T%(x, y);\n        INSERT INTO %T% VALUES(1, 'one');\n        INSERT INTO %T% VALUES(2, 'two');\n        INSERT INTO %T% VALUES(3, 'three');\n        INSERT INTO %T% VALUES(4, 'four');\n        INSERT INTO %T% VALUES(5, 'five');\n      }")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "[list %T% $t] {\n        CREATE TABLE %T%(x, y);\n        INSERT INTO %T% VALUES(1, 'one');\n        INSERT INTO %T% VALUES(2, 'two');\n        INSERT INTO %T% VALUES(3, 'three');\n        INSERT INTO %T% VALUES(4, 'four');\n        INSERT INTO %T% VALUES(5, 'five');\n      }")

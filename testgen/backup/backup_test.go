@@ -79,11 +79,17 @@ func Test_backup(t *testing.T) {
 	var iTest = "1"
 	_ = iTest // suppress unused warning
 	for _, zSrcFile := range tclSplitList("test.db :memory:") {
+	_ = zSrcFile // suppress unused warning
 		for _, zDestFile := range tclSplitList("test2.db :memory:") {
+		_ = zDestFile // suppress unused warning
 			for _, zOpenScript := range tclSplitList("list {\n  sqlite3 db $zSrcFile\n  sqlite3 db2 $zSrcFile\n  db2 eval \"ATTACH '$zDestFile' AS bak\"\n  set db_dest db2\n  set file_dest bak\n} {\n  sqlite3 db $zSrcFile\n  sqlite3 db2 $zDestFile\n  set db_dest db2\n  set file_dest main\n} {\n  sqlite3 db $zSrcFile\n  sqlite3 db2 $zDestFile\n  set db_dest db2\n  set file_dest temp\n}") {
+			_ = zOpenScript // suppress unused warning
 				for _, rows_dest := range tclSplitList("0 3 10") {
+				_ = rows_dest // suppress unused warning
 					for _, pgsz_dest := range tclSplitList("512 1024 2048 4096") {
+					_ = pgsz_dest // suppress unused warning
 						for _, nPagePerStep := range tclSplitList("1 200") {
+						_ = nPagePerStep // suppress unused warning
 							{
 								var _catchErr error
 								_ = _catchErr // suppress unused warning
@@ -173,8 +179,11 @@ func Test_backup(t *testing.T) {
 	iTest = "1"
 	_ = iTest // suppress unused warning
 	for _, nSrcPg := range tclSplitList("10 64 65 66 100") {
+	_ = nSrcPg // suppress unused warning
 		for _, nDestRow := range tclSplitList("10 100") {
+		_ = nDestRow // suppress unused warning
 			for _, nDestPgsz := range tclSplitList("512 1024 2048 4096") {
+			_ = nDestPgsz // suppress unused warning
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning
@@ -199,6 +208,7 @@ func Test_backup(t *testing.T) {
 					t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA page_size = " + nDestPgsz)
 				}
 				for _, db := range tclSplitList("db db2") {
+				_ = db // suppress unused warning
 					_res = db.Exec("\n      BEGIN; \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      COMMIT;\n    ")
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      BEGIN; \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(a, b);\n      COMMIT;\n    ")

@@ -49,6 +49,7 @@ func Test_unordered(t *testing.T) {
 		}
 	}
 	for _, idxmode := range tclSplitList("ordered unordered") {
+	_ = idxmode // suppress unused warning
 		_res = db.Exec(" DELETE FROM sqlite_stat2 ")
 		_ = _res // catchsql
 		_res = db.Exec(" DELETE FROM sqlite_stat3 ")

@@ -63,6 +63,7 @@ func Test_autovacuum(t *testing.T) {
 	var tn = "0"
 	_ = tn // suppress unused warning
 	for _, delete_order := range tclSplitList(delete_orders) {
+	_ = delete_order // suppress unused warning
 		var tn = "0"
 		// incr tn 1
 		{
@@ -74,6 +75,7 @@ func Test_autovacuum(t *testing.T) {
 		var _tbl_data = "list" // TCL namespace variable
 		_ = _tbl_data // suppress unused warning
 		for _, i := range tclSplitList("lsort -integer [eval concat $delete_order]") {
+		_ = i // suppress unused warning
 			_res = db.Exec("INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + "make_str $i $ENTRY_LEN" + "')")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO av1 (oid, a) VALUES(" + i + ", '" + "make_str $i $ENTRY_LEN" + "')")
@@ -81,6 +83,7 @@ func Test_autovacuum(t *testing.T) {
 			_tbl_data = tclListAppend(_tbl_data, "make_str $i $ENTRY_LEN")
 		}
 		for _, delete := range tclSplitList(delete_order) {
+		_ = delete // suppress unused warning
 			{ // do_test "autovacuum-1." + tn + ".(" + delete + ").1"
 				_res = db.Exec("\n        DELETE FROM av1 WHERE oid = " + "join $delete")
 				if _res.Error != nil {
@@ -88,6 +91,7 @@ func Test_autovacuum(t *testing.T) {
 				}
 			}
 			for _, d := range tclSplitList(delete) {
+			_ = d // suppress unused warning
 				var idx = "lsearch $::tbl_data [make_str $d $ENTRY_LEN]"
 				_ = idx // suppress unused warning
 				var _tbl_data = "lreplace $::tbl_data $idx $idx" // TCL namespace variable

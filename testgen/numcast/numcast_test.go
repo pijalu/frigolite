@@ -41,6 +41,7 @@ func Test_numcast(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	for _, enc := range tclSplitList("utf8 utf16le utf16be") {
+	_ = enc // suppress unused warning
 		{ // do_test "numcast-" + enc + ".0"
 			db, err := frigolite.Open(":memory:")
 			defer db.Close()

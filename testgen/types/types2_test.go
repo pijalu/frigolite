@@ -80,6 +80,7 @@ func Test_types2(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(i INTEGER, n NUMERIC, t TEXT, o XBLOBY);\n  CREATE INDEX t2i1 ON t2(i);\n  CREATE INDEX t2i2 ON t2(n);\n  CREATE INDEX t2i3 ON t2(t);\n  CREATE INDEX t2i4 ON t2(o);\n")
 	}
 	for _, v := range tclSplitList(vals) {
+	_ = v // suppress unused warning
 		_res = db.Exec("INSERT INTO t2 VALUES(" + v + ", " + v + ", " + v + ", " + v + ");")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t2 VALUES(" + v + ", " + v + ", " + v + ", " + v + ");")

@@ -123,6 +123,7 @@ func Test_win32longpath(t *testing.T) {
 	var lUri = "list 1a 1b 1c 1d 1e 1f"
 	_ = lUri // suppress unused warning
 	for _, tn := range tclSplitList(lUri) {
+	_ = tn // suppress unused warning
 		db3, err = frigolite.Open(uri + "(" + tn + ")")
 		if err != nil { t.Fatal(err) }
 		{ // do_test "1.7." + tn

@@ -1283,6 +1283,7 @@ func Test_tabfunc01(t *testing.T) {
 		var subtest = "1"
 		_ = subtest // suppress unused warning
 		for _, bound := range tclSplitList("\n  9007199254740991.0\n  9007199254740991.1\n  9007199254740991.5\n  9007199254740991.9\n  9007199254740992.0\n  9007199254740992.1\n  9007199254740992.5\n  9007199254740992.9\n  9007199254740993.0\n  9007199254740993.1\n  9007199254740993.5\n") {
+		_ = bound // suppress unused warning
 			// foreach {range boundsign} "\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  "
 			_items1 := tclSplitList("\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  ")
 			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
@@ -1294,6 +1295,7 @@ func Test_tabfunc01(t *testing.T) {
 					var bx = boundsign + bound
 					_ = bx // suppress unused warning
 					for _, op := range tclSplitList("< > <= >=") {
+					_ = op // suppress unused warning
 						{ // "1380." + subtest
 							r = db.Query("\n         SELECT 'value " + op + " " + bx + "' WHERE (\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE value " + op + " " + bx + ")<>(\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE +value " + op + " " + bx + ");\n      ")
 							if r.Error != nil {

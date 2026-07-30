@@ -61,8 +61,11 @@ func Test_backup_ioerr(t *testing.T) {
 	var iTest = "1"
 	_ = iTest // suppress unused warning
 	for _, bPersist := range tclSplitList("0 1") {
+	_ = bPersist // suppress unused warning
 		for _, iDestPagesize := range tclSplitList("512 1024 4096") {
+		_ = iDestPagesize // suppress unused warning
 			for _, zSetupBak := range tclSplitList("list \"\" {populate_database ddb 1}") {
+			_ = zSetupBak // suppress unused warning
 				var iTest = "0"
 				// incr iTest 1
 				{

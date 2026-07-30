@@ -181,6 +181,7 @@ func Test_where8(t *testing.T) {
 	var A = "2"
 	_ = A // suppress unused warning
 	for _, idxsql := range tclSplitList("\n  { \n    /* No indexes */ \n  } {\n    CREATE INDEX i5 ON t3(a);\n  } {\n    CREATE INDEX i5 ON t3(a, b);\n    CREATE INDEX i6 ON t4(f);\n  } {\n    CREATE UNIQUE INDEX i5 ON t3(a, b);\n    CREATE INDEX i7 ON t3(c);\n    CREATE INDEX i6 ON t4(f);\n    CREATE INDEX i8 ON t4(h);\n  } {\n    CREATE INDEX i5 ON t3(a, b, c);\n    CREATE INDEX i6 ON t4(f, g, h);\n    CREATE INDEX i7 ON t3(c, b, a);\n    CREATE INDEX i8 ON t4(h, g, f);\n  }\n") {
+	_ = idxsql // suppress unused warning
 		_res = db.Exec("\n    DROP INDEX IF EXISTS i5;\n    DROP INDEX IF EXISTS i6;\n    DROP INDEX IF EXISTS i7;\n    DROP INDEX IF EXISTS i8;\n  ")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX IF EXISTS i5;\n    DROP INDEX IF EXISTS i6;\n    DROP INDEX IF EXISTS i7;\n    DROP INDEX IF EXISTS i8;\n  ")
