@@ -14,6 +14,45 @@
 
 ---
 
+## 🔨 Approach
+
+**Work step by step.** Every task is sequential. Do not start the next task until
+the current one is committed and verified. No parallel work.
+
+**Think before acting.** When a test fails:
+1. Reproduce the failure — run the specific test, capture exact output
+2. Investigate the root cause — trace through the code, understand why the
+   expected vs actual differ
+3. Read the SQLite source — it is the spec. Check `src/` for the reference
+   implementation of the behaviour you're fixing
+4. Only then fix — make the smallest change that resolves the root cause
+5. Verify against the original failing test — it must pass
+6. Verify no regressions — run the test group, not just the single test
+
+**Start high-level, then dig deeper.** Build understanding from the top down:
+- First understand the test structure (what does the TCL test do?)
+- Then understand the SQL being tested (what query/statement?)
+- Then understand the engine path (parser → executor → storage)
+- Then fix the specific code path
+
+**Basic before complex.** Complex queries are useless if basic queries don't work.
+Order of priority:
+1. Single-row INSERT + simple SELECT
+2. WHERE filters with comparison operators
+3. Expressions (arithmetic, functions, NULL handling)
+4. JOINs (inner → outer → complex)
+5. Aggregates and GROUP BY
+6. Subqueries and CTEs
+7. Advanced features (window functions, FTS, etc.)
+
+A failing basic query blocks ALL work on that area. Fix the foundation first.
+
+**One failure pattern at a time.** When a test run produces hundreds of failures,
+do not try to fix them all at once. Group by error pattern, pick the most
+fundamental one, fix it, re-run, measure, repeat.
+
+---
+
 ## Pipeline
 
 ```
@@ -489,7 +528,13 @@ go build ./...
 
 ## Protocol
 
-After each task:
+**Before fixing anything:**
+1. Reproduce the failure — run the exact failing test, capture output
+2. Investigate — trace the expected vs actual, read the SQLite source
+3. Understand the root cause — one hypothesis at a time
+4. Only then fix — smallest change that resolves the root cause
+
+**After each task:**
 1. Run the verify command for that task
 2. `go build ./...` — must compile
 3. `go test -run TestSOLID_ -count=1 ./...` — architecture check
