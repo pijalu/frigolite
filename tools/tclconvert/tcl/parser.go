@@ -57,9 +57,8 @@ func ParseCommands(src string) [][]RawWord {
 			continue
 		}
 
-		// Whitespace: separates words
+		// Whitespace: separates words (but not at start of command — keeps atStartOfCommand)
 		if ch == ' ' || ch == '\t' || ch == '\r' {
-			atStartOfCommand = false
 			pos++
 			continue
 		}
