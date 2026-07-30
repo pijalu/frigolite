@@ -519,21 +519,11 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 			tp.processDBForName(cmdName, args)
 			break
 		}
-		// Check for test infrastructure (do_*, test_*, etc.)
-		if strings.HasPrefix(cmdName, "do_") || strings.HasPrefix(cmdName, "test_") ||
-			strings.HasPrefix(cmdName, "faultsim") || strings.HasPrefix(cmdName, "tvfs") ||
-			strings.HasPrefix(cmdName, "hexio_") || strings.HasPrefix(cmdName, "count_") ||
-			strings.HasPrefix(cmdName, "cksort") || strings.HasPrefix(cmdName, "speed_") ||
-			cmdName == "forcedelete" || cmdName == "forcecopy" ||
-			cmdName == "drop_all_tables" || cmdName == "catchcmd" {
-			// Test infrastructure — skip silently
-			break
-		}
-		// For unrecognized commands, emit clean comment
+		// Unsupported command — emit failing test marker
 		if len(args) > 0 {
-			tp.emitLine("// %s %s", cmdName, describeArgsShort(args))
+			tp.emitLine("t.Errorf(\"TODO: %%s not implemented in frigolite\", %q)", cmdName+" "+describeArgsShort(args))
 		} else {
-			tp.emitLine("// %s", cmdName)
+			tp.emitLine("t.Errorf(\"TODO: %%s not implemented in frigolite\", %q)", cmdName)
 		}
 	}
 }
@@ -1598,7 +1588,7 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	if dbName == "db" {
 		// Main connection — already opened at test function start
 		if filename != `""` {
-			tp.emitLine("// sqlite3 db %s (already opened)", filename)
+			tp.emitLine("t.Logf(\"TODO: sqlite3 db %%s — already opened, ignoring file\", %s)", filename)
 		} else {
 			tp.emitLine("// sqlite3 db (in-memory, already opened)")
 		}
