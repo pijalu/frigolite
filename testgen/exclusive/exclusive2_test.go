@@ -165,6 +165,7 @@ func Test_exclusive2(t *testing.T) {
 	}
 	{ // do_test "exclusive2-2.8"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

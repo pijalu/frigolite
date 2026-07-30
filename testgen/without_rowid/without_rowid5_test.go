@@ -277,6 +277,7 @@ func Test_without_rowid5(t *testing.T) {
 	}
 	{ // do_test "without_rowid5-6.2"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

@@ -911,6 +911,7 @@ func Test_wal(t *testing.T) {
 							defer db.Close()
 							if err != nil { t.Fatal(err) }
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 							{ // catch block
 								var _catchErr error

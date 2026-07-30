@@ -88,6 +88,7 @@ func Test_intarray(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP TABLE ia1")
 		}
 	var rc string
+	_ = rc // suppress unused warning
 	var ia1 string
 	_ = ia1 // suppress unused warning
 		{ // catch block

@@ -53,6 +53,7 @@ func Test_tkt_5ee23731f(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

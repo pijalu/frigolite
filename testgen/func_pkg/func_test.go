@@ -88,6 +88,7 @@ func Test_func(t *testing.T) {
 	}
 	{ // do_test "func-1.1"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -105,6 +106,7 @@ func Test_func(t *testing.T) {
 	}
 	{ // do_test "func-1.2"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

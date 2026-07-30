@@ -373,6 +373,7 @@ func Test_qrf01(t *testing.T) {
 	}
 	{ // do_test "1.118"
 	var rc string
+	_ = rc // suppress unused warning
 	var res string
 	_ = res // suppress unused warning
 		{ // catch block

@@ -395,6 +395,7 @@ func Test_misc1(t *testing.T) {
 		db2, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -416,6 +417,7 @@ func Test_misc1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 		}
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

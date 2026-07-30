@@ -170,6 +170,7 @@ func Test_ctime(t *testing.T) {
 			var N = "expr"
 			_ = N // suppress unused warning
 	var ans1 string
+	_ = ans1 // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error

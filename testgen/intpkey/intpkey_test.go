@@ -78,6 +78,7 @@ func Test_intpkey(t *testing.T) {
 	}
 	{ // do_test "intpkey-1.6"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -101,6 +102,7 @@ func Test_intpkey(t *testing.T) {
 	}
 	{ // do_test "intpkey-1.8"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -150,6 +152,7 @@ func Test_intpkey(t *testing.T) {
 	}
 	{ // do_test "intpkey-1.13.1"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -167,6 +170,7 @@ func Test_intpkey(t *testing.T) {
 	}
 	{ // do_test "intpkey-1.13.2"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -184,6 +188,7 @@ func Test_intpkey(t *testing.T) {
 	}
 	{ // do_test "intpkey-1.14"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -201,6 +206,7 @@ func Test_intpkey(t *testing.T) {
 	}
 	{ // do_test "intpkey-1.15"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

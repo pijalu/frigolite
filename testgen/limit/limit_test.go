@@ -317,6 +317,7 @@ func Test_limit(t *testing.T) {
 		var limit = "1.5"
 		_ = limit // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -337,6 +338,7 @@ func Test_limit(t *testing.T) {
 		var limit = "hello world"
 		_ = limit // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

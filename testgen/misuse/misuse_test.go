@@ -94,6 +94,7 @@ func Test_misuse(t *testing.T) {
 	}
 	{ // do_test "misuse-2.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -132,6 +133,7 @@ func Test_misuse(t *testing.T) {
 	}
 	{ // do_test "misuse-3.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -170,6 +172,7 @@ func Test_misuse(t *testing.T) {
 	}
 	{ // do_test "misuse-4.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -210,6 +213,7 @@ func Test_misuse(t *testing.T) {
 		}
 		{ // do_test "misuse-5.3"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error

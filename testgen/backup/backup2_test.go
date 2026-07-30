@@ -64,6 +64,7 @@ func Test_backup2(t *testing.T) {
 		db2.Exec("BEGIN EXCLUSIVE")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	var rc string
+	_ = rc // suppress unused warning
 	var res string
 	_ = res // suppress unused warning
 		{ // catch block
@@ -110,6 +111,7 @@ func Test_backup2(t *testing.T) {
 			// file attributes bu2.db -readonly 1
 		}
 	var rc string
+	_ = rc // suppress unused warning
 	var res string
 	_ = res // suppress unused warning
 		{ // catch block
@@ -140,6 +142,7 @@ func Test_backup2(t *testing.T) {
 		t.Log(out)
 		// close $out
 	var rc string
+	_ = rc // suppress unused warning
 	var res string
 	_ = res // suppress unused warning
 		{ // catch block
@@ -157,6 +160,7 @@ func Test_backup2(t *testing.T) {
 	{ // do_test "backup2-8"
 		os.Remove("bu1.db")
 	var rc string
+	_ = rc // suppress unused warning
 	var res string
 	_ = res // suppress unused warning
 		{ // catch block
@@ -173,6 +177,7 @@ func Test_backup2(t *testing.T) {
 	}
 	{ // do_test "backup2-9"
 	var rc string
+	_ = rc // suppress unused warning
 	var res string
 	_ = res // suppress unused warning
 		{ // catch block
@@ -201,6 +206,7 @@ func Test_backup2(t *testing.T) {
 		os.Remove("bu3.db")
 		// file mkdir bu3.db
 	var rc string
+	_ = rc // suppress unused warning
 	var res string
 	_ = res // suppress unused warning
 		{ // catch block
@@ -222,6 +228,7 @@ func Test_backup2(t *testing.T) {
 	}
 	{ // do_test "backup2-11"
 	var rc string
+	_ = rc // suppress unused warning
 	var res string
 	_ = res // suppress unused warning
 		{ // catch block
@@ -238,6 +245,7 @@ func Test_backup2(t *testing.T) {
 	}
 	{ // do_test "backup2-12"
 	var rc string
+	_ = rc // suppress unused warning
 	var res string
 	_ = res // suppress unused warning
 		{ // catch block
@@ -255,6 +263,7 @@ func Test_backup2(t *testing.T) {
 	{ // do_test "backup2-13"
 		os.Remove("bu4.db")
 	var rc string
+	_ = rc // suppress unused warning
 	var res string
 	_ = res // suppress unused warning
 		{ // catch block
@@ -271,6 +280,7 @@ func Test_backup2(t *testing.T) {
 	}
 	{ // do_test "backup2-14"
 	var rc string
+	_ = rc // suppress unused warning
 	var res string
 	_ = res // suppress unused warning
 		{ // catch block

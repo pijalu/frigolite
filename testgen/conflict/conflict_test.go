@@ -68,6 +68,7 @@ func Test_conflict(t *testing.T) {
 				var _sqlite_opentemp_count = "0" // TCL namespace variable
 				_ = _sqlite_opentemp_count // suppress unused warning
 	var r0 string
+	_ = r0 // suppress unused warning
 	var r1 string
 	_ = r1 // suppress unused warning
 				{ // catch block
@@ -123,6 +124,7 @@ func Test_conflict(t *testing.T) {
 			_ = _idx1
 				{ // do_test "conflict-2." + i
 	var r0 string
+	_ = r0 // suppress unused warning
 	var r1 string
 	_ = r1 // suppress unused warning
 					{ // catch block
@@ -176,6 +178,7 @@ func Test_conflict(t *testing.T) {
 				_ = _idx2
 					{ // do_test "conflict-3." + i
 	var r0 string
+	_ = r0 // suppress unused warning
 	var r1 string
 	_ = r1 // suppress unused warning
 						{ // catch block
@@ -235,6 +238,7 @@ func Test_conflict(t *testing.T) {
 								_ = conf1 // suppress unused warning
 							}
 	var r0 string
+	_ = r0 // suppress unused warning
 	var r1 string
 	_ = r1 // suppress unused warning
 							{ // catch block
@@ -298,6 +302,7 @@ func Test_conflict(t *testing.T) {
 									_ = conf1 // suppress unused warning
 								}
 	var r0 string
+	_ = r0 // suppress unused warning
 	var r1 string
 	_ = r1 // suppress unused warning
 								{ // catch block
@@ -380,6 +385,7 @@ func Test_conflict(t *testing.T) {
 									var _sqlite_opentemp_count = "0" // TCL namespace variable
 									_ = _sqlite_opentemp_count // suppress unused warning
 	var r0 string
+	_ = r0 // suppress unused warning
 	var r1 string
 	_ = r1 // suppress unused warning
 									{ // catch block

@@ -43,6 +43,7 @@ func Test_select1(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "select1-1.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -64,6 +65,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-1.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -81,6 +83,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-1.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -220,6 +223,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -237,6 +241,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -254,6 +259,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -271,6 +277,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -288,6 +295,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.5"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -323,6 +331,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.6"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -340,6 +349,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.7"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -357,6 +367,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.8"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -392,6 +403,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.9"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -409,6 +421,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.10"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -426,6 +439,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.11"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -443,6 +457,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.12"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -460,6 +475,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.13"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -489,6 +505,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.14"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -506,6 +523,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.15"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -523,6 +541,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.16"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -540,6 +559,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.17"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -563,6 +583,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.18"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -580,6 +601,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.19"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -597,6 +619,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-2.20"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -630,6 +653,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-3.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -647,6 +671,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-3.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -664,6 +689,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-3.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -681,6 +707,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-3.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -698,6 +725,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-3.5"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -715,6 +743,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-3.6"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -732,6 +761,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-3.7"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -749,6 +779,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-3.8"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -766,6 +797,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-3.9"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -783,6 +815,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-4.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -800,6 +833,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-4.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -817,6 +851,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-4.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -834,6 +869,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-4.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -913,6 +949,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-5.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -938,6 +975,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -959,6 +997,7 @@ func Test_select1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "PRAGMA full_column_names=on")
 		}
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -976,6 +1015,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.1.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -993,6 +1033,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.1.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1010,6 +1051,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.1.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1031,6 +1073,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.1.5"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1048,6 +1091,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.1.6"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1065,6 +1109,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1082,6 +1127,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1099,6 +1145,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.3.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1116,6 +1163,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1133,6 +1181,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.4a"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1150,6 +1199,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.5"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1171,6 +1221,7 @@ func Test_select1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA full_column_names=on")
 		}
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1192,6 +1243,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.6"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1209,6 +1261,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.7"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1226,6 +1279,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.8"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1243,6 +1297,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.8b"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1260,6 +1315,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.8c"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1277,6 +1333,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.9.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1294,6 +1351,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-6.9.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1423,6 +1481,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-7.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1440,6 +1499,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-7.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1457,6 +1517,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-7.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1474,6 +1535,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-7.5"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1491,6 +1553,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-7.6"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1508,6 +1571,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-7.7"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -1525,6 +1589,7 @@ func Test_select1(t *testing.T) {
 	}
 	{ // do_test "select1-7.8"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

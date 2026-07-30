@@ -77,6 +77,7 @@ func Test_walcrash4(t *testing.T) {
 				t.Log(fd)
 				// close $fd
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error

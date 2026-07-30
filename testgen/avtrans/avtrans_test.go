@@ -84,6 +84,7 @@ func Test_avtrans(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode avtrans-1.12")
 	{ // do_test "avtrans-2.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -101,6 +102,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-2.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -118,6 +120,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-2.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -135,6 +138,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-2.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -152,6 +156,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-2.5"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -169,6 +174,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-2.6"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -240,6 +246,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-3.11"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -257,6 +264,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-3.12"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -274,6 +282,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-3.13"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -291,6 +300,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-3.14"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -311,6 +321,7 @@ func Test_avtrans(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "avtrans-4.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -328,6 +339,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-4.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -369,6 +381,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-4.9"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -386,6 +399,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-4.10"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -403,6 +417,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-4.11"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -483,6 +498,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-5.7"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -578,6 +594,7 @@ func Test_avtrans(t *testing.T) {
 	}
 	{ // do_test "avtrans-5.21"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

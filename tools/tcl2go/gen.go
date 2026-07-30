@@ -1542,6 +1542,7 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 								tp.emitLine("var %s string", varName)
 								tp.vars = append(tp.vars, varName)
 							}
+							tp.emitLine("_ = %s // suppress unused warning", varName)
 							// msg is declared at function level in preamble
 							if errVar != "msg" && !tp.isVarDeclared(errVar) {
 								tp.emitLine("var %s string", errVar)

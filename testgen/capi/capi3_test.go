@@ -587,6 +587,7 @@ func Test_capi3(t *testing.T) {
 		if tclBool("clang_sanitize_address" + "==0") {
 			{ // do_test "capi3-14.1-misuse"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error

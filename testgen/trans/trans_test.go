@@ -88,6 +88,7 @@ func Test_trans(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-1.12")
 	{ // do_test "trans-2.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -108,6 +109,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-2.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -125,6 +127,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-2.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -142,6 +145,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-2.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -159,6 +163,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-2.5"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -176,6 +181,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-2.6"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -258,6 +264,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-3.11"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -275,6 +282,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-3.12"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -292,6 +300,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-3.13"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -309,6 +318,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-3.14"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -329,6 +339,7 @@ func Test_trans(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "wal_check_journal_mode trans-3.16")
 	{ // do_test "trans-4.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -346,6 +357,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-4.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -387,6 +399,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-4.9"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -404,6 +417,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-4.10"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -421,6 +435,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-4.11"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -512,6 +527,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-5.7"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -607,6 +623,7 @@ func Test_trans(t *testing.T) {
 	}
 	{ // do_test "trans-5.21"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

@@ -1516,6 +1516,7 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		{ // do_test "e_expr-12.3." + tn + "." + x
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 																			{ // catch block
 																				var _catchErr error

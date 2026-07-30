@@ -301,6 +301,7 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + ".4.4.4"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error
@@ -319,6 +320,7 @@ func Test_shared(t *testing.T) {
 			}
 			{ // do_test "shared-" + av + ".4.4.5"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 				{ // catch block
 					var _catchErr error

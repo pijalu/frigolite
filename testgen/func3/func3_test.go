@@ -63,6 +63,7 @@ func Test_func3(t *testing.T) {
 		var destroyed = "0"
 		_ = destroyed // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

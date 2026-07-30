@@ -44,6 +44,7 @@ func Test_openv2(t *testing.T) {
 	os.Remove("test.db")
 	{ // do_test "openv2-1.1"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

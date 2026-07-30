@@ -187,6 +187,7 @@ func Test_rowid(t *testing.T) {
 	if false {
 		{ // do_test "rowid-2.9"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
@@ -204,6 +205,7 @@ func Test_rowid(t *testing.T) {
 		}
 		{ // do_test "rowid-2.10"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
@@ -221,6 +223,7 @@ func Test_rowid(t *testing.T) {
 		}
 		{ // do_test "rowid-2.11"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
@@ -238,6 +241,7 @@ func Test_rowid(t *testing.T) {
 		}
 		{ // do_test "rowid-2.12"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error

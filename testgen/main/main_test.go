@@ -73,6 +73,7 @@ func Test_main(t *testing.T) {
 			t.Log(fd)
 			// close $fd
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
@@ -106,6 +107,7 @@ func Test_main(t *testing.T) {
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -134,6 +136,7 @@ func Test_main(t *testing.T) {
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -314,6 +317,7 @@ func Test_main(t *testing.T) {
 	}
 	{ // do_test "main-3.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -331,6 +335,7 @@ func Test_main(t *testing.T) {
 	}
 	{ // do_test "main-3.5"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

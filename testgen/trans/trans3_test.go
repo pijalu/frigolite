@@ -58,6 +58,7 @@ func Test_trans3(t *testing.T) {
 		var _ecode = "" // TCL namespace variable
 		_ = _ecode // suppress unused warning
 	var x string
+	_ = x // suppress unused warning
 	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block
@@ -98,6 +99,7 @@ func Test_trans3(t *testing.T) {
 		var _ecode = "" // TCL namespace variable
 		_ = _ecode // suppress unused warning
 	var x string
+	_ = x // suppress unused warning
 	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block

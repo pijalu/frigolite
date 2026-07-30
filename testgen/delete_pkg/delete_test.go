@@ -44,6 +44,7 @@ func Test_delete(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "delete-1.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -61,6 +62,7 @@ func Test_delete(t *testing.T) {
 	}
 	{ // do_test "delete-2.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -156,6 +158,7 @@ func Test_delete(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE table2(f1 int, f2 int)")
 		}
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -173,6 +176,7 @@ func Test_delete(t *testing.T) {
 	}
 	{ // do_test "delete-4.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

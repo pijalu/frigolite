@@ -81,6 +81,7 @@ func Test_quote(t *testing.T) {
 	}
 	{ // do_test "quote-1.3.4"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -98,6 +99,7 @@ func Test_quote(t *testing.T) {
 	}
 	{ // do_test "quote-1.4"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -115,6 +117,7 @@ func Test_quote(t *testing.T) {
 	}
 	{ // do_test "quote-1.5"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -132,6 +135,7 @@ func Test_quote(t *testing.T) {
 	}
 	{ // do_test "quote-1.6"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

@@ -109,6 +109,7 @@ func Test_select5(t *testing.T) {
 	}
 	{ // do_test "select5-2.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -126,6 +127,7 @@ func Test_select5(t *testing.T) {
 	}
 	{ // do_test "select5-2.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -143,6 +145,7 @@ func Test_select5(t *testing.T) {
 	}
 	{ // do_test "select5-2.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -160,6 +163,7 @@ func Test_select5(t *testing.T) {
 	}
 	{ // do_test "select5-2.5"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

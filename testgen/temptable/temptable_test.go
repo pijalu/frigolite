@@ -127,6 +127,7 @@ func Test_temptable(t *testing.T) {
 		db2.Exec("DROP TABLE t2;")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -172,6 +173,7 @@ func Test_temptable(t *testing.T) {
 	}
 	{ // do_test "temptable-2.5"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

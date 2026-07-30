@@ -94,6 +94,7 @@ func Test_bigrow(t *testing.T) {
 		_ = sql // suppress unused warning
 		sql += "'" + _big2 + "', 'xyz2');"
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

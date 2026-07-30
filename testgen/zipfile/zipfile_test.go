@@ -405,6 +405,7 @@ func Test_zipfile(t *testing.T) {
 				_ = null // suppress unused warning
 			}
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error

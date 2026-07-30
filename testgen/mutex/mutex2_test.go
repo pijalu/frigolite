@@ -62,6 +62,7 @@ func Test_mutex2(t *testing.T) {
 		var _disable_mutex_init = "7" // TCL namespace variable
 		_ = _disable_mutex_init // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

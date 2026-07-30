@@ -90,6 +90,7 @@ func Test_savepoint7(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t2; SAVEPOINT x1; CREATE TABLE t4(abc);")
 		}
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -116,6 +117,7 @@ func Test_savepoint7(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM t2;")
 		}
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

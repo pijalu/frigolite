@@ -57,6 +57,7 @@ func Test_progress(t *testing.T) {
 	}
 	{ // do_test "progress-1.0.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -74,6 +75,7 @@ func Test_progress(t *testing.T) {
 		var counter = "0"
 		_ = counter // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	var _catchErrMsg string
 	_ = _catchErrMsg // suppress unused warning
 		{ // catch block

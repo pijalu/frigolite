@@ -129,6 +129,7 @@ func Test_loadext2(t *testing.T) {
 	{ // do_test "loadext2-1.13"
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_auto_extension_broken")
 	var rc string
+	_ = rc // suppress unused warning
 	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block

@@ -122,6 +122,7 @@ func Test_bind(t *testing.T) {
 	}
 	{ // do_test "bind-1.10"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -138,6 +139,7 @@ func Test_bind(t *testing.T) {
 	}
 	{ // do_test "bind-1.11"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -473,6 +475,7 @@ func Test_bind(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a,b,c,d,e,f);\n  ")
 		}
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -489,6 +492,7 @@ func Test_bind(t *testing.T) {
 	}
 	{ // do_test "bind-9.2"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -579,6 +583,7 @@ func Test_bind(t *testing.T) {
 	}
 	{ // do_test "bind-10.8.1"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

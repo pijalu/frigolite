@@ -478,6 +478,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = nbytes // suppress unused warning
 		sql += " AND 0"
 	var rc string
+	_ = rc // suppress unused warning
 	var STMT string
 	_ = STMT // suppress unused warning
 		{ // catch block

@@ -246,6 +246,7 @@ func Test_memdb1(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	{ // do_test "500"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -267,6 +268,7 @@ func Test_memdb1(t *testing.T) {
 	}
 	{ // do_test "600"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -282,6 +284,7 @@ func Test_memdb1(t *testing.T) {
 	}
 	{ // do_test "610"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -297,6 +300,7 @@ func Test_memdb1(t *testing.T) {
 	}
 	{ // do_test "620"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -319,6 +323,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TEMP TABLE t0(a);\n    CREATE TABLE t1(x);\n    WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<1000)\n    INSERT INTO t1(x) SELECT random() FROM c;\n  ")
 		}
 	var rc string
+	_ = rc // suppress unused warning
 	var err string
 	_ = err // suppress unused warning
 		{ // catch block

@@ -111,6 +111,7 @@ func Test_vtab3(t *testing.T) {
 		_ = _auth_fail // suppress unused warning
 		{ // do_test "vtab3-1.7." + i + ".1"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error

@@ -209,6 +209,7 @@ func Test_lock(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -237,6 +238,7 @@ func Test_lock(t *testing.T) {
 		var _callback_value = "" // TCL namespace variable
 		_ = _callback_value // suppress unused warning
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -261,6 +263,7 @@ func Test_lock(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		}
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -288,6 +291,7 @@ func Test_lock(t *testing.T) {
 		var _callback_value = "" // TCL namespace variable
 		_ = _callback_value // suppress unused warning
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -313,6 +317,7 @@ func Test_lock(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "BEGIN; SELECT rowid FROM sqlite_master LIMIT 1")
 		}
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -340,6 +345,7 @@ func Test_lock(t *testing.T) {
 		var _callback_value = "" // TCL namespace variable
 		_ = _callback_value // suppress unused warning
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -428,6 +434,7 @@ func Test_lock(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN TRANSACTION")
 		}
 	var r string
+	_ = r // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -474,6 +481,7 @@ func Test_lock(t *testing.T) {
 		var _callback_value = "" // TCL namespace variable
 		_ = _callback_value // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -492,6 +500,7 @@ func Test_lock(t *testing.T) {
 	{ // do_test "lock-4.3"
 		// proc definition (not transpiled)
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

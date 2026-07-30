@@ -121,6 +121,7 @@ func Test_capi2(t *testing.T) {
 	}
 	{ // do_test "capi2-3.1"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -137,6 +138,7 @@ func Test_capi2(t *testing.T) {
 	}
 	{ // do_test "capi2-3.2"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -153,6 +155,7 @@ func Test_capi2(t *testing.T) {
 	}
 	{ // do_test "capi2-3.3"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -169,6 +172,7 @@ func Test_capi2(t *testing.T) {
 	}
 	{ // do_test "capi2-3.4"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -185,6 +189,7 @@ func Test_capi2(t *testing.T) {
 	}
 	{ // do_test "capi2-3.5"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -201,6 +206,7 @@ func Test_capi2(t *testing.T) {
 	}
 	{ // do_test "capi2-3.6"
 	var rc string
+	_ = rc // suppress unused warning
 	var VM string
 	_ = VM // suppress unused warning
 		{ // catch block

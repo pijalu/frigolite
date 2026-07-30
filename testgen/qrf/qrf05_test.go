@@ -50,6 +50,7 @@ func Test_qrf05(t *testing.T) {
 	}
 	{ // do_test "1.1"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -66,6 +67,7 @@ func Test_qrf05(t *testing.T) {
 	}
 	{ // do_test "1.2"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -82,6 +84,7 @@ func Test_qrf05(t *testing.T) {
 	}
 	{ // do_test "1.3"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

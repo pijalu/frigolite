@@ -44,6 +44,7 @@ func Test_update(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "update-1.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -93,6 +94,7 @@ func Test_update(t *testing.T) {
 	}
 	{ // do_test "update-3.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -110,6 +112,7 @@ func Test_update(t *testing.T) {
 	}
 	{ // do_test "update-3.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -127,6 +130,7 @@ func Test_update(t *testing.T) {
 	}
 	{ // do_test "update-3.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -790,6 +794,7 @@ func Test_update(t *testing.T) {
 	}
 	{ // do_test "update-9.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -807,6 +812,7 @@ func Test_update(t *testing.T) {
 	}
 	{ // do_test "update-9.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -824,6 +830,7 @@ func Test_update(t *testing.T) {
 	}
 	{ // do_test "update-9.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -841,6 +848,7 @@ func Test_update(t *testing.T) {
 	}
 	{ // do_test "update-9.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

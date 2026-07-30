@@ -59,6 +59,7 @@ func Test_misc7(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "delete_file mydir")
 		// file mkdir mydir
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -278,6 +279,7 @@ func Test_misc7(t *testing.T) {
 		var zFile = "file join [get_pwd] \"[string repeat abcde 104].db\""
 		_ = zFile // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

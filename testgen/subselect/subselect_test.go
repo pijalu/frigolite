@@ -52,6 +52,7 @@ func Test_subselect(t *testing.T) {
 	}
 	{ // do_test "subselect-1.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

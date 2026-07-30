@@ -50,6 +50,7 @@ func Test_tkt1873(t *testing.T) {
 	}
 	{ // do_test "tkt1873-1.2"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -68,6 +69,7 @@ func Test_tkt1873(t *testing.T) {
 	}
 	{ // do_test "tkt1873-1.3"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

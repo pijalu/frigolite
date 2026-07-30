@@ -91,6 +91,7 @@ func Test_index(t *testing.T) {
 	}
 	{ // do_test "index-2.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -112,6 +113,7 @@ func Test_index(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(f1 int, f2 int, f3 int)")
 		}
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -129,6 +131,7 @@ func Test_index(t *testing.T) {
 	}
 	{ // do_test "index-2.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -332,6 +335,7 @@ func Test_index(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "index-5.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -367,6 +371,7 @@ func Test_index(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE INDEX index1 ON test1(f1)")
 		}
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -398,6 +403,7 @@ func Test_index(t *testing.T) {
 	}
 	{ // do_test "index-6.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -492,6 +498,7 @@ func Test_index(t *testing.T) {
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	{ // do_test "index-8.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

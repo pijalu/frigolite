@@ -62,6 +62,7 @@ func Test_symlink(t *testing.T) {
 	{ // do_test "1.1.2"
 		db2.Close()
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

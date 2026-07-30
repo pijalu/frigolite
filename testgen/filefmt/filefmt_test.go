@@ -56,6 +56,7 @@ func Test_filefmt(t *testing.T) {
 	{ // do_test "filefmt-1.2"
 		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db 0 54")
 	var x string
+	_ = x // suppress unused warning
 	var err string
 	_ = err // suppress unused warning
 		{ // catch block

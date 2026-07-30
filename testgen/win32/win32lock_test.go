@@ -74,6 +74,7 @@ func Test_win32lock(t *testing.T) {
 		var _log = "" // TCL namespace variable
 		_ = _log // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -139,6 +140,7 @@ func Test_win32lock(t *testing.T) {
 		var _log = "" // TCL namespace variable
 		_ = _log // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

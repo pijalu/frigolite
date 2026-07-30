@@ -153,6 +153,7 @@ func Test_tableapi(t *testing.T) {
 	}
 	{ // do_test "tableapi-4.1"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

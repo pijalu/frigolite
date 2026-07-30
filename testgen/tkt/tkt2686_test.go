@@ -55,6 +55,7 @@ func Test_tkt2686(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 			}
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
@@ -112,6 +113,7 @@ func Test_tkt2686(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
 			}
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error

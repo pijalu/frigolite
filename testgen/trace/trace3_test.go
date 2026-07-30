@@ -54,6 +54,7 @@ func Test_trace3(t *testing.T) {
 	}
 	{ // do_test "trace3-1.1"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -69,6 +70,7 @@ func Test_trace3(t *testing.T) {
 	}
 	{ // do_test "trace3-1.2"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

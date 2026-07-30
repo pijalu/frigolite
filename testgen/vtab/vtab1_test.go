@@ -715,6 +715,7 @@ func Test_vtab1(t *testing.T) {
 	}
 	{ // do_test "vtab1.10-2"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

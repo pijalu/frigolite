@@ -141,6 +141,7 @@ func Test_table(t *testing.T) {
 	}
 	{ // do_test "table-2.1b"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -161,6 +162,7 @@ func Test_table(t *testing.T) {
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -207,6 +209,7 @@ func Test_table(t *testing.T) {
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -234,6 +237,7 @@ func Test_table(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX test3")
 		}
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -279,6 +283,7 @@ func Test_table(t *testing.T) {
 	}
 	{ // do_test "table-3.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -296,6 +301,7 @@ func Test_table(t *testing.T) {
 	}
 	{ // do_test "table-3.3"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -313,6 +319,7 @@ func Test_table(t *testing.T) {
 	}
 	{ // do_test "table-3.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -333,6 +340,7 @@ func Test_table(t *testing.T) {
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -527,6 +535,7 @@ func Test_table(t *testing.T) {
 	}
 	{ // do_test "table-7.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

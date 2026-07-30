@@ -114,6 +114,7 @@ func Test_ioerr2(t *testing.T) {
 		var _go = "1" // TCL namespace variable
 		_ = _go // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

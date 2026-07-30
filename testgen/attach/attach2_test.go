@@ -123,6 +123,7 @@ func Test_attach2(t *testing.T) {
 		var DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	var VM string
 	_ = VM // suppress unused warning
 		{ // catch block
@@ -144,6 +145,7 @@ func Test_attach2(t *testing.T) {
 	}
 	{ // do_test "attach2-3.2"
 	var rc string
+	_ = rc // suppress unused warning
 	var VM string
 	_ = VM // suppress unused warning
 		{ // catch block

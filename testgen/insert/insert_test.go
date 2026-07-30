@@ -43,6 +43,7 @@ func Test_insert(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "insert-1.1"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -60,6 +61,7 @@ func Test_insert(t *testing.T) {
 	}
 	{ // do_test "insert-1.2"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -81,6 +83,7 @@ func Test_insert(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE test1(one int, two int, three int)")
 		}
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -98,6 +101,7 @@ func Test_insert(t *testing.T) {
 	}
 	{ // do_test "insert-1.3b"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -115,6 +119,7 @@ func Test_insert(t *testing.T) {
 	}
 	{ // do_test "insert-1.3c"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -132,6 +137,7 @@ func Test_insert(t *testing.T) {
 	}
 	{ // do_test "insert-1.3d"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -149,6 +155,7 @@ func Test_insert(t *testing.T) {
 	}
 	{ // do_test "insert-1.4"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

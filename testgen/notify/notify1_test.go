@@ -151,6 +151,7 @@ func Test_notify1(t *testing.T) {
 	}
 	{ // do_test "notify1-2.2.5"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -213,6 +214,7 @@ func Test_notify1(t *testing.T) {
 	}
 	{ // do_test "notify1-2.3.7"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

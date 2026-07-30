@@ -125,6 +125,7 @@ func Test_incrblob2(t *testing.T) {
 	}
 	{ // do_test "incrblob2-3.3"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -200,6 +201,7 @@ func Test_incrblob2(t *testing.T) {
 	}
 	{ // do_test "incrblob2-4.3.1"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -302,6 +304,7 @@ func Test_incrblob2(t *testing.T) {
 	if func() bool { _tcl_platform_n, __tcl_platform_e := strconv.Atoi(_tcl_platform); if __tcl_platform_e != nil { return false }; return _tcl_platform_n(pointerSize) >= 8 }() {
 		{ // do_test "incrblob2-6.2b"
 	var rc string
+	_ = rc // suppress unused warning
 	var errmsg string
 	_ = errmsg // suppress unused warning
 			{ // catch block
@@ -324,6 +327,7 @@ func Test_incrblob2(t *testing.T) {
 	}
 	{ // do_test "incrblob2-6.2c"
 	var rc string
+	_ = rc // suppress unused warning
 	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block
@@ -347,6 +351,7 @@ func Test_incrblob2(t *testing.T) {
 	}
 	{ // do_test "incrblob2-6.3b"
 	var rc string
+	_ = rc // suppress unused warning
 	var errmsg string
 	_ = errmsg // suppress unused warning
 		{ // catch block
@@ -400,6 +405,7 @@ func Test_incrblob2(t *testing.T) {
 		var h = "db incrblob t2 B 1"
 		_ = h // suppress unused warning
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -455,6 +461,7 @@ func Test_incrblob2(t *testing.T) {
 	}
 	{ // do_test "incrblob2-8.9"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

@@ -127,6 +127,7 @@ func Test_loadext(t *testing.T) {
 	{ // do_test "loadext-2.1"
 		os.Remove("$")
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -152,6 +153,7 @@ func Test_loadext(t *testing.T) {
 		t.Log(fd)
 		// close $fd
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -169,6 +171,7 @@ func Test_loadext(t *testing.T) {
 	}
 	{ // do_test "loadext-2.3"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -190,6 +193,7 @@ func Test_loadext(t *testing.T) {
 	}
 	{ // do_test "loadext-2.4"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

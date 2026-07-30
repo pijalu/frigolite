@@ -74,6 +74,7 @@ func Test_shellA(t *testing.T) {
 	}
 	{ // do_test "shellA-1.9"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -90,6 +91,7 @@ func Test_shellA(t *testing.T) {
 	}
 	{ // do_test "shellA-1.10"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

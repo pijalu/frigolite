@@ -378,6 +378,7 @@ func Test_backup(t *testing.T) {
 	}
 	{ // do_test "backup-4.4.1"
 	var rc string
+	_ = rc // suppress unused warning
 	var _catchErrMsg string
 	_ = _catchErrMsg // suppress unused warning
 		{ // catch block

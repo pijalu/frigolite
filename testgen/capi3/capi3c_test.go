@@ -531,6 +531,7 @@ func Test_capi3c(t *testing.T) {
 		}
 		{ // do_test "capi3c-14.1"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error

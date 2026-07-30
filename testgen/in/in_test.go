@@ -164,6 +164,7 @@ func Test_in(t *testing.T) {
 	}
 	{ // do_test "in-2.11"
 	var v string
+	_ = v // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error

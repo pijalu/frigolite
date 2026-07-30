@@ -163,6 +163,7 @@ func Test_schema2(t *testing.T) {
 	}
 	{ // do_test "schema2-11.3"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
@@ -192,6 +193,7 @@ func Test_schema2(t *testing.T) {
 	}
 	{ // do_test "schema2-11.7"
 	var rc string
+	_ = rc // suppress unused warning
 	_ = msg // suppress unused warning
 		{ // catch block
 			var _catchErr error
