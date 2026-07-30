@@ -18,6 +18,8 @@ func Test_fts3defer(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var sqlite_fts3_enable_parentheses = "1"
@@ -60,13 +62,13 @@ func Test_fts3defer(t *testing.T) {
 	var zero_long_doclists = "\n  UPDATE t1_segments SET block=zeroblob(length(block)) WHERE length(block)>10000\n"
 	_ = zero_long_doclists // suppress unused warning
 	// foreach {tn setup} "\n  1 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS3 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  2 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  3 {\n    set dmt_modes {0 1 2}\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  4 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    execsql \"INSERT INTO t1(t1) VALUES('optimize')\"\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  5 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4(matchinfo=fts3) }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n"
-	_items := tclSplitList("\n  1 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS3 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  2 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  3 {\n    set dmt_modes {0 1 2}\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  4 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    execsql \"INSERT INTO t1(t1) VALUES('optimize')\"\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  5 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4(matchinfo=fts3) }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS3 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  2 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n  }\n  3 {\n    set dmt_modes {0 1 2}\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  4 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4 }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    execsql \"INSERT INTO t1(t1) VALUES('optimize')\"\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n  5 {\n    set dmt_modes 0\n    execsql { CREATE VIRTUAL TABLE t1 USING FTS4(matchinfo=fts3) }\n    foreach doc $data { execsql { INSERT INTO t1 VALUES($doc) } }\n    add_empty_records 1000\n    sqlite3_db_config db DEFENSIVE 0\n    execsql $zero_long_doclists\n  }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		setup := _items[_idx+1]
+		setup := _items0[_idx0+1]
 		_ = setup // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			_res = db.Exec(" DROP TABLE IF EXISTS t1 ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t1 ")
@@ -182,13 +184,13 @@ func Test_fts3defer(t *testing.T) {
 		var tokenizers = "1 simple"
 		_ = tokenizers // suppress unused warning
 		// foreach {tn tokenizer} tokenizers
-		_items := tclSplitList(tokenizers)
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList(tokenizers)
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			tokenizer := _items[_idx+1]
+			tokenizer := _items1[_idx1+1]
 			_ = tokenizer // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // "5." + tn + ".1"
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE x3 USING FTS4(a, b, TOKENIZE " + tokenizer + ")\n  ")
 					if _res.Error != nil {

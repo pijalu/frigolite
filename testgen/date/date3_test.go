@@ -18,6 +18,8 @@ func Test_date3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -45,15 +47,15 @@ func Test_date3(t *testing.T) {
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.8 {unixepoch('2022-01-27 12:59:28.052')} {1643288368}")
 	// foreach {tn jd date} "\n  2.1  0.0              {-4713-11-24 12:00:00}\n  2.2  5373484.4999999  {9999-12-31 23:59:59}\n  2.3  2440587.5        {1970-01-01 00:00:00}\n  2.4  2440587.49998843 {1969-12-31 23:59:59}\n  2.5  2440615.7475463  {1970-01-29 05:56:28}\n\n  2.10 -1               {1969-12-31 23:59:59}\n  2.11 5373485          {1970-03-04 04:38:05}\n  2.12 -210866760000    {-4713-11-24 12:00:00}\n  2.13 253402300799     {9999-12-31 23:59:59}\n\n  2.20 -210866760001    {NULL}\n  2.21 253402300800     {NULL}\n"
-	_items := tclSplitList("\n  2.1  0.0              {-4713-11-24 12:00:00}\n  2.2  5373484.4999999  {9999-12-31 23:59:59}\n  2.3  2440587.5        {1970-01-01 00:00:00}\n  2.4  2440587.49998843 {1969-12-31 23:59:59}\n  2.5  2440615.7475463  {1970-01-29 05:56:28}\n\n  2.10 -1               {1969-12-31 23:59:59}\n  2.11 5373485          {1970-03-04 04:38:05}\n  2.12 -210866760000    {-4713-11-24 12:00:00}\n  2.13 253402300799     {9999-12-31 23:59:59}\n\n  2.20 -210866760001    {NULL}\n  2.21 253402300800     {NULL}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  2.1  0.0              {-4713-11-24 12:00:00}\n  2.2  5373484.4999999  {9999-12-31 23:59:59}\n  2.3  2440587.5        {1970-01-01 00:00:00}\n  2.4  2440587.49998843 {1969-12-31 23:59:59}\n  2.5  2440615.7475463  {1970-01-29 05:56:28}\n\n  2.10 -1               {1969-12-31 23:59:59}\n  2.11 5373485          {1970-03-04 04:38:05}\n  2.12 -210866760000    {-4713-11-24 12:00:00}\n  2.13 253402300799     {9999-12-31 23:59:59}\n\n  2.20 -210866760001    {NULL}\n  2.21 253402300800     {NULL}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		jd := _items[_idx+1]
+		jd := _items0[_idx0+1]
 		_ = jd // suppress unused warning
-		date := _items[_idx+2]
+		date := _items0[_idx0+2]
 		_ = date // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			t.Errorf("TODO: %s not implemented in frigolite", "datetest $tn datetime($jd,'auto') $date")
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.30 {date('2022-01-29','auto')==date('2022-01-29')} {1}")

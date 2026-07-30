@@ -17,23 +17,25 @@ func Test_prefixes(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "prefixes"
 	_ = testprefix // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db prefixes")
 	// foreach {tn zLeft zRight expected} "\n  1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyz\\u1234xz\" \"xyz\\u1234xy\" 5\n  6 \"xyz\\u1234\"   \"xyz\\u1234xy\" 4\n  7 \"xyz\\u1234\"   \"xyz\\u1234\"   4\n  8 \"xyz\\u1234xy\" \"xyz\\u1234\"   4\n  9 \"xyz\\u1234xy\" \"xyz\\u1233\"   3\n 10 \"xyz\\u1234xy\" \"xyz\\u1235\"   3\n"
-	_items := tclSplitList("\n  1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyz\\u1234xz\" \"xyz\\u1234xy\" 5\n  6 \"xyz\\u1234\"   \"xyz\\u1234xy\" 4\n  7 \"xyz\\u1234\"   \"xyz\\u1234\"   4\n  8 \"xyz\\u1234xy\" \"xyz\\u1234\"   4\n  9 \"xyz\\u1234xy\" \"xyz\\u1233\"   3\n 10 \"xyz\\u1234xy\" \"xyz\\u1235\"   3\n")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 abcdxxx abcyy    3\n  2 abcdxxx bcyyy    0\n  3 abcdxxx ab       2\n  4 ab      abcd     2\n\n  5 \"xyz\\u1234xz\" \"xyz\\u1234xy\" 5\n  6 \"xyz\\u1234\"   \"xyz\\u1234xy\" 4\n  7 \"xyz\\u1234\"   \"xyz\\u1234\"   4\n  8 \"xyz\\u1234xy\" \"xyz\\u1234\"   4\n  9 \"xyz\\u1234xy\" \"xyz\\u1233\"   3\n 10 \"xyz\\u1234xy\" \"xyz\\u1235\"   3\n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		zLeft := _items[_idx+1]
+		zLeft := _items0[_idx0+1]
 		_ = zLeft // suppress unused warning
-		zRight := _items[_idx+2]
+		zRight := _items0[_idx0+2]
 		_ = zRight // suppress unused warning
-		expected := _items[_idx+3]
+		expected := _items0[_idx0+3]
 		_ = expected // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1." + tn
 				r = db.Query(" SELECT prefix_length($zLeft, $zRight) ")
 				if r.Error != nil {
@@ -54,15 +56,15 @@ func Test_prefixes(t *testing.T) {
 			}
 		}
 		// foreach {tn INPUT expected} "\n  1 abatementt   abatement\n  2 abashet      abash\n  3 abandonio    abandon\n  4 abasemenu    abase\n"
-		_items := tclSplitList("\n  1 abatementt   abatement\n  2 abashet      abash\n  3 abandonio    abandon\n  4 abasemenu    abase\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 abatementt   abatement\n  2 abashet      abash\n  3 abandonio    abandon\n  4 abasemenu    abase\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			INPUT := _items[_idx+1]
+			INPUT := _items1[_idx1+1]
 			_ = INPUT // suppress unused warning
-			expected := _items[_idx+2]
+			expected := _items1[_idx1+2]
 			_ = expected // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // "2." + tn
 					r = db.Query("\n    WITH finder(str) AS (\n      SELECT (SELECT max(k) FROM t1 WHERE k<=$INPUT)\n        UNION ALL\n        SELECT (\n          SELECT max(k) FROM t1 \n          WHERE k<=substr($INPUT, 1, prefix_length(finder.str, $INPUT))\n        ) FROM finder WHERE length(finder.str)>0\n      )\n    SELECT str FROM finder WHERE length(str)==prefix_length(str, $INPUT) LIMIT 1\n  ")
 					if r.Error != nil {

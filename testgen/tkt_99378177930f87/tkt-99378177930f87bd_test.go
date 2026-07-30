@@ -17,6 +17,8 @@ func Test_tkt_99378177930f87bd(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "tkt-99378-100"

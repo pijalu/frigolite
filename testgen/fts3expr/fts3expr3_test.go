@@ -18,6 +18,8 @@ func Test_fts3expr3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts3expr3" // TCL namespace variable
@@ -156,15 +158,15 @@ func Test_fts3expr3(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test fts3expr3-fault-1 -faults oom-* -body {\n  test_fts3expr2 $::query\n} -test {\n  faultsim_test_result [list 0 $::result]\n}")
 	}
 	// foreach {tn expr res} "\n  1 {1 OR 2 OR 3 OR 4}           {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} \n  2 {1 OR (2 AND 3 AND 4 AND 5)} \n    {OR {P 1} {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}}}\n  3 {(2 AND 3 AND 4 AND 5) OR 1} \n    {OR {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}} {P 1}}\n\n  4 {1 AND (2 OR 3 OR 4 OR 5)} \n    {AND {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n  5 {(2 OR 3 OR 4 OR 5) AND 1} \n    {AND {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  6 {(2 OR 3 OR 4 OR 5) NOT 1} \n    {NOT {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  7 {1 NOT (2 OR 3 OR 4 OR 5)} \n    {NOT {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n\n  8 {(1 OR 2 OR 3 OR 4) NOT (5 AND 6 AND 7 AND 8)}\n    {NOT {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} {AND {AND {P 5} {P 6}} {AND {P 7} {P 8}}}}\n"
-	_items := tclSplitList("\n  1 {1 OR 2 OR 3 OR 4}           {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} \n  2 {1 OR (2 AND 3 AND 4 AND 5)} \n    {OR {P 1} {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}}}\n  3 {(2 AND 3 AND 4 AND 5) OR 1} \n    {OR {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}} {P 1}}\n\n  4 {1 AND (2 OR 3 OR 4 OR 5)} \n    {AND {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n  5 {(2 OR 3 OR 4 OR 5) AND 1} \n    {AND {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  6 {(2 OR 3 OR 4 OR 5) NOT 1} \n    {NOT {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  7 {1 NOT (2 OR 3 OR 4 OR 5)} \n    {NOT {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n\n  8 {(1 OR 2 OR 3 OR 4) NOT (5 AND 6 AND 7 AND 8)}\n    {NOT {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} {AND {AND {P 5} {P 6}} {AND {P 7} {P 8}}}}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {1 OR 2 OR 3 OR 4}           {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} \n  2 {1 OR (2 AND 3 AND 4 AND 5)} \n    {OR {P 1} {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}}}\n  3 {(2 AND 3 AND 4 AND 5) OR 1} \n    {OR {AND {AND {P 2} {P 3}} {AND {P 4} {P 5}}} {P 1}}\n\n  4 {1 AND (2 OR 3 OR 4 OR 5)} \n    {AND {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n  5 {(2 OR 3 OR 4 OR 5) AND 1} \n    {AND {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  6 {(2 OR 3 OR 4 OR 5) NOT 1} \n    {NOT {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}} {P 1}}\n\n  7 {1 NOT (2 OR 3 OR 4 OR 5)} \n    {NOT {P 1} {OR {OR {P 2} {P 3}} {OR {P 4} {P 5}}}}\n\n  8 {(1 OR 2 OR 3 OR 4) NOT (5 AND 6 AND 7 AND 8)}\n    {NOT {OR {OR {P 1} {P 2}} {OR {P 3} {P 4}}} {AND {AND {P 5} {P 6}} {AND {P 7} {P 8}}}}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		expr := _items[_idx+1]
+		expr := _items0[_idx0+1]
 		_ = expr // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "5.1." + tn
 				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 $expr")
 			}

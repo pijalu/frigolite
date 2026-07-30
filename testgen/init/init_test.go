@@ -17,23 +17,25 @@ func Test_init(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("db eval {SELECT sqlite_compileoption_used('THREADSAFE=0')}") {
 		return
 	}
 	// foreach {t failed rc started} "\n  1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}\n"
-	_items := tclSplitList("\n  1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}\n")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		t := _items[_idx+0]
+	_items0 := tclSplitList("\n  1.1 {}       SQLITE_OK    {mutex mem pcache}\n  1.2 {mutex}  SQLITE_ERROR {}\n  1.3 {mem}    SQLITE_ERROR {mutex}\n  1.4 {pcache} SQLITE_ERROR {mutex mem}\n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		t := _items0[_idx0+0]
 		_ = t // suppress unused warning
-		failed := _items[_idx+1]
+		failed := _items0[_idx0+1]
 		_ = failed // suppress unused warning
-		rc := _items[_idx+2]
+		rc := _items0[_idx0+2]
 		_ = rc // suppress unused warning
-		started := _items[_idx+3]
+		started := _items0[_idx0+3]
 		_ = started // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "init-" + t + ".1"
 				// eval init_wrapper_install $failed
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")

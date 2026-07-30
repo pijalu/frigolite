@@ -19,6 +19,8 @@ func Test_crash4(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var sql_cmd_list = "\n  {CREATE TABLE a(id INTEGER, name CHAR(50))}\n  {INSERT INTO a(id,name) VALUES(1,'one')}\n  {INSERT INTO a(id,name) VALUES(2,'two')}\n  {INSERT INTO a(id,name) VALUES(3,'three')}\n  {INSERT INTO a(id,name) VALUES(4,'four')}\n  {INSERT INTO a(id,name) VALUES(5,'five')}\n  {INSERT INTO a(id,name) VALUES(6,'six')}\n  {INSERT INTO a(id,name) VALUES(7,'seven')}\n  {INSERT INTO a(id,name) VALUES(8,'eight')}\n  {INSERT INTO a(id,name) VALUES(9,'nine')}\n  {INSERT INTO a(id,name) VALUES(10,'ten')}\n  {UPDATE A SET name='new text for row 3' WHERE id=3}\n"

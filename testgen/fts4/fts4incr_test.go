@@ -18,6 +18,8 @@ func Test_fts4incr(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4incr" // TCL namespace variable
@@ -42,15 +44,15 @@ func Test_fts4incr(t *testing.T) {
 		}
 	}
 	// foreach {tn q res} "\n  1 { SELECT count(*) FROM t1 WHERE t1 MATCH 'and' AND docid < 1010000} 224\n  2 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"in the\"' AND docid < 1010000} 47\n  3 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"And God\"' AND docid < 1010000} 33\n  4 { SELECT count(*) FROM t1 WHERE t1 \n      MATCH '\"land of canaan\"' AND docid < 1030000 } 7\n"
-	_items := tclSplitList("\n  1 { SELECT count(*) FROM t1 WHERE t1 MATCH 'and' AND docid < 1010000} 224\n  2 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"in the\"' AND docid < 1010000} 47\n  3 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"And God\"' AND docid < 1010000} 33\n  4 { SELECT count(*) FROM t1 WHERE t1 \n      MATCH '\"land of canaan\"' AND docid < 1030000 } 7\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 { SELECT count(*) FROM t1 WHERE t1 MATCH 'and' AND docid < 1010000} 224\n  2 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"in the\"' AND docid < 1010000} 47\n  3 { SELECT count(*) FROM t1 WHERE t1 MATCH '\"And God\"' AND docid < 1010000} 33\n  4 { SELECT count(*) FROM t1 WHERE t1 \n      MATCH '\"land of canaan\"' AND docid < 1030000 } 7\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		q := _items[_idx+1]
+		q := _items0[_idx0+1]
 		_ = q // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			for _, s := range tclSplitList("0 1") {
 				_res = db.Exec("INSERT INTO t1(t1) VALUES('test-no-incr-doclist=" + s + "')")
 				if _res.Error != nil {

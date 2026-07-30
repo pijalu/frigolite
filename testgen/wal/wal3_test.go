@@ -19,6 +19,8 @@ func Test_wal3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var a_string_counter = "1"
@@ -115,15 +117,15 @@ func Test_wal3(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	// foreach {tn syncmode synccount} "\n  1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}\n"
-	_items := tclSplitList("\n  1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 off     \n    {}\n  2 normal  \n    {test.db-wal normal test.db normal}\n  3 full    \n    {test.db-wal normal test.db-wal normal test.db-wal normal test.db normal}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		syncmode := _items[_idx+1]
+		syncmode := _items0[_idx0+1]
 		_ = syncmode // suppress unused warning
-		synccount := _items[_idx+2]
+		synccount := _items0[_idx0+2]
 		_ = synccount // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			// proc definition (not transpiled)
 			{ // do_test "wal3-3." + tn
 				os.Remove("test.db")

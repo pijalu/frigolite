@@ -17,6 +17,8 @@ func Test_whereF(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "whereF"
@@ -28,13 +30,13 @@ func Test_whereF(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n"
-	_items := tclSplitList("\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a=t2.e AND t2.d<t1.b AND t1.c!=10\"\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "1." + tn
 				_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
 				if _res.Error != nil {
@@ -49,13 +51,13 @@ func Test_whereF(t *testing.T) {
 			}
 		}
 		// foreach {tn sql} "\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n"
-		_items := tclSplitList("\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 \"SELECT * FROM t1,           t2 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  2 \"SELECT * FROM t2,           t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n  3 \"SELECT * FROM t2 CROSS JOIN t1 WHERE t1.a>? AND t2.d>t1.c AND t1.b=t2.e\"\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items[_idx+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "2." + tn
 					_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
 					if _res.Error != nil {
@@ -70,13 +72,13 @@ func Test_whereF(t *testing.T) {
 				}
 			}
 			// foreach {tn sql} "\n  1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n"
-			_items := tclSplitList("\n  1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 {SELECT t1.a, t1.b, t2.d, t2.e FROM t1, t2 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  2 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2, t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n\n  3 {SELECT t1.a, t1.b, t2.d, t2.e FROM t2 CROSS JOIN t1 \n     WHERE t2.d=t1.b AND t1.a=(t2.d+1) AND t1.b = (t2.e+1)}\n")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				sql := _items[_idx+1]
+				sql := _items2[_idx2+1]
 				_ = sql // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					{ // do_test "3." + tn
 						_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
 						if _res.Error != nil {

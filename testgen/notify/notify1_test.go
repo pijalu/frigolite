@@ -19,6 +19,8 @@ func Test_notify1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _enable_shared_cache = "sqlite3_enable_shared_cache 1" // TCL namespace variable
@@ -244,13 +246,13 @@ func Test_notify1(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	// foreach {tn nConn} "3 20 4 76"
-	_items := tclSplitList("3 20 4 76")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("3 20 4 76")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		nConn := _items[_idx+1]
+		nConn := _items0[_idx0+1]
 		_ = nConn // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "notify1-" + tn + ".1"
 				db, err := frigolite.Open("test.db")
 				defer db.Close()

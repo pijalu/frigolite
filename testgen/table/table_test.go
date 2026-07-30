@@ -20,6 +20,8 @@ func Test_table(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "table-1.1"
@@ -641,15 +643,15 @@ func Test_table(t *testing.T) {
 	var i = "0"
 	_ = i // suppress unused warning
 	// foreach {date time seconds} "\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n"
-	_items := tclSplitList("\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		date := _items[_idx+0]
+	_items0 := tclSplitList("\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		date := _items0[_idx0+0]
 		_ = date // suppress unused warning
-		time := _items[_idx+1]
+		time := _items0[_idx0+1]
 		_ = time // suppress unused warning
-		seconds := _items[_idx+2]
+		seconds := _items0[_idx0+2]
 		_ = seconds // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

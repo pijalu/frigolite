@@ -17,6 +17,8 @@ func Test_vtab_shared(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtab_shared"
@@ -94,15 +96,15 @@ func Test_vtab_shared(t *testing.T) {
 		}
 	}
 	// foreach {iTest dbSelect dbClose} "\n  1 db  db2\n  2 db  db2\n  3 db2 db\n"
-	_items := tclSplitList("\n  1 db  db2\n  2 db  db2\n  3 db2 db\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		iTest := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 db  db2\n  2 db  db2\n  3 db2 db\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		iTest := _items0[_idx0+0]
 		_ = iTest // suppress unused warning
-		dbSelect := _items[_idx+1]
+		dbSelect := _items0[_idx0+1]
 		_ = dbSelect // suppress unused warning
-		dbClose := _items[_idx+2]
+		dbClose := _items0[_idx0+2]
 		_ = dbClose // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "vtab_shared-1.9." + iTest
 				var res = "list"
 				_ = res // suppress unused warning

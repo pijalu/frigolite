@@ -18,6 +18,8 @@ func Test_mmap1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "mmap1"
@@ -25,17 +27,17 @@ func Test_mmap1(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// foreach {t mmap_size nRead c2init} "\n  1.1 { PRAGMA mmap_size = 67108864 } /8|12/   {PRAGMA mmap_size = 0}\n  1.2 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 0}\n  1.3 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 0}\n  1.4 { PRAGMA mmap_size = 67108864 } /12|8/   {PRAGMA mmap_size = 67108864 }\n  1.5 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 67108864 }\n  1.6 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 67108864 }\n"
-	_items := tclSplitList("\n  1.1 { PRAGMA mmap_size = 67108864 } /8|12/   {PRAGMA mmap_size = 0}\n  1.2 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 0}\n  1.3 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 0}\n  1.4 { PRAGMA mmap_size = 67108864 } /12|8/   {PRAGMA mmap_size = 67108864 }\n  1.5 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 67108864 }\n  1.6 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 67108864 }\n")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		t := _items[_idx+0]
+	_items0 := tclSplitList("\n  1.1 { PRAGMA mmap_size = 67108864 } /8|12/   {PRAGMA mmap_size = 0}\n  1.2 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 0}\n  1.3 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 0}\n  1.4 { PRAGMA mmap_size = 67108864 } /12|8/   {PRAGMA mmap_size = 67108864 }\n  1.5 { PRAGMA mmap_size =    53248 } /15[34]/ {PRAGMA mmap_size = 67108864 }\n  1.6 { PRAGMA mmap_size =        0 } 344      {PRAGMA mmap_size = 67108864 }\n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		t := _items0[_idx0+0]
 		_ = t // suppress unused warning
-		mmap_size := _items[_idx+1]
+		mmap_size := _items0[_idx0+1]
 		_ = mmap_size // suppress unused warning
-		nRead := _items[_idx+2]
+		nRead := _items0[_idx0+2]
 		_ = nRead // suppress unused warning
-		c2init := _items[_idx+3]
+		c2init := _items0[_idx0+3]
 		_ = c2init // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    sql1 {PRAGMA cache_size=2000}\n    sql2 {PRAGM...}")
 		}
 		var _rcnt = "0" // TCL namespace variable

@@ -18,24 +18,26 @@ func Test_date5(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var date5data = "\n   1 2024     2  29 2460369.5\n   2 2024     3   1 2460370.5\n   3 2023     2  28 2460003.5\n   4 2023     3   1 2460004.5\n   5 2000     2  29 2451603.5\n   6 2000     3   1 2451604.5\n   7 1900     2  28 2415078.5\n   8 1900     3   1 2415079.5\n   9 1712     2  29 2346413.5\n  10 1712     3   1 2346414.5\n  11 1977     4  26 2443259.5\n  12 2013     1   1 2456293.5\n"
 	_ = date5data // suppress unused warning
 	// foreach {id y m d jd} date5data
-	_items := tclSplitList(date5data)
-	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-		id := _items[_idx+0]
+	_items0 := tclSplitList(date5data)
+	for _idx0 := 0; _idx0+5 <= len(_items0); _idx0 += 5 {
+		id := _items0[_idx0+0]
 		_ = id // suppress unused warning
-		y := _items[_idx+1]
+		y := _items0[_idx0+1]
 		_ = y // suppress unused warning
-		m := _items[_idx+2]
+		m := _items0[_idx0+2]
 		_ = m // suppress unused warning
-		d := _items[_idx+3]
+		d := _items0[_idx0+3]
 		_ = d // suppress unused warning
-		jd := _items[_idx+4]
+		jd := _items0[_idx0+4]
 		_ = jd // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var date = "format %04d-%02d-%02d $y $m $d"
 			_ = date // suppress unused warning
 			{ // "date5-jd" + jd

@@ -17,6 +17,8 @@ func Test_attachmalloc(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test attachmalloc-1 -tclprep {\n  catch { db close }\n  for {set i 2} {$i<=4} {inc...} -tclbody {\n  if {[catch {sqlite3 db test.db}]} {\n    error \"...} -sqlbody {\n  ATTACH 'test2.db' AS two;\n  CREATE TABLE two.t1...}")

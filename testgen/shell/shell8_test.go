@@ -19,6 +19,8 @@ func Test_shell8(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "shell8"
@@ -33,13 +35,13 @@ func Test_shell8(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// foreach {tn tcl} "\n  1 {\n    set c1 \".ar c ar1\"\n    set x1 \".ar x\"\n\n    set c2 \".ar cC ar1 .\"\n    set x2 \".ar Cx ar3\"\n\n    set c3 \".ar cCf ar1 test_xyz.db .\"\n    set x3 \".ar Cfx ar3 test_xyz.db\"\n  }\n\n  2 {\n    set c1 \".ar -c ar1\"\n    set x1 \".ar -x\"\n\n    set c2 \".ar -cC ar1 .\"\n    set x2 \".ar -xC ar3\"\n\n    set c3 \".ar -cCar1 -ftest_xyz.db .\"\n    set x3 \".ar -x -C ar3 -f test_xyz.db\"\n  }\n\n  3 {\n    set c1 \".ar --create ar1\"\n    set x1 \".ar --extract\"\n\n    set c2 \".ar --directory ar1 --create .\"\n    set x2 \".ar --extract --dir ar3\"\n\n    set c3 \".ar --creat --dir ar1 --file test_xyz.db .\"\n    set x3 \".ar --e  --dir ar3 --f test_xyz.db\"\n  }\n\n  4 {\n    set c1 \".ar --cr ar1\"\n    set x1 \".ar --e\"\n\n    set c2 \".ar -C ar1 -c .\"\n    set x2 \".ar -x -C ar3\"\n\n    set c3 \".ar -c --directory ar1 --file test_xyz.db .\"\n    set x3 \".ar -x --directory ar3 --file test_xyz.db\"\n  }\n"
-	_items := tclSplitList("\n  1 {\n    set c1 \".ar c ar1\"\n    set x1 \".ar x\"\n\n    set c2 \".ar cC ar1 .\"\n    set x2 \".ar Cx ar3\"\n\n    set c3 \".ar cCf ar1 test_xyz.db .\"\n    set x3 \".ar Cfx ar3 test_xyz.db\"\n  }\n\n  2 {\n    set c1 \".ar -c ar1\"\n    set x1 \".ar -x\"\n\n    set c2 \".ar -cC ar1 .\"\n    set x2 \".ar -xC ar3\"\n\n    set c3 \".ar -cCar1 -ftest_xyz.db .\"\n    set x3 \".ar -x -C ar3 -f test_xyz.db\"\n  }\n\n  3 {\n    set c1 \".ar --create ar1\"\n    set x1 \".ar --extract\"\n\n    set c2 \".ar --directory ar1 --create .\"\n    set x2 \".ar --extract --dir ar3\"\n\n    set c3 \".ar --creat --dir ar1 --file test_xyz.db .\"\n    set x3 \".ar --e  --dir ar3 --f test_xyz.db\"\n  }\n\n  4 {\n    set c1 \".ar --cr ar1\"\n    set x1 \".ar --e\"\n\n    set c2 \".ar -C ar1 -c .\"\n    set x2 \".ar -x -C ar3\"\n\n    set c3 \".ar -c --directory ar1 --file test_xyz.db .\"\n    set x3 \".ar -x --directory ar3 --file test_xyz.db\"\n  }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {\n    set c1 \".ar c ar1\"\n    set x1 \".ar x\"\n\n    set c2 \".ar cC ar1 .\"\n    set x2 \".ar Cx ar3\"\n\n    set c3 \".ar cCf ar1 test_xyz.db .\"\n    set x3 \".ar Cfx ar3 test_xyz.db\"\n  }\n\n  2 {\n    set c1 \".ar -c ar1\"\n    set x1 \".ar -x\"\n\n    set c2 \".ar -cC ar1 .\"\n    set x2 \".ar -xC ar3\"\n\n    set c3 \".ar -cCar1 -ftest_xyz.db .\"\n    set x3 \".ar -x -C ar3 -f test_xyz.db\"\n  }\n\n  3 {\n    set c1 \".ar --create ar1\"\n    set x1 \".ar --extract\"\n\n    set c2 \".ar --directory ar1 --create .\"\n    set x2 \".ar --extract --dir ar3\"\n\n    set c3 \".ar --creat --dir ar1 --file test_xyz.db .\"\n    set x3 \".ar --e  --dir ar3 --f test_xyz.db\"\n  }\n\n  4 {\n    set c1 \".ar --cr ar1\"\n    set x1 \".ar --e\"\n\n    set c2 \".ar -C ar1 -c .\"\n    set x2 \".ar -x -C ar3\"\n\n    set c3 \".ar -c --directory ar1 --file test_xyz.db .\"\n    set x3 \".ar -x --directory ar3 --file test_xyz.db\"\n  }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		tcl := _items[_idx+1]
+		tcl := _items0[_idx0+1]
 		_ = tcl // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			// eval $tcl
 			t.Errorf("TODO: %s not implemented in frigolite", "populate_dir ar1 {\n    file1 \"abcd\" \n    file2 \"efgh\"\n    dir1/file3...}")
 			var expected = "dir_to_list ar1"

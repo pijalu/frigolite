@@ -17,6 +17,8 @@ func Test_whereC(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "whereC"
@@ -28,15 +30,15 @@ func Test_whereC(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res} "\n  1   \"SELECT i FROM t1 WHERE a=1 AND b=2 AND i>3\"         {4 5}\n  2   \"SELECT i FROM t1 WHERE rowid='12'\"                  {12}\n  3   \"SELECT i FROM t1 WHERE a=1 AND b='2'\"               {3 4 5}\n  4   \"SELECT i FROM t1 WHERE a=1 AND b='2' AND i>'3'\"     {4 5}\n  5   \"SELECT i FROM t1 WHERE a=1 AND b='2' AND i<5\"       {3 4}\n  6   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i<12\"        {10 11}\n  7   \"SELECT i FROM t1 WHERE a IN(1, 2) AND b=2 AND i<11\" {3 4 5 10}\n  8   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 12\" {10 11 12}\n  9   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 11 AND 12\" {11 12}\n 10   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 11\" {10 11}\n 11   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 12 AND 10\" {}\n 12   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i<NULL\"      {}\n 13   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i>=NULL\"     {}\n 14   \"SELECT i FROM t1 WHERE a=1 AND b='2' AND i<4.5\"     {3 4}\n 15   \"SELECT i FROM t1 WHERE rowid IS '12'\"               {12}\n"
-	_items := tclSplitList("\n  1   \"SELECT i FROM t1 WHERE a=1 AND b=2 AND i>3\"         {4 5}\n  2   \"SELECT i FROM t1 WHERE rowid='12'\"                  {12}\n  3   \"SELECT i FROM t1 WHERE a=1 AND b='2'\"               {3 4 5}\n  4   \"SELECT i FROM t1 WHERE a=1 AND b='2' AND i>'3'\"     {4 5}\n  5   \"SELECT i FROM t1 WHERE a=1 AND b='2' AND i<5\"       {3 4}\n  6   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i<12\"        {10 11}\n  7   \"SELECT i FROM t1 WHERE a IN(1, 2) AND b=2 AND i<11\" {3 4 5 10}\n  8   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 12\" {10 11 12}\n  9   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 11 AND 12\" {11 12}\n 10   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 11\" {10 11}\n 11   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 12 AND 10\" {}\n 12   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i<NULL\"      {}\n 13   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i>=NULL\"     {}\n 14   \"SELECT i FROM t1 WHERE a=1 AND b='2' AND i<4.5\"     {3 4}\n 15   \"SELECT i FROM t1 WHERE rowid IS '12'\"               {12}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1   \"SELECT i FROM t1 WHERE a=1 AND b=2 AND i>3\"         {4 5}\n  2   \"SELECT i FROM t1 WHERE rowid='12'\"                  {12}\n  3   \"SELECT i FROM t1 WHERE a=1 AND b='2'\"               {3 4 5}\n  4   \"SELECT i FROM t1 WHERE a=1 AND b='2' AND i>'3'\"     {4 5}\n  5   \"SELECT i FROM t1 WHERE a=1 AND b='2' AND i<5\"       {3 4}\n  6   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i<12\"        {10 11}\n  7   \"SELECT i FROM t1 WHERE a IN(1, 2) AND b=2 AND i<11\" {3 4 5 10}\n  8   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 12\" {10 11 12}\n  9   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 11 AND 12\" {11 12}\n 10   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 10 AND 11\" {10 11}\n 11   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i BETWEEN 12 AND 10\" {}\n 12   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i<NULL\"      {}\n 13   \"SELECT i FROM t1 WHERE a=2 AND b=2 AND i>=NULL\"     {}\n 14   \"SELECT i FROM t1 WHERE a=1 AND b='2' AND i<4.5\"     {3 4}\n 15   \"SELECT i FROM t1 WHERE rowid IS '12'\"               {12}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1." + tn + ".1"
 				_res = db.Exec(sql)
 				if _res.Error != nil {

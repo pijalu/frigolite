@@ -17,6 +17,8 @@ func Test_vtabI(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtabI"
@@ -29,15 +31,15 @@ func Test_vtabI(t *testing.T) {
 		}
 	}
 	// foreach {tn query filter} "\n  1 {SELECT * FROM e1} \n    {SELECT rowid, a, b, c, d, e FROM 't1'}\n\n  2 {SELECT a, b FROM e1} \n    {SELECT rowid, a, b, NULL, NULL, NULL FROM 't1'}\n\n  3 {SELECT count(*) FROM e1 GROUP BY b} \n    {SELECT rowid, NULL, b, NULL, NULL, NULL FROM 't1'}\n\n  4 {SELECT count(*) FROM e1 GROUP BY b HAVING a=?} \n    {SELECT rowid, a, b, NULL, NULL, NULL FROM 't1'}\n\n  5 {SELECT a FROM e1 WHERE c=?}\n    {SELECT rowid, a, NULL, c, NULL, NULL FROM 't1'}\n\n  6 {SELECT a FROM e1 ORDER BY e}\n    {SELECT rowid, a, NULL, NULL, NULL, e FROM 't1'}\n\n  7 {SELECT a FROM e1 ORDER BY e, d}\n    {SELECT rowid, a, NULL, NULL, d, e FROM 't1'}\n"
-	_items := tclSplitList("\n  1 {SELECT * FROM e1} \n    {SELECT rowid, a, b, c, d, e FROM 't1'}\n\n  2 {SELECT a, b FROM e1} \n    {SELECT rowid, a, b, NULL, NULL, NULL FROM 't1'}\n\n  3 {SELECT count(*) FROM e1 GROUP BY b} \n    {SELECT rowid, NULL, b, NULL, NULL, NULL FROM 't1'}\n\n  4 {SELECT count(*) FROM e1 GROUP BY b HAVING a=?} \n    {SELECT rowid, a, b, NULL, NULL, NULL FROM 't1'}\n\n  5 {SELECT a FROM e1 WHERE c=?}\n    {SELECT rowid, a, NULL, c, NULL, NULL FROM 't1'}\n\n  6 {SELECT a FROM e1 ORDER BY e}\n    {SELECT rowid, a, NULL, NULL, NULL, e FROM 't1'}\n\n  7 {SELECT a FROM e1 ORDER BY e, d}\n    {SELECT rowid, a, NULL, NULL, d, e FROM 't1'}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {SELECT * FROM e1} \n    {SELECT rowid, a, b, c, d, e FROM 't1'}\n\n  2 {SELECT a, b FROM e1} \n    {SELECT rowid, a, b, NULL, NULL, NULL FROM 't1'}\n\n  3 {SELECT count(*) FROM e1 GROUP BY b} \n    {SELECT rowid, NULL, b, NULL, NULL, NULL FROM 't1'}\n\n  4 {SELECT count(*) FROM e1 GROUP BY b HAVING a=?} \n    {SELECT rowid, a, b, NULL, NULL, NULL FROM 't1'}\n\n  5 {SELECT a FROM e1 WHERE c=?}\n    {SELECT rowid, a, NULL, c, NULL, NULL FROM 't1'}\n\n  6 {SELECT a FROM e1 ORDER BY e}\n    {SELECT rowid, a, NULL, NULL, NULL, e FROM 't1'}\n\n  7 {SELECT a FROM e1 ORDER BY e, d}\n    {SELECT rowid, a, NULL, NULL, d, e FROM 't1'}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		query := _items[_idx+1]
+		query := _items0[_idx0+1]
 		_ = query // suppress unused warning
-		filter := _items[_idx+2]
+		filter := _items0[_idx0+2]
 		_ = filter // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "1." + tn
 				var _echo_module = "list" // TCL namespace variable
 				_ = _echo_module // suppress unused warning
@@ -65,15 +67,15 @@ func Test_vtabI(t *testing.T) {
 			}
 		}
 		// foreach {tn query filter} "\n  1 {SELECT c1, c10, c20 FROM e2} \n    {SELECT rowid, [CL c1 c10 c20] FROM 't2'}\n\n  2 {SELECT c40, c50, c60 FROM e2} \n    {SELECT rowid, [CL c40 c50 c60] FROM 't2'}\n\n  3 {SELECT c7, c80, c90 FROM e2} \n    {SELECT rowid, [CLT c7] FROM 't2'}\n\n  4 {SELECT c64 FROM e2} \n    {SELECT rowid, [CLT c64] FROM 't2'}\n\n  5 {SELECT c63 FROM e2} \n    {SELECT rowid, [CL c63] FROM 't2'}\n\n  6 {SELECT c22 FROM e2 ORDER BY c50, c70} \n    {SELECT rowid, [CLT c22 c50] FROM 't2'}\n\n"
-		_items := tclSplitList("\n  1 {SELECT c1, c10, c20 FROM e2} \n    {SELECT rowid, [CL c1 c10 c20] FROM 't2'}\n\n  2 {SELECT c40, c50, c60 FROM e2} \n    {SELECT rowid, [CL c40 c50 c60] FROM 't2'}\n\n  3 {SELECT c7, c80, c90 FROM e2} \n    {SELECT rowid, [CLT c7] FROM 't2'}\n\n  4 {SELECT c64 FROM e2} \n    {SELECT rowid, [CLT c64] FROM 't2'}\n\n  5 {SELECT c63 FROM e2} \n    {SELECT rowid, [CL c63] FROM 't2'}\n\n  6 {SELECT c22 FROM e2 ORDER BY c50, c70} \n    {SELECT rowid, [CLT c22 c50] FROM 't2'}\n\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 {SELECT c1, c10, c20 FROM e2} \n    {SELECT rowid, [CL c1 c10 c20] FROM 't2'}\n\n  2 {SELECT c40, c50, c60 FROM e2} \n    {SELECT rowid, [CL c40 c50 c60] FROM 't2'}\n\n  3 {SELECT c7, c80, c90 FROM e2} \n    {SELECT rowid, [CLT c7] FROM 't2'}\n\n  4 {SELECT c64 FROM e2} \n    {SELECT rowid, [CLT c64] FROM 't2'}\n\n  5 {SELECT c63 FROM e2} \n    {SELECT rowid, [CL c63] FROM 't2'}\n\n  6 {SELECT c22 FROM e2 ORDER BY c50, c70} \n    {SELECT rowid, [CLT c22 c50] FROM 't2'}\n\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			query := _items[_idx+1]
+			query := _items1[_idx1+1]
 			_ = query // suppress unused warning
-			filter := _items[_idx+2]
+			filter := _items1[_idx1+2]
 			_ = filter // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "2." + tn
 					var _echo_module = "list" // TCL namespace variable
 					_ = _echo_module // suppress unused warning

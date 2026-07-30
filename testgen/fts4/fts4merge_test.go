@@ -19,6 +19,8 @@ func Test_fts4merge(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -141,13 +143,13 @@ func Test_fts4merge(t *testing.T) {
 			}
 		}
 		// foreach {tn arg} "\n    1   {merge=abc}\n    2   {merge=%%%}\n    3   {merge=,}\n    4   {merge=5,}\n    5   {merge=6,%}\n    6   {merge=6,six}\n    7   {merge=6,1}\n  "
-		_items := tclSplitList("\n    1   {merge=abc}\n    2   {merge=%%%}\n    3   {merge=,}\n    4   {merge=5,}\n    5   {merge=6,%}\n    6   {merge=6,six}\n    7   {merge=6,1}\n  ")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items0 := tclSplitList("\n    1   {merge=abc}\n    2   {merge=%%%}\n    3   {merge=,}\n    4   {merge=5,}\n    5   {merge=6,%}\n    6   {merge=6,six}\n    7   {merge=6,1}\n  ")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
-			arg := _items[_idx+1]
+			arg := _items0[_idx0+1]
 			_ = arg // suppress unused warning
-			_ = _idx
+			_ = _idx0
 				{ // "2." + tn
 					_res = db.Exec(" \n      INSERT INTO t2(t2) VALUES($arg);\n    ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "SQL logic error") {
@@ -220,13 +222,13 @@ func Test_fts4merge(t *testing.T) {
 				}
 			}
 			// foreach {tn expect} "\n    1  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 1 0\"\n    2  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12}    1 0\"\n    3  \"0 {0 1 2 3 4 5 6 7 8 9 10 11}       1 0\"\n    4  \"0 {0 1 2 3 4 5 6 7 8 9 10}          1 0\"\n    5  \"0 {0 1 2 3 4 5 6 7 8 9}             1 0\"\n    6  \"0 {0 1 2 3 4 5 6 7 8}               1 0\"\n    7  \"0 {0 1 2 3 4 5 6 7}                 1 0\"\n    8  \"0 {0 1 2 3 4 5 6}                   1 0\"\n    9  \"0 {0 1 2 3 4 5}                     1 0\"\n  "
-			_items := tclSplitList("\n    1  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 1 0\"\n    2  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12}    1 0\"\n    3  \"0 {0 1 2 3 4 5 6 7 8 9 10 11}       1 0\"\n    4  \"0 {0 1 2 3 4 5 6 7 8 9 10}          1 0\"\n    5  \"0 {0 1 2 3 4 5 6 7 8 9}             1 0\"\n    6  \"0 {0 1 2 3 4 5 6 7 8}               1 0\"\n    7  \"0 {0 1 2 3 4 5 6 7}                 1 0\"\n    8  \"0 {0 1 2 3 4 5 6}                   1 0\"\n    9  \"0 {0 1 2 3 4 5}                     1 0\"\n  ")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				tn := _items[_idx+0]
+			_items1 := tclSplitList("\n    1  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12 13} 1 0\"\n    2  \"0 {0 1 2 3 4 5 6 7 8 9 10 11 12}    1 0\"\n    3  \"0 {0 1 2 3 4 5 6 7 8 9 10 11}       1 0\"\n    4  \"0 {0 1 2 3 4 5 6 7 8 9 10}          1 0\"\n    5  \"0 {0 1 2 3 4 5 6 7 8 9}             1 0\"\n    6  \"0 {0 1 2 3 4 5 6 7 8}               1 0\"\n    7  \"0 {0 1 2 3 4 5 6 7}                 1 0\"\n    8  \"0 {0 1 2 3 4 5 6}                   1 0\"\n    9  \"0 {0 1 2 3 4 5}                     1 0\"\n  ")
+			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+				tn := _items1[_idx1+0]
 				_ = tn // suppress unused warning
-				expect := _items[_idx+1]
+				expect := _items1[_idx1+1]
 				_ = expect // suppress unused warning
-				_ = _idx
+				_ = _idx1
 					{ // "4.3." + tn
 						r = db.Query("\n      INSERT INTO t4(t4) VALUES('merge=1,16');\n      SELECT level, group_concat(idx, ' ') FROM t4_segdir GROUP BY level;\n    ")
 						if r.Error != nil {

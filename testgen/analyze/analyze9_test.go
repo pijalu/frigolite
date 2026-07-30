@@ -19,6 +19,8 @@ func Test_analyze9(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "analyze9"
@@ -567,13 +569,13 @@ func Test_analyze9(t *testing.T) {
 		}
 	}
 	// foreach {tn schema} "\n  1 {\n    CREATE TABLE t4(a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(a);\n    CREATE INDEX t4b ON t4(b);\n  }\n  2 {\n    CREATE TABLE t4(a, b);\n    CREATE INDEX t4a ON t4(a COLLATE nocase);\n    CREATE INDEX t4b ON t4(b);\n  }\n"
-	_items := tclSplitList("\n  1 {\n    CREATE TABLE t4(a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(a);\n    CREATE INDEX t4b ON t4(b);\n  }\n  2 {\n    CREATE TABLE t4(a, b);\n    CREATE INDEX t4a ON t4(a COLLATE nocase);\n    CREATE INDEX t4b ON t4(b);\n  }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {\n    CREATE TABLE t4(a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(a);\n    CREATE INDEX t4b ON t4(b);\n  }\n  2 {\n    CREATE TABLE t4(a, b);\n    CREATE INDEX t4a ON t4(a COLLATE nocase);\n    CREATE INDEX t4b ON t4(b);\n  }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		schema := _items[_idx+1]
+		schema := _items0[_idx0+1]
 		_ = schema // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 			{ // do_test "11." + tn + ".1"
 				_res = db.Exec(schema)
@@ -646,13 +648,13 @@ func Test_analyze9(t *testing.T) {
 			}
 		}
 		// foreach {tn schema} "\n  1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n"
-		_items := tclSplitList("\n  1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 {\n    CREATE TABLE t4(x, a COLLATE nocase, b);\n    CREATE INDEX t4a ON t4(x, a);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n  2 {\n    CREATE TABLE t4(x, a, b);\n    CREATE INDEX t4a ON t4(x, a COLLATE nocase);\n    CREATE INDEX t4b ON t4(x, b);\n  }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			schema := _items[_idx+1]
+			schema := _items1[_idx1+1]
 			_ = schema // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 				{ // do_test "12." + tn + ".1"
 					_res = db.Exec(schema)
@@ -1331,15 +1333,15 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 			// foreach {tn where res} "\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n"
-			_items := tclSplitList("\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n")
-			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 \"c='one' AND a='B' AND d < 20\"   {/*INDEX i3 (c=? AND a=?)*/}\n  2 \"c='one' AND a='A' AND d < 20\"   {/*INDEX i4 (d<?)*/}\n")
+			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				where := _items[_idx+1]
+				where := _items2[_idx2+1]
 				_ = where // suppress unused warning
-				res := _items[_idx+2]
+				res := _items2[_idx2+2]
 				_ = res // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					{ // "22.2." + tn
 						r = db.Query("EXPLAIN QUERY PLAN " + "SELECT * FROM t3 WHERE " + where)
 						if r.Error != nil {
@@ -1373,15 +1375,15 @@ func Test_analyze9(t *testing.T) {
 					}
 				}
 				// foreach {tn where eqp} "\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n"
-				_items := tclSplitList("\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n")
-				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-					tn := _items[_idx+0]
+				_items3 := tclSplitList("\n  1 \"d=0 AND a='z' AND b='n' AND e<200\" {/*t5d (d=? AND a=? AND b=?)*/}\n  2 \"d=0 AND a='z' AND b='n' AND e<100\" {/*t5e (e<?)*/}\n\n  3 \"d=0 AND e<300\"                     {/*t5d (d=?)*/}\n  4 \"d=0 AND e<200\"                     {/*t5e (e<?)*/}\n")
+				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					where := _items[_idx+1]
+					where := _items3[_idx3+1]
 					_ = where // suppress unused warning
-					eqp := _items[_idx+2]
+					eqp := _items3[_idx3+2]
 					_ = eqp // suppress unused warning
-					_ = _idx
+					_ = _idx3
 						{ // "24." + tn
 							r = db.Query("EXPLAIN QUERY PLAN " + "SeLeCt * FROM t5 WHERE " + where)
 							if r.Error != nil {

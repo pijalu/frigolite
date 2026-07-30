@@ -19,6 +19,8 @@ func Test_bestindex1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "bestindex1"
@@ -55,13 +57,13 @@ func Test_bestindex1(t *testing.T) {
 		}
 	}
 	// foreach {tn mode} "\n  1 use 2 omit 3 use2\n"
-	_items := tclSplitList("\n  1 use 2 omit 3 use2\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 use 2 omit 3 use2\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mode := _items[_idx+1]
+		mode := _items0[_idx0+1]
 		_ = mode // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "2.2." + mode + ".1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE VIRTUAL TABLE t1 USING tcl(t1_vtab " + mode + ");\n  ")
 				if _res.Error != nil {

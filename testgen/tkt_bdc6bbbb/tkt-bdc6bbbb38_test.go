@@ -17,6 +17,8 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tkt-bdc6bbbb38"
@@ -24,13 +26,13 @@ func Test_tkt_bdc6bbbb38(t *testing.T) {
 	var sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// foreach {tn idxdir} "1 ASC 2 DESC"
-	_items := tclSplitList("1 ASC 2 DESC")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("1 ASC 2 DESC")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		idxdir := _items[_idx+1]
+		idxdir := _items0[_idx0+1]
 		_ = idxdir // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			_res = db.Exec(" DROP TABLE IF EXISTS t2 ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS t2 ")

@@ -17,6 +17,8 @@ func Test_e_droptrigger(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "e_droptrigger" // TCL namespace variable
@@ -26,19 +28,19 @@ func Test_e_droptrigger(t *testing.T) {
 	// proc definition (not transpiled)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_droptrigger_tests 1.1 -repair {\n  droptrigger_reopen_db\n} -tclquery {\n  list_all_triggers \n} {\n  1   \"DROP TRIGGER main.tr1\"            \n      {...}")
 	// foreach {tn tbl droptrigger before after} "\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n"
-	_items := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
-	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
+	for _idx0 := 0; _idx0+5 <= len(_items0); _idx0 += 5 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		tbl := _items[_idx+1]
+		tbl := _items0[_idx0+1]
 		_ = tbl // suppress unused warning
-		droptrigger := _items[_idx+2]
+		droptrigger := _items0[_idx0+2]
 		_ = droptrigger // suppress unused warning
-		before := _items[_idx+3]
+		before := _items0[_idx0+3]
 		_ = before // suppress unused warning
-		after := _items[_idx+4]
+		after := _items0[_idx0+4]
 		_ = after // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "2." + tn + ".1"
 				t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db")
 				_res = db.Exec(" INSERT INTO " + tbl + " VALUES('1', '2') ")
@@ -61,19 +63,19 @@ func Test_e_droptrigger(t *testing.T) {
 			}
 		}
 		// foreach {tn tbl droptrigger before after} "\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n"
-		_items := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
-		for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
+		for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			tbl := _items[_idx+1]
+			tbl := _items1[_idx1+1]
 			_ = tbl // suppress unused warning
-			droptrigger := _items[_idx+2]
+			droptrigger := _items1[_idx1+2]
 			_ = droptrigger // suppress unused warning
-			before := _items[_idx+3]
+			before := _items1[_idx1+3]
 			_ = before // suppress unused warning
-			after := _items[_idx+4]
+			after := _items1[_idx1+4]
 			_ = after // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "3.1." + tn + ".1"
 					t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db UPDATE")
 					_res = db.Exec("UPDATE " + tbl + " SET a = 'abc'")
@@ -96,19 +98,19 @@ func Test_e_droptrigger(t *testing.T) {
 				}
 			}
 			// foreach {tn tbl droptrigger before after} "\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n"
-			_items := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
-			for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1   t1  \"DROP TRIGGER tr1\" {temp.tr1}                {}\n  2   t2  \"DROP TRIGGER tr1\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  3   t3  \"DROP TRIGGER tr1\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  4   t1  \"DROP TRIGGER tr2\" {temp.tr1}                {temp.tr1}\n  5   t2  \"DROP TRIGGER tr2\" {main.tr1 main.tr2}       {main.tr1}\n  6   t3  \"DROP TRIGGER tr2\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr3 aux.tr2}\n\n  7   t1  \"DROP TRIGGER tr3\" {temp.tr1}                {temp.tr1}\n  8   t2  \"DROP TRIGGER tr3\" {main.tr1 main.tr2}       {main.tr1 main.tr2}\n  9   t3  \"DROP TRIGGER tr3\" {aux.tr1 aux.tr3 aux.tr2} {aux.tr1 aux.tr2}\n")
+			for _idx2 := 0; _idx2+5 <= len(_items2); _idx2 += 5 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				tbl := _items[_idx+1]
+				tbl := _items2[_idx2+1]
 				_ = tbl // suppress unused warning
-				droptrigger := _items[_idx+2]
+				droptrigger := _items2[_idx2+2]
 				_ = droptrigger // suppress unused warning
-				before := _items[_idx+3]
+				before := _items2[_idx2+3]
 				_ = before // suppress unused warning
-				after := _items[_idx+4]
+				after := _items2[_idx2+4]
 				_ = after // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					{ // do_test "3.2." + tn + ".1"
 						t.Errorf("TODO: %s not implemented in frigolite", "droptrigger_reopen_db DELETE")
 						_res = db.Exec("DELETE FROM " + tbl)

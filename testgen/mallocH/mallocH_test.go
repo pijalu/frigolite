@@ -17,6 +17,8 @@ func Test_mallocH(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocH-1 -tclprep {\n  db close\n  sqlite3 db :memory:\n  db eval {\n    ...} -sqlbody {\n  INSERT INTO t1 SELECT x+1, y+100 FROM t1;\n}")

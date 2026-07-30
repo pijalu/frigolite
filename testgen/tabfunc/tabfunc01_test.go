@@ -19,6 +19,8 @@ func Test_tabfunc01(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tabfunc01"
@@ -865,15 +867,15 @@ func Test_tabfunc01(t *testing.T) {
 		}
 	}
 	// foreach {tn where res} "\n  1000 \"where value = 2\" 2\n  1010 \"where value in (2)\" 2\n  1020 \"where value in (select 2)\" 2\n  1030 \"where value = 2 OR value = 4\" {2 4}\n  1040 \"where value in (2, 4)\" {2 4}\n"
-	_items := tclSplitList("\n  1000 \"where value = 2\" 2\n  1010 \"where value in (2)\" 2\n  1020 \"where value in (select 2)\" 2\n  1030 \"where value = 2 OR value = 4\" {2 4}\n  1040 \"where value in (2, 4)\" {2 4}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1000 \"where value = 2\" 2\n  1010 \"where value in (2)\" 2\n  1020 \"where value in (select 2)\" 2\n  1030 \"where value = 2 OR value = 4\" {2 4}\n  1040 \"where value in (2, 4)\" {2 4}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		where := _items[_idx+1]
+		where := _items0[_idx0+1]
 		_ = where // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // tn
 				r = db.Query("\n    SELECT value FROM generate_series(1, 5) " + where + "\n  ")
 				if r.Error != nil {
@@ -1263,13 +1265,13 @@ func Test_tabfunc01(t *testing.T) {
 		_ = subtest // suppress unused warning
 		for _, bound := range tclSplitList("\n  9007199254740991.0\n  9007199254740991.1\n  9007199254740991.5\n  9007199254740991.9\n  9007199254740992.0\n  9007199254740992.1\n  9007199254740992.5\n  9007199254740992.9\n  9007199254740993.0\n  9007199254740993.1\n  9007199254740993.5\n") {
 			// foreach {range boundsign} "\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  "
-			_items := tclSplitList("\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  ")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				_range := _items[_idx+0]
+			_items1 := tclSplitList("\n    (+9007199254740990,+9007199254740995)  +\n    (-9007199254740995,-9007199254740990)  -\n  ")
+			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+				_range := _items1[_idx1+0]
 				_ = _range // suppress unused warning
-				boundsign := _items[_idx+1]
+				boundsign := _items1[_idx1+1]
 				_ = boundsign // suppress unused warning
-				_ = _idx
+				_ = _idx1
 					var bx = boundsign + bound
 					_ = bx // suppress unused warning
 					for _, op := range tclSplitList("< > <= >=") {

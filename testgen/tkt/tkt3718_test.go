@@ -17,6 +17,8 @@ func Test_tkt3718(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt3718-1.1"
@@ -91,17 +93,17 @@ func Test_tkt3718(t *testing.T) {
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 	// foreach {tn io ii results} "\n  1 0 10 {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20}\n  2 1 10 {6 7 8 9 10 16 17 18 19 20}\n  3 0 11 {1 2 3 4 5 6 7 8 9 10 16 17 18 19 20}\n  4 1 11 {6 7 8 9 10 16 17 18 19 20}\n"
-	_items := tclSplitList("\n  1 0 10 {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20}\n  2 1 10 {6 7 8 9 10 16 17 18 19 20}\n  3 0 11 {1 2 3 4 5 6 7 8 9 10 16 17 18 19 20}\n  4 1 11 {6 7 8 9 10 16 17 18 19 20}\n")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 0 10 {1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20}\n  2 1 10 {6 7 8 9 10 16 17 18 19 20}\n  3 0 11 {1 2 3 4 5 6 7 8 9 10 16 17 18 19 20}\n  4 1 11 {6 7 8 9 10 16 17 18 19 20}\n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		io := _items[_idx+1]
+		io := _items0[_idx0+1]
 		_ = io // suppress unused warning
-		ii := _items[_idx+2]
+		ii := _items0[_idx0+2]
 		_ = ii // suppress unused warning
-		results := _items[_idx+3]
+		results := _items0[_idx0+3]
 		_ = results // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "tkt3718-3." + tn
 				_res = db.Exec(" \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n    ")
 				if _res.Error != nil {
@@ -122,19 +124,19 @@ func Test_tkt3718(t *testing.T) {
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 		}
 		// foreach {tn i1 i2 i3 results} "\n  1   0 10 20   {5 10 15 20 25 30}\n  2   0 10 21   {5 10 15 20 30}\n  3   0 11 20   {5 10 20 30}\n  4   0 11 21   {5 10 20 30}\n  5   1 10 20   {10 20 30}\n  6   1 10 21   {10 20 30}\n  7   1 11 20   {10 20 30}\n  8   1 11 21   {10 20 30}\n"
-		_items := tclSplitList("\n  1   0 10 20   {5 10 15 20 25 30}\n  2   0 10 21   {5 10 15 20 30}\n  3   0 11 20   {5 10 20 30}\n  4   0 11 21   {5 10 20 30}\n  5   1 10 20   {10 20 30}\n  6   1 10 21   {10 20 30}\n  7   1 11 20   {10 20 30}\n  8   1 11 21   {10 20 30}\n")
-		for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1   0 10 20   {5 10 15 20 25 30}\n  2   0 10 21   {5 10 15 20 30}\n  3   0 11 20   {5 10 20 30}\n  4   0 11 21   {5 10 20 30}\n  5   1 10 20   {10 20 30}\n  6   1 10 21   {10 20 30}\n  7   1 11 20   {10 20 30}\n  8   1 11 21   {10 20 30}\n")
+		for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			i1 := _items[_idx+1]
+			i1 := _items1[_idx1+1]
 			_ = i1 // suppress unused warning
-			i2 := _items[_idx+2]
+			i2 := _items1[_idx1+2]
 			_ = i2 // suppress unused warning
-			i3 := _items[_idx+3]
+			i3 := _items1[_idx1+3]
 			_ = i3 // suppress unused warning
-			results := _items[_idx+4]
+			results := _items1[_idx1+4]
 			_ = results // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "tkt3718-4." + tn
 					_res = db.Exec(" \n      DELETE FROM t2;\n      INSERT INTO t2 SELECT a+5, b FROM t1;\n      INSERT INTO t2 SELECT a+15, b FROM t1;\n      INSERT INTO t2 SELECT a+25, b FROM t1;\n    ")
 					if _res.Error != nil {

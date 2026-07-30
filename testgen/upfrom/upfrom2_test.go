@@ -18,18 +18,20 @@ func Test_upfrom2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "upfrom2"
 	_ = testprefix // suppress unused warning
 	// foreach {tn wo} "\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n"
-	_items := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 \"\"\n  2 \"WITHOUT ROWID\"\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		wo := _items[_idx+1]
+		wo := _items0[_idx0+1]
 		_ = wo // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -52,13 +54,13 @@ func Test_upfrom2(t *testing.T) {
 			}
 		}
 		// foreach {tn sql} "\n  2 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n  }\n  1 { \n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  }\n  3 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c);\n  }\n"
-		_items := tclSplitList("\n  2 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n  }\n  1 { \n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  }\n  3 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c);\n  }\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  2 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n  }\n  1 { \n    CREATE TABLE x1(a INTEGER PRIMARY KEY, b, c);\n  }\n  3 { \n    CREATE TABLE x1(a INT PRIMARY KEY, b, c);\n  }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items[_idx+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
@@ -95,15 +97,15 @@ func Test_upfrom2(t *testing.T) {
 				}
 			}
 			// foreach {tn update nm} "\n  1 \"UPDATE x1 SET a=5 FROM x1\" x1\n  2 \"UPDATE x1 AS grapes SET a=5 FROM x1 AS grapes\" grapes\n  3 \"UPDATE x1 SET a=5 FROM x2, x1\" x1\n  4 \"UPDATE x1 AS grapes SET a=5 FROM x2, x1 AS grapes\" grapes\n"
-			_items := tclSplitList("\n  1 \"UPDATE x1 SET a=5 FROM x1\" x1\n  2 \"UPDATE x1 AS grapes SET a=5 FROM x1 AS grapes\" grapes\n  3 \"UPDATE x1 SET a=5 FROM x2, x1\" x1\n  4 \"UPDATE x1 AS grapes SET a=5 FROM x2, x1 AS grapes\" grapes\n")
-			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 \"UPDATE x1 SET a=5 FROM x1\" x1\n  2 \"UPDATE x1 AS grapes SET a=5 FROM x1 AS grapes\" grapes\n  3 \"UPDATE x1 SET a=5 FROM x2, x1\" x1\n  4 \"UPDATE x1 AS grapes SET a=5 FROM x2, x1 AS grapes\" grapes\n")
+			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				update := _items[_idx+1]
+				update := _items2[_idx2+1]
 				_ = update // suppress unused warning
-				nm := _items[_idx+2]
+				nm := _items2[_idx2+2]
 				_ = nm // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					{ // "5." + tn
 						_res = db.Exec(update)
 						if _res.Error == nil || !strings.Contains(_res.Error.Error(), "target object/alias may not appear in FROM clause: \" + nm + \"") {

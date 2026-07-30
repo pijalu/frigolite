@@ -18,6 +18,8 @@ func Test_conflict2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "conflict2-1.0"
@@ -27,21 +29,21 @@ func Test_conflict2(t *testing.T) {
 		}
 	}
 	// foreach {i cmd t0 t1 t2 t3} "\n  1 INSERT                  1 {}  1  0\n  2 {INSERT OR IGNORE}      0 3   1  0\n  3 {INSERT OR REPLACE}     0 4   1  0\n  4 REPLACE                 0 4   1  0\n  5 {INSERT OR FAIL}        1 {}  1  0\n  6 {INSERT OR ABORT}       1 {}  1  0\n  7 {INSERT OR ROLLBACK}    1 {}  {} 0\n"
-	_items := tclSplitList("\n  1 INSERT                  1 {}  1  0\n  2 {INSERT OR IGNORE}      0 3   1  0\n  3 {INSERT OR REPLACE}     0 4   1  0\n  4 REPLACE                 0 4   1  0\n  5 {INSERT OR FAIL}        1 {}  1  0\n  6 {INSERT OR ABORT}       1 {}  1  0\n  7 {INSERT OR ROLLBACK}    1 {}  {} 0\n")
-	for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
-		i := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 INSERT                  1 {}  1  0\n  2 {INSERT OR IGNORE}      0 3   1  0\n  3 {INSERT OR REPLACE}     0 4   1  0\n  4 REPLACE                 0 4   1  0\n  5 {INSERT OR FAIL}        1 {}  1  0\n  6 {INSERT OR ABORT}       1 {}  1  0\n  7 {INSERT OR ROLLBACK}    1 {}  {} 0\n")
+	for _idx0 := 0; _idx0+6 <= len(_items0); _idx0 += 6 {
+		i := _items0[_idx0+0]
 		_ = i // suppress unused warning
-		cmd := _items[_idx+1]
+		cmd := _items0[_idx0+1]
 		_ = cmd // suppress unused warning
-		t0 := _items[_idx+2]
+		t0 := _items0[_idx0+2]
 		_ = t0 // suppress unused warning
-		t1 := _items[_idx+3]
+		t1 := _items0[_idx0+3]
 		_ = t1 // suppress unused warning
-		t2 := _items[_idx+4]
+		t2 := _items0[_idx0+4]
 		_ = t2 // suppress unused warning
-		t3 := _items[_idx+5]
+		t3 := _items0[_idx0+5]
 		_ = t3 // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "conflict2-1." + i
 				var _sqlite_opentemp_count = "0" // TCL namespace variable
 				_ = _sqlite_opentemp_count // suppress unused warning
@@ -86,19 +88,19 @@ func Test_conflict2(t *testing.T) {
 			}
 		}
 		// foreach {i cmd t0 t1 t2} "\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n"
-		_items := tclSplitList("\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n")
-		for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-			i := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n")
+		for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
+			i := _items1[_idx1+0]
 			_ = i // suppress unused warning
-			cmd := _items[_idx+1]
+			cmd := _items1[_idx1+1]
 			_ = cmd // suppress unused warning
-			t0 := _items[_idx+2]
+			t0 := _items1[_idx1+2]
 			_ = t0 // suppress unused warning
-			t1 := _items[_idx+3]
+			t1 := _items1[_idx1+3]
 			_ = t1 // suppress unused warning
-			t2 := _items[_idx+4]
+			t2 := _items1[_idx1+4]
 			_ = t2 // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "conflict2-2." + i
 	var r0 string
 	var r1 string
@@ -139,19 +141,19 @@ func Test_conflict2(t *testing.T) {
 				}
 			}
 			// foreach {i cmd t0 t1 t2} "\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n"
-			_items := tclSplitList("\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n")
-			for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-				i := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 INSERT                  1 {}  1\n  2 {INSERT OR IGNORE}      0 3   1\n  3 {INSERT OR REPLACE}     0 4   1\n  4 REPLACE                 0 4   1\n  5 {INSERT OR FAIL}        1 {}  1\n  6 {INSERT OR ABORT}       1 {}  1\n  7 {INSERT OR ROLLBACK}    1 {}  {}\n")
+			for _idx2 := 0; _idx2+5 <= len(_items2); _idx2 += 5 {
+				i := _items2[_idx2+0]
 				_ = i // suppress unused warning
-				cmd := _items[_idx+1]
+				cmd := _items2[_idx2+1]
 				_ = cmd // suppress unused warning
-				t0 := _items[_idx+2]
+				t0 := _items2[_idx2+2]
 				_ = t0 // suppress unused warning
-				t1 := _items[_idx+3]
+				t1 := _items2[_idx2+3]
 				_ = t1 // suppress unused warning
-				t2 := _items[_idx+4]
+				t2 := _items2[_idx2+4]
 				_ = t2 // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					{ // do_test "conflict2-3." + i
 	var r0 string
 	var r1 string
@@ -192,21 +194,21 @@ func Test_conflict2(t *testing.T) {
 					}
 				}
 				// foreach {i conf1 cmd t0 t1 t2} "\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1\n"
-				_items := tclSplitList("\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1\n")
-				for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
-					i := _items[_idx+0]
+				_items3 := tclSplitList("\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 4   1\n  3 IGNORE   INSERT                  0 3   1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 3   1\n  8 IGNORE   {INSERT OR REPLACE}     0 4   1\n  9 FAIL     {INSERT OR IGNORE}      0 3   1\n 10 ABORT    {INSERT OR REPLACE}     0 4   1\n 11 ROLLBACK {INSERT OR IGNORE }     0 3   1\n")
+				for _idx3 := 0; _idx3+6 <= len(_items3); _idx3 += 6 {
+					i := _items3[_idx3+0]
 					_ = i // suppress unused warning
-					conf1 := _items[_idx+1]
+					conf1 := _items3[_idx3+1]
 					_ = conf1 // suppress unused warning
-					cmd := _items[_idx+2]
+					cmd := _items3[_idx3+2]
 					_ = cmd // suppress unused warning
-					t0 := _items[_idx+3]
+					t0 := _items3[_idx3+3]
 					_ = t0 // suppress unused warning
-					t1 := _items[_idx+4]
+					t1 := _items3[_idx3+4]
 					_ = t1 // suppress unused warning
-					t2 := _items[_idx+5]
+					t2 := _items3[_idx3+5]
 					_ = t2 // suppress unused warning
-					_ = _idx
+					_ = _idx3
 						{ // do_test "conflict2-4." + i
 							if conf1 != "" {
 								var conf1 = "ON CONFLICT " + conf1
@@ -251,21 +253,21 @@ func Test_conflict2(t *testing.T) {
 						}
 					}
 					// foreach {i conf1 cmd t0 t1 t2} "\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}\n"
-					_items := tclSplitList("\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}\n")
-					for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
-						i := _items[_idx+0]
+					_items4 := tclSplitList("\n  1 {}       INSERT                  1 {}  1\n  2 REPLACE  INSERT                  0 5   1\n  3 IGNORE   INSERT                  0 {}  1\n  4 FAIL     INSERT                  1 {}  1\n  5 ABORT    INSERT                  1 {}  1\n  6 ROLLBACK INSERT                  1 {}  {}\n  7 REPLACE  {INSERT OR IGNORE}      0 {}  1\n  8 IGNORE   {INSERT OR REPLACE}     0 5   1\n  9 FAIL     {INSERT OR IGNORE}      0 {}  1\n 10 ABORT    {INSERT OR REPLACE}     0 5   1\n 11 ROLLBACK {INSERT OR IGNORE}      0 {}  1\n 12 {}       {INSERT OR IGNORE}      0 {}  1\n 13 {}       {INSERT OR REPLACE}     0 5   1\n 14 {}       {INSERT OR FAIL}        1 {}  1\n 15 {}       {INSERT OR ABORT}       1 {}  1\n 16 {}       {INSERT OR ROLLBACK}    1 {}  {}\n")
+					for _idx4 := 0; _idx4+6 <= len(_items4); _idx4 += 6 {
+						i := _items4[_idx4+0]
 						_ = i // suppress unused warning
-						conf1 := _items[_idx+1]
+						conf1 := _items4[_idx4+1]
 						_ = conf1 // suppress unused warning
-						cmd := _items[_idx+2]
+						cmd := _items4[_idx4+2]
 						_ = cmd // suppress unused warning
-						t0 := _items[_idx+3]
+						t0 := _items4[_idx4+3]
 						_ = t0 // suppress unused warning
-						t1 := _items[_idx+4]
+						t1 := _items4[_idx4+4]
 						_ = t1 // suppress unused warning
-						t2 := _items[_idx+5]
+						t2 := _items4[_idx4+5]
 						_ = t2 // suppress unused warning
-						_ = _idx
+						_ = _idx4
 							if tclBool(t0) {
 								var t1 = "NOT NULL constraint failed: t1.c"
 								_ = t1 // suppress unused warning
@@ -313,25 +315,25 @@ func Test_conflict2(t *testing.T) {
 							}
 						}
 						// foreach {i conf1 cmd t0 t1 t2 t3 t4} "\n  1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0\n"
-						_items := tclSplitList("\n  1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0\n")
-						for _idx := 0; _idx+8 <= len(_items); _idx += 8 {
-							i := _items[_idx+0]
+						_items5 := tclSplitList("\n  1 {}       UPDATE                  1 {6 7 8 9}  1 0 0\n  2 REPLACE  UPDATE                  0 {7 6 9}    1 0 0\n  3 IGNORE   UPDATE                  0 {6 7 3 9}  1 0 0\n  4 FAIL     UPDATE                  1 {6 7 3 4}  1 0 0\n  5 ABORT    UPDATE                  1 {1 2 3 4}  1 0 0\n  6 ROLLBACK UPDATE                  1 {1 2 3 4}  0 0 0\n  7 REPLACE  {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n  8 IGNORE   {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n  9 FAIL     {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 10 ABORT    {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 11 ROLLBACK {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 12 {}       {UPDATE OR IGNORE}      0 {6 7 3 9}  1 0 0\n 13 {}       {UPDATE OR REPLACE}     0 {7 6 9}    1 0 0\n 14 {}       {UPDATE OR FAIL}        1 {6 7 3 4}  1 0 0\n 15 {}       {UPDATE OR ABORT}       1 {1 2 3 4}  1 0 0\n 16 {}       {UPDATE OR ROLLBACK}    1 {1 2 3 4}  0 0 0\n")
+						for _idx5 := 0; _idx5+8 <= len(_items5); _idx5 += 8 {
+							i := _items5[_idx5+0]
 							_ = i // suppress unused warning
-							conf1 := _items[_idx+1]
+							conf1 := _items5[_idx5+1]
 							_ = conf1 // suppress unused warning
-							cmd := _items[_idx+2]
+							cmd := _items5[_idx5+2]
 							_ = cmd // suppress unused warning
-							t0 := _items[_idx+3]
+							t0 := _items5[_idx5+3]
 							_ = t0 // suppress unused warning
-							t1 := _items[_idx+4]
+							t1 := _items5[_idx5+4]
 							_ = t1 // suppress unused warning
-							t2 := _items[_idx+5]
+							t2 := _items5[_idx5+5]
 							_ = t2 // suppress unused warning
-							t3 := _items[_idx+6]
+							t3 := _items5[_idx5+6]
 							_ = t3 // suppress unused warning
-							t4 := _items[_idx+7]
+							t4 := _items5[_idx5+7]
 							_ = t4 // suppress unused warning
-							_ = _idx
+							_ = _idx5
 								if tclBool("permutation" + " == \"inmemory_journal\"") {
 									var t4 = "0"
 									_ = t4 // suppress unused warning

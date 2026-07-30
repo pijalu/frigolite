@@ -17,6 +17,8 @@ func Test_unordered(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "unordered"
@@ -42,17 +44,17 @@ func Test_unordered(t *testing.T) {
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
 		// foreach {tn sql r(ordered) r(unordered)} "\n    1   \"SELECT * FROM t1 ORDER BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR ORDER BY}\n    2   \"SELECT * FROM t1 WHERE a > 100\"\n        {SEARCH t1 USING INDEX i1 (a>?)}\n        {SCAN t1}\n    3   \"SELECT * FROM t1 WHERE a = ? ORDER BY rowid\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)*USE TEMP B-TREE FOR ORDER BY}\n    4   \"SELECT max(a) FROM t1\"\n        {SEARCH t1 USING COVERING INDEX i1}\n        {SEARCH t1}\n    5   \"SELECT group_concat(b) FROM t1 GROUP BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR GROUP BY}\n\n    6   \"SELECT * FROM t1 WHERE a = ?\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)}\n    7   \"SELECT count(*) FROM t1\"\n        {SCAN t1 USING COVERING INDEX i1}\n        {SCAN t1}\n  "
-		_items := tclSplitList("\n    1   \"SELECT * FROM t1 ORDER BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR ORDER BY}\n    2   \"SELECT * FROM t1 WHERE a > 100\"\n        {SEARCH t1 USING INDEX i1 (a>?)}\n        {SCAN t1}\n    3   \"SELECT * FROM t1 WHERE a = ? ORDER BY rowid\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)*USE TEMP B-TREE FOR ORDER BY}\n    4   \"SELECT max(a) FROM t1\"\n        {SEARCH t1 USING COVERING INDEX i1}\n        {SEARCH t1}\n    5   \"SELECT group_concat(b) FROM t1 GROUP BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR GROUP BY}\n\n    6   \"SELECT * FROM t1 WHERE a = ?\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)}\n    7   \"SELECT count(*) FROM t1\"\n        {SCAN t1 USING COVERING INDEX i1}\n        {SCAN t1}\n  ")
-		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-			tn := _items[_idx+0]
+		_items0 := tclSplitList("\n    1   \"SELECT * FROM t1 ORDER BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR ORDER BY}\n    2   \"SELECT * FROM t1 WHERE a > 100\"\n        {SEARCH t1 USING INDEX i1 (a>?)}\n        {SCAN t1}\n    3   \"SELECT * FROM t1 WHERE a = ? ORDER BY rowid\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)*USE TEMP B-TREE FOR ORDER BY}\n    4   \"SELECT max(a) FROM t1\"\n        {SEARCH t1 USING COVERING INDEX i1}\n        {SEARCH t1}\n    5   \"SELECT group_concat(b) FROM t1 GROUP BY a\"\n        {SCAN t1 USING INDEX i1}\n        {SCAN t1*USE TEMP B-TREE FOR GROUP BY}\n\n    6   \"SELECT * FROM t1 WHERE a = ?\"\n        {SEARCH t1 USING INDEX i1 (a=?)}\n        {SEARCH t1 USING INDEX i1 (a=?)}\n    7   \"SELECT count(*) FROM t1\"\n        {SCAN t1 USING COVERING INDEX i1}\n        {SCAN t1}\n  ")
+		for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
-			sql := _items[_idx+1]
+			sql := _items0[_idx0+1]
 			_ = sql // suppress unused warning
-			r_ordered := _items[_idx+2]
+			r_ordered := _items0[_idx0+2]
 			_ = r_ordered // suppress unused warning
-			r_unordered := _items[_idx+3]
+			r_unordered := _items0[_idx0+3]
 			_ = r_unordered // suppress unused warning
-			_ = _idx
+			_ = _idx0
 				{ // "1." + idxmode + "." + tn
 					r = db.Query("EXPLAIN QUERY PLAN " + sql)
 					if r.Error != nil {

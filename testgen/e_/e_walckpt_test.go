@@ -18,6 +18,8 @@ func Test_e_walckpt(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "e_walckpt"
@@ -29,15 +31,15 @@ func Test_e_walckpt(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	// foreach {tn mode res} "\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n"
-	_items := tclSplitList("\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  0 -1001    {1 {SQLITE_MISUSE - not an error}}\n  1 -2       {1 {SQLITE_MISUSE - not an error}}\n  2 -1       {0 {0 -1 -1}}\n  3  0       {0 {0 -1 -1}}\n  4  1       {0 {0 -1 -1}}\n  5  2       {0 {0 -1 -1}}\n  6  3       {0 {0 -1 -1}}\n  7  4       {1 {SQLITE_MISUSE - not an error}}\n  8  114     {1 {SQLITE_MISUSE - not an error}}\n  9  1000000 {1 {SQLITE_MISUSE - not an error}}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mode := _items[_idx+1]
+		mode := _items0[_idx0+1]
 		_ = mode // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "4." + tn
 				_list := tclList([]string{"0", msg})
 				_ = _list

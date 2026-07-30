@@ -17,6 +17,8 @@ func Test_fkey2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	r = db.Query(" PRAGMA foreign_keys = on ")
@@ -34,15 +36,15 @@ func Test_fkey2(t *testing.T) {
 		}
 	}
 	// foreach {tn zSql res} FkeySimpleTests
-	_items := tclSplitList(FkeySimpleTests)
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList(FkeySimpleTests)
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		zSql := _items[_idx+1]
+		zSql := _items0[_idx0+1]
 		_ = zSql // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "fkey2-1.1." + tn + ".1"
 				_res = db.Exec(zSql)
 				_ = _res // catchsql
@@ -92,15 +94,15 @@ func Test_fkey2(t *testing.T) {
 			}
 		}
 		// foreach {tn zSql res} FkeySimpleTests
-		_items := tclSplitList(FkeySimpleTests)
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList(FkeySimpleTests)
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			zSql := _items[_idx+1]
+			zSql := _items1[_idx1+1]
 			_ = zSql // suppress unused warning
-			res := _items[_idx+2]
+			res := _items1[_idx1+2]
 			_ = res // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "fkey2-1.2." + tn
 					_res = db.Exec(zSql)
 					_ = _res // catchsql
@@ -154,15 +156,15 @@ func Test_fkey2(t *testing.T) {
 				}
 			}
 			// foreach {tn zSql res} FkeySimpleTests
-			_items := tclSplitList(FkeySimpleTests)
-			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList(FkeySimpleTests)
+			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				zSql := _items[_idx+1]
+				zSql := _items2[_idx2+1]
 				_ = zSql // suppress unused warning
-				res := _items[_idx+2]
+				res := _items2[_idx2+2]
 				_ = res // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					if res == "0 {}" {
 						var res = "0 1"
 						_ = res // suppress unused warning
@@ -224,15 +226,15 @@ func Test_fkey2(t *testing.T) {
 					}
 				}
 				// foreach {tn zSql res} FkeySimpleTests
-				_items := tclSplitList(FkeySimpleTests)
-				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-					tn := _items[_idx+0]
+				_items3 := tclSplitList(FkeySimpleTests)
+				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					zSql := _items[_idx+1]
+					zSql := _items3[_idx3+1]
 					_ = zSql // suppress unused warning
-					res := _items[_idx+2]
+					res := _items3[_idx3+2]
 					_ = res // suppress unused warning
-					_ = _idx
+					_ = _idx3
 						if res == "0 {}" {
 							var res = "0 1"
 							_ = res // suppress unused warning
@@ -750,13 +752,13 @@ func Test_fkey2(t *testing.T) {
 						}
 					}
 					// foreach {tn stmt} "\n  1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n  2   \"REPLACE INTO pp(rowid, a, b, c) VALUES(1, 2, 3, 4)\"\n"
-					_items := tclSplitList("\n  1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n  2   \"REPLACE INTO pp(rowid, a, b, c) VALUES(1, 2, 3, 4)\"\n")
-					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-						tn := _items[_idx+0]
+					_items4 := tclSplitList("\n  1   \"REPLACE INTO pp VALUES(1, 4, 5)\"\n  2   \"REPLACE INTO pp(rowid, a, b, c) VALUES(1, 2, 3, 4)\"\n")
+					for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
-						stmt := _items[_idx+1]
+						stmt := _items4[_idx4+1]
 						_ = stmt // suppress unused warning
-						_ = _idx
+						_ = _idx4
 							{ // do_test "fkey2-13.1." + tn + ".1"
 								_res = db.Exec(stmt)
 								_ = _res // catchsql
@@ -943,13 +945,13 @@ func Test_fkey2(t *testing.T) {
 							t.Errorf("TODO: %s not implemented in frigolite", "execsqlS {\n    DELETE FROM cc WHERE x = 'neung';\n    ROLLBAC...}")
 						}
 						// foreach {tn zSchema} "\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a)) }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) }\n  3 { CREATE TABLE self(a UNIQUE, b INTEGER PRIMARY KEY REFERENCES self(a)) }\n"
-						_items := tclSplitList("\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a)) }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) }\n  3 { CREATE TABLE self(a UNIQUE, b INTEGER PRIMARY KEY REFERENCES self(a)) }\n")
-						for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-							tn := _items[_idx+0]
+						_items5 := tclSplitList("\n  1 { CREATE TABLE self(a INTEGER PRIMARY KEY, b REFERENCES self(a)) }\n  2 { CREATE TABLE self(a PRIMARY KEY, b REFERENCES self(a)) }\n  3 { CREATE TABLE self(a UNIQUE, b INTEGER PRIMARY KEY REFERENCES self(a)) }\n")
+						for _idx5 := 0; _idx5+2 <= len(_items5); _idx5 += 2 {
+							tn := _items5[_idx5+0]
 							_ = tn // suppress unused warning
-							zSchema := _items[_idx+1]
+							zSchema := _items5[_idx5+1]
 							_ = zSchema // suppress unused warning
-							_ = _idx
+							_ = _idx5
 								t.Errorf("TODO: %s not implemented in frigolite", "drop_all_tables")
 								{ // do_test "fkey2-16.1." + tn + ".1"
 									_res = db.Exec(zSchema)
@@ -1150,13 +1152,13 @@ func Test_fkey2(t *testing.T) {
 								}
 							}
 							// foreach {tn insert} "\n  1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"\n"
-							_items := tclSplitList("\n  1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"\n")
-							for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-								tn := _items[_idx+0]
+							_items6 := tclSplitList("\n  1 \"INSERT\"\n  2 \"INSERT OR IGNORE\"\n  3 \"INSERT OR ABORT\"\n  4 \"INSERT OR ROLLBACK\"\n  5 \"INSERT OR REPLACE\"\n  6 \"INSERT OR FAIL\"\n")
+							for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
+								tn := _items6[_idx6+0]
 								_ = tn // suppress unused warning
-								insert := _items[_idx+1]
+								insert := _items6[_idx6+1]
 								_ = insert // suppress unused warning
-								_ = _idx
+								_ = _idx6
 									{ // do_test "fkey2-20.2." + tn + ".1"
 										_res = db.Exec(insert + " INTO cc VALUES(1, 2)")
 										_ = _res // catchsql
@@ -1189,13 +1191,13 @@ func Test_fkey2(t *testing.T) {
 									}
 								}
 								// foreach {tn update} "\n  1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"\n"
-								_items := tclSplitList("\n  1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"\n")
-								for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-									tn := _items[_idx+0]
+								_items7 := tclSplitList("\n  1 \"UPDATE\"\n  2 \"UPDATE OR IGNORE\"\n  3 \"UPDATE OR ABORT\"\n  4 \"UPDATE OR ROLLBACK\"\n  5 \"UPDATE OR REPLACE\"\n  6 \"UPDATE OR FAIL\"\n")
+								for _idx7 := 0; _idx7+2 <= len(_items7); _idx7 += 2 {
+									tn := _items7[_idx7+0]
 									_ = tn // suppress unused warning
-									update := _items[_idx+1]
+									update := _items7[_idx7+1]
 									_ = update // suppress unused warning
-									_ = _idx
+									_ = _idx7
 										{ // do_test "fkey2-20.3." + tn + ".1"
 											_res = db.Exec("\n      INSERT INTO pp VALUES(2, 'two');\n      INSERT INTO cc VALUES(1, 2);\n    ")
 											if _res.Error != nil {

@@ -18,6 +18,8 @@ func Test_fts4docid(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4docid" // TCL namespace variable
@@ -30,13 +32,13 @@ func Test_fts4docid(t *testing.T) {
 	}
 	{ // do_test "1.1"
 		// foreach {docid content} "\n    0  {F N K B T I K V B A}    1  {D M J E S P H E L O}\n    2  {W U T Q T Q T L H G}    3  {D W H M B R S Z B K}\n    4  {F Q I N P Q J L Z D}    5  {J O Q E Y A O E L B}\n    6  {O V R A C R K C Y H}    7  {Z J H T Q Q O R A G}\n    8  {L K J W G D Y W B M}    9  {K E Y I A Q R Q T S}\n    10 {N P H Y Z M R T I C}    11 {E X H O I S E S Z F}\n    12 {B Y Q T J X C L L J}    13 {Q D C U U A Q E Z U}\n    14 {S I T C J R X S J M}    15 {M X M K E X L H Q Y}\n    16 {O W E I C H U Y S Y}    17 {P V V E M T H C C S}\n    18 {L Y A M I E N M X O}    19 {S Y R U L S Q Y F P}\n    20 {U J S T T J J S V X}    21 {T E I W P O V A A P}\n    22 {W D K H D H F G O J}    23 {T X Y P G M J U I L}\n    24 {F V X E B C N B K W}    25 {E B A Y N N T Z I C}\n    26 {G E E B C P U D H G}    27 {J D J K N S B Q T M}\n    28 {Q T G M D O D Y V G}    29 {P X W I W V P W Z G}\n  "
-		_items := tclSplitList("\n    0  {F N K B T I K V B A}    1  {D M J E S P H E L O}\n    2  {W U T Q T Q T L H G}    3  {D W H M B R S Z B K}\n    4  {F Q I N P Q J L Z D}    5  {J O Q E Y A O E L B}\n    6  {O V R A C R K C Y H}    7  {Z J H T Q Q O R A G}\n    8  {L K J W G D Y W B M}    9  {K E Y I A Q R Q T S}\n    10 {N P H Y Z M R T I C}    11 {E X H O I S E S Z F}\n    12 {B Y Q T J X C L L J}    13 {Q D C U U A Q E Z U}\n    14 {S I T C J R X S J M}    15 {M X M K E X L H Q Y}\n    16 {O W E I C H U Y S Y}    17 {P V V E M T H C C S}\n    18 {L Y A M I E N M X O}    19 {S Y R U L S Q Y F P}\n    20 {U J S T T J J S V X}    21 {T E I W P O V A A P}\n    22 {W D K H D H F G O J}    23 {T X Y P G M J U I L}\n    24 {F V X E B C N B K W}    25 {E B A Y N N T Z I C}\n    26 {G E E B C P U D H G}    27 {J D J K N S B Q T M}\n    28 {Q T G M D O D Y V G}    29 {P X W I W V P W Z G}\n  ")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			docid := _items[_idx+0]
+		_items0 := tclSplitList("\n    0  {F N K B T I K V B A}    1  {D M J E S P H E L O}\n    2  {W U T Q T Q T L H G}    3  {D W H M B R S Z B K}\n    4  {F Q I N P Q J L Z D}    5  {J O Q E Y A O E L B}\n    6  {O V R A C R K C Y H}    7  {Z J H T Q Q O R A G}\n    8  {L K J W G D Y W B M}    9  {K E Y I A Q R Q T S}\n    10 {N P H Y Z M R T I C}    11 {E X H O I S E S Z F}\n    12 {B Y Q T J X C L L J}    13 {Q D C U U A Q E Z U}\n    14 {S I T C J R X S J M}    15 {M X M K E X L H Q Y}\n    16 {O W E I C H U Y S Y}    17 {P V V E M T H C C S}\n    18 {L Y A M I E N M X O}    19 {S Y R U L S Q Y F P}\n    20 {U J S T T J J S V X}    21 {T E I W P O V A A P}\n    22 {W D K H D H F G O J}    23 {T X Y P G M J U I L}\n    24 {F V X E B C N B K W}    25 {E B A Y N N T Z I C}\n    26 {G E E B C P U D H G}    27 {J D J K N S B Q T M}\n    28 {Q T G M D O D Y V G}    29 {P X W I W V P W Z G}\n  ")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			docid := _items0[_idx0+0]
 			_ = docid // suppress unused warning
-			content := _items[_idx+1]
+			content := _items0[_idx0+1]
 			_ = content // suppress unused warning
-			_ = _idx
+			_ = _idx0
 				_res = db.Exec(" INSERT INTO t1(docid, content) VALUES($docid, $content) ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(docid, content) VALUES($docid, $content) ")
@@ -188,25 +190,25 @@ func Test_fts4docid(t *testing.T) {
 			}
 		}
 		// foreach {tn where result} "\n  1 {WHERE t1 MATCH 'O' AND xxx < 17}                {1 5 6 7 11 16}\n  2 {WHERE t1 MATCH 'O' AND xxx < 4123456789123456}  {1 5 6 7 11 16 18 21 22 28}\n  3 {WHERE t1 MATCH 'O' AND xxx < 1}                 {}\n  4 {WHERE t1 MATCH 'O' AND xxx < -4123456789123456} {}\n\n  5 {WHERE t1 MATCH 'O' AND xxx > 17}                {18 21 22 28}\n  6 {WHERE t1 MATCH 'O' AND xxx > 4123456789123456}  {}\n  7 {WHERE t1 MATCH 'O' AND xxx > 1}                 {5 6 7 11 16 18 21 22 28}\n  8 {WHERE t1 MATCH 'O' AND xxx > -4123456789123456} {1 5 6 7 11 16 18 21 22 28}\n\n  9 {WHERE t1 MATCH '\"Q T\"' AND xxx < 27}  {2 9 12}\n  10 {WHERE t1 MATCH '\"Q T\"' AND xxx <= 27} {2 9 12 27}\n  11 {WHERE t1 MATCH '\"Q T\"' AND xxx > 27}  {28}\n  12 {WHERE t1 MATCH '\"Q T\"' AND xxx >= 27} {27 28}\n"
-		_items := tclSplitList("\n  1 {WHERE t1 MATCH 'O' AND xxx < 17}                {1 5 6 7 11 16}\n  2 {WHERE t1 MATCH 'O' AND xxx < 4123456789123456}  {1 5 6 7 11 16 18 21 22 28}\n  3 {WHERE t1 MATCH 'O' AND xxx < 1}                 {}\n  4 {WHERE t1 MATCH 'O' AND xxx < -4123456789123456} {}\n\n  5 {WHERE t1 MATCH 'O' AND xxx > 17}                {18 21 22 28}\n  6 {WHERE t1 MATCH 'O' AND xxx > 4123456789123456}  {}\n  7 {WHERE t1 MATCH 'O' AND xxx > 1}                 {5 6 7 11 16 18 21 22 28}\n  8 {WHERE t1 MATCH 'O' AND xxx > -4123456789123456} {1 5 6 7 11 16 18 21 22 28}\n\n  9 {WHERE t1 MATCH '\"Q T\"' AND xxx < 27}  {2 9 12}\n  10 {WHERE t1 MATCH '\"Q T\"' AND xxx <= 27} {2 9 12 27}\n  11 {WHERE t1 MATCH '\"Q T\"' AND xxx > 27}  {28}\n  12 {WHERE t1 MATCH '\"Q T\"' AND xxx >= 27} {27 28}\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 {WHERE t1 MATCH 'O' AND xxx < 17}                {1 5 6 7 11 16}\n  2 {WHERE t1 MATCH 'O' AND xxx < 4123456789123456}  {1 5 6 7 11 16 18 21 22 28}\n  3 {WHERE t1 MATCH 'O' AND xxx < 1}                 {}\n  4 {WHERE t1 MATCH 'O' AND xxx < -4123456789123456} {}\n\n  5 {WHERE t1 MATCH 'O' AND xxx > 17}                {18 21 22 28}\n  6 {WHERE t1 MATCH 'O' AND xxx > 4123456789123456}  {}\n  7 {WHERE t1 MATCH 'O' AND xxx > 1}                 {5 6 7 11 16 18 21 22 28}\n  8 {WHERE t1 MATCH 'O' AND xxx > -4123456789123456} {1 5 6 7 11 16 18 21 22 28}\n\n  9 {WHERE t1 MATCH '\"Q T\"' AND xxx < 27}  {2 9 12}\n  10 {WHERE t1 MATCH '\"Q T\"' AND xxx <= 27} {2 9 12 27}\n  11 {WHERE t1 MATCH '\"Q T\"' AND xxx > 27}  {28}\n  12 {WHERE t1 MATCH '\"Q T\"' AND xxx >= 27} {27 28}\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			where := _items[_idx+1]
+			where := _items1[_idx1+1]
 			_ = where // suppress unused warning
-			result := _items[_idx+2]
+			result := _items1[_idx1+2]
 			_ = result // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				// foreach {tn2 ref order} "\n    1  docid \"ORDER BY docid ASC\"\n    2 +docid \"ORDER BY docid ASC\"\n    3  rowid \"ORDER BY docid ASC\"\n    4 +rowid \"ORDER BY docid ASC\"\n\n    5  docid \"ORDER BY docid DESC\"\n    6 +docid \"ORDER BY docid DESC\"\n    7  rowid \"ORDER BY docid DESC\"\n    8 +rowid \"ORDER BY docid DESC\"\n  "
-				_items := tclSplitList("\n    1  docid \"ORDER BY docid ASC\"\n    2 +docid \"ORDER BY docid ASC\"\n    3  rowid \"ORDER BY docid ASC\"\n    4 +rowid \"ORDER BY docid ASC\"\n\n    5  docid \"ORDER BY docid DESC\"\n    6 +docid \"ORDER BY docid DESC\"\n    7  rowid \"ORDER BY docid DESC\"\n    8 +rowid \"ORDER BY docid DESC\"\n  ")
-				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-					tn2 := _items[_idx+0]
+				_items2 := tclSplitList("\n    1  docid \"ORDER BY docid ASC\"\n    2 +docid \"ORDER BY docid ASC\"\n    3  rowid \"ORDER BY docid ASC\"\n    4 +rowid \"ORDER BY docid ASC\"\n\n    5  docid \"ORDER BY docid DESC\"\n    6 +docid \"ORDER BY docid DESC\"\n    7  rowid \"ORDER BY docid DESC\"\n    8 +rowid \"ORDER BY docid DESC\"\n  ")
+				for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+					tn2 := _items2[_idx2+0]
 					_ = tn2 // suppress unused warning
-					ref := _items[_idx+1]
+					ref := _items2[_idx2+1]
 					_ = ref // suppress unused warning
-					order := _items[_idx+2]
+					order := _items2[_idx2+2]
 					_ = order // suppress unused warning
-					_ = _idx
+					_ = _idx2
 						var w = "\"xxx $ref\" $where"
 						_ = w // suppress unused warning
 						var q = "SELECT docid FROM t1 " + w + " " + order

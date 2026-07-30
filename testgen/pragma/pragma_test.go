@@ -19,6 +19,8 @@ func Test_pragma(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "pragma"
@@ -103,13 +105,13 @@ func Test_pragma(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "dbX eval {PRAGMA temp_store_directory = \"\"}")
 	t.Errorf("TODO: %s not implemented in frigolite", "dbX close")
 	// foreach {autovac_setting val} "\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0\n"
-	_items := tclSplitList("\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		autovac_setting := _items[_idx+0]
+	_items0 := tclSplitList("\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  none 0\n  NONE 0\n  NoNe 0\n  full 1\n  FULL 1\n  incremental 2\n  INCREMENTAL 2\n  -1234 0\n  1234 0\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		autovac_setting := _items0[_idx0+0]
 		_ = autovac_setting // suppress unused warning
-		val := _items[_idx+1]
+		val := _items0[_idx0+1]
 		_ = val // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "pragma-17.1." + autovac_setting
 				{
 					var _catchErr error
@@ -125,13 +127,13 @@ func Test_pragma(t *testing.T) {
 			}
 		}
 		// foreach {temp_setting val} "\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2\n"
-		_items := tclSplitList("\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			temp_setting := _items[_idx+0]
+		_items1 := tclSplitList("\n  0 0\n  1 1\n  2 2\n  3 0\n  -1 0\n  file 1\n  FILE 1\n  fIlE 1\n  memory 2\n  MEMORY 2\n  MeMoRy 2\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			temp_setting := _items1[_idx1+0]
 			_ = temp_setting // suppress unused warning
-			val := _items[_idx+1]
+			val := _items1[_idx1+1]
 			_ = val // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "pragma-18.1." + temp_setting
 					{
 						var _catchErr error

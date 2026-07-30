@@ -18,6 +18,8 @@ func Test_alterdropcol(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "alterdropcol"
@@ -119,13 +121,13 @@ func Test_alterdropcol(t *testing.T) {
 		}
 	}
 	// foreach {tn wo} "\n  1 {}\n  2 {WITHOUT ROWID}\n"
-	_items := tclSplitList("\n  1 {}\n  2 {WITHOUT ROWID}\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {}\n  2 {WITHOUT ROWID}\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		wo := _items[_idx+1]
+		wo := _items0[_idx0+1]
 		_ = wo // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			// eval [string map [list %TN% $tn %WO% $wo] {
 
   reset_db...
@@ -152,15 +154,15 @@ func Test_alterdropcol(t *testing.T) {
 			}
 		}
 		// foreach {tn wo vs} "\n  1 \"\"              \"\"\n  2 \"\"              VIRTUAL\n  3 \"\"              STORED\n  4 \"WITHOUT ROWID\" STORED\n  5 \"WITHOUT ROWID\" VIRTUAL\n"
-		_items := tclSplitList("\n  1 \"\"              \"\"\n  2 \"\"              VIRTUAL\n  3 \"\"              STORED\n  4 \"WITHOUT ROWID\" STORED\n  5 \"WITHOUT ROWID\" VIRTUAL\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 \"\"              \"\"\n  2 \"\"              VIRTUAL\n  3 \"\"              STORED\n  4 \"WITHOUT ROWID\" STORED\n  5 \"WITHOUT ROWID\" VIRTUAL\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			wo := _items[_idx+1]
+			wo := _items1[_idx1+1]
 			_ = wo // suppress unused warning
-			vs := _items[_idx+2]
+			vs := _items1[_idx1+2]
 			_ = vs // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
@@ -411,13 +413,13 @@ func Test_alterdropcol(t *testing.T) {
 				}
 			}
 			// foreach {tn wo} "\n  1 {}\n  2 {WITHOUT ROWID}\n"
-			_items := tclSplitList("\n  1 {}\n  2 {WITHOUT ROWID}\n")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 {}\n  2 {WITHOUT ROWID}\n")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				wo := _items[_idx+1]
+				wo := _items2[_idx2+1]
 				_ = wo // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }

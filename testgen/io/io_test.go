@@ -19,6 +19,8 @@ func Test_io(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "io" // TCL namespace variable
@@ -160,15 +162,15 @@ func Test_io(t *testing.T) {
 	var tn = "0"
 	_ = tn // suppress unused warning
 	// foreach {char sectorsize pgsize} "\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n"
-	_items := tclSplitList("\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		char := _items[_idx+0]
+	_items0 := tclSplitList("\n         {}                     512      1024\n         {}                    1024      1024\n         {}                    2048      2048\n         {}                    8192      8192\n         {}                   16384      8192\n         {atomic}               512      8192\n         {atomic512}            512      1024\n         {atomic2K}             512      2048\n         {atomic2K}            4096      4096\n         {atomic2K atomic}      512      8192\n         {atomic64K}            512      1024\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		char := _items0[_idx0+0]
 		_ = char // suppress unused warning
-		sectorsize := _items[_idx+1]
+		sectorsize := _items0[_idx0+1]
 		_ = sectorsize // suppress unused warning
-		pgsize := _items[_idx+2]
+		pgsize := _items0[_idx0+2]
 		_ = pgsize // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			// incr tn 1
 			{
 				_n, _err := strconv.Atoi(tn)
@@ -208,13 +210,13 @@ func Test_io(t *testing.T) {
 			t.Errorf("TODO: %s not implemented in frigolite", "db_save_and_close")
 		}
 		// foreach {tn sql} "\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n"
-		_items := tclSplitList("\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n        INSERT INTO t2 VALUES('456');\n      COMMIT;\n  }\n  2 { BEGIN;\n        INSERT INTO t1 VALUES('123');\n      COMMIT;\n  }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items[_idx+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				if tclBool("permutation" + " == \"memsubsys1\"") {
 				}
 				t.Errorf("TODO: %s not implemented in frigolite", "db_restore")

@@ -19,6 +19,8 @@ func Test_fuzzer1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fuzzer1" // TCL namespace variable
@@ -350,13 +352,13 @@ func Test_fuzzer1(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 { CREATE VIRTUAL TABLE x2 USING fuzzer( [x2 \"rules] ) }\n  2 { CREATE VIRTUAL TABLE x2 USING fuzzer( \"x2 \"\"rules\" ) }\n  3 { CREATE VIRTUAL TABLE x2 USING fuzzer( 'x2 \"rules' ) }\n  4 { CREATE VIRTUAL TABLE x2 USING fuzzer( `x2 \"rules` ) }\n"
-	_items := tclSplitList("\n  1 { CREATE VIRTUAL TABLE x2 USING fuzzer( [x2 \"rules] ) }\n  2 { CREATE VIRTUAL TABLE x2 USING fuzzer( \"x2 \"\"rules\" ) }\n  3 { CREATE VIRTUAL TABLE x2 USING fuzzer( 'x2 \"rules' ) }\n  4 { CREATE VIRTUAL TABLE x2 USING fuzzer( `x2 \"rules` ) }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 { CREATE VIRTUAL TABLE x2 USING fuzzer( [x2 \"rules] ) }\n  2 { CREATE VIRTUAL TABLE x2 USING fuzzer( \"x2 \"\"rules\" ) }\n  3 { CREATE VIRTUAL TABLE x2 USING fuzzer( 'x2 \"rules' ) }\n  4 { CREATE VIRTUAL TABLE x2 USING fuzzer( `x2 \"rules` ) }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "7.2." + tn + ".1"
 				_res = db.Exec(" DROP TABLE IF EXISTS x2 ")
 				if _res.Error != nil {

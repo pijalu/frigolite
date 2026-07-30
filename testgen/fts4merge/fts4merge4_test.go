@@ -18,6 +18,8 @@ func Test_fts4merge4(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4merge4" // TCL namespace variable
@@ -146,23 +148,23 @@ func Test_fts4merge4(t *testing.T) {
 	var doc = "$doc 10"
 	_ = doc // suppress unused warning
 	// foreach {tn am expected} "\n  1 {automerge=2} {1 1   2 1   4 1   6 1}\n  2 {automerge=4} {1 2   2 1   3 1}\n  3 {automerge=8} {0 4   1 3   2 1}\n  4 {automerge=1} {0 4   1 3   2 1}\n"
-	_items := tclSplitList("\n  1 {automerge=2} {1 1   2 1   4 1   6 1}\n  2 {automerge=4} {1 2   2 1   3 1}\n  3 {automerge=8} {0 4   1 3   2 1}\n  4 {automerge=1} {0 4   1 3   2 1}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {automerge=2} {1 1   2 1   4 1   6 1}\n  2 {automerge=4} {1 2   2 1   3 1}\n  3 {automerge=8} {0 4   1 3   2 1}\n  4 {automerge=1} {0 4   1 3   2 1}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		am := _items[_idx+1]
+		am := _items0[_idx0+1]
 		_ = am // suppress unused warning
-		expected := _items[_idx+2]
+		expected := _items0[_idx0+2]
 		_ = expected // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			// foreach {tn2 openclose} "1 {} 2 { db close ; sqlite3 db test.db }"
-			_items := tclSplitList("1 {} 2 { db close ; sqlite3 db test.db }")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				tn2 := _items[_idx+0]
+			_items1 := tclSplitList("1 {} 2 { db close ; sqlite3 db test.db }")
+			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+				tn2 := _items1[_idx1+0]
 				_ = tn2 // suppress unused warning
-				openclose := _items[_idx+1]
+				openclose := _items1[_idx1+1]
 				_ = openclose // suppress unused warning
-				_ = _idx
+				_ = _idx1
 					{ // do_test "2.2." + tn + "." + tn2
 						_res = db.Exec(" DELETE FROM t2 ")
 						if _res.Error != nil {

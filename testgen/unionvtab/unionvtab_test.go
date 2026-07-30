@@ -20,6 +20,8 @@ func Test_unionvtab(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "unionvtab"
@@ -219,15 +221,15 @@ func Test_unionvtab(t *testing.T) {
 		}
 	}
 	// foreach {tn dbs res} "\n  1 {x1 x2 x3} {0 {}}\n  2 {y1 y2 y3} {0 {}}\n  3 {x1 y2 y3} {1 {source table schema mismatch}}\n  4 {x1 y2 x3} {1 {source table schema mismatch}}\n  5 {x1 x2 y3} {1 {source table schema mismatch}}\n"
-	_items := tclSplitList("\n  1 {x1 x2 x3} {0 {}}\n  2 {y1 y2 y3} {0 {}}\n  3 {x1 y2 y3} {1 {source table schema mismatch}}\n  4 {x1 y2 x3} {1 {source table schema mismatch}}\n  5 {x1 x2 y3} {1 {source table schema mismatch}}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {x1 x2 x3} {0 {}}\n  2 {y1 y2 y3} {0 {}}\n  3 {x1 y2 y3} {1 {source table schema mismatch}}\n  4 {x1 y2 x3} {1 {source table schema mismatch}}\n  5 {x1 x2 y3} {1 {source table schema mismatch}}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		dbs := _items[_idx+1]
+		dbs := _items0[_idx0+1]
 		_ = dbs // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var L = "list"
 			_ = L // suppress unused warning
 			var iMin = "0"
@@ -264,13 +266,13 @@ func Test_unionvtab(t *testing.T) {
 			}
 		}
 		// foreach {tn sql} "\n  1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }\n"
-		_items := tclSplitList("\n  1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 { VALUES('main', 't1', 10, 20), ('main', 't2', 30, 29) }\n  2 { VALUES('main', 't1', 10, 20), ('main', 't2', 15, 30) }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items[_idx+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // "2.6." + tn
 					_res = db.Exec("\n    CREATE VIRTUAL TABLE temp.a1 USING unionvtab(`" + sql + "`)\n  ")
 					if _res.Error == nil || !strings.Contains(_res.Error.Error(), "rowid range mismatch error") {
@@ -1049,13 +1051,13 @@ func Test_unionvtab(t *testing.T) {
 				}
 			}
 			// foreach {k v} "\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n"
-			_items := tclSplitList("\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				k := _items[_idx+0]
+			_items2 := tclSplitList("\n  -9223372036854775808 one -9223372036854775807 two -9223372036854775806 three\n   9223372036854775805 four 9223372036854775806 five 9223372036854775807 six\n")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				k := _items2[_idx2+0]
 				_ = k // suppress unused warning
-				v := _items[_idx+1]
+				v := _items2[_idx2+1]
 				_ = v // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					{ // "4.2." + v
 						r = db.Query(" SELECT * FROM sl WHERE rowid=$k ")
 						if r.Error != nil {

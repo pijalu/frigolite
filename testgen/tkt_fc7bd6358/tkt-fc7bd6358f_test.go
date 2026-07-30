@@ -17,6 +17,8 @@ func Test_tkt_fc7bd6358f(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "tkt-fc7bd6358f.100"
@@ -26,21 +28,21 @@ func Test_tkt_fc7bd6358f(t *testing.T) {
 		}
 	}
 	// foreach {a from} "\n  1 {FROM t t1, i, t t2}\n  2 {FROM i, t t1, t t2}\n  3 {FROM t t1, t t2, i}\n"
-	_items := tclSplitList("\n  1 {FROM t t1, i, t t2}\n  2 {FROM i, t t1, t t2}\n  3 {FROM t t1, t t2, i}\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		a := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {FROM t t1, i, t t2}\n  2 {FROM i, t t1, t t2}\n  3 {FROM t t1, t t2, i}\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		a := _items0[_idx0+0]
 		_ = a // suppress unused warning
-		from := _items[_idx+1]
+		from := _items0[_idx0+1]
 		_ = from // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			// foreach {b where} "\n    1 {WHERE t1.textid=i.intid AND t1.textid=t2.textid}\n    2 {WHERE i.intid=t1.textid AND t1.textid=t2.textid}\n    3 {WHERE t1.textid=i.intid AND i.intid=t2.textid}\n    4 {WHERE t1.textid=i.intid AND t2.textid=i.intid}\n    5 {WHERE i.intid=t1.textid AND i.intid=t2.textid}\n    6 {WHERE i.intid=t1.textid AND t2.textid=i.intid}\n    7 {WHERE t1.textid=t2.textid AND i.intid=t2.textid}\n    8 {WHERE t1.textid=t2.textid AND t2.textid=i.intid}\n  "
-			_items := tclSplitList("\n    1 {WHERE t1.textid=i.intid AND t1.textid=t2.textid}\n    2 {WHERE i.intid=t1.textid AND t1.textid=t2.textid}\n    3 {WHERE t1.textid=i.intid AND i.intid=t2.textid}\n    4 {WHERE t1.textid=i.intid AND t2.textid=i.intid}\n    5 {WHERE i.intid=t1.textid AND i.intid=t2.textid}\n    6 {WHERE i.intid=t1.textid AND t2.textid=i.intid}\n    7 {WHERE t1.textid=t2.textid AND i.intid=t2.textid}\n    8 {WHERE t1.textid=t2.textid AND t2.textid=i.intid}\n  ")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				b := _items[_idx+0]
+			_items1 := tclSplitList("\n    1 {WHERE t1.textid=i.intid AND t1.textid=t2.textid}\n    2 {WHERE i.intid=t1.textid AND t1.textid=t2.textid}\n    3 {WHERE t1.textid=i.intid AND i.intid=t2.textid}\n    4 {WHERE t1.textid=i.intid AND t2.textid=i.intid}\n    5 {WHERE i.intid=t1.textid AND i.intid=t2.textid}\n    6 {WHERE i.intid=t1.textid AND t2.textid=i.intid}\n    7 {WHERE t1.textid=t2.textid AND i.intid=t2.textid}\n    8 {WHERE t1.textid=t2.textid AND t2.textid=i.intid}\n  ")
+			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+				b := _items1[_idx1+0]
 				_ = b // suppress unused warning
-				where := _items[_idx+1]
+				where := _items1[_idx1+1]
 				_ = where // suppress unused warning
-				_ = _idx
+				_ = _idx1
 					{ // do_test "tkt-fc7bd6358f.110." + a + "." + b + ".1"
 						_res = db.Exec("PRAGMA automatic_index=ON")
 						if _res.Error != nil {

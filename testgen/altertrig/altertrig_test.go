@@ -17,6 +17,8 @@ func Test_altertrig(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "altertrig"
@@ -38,17 +40,17 @@ func Test_altertrig(t *testing.T) {
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "do_whitespace_sql_test 1.3 {\n  ALTER TABLE t5 RENAME TO t3;\n  SELECT sql FROM ...} {{\n  CREATE TRIGGER r1 INSERT ON t1 BEGIN \n    UPDA...}")
 	// foreach {tn alter update final} "\n  1 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM t3)\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM \"t10\")\n  }\n\n  2 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM \"t10\", (SELECT * FROM (SELECT e FROM \"t10\"))\n  }\n\n  3 {\n    ALTER TABLE t3 RENAME e TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT abc FROM t3))\n  }\n\n  4 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE c)\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE abc)\n  }\n\n  5 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2\n  }\n\n  6 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2, t3\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2, t3\n  }\n\n  7 {\n    ALTER TABLE t4 RENAME e TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.abc=a\n  }\n\n  8 {\n    ALTER TABLE t4 RENAME TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN \"abc\" WHERE \"abc\".e=a\n  }\n \n"
-	_items := tclSplitList("\n  1 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM t3)\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM \"t10\")\n  }\n\n  2 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM \"t10\", (SELECT * FROM (SELECT e FROM \"t10\"))\n  }\n\n  3 {\n    ALTER TABLE t3 RENAME e TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT abc FROM t3))\n  }\n\n  4 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE c)\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE abc)\n  }\n\n  5 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2\n  }\n\n  6 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2, t3\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2, t3\n  }\n\n  7 {\n    ALTER TABLE t4 RENAME e TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.abc=a\n  }\n\n  8 {\n    ALTER TABLE t4 RENAME TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN \"abc\" WHERE \"abc\".e=a\n  }\n \n")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM t3)\n  } {\n    UPDATE t1 SET d='xyz' FROM t2, (SELECT * FROM \"t10\")\n  }\n\n  2 {\n    ALTER TABLE t3 RENAME TO t10\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM \"t10\", (SELECT * FROM (SELECT e FROM \"t10\"))\n  }\n\n  3 {\n    ALTER TABLE t3 RENAME e TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT e FROM t3))\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT * FROM (SELECT abc FROM t3))\n  }\n\n  4 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE c)\n  } {\n    UPDATE t1 SET a='xyz' FROM t3, (SELECT 1 FROM t2 WHERE abc)\n  }\n\n  5 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2\n  }\n\n  6 {\n    ALTER TABLE t2 RENAME c TO abc\n  } {\n    UPDATE t1 SET a=t2.c FROM t2, t3\n  } {\n    UPDATE t1 SET a=t2.abc FROM t2, t3\n  }\n\n  7 {\n    ALTER TABLE t4 RENAME e TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.abc=a\n  }\n\n  8 {\n    ALTER TABLE t4 RENAME TO abc\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN t4 WHERE t4.e=a\n  } {\n    UPDATE t1 SET a=1 FROM t3 NATURAL JOIN \"abc\" WHERE \"abc\".e=a\n  }\n \n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		alter := _items[_idx+1]
+		alter := _items0[_idx0+1]
 		_ = alter // suppress unused warning
-		update := _items[_idx+2]
+		update := _items0[_idx0+2]
 		_ = update // suppress unused warning
-		final := _items[_idx+3]
+		final := _items0[_idx0+3]
 		_ = final // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

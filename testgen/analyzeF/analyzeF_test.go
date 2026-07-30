@@ -18,6 +18,8 @@ func Test_analyzeF(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "analyzeF" // TCL namespace variable
@@ -31,15 +33,15 @@ func Test_analyzeF(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	// foreach {tn where idx} "\n  1 \"x = 4 AND y = 19\"     {t1x (x=?)}\n  2 \"x = 19 AND y = 4\"     {t1y (y=?)}\n  3 \"x = '4' AND y = '19'\" {t1x (x=?)}\n  4 \"x = '19' AND y = '4'\" {t1y (y=?)}\n  5 \"x = substr('5195', 2, 2) AND y = substr('145', 2, 1)\" {t1y (y=?)}\n  6 \"x = substr('145', 2, 1) AND y = substr('5195', 2, 2)\" {t1x (x=?)}\n\n  7  \"x = substr('5195', 2, 2+0) AND y = substr('145', 2, 1+0)\" {t1y (y=?)}\n  8  \"x = substr('145', 2, 1+0) AND y = substr('5195', 2, 2+0)\" {t1y (y=?)}\n\n  9  \"x = str('19') AND y = str('4')\" {t1y (y=?)}\n  10 \"x = str('4') AND y = str('19')\" {t1y (y=?)}\n\n  11 \"x = nullif('19', 0) AND y = nullif('4', 0)\" {t1y (y=?)}\n  12 \"x = nullif('4', 0) AND y = nullif('19', 0)\" {t1y (y=?)}\n"
-	_items := tclSplitList("\n  1 \"x = 4 AND y = 19\"     {t1x (x=?)}\n  2 \"x = 19 AND y = 4\"     {t1y (y=?)}\n  3 \"x = '4' AND y = '19'\" {t1x (x=?)}\n  4 \"x = '19' AND y = '4'\" {t1y (y=?)}\n  5 \"x = substr('5195', 2, 2) AND y = substr('145', 2, 1)\" {t1y (y=?)}\n  6 \"x = substr('145', 2, 1) AND y = substr('5195', 2, 2)\" {t1x (x=?)}\n\n  7  \"x = substr('5195', 2, 2+0) AND y = substr('145', 2, 1+0)\" {t1y (y=?)}\n  8  \"x = substr('145', 2, 1+0) AND y = substr('5195', 2, 2+0)\" {t1y (y=?)}\n\n  9  \"x = str('19') AND y = str('4')\" {t1y (y=?)}\n  10 \"x = str('4') AND y = str('19')\" {t1y (y=?)}\n\n  11 \"x = nullif('19', 0) AND y = nullif('4', 0)\" {t1y (y=?)}\n  12 \"x = nullif('4', 0) AND y = nullif('19', 0)\" {t1y (y=?)}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 \"x = 4 AND y = 19\"     {t1x (x=?)}\n  2 \"x = 19 AND y = 4\"     {t1y (y=?)}\n  3 \"x = '4' AND y = '19'\" {t1x (x=?)}\n  4 \"x = '19' AND y = '4'\" {t1y (y=?)}\n  5 \"x = substr('5195', 2, 2) AND y = substr('145', 2, 1)\" {t1y (y=?)}\n  6 \"x = substr('145', 2, 1) AND y = substr('5195', 2, 2)\" {t1x (x=?)}\n\n  7  \"x = substr('5195', 2, 2+0) AND y = substr('145', 2, 1+0)\" {t1y (y=?)}\n  8  \"x = substr('145', 2, 1+0) AND y = substr('5195', 2, 2+0)\" {t1y (y=?)}\n\n  9  \"x = str('19') AND y = str('4')\" {t1y (y=?)}\n  10 \"x = str('4') AND y = str('19')\" {t1y (y=?)}\n\n  11 \"x = nullif('19', 0) AND y = nullif('4', 0)\" {t1y (y=?)}\n  12 \"x = nullif('4', 0) AND y = nullif('19', 0)\" {t1y (y=?)}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		where := _items[_idx+1]
+		where := _items0[_idx0+1]
 		_ = where // suppress unused warning
-		idx := _items[_idx+2]
+		idx := _items0[_idx0+2]
 		_ = idx // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var res = "SEARCH t1 USING INDEX " + idx
 			_ = res // suppress unused warning
 			{ // "1." + tn
@@ -63,15 +65,15 @@ func Test_analyzeF(t *testing.T) {
 		}
 		// proc definition (not transpiled)
 		// foreach {tn where idx} "\n  1 \"x = det4() AND y = det19()\"     {t1x (x=?)}\n  2 \"x = det19() AND y = det4()\"     {t1y (y=?)}\n\n  3 \"x = nondet4() AND y = nondet19()\"     {t1y (y=?)}\n  4 \"x = nondet19() AND y = nondet4()\"     {t1y (y=?)}\n"
-		_items := tclSplitList("\n  1 \"x = det4() AND y = det19()\"     {t1x (x=?)}\n  2 \"x = det19() AND y = det4()\"     {t1y (y=?)}\n\n  3 \"x = nondet4() AND y = nondet19()\"     {t1y (y=?)}\n  4 \"x = nondet19() AND y = nondet4()\"     {t1y (y=?)}\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 \"x = det4() AND y = det19()\"     {t1x (x=?)}\n  2 \"x = det19() AND y = det4()\"     {t1y (y=?)}\n\n  3 \"x = nondet4() AND y = nondet19()\"     {t1y (y=?)}\n  4 \"x = nondet19() AND y = nondet4()\"     {t1y (y=?)}\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			where := _items[_idx+1]
+			where := _items1[_idx1+1]
 			_ = where // suppress unused warning
-			idx := _items[_idx+2]
+			idx := _items1[_idx1+2]
 			_ = idx // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				var res = "SEARCH t1 USING INDEX " + idx
 				_ = res // suppress unused warning
 				{ // "3." + tn

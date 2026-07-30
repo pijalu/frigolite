@@ -17,6 +17,8 @@ func Test_win32nolock(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	if tcl_platform(os) != "Windows NT" {
 	}

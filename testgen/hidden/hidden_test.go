@@ -17,6 +17,8 @@ func Test_hidden(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "hidden"
@@ -52,13 +54,13 @@ func Test_hidden(t *testing.T) {
 		}
 	}
 	// foreach {tn view} "\n  1 { CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1 }\n  2 { CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1 }\n"
-	_items := tclSplitList("\n  1 { CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1 }\n  2 { CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1 }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 { CREATE VIEW v1(a, b, __hidden__c) AS SELECT a, b, c FROM x1 }\n  2 { CREATE VIEW v1 AS SELECT a, b, c AS __hidden__c FROM x1 }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		view := _items[_idx+1]
+		view := _items0[_idx0+1]
 		_ = view // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "2." + tn + ".1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS x1;\n    CREATE TABLE x1(a, b, c);\n    INSERT INTO x1 VALUES(1, 2, 3);\n  ")
 				if _res.Error != nil {

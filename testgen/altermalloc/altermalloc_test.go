@@ -17,6 +17,8 @@ func Test_altermalloc(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test altermalloc-1 -tclprep {\n  db close\n} -tclbody {\n  if {[catch {sqlite3 db test.db}]} {\n    error \"...} -sqlbody {\n  CREATE TABLE t1(a int);\n  ALTER TABLE t1 ADD CO...}")

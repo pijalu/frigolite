@@ -18,6 +18,8 @@ func Test_rowvalue9(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "rowvalue9" // TCL namespace variable
@@ -269,13 +271,13 @@ func Test_rowvalue9(t *testing.T) {
 		}
 	}
 	// foreach {tn idx} "\n  1 {}\n  2 { CREATE INDEX idx ON d1(a) }\n  3 { CREATE INDEX idx ON d1(a, c) }\n  4 { CREATE INDEX idx ON d1(c) }\n  5 { CREATE INDEX idx ON d1(c, a) }\n\n  6 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE INDEX idx1 ON d2(x, y);\n  }\n\n  7 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x, y) ;\n  }\n\n  8 { \n    CREATE INDEX idx ON d1(c) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x);\n  }\n\n"
-	_items := tclSplitList("\n  1 {}\n  2 { CREATE INDEX idx ON d1(a) }\n  3 { CREATE INDEX idx ON d1(a, c) }\n  4 { CREATE INDEX idx ON d1(c) }\n  5 { CREATE INDEX idx ON d1(c, a) }\n\n  6 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE INDEX idx1 ON d2(x, y);\n  }\n\n  7 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x, y) ;\n  }\n\n  8 { \n    CREATE INDEX idx ON d1(c) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x);\n  }\n\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {}\n  2 { CREATE INDEX idx ON d1(a) }\n  3 { CREATE INDEX idx ON d1(a, c) }\n  4 { CREATE INDEX idx ON d1(c) }\n  5 { CREATE INDEX idx ON d1(c, a) }\n\n  6 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE INDEX idx1 ON d2(x, y);\n  }\n\n  7 { \n    CREATE INDEX idx ON d1(c, a) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x, y) ;\n  }\n\n  8 { \n    CREATE INDEX idx ON d1(c) ;\n    CREATE UNIQUE INDEX idx2 ON d2(x);\n  }\n\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		idx := _items[_idx+1]
+		idx := _items0[_idx0+1]
 		_ = idx // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			_res = db.Exec(" DROP INDEX IF EXISTS idx ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS idx ")

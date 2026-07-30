@@ -18,6 +18,8 @@ func Test_with1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "with1" // TCL namespace variable
@@ -920,13 +922,13 @@ func Test_with1(t *testing.T) {
 		}
 	}
 	// foreach {id dual} "\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n"
-	_items := tclSplitList("\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		id := _items[_idx+0]
+	_items0 := tclSplitList("\n  1  {CREATE TABLE dual AS SELECT 'X' AS dummy}\n  2  {CREATE TEMP TABLE dual AS SELECT 'X' AS dummy}\n  3  {CREATE VIEW dual(dummy) AS VALUES('X')}\n  4  {CREATE TEMP VIEW dual(dummy) AS VALUES('X')}\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		id := _items0[_idx0+0]
 		_ = id // suppress unused warning
-		dual := _items[_idx+1]
+		dual := _items0[_idx0+1]
 		_ = dual // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

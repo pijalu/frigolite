@@ -17,6 +17,8 @@ func Test_subtype1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "subtype1-100"
@@ -182,15 +184,15 @@ func Test_subtype1(t *testing.T) {
 		}
 	}
 	// foreach {tn expr st} "\n  510 \"(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\"  74\n  520 \"+(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 74\n  530 \"-(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 0\n  540 \"if( json_valid(j, 6), j->'a' ) \" 74\n  550 \"if( json_valid(j, 6), j->'a' ) COLLATE nocase\" 74\n  560 \"CAST( if( json_valid(j, 6), j->'a' ) AS TEXT )\" 74\n"
-	_items := tclSplitList("\n  510 \"(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\"  74\n  520 \"+(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 74\n  530 \"-(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 0\n  540 \"if( json_valid(j, 6), j->'a' ) \" 74\n  550 \"if( json_valid(j, 6), j->'a' ) COLLATE nocase\" 74\n  560 \"CAST( if( json_valid(j, 6), j->'a' ) AS TEXT )\" 74\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  510 \"(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\"  74\n  520 \"+(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 74\n  530 \"-(CASE WHEN json_valid(j, 6) THEN j->'a' ELSE j END)\" 0\n  540 \"if( json_valid(j, 6), j->'a' ) \" 74\n  550 \"if( json_valid(j, 6), j->'a' ) COLLATE nocase\" 74\n  560 \"CAST( if( json_valid(j, 6), j->'a' ) AS TEXT )\" 74\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		expr := _items[_idx+1]
+		expr := _items0[_idx0+1]
 		_ = expr // suppress unused warning
-		st := _items[_idx+2]
+		st := _items0[_idx0+2]
 		_ = st // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "subtype1-" + tn + ".1"
 				r = db.Query("\n    SELECT id, subtype( " + expr + " ) FROM t1;\n  ")
 				if r.Error != nil {

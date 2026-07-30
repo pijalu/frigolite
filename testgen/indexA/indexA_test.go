@@ -18,6 +18,8 @@ func Test_indexA(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "indexA"
@@ -104,13 +106,13 @@ func Test_indexA(t *testing.T) {
 		}
 	}
 	// foreach {tn idx} "\n  0 {\n  }\n  1 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;\n  }\n  2 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;\n  }\n  3 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';\n  }\n  4 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';\n  }\n"
-	_items := tclSplitList("\n  0 {\n  }\n  1 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;\n  }\n  2 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;\n  }\n  3 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';\n  }\n  4 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';\n  }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  0 {\n  }\n  1 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;\n  }\n  2 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;\n  }\n  3 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';\n  }\n  4 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';\n  }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		idx := _items[_idx+1]
+		idx := _items0[_idx0+1]
 		_ = idx // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			_res = db.Exec(" DROP INDEX IF EXISTS i1 ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i1 ")
@@ -282,13 +284,13 @@ func Test_indexA(t *testing.T) {
 			}
 		}
 		// foreach {tn idx} "\n  0 {\n  }\n  1 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;\n  }\n  2 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;\n  }\n  3 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';\n  }\n  4 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';\n  }\n"
-		_items := tclSplitList("\n  0 {\n  }\n  1 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;\n  }\n  2 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;\n  }\n  3 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';\n  }\n  4 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';\n  }\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  0 {\n  }\n  1 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;\n  }\n  2 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;\n  }\n  3 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';\n  }\n  4 {\n    CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';\n  }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			idx := _items[_idx+1]
+			idx := _items1[_idx1+1]
 			_ = idx // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				_res = db.Exec(" DROP INDEX IF EXISTS i1 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i1 ")

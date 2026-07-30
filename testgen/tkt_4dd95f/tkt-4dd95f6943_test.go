@@ -17,6 +17,8 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "tkt-4dd95f6943" // TCL namespace variable
@@ -28,13 +30,13 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 		}
 	}
 	// foreach {tn1 idx} "\n  1 { CREATE INDEX i1 ON t1(x ASC) }\n  2 { CREATE INDEX i1 ON t1(x DESC) }\n"
-	_items := tclSplitList("\n  1 { CREATE INDEX i1 ON t1(x ASC) }\n  2 { CREATE INDEX i1 ON t1(x DESC) }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn1 := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 { CREATE INDEX i1 ON t1(x ASC) }\n  2 { CREATE INDEX i1 ON t1(x DESC) }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn1 := _items0[_idx0+0]
 		_ = tn1 // suppress unused warning
-		idx := _items[_idx+1]
+		idx := _items0[_idx0+1]
 		_ = idx // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1." + tn1 + ".1"
 				_res = db.Exec(" DROP INDEX IF EXISTS i1; ")
 				if _res.Error != nil {
@@ -79,13 +81,13 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 			}
 		}
 		// foreach {tn1 idx} "\n  1 { CREATE INDEX i1 ON t2(x ASC,  y ASC) }\n  2 { CREATE INDEX i1 ON t2(x ASC,  y DESC) }\n  3 { CREATE INDEX i1 ON t2(x DESC, y ASC) }\n  4 { CREATE INDEX i1 ON t2(x DESC, y DESC) }\n\n  5 { CREATE INDEX i1 ON t2(y ASC,  x ASC) }\n  6 { CREATE INDEX i1 ON t2(y ASC,  x DESC) }\n  7 { CREATE INDEX i1 ON t2(y DESC, x ASC) }\n  8 { CREATE INDEX i1 ON t2(y DESC, x DESC) }\n"
-		_items := tclSplitList("\n  1 { CREATE INDEX i1 ON t2(x ASC,  y ASC) }\n  2 { CREATE INDEX i1 ON t2(x ASC,  y DESC) }\n  3 { CREATE INDEX i1 ON t2(x DESC, y ASC) }\n  4 { CREATE INDEX i1 ON t2(x DESC, y DESC) }\n\n  5 { CREATE INDEX i1 ON t2(y ASC,  x ASC) }\n  6 { CREATE INDEX i1 ON t2(y ASC,  x DESC) }\n  7 { CREATE INDEX i1 ON t2(y DESC, x ASC) }\n  8 { CREATE INDEX i1 ON t2(y DESC, x DESC) }\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn1 := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 { CREATE INDEX i1 ON t2(x ASC,  y ASC) }\n  2 { CREATE INDEX i1 ON t2(x ASC,  y DESC) }\n  3 { CREATE INDEX i1 ON t2(x DESC, y ASC) }\n  4 { CREATE INDEX i1 ON t2(x DESC, y DESC) }\n\n  5 { CREATE INDEX i1 ON t2(y ASC,  x ASC) }\n  6 { CREATE INDEX i1 ON t2(y ASC,  x DESC) }\n  7 { CREATE INDEX i1 ON t2(y DESC, x ASC) }\n  8 { CREATE INDEX i1 ON t2(y DESC, x DESC) }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn1 := _items1[_idx1+0]
 			_ = tn1 // suppress unused warning
-			idx := _items[_idx+1]
+			idx := _items1[_idx1+1]
 			_ = idx // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // "2." + tn1 + ".1"
 					_res = db.Exec(" DROP INDEX IF EXISTS i1; ")
 					if _res.Error != nil {
@@ -99,13 +101,13 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 					}
 				}
 				// foreach {tn2 inexpr} "\n    3  \"(2, 4, 5)\"\n    4  \"(SELECT a FROM t3)\"\n    5  \"(SELECT b FROM t3)\"\n  "
-				_items := tclSplitList("\n    3  \"(2, 4, 5)\"\n    4  \"(SELECT a FROM t3)\"\n    5  \"(SELECT b FROM t3)\"\n  ")
-				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-					tn2 := _items[_idx+0]
+				_items2 := tclSplitList("\n    3  \"(2, 4, 5)\"\n    4  \"(SELECT a FROM t3)\"\n    5  \"(SELECT b FROM t3)\"\n  ")
+				for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+					tn2 := _items2[_idx2+0]
 					_ = tn2 // suppress unused warning
-					inexpr := _items[_idx+1]
+					inexpr := _items2[_idx2+1]
 					_ = inexpr // suppress unused warning
-					_ = _idx
+					_ = _idx2
 						{ // "2." + tn1 + "." + tn2 + ".1"
 							r = db.Query("\n      SELECT x, y FROM t2 WHERE x = 1 AND y IN " + inexpr + " ORDER BY x ASC, y ASC;\n    ")
 							if r.Error != nil {
@@ -259,17 +261,17 @@ func Test_tkt_4dd95f6943(t *testing.T) {
 					}
 				}
 				// foreach {tn idxdir sortdir sortdata} "\n  1 ASC  ASC  {1 2 3}\n  2 ASC  DESC {3 2 1}\n  3 DESC ASC  {1 2 3}\n  4 ASC  DESC {3 2 1}\n"
-				_items := tclSplitList("\n  1 ASC  ASC  {1 2 3}\n  2 ASC  DESC {3 2 1}\n  3 DESC ASC  {1 2 3}\n  4 ASC  DESC {3 2 1}\n")
-				for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-					tn := _items[_idx+0]
+				_items3 := tclSplitList("\n  1 ASC  ASC  {1 2 3}\n  2 ASC  DESC {3 2 1}\n  3 DESC ASC  {1 2 3}\n  4 ASC  DESC {3 2 1}\n")
+				for _idx3 := 0; _idx3+4 <= len(_items3); _idx3 += 4 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					idxdir := _items[_idx+1]
+					idxdir := _items3[_idx3+1]
 					_ = idxdir // suppress unused warning
-					sortdir := _items[_idx+2]
+					sortdir := _items3[_idx3+2]
 					_ = sortdir // suppress unused warning
-					sortdata := _items[_idx+3]
+					sortdata := _items3[_idx3+3]
 					_ = sortdata // suppress unused warning
-					_ = _idx
+					_ = _idx3
 						{ // "3." + tn
 							r = db.Query("\n    DROP INDEX IF EXISTS i8;\n    CREATE UNIQUE INDEX i8 ON t8(y " + idxdir + ");\n    SELECT x FROM t7 WHERE x IN (SELECT y FROM t8) ORDER BY x " + sortdir + ";\n  ")
 							if r.Error != nil {

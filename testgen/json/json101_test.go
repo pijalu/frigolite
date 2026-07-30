@@ -18,6 +18,8 @@ func Test_json101(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "json101-1.1.00"
@@ -627,15 +629,15 @@ func Test_json101(t *testing.T) {
 		}
 	}
 	// foreach {tn isvalid ws} "\n  7.1  1  char(0x20)\n  7.2  1  char(0x09)\n  7.3  1  char(0x0A)\n  7.4  1  char(0x0D)\n  7.5  0  char(0x0C)\n  7.6  1  char(0x20,0x09,0x0a,0x0d,0x20)\n  7.7  0  char(0x20,0x09,0x0a,0x0c,0x0d,0x20)\n"
-	_items := tclSplitList("\n  7.1  1  char(0x20)\n  7.2  1  char(0x09)\n  7.3  1  char(0x0A)\n  7.4  1  char(0x0D)\n  7.5  0  char(0x0C)\n  7.6  1  char(0x20,0x09,0x0a,0x0d,0x20)\n  7.7  0  char(0x20,0x09,0x0a,0x0c,0x0d,0x20)\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  7.1  1  char(0x20)\n  7.2  1  char(0x09)\n  7.3  1  char(0x0A)\n  7.4  1  char(0x0D)\n  7.5  0  char(0x0C)\n  7.6  1  char(0x20,0x09,0x0a,0x0d,0x20)\n  7.7  0  char(0x20,0x09,0x0a,0x0c,0x0d,0x20)\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		isvalid := _items[_idx+1]
+		isvalid := _items0[_idx0+1]
 		_ = isvalid // suppress unused warning
-		ws := _items[_idx+2]
+		ws := _items0[_idx0+2]
 		_ = ws // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "json101-" + tn + ".1"
 				r = db.Query("SELECT json_valid(printf('%s{%s\\\"x\\\"%s:%s9%s}%s',\n         " + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "," + _ws + "));")
 				if r.Error != nil {
@@ -2760,21 +2762,21 @@ func Test_json101(t *testing.T) {
 		}
 		// proc definition (not transpiled)
 		// foreach {id start path ins set repl} "\n  1 {{}}       {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ()\n  2 {{a:4}}    {$.a.b.c}     ('a':4)                  ('a':4)                  ('a':4)\n  3 {{a:{}}}   {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ('a':())\n  4 {[0,1,2]}  {$[3].a[0].b} <0,1,2,('a':<('b':9)>)>  <0,1,2,('a':<('b':9)>)>  <0,1,2>\n  5 {[0,1,2]}  {$[1].a[0].b} <0,1,2>                  <0,1,2>                  <0,1,2>\n  6 {[0,{},2]} {$[1].a[0].b} <0,('a':<('b':9)>),2>    <0,('a':<('b':9)>),2>    <0,(),2>\n  7 {[0,1,2]}  {$[3][0].b}   <0,1,2,<('b':9)>>        <0,1,2,<('b':9)>>        <0,1,2>\n  8 {[0,1,2]}  {$[1][0].b}   <0,1,2>                  <0,1,2>                  <0,1,2>\n"
-		_items := tclSplitList("\n  1 {{}}       {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ()\n  2 {{a:4}}    {$.a.b.c}     ('a':4)                  ('a':4)                  ('a':4)\n  3 {{a:{}}}   {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ('a':())\n  4 {[0,1,2]}  {$[3].a[0].b} <0,1,2,('a':<('b':9)>)>  <0,1,2,('a':<('b':9)>)>  <0,1,2>\n  5 {[0,1,2]}  {$[1].a[0].b} <0,1,2>                  <0,1,2>                  <0,1,2>\n  6 {[0,{},2]} {$[1].a[0].b} <0,('a':<('b':9)>),2>    <0,('a':<('b':9)>),2>    <0,(),2>\n  7 {[0,1,2]}  {$[3][0].b}   <0,1,2,<('b':9)>>        <0,1,2,<('b':9)>>        <0,1,2>\n  8 {[0,1,2]}  {$[1][0].b}   <0,1,2>                  <0,1,2>                  <0,1,2>\n")
-		for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
-			id := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 {{}}       {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ()\n  2 {{a:4}}    {$.a.b.c}     ('a':4)                  ('a':4)                  ('a':4)\n  3 {{a:{}}}   {$.a.b.c}     ('a':('b':('c':9)))      ('a':('b':('c':9)))      ('a':())\n  4 {[0,1,2]}  {$[3].a[0].b} <0,1,2,('a':<('b':9)>)>  <0,1,2,('a':<('b':9)>)>  <0,1,2>\n  5 {[0,1,2]}  {$[1].a[0].b} <0,1,2>                  <0,1,2>                  <0,1,2>\n  6 {[0,{},2]} {$[1].a[0].b} <0,('a':<('b':9)>),2>    <0,('a':<('b':9)>),2>    <0,(),2>\n  7 {[0,1,2]}  {$[3][0].b}   <0,1,2,<('b':9)>>        <0,1,2,<('b':9)>>        <0,1,2>\n  8 {[0,1,2]}  {$[1][0].b}   <0,1,2>                  <0,1,2>                  <0,1,2>\n")
+		for _idx1 := 0; _idx1+6 <= len(_items1); _idx1 += 6 {
+			id := _items1[_idx1+0]
 			_ = id // suppress unused warning
-			start := _items[_idx+1]
+			start := _items1[_idx1+1]
 			_ = start // suppress unused warning
-			path := _items[_idx+2]
+			path := _items1[_idx1+2]
 			_ = path // suppress unused warning
-			ins := _items[_idx+3]
+			ins := _items1[_idx1+3]
 			_ = ins // suppress unused warning
-			set := _items[_idx+4]
+			set := _items1[_idx1+4]
 			_ = set // suppress unused warning
-			repl := _items[_idx+5]
+			repl := _items1[_idx1+5]
 			_ = repl // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // "json101-24." + id + ".insert"
 					r = db.Query("\n    SELECT json_insert($start,$path,9);\n  ")
 					if r.Error != nil {

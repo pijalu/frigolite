@@ -17,6 +17,8 @@ func Test_snapshot(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "snapshot"
@@ -25,13 +27,13 @@ func Test_snapshot(t *testing.T) {
 		return
 	}
 	// foreach {tn tcl} "\n  1 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel [list sqlite3_snapshot_get $DB $DBNAME]\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel [list sqlite3_snapshot_open $DB $DBNAME $SNAPSHOT]\n    }\n    proc snapshot_free {SNAPSHOT} {\n      uplevel [list sqlite3_snapshot_free $SNAPSHOT]\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel [list sqlite3_snapshot_cmp $SNAPSHOT1 $SNAPSHOT2]\n    }\n  }\n\n  2 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel [list sqlite3_snapshot_get_blob $DB $DBNAME]\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel [list sqlite3_snapshot_open_blob $DB $DBNAME $SNAPSHOT]\n    }\n    proc snapshot_free {SNAPSHOT} {\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel [list sqlite3_snapshot_cmp_blob $SNAPSHOT1 $SNAPSHOT2]\n    }\n  }\n"
-	_items := tclSplitList("\n  1 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel [list sqlite3_snapshot_get $DB $DBNAME]\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel [list sqlite3_snapshot_open $DB $DBNAME $SNAPSHOT]\n    }\n    proc snapshot_free {SNAPSHOT} {\n      uplevel [list sqlite3_snapshot_free $SNAPSHOT]\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel [list sqlite3_snapshot_cmp $SNAPSHOT1 $SNAPSHOT2]\n    }\n  }\n\n  2 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel [list sqlite3_snapshot_get_blob $DB $DBNAME]\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel [list sqlite3_snapshot_open_blob $DB $DBNAME $SNAPSHOT]\n    }\n    proc snapshot_free {SNAPSHOT} {\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel [list sqlite3_snapshot_cmp_blob $SNAPSHOT1 $SNAPSHOT2]\n    }\n  }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel [list sqlite3_snapshot_get $DB $DBNAME]\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel [list sqlite3_snapshot_open $DB $DBNAME $SNAPSHOT]\n    }\n    proc snapshot_free {SNAPSHOT} {\n      uplevel [list sqlite3_snapshot_free $SNAPSHOT]\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel [list sqlite3_snapshot_cmp $SNAPSHOT1 $SNAPSHOT2]\n    }\n  }\n\n  2 {\n    proc snapshot_get {DB DBNAME} {\n      uplevel [list sqlite3_snapshot_get_blob $DB $DBNAME]\n    }\n    proc snapshot_open {DB DBNAME SNAPSHOT} {\n      uplevel [list sqlite3_snapshot_open_blob $DB $DBNAME $SNAPSHOT]\n    }\n    proc snapshot_free {SNAPSHOT} {\n    }\n    proc snapshot_cmp {SNAPSHOT1 SNAPSHOT2} {\n      uplevel [list sqlite3_snapshot_cmp_blob $SNAPSHOT1 $SNAPSHOT2]\n    }\n  }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		tcl := _items[_idx+1]
+		tcl := _items0[_idx0+1]
 		_ = tcl // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

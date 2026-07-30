@@ -17,6 +17,8 @@ func Test_colmeta(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "colmeta-0"
@@ -28,15 +30,15 @@ func Test_colmeta(t *testing.T) {
 	var tests = "\n  1  {main abc a}                {0 {{} BINARY 0 0 0}}\n  2  {{} abc a}                  {0 {{} BINARY 0 0 0}}\n  3  {{} abc2 b}                 {0 {VARCHAR(32) BINARY 0 0 0}}\n  4  {main abc2 b}               {0 {VARCHAR(32) BINARY 0 0 0}}\n  5  {{} abc2 a}                 {0 {{} NOCASE 0 1 0}}\n  6  {{} abc3 a}                 {0 {{} BINARY 1 0 0}}\n  7  {{} abc3 b}                 {0 {INTEGER BINARY 0 1 0}}\n  13 {main abc rowid}            {0 {INTEGER BINARY 0 1 0}}\n  14 {main abc3 rowid}           {0 {INTEGER BINARY 0 1 0}}\n  16 {main abc d}                {1 {no such table column: abc.d}}\n  20 {main abc5 w}               {0 {{} BINARY 0 0 0}}\n  21 {main abc5 x}               {0 {{} BINARY 1 1 0}}\n  22 {main abc5 y}               {0 {{} BINARY 0 0 0}}\n  23 {main abc5 z}               {0 {{} BINARY 1 1 0}}\n  24 {main abc5 rowid}           {1 {no such table column: abc5.rowid}}\n  30 {main abc6 rowid}           {0 {TEXT rtrim 0 0 0}}\n  31 {main abc6 oid}             {0 {REAL BINARY 0 0 0}}\n  32 {main abc6 _rowid_}         {0 {BLOB BINARY 0 0 0}}\n"
 	_ = tests // suppress unused warning
 	// foreach {tn params results} tests
-	_items := tclSplitList(tests)
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList(tests)
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		params := _items[_idx+1]
+		params := _items0[_idx0+1]
 		_ = params // suppress unused warning
-		results := _items[_idx+2]
+		results := _items0[_idx0+2]
 		_ = results // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
 			_ = _DB // suppress unused warning
 			var tstbody = "concat sqlite3_table_column_metadata $::DB $params"

@@ -18,6 +18,8 @@ func Test_fts3shared(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts3shared" // TCL namespace variable
@@ -153,13 +155,13 @@ func Test_fts3shared(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n"
-	_items := tclSplitList("\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 \"SELECT * FROM t1 WHERE rowid=1\"\n  2 \"SELECT * FROM t1 WHERE t1 MATCH 'a'\" \n  3 \"SELECT rowid FROM t1 WHERE t1 MATCH 'a'\"\n  4 \"SELECT * FROM t1\"\n  5 \"SELECT * FROM t1aux\"\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "2.4." + tn
 				_res = db.Exec("BEGIN")
 				if _res.Error != nil {
@@ -186,13 +188,13 @@ func Test_fts3shared(t *testing.T) {
 			}
 		}
 		// foreach {tn sql} "\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n"
-		_items := tclSplitList("\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  2 \"SELECT * FROM t2 WHERE t2 MATCH 'a'\" \n  3 \"SELECT rowid FROM t2 WHERE t2 MATCH 'a'\"\n  5 \"SELECT * FROM t2aux\"\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items[_idx+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "2.5." + tn
 					_res = db.Exec("BEGIN")
 					if _res.Error != nil {

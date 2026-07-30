@@ -18,6 +18,8 @@ func Test_altertab2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "altertab2"
@@ -65,13 +67,13 @@ func Test_altertab2(t *testing.T) {
 		}
 	}
 	// foreach {tn schema} "\n  1 {\n    CREATE TABLE log_entry(col1, y);\n    CREATE INDEX i1 ON log_entry(col1);\n  }\n\n  2 {\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2 SELECT col1 FROM log_entry;\n    END;\n  }\n\n  3 {\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n    END;\n  }\n\n  4 {\n    CREATE TABLE log_entry(col1);\n    CREATE VIEW ttt AS\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n  }\n"
-	_items := tclSplitList("\n  1 {\n    CREATE TABLE log_entry(col1, y);\n    CREATE INDEX i1 ON log_entry(col1);\n  }\n\n  2 {\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2 SELECT col1 FROM log_entry;\n    END;\n  }\n\n  3 {\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n    END;\n  }\n\n  4 {\n    CREATE TABLE log_entry(col1);\n    CREATE VIEW ttt AS\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n  }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {\n    CREATE TABLE log_entry(col1, y);\n    CREATE INDEX i1 ON log_entry(col1);\n  }\n\n  2 {\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2 SELECT col1 FROM log_entry;\n    END;\n  }\n\n  3 {\n    CREATE TABLE t1(a, b, c);\n    CREATE TABLE t2(x);\n    CREATE TABLE log_entry(col1);\n    CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN\n      INSERT INTO t2\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n    END;\n  }\n\n  4 {\n    CREATE TABLE log_entry(col1);\n    CREATE VIEW ttt AS\n        WITH xyz(x) AS (SELECT col1 FROM log_entry)\n        SELECT x FROM xyz;\n  }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		schema := _items[_idx+1]
+		schema := _items0[_idx0+1]
 		_ = schema // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

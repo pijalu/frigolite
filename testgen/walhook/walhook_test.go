@@ -17,6 +17,8 @@ func Test_walhook(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _wal_hook = "list" // TCL namespace variable
@@ -91,17 +93,17 @@ func Test_walhook(t *testing.T) {
 		}
 	}
 	// foreach {tn sql dbpages logpages} "\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n"
-	_items := tclSplitList("\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  4 \"CREATE TABLE t4(x PRIMARY KEY, y)\"   6   3\n  5 \"INSERT INTO t4 VALUES(1, 'one')\"     6   5\n  6 \"INSERT INTO t4 VALUES(2, 'two')\"     6   7\n  7 \"INSERT INTO t4 VALUES(3, 'three')\"   6   9\n  8 \"INSERT INTO t4 VALUES(4, 'four')\"    8  11\n  9 \"INSERT INTO t4 VALUES(5, 'five')\"    8  11\n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		dbpages := _items[_idx+2]
+		dbpages := _items0[_idx0+2]
 		_ = dbpages // suppress unused warning
-		logpages := _items[_idx+3]
+		logpages := _items0[_idx0+3]
 		_ = logpages // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "walhook-2." + tn
 				_res = db.Exec(sql)
 				if _res.Error != nil {

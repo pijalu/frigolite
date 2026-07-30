@@ -18,6 +18,8 @@ func Test_bestindex4(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "bestindex4"
@@ -41,13 +43,13 @@ func Test_bestindex4(t *testing.T) {
 				}
 			}
 			// foreach {tn sql} "\n      2 \"select t1.id as ID from t1, t2 where t1.id=t2.host and t2.class='xx'\"\n      3 {\n        select t1.id as ID from t1, t2 where t2.class ='xx' and t2.id = t1.host\n      }\n      4 {\n        select t1.id as ID from t1, t2 where t1.host = t2.id and t2. class ='xx'\n      }\n    "
-			_items := tclSplitList("\n      2 \"select t1.id as ID from t1, t2 where t1.id=t2.host and t2.class='xx'\"\n      3 {\n        select t1.id as ID from t1, t2 where t2.class ='xx' and t2.id = t1.host\n      }\n      4 {\n        select t1.id as ID from t1, t2 where t1.host = t2.id and t2. class ='xx'\n      }\n    ")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				tn := _items[_idx+0]
+			_items0 := tclSplitList("\n      2 \"select t1.id as ID from t1, t2 where t1.id=t2.host and t2.class='xx'\"\n      3 {\n        select t1.id as ID from t1, t2 where t2.class ='xx' and t2.id = t1.host\n      }\n      4 {\n        select t1.id as ID from t1, t2 where t1.host = t2.id and t2. class ='xx'\n      }\n    ")
+			for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+				tn := _items0[_idx0+0]
 				_ = tn // suppress unused warning
-				sql := _items[_idx+1]
+				sql := _items0[_idx0+1]
 				_ = sql // suppress unused warning
-				_ = _idx
+				_ = _idx0
 					if func() bool { param1_n, _param1_e := strconv.Atoi(param1); if _param1_e != nil { return false }; param2_n, _param2_e := strconv.Atoi(param2); if _param2_e != nil { return false }; return (param1_n & 0x08) == 0 && (param2_n & 0x08)==0 }() {
 						{ // "1." + param1 + "." + param2 + "." + tn + ".a"
 							_res = db.Exec(sql)

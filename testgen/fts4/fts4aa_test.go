@@ -20,6 +20,8 @@ func Test_fts4aa(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var fts4aa_queries = "\n  {abraham}\n  {the king}\n  {\"the king\"}\n  {abraham OR joseph}\n  {ab* OR jos*}\n  {lived t*}\n  {spake hebrew}\n  {melchizedek}\n  {t* melchizedek}\n  {melchizedek t*}\n"
@@ -96,13 +98,13 @@ func Test_fts4aa(t *testing.T) {
 	var ii = "0"
 	_ = ii // suppress unused warning
 	// foreach {q r} "array get fts4aa_res"
-	_items := tclSplitList("array get fts4aa_res")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		q := _items[_idx+0]
+	_items0 := tclSplitList("array get fts4aa_res")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		q := _items0[_idx0+0]
 		_ = q // suppress unused warning
-		r := _items[_idx+1]
+		r := _items0[_idx0+1]
 		_ = r // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
@@ -131,13 +133,13 @@ func Test_fts4aa(t *testing.T) {
 		var ii = "0"
 		_ = ii // suppress unused warning
 		// foreach {q r} "array get fts4aa_res"
-		_items := tclSplitList("array get fts4aa_res")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			q := _items[_idx+0]
+		_items1 := tclSplitList("array get fts4aa_res")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			q := _items1[_idx1+0]
 			_ = q // suppress unused warning
-			r := _items[_idx+1]
+			r := _items1[_idx1+1]
 			_ = r // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
@@ -163,13 +165,13 @@ func Test_fts4aa(t *testing.T) {
 			var ii = "0"
 			_ = ii // suppress unused warning
 			// foreach {q r} "array get fts4aa_res"
-			_items := tclSplitList("array get fts4aa_res")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				q := _items[_idx+0]
+			_items2 := tclSplitList("array get fts4aa_res")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				q := _items2[_idx2+0]
 				_ = q // suppress unused warning
-				r := _items[_idx+1]
+				r := _items2[_idx2+1]
 				_ = r // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					// incr ii 1
 					{
 						_n, _err := strconv.Atoi(ii)

@@ -17,6 +17,8 @@ func Test_uri2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "uri2"
@@ -24,13 +26,13 @@ func Test_uri2(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_uri 1")
 	// foreach {tn uri} "\n  1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def\n"
-	_items := tclSplitList("\n  1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 file:test.db%00trailing\n  2 file:test.db?%00trailing=1\n  3 file:test.db?trailing=1%00\n  4 file:test.db?trailing=1&abc%00def\n  5 file:test.db?trailing=1&abc%00def\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		uri := _items[_idx+1]
+		uri := _items0[_idx0+1]
 		_ = uri // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "1." + tn + ".1"
 	var rc string
 	_ = msg // suppress unused warning

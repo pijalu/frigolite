@@ -18,6 +18,8 @@ func Test_cost(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "cost"
@@ -184,15 +186,15 @@ func Test_cost(t *testing.T) {
 	var L = "list a=? b=? c=? d=? e=? f=? g=? h=? i=? j=?"
 	_ = L // suppress unused warning
 	// foreach {tn nTerm nRow} "\n  1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5\n"
-	_items := tclSplitList("\n  1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1   1 10\n  2   2 10\n  3   3  8\n  4   4  7\n  5   5  7\n  6   6  5\n  7   7  5\n  8   8  5\n  9   9  5\n  10 10  5\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		nTerm := _items[_idx+1]
+		nTerm := _items0[_idx0+1]
 		_ = nTerm // suppress unused warning
-		nRow := _items[_idx+2]
+		nRow := _items0[_idx0+2]
 		_ = nRow // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var w = "join [lrange $L 0 [expr $nTerm-1]] \" AND \""
 			_ = w // suppress unused warning
 			p1 := "($nRow-1) / 100.0"

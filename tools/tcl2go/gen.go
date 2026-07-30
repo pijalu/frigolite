@@ -65,7 +65,9 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 	body.WriteString("\tvar _res *frigolite.Result\n")
 	body.WriteString("\tvar r *frigolite.Result\n")
 	body.WriteString("\tvar msg string\n")
-	body.WriteString("\t_ = msg // suppress unused warning\n\n")
+	body.WriteString("\t_ = msg // suppress unused warning\n")
+	body.WriteString("\t_ = _res // suppress unused warning\n")
+	body.WriteString("\t_ = r    // suppress unused warning\n\n")
 
 	// Process top-level TCL commands
 	tp := &transpiler{
@@ -976,16 +978,20 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	if len(varNames) == 1 {
 		tp.emitLine("for _, %s := range tclSplitList(%s) {", tclVarToGo(varNames[0]), listExpr)
 	} else {
+		// Use unique variable names per foreach to avoid redeclaration
+		itemsVar := fmt.Sprintf("_items%d", tp.varCount)
+		idxVar := fmt.Sprintf("_idx%d", tp.varCount)
+		tp.varCount++
 		tp.emitLine("// foreach {%s} %s", strings.Join(varNames, " "), listExpr)
-		tp.emitLine("_items := tclSplitList(%s)", listExpr)
+		tp.emitLine("%s := tclSplitList(%s)", itemsVar, listExpr)
 		numVars := len(varNames)
-		tp.emitLine("for _idx := 0; _idx+%d <= len(_items); _idx += %d {", numVars, numVars)
+		tp.emitLine("for %s := 0; %s+%d <= len(%s); %s += %d {", idxVar, idxVar, numVars, itemsVar, idxVar, numVars)
 		tp.indent++
 		for i, vn := range varNames {
-			tp.emitLine("%s := _items[_idx+%d]", tclVarToGo(vn), i)
+			tp.emitLine("%s := %s[%s+%d]", tclVarToGo(vn), itemsVar, idxVar, i)
 			tp.emitLine("_ = %s // suppress unused warning", tclVarToGo(vn))
 		}
-		tp.emitLine("_ = _idx") // suppress unused warning
+		tp.emitLine("_ = %s", idxVar) // suppress unused warning
 	}
 	_ = listExpr // suppress unused warning if body is empty
 

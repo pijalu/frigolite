@@ -19,6 +19,8 @@ func Test_mjournal(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "mjournal"
@@ -186,15 +188,15 @@ func Test_mjournal(t *testing.T) {
 	var tests = "1 notamasterjournal   0\n  2 master.9FF          " + c + "\n  3 master-mj1234569AA  1\n  4 master-mj123456_AA  0\n  5 abc                 0\n  6 masterr9FF          0\n  7 master-fj123456_AA  0\n  8 -mj1234569AA        1\n  9 1-mj1234569AA       1\n  10 .9AB               0\n  11 master.9X2         0\n  12 master.92X         0\n  13 master-mj12G4569AA 0"
 	_ = tests // suppress unused warning
 	// foreach {tn mjname bDel} tests
-	_items := tclSplitList(tests)
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList(tests)
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mjname := _items[_idx+1]
+		mjname := _items0[_idx0+1]
 		_ = mjname // suppress unused warning
-		bDel := _items[_idx+2]
+		bDel := _items0[_idx0+2]
 		_ = bDel // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var content = "0"
 			_ = content // suppress unused warning
 			for func() bool { content_n, _content_e := strconv.Atoi(content); if _content_e != nil { return false }; return content_n < 2 }() {

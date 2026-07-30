@@ -17,6 +17,8 @@ func Test_types2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE TABLE t1(\n    i1 INTEGER,\n    i2 INTEGER,\n    n1 NUMERIC,\n    n2 NUMERIC,\n    t1 TEXT,\n    t2 TEXT,\n    o1 BLOB,\n    o2 BLOB\n  );\n  INSERT INTO t1 VALUES(NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);\n")

@@ -20,6 +20,8 @@ func Test_tclsqlite(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	{
 		var _catchErr error

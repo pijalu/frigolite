@@ -19,6 +19,8 @@ func Test_e_createtable(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "e_createtable" // TCL namespace variable
@@ -232,15 +234,15 @@ func Test_e_createtable(t *testing.T) {
 		}
 	}
 	// foreach {tn tbl select} "\n  1   x1   \"SELECT * FROM t1\"\n  2   x2   \"SELECT * FROM t1 ORDER BY x DESC\"\n  3   x3   \"SELECT * FROM t1 ORDER BY x ASC\"\n"
-	_items := tclSplitList("\n  1   x1   \"SELECT * FROM t1\"\n  2   x2   \"SELECT * FROM t1 ORDER BY x DESC\"\n  3   x3   \"SELECT * FROM t1 ORDER BY x ASC\"\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1   x1   \"SELECT * FROM t1\"\n  2   x2   \"SELECT * FROM t1 ORDER BY x DESC\"\n  3   x3   \"SELECT * FROM t1 ORDER BY x ASC\"\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		tbl := _items[_idx+1]
+		tbl := _items0[_idx0+1]
 		_ = tbl // suppress unused warning
-		_select := _items[_idx+2]
+		_select := _items0[_idx0+2]
 		_ = _select // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			_res = db.Exec("CREATE TABLE " + tbl + " AS " + _select)
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE " + tbl + " AS " + _select)
@@ -565,19 +567,19 @@ func Test_e_createtable(t *testing.T) {
 			}
 		}
 		// foreach {tn tbl res ac data} "\n  1   t1_ab    {1 {UNIQUE constraint failed: t1_ab.a}} 0 {1 one 2 two 3 three}\n  2   t1_ro    {1 {UNIQUE constraint failed: t1_ro.a}} 1 {1 one 2 two}\n  3   t1_fa    {1 {UNIQUE constraint failed: t1_fa.a}} 0 {1 one 2 two 3 three 4 string}\n  4   t1_ig    {0 {}} 0 {1 one 2 two 3 three 4 string 6 string}\n  5   t1_re    {0 {}} 0 {1 one 2 two 4 string 3 string 6 string}\n  6   t1_xx    {1 {UNIQUE constraint failed: t1_xx.a}} 0 {1 one 2 two 3 three}\n"
-		_items := tclSplitList("\n  1   t1_ab    {1 {UNIQUE constraint failed: t1_ab.a}} 0 {1 one 2 two 3 three}\n  2   t1_ro    {1 {UNIQUE constraint failed: t1_ro.a}} 1 {1 one 2 two}\n  3   t1_fa    {1 {UNIQUE constraint failed: t1_fa.a}} 0 {1 one 2 two 3 three 4 string}\n  4   t1_ig    {0 {}} 0 {1 one 2 two 3 three 4 string 6 string}\n  5   t1_re    {0 {}} 0 {1 one 2 two 4 string 3 string 6 string}\n  6   t1_xx    {1 {UNIQUE constraint failed: t1_xx.a}} 0 {1 one 2 two 3 three}\n")
-		for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1   t1_ab    {1 {UNIQUE constraint failed: t1_ab.a}} 0 {1 one 2 two 3 three}\n  2   t1_ro    {1 {UNIQUE constraint failed: t1_ro.a}} 1 {1 one 2 two}\n  3   t1_fa    {1 {UNIQUE constraint failed: t1_fa.a}} 0 {1 one 2 two 3 three 4 string}\n  4   t1_ig    {0 {}} 0 {1 one 2 two 3 three 4 string 6 string}\n  5   t1_re    {0 {}} 0 {1 one 2 two 4 string 3 string 6 string}\n  6   t1_xx    {1 {UNIQUE constraint failed: t1_xx.a}} 0 {1 one 2 two 3 three}\n")
+		for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			tbl := _items[_idx+1]
+			tbl := _items1[_idx1+1]
 			_ = tbl // suppress unused warning
-			res := _items[_idx+2]
+			res := _items1[_idx1+2]
 			_ = res // suppress unused warning
-			ac := _items[_idx+3]
+			ac := _items1[_idx1+3]
 			_ = ac // suppress unused warning
-			data := _items[_idx+4]
+			data := _items1[_idx1+4]
 			_ = data // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				_res = db.Exec("COMMIT")
 				_ = _res // catchsql
 				{ // "4.15." + tn + ".1"
@@ -609,19 +611,19 @@ func Test_e_createtable(t *testing.T) {
 				}
 			}
 			// foreach {tn tbl res ac data} "\n  1   t2_ab    {1 {NOT NULL constraint failed: t2_ab.b}} 0 {1 one 2 two 3 three}\n  2   t2_ro    {1 {NOT NULL constraint failed: t2_ro.b}} 1 {1 one 2 two}\n  3   t2_fa    {1 {NOT NULL constraint failed: t2_fa.b}} 0 {1 one 2 two 3 three 4 xx}\n  4   t2_ig    {0 {}} 0 {1 one 2 two 3 three 4 xx 6 xx}\n  5   t2_re    {1 {NOT NULL constraint failed: t2_re.b}} 0 {1 one 2 two 3 three}\n  6   t2_xx    {1 {NOT NULL constraint failed: t2_xx.b}} 0 {1 one 2 two 3 three}\n"
-			_items := tclSplitList("\n  1   t2_ab    {1 {NOT NULL constraint failed: t2_ab.b}} 0 {1 one 2 two 3 three}\n  2   t2_ro    {1 {NOT NULL constraint failed: t2_ro.b}} 1 {1 one 2 two}\n  3   t2_fa    {1 {NOT NULL constraint failed: t2_fa.b}} 0 {1 one 2 two 3 three 4 xx}\n  4   t2_ig    {0 {}} 0 {1 one 2 two 3 three 4 xx 6 xx}\n  5   t2_re    {1 {NOT NULL constraint failed: t2_re.b}} 0 {1 one 2 two 3 three}\n  6   t2_xx    {1 {NOT NULL constraint failed: t2_xx.b}} 0 {1 one 2 two 3 three}\n")
-			for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1   t2_ab    {1 {NOT NULL constraint failed: t2_ab.b}} 0 {1 one 2 two 3 three}\n  2   t2_ro    {1 {NOT NULL constraint failed: t2_ro.b}} 1 {1 one 2 two}\n  3   t2_fa    {1 {NOT NULL constraint failed: t2_fa.b}} 0 {1 one 2 two 3 three 4 xx}\n  4   t2_ig    {0 {}} 0 {1 one 2 two 3 three 4 xx 6 xx}\n  5   t2_re    {1 {NOT NULL constraint failed: t2_re.b}} 0 {1 one 2 two 3 three}\n  6   t2_xx    {1 {NOT NULL constraint failed: t2_xx.b}} 0 {1 one 2 two 3 three}\n")
+			for _idx2 := 0; _idx2+5 <= len(_items2); _idx2 += 5 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				tbl := _items[_idx+1]
+				tbl := _items2[_idx2+1]
 				_ = tbl // suppress unused warning
-				res := _items[_idx+2]
+				res := _items2[_idx2+2]
 				_ = res // suppress unused warning
-				ac := _items[_idx+3]
+				ac := _items2[_idx2+3]
 				_ = ac // suppress unused warning
-				data := _items[_idx+4]
+				data := _items2[_idx2+4]
 				_ = data // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					_res = db.Exec("COMMIT")
 					_ = _res // catchsql
 					{ // "4.16." + tn + ".1"
@@ -653,19 +655,19 @@ func Test_e_createtable(t *testing.T) {
 					}
 				}
 				// foreach {tn tbl res ac data} "\n  1   t3_ab    {1 {UNIQUE constraint failed: t3_ab.a, t3_ab.b}}\n               0 {1 one 2 two 3 three}\n  2   t3_ro    {1 {UNIQUE constraint failed: t3_ro.a, t3_ro.b}}\n               1 {1 one 2 two}\n  3   t3_fa    {1 {UNIQUE constraint failed: t3_fa.a, t3_fa.b}}\n               0 {1 one 2 two 3 three 4 three}\n  4   t3_ig    {0 {}} 0 {1 one 2 two 3 three 4 three 6 three}\n  5   t3_re    {0 {}} 0 {1 one 2 two 4 three 3 three 6 three}\n  6   t3_xx    {1 {UNIQUE constraint failed: t3_xx.a, t3_xx.b}}\n               0 {1 one 2 two 3 three}\n"
-				_items := tclSplitList("\n  1   t3_ab    {1 {UNIQUE constraint failed: t3_ab.a, t3_ab.b}}\n               0 {1 one 2 two 3 three}\n  2   t3_ro    {1 {UNIQUE constraint failed: t3_ro.a, t3_ro.b}}\n               1 {1 one 2 two}\n  3   t3_fa    {1 {UNIQUE constraint failed: t3_fa.a, t3_fa.b}}\n               0 {1 one 2 two 3 three 4 three}\n  4   t3_ig    {0 {}} 0 {1 one 2 two 3 three 4 three 6 three}\n  5   t3_re    {0 {}} 0 {1 one 2 two 4 three 3 three 6 three}\n  6   t3_xx    {1 {UNIQUE constraint failed: t3_xx.a, t3_xx.b}}\n               0 {1 one 2 two 3 three}\n")
-				for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-					tn := _items[_idx+0]
+				_items3 := tclSplitList("\n  1   t3_ab    {1 {UNIQUE constraint failed: t3_ab.a, t3_ab.b}}\n               0 {1 one 2 two 3 three}\n  2   t3_ro    {1 {UNIQUE constraint failed: t3_ro.a, t3_ro.b}}\n               1 {1 one 2 two}\n  3   t3_fa    {1 {UNIQUE constraint failed: t3_fa.a, t3_fa.b}}\n               0 {1 one 2 two 3 three 4 three}\n  4   t3_ig    {0 {}} 0 {1 one 2 two 3 three 4 three 6 three}\n  5   t3_re    {0 {}} 0 {1 one 2 two 4 three 3 three 6 three}\n  6   t3_xx    {1 {UNIQUE constraint failed: t3_xx.a, t3_xx.b}}\n               0 {1 one 2 two 3 three}\n")
+				for _idx3 := 0; _idx3+5 <= len(_items3); _idx3 += 5 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					tbl := _items[_idx+1]
+					tbl := _items3[_idx3+1]
 					_ = tbl // suppress unused warning
-					res := _items[_idx+2]
+					res := _items3[_idx3+2]
 					_ = res // suppress unused warning
-					ac := _items[_idx+3]
+					ac := _items3[_idx3+3]
 					_ = ac // suppress unused warning
-					data := _items[_idx+4]
+					data := _items3[_idx3+4]
 					_ = data // suppress unused warning
-					_ = _idx
+					_ = _idx3
 						_res = db.Exec("COMMIT")
 						_ = _res // catchsql
 						{ // "4.17." + tn + ".1"

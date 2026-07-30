@@ -18,6 +18,8 @@ func Test_permutations(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	if tclBool("info vars ::trd::tcltest" + "==\"\"") {
 		// set testdir: test directory (not used in Go test context)

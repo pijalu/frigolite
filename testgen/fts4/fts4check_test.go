@@ -18,6 +18,8 @@ func Test_fts4check(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts4check" // TCL namespace variable
@@ -30,13 +32,13 @@ func Test_fts4check(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "fts_integrity db t1")
 	}
 	// foreach {tn disruption} "\n  1 {\n    INSERT INTO t1_content(docid, c0x, c1y) VALUES(NULL, 'a', 'b');\n  }\n  2 {\n    DELETE FROM t1_content WHERE docid = (SELECT max(docid) FROM t1_content);\n  }\n  3 {\n    DELETE FROM t1_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t1_segdir WHERE level=0\n    );\n  }\n"
-	_items := tclSplitList("\n  1 {\n    INSERT INTO t1_content(docid, c0x, c1y) VALUES(NULL, 'a', 'b');\n  }\n  2 {\n    DELETE FROM t1_content WHERE docid = (SELECT max(docid) FROM t1_content);\n  }\n  3 {\n    DELETE FROM t1_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t1_segdir WHERE level=0\n    );\n  }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {\n    INSERT INTO t1_content(docid, c0x, c1y) VALUES(NULL, 'a', 'b');\n  }\n  2 {\n    DELETE FROM t1_content WHERE docid = (SELECT max(docid) FROM t1_content);\n  }\n  3 {\n    DELETE FROM t1_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t1_segdir WHERE level=0\n    );\n  }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		disruption := _items[_idx+1]
+		disruption := _items0[_idx0+1]
 		_ = disruption // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 			{ // "1.2.1." + tn
 				_res = db.Exec("BEGIN; " + disruption)
@@ -79,13 +81,13 @@ func Test_fts4check(t *testing.T) {
 			t.Errorf("TODO: %s not implemented in frigolite", "fts_integrity db t2")
 		}
 		// foreach {tn disruption} "\n  1 {\n    INSERT INTO t2_content VALUES(NULL, 'xyz')\n  }\n  3 {\n    DELETE FROM t2_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t2_segdir WHERE level=1024\n    );\n  }\n"
-		_items := tclSplitList("\n  1 {\n    INSERT INTO t2_content VALUES(NULL, 'xyz')\n  }\n  3 {\n    DELETE FROM t2_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t2_segdir WHERE level=1024\n    );\n  }\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 {\n    INSERT INTO t2_content VALUES(NULL, 'xyz')\n  }\n  3 {\n    DELETE FROM t2_segdir WHERE level=0 AND idx=(\n      SELECT max(idx) FROM t2_segdir WHERE level=1024\n    );\n  }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			disruption := _items[_idx+1]
+			disruption := _items1[_idx1+1]
 			_ = disruption // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 				{ // "2.2.1." + tn
 					_res = db.Exec("BEGIN; " + disruption)
@@ -132,13 +134,13 @@ func Test_fts4check(t *testing.T) {
 				t.Errorf("TODO: %s not implemented in frigolite", "fts_integrity db t3")
 			}
 			// foreach {tn disruption} "\n  1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }\n"
-			_items := tclSplitList("\n  1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }\n")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 {\n    INSERT INTO t3_content(c0x, c1y, langid) VALUES(NULL, 'a', 0);\n  }\n  2 {\n    UPDATE t3_content SET langid=langid+1 WHERE rowid = (\n      SELECT max(rowid) FROM t3_content\n    )\n  }\n")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				disruption := _items[_idx+1]
+				disruption := _items2[_idx2+1]
 				_ = disruption // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
 					{ // "3.2.1." + tn
 						_res = db.Exec("BEGIN; " + disruption)

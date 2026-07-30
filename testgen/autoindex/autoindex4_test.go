@@ -17,6 +17,8 @@ func Test_autoindex4(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "autoindex4-1.0"
@@ -158,23 +160,23 @@ func Test_autoindex4(t *testing.T) {
 		}
 	}
 	// foreach {id data1 data2 jointype onclause whereclause answer} "\n  1\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y=4 OR y IS NULL}\n  {3 4 3 4}\n\n  2\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {1 2 {} {} 3 4 3 4}\n\n  3\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {JOIN}\n  {a=x}\n  {y=4 OR y IS NULL}\n  {3 4 3 4}\n\n  4\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {3 4 3 4}\n\n  5.1\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y=4 OR y IS NULL}\n  {3 4 3 4 {} 4 {} {}}\n\n  5.2\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y NOT IN ()}\n  {1 2 1 2 3 4 3 4 {} 4 {} {}}\n\n  5.3\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y NOT IN (SELECT 1 WHERE false)}\n  {1 2 1 2 3 4 3 4 {} 4 {} {}}\n\n  6\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4),(NULL,4)\n  {LEFT JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {1 2 {} {} 3 4 3 4}\n\n  7\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4),(NULL,4)\n  {JOIN}\n  {a=x}\n  {y=4 OR y IS NULL}\n  {3 4 3 4}\n\n  8\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {3 4 3 4}\n"
-	_items := tclSplitList("\n  1\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y=4 OR y IS NULL}\n  {3 4 3 4}\n\n  2\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {1 2 {} {} 3 4 3 4}\n\n  3\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {JOIN}\n  {a=x}\n  {y=4 OR y IS NULL}\n  {3 4 3 4}\n\n  4\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {3 4 3 4}\n\n  5.1\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y=4 OR y IS NULL}\n  {3 4 3 4 {} 4 {} {}}\n\n  5.2\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y NOT IN ()}\n  {1 2 1 2 3 4 3 4 {} 4 {} {}}\n\n  5.3\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y NOT IN (SELECT 1 WHERE false)}\n  {1 2 1 2 3 4 3 4 {} 4 {} {}}\n\n  6\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4),(NULL,4)\n  {LEFT JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {1 2 {} {} 3 4 3 4}\n\n  7\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4),(NULL,4)\n  {JOIN}\n  {a=x}\n  {y=4 OR y IS NULL}\n  {3 4 3 4}\n\n  8\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {3 4 3 4}\n")
-	for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
-		id := _items[_idx+0]
+	_items0 := tclSplitList("\n  1\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y=4 OR y IS NULL}\n  {3 4 3 4}\n\n  2\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {1 2 {} {} 3 4 3 4}\n\n  3\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {JOIN}\n  {a=x}\n  {y=4 OR y IS NULL}\n  {3 4 3 4}\n\n  4\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {3 4 3 4}\n\n  5.1\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y=4 OR y IS NULL}\n  {3 4 3 4 {} 4 {} {}}\n\n  5.2\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y NOT IN ()}\n  {1 2 1 2 3 4 3 4 {} 4 {} {}}\n\n  5.3\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4)\n  {LEFT JOIN}\n  a=x\n  {y NOT IN (SELECT 1 WHERE false)}\n  {1 2 1 2 3 4 3 4 {} 4 {} {}}\n\n  6\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4),(NULL,4)\n  {LEFT JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {1 2 {} {} 3 4 3 4}\n\n  7\n  VALUES(1,2),(3,4),(NULL,4)\n  VALUES(1,2),(3,4),(NULL,4)\n  {JOIN}\n  {a=x}\n  {y=4 OR y IS NULL}\n  {3 4 3 4}\n\n  8\n  VALUES(1,2),(3,4)\n  VALUES(1,2),(3,4)\n  {JOIN}\n  {a=x AND y=4}\n  {coalesce(y,4)==4}\n  {3 4 3 4}\n")
+	for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
+		id := _items0[_idx0+0]
 		_ = id // suppress unused warning
-		data1 := _items[_idx+1]
+		data1 := _items0[_idx0+1]
 		_ = data1 // suppress unused warning
-		data2 := _items[_idx+2]
+		data2 := _items0[_idx0+2]
 		_ = data2 // suppress unused warning
-		jointype := _items[_idx+3]
+		jointype := _items0[_idx0+3]
 		_ = jointype // suppress unused warning
-		onclause := _items[_idx+4]
+		onclause := _items0[_idx0+4]
 		_ = onclause // suppress unused warning
-		whereclause := _items[_idx+5]
+		whereclause := _items0[_idx0+5]
 		_ = whereclause // suppress unused warning
-		answer := _items[_idx+6]
+		answer := _items0[_idx0+6]
 		_ = answer // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "autoindex4-4." + id + ".0"
 				_res = db.Exec("\n       DROP TABLE IF EXISTS t1;\n       CREATE TABLE t1(a INT, b INT);\n       DROP TABLE IF EXISTS t2;\n       CREATE TABLE t2(x INT, y INT);\n    ")
 				if _res.Error != nil {

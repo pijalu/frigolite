@@ -18,18 +18,20 @@ func Test_unhex(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "unhex"
 	_ = testprefix // suppress unused warning
 	// foreach {tn hex} "\n  1  0000\n  2  FFFF\n  3  0123456789ABCDEF\n"
-	_items := tclSplitList("\n  1  0000\n  2  FFFF\n  3  0123456789ABCDEF\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1  0000\n  2  FFFF\n  3  0123456789ABCDEF\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		hex := _items[_idx+1]
+		hex := _items0[_idx0+1]
 		_ = hex // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1." + tn + ".1"
 				r = db.Query("\n    SELECT hex( unhex( $hex ) );\n  ")
 				if r.Error != nil {
@@ -68,13 +70,13 @@ func Test_unhex(t *testing.T) {
 			}
 		}
 		// foreach {tn hex} "\n  1  ABC\n  2  hello\n  3  123456x7\n  4  0xff\n"
-		_items := tclSplitList("\n  1  ABC\n  2  hello\n  3  123456x7\n  4  0xff\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1  ABC\n  2  hello\n  3  123456x7\n  4  0xff\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			hex := _items[_idx+1]
+			hex := _items1[_idx1+1]
 			_ = hex // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // "2." + tn
 					r = db.Query("\n    SELECT unhex( $hex ) IS NULL;\n  ")
 					if r.Error != nil {
@@ -103,13 +105,13 @@ func Test_unhex(t *testing.T) {
 			if tclBool("array exists x") {
 			}
 			// foreach {tn hex} "\n  1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"\n"
-			_items := tclSplitList("\n  1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"\n")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 \"FFFF  ABCD\"\n  2 \"FFFF ABCD\"\n  3 \"FFFFABCD \"\n  4 \" FFFFABCD\"\n  5 \"--FFFF AB- -CD- \"\n  6 \"--\"\n  7 \" --\"\n")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				hex := _items[_idx+1]
+				hex := _items2[_idx2+1]
 				_ = hex // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					var out = ""
 					_ = out // suppress unused warning
 					for _, x := range tclSplitList("split $hex \"\"") {

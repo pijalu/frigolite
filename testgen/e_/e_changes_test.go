@@ -18,6 +18,8 @@ func Test_e_changes(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "e_changes"
@@ -30,13 +32,13 @@ func Test_e_changes(t *testing.T) {
 		}
 	}
 	// foreach {tn schema} "\n  1 { \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(b);\n  }\n  2 { \n      CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n      CREATE INDEX i1 ON t1(b);\n  }\n"
-	_items := tclSplitList("\n  1 { \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(b);\n  }\n  2 { \n      CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n      CREATE INDEX i1 ON t1(b);\n  }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 { \n      CREATE TABLE t1(a, b);\n      CREATE INDEX i1 ON t1(b);\n  }\n  2 { \n      CREATE TABLE t1(a, b, PRIMARY KEY(a, b)) WITHOUT ROWID;\n      CREATE INDEX i1 ON t1(b);\n  }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		schema := _items[_idx+1]
+		schema := _items0[_idx0+1]
 		_ = schema // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

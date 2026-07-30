@@ -19,6 +19,8 @@ func Test_journal3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool(_tcl_platform + "(os) != \"Windows NT\"\n && " + "atomic_batch_write test.db" + "==0") {
@@ -30,13 +32,13 @@ func Test_journal3(t *testing.T) {
 			}
 		}
 		// foreach {tn permissions} "\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  "
-		_items := tclSplitList("\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  ")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items0 := tclSplitList("\n   1 00644\n   2 00666\n   3 00600\n   4 00755\n  ")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
-			permissions := _items[_idx+1]
+			permissions := _items0[_idx0+1]
 			_ = permissions // suppress unused warning
-			_ = _idx
+			_ = _idx0
 				var res = "/" + "regsub {^00} $permissions {0.}" + "/"
 				_ = res // suppress unused warning
 				if func() bool { tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return tcl_version_n >= 8.7 }() {

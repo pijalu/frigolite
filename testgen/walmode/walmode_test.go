@@ -19,6 +19,8 @@ func Test_walmode(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "walmode-1.1"
@@ -323,13 +325,13 @@ func Test_walmode(t *testing.T) {
 		}
 	}
 	// foreach {tn mode} "\n  1 off\n  2 memory\n  3 persist\n  4 delete\n  5 truncate\n"
-	_items := tclSplitList("\n  1 off\n  2 memory\n  3 persist\n  4 delete\n  5 truncate\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 off\n  2 memory\n  3 persist\n  4 delete\n  5 truncate\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mode := _items[_idx+1]
+		mode := _items0[_idx0+1]
 		_ = mode // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "walmode-6." + tn
 				t.Errorf("TODO: %s not implemented in frigolite", "faultsim_delete_and_reopen")
 				r = db.Query("\n      PRAGMA journal_mode = " + mode + ";\n      PRAGMA journal_mode = wal;\n    ")
@@ -349,15 +351,15 @@ func Test_walmode(t *testing.T) {
 			}
 		}
 		// foreach {tn sql result} "\n  1  \"PRAGMA journal_mode\"                wal\n  2  \"PRAGMA main.journal_mode\"           wal\n  3  \"PRAGMA journal_mode = delete\"       delete\n  4  \"PRAGMA journal_mode\"                delete\n  5  \"PRAGMA main.journal_mode\"           delete\n  6  \"PRAGMA journal_mode = wal\"          wal\n  7  \"PRAGMA journal_mode\"                wal\n  8  \"PRAGMA main.journal_mode\"           wal\n\n  9  \"PRAGMA journal_mode\"                wal\n 10  \"PRAGMA main.journal_mode\"           wal\n 11  \"PRAGMA main.journal_mode = delete\"  delete\n 12  \"PRAGMA journal_mode\"                delete\n 13  \"PRAGMA main.journal_mode\"           delete\n 14  \"PRAGMA main.journal_mode = wal\"     wal\n 15  \"PRAGMA journal_mode\"                wal\n 16  \"PRAGMA main.journal_mode\"           wal\n"
-		_items := tclSplitList("\n  1  \"PRAGMA journal_mode\"                wal\n  2  \"PRAGMA main.journal_mode\"           wal\n  3  \"PRAGMA journal_mode = delete\"       delete\n  4  \"PRAGMA journal_mode\"                delete\n  5  \"PRAGMA main.journal_mode\"           delete\n  6  \"PRAGMA journal_mode = wal\"          wal\n  7  \"PRAGMA journal_mode\"                wal\n  8  \"PRAGMA main.journal_mode\"           wal\n\n  9  \"PRAGMA journal_mode\"                wal\n 10  \"PRAGMA main.journal_mode\"           wal\n 11  \"PRAGMA main.journal_mode = delete\"  delete\n 12  \"PRAGMA journal_mode\"                delete\n 13  \"PRAGMA main.journal_mode\"           delete\n 14  \"PRAGMA main.journal_mode = wal\"     wal\n 15  \"PRAGMA journal_mode\"                wal\n 16  \"PRAGMA main.journal_mode\"           wal\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1  \"PRAGMA journal_mode\"                wal\n  2  \"PRAGMA main.journal_mode\"           wal\n  3  \"PRAGMA journal_mode = delete\"       delete\n  4  \"PRAGMA journal_mode\"                delete\n  5  \"PRAGMA main.journal_mode\"           delete\n  6  \"PRAGMA journal_mode = wal\"          wal\n  7  \"PRAGMA journal_mode\"                wal\n  8  \"PRAGMA main.journal_mode\"           wal\n\n  9  \"PRAGMA journal_mode\"                wal\n 10  \"PRAGMA main.journal_mode\"           wal\n 11  \"PRAGMA main.journal_mode = delete\"  delete\n 12  \"PRAGMA journal_mode\"                delete\n 13  \"PRAGMA main.journal_mode\"           delete\n 14  \"PRAGMA main.journal_mode = wal\"     wal\n 15  \"PRAGMA journal_mode\"                wal\n 16  \"PRAGMA main.journal_mode\"           wal\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items[_idx+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			result := _items[_idx+2]
+			result := _items1[_idx1+2]
 			_ = result // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "walmode-7." + tn
 					db, err := frigolite.Open("test.db")
 					defer db.Close()

@@ -18,6 +18,8 @@ func Test_quote(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "quote"
@@ -138,15 +140,15 @@ func Test_quote(t *testing.T) {
 		}
 	}
 	// foreach {tn sql errname} "\n  1 { CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") ) } null\n  2 { CREATE INDEX i2 ON t1(x, y, z||\"abc\") }        abc\n  3 { CREATE INDEX i3 ON t1(\"w\") }                   w\n  4 { CREATE INDEX i4 ON t1(x) WHERE z=\"w\" }         w\n"
-	_items := tclSplitList("\n  1 { CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") ) } null\n  2 { CREATE INDEX i2 ON t1(x, y, z||\"abc\") }        abc\n  3 { CREATE INDEX i3 ON t1(\"w\") }                   w\n  4 { CREATE INDEX i4 ON t1(x) WHERE z=\"w\" }         w\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 { CREATE TABLE xyz(a, b, c CHECK (c!=\"null\") ) } null\n  2 { CREATE INDEX i2 ON t1(x, y, z||\"abc\") }        abc\n  3 { CREATE INDEX i3 ON t1(\"w\") }                   w\n  4 { CREATE INDEX i4 ON t1(x) WHERE z=\"w\" }         w\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		errname := _items[_idx+2]
+		errname := _items0[_idx0+2]
 		_ = errname // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "2.1." + tn
 				_res = db.Exec(sql)
 				if _res.Error == nil {

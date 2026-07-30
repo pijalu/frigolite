@@ -17,6 +17,8 @@ func Test_rowvalue3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "rowvalue3" // TCL namespace variable
@@ -28,15 +30,15 @@ func Test_rowvalue3(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res} "\n  1  \"SELECT 1 WHERE (4, 5) IN (SELECT a, b FROM t1)\"  1\n  2  \"SELECT 1 WHERE (5, 5) IN (SELECT a, b FROM t1)\"  {}\n  3  \"SELECT 1 WHERE (5, 4) IN (SELECT a, b FROM t1)\"  {}\n  4  \"SELECT 1 WHERE (5, 4) IN (SELECT b, a FROM t1)\"  1\n  5  \"SELECT 1 WHERE (SELECT a, b FROM t1 WHERE c=6) IN (SELECT a, b FROM t1)\" 1\n  6  \"SELECT (5, 4) IN (SELECT a, b FROM t1)\" 0\n  7  \"SELECT 1 WHERE (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  8  \"SELECT (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  9  \"SELECT (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  10 \"SELECT 1 WHERE (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  11 \"SELECT 1 WHERE (1, NULL) IN (SELECT rowid, b FROM t1)\"  {}\n  12 \"SELECT 1 FROM t1 WHERE (a, b) = (SELECT +a, +b FROM t1)\" {1}\n"
-	_items := tclSplitList("\n  1  \"SELECT 1 WHERE (4, 5) IN (SELECT a, b FROM t1)\"  1\n  2  \"SELECT 1 WHERE (5, 5) IN (SELECT a, b FROM t1)\"  {}\n  3  \"SELECT 1 WHERE (5, 4) IN (SELECT a, b FROM t1)\"  {}\n  4  \"SELECT 1 WHERE (5, 4) IN (SELECT b, a FROM t1)\"  1\n  5  \"SELECT 1 WHERE (SELECT a, b FROM t1 WHERE c=6) IN (SELECT a, b FROM t1)\" 1\n  6  \"SELECT (5, 4) IN (SELECT a, b FROM t1)\" 0\n  7  \"SELECT 1 WHERE (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  8  \"SELECT (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  9  \"SELECT (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  10 \"SELECT 1 WHERE (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  11 \"SELECT 1 WHERE (1, NULL) IN (SELECT rowid, b FROM t1)\"  {}\n  12 \"SELECT 1 FROM t1 WHERE (a, b) = (SELECT +a, +b FROM t1)\" {1}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1  \"SELECT 1 WHERE (4, 5) IN (SELECT a, b FROM t1)\"  1\n  2  \"SELECT 1 WHERE (5, 5) IN (SELECT a, b FROM t1)\"  {}\n  3  \"SELECT 1 WHERE (5, 4) IN (SELECT a, b FROM t1)\"  {}\n  4  \"SELECT 1 WHERE (5, 4) IN (SELECT b, a FROM t1)\"  1\n  5  \"SELECT 1 WHERE (SELECT a, b FROM t1 WHERE c=6) IN (SELECT a, b FROM t1)\" 1\n  6  \"SELECT (5, 4) IN (SELECT a, b FROM t1)\" 0\n  7  \"SELECT 1 WHERE (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  8  \"SELECT (5, 4) IN (SELECT +b, +a FROM t1)\"  1\n  9  \"SELECT (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  10 \"SELECT 1 WHERE (1, 2) IN (SELECT rowid, b FROM t1)\"  1\n  11 \"SELECT 1 WHERE (1, NULL) IN (SELECT rowid, b FROM t1)\"  {}\n  12 \"SELECT 1 FROM t1 WHERE (a, b) = (SELECT +a, +b FROM t1)\" {1}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1." + tn
 				_res = db.Exec(sql)
 				if _res.Error != nil {
@@ -51,13 +53,13 @@ func Test_rowvalue3(t *testing.T) {
 			}
 		}
 		// foreach {tn idx} "\n  1 { }\n  2 { CREATE INDEX z1idx ON z1(x, y) }\n  3 { CREATE UNIQUE INDEX z1idx ON z1(x, y) }\n  4 { CREATE INDEX z1idx ON kk(a, b) }\n"
-		_items := tclSplitList("\n  1 { }\n  2 { CREATE INDEX z1idx ON z1(x, y) }\n  3 { CREATE UNIQUE INDEX z1idx ON z1(x, y) }\n  4 { CREATE INDEX z1idx ON kk(a, b) }\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 { }\n  2 { CREATE INDEX z1idx ON z1(x, y) }\n  3 { CREATE UNIQUE INDEX z1idx ON z1(x, y) }\n  4 { CREATE INDEX z1idx ON kk(a, b) }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			idx := _items[_idx+1]
+			idx := _items1[_idx1+1]
 			_ = idx // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				_res = db.Exec("DROP INDEX IF EXISTS z1idx")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DROP INDEX IF EXISTS z1idx")
@@ -128,24 +130,24 @@ func Test_rowvalue3(t *testing.T) {
 				}
 			}
 			// foreach {tn idx} "\n  1 { }\n  2 { CREATE INDEX c1ab ON c1(a, b); }\n  3 { CREATE INDEX c1ba ON c1(b, a); }\n\n  4 { CREATE INDEX c1cd ON c1(c, d); }\n  5 { CREATE INDEX c1dc ON c1(d, c); }\n"
-			_items := tclSplitList("\n  1 { }\n  2 { CREATE INDEX c1ab ON c1(a, b); }\n  3 { CREATE INDEX c1ba ON c1(b, a); }\n\n  4 { CREATE INDEX c1cd ON c1(c, d); }\n  5 { CREATE INDEX c1dc ON c1(d, c); }\n")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 { }\n  2 { CREATE INDEX c1ab ON c1(a, b); }\n  3 { CREATE INDEX c1ba ON c1(b, a); }\n\n  4 { CREATE INDEX c1cd ON c1(c, d); }\n  5 { CREATE INDEX c1dc ON c1(d, c); }\n")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				idx := _items[_idx+1]
+				idx := _items2[_idx2+1]
 				_ = idx // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					t.Errorf("TODO: %s not implemented in frigolite", "drop_all_indexes")
 					// foreach {tn2 sql res} "\n    1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }\n\n  "
-					_items := tclSplitList("\n    1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }\n\n  ")
-					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-						tn2 := _items[_idx+0]
+					_items3 := tclSplitList("\n    1 \"SELECT (1, 2) IN (SELECT a, b FROM c1)\" {0}\n    2 \"SELECT (1, 1) IN (SELECT a, b FROM c1)\" {{}}\n    3 \"SELECT (2, 1) IN (SELECT a, b FROM c1)\" {{}}\n    4 \"SELECT (2, 2) IN (SELECT a, b FROM c1)\" {1}\n    5 \"SELECT c, d FROM c1 WHERE (c, d) IN (SELECT d, c FROM c1)\"\n      { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n\n    6 \"SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) ORDER BY c DESC\"\n      { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    7 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d ASC\n      } { 3 1 3 2 3 3   2 1 2 2 2 3   1 1 1 2 1 3 }\n\n    8 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d DESC\n      } { 1 3 1 2 1 1   2 3 2 2 2 1   3 3 3 2 3 1 }\n\n    9 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c ASC, d ASC\n      } { 1 1 1 2 1 3   2 1 2 2 2 3   3 1 3 2 3 3 }\n    10 {\n        SELECT c, d FROM c1 WHERE (c,d) IN (SELECT d, c FROM c1) \n        ORDER BY c DESC, d DESC\n      } { 3 3 3 2 3 1   2 3 2 2 2 1   1 3 1 2 1 1 }\n\n  ")
+					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+						tn2 := _items3[_idx3+0]
 						_ = tn2 // suppress unused warning
-						sql := _items[_idx+1]
+						sql := _items3[_idx3+1]
 						_ = sql // suppress unused warning
-						res := _items[_idx+2]
+						res := _items3[_idx3+2]
 						_ = res // suppress unused warning
-						_ = _idx
+						_ = _idx3
 							{ // "3." + tn + "." + tn2
 								_res = db.Exec(sql)
 								if _res.Error != nil {
@@ -161,28 +163,28 @@ func Test_rowvalue3(t *testing.T) {
 						}
 					}
 					// foreach {tn idx} "\n  1 { }\n  2 { CREATE INDEX h1 ON hh(a, b); }\n  3 { CREATE UNIQUE INDEX k1idx ON k1(x, y) }\n  4 { CREATE UNIQUE INDEX k1idx ON k1(x, y DESC) }\n  5 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y); \n  }\n  6 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y DESC); \n  }\n"
-					_items := tclSplitList("\n  1 { }\n  2 { CREATE INDEX h1 ON hh(a, b); }\n  3 { CREATE UNIQUE INDEX k1idx ON k1(x, y) }\n  4 { CREATE UNIQUE INDEX k1idx ON k1(x, y DESC) }\n  5 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y); \n  }\n  6 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y DESC); \n  }\n")
-					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-						tn := _items[_idx+0]
+					_items4 := tclSplitList("\n  1 { }\n  2 { CREATE INDEX h1 ON hh(a, b); }\n  3 { CREATE UNIQUE INDEX k1idx ON k1(x, y) }\n  4 { CREATE UNIQUE INDEX k1idx ON k1(x, y DESC) }\n  5 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y); \n  }\n  6 { \n    CREATE INDEX h1 ON hh(a, b);\n    CREATE UNIQUE INDEX k1idx ON k1(x, y DESC); \n  }\n")
+					for _idx4 := 0; _idx4+2 <= len(_items4); _idx4 += 2 {
+						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
-						idx := _items[_idx+1]
+						idx := _items4[_idx4+1]
 						_ = idx // suppress unused warning
-						_ = _idx
+						_ = _idx4
 							t.Errorf("TODO: %s not implemented in frigolite", "drop_all_indexes")
 							_res = db.Exec(idx)
 							if _res.Error != nil {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
 							}
 							// foreach {tn2 orderby res} "\n    1 \"a ASC, b ASC\"  {1 2 3 4}\n    2 \"a ASC, b DESC\" {2 1 4 3}\n    3 \"a DESC, b ASC\" {3 4 1 2}\n    4 \"a DESC, b DESC\" {4 3 2 1}\n  "
-							_items := tclSplitList("\n    1 \"a ASC, b ASC\"  {1 2 3 4}\n    2 \"a ASC, b DESC\" {2 1 4 3}\n    3 \"a DESC, b ASC\" {3 4 1 2}\n    4 \"a DESC, b DESC\" {4 3 2 1}\n  ")
-							for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-								tn2 := _items[_idx+0]
+							_items5 := tclSplitList("\n    1 \"a ASC, b ASC\"  {1 2 3 4}\n    2 \"a ASC, b DESC\" {2 1 4 3}\n    3 \"a DESC, b ASC\" {3 4 1 2}\n    4 \"a DESC, b DESC\" {4 3 2 1}\n  ")
+							for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
+								tn2 := _items5[_idx5+0]
 								_ = tn2 // suppress unused warning
-								orderby := _items[_idx+1]
+								orderby := _items5[_idx5+1]
 								_ = orderby // suppress unused warning
-								res := _items[_idx+2]
+								res := _items5[_idx5+2]
 								_ = res // suppress unused warning
-								_ = _idx
+								_ = _idx5
 									{ // "4." + tn + "." + tn2
 										r = db.Query("\n      SELECT c FROM hh WHERE (a, b) in (SELECT x, y FROM k1) ORDER BY " + orderby + "\n    ")
 										if r.Error != nil {

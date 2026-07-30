@@ -19,6 +19,8 @@ func Test_incrblob(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "incrblob-1.1"
@@ -571,13 +573,13 @@ func Test_incrblob(t *testing.T) {
 		}
 	}
 	// foreach {tn arg} "1 \"\" 2 -readonly"
-	_items := tclSplitList("1 \"\" 2 -readonly")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("1 \"\" 2 -readonly")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		arg := _items[_idx+1]
+		arg := _items0[_idx0+1]
 		_ = arg // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			_res = db.Exec("\n    UPDATE t1 SET d = zeroblob(10000);\n  ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET d = zeroblob(10000);\n  ")

@@ -19,6 +19,8 @@ func Test_capi3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "capi3" // TCL namespace variable
@@ -310,13 +312,13 @@ func Test_capi3(t *testing.T) {
 	var test_number = "1"
 	_ = test_number // suppress unused warning
 	// foreach {code english} code2english
-	_items := tclSplitList(code2english)
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		code := _items[_idx+0]
+	_items0 := tclSplitList(code2english)
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		code := _items0[_idx0+0]
 		_ = code // suppress unused warning
-		english := _items[_idx+1]
+		english := _items0[_idx0+1]
 		_ = english // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "capi3-9." + test_number
 				_res = db.Exec("sqlite3_test_errstr " + code)
 				if _res.Error != nil {

@@ -19,21 +19,23 @@ func Test_altercol(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "altercol"
 	_ = testprefix // suppress unused warning
 	// proc definition (not transpiled)
 	// foreach {tn before after} "\n  1 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB)}\n\n  2 {CREATE TABLE t1(a INTEGER, x TEXT, \"b\" BLOB)}\n    {CREATE TABLE t1(a INTEGER, x TEXT, \"d\" BLOB)}\n\n  3 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(b!=''))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(d!=''))}\n\n  4 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(t1.b!=''))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(t1.d!=''))}\n\n  5 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK( coalesce(b,c) ))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK( coalesce(d,c) ))}\n\n  6 {CREATE TABLE t1(a INTEGER, \"b\"TEXT, c BLOB, CHECK( coalesce(b,c) ))}\n    {CREATE TABLE t1(a INTEGER, \"d\"TEXT, c BLOB, CHECK( coalesce(d,c) ))}\n\n  7 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b, c))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d, c))}\n\n  8 {CREATE TABLE t1(a INTEGER, b TEXT PRIMARY KEY, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d TEXT PRIMARY KEY, c BLOB)}\n\n  9 {CREATE TABLE t1(a, b TEXT, c, PRIMARY KEY(a, b), UNIQUE(\"B\"))}\n    {CREATE TABLE t1(a, d TEXT, c, PRIMARY KEY(a, d), UNIQUE(\"d\"))}\n\n 10 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(a, c)}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(a, c)}}\n\n 11 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b, c)}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d, c)}}\n\n 12 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b+b+b+b, c) WHERE b>0}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d+d+d+d, c) WHERE d>0}}\n\n 13 {CREATE TABLE t1(a, b, c, FOREIGN KEY (b) REFERENCES t2)}\n    {CREATE TABLE t1(a, d, c, FOREIGN KEY (d) REFERENCES t2)}\n\n 14 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d))}\n\n 15 {CREATE TABLE t1(a INTEGER, b INTEGER, c BLOB, PRIMARY KEY(b))}\n    {CREATE TABLE t1(a INTEGER, d INTEGER, c BLOB, PRIMARY KEY(d))}\n\n 16 {CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB)}\n\n 17  {CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (b) REFERENCES t2)}\n     {CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (d) REFERENCES t2)}\n\n"
-	_items := tclSplitList("\n  1 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB)}\n\n  2 {CREATE TABLE t1(a INTEGER, x TEXT, \"b\" BLOB)}\n    {CREATE TABLE t1(a INTEGER, x TEXT, \"d\" BLOB)}\n\n  3 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(b!=''))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(d!=''))}\n\n  4 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(t1.b!=''))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(t1.d!=''))}\n\n  5 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK( coalesce(b,c) ))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK( coalesce(d,c) ))}\n\n  6 {CREATE TABLE t1(a INTEGER, \"b\"TEXT, c BLOB, CHECK( coalesce(b,c) ))}\n    {CREATE TABLE t1(a INTEGER, \"d\"TEXT, c BLOB, CHECK( coalesce(d,c) ))}\n\n  7 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b, c))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d, c))}\n\n  8 {CREATE TABLE t1(a INTEGER, b TEXT PRIMARY KEY, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d TEXT PRIMARY KEY, c BLOB)}\n\n  9 {CREATE TABLE t1(a, b TEXT, c, PRIMARY KEY(a, b), UNIQUE(\"B\"))}\n    {CREATE TABLE t1(a, d TEXT, c, PRIMARY KEY(a, d), UNIQUE(\"d\"))}\n\n 10 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(a, c)}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(a, c)}}\n\n 11 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b, c)}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d, c)}}\n\n 12 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b+b+b+b, c) WHERE b>0}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d+d+d+d, c) WHERE d>0}}\n\n 13 {CREATE TABLE t1(a, b, c, FOREIGN KEY (b) REFERENCES t2)}\n    {CREATE TABLE t1(a, d, c, FOREIGN KEY (d) REFERENCES t2)}\n\n 14 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d))}\n\n 15 {CREATE TABLE t1(a INTEGER, b INTEGER, c BLOB, PRIMARY KEY(b))}\n    {CREATE TABLE t1(a INTEGER, d INTEGER, c BLOB, PRIMARY KEY(d))}\n\n 16 {CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB)}\n\n 17  {CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (b) REFERENCES t2)}\n     {CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (d) REFERENCES t2)}\n\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB)}\n\n  2 {CREATE TABLE t1(a INTEGER, x TEXT, \"b\" BLOB)}\n    {CREATE TABLE t1(a INTEGER, x TEXT, \"d\" BLOB)}\n\n  3 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(b!=''))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(d!=''))}\n\n  4 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK(t1.b!=''))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK(t1.d!=''))}\n\n  5 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, CHECK( coalesce(b,c) ))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, CHECK( coalesce(d,c) ))}\n\n  6 {CREATE TABLE t1(a INTEGER, \"b\"TEXT, c BLOB, CHECK( coalesce(b,c) ))}\n    {CREATE TABLE t1(a INTEGER, \"d\"TEXT, c BLOB, CHECK( coalesce(d,c) ))}\n\n  7 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b, c))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d, c))}\n\n  8 {CREATE TABLE t1(a INTEGER, b TEXT PRIMARY KEY, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d TEXT PRIMARY KEY, c BLOB)}\n\n  9 {CREATE TABLE t1(a, b TEXT, c, PRIMARY KEY(a, b), UNIQUE(\"B\"))}\n    {CREATE TABLE t1(a, d TEXT, c, PRIMARY KEY(a, d), UNIQUE(\"d\"))}\n\n 10 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(a, c)}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(a, c)}}\n\n 11 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b, c)}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d, c)}}\n\n 12 {CREATE TABLE t1(a, b, c);   CREATE INDEX t1i ON t1(b+b+b+b, c) WHERE b>0}\n    {{CREATE TABLE t1(a, d, c)} {CREATE INDEX t1i ON t1(d+d+d+d, c) WHERE d>0}}\n\n 13 {CREATE TABLE t1(a, b, c, FOREIGN KEY (b) REFERENCES t2)}\n    {CREATE TABLE t1(a, d, c, FOREIGN KEY (d) REFERENCES t2)}\n\n 14 {CREATE TABLE t1(a INTEGER, b TEXT, c BLOB, PRIMARY KEY(b))}\n    {CREATE TABLE t1(a INTEGER, d TEXT, c BLOB, PRIMARY KEY(d))}\n\n 15 {CREATE TABLE t1(a INTEGER, b INTEGER, c BLOB, PRIMARY KEY(b))}\n    {CREATE TABLE t1(a INTEGER, d INTEGER, c BLOB, PRIMARY KEY(d))}\n\n 16 {CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB)}\n    {CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB)}\n\n 17  {CREATE TABLE t1(a INTEGER, b INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (b) REFERENCES t2)}\n     {CREATE TABLE t1(a INTEGER, d INTEGER PRIMARY KEY, c BLOB, FOREIGN KEY (d) REFERENCES t2)}\n\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		before := _items[_idx+1]
+		before := _items0[_idx0+1]
 		_ = before // suppress unused warning
-		after := _items[_idx+2]
+		after := _items0[_idx0+2]
 		_ = after // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -459,17 +461,17 @@ func Test_altercol(t *testing.T) {
 		}
 		// proc definition (not transpiled)
 		// foreach {tn old new lSchema} "\n  1 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_) }\n    { CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _x_ FROM t1;\n      END }\n  }\n\n  2 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_) }\n    { CREATE TABLE t2(c, d, e) }\n    { CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _x_ FROM t1;\n      END }\n  }\n\n  3 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_>0)) }\n    { CREATE TABLE t2(c, d, e) }\n    { CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._x_);\n      END }\n  }\n\n  4 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_>0)) }\n    { CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_>10 DO UPDATE SET _x_ = _x_+1;\n      END }\n  }\n\n  4 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_>0)) }\n    { CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_>10 DO NOTHING;\n      END }\n  }\n"
-		_items := tclSplitList("\n  1 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_) }\n    { CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _x_ FROM t1;\n      END }\n  }\n\n  2 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_) }\n    { CREATE TABLE t2(c, d, e) }\n    { CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _x_ FROM t1;\n      END }\n  }\n\n  3 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_>0)) }\n    { CREATE TABLE t2(c, d, e) }\n    { CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._x_);\n      END }\n  }\n\n  4 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_>0)) }\n    { CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_>10 DO UPDATE SET _x_ = _x_+1;\n      END }\n  }\n\n  4 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_>0)) }\n    { CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_>10 DO NOTHING;\n      END }\n  }\n")
-		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_) }\n    { CREATE TRIGGER AFTER INSERT ON t1 BEGIN\n        SELECT _x_ FROM t1;\n      END }\n  }\n\n  2 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_) }\n    { CREATE TABLE t2(c, d, e) }\n    { CREATE TRIGGER ttt AFTER INSERT ON t2 BEGIN\n        SELECT _x_ FROM t1;\n      END }\n  }\n\n  3 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_>0)) }\n    { CREATE TABLE t2(c, d, e) }\n    { CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t2 VALUES(new.a, new.b, new._x_);\n      END }\n  }\n\n  4 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_>0)) }\n    { CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_>10 DO UPDATE SET _x_ = _x_+1;\n      END }\n  }\n\n  4 _x_ _xxx_ {\n    { CREATE TABLE t1(a, b, _x_ INTEGER, PRIMARY KEY(_x_), CHECK(_x_>0)) }\n    { CREATE TRIGGER ttt AFTER UPDATE  ON t1 BEGIN\n        INSERT INTO t1 VALUES(new.a, new.b, new._x_)\n          ON CONFLICT (_x_) WHERE _x_>10 DO NOTHING;\n      END }\n  }\n")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			old := _items[_idx+1]
+			old := _items1[_idx1+1]
 			_ = old // suppress unused warning
-			new := _items[_idx+2]
+			new := _items1[_idx1+2]
 			_ = new // suppress unused warning
-			lSchema := _items[_idx+3]
+			lSchema := _items1[_idx1+3]
 			_ = lSchema // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				t.Errorf("TODO: %s not implemented in frigolite", "do_rename_column_test 9.$tn $old $new $lSchema")
 			}
 			db.Close()
@@ -603,15 +605,15 @@ func Test_altercol(t *testing.T) {
 				}
 			}
 			// foreach {tn trigger error} "\n  1 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;\n  } {no such column: zzz}\n\n  2 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;\n  } {no such column: zz}\n\n  3 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;\n  } {no such column: tttttt}\n\n  4 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;\n  } {no such table: main.nosuchtable}\n"
-			_items := tclSplitList("\n  1 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;\n  } {no such column: zzz}\n\n  2 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;\n  } {no such column: zz}\n\n  3 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;\n  } {no such column: tttttt}\n\n  4 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;\n  } {no such table: main.nosuchtable}\n")
-			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      UPDATE data SET x=x+1 WHERE zzz=new.i;\n    END;\n  } {no such column: zzz}\n\n  2 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO data(x, y) VALUES(new.i, new.t, 1) \n        ON CONFLICT (x) DO UPDATE SET z=zz+1;\n    END;\n  } {no such column: zz}\n\n  3 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO x1(i, t) VALUES(new.i+1, new.t||'1') \n        ON CONFLICT (tttttt) DO UPDATE SET t=i+1;\n    END;\n  } {no such column: tttttt}\n\n  4 {\n    CREATE TRIGGER tr1 AFTER INSERT ON x1 BEGIN\n      INSERT INTO nosuchtable VALUES(new.i, new.t);\n    END;\n  } {no such table: main.nosuchtable}\n")
+			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				trigger := _items[_idx+1]
+				trigger := _items2[_idx2+1]
 				_ = trigger // suppress unused warning
-				error := _items[_idx+2]
+				error := _items2[_idx2+2]
 				_ = error // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					{ // "13.2." + tn + ".1"
 						_res = db.Exec("\n    DROP TRIGGER IF EXISTS tr1;\n    " + trigger + "\n  ")
 						if _res.Error != nil {

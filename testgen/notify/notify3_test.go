@@ -18,6 +18,8 @@ func Test_notify3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var esc = "sqlite3_enable_shared_cache 1"
@@ -96,23 +98,23 @@ func Test_notify3(t *testing.T) {
 	_ = noerr // suppress unused warning
 	if tclBool("presql" + " == \"\"") {
 		// foreach {tn db1_loaded db2_loaded enable_extended_errors result error1 error2} "\n    0   0 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n  "
-		_items := tclSplitList("\n    0   0 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n  ")
-		for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
-			tn := _items[_idx+0]
+		_items0 := tclSplitList("\n    0   0 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + err + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + err + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + noerr + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + noerr + "   SQLITE_OK                   SQLITE_OK\n  ")
+		for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
+			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
-			db1_loaded := _items[_idx+1]
+			db1_loaded := _items0[_idx0+1]
 			_ = db1_loaded // suppress unused warning
-			db2_loaded := _items[_idx+2]
+			db2_loaded := _items0[_idx0+2]
 			_ = db2_loaded // suppress unused warning
-			enable_extended_errors := _items[_idx+3]
+			enable_extended_errors := _items0[_idx0+3]
 			_ = enable_extended_errors // suppress unused warning
-			result := _items[_idx+4]
+			result := _items0[_idx0+4]
 			_ = result // suppress unused warning
-			error1 := _items[_idx+5]
+			error1 := _items0[_idx0+5]
 			_ = error1 // suppress unused warning
-			error2 := _items[_idx+6]
+			error2 := _items0[_idx0+6]
 			_ = error2 // suppress unused warning
-			_ = _idx
+			_ = _idx0
 				{ // do_test "notify3-2." + tn + ".1"
 					{
 						var _catchErr error

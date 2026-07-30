@@ -17,6 +17,8 @@ func Test_tkt_b75a9ca6b0(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "tkt-b75a9ca6b0"
@@ -42,17 +44,17 @@ func Test_tkt_b75a9ca6b0(t *testing.T) {
 	var sort = "USE TEMP B-TREE FOR ORDER BY"
 	_ = sort // suppress unused warning
 	// foreach {tn q res eqp} "-nocommands {\n  1 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x,y\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  2 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  3 \"SELECT * FROM t1 GROUP BY y, x ORDER BY y, x\"\n  {3 1  2 2  1 3} {" + idxscan + "*" + sort + "}\n  \n  4 \"SELECT * FROM t1 GROUP BY x ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  5 \"SELECT * FROM t1 GROUP BY y ORDER BY y\"\n  {3 1  2 2  1 3} {" + tblscan + "*" + grpsort + "}\n\n  6 \"SELECT * FROM t1 GROUP BY y ORDER BY x\"\n  {1 3  2 2  3 1} {" + tblscan + "*" + grpsort + "*" + sort + "}\n\n  7 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x, y DESC\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  8 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x DESC, y DESC\"\n  {3 1  2 2  1 3} {" + idxscan + "}\n\n  9 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x ASC, y ASC\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  10 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x COLLATE nocase, y\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n}"
-	_items := tclSplitList("-nocommands {\n  1 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x,y\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  2 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  3 \"SELECT * FROM t1 GROUP BY y, x ORDER BY y, x\"\n  {3 1  2 2  1 3} {" + idxscan + "*" + sort + "}\n  \n  4 \"SELECT * FROM t1 GROUP BY x ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  5 \"SELECT * FROM t1 GROUP BY y ORDER BY y\"\n  {3 1  2 2  1 3} {" + tblscan + "*" + grpsort + "}\n\n  6 \"SELECT * FROM t1 GROUP BY y ORDER BY x\"\n  {1 3  2 2  3 1} {" + tblscan + "*" + grpsort + "*" + sort + "}\n\n  7 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x, y DESC\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  8 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x DESC, y DESC\"\n  {3 1  2 2  1 3} {" + idxscan + "}\n\n  9 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x ASC, y ASC\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  10 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x COLLATE nocase, y\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n}")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("-nocommands {\n  1 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x,y\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  2 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  3 \"SELECT * FROM t1 GROUP BY y, x ORDER BY y, x\"\n  {3 1  2 2  1 3} {" + idxscan + "*" + sort + "}\n  \n  4 \"SELECT * FROM t1 GROUP BY x ORDER BY x\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  5 \"SELECT * FROM t1 GROUP BY y ORDER BY y\"\n  {3 1  2 2  1 3} {" + tblscan + "*" + grpsort + "}\n\n  6 \"SELECT * FROM t1 GROUP BY y ORDER BY x\"\n  {1 3  2 2  3 1} {" + tblscan + "*" + grpsort + "*" + sort + "}\n\n  7 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x, y DESC\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n  8 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x DESC, y DESC\"\n  {3 1  2 2  1 3} {" + idxscan + "}\n\n  9 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x ASC, y ASC\"\n  {1 3  2 2  3 1} {" + idxscan + "}\n\n  10 \"SELECT * FROM t1 GROUP BY x, y ORDER BY x COLLATE nocase, y\"\n  {1 3  2 2  3 1} {" + idxscan + "*" + sort + "}\n\n}")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		q := _items[_idx+1]
+		q := _items0[_idx0+1]
 		_ = q // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		eqp := _items[_idx+3]
+		eqp := _items0[_idx0+3]
 		_ = eqp // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1." + tn + ".1"
 				_res = db.Exec(q)
 				if _res.Error != nil {

@@ -20,6 +20,8 @@ func Test_zipfile(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	if func() bool { tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return tcl_version_n < 8.6 }() {
 		t.Log("Requires TCL 8.6 or later")
@@ -429,13 +431,13 @@ func Test_zipfile(t *testing.T) {
 		}
 	}
 	// foreach {tn fname} "\n  1 dir1\n  2 file1\n  3 dir1/file2\n"
-	_items := tclSplitList("\n  1 dir1\n  2 file1\n  3 dir1/file2\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 dir1\n  2 file1\n  3 dir1/file2\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		fname := _items[_idx+1]
+		fname := _items0[_idx0+1]
 		_ = fname // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "3.1." + tn + ".0"
 				_res = db.Exec("\n    INSERT INTO x1(name, data) VALUES($fname, NULL);\n  ")
 				if _res.Error == nil {
@@ -486,13 +488,13 @@ func Test_zipfile(t *testing.T) {
 			}
 		}
 		// foreach {tn mode} "\n  1 abcd\n  2 brwxrwxrwx\n  3 lrwxrrxrwx\n"
-		_items := tclSplitList("\n  1 abcd\n  2 brwxrwxrwx\n  3 lrwxrrxrwx\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 abcd\n  2 brwxrwxrwx\n  3 lrwxrrxrwx\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			mode := _items[_idx+1]
+			mode := _items1[_idx1+1]
 			_ = mode // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // "4.5." + tn
 					_res = db.Exec("\n    WITH m(m) AS ( SELECT $mode)\n    SELECT zipfile('a.txt', m, 1000, 'xyz') FROM m\n  ")
 					if _res.Error == nil {
@@ -822,13 +824,13 @@ func Test_zipfile(t *testing.T) {
 						os.Remove("-force")
 					}
 					// foreach {path sz} "\n      subdir/x1.txt     143\n      subdir/x2.txt     153\n    "
-					_items := tclSplitList("\n      subdir/x1.txt     143\n      subdir/x2.txt     153\n    ")
-					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-						path := _items[_idx+0]
+					_items0 := tclSplitList("\n      subdir/x1.txt     143\n      subdir/x2.txt     153\n    ")
+					for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+						path := _items0[_idx0+0]
 						_ = path // suppress unused warning
-						sz := _items[_idx+1]
+						sz := _items0[_idx0+1]
 						_ = sz // suppress unused warning
-						_ = _idx
+						_ = _idx0
 							var dir = "file dirname $path"
 							_ = dir // suppress unused warning
 							{

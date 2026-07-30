@@ -18,6 +18,8 @@ func Test_json102(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "json102-100"
@@ -2128,17 +2130,17 @@ func Test_json102(t *testing.T) {
 		}
 	}
 	// foreach {id j x0 x5} "\n  1401 {'{\"x\":01}'} 0 0\n  1402 {'{\"x\":-01}'} 0 0\n  1403 {'{\"x\":0}'} 1 1\n  1404 {'{\"x\":-0}'} 1 1\n  1405 {'{\"x\":0.1}'} 1 1\n  1406 {'{\"x\":-0.1}'} 1 1\n  1407 {'{\"x\":0.0000}'} 1 1\n  1408 {'{\"x\":-0.0000}'} 1 1\n  1409 {'{\"x\":01.5}'} 0 0\n  1410 {'{\"x\":-01.5}'} 0 0\n  1411 {'{\"x\":00}'} 0 0\n  1412 {'{\"x\":-00}'} 0 0\n  1413 {'{\"x\":+0}'} 0 1\n  1414 {'{\"x\":+5}'} 0 1\n  1415 {'{\"x\":+5.5}'} 0 1\n"
-	_items := tclSplitList("\n  1401 {'{\"x\":01}'} 0 0\n  1402 {'{\"x\":-01}'} 0 0\n  1403 {'{\"x\":0}'} 1 1\n  1404 {'{\"x\":-0}'} 1 1\n  1405 {'{\"x\":0.1}'} 1 1\n  1406 {'{\"x\":-0.1}'} 1 1\n  1407 {'{\"x\":0.0000}'} 1 1\n  1408 {'{\"x\":-0.0000}'} 1 1\n  1409 {'{\"x\":01.5}'} 0 0\n  1410 {'{\"x\":-01.5}'} 0 0\n  1411 {'{\"x\":00}'} 0 0\n  1412 {'{\"x\":-00}'} 0 0\n  1413 {'{\"x\":+0}'} 0 1\n  1414 {'{\"x\":+5}'} 0 1\n  1415 {'{\"x\":+5.5}'} 0 1\n")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		id := _items[_idx+0]
+	_items0 := tclSplitList("\n  1401 {'{\"x\":01}'} 0 0\n  1402 {'{\"x\":-01}'} 0 0\n  1403 {'{\"x\":0}'} 1 1\n  1404 {'{\"x\":-0}'} 1 1\n  1405 {'{\"x\":0.1}'} 1 1\n  1406 {'{\"x\":-0.1}'} 1 1\n  1407 {'{\"x\":0.0000}'} 1 1\n  1408 {'{\"x\":-0.0000}'} 1 1\n  1409 {'{\"x\":01.5}'} 0 0\n  1410 {'{\"x\":-01.5}'} 0 0\n  1411 {'{\"x\":00}'} 0 0\n  1412 {'{\"x\":-00}'} 0 0\n  1413 {'{\"x\":+0}'} 0 1\n  1414 {'{\"x\":+5}'} 0 1\n  1415 {'{\"x\":+5.5}'} 0 1\n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		id := _items0[_idx0+0]
 		_ = id // suppress unused warning
-		j := _items[_idx+1]
+		j := _items0[_idx0+1]
 		_ = j // suppress unused warning
-		x0 := _items[_idx+2]
+		x0 := _items0[_idx0+2]
 		_ = x0 // suppress unused warning
-		x5 := _items[_idx+3]
+		x5 := _items0[_idx0+3]
 		_ = x5 // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "json102-" + id
 				r = db.Query("\n     SELECT json_valid(" + j + "), NOT json_error_position(" + j + ");\n  ")
 				if r.Error != nil {

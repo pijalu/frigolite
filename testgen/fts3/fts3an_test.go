@@ -18,6 +18,8 @@ func Test_fts3an(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var text = "\n  Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Maecenas\n  iaculis mollis ipsum. Praesent rhoncus placerat justo. Duis non quam\n  sed turpis posuere placerat. Curabitur et lorem in lorem porttitor\n  aliquet. Pellentesque bibendum tincidunt diam. Vestibulum blandit\n  ante nec elit. In sapien diam, facilisis eget, dictum sed, viverra\n  at, felis. Vestibulum magna. Sed magna dolor, vestibulum rhoncus,\n  ornare vel, vulputate sit amet, felis. Integer malesuada, tellus at\n  luctus gravida, diam nunc porta nibh, nec imperdiet massa metus eu\n  lectus. Aliquam nisi. Nunc fringilla nulla at lectus. Suspendisse\n  potenti. Cum sociis natoque penatibus et magnis dis parturient\n  montes, nascetur ridiculus mus. Pellentesque odio nulla, feugiat eu,\n  suscipit nec, consequat quis, risus.\n"

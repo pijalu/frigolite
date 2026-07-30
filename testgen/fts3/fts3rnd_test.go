@@ -18,6 +18,8 @@ func Test_fts3rnd(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var G_nVocab = "100"
@@ -70,13 +72,13 @@ func Test_fts3rnd(t *testing.T) {
 	var NUM_TRIALS = "100"
 	_ = NUM_TRIALS // suppress unused warning
 	// foreach {nodesize order} "\n  50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC\n"
-	_items := tclSplitList("\n  50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		nodesize := _items[_idx+0]
+	_items0 := tclSplitList("\n  50    DESC\n  50    ASC\n  500   ASC\n  1000  DESC\n  2000  ASC\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		nodesize := _items0[_idx0+0]
 		_ = nodesize // suppress unused warning
-		order := _items[_idx+1]
+		order := _items0[_idx0+1]
 		_ = order // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning
@@ -271,15 +273,15 @@ func Test_fts3rnd(t *testing.T) {
 					}
 				}
 				// foreach {tn op proc} "\n      8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and\n    "
-				_items := tclSplitList("\n      8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and\n    ")
-				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-					tn := _items[_idx+0]
+				_items1 := tclSplitList("\n      8  OR  setop_or\n      9  NOT setop_not\n      10 AND setop_and\n    ")
+				for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+					tn := _items1[_idx1+0]
 					_ = tn // suppress unused warning
-					op := _items[_idx+1]
+					op := _items1[_idx1+1]
 					_ = op // suppress unused warning
-					proc := _items[_idx+2]
+					proc := _items1[_idx1+2]
 					_ = proc // suppress unused warning
-					_ = _idx
+					_ = _idx1
 						var i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
@@ -300,15 +302,15 @@ func Test_fts3rnd(t *testing.T) {
 						}
 					}
 					// foreach {tn op proc} "\n      11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and\n    "
-					_items := tclSplitList("\n      11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and\n    ")
-					for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-						tn := _items[_idx+0]
+					_items2 := tclSplitList("\n      11 OR  setop_or\n      12 NOT setop_not\n      13 AND setop_and\n    ")
+					for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+						tn := _items2[_idx2+0]
 						_ = tn // suppress unused warning
-						op := _items[_idx+1]
+						op := _items2[_idx2+1]
 						_ = op // suppress unused warning
-						proc := _items[_idx+2]
+						proc := _items2[_idx2+2]
 						_ = proc // suppress unused warning
-						_ = _idx
+						_ = _idx2
 							var i = "0"
 							_ = i // suppress unused warning
 							for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {

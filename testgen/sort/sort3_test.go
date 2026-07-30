@@ -17,6 +17,8 @@ func Test_sort3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sort3"
@@ -29,13 +31,13 @@ func Test_sort3(t *testing.T) {
 		}
 	}
 	// foreach {tn mmap_limit} "\n  1 0\n  2 1000000\n"
-	_items := tclSplitList("\n  1 0\n  2 1000000\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 0\n  2 1000000\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mmap_limit := _items[_idx+1]
+		mmap_limit := _items0[_idx0+1]
 		_ = mmap_limit // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "1." + tn
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $mmap_limit")
 				var prev = ""
@@ -49,13 +51,13 @@ func Test_sort3(t *testing.T) {
 			}
 		}
 		// foreach {itest limit} "\n  1 5000000\n  2 0x7FFFFFFF\n"
-		_items := tclSplitList("\n  1 5000000\n  2 0x7FFFFFFF\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			itest := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 5000000\n  2 0x7FFFFFFF\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			itest := _items1[_idx1+0]
 			_ = itest // suppress unused warning
-			limit := _items[_idx+1]
+			limit := _items1[_idx1+1]
 			_ = limit // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_SORTER_MMAP db $limit")
 				{ // "2." + itest
 					r = db.Query("\n    WITH r(x,y) AS (\n        SELECT 1, randomblob(1000)\n        UNION ALL\n        SELECT x+1, randomblob(1000) FROM r\n        LIMIT 20000\n    )\n    SELECT count(*), sum(length(y)) FROM r GROUP BY (x%5);\n  ")

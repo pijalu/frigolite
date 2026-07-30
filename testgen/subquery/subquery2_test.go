@@ -17,6 +17,8 @@ func Test_subquery2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "subquery2" // TCL namespace variable
@@ -122,13 +124,13 @@ func Test_subquery2(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  2 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  3 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  4 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n"
-	_items := tclSplitList("\n  1 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  2 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  3 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  4 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  2 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  3 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n  4 {\n    SELECT 'abc' FROM (\n        SELECT x FROM t6\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6 ORDER BY 1\n        UNION ALL\n        SELECT x FROM t6\n    )\n  }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "4." + tn
 				_res = db.Exec(sql)
 				if _res.Error == nil {

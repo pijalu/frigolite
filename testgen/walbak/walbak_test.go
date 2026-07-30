@@ -19,6 +19,8 @@ func Test_walbak(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
@@ -191,13 +193,13 @@ func Test_walbak(t *testing.T) {
 	}
 	db2.Close()
 	// foreach {tn setup} "\n  1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }\n\n"
-	_items := tclSplitList("\n  1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }\n\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {\n    sqlite3 db  test.db\n    sqlite3 db2 :memory:\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  2 {\n    sqlite3 db  test.db\n    sqlite3 db2 \"\"\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 }\n  }\n\n  3 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = PERSIST }\n  }\n\n  4 {\n    sqlite3 db  test.db\n    sqlite3 db2 test.db2\n    db  eval { PRAGMA page_size = 1024 ; PRAGMA journal_mode = WAL }\n    db2 eval { \n      PRAGMA page_size = 2048;\n      PRAGMA journal_mode = PERSIST;\n      CREATE TABLE xx(x);\n    }\n  }\n\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		setup := _items[_idx+1]
+		setup := _items0[_idx0+1]
 		_ = setup // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			if tclBool(tn + "==4 && " + "sqlite3 -has-codec") {
 			}
 			for _, f := range tclSplitList("glob -nocomplain test.db*") {
@@ -265,17 +267,17 @@ func Test_walbak(t *testing.T) {
 			db2.Close()
 		}
 		// foreach {tn src dest dest_final} "\n  1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal\n"
-		_items := tclSplitList("\n  1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal\n")
-		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1   delete    delete    delete\n  2   delete    wal       wal\n  3   wal       delete    wal\n  4   wal       wal       wal\n")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			src := _items[_idx+1]
+			src := _items1[_idx1+1]
 			_ = src // suppress unused warning
-			dest := _items[_idx+2]
+			dest := _items1[_idx1+2]
 			_ = dest // suppress unused warning
-			dest_final := _items[_idx+3]
+			dest_final := _items1[_idx1+3]
 			_ = dest_final // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{
 					var _catchErr error
 					_ = _catchErr // suppress unused warning

@@ -18,6 +18,8 @@ func Test_expridx1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "expridx1"
@@ -149,13 +151,13 @@ func Test_expridx1(t *testing.T) {
 		}
 	}
 	// foreach {tn a} "\n  1 15   2 30   3 20   4 10   5 25\n"
-	_items := tclSplitList("\n  1 15   2 30   3 20   4 10   5 25\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 15   2 30   3 20   4 10   5 25\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		a := _items[_idx+1]
+		a := _items0[_idx0+1]
 		_ = a // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1.3.3." + tn
 				_res = db.Exec("\n    DELETE FROM t1 WHERE a=$a\n  ")
 				if _res.Error != nil {

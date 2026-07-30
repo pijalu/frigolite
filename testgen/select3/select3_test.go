@@ -18,6 +18,8 @@ func Test_select3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "select3-1.0"
@@ -291,13 +293,13 @@ func Test_select3(t *testing.T) {
 		}
 	}
 	// foreach {id x} "\n  100 127\n  101 128\n  102 -127\n  103 -128\n  104 -129\n  110 32767\n  111 32768\n  112 -32767\n  113 -32768\n  114 -32769\n  120 2147483647\n  121 2147483648\n  122 -2147483647\n  123 -2147483648\n  124 -2147483649\n  130 140737488355327\n  131 140737488355328\n  132 -140737488355327\n  133 -140737488355328\n  134 -140737488355329\n  140 9223372036854775807\n  141 -9223372036854775807\n  142 -9223372036854775808\n  143 9223372036854775806\n  144 9223372036854775805\n  145 -9223372036854775806\n  146 -9223372036854775805\n\n"
-	_items := tclSplitList("\n  100 127\n  101 128\n  102 -127\n  103 -128\n  104 -129\n  110 32767\n  111 32768\n  112 -32767\n  113 -32768\n  114 -32769\n  120 2147483647\n  121 2147483648\n  122 -2147483647\n  123 -2147483648\n  124 -2147483649\n  130 140737488355327\n  131 140737488355328\n  132 -140737488355327\n  133 -140737488355328\n  134 -140737488355329\n  140 9223372036854775807\n  141 -9223372036854775807\n  142 -9223372036854775808\n  143 9223372036854775806\n  144 9223372036854775805\n  145 -9223372036854775806\n  146 -9223372036854775805\n\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		id := _items[_idx+0]
+	_items0 := tclSplitList("\n  100 127\n  101 128\n  102 -127\n  103 -128\n  104 -129\n  110 32767\n  111 32768\n  112 -32767\n  113 -32768\n  114 -32769\n  120 2147483647\n  121 2147483648\n  122 -2147483647\n  123 -2147483648\n  124 -2147483649\n  130 140737488355327\n  131 140737488355328\n  132 -140737488355327\n  133 -140737488355328\n  134 -140737488355329\n  140 9223372036854775807\n  141 -9223372036854775807\n  142 -9223372036854775808\n  143 9223372036854775806\n  144 9223372036854775805\n  145 -9223372036854775806\n  146 -9223372036854775805\n\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		id := _items0[_idx0+0]
 		_ = id // suppress unused warning
-		x := _items[_idx+1]
+		x := _items0[_idx0+1]
 		_ = x // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			x := "$x+0"
 			_ = x // suppress unused warning
 			{ // "select3-8." + id
@@ -344,13 +346,13 @@ func Test_select3(t *testing.T) {
 			}
 		}
 		// foreach {tn sql} "\n  1 {\n    CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    CREATE INDEX t2x ON t2(x);\n    INSERT INTO t1 VALUES('abc');\n  }\n  2 {\n    CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    INSERT INTO t1 VALUES('abc');\n  }\n  3 {\n    CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    INSERT INTO t1 VALUES('abc');\n    PRAGMA automatic_index=OFF;\n  }\n"
-		_items := tclSplitList("\n  1 {\n    CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    CREATE INDEX t2x ON t2(x);\n    INSERT INTO t1 VALUES('abc');\n  }\n  2 {\n    CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    INSERT INTO t1 VALUES('abc');\n  }\n  3 {\n    CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    INSERT INTO t1 VALUES('abc');\n    PRAGMA automatic_index=OFF;\n  }\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 {\n    CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    CREATE INDEX t2x ON t2(x);\n    INSERT INTO t1 VALUES('abc');\n  }\n  2 {\n    CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    INSERT INTO t1 VALUES('abc');\n  }\n  3 {\n    CREATE TABLE t1(a TEXT);\n    CREATE TABLE t2(x INT);\n    INSERT INTO t1 VALUES('abc');\n    PRAGMA automatic_index=OFF;\n  }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql := _items[_idx+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }

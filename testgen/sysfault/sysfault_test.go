@@ -18,6 +18,8 @@ func Test_sysfault(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("llength [info commands test_syscall]" + "==0") {
@@ -38,15 +40,15 @@ func Test_sysfault(t *testing.T) {
 	// proc definition (not transpiled)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 1 -faults vfsfault-* -prep {\n  faultsim_restore\n} -body $open_and_write_body -test {\n  faultsim_test_result {0 {wal 1 2 3 4}}       \\\n...}")
 	// foreach {tn errno errlist} "\n  1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}\n"
-	_items := tclSplitList("\n  1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 ENOMEM       {{disk I/O error}}\n  2 EOVERFLOW    {{disk I/O error} {large file support is disabled}}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		errno := _items[_idx+1]
+		errno := _items0[_idx0+1]
 		_ = errno // suppress unused warning
-		errlist := _items[_idx+2]
+		errlist := _items0[_idx0+2]
 		_ = errlist // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			// proc definition (not transpiled)
 			var errs = "list"
 			_ = errs // suppress unused warning
@@ -57,15 +59,15 @@ func Test_sysfault(t *testing.T) {
 		}
 		for _, vfs := range tclSplitList("unix unix-excl") {
 			// foreach {tn errno errlist} "\n    1 EAGAIN       {{database is locked} {disk I/O error}}\n    2 ETIMEDOUT    {{database is locked} {disk I/O error}}\n    3 EBUSY        {{database is locked} {disk I/O error}}\n    4 EINTR        {{database is locked} {disk I/O error}}\n    5 ENOLCK       {{database is locked} {disk I/O error}}\n    6 EACCES       {{database is locked} {disk I/O error}}\n    7 EPERM        {{access permission denied} {disk I/O error}}\n    8 EDEADLK      {{disk I/O error}}\n    9 ENOMEM       {{disk I/O error}}\n  "
-			_items := tclSplitList("\n    1 EAGAIN       {{database is locked} {disk I/O error}}\n    2 ETIMEDOUT    {{database is locked} {disk I/O error}}\n    3 EBUSY        {{database is locked} {disk I/O error}}\n    4 EINTR        {{database is locked} {disk I/O error}}\n    5 ENOLCK       {{database is locked} {disk I/O error}}\n    6 EACCES       {{database is locked} {disk I/O error}}\n    7 EPERM        {{access permission denied} {disk I/O error}}\n    8 EDEADLK      {{disk I/O error}}\n    9 ENOMEM       {{disk I/O error}}\n  ")
-			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-				tn := _items[_idx+0]
+			_items1 := tclSplitList("\n    1 EAGAIN       {{database is locked} {disk I/O error}}\n    2 ETIMEDOUT    {{database is locked} {disk I/O error}}\n    3 EBUSY        {{database is locked} {disk I/O error}}\n    4 EINTR        {{database is locked} {disk I/O error}}\n    5 ENOLCK       {{database is locked} {disk I/O error}}\n    6 EACCES       {{database is locked} {disk I/O error}}\n    7 EPERM        {{access permission denied} {disk I/O error}}\n    8 EDEADLK      {{disk I/O error}}\n    9 ENOMEM       {{disk I/O error}}\n  ")
+			for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+				tn := _items1[_idx1+0]
 				_ = tn // suppress unused warning
-				errno := _items[_idx+1]
+				errno := _items1[_idx1+1]
 				_ = errno // suppress unused warning
-				errlist := _items[_idx+2]
+				errlist := _items1[_idx1+2]
 				_ = errlist // suppress unused warning
-				_ = _idx
+				_ = _idx1
 					// proc definition (not transpiled)
 					var errs = "list"
 					_ = errs // suppress unused warning

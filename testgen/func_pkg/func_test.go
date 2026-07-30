@@ -19,6 +19,8 @@ func Test_func(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "func"
@@ -857,13 +859,13 @@ func Test_func(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// foreach {name sdx} "\n    euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000\n  "
-		_items := tclSplitList("\n    euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000\n  ")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			name := _items[_idx+0]
+		_items0 := tclSplitList("\n    euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000\n  ")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			name := _items0[_idx0+0]
 			_ = name // suppress unused warning
-			sdx := _items[_idx+1]
+			sdx := _items0[_idx0+1]
 			_ = sdx // suppress unused warning
-			_ = _idx
+			_ = _idx0
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)

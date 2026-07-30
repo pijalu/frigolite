@@ -18,6 +18,8 @@ func Test_pagerfault(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("permutation" + " == \"inmemory_journal\"") {
@@ -335,13 +337,13 @@ func Test_pagerfault(t *testing.T) {
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	// foreach {tn tt} "\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n"
-	_items := tclSplitList("\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  29 { catchsql ROLLBACK }\n  30 { db close ; sqlite3 db test.db }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		tt := _items[_idx+1]
+		tt := _items0[_idx0+1]
 		_ = tt // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test pagerfault-$tn -faults custom -prep {\n    faultsim_restore_and_reopen\n      db func a_s...} -body {\n    catchsql ROLLBACK\n    catchsql ROLLBACK\n    c...} -test {\n    eval $::tt\n    if {\"ok\" != [db one {PRAGMA in...}")
 		}
 		{ // do_test "pagerfault-31-pre"

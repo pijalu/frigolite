@@ -17,6 +17,8 @@ func Test_wal5(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_not_use_codec")
@@ -25,13 +27,13 @@ func Test_wal5(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// foreach {testprefix do_wal_checkpoint} "\n\n  wal5-pragma {\n    proc do_wal_checkpoint { dbhandle args } {\n      array set a $args\n      foreach key [array names a] {\n        if {[lsearch {-mode -db} $key]<0} { error \"unknown switch: $key\" }\n      }\n\n      set sql \"PRAGMA \"\n      if {[info exists a(-db)]} { append sql \"$a(-db).\" }\n      append sql \"wal_checkpoint\"\n      if {[info exists a(-mode)]} { append sql \" = $a(-mode)\" }\n\n      uplevel [list $dbhandle eval $sql]\n    }\n  }\n\n  wal5-capi {\n    proc do_wal_checkpoint { dbhandle args } {\n      set a(-mode) passive\n      array set a $args\n      foreach key [array names a] {\n        if {[lsearch {-mode -db} $key]<0} { error \"unknown switch: $key\" }\n      }\n\n      set vals {restart full truncate}\n      if {[lsearch -exact $vals $a(-mode)]<0} { set a(-mode) passive }\n\n      set cmd [list sqlite3_wal_checkpoint_v2 $dbhandle $a(-mode)]\n      if {[info exists a(-db)]} { lappend sql $a(-db) }\n\n      uplevel $cmd\n    }\n  }\n"
-	_items := tclSplitList("\n\n  wal5-pragma {\n    proc do_wal_checkpoint { dbhandle args } {\n      array set a $args\n      foreach key [array names a] {\n        if {[lsearch {-mode -db} $key]<0} { error \"unknown switch: $key\" }\n      }\n\n      set sql \"PRAGMA \"\n      if {[info exists a(-db)]} { append sql \"$a(-db).\" }\n      append sql \"wal_checkpoint\"\n      if {[info exists a(-mode)]} { append sql \" = $a(-mode)\" }\n\n      uplevel [list $dbhandle eval $sql]\n    }\n  }\n\n  wal5-capi {\n    proc do_wal_checkpoint { dbhandle args } {\n      set a(-mode) passive\n      array set a $args\n      foreach key [array names a] {\n        if {[lsearch {-mode -db} $key]<0} { error \"unknown switch: $key\" }\n      }\n\n      set vals {restart full truncate}\n      if {[lsearch -exact $vals $a(-mode)]<0} { set a(-mode) passive }\n\n      set cmd [list sqlite3_wal_checkpoint_v2 $dbhandle $a(-mode)]\n      if {[info exists a(-db)]} { lappend sql $a(-db) }\n\n      uplevel $cmd\n    }\n  }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		testprefix := _items[_idx+0]
+	_items0 := tclSplitList("\n\n  wal5-pragma {\n    proc do_wal_checkpoint { dbhandle args } {\n      array set a $args\n      foreach key [array names a] {\n        if {[lsearch {-mode -db} $key]<0} { error \"unknown switch: $key\" }\n      }\n\n      set sql \"PRAGMA \"\n      if {[info exists a(-db)]} { append sql \"$a(-db).\" }\n      append sql \"wal_checkpoint\"\n      if {[info exists a(-mode)]} { append sql \" = $a(-mode)\" }\n\n      uplevel [list $dbhandle eval $sql]\n    }\n  }\n\n  wal5-capi {\n    proc do_wal_checkpoint { dbhandle args } {\n      set a(-mode) passive\n      array set a $args\n      foreach key [array names a] {\n        if {[lsearch {-mode -db} $key]<0} { error \"unknown switch: $key\" }\n      }\n\n      set vals {restart full truncate}\n      if {[lsearch -exact $vals $a(-mode)]<0} { set a(-mode) passive }\n\n      set cmd [list sqlite3_wal_checkpoint_v2 $dbhandle $a(-mode)]\n      if {[info exists a(-db)]} { lappend sql $a(-db) }\n\n      uplevel $cmd\n    }\n  }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		testprefix := _items0[_idx0+0]
 		_ = testprefix // suppress unused warning
-		do_wal_checkpoint := _items[_idx+1]
+		do_wal_checkpoint := _items0[_idx0+1]
 		_ = do_wal_checkpoint // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			// eval $do_wal_checkpoint
 			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    set ::nBusyHandler 0\n    set ::busy_handler_...}")
 			// proc definition (not transpiled)
@@ -40,19 +42,19 @@ func Test_wal5(t *testing.T) {
 			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    setup_and_attach_aux\n    do_test 2.2.$tn.1 {\n...}")
 			t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n    setup_and_attach_aux\n    do_test 2.3.$tn.1 {\n...}")
 			// foreach {tn1 checkpoint busy_on ckpt_expected expected} "\n    1   PASSIVE   -   {0 3 3}   -\n    2   TYPO      -   {0 3 3}   -\n\n    3   FULL      -   {0 4 4}   2\n    4   FULL      1   {1 3 3}   1\n    5   FULL      2   {1 4 3}   2\n    6   FULL      3   {0 4 4}   2\n\n    7   RESTART   -   {0 4 4}   3\n    8   RESTART   1   {1 3 3}   1\n    9   RESTART   2   {1 4 3}   2\n    10  RESTART   3   {1 4 4}   3\n\n    11  TRUNCATE  -   {0 0 0}   3\n    12  TRUNCATE  1   {1 3 3}   1\n    13  TRUNCATE  2   {1 4 3}   2\n    14  TRUNCATE  3   {1 4 4}   3\n\n  "
-			_items := tclSplitList("\n    1   PASSIVE   -   {0 3 3}   -\n    2   TYPO      -   {0 3 3}   -\n\n    3   FULL      -   {0 4 4}   2\n    4   FULL      1   {1 3 3}   1\n    5   FULL      2   {1 4 3}   2\n    6   FULL      3   {0 4 4}   2\n\n    7   RESTART   -   {0 4 4}   3\n    8   RESTART   1   {1 3 3}   1\n    9   RESTART   2   {1 4 3}   2\n    10  RESTART   3   {1 4 4}   3\n\n    11  TRUNCATE  -   {0 0 0}   3\n    12  TRUNCATE  1   {1 3 3}   1\n    13  TRUNCATE  2   {1 4 3}   2\n    14  TRUNCATE  3   {1 4 4}   3\n\n  ")
-			for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-				tn1 := _items[_idx+0]
+			_items1 := tclSplitList("\n    1   PASSIVE   -   {0 3 3}   -\n    2   TYPO      -   {0 3 3}   -\n\n    3   FULL      -   {0 4 4}   2\n    4   FULL      1   {1 3 3}   1\n    5   FULL      2   {1 4 3}   2\n    6   FULL      3   {0 4 4}   2\n\n    7   RESTART   -   {0 4 4}   3\n    8   RESTART   1   {1 3 3}   1\n    9   RESTART   2   {1 4 3}   2\n    10  RESTART   3   {1 4 4}   3\n\n    11  TRUNCATE  -   {0 0 0}   3\n    12  TRUNCATE  1   {1 3 3}   1\n    13  TRUNCATE  2   {1 4 3}   2\n    14  TRUNCATE  3   {1 4 4}   3\n\n  ")
+			for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
+				tn1 := _items1[_idx1+0]
 				_ = tn1 // suppress unused warning
-				checkpoint := _items[_idx+1]
+				checkpoint := _items1[_idx1+1]
 				_ = checkpoint // suppress unused warning
-				busy_on := _items[_idx+2]
+				busy_on := _items1[_idx1+2]
 				_ = busy_on // suppress unused warning
-				ckpt_expected := _items[_idx+3]
+				ckpt_expected := _items1[_idx1+3]
 				_ = ckpt_expected // suppress unused warning
-				expected := _items[_idx+4]
+				expected := _items1[_idx1+4]
 				_ = expected // suppress unused warning
-				_ = _idx
+				_ = _idx1
 					t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n      setup_and_attach_aux\n\n      proc busyhandle...}")
 				}
 				t.Errorf("TODO: %s not implemented in frigolite", "do_multiclient_test tn {\n\n    code1 $do_wal_checkpoint\n    code2 $do_wal_c...}")

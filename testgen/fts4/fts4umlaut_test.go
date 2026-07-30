@@ -17,6 +17,8 @@ func Test_fts4umlaut(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts4umlaut"
@@ -28,17 +30,17 @@ func Test_fts4umlaut(t *testing.T) {
 		}
 	}
 	// foreach {tn q res1 res2} "\n  1 \"Hà Nội\"                  0 1\n  2 \"Hà Noi\"                  1 1\n  3 \"Ha Noi\"                  1 1\n  4 \"Ha N\\u1ed9i\"             0 1\n  5 \"Ha N\\u006fi\"             1 1\n  6 \"Ha N\\u006f\\u0302i\"       1 1\n  7 \"Ha N\\u006f\\u0323\\u0302i\" 1 1\n"
-	_items := tclSplitList("\n  1 \"Hà Nội\"                  0 1\n  2 \"Hà Noi\"                  1 1\n  3 \"Ha Noi\"                  1 1\n  4 \"Ha N\\u1ed9i\"             0 1\n  5 \"Ha N\\u006fi\"             1 1\n  6 \"Ha N\\u006f\\u0302i\"       1 1\n  7 \"Ha N\\u006f\\u0323\\u0302i\" 1 1\n")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 \"Hà Nội\"                  0 1\n  2 \"Hà Noi\"                  1 1\n  3 \"Ha Noi\"                  1 1\n  4 \"Ha N\\u1ed9i\"             0 1\n  5 \"Ha N\\u006fi\"             1 1\n  6 \"Ha N\\u006f\\u0302i\"       1 1\n  7 \"Ha N\\u006f\\u0323\\u0302i\" 1 1\n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		q := _items[_idx+1]
+		q := _items0[_idx0+1]
 		_ = q // suppress unused warning
-		res1 := _items[_idx+2]
+		res1 := _items0[_idx0+2]
 		_ = res1 // suppress unused warning
-		res2 := _items[_idx+3]
+		res2 := _items0[_idx0+3]
 		_ = res2 // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1." + tn + ".1"
 				r = db.Query("\n    DELETE FROM t1;\n    INSERT INTO t1(rowid, x) VALUES (1, 'Ha Noi');\n    SELECT count(*) FROM t1 WHERE t1 MATCH $q\n  ")
 				if r.Error != nil {

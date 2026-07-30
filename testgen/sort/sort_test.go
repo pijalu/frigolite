@@ -19,6 +19,8 @@ func Test_sort(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sort"
@@ -392,23 +394,23 @@ func Test_sort(t *testing.T) {
 		}
 	}
 	// foreach {tn mmap_limit nWorker tmpstore coremutex fakeheap softheaplimit} "\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n"
-	_items := tclSplitList("\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n")
-	for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n          1          0       3     file      true    false             0\n          2          0       3     file      true     true             0\n          3          0       0     file      true    false             0\n          4    1000000       3     file      true    false             0\n          5          0       0   memory     false     true             0\n          6          0       0     file     false     true       1000000     \n          7          0       0     file     false     true         10000\n")
+	for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mmap_limit := _items[_idx+1]
+		mmap_limit := _items0[_idx0+1]
 		_ = mmap_limit // suppress unused warning
-		nWorker := _items[_idx+2]
+		nWorker := _items0[_idx0+2]
 		_ = nWorker // suppress unused warning
-		tmpstore := _items[_idx+3]
+		tmpstore := _items0[_idx0+3]
 		_ = tmpstore // suppress unused warning
-		coremutex := _items[_idx+4]
+		coremutex := _items0[_idx0+4]
 		_ = coremutex // suppress unused warning
-		fakeheap := _items[_idx+5]
+		fakeheap := _items0[_idx0+5]
 		_ = fakeheap // suppress unused warning
-		softheaplimit := _items[_idx+6]
+		softheaplimit := _items0[_idx0+6]
 		_ = softheaplimit // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_shutdown")
 			if tclBool(coremutex) {
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config multithread")

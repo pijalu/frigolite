@@ -18,6 +18,8 @@ func Test_windowB(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "windowB"
@@ -29,13 +31,13 @@ func Test_windowB(t *testing.T) {
 		}
 	}
 	// foreach {tn win} "\n  1 { ORDER BY a RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  2 { ORDER BY a NULLS LAST RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  3 { ORDER BY a DESC RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  4 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n\n  5 { ORDER BY a      NULLS LAST  RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING }\n  6 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING }\n\n  7 { ORDER BY a      NULLS LAST  RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING }\n  8 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING }\n"
-	_items := tclSplitList("\n  1 { ORDER BY a RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  2 { ORDER BY a NULLS LAST RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  3 { ORDER BY a DESC RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  4 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n\n  5 { ORDER BY a      NULLS LAST  RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING }\n  6 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING }\n\n  7 { ORDER BY a      NULLS LAST  RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING }\n  8 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 { ORDER BY a RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  2 { ORDER BY a NULLS LAST RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  3 { ORDER BY a DESC RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n  4 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 1 PRECEDING AND 1 FOLLOWING }\n\n  5 { ORDER BY a      NULLS LAST  RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING }\n  6 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING }\n\n  7 { ORDER BY a      NULLS LAST  RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING }\n  8 { ORDER BY a DESC NULLS FIRST RANGE BETWEEN 2 PRECEDING AND 1 PRECEDING }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		win := _items[_idx+1]
+		win := _items0[_idx0+1]
 		_ = win // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1." + tn
 				r = db.Query("\n    SELECT sum(b) OVER win FROM t1\n    WINDOW win AS ( " + win + " )\n  ")
 				if r.Error != nil {
@@ -71,13 +73,13 @@ func Test_windowB(t *testing.T) {
 			}
 		}
 		// foreach {tn win} "\n  1 \"ORDER BY b RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING\"\n  2 \"ORDER BY b RANGE BETWEEN 2 FOLLOWING AND 2 FOLLOWING\"\n  3 \"ORDER BY b NULLS LAST RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING\"\n  4 \"ORDER BY b NULLS LAST RANGE BETWEEN 2 FOLLOWING AND 2 FOLLOWING\"\n"
-		_items := tclSplitList("\n  1 \"ORDER BY b RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING\"\n  2 \"ORDER BY b RANGE BETWEEN 2 FOLLOWING AND 2 FOLLOWING\"\n  3 \"ORDER BY b NULLS LAST RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING\"\n  4 \"ORDER BY b NULLS LAST RANGE BETWEEN 2 FOLLOWING AND 2 FOLLOWING\"\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 \"ORDER BY b RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING\"\n  2 \"ORDER BY b RANGE BETWEEN 2 FOLLOWING AND 2 FOLLOWING\"\n  3 \"ORDER BY b NULLS LAST RANGE BETWEEN 1 PRECEDING AND 2 PRECEDING\"\n  4 \"ORDER BY b NULLS LAST RANGE BETWEEN 2 FOLLOWING AND 2 FOLLOWING\"\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			win := _items[_idx+1]
+			win := _items1[_idx1+1]
 			_ = win // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // "2.1." + tn
 					r = db.Query("\n    SELECT a, sum(a) OVER win FROM t1\n    WINDOW win AS ( " + win + " )\n    ORDER BY 1\n  ")
 					if r.Error != nil {

@@ -17,6 +17,8 @@ func Test_like3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "like3-1.1"
@@ -402,13 +404,13 @@ func Test_like3(t *testing.T) {
 	if err != nil { t.Fatal(err) }
 	for _, enc := range tclSplitList("\n  UTF-8\n  UTF-16le \n  UTF-16be\n") {
 		// foreach {tn expr} "\n    1 \"CAST (X'FF' AS TEXT)\"\n    2 \"CAST (X'FFBF' AS TEXT)\"\n    3 \"CAST (X'FFBFBF' AS TEXT)\"\n    4 \"CAST (X'FFBFBFBF' AS TEXT)\"\n\n    5 \"'abc' || CAST (X'FF' AS TEXT)\"\n    6 \"'def' || CAST (X'FFBF' AS TEXT)\"\n    7 \"'ghi' || CAST (X'FFBFBF' AS TEXT)\"\n    8 \"'jkl' || CAST (X'FFBFBFBF' AS TEXT)\"\n  "
-		_items := tclSplitList("\n    1 \"CAST (X'FF' AS TEXT)\"\n    2 \"CAST (X'FFBF' AS TEXT)\"\n    3 \"CAST (X'FFBFBF' AS TEXT)\"\n    4 \"CAST (X'FFBFBFBF' AS TEXT)\"\n\n    5 \"'abc' || CAST (X'FF' AS TEXT)\"\n    6 \"'def' || CAST (X'FFBF' AS TEXT)\"\n    7 \"'ghi' || CAST (X'FFBFBF' AS TEXT)\"\n    8 \"'jkl' || CAST (X'FFBFBFBF' AS TEXT)\"\n  ")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items0 := tclSplitList("\n    1 \"CAST (X'FF' AS TEXT)\"\n    2 \"CAST (X'FFBF' AS TEXT)\"\n    3 \"CAST (X'FFBFBF' AS TEXT)\"\n    4 \"CAST (X'FFBFBFBF' AS TEXT)\"\n\n    5 \"'abc' || CAST (X'FF' AS TEXT)\"\n    6 \"'def' || CAST (X'FFBF' AS TEXT)\"\n    7 \"'ghi' || CAST (X'FFBFBF' AS TEXT)\"\n    8 \"'jkl' || CAST (X'FFBFBFBF' AS TEXT)\"\n  ")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
-			expr := _items[_idx+1]
+			expr := _items0[_idx0+1]
 			_ = expr // suppress unused warning
-			_ = _idx
+			_ = _idx0
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }

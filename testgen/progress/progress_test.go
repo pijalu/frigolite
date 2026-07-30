@@ -17,6 +17,8 @@ func Test_progress(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  BEGIN;\n  CREATE TABLE t1(a);\n  INSERT INTO t1 VALUES(1);\n  INSERT INTO t1 VALUES(2);\n  INSERT INTO t1 VALUES(3);\n  INSERT INTO t1 VALUES(4);\n  INSERT INTO t1 VALUES(5);\n  INSERT INTO t1 VALUES(6);\n  INSERT INTO t1 VALUES(7);\n  INSERT INTO t1 VALUES(8);\n  INSERT INTO t1 VALUES(9);\n  INSERT INTO t1 VALUES(10);\n  COMMIT;\n")

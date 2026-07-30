@@ -19,6 +19,8 @@ func Test_fts3query(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var DO_MALLOC_TEST = "0"
@@ -159,13 +161,13 @@ func Test_fts3query(t *testing.T) {
 	_ = LARGEINT // suppress unused warning
 	{ // do_test "7.2"
 		// foreach {iFirst nEntry} "0                      100\n      " + SMALLINT + "              100\n      " + "$LARGEINT - 99" + "  100"
-		_items := tclSplitList("0                      100\n      " + SMALLINT + "              100\n      " + "$LARGEINT - 99" + "  100")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			iFirst := _items[_idx+0]
+		_items0 := tclSplitList("0                      100\n      " + SMALLINT + "              100\n      " + "$LARGEINT - 99" + "  100")
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			iFirst := _items0[_idx0+0]
 			_ = iFirst // suppress unused warning
-			nEntry := _items[_idx+1]
+			nEntry := _items0[_idx0+1]
 			_ = nEntry // suppress unused warning
-			_ = _idx
+			_ = _idx0
 				var i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nEntry_n, _nEntry_e := strconv.Atoi(nEntry); if _nEntry_e != nil { return false }; return i_n < nEntry_n }() {
@@ -186,15 +188,15 @@ func Test_fts3query(t *testing.T) {
 			}
 		}
 		// foreach {tn iFirst iLast} "1   5 10\n  2   " + SMALLINT + " " + "$SMALLINT+5" + "\n  3   " + SMALLINT + " " + "$SMALLINT+50" + "\n  4   " + "$LARGEINT-5" + " " + LARGEINT + "\n  5   " + LARGEINT + " " + LARGEINT + "\n  6   " + SMALLINT + " " + LARGEINT + "\n  7   " + SMALLINT + " " + SMALLINT + "\n  8   " + LARGEINT + " " + SMALLINT
-		_items := tclSplitList("1   5 10\n  2   " + SMALLINT + " " + "$SMALLINT+5" + "\n  3   " + SMALLINT + " " + "$SMALLINT+50" + "\n  4   " + "$LARGEINT-5" + " " + LARGEINT + "\n  5   " + LARGEINT + " " + LARGEINT + "\n  6   " + SMALLINT + " " + LARGEINT + "\n  7   " + SMALLINT + " " + SMALLINT + "\n  8   " + LARGEINT + " " + SMALLINT)
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("1   5 10\n  2   " + SMALLINT + " " + "$SMALLINT+5" + "\n  3   " + SMALLINT + " " + "$SMALLINT+50" + "\n  4   " + "$LARGEINT-5" + " " + LARGEINT + "\n  5   " + LARGEINT + " " + LARGEINT + "\n  6   " + SMALLINT + " " + LARGEINT + "\n  7   " + SMALLINT + " " + SMALLINT + "\n  8   " + LARGEINT + " " + SMALLINT)
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			iFirst := _items[_idx+1]
+			iFirst := _items1[_idx1+1]
 			_ = iFirst // suppress unused warning
-			iLast := _items[_idx+2]
+			iLast := _items1[_idx1+2]
 			_ = iLast // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				var res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n  }"
 				_ = res // suppress unused warning
 				{ // "7.2." + tn + ".1." + "llength $res"

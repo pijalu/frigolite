@@ -17,6 +17,8 @@ func Test_carrayfault(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "carrayfault"
@@ -32,13 +34,13 @@ func Test_carrayfault(t *testing.T) {
 	var STMT = ""
 	_ = STMT // suppress unused warning
 	// foreach {tn mem} "\n  1 -static\n  2 -transient\n  3 -malloc\n"
-	_items := tclSplitList("\n  1 -static\n  2 -transient\n  3 -malloc\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 -static\n  2 -transient\n  3 -malloc\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mem := _items[_idx+1]
+		mem := _items0[_idx0+1]
 		_ = mem // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n  } -body {\n    sqlite3_carray_bind $::mem -int64 $::STMT 1  ...} -test {\n    faultsim_test_result {0 {}} {1 {out of memory...}")
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 3 -faults oom* -prep {\n} -body {\n    sqlite3_carray_bind -transient -text $::STMT ...} -test {\n  faultsim_test_result {0 {}} {1 {initialization ...}")

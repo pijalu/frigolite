@@ -18,6 +18,8 @@ func Test_e_insert(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // "e_insert-0.0"
@@ -59,19 +61,19 @@ func Test_e_insert(t *testing.T) {
 		}
 	}
 	// foreach {tn sql error ac data} "\n  1.1  \"INSERT INTO a4 VALUES(2,'b')\"  {UNIQUE constraint failed: a4.c}  1 {1 a 2 a 3 a}\n  1.2  \"INSERT OR REPLACE INTO a4 VALUES(2, 'b')\"            {}  1 {1 a 3 a 2 b}\n  1.3  \"INSERT OR IGNORE INTO a4 VALUES(3, 'c')\"             {}  1 {1 a 3 a 2 b}\n  1.4  \"BEGIN\" {} 0 {1 a 3 a 2 b}\n  1.5  \"INSERT INTO a4 VALUES(1, 'd')\" {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.6  \"INSERT OR ABORT INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.7  \"INSERT OR ROLLBACK INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.8  \"INSERT INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.9  \"INSERT OR FAIL INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n\n  2.1  \"INSERT INTO a4 VALUES(2,'f')\"  \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n  2.2  \"REPLACE INTO a4 VALUES(2, 'f')\" {}  1 {1 a 3 a 4 e 2 f}\n"
-	_items := tclSplitList("\n  1.1  \"INSERT INTO a4 VALUES(2,'b')\"  {UNIQUE constraint failed: a4.c}  1 {1 a 2 a 3 a}\n  1.2  \"INSERT OR REPLACE INTO a4 VALUES(2, 'b')\"            {}  1 {1 a 3 a 2 b}\n  1.3  \"INSERT OR IGNORE INTO a4 VALUES(3, 'c')\"             {}  1 {1 a 3 a 2 b}\n  1.4  \"BEGIN\" {} 0 {1 a 3 a 2 b}\n  1.5  \"INSERT INTO a4 VALUES(1, 'd')\" {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.6  \"INSERT OR ABORT INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.7  \"INSERT OR ROLLBACK INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.8  \"INSERT INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.9  \"INSERT OR FAIL INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n\n  2.1  \"INSERT INTO a4 VALUES(2,'f')\"  \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n  2.2  \"REPLACE INTO a4 VALUES(2, 'f')\" {}  1 {1 a 3 a 4 e 2 f}\n")
-	for _idx := 0; _idx+5 <= len(_items); _idx += 5 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1.1  \"INSERT INTO a4 VALUES(2,'b')\"  {UNIQUE constraint failed: a4.c}  1 {1 a 2 a 3 a}\n  1.2  \"INSERT OR REPLACE INTO a4 VALUES(2, 'b')\"            {}  1 {1 a 3 a 2 b}\n  1.3  \"INSERT OR IGNORE INTO a4 VALUES(3, 'c')\"             {}  1 {1 a 3 a 2 b}\n  1.4  \"BEGIN\" {} 0 {1 a 3 a 2 b}\n  1.5  \"INSERT INTO a4 VALUES(1, 'd')\" {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.6  \"INSERT OR ABORT INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  0 {1 a 3 a 2 b}\n  1.7  \"INSERT OR ROLLBACK INTO a4 VALUES(1, 'd')\" \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.8  \"INSERT INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b}\n  1.9  \"INSERT OR FAIL INTO a4 SELECT 4, 'e' UNION ALL SELECT 3, 'e'\"\n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n\n  2.1  \"INSERT INTO a4 VALUES(2,'f')\"  \n        {UNIQUE constraint failed: a4.c}  1 {1 a 3 a 2 b 4 e}\n  2.2  \"REPLACE INTO a4 VALUES(2, 'f')\" {}  1 {1 a 3 a 4 e 2 f}\n")
+	for _idx0 := 0; _idx0+5 <= len(_items0); _idx0 += 5 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		error := _items[_idx+2]
+		error := _items0[_idx0+2]
 		_ = error // suppress unused warning
-		ac := _items[_idx+3]
+		ac := _items0[_idx0+3]
 		_ = ac // suppress unused warning
-		data := _items[_idx+4]
+		data := _items0[_idx0+4]
 		_ = data // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "e_insert-4.1." + tn + ".1"
 				_res = db.Exec(sql)
 				if _res.Error == nil {

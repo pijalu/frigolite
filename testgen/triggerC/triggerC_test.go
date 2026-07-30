@@ -19,6 +19,8 @@ func Test_triggerC(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "triggerC"
@@ -122,15 +124,15 @@ func Test_triggerC(t *testing.T) {
 		}
 	}
 	// foreach {n tdefn rc} "\n  1 { \n    CREATE TRIGGER t2_trig AFTER INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT INTO t2 VALUES(new.a - 1);\n    END; \n  } {0 {10 9 8 7 6 5 4 3 2 1 0}}\n\n  2 {\n    CREATE TRIGGER t2_trig AFTER INSERT ON t2 BEGIN\n      SELECT CASE WHEN new.a==2 THEN RAISE(IGNORE) ELSE NULL END;\n      INSERT INTO t2 VALUES(new.a - 1);\n    END;\n  } {0 {10 9 8 7 6 5 4 3 2}}\n\n  3 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT INTO t2 VALUES(new.a - 1);\n    END; \n  } {0 {0 1 2 3 4 5 6 7 8 9 10}}\n\n  4 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 BEGIN\n      SELECT CASE WHEN new.a==2 THEN RAISE(IGNORE) ELSE NULL END;\n      INSERT INTO t2 VALUES(new.a - 1);\n    END;\n  } {0 {3 4 5 6 7 8 9 10}}\n\n  5 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 BEGIN\n      INSERT INTO t2 VALUES(new.a - 1);\n    END;\n  } {1 {triggers nested too deep}}\n\n  6 { \n    CREATE TRIGGER t2_trig AFTER INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT OR IGNORE INTO t2 VALUES(new.a);\n    END;\n  } {0 10}\n\n  7 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT OR IGNORE INTO t2 VALUES(new.a);\n    END;\n  } {1 {triggers nested too deep}}\n"
-	_items := tclSplitList("\n  1 { \n    CREATE TRIGGER t2_trig AFTER INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT INTO t2 VALUES(new.a - 1);\n    END; \n  } {0 {10 9 8 7 6 5 4 3 2 1 0}}\n\n  2 {\n    CREATE TRIGGER t2_trig AFTER INSERT ON t2 BEGIN\n      SELECT CASE WHEN new.a==2 THEN RAISE(IGNORE) ELSE NULL END;\n      INSERT INTO t2 VALUES(new.a - 1);\n    END;\n  } {0 {10 9 8 7 6 5 4 3 2}}\n\n  3 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT INTO t2 VALUES(new.a - 1);\n    END; \n  } {0 {0 1 2 3 4 5 6 7 8 9 10}}\n\n  4 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 BEGIN\n      SELECT CASE WHEN new.a==2 THEN RAISE(IGNORE) ELSE NULL END;\n      INSERT INTO t2 VALUES(new.a - 1);\n    END;\n  } {0 {3 4 5 6 7 8 9 10}}\n\n  5 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 BEGIN\n      INSERT INTO t2 VALUES(new.a - 1);\n    END;\n  } {1 {triggers nested too deep}}\n\n  6 { \n    CREATE TRIGGER t2_trig AFTER INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT OR IGNORE INTO t2 VALUES(new.a);\n    END;\n  } {0 10}\n\n  7 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT OR IGNORE INTO t2 VALUES(new.a);\n    END;\n  } {1 {triggers nested too deep}}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		n := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 { \n    CREATE TRIGGER t2_trig AFTER INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT INTO t2 VALUES(new.a - 1);\n    END; \n  } {0 {10 9 8 7 6 5 4 3 2 1 0}}\n\n  2 {\n    CREATE TRIGGER t2_trig AFTER INSERT ON t2 BEGIN\n      SELECT CASE WHEN new.a==2 THEN RAISE(IGNORE) ELSE NULL END;\n      INSERT INTO t2 VALUES(new.a - 1);\n    END;\n  } {0 {10 9 8 7 6 5 4 3 2}}\n\n  3 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT INTO t2 VALUES(new.a - 1);\n    END; \n  } {0 {0 1 2 3 4 5 6 7 8 9 10}}\n\n  4 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 BEGIN\n      SELECT CASE WHEN new.a==2 THEN RAISE(IGNORE) ELSE NULL END;\n      INSERT INTO t2 VALUES(new.a - 1);\n    END;\n  } {0 {3 4 5 6 7 8 9 10}}\n\n  5 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 BEGIN\n      INSERT INTO t2 VALUES(new.a - 1);\n    END;\n  } {1 {triggers nested too deep}}\n\n  6 { \n    CREATE TRIGGER t2_trig AFTER INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT OR IGNORE INTO t2 VALUES(new.a);\n    END;\n  } {0 10}\n\n  7 { \n    CREATE TRIGGER t2_trig BEFORE INSERT ON t2 WHEN (new.a>0) BEGIN\n      INSERT OR IGNORE INTO t2 VALUES(new.a);\n    END;\n  } {1 {triggers nested too deep}}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		n := _items0[_idx0+0]
 		_ = n // suppress unused warning
-		tdefn := _items[_idx+1]
+		tdefn := _items0[_idx0+1]
 		_ = tdefn // suppress unused warning
-		rc := _items[_idx+2]
+		rc := _items0[_idx0+2]
 		_ = rc // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "triggerC-2.1." + n
 				_res = db.Exec(" DROP TRIGGER t2_trig ")
 				_ = _res // catchsql
@@ -262,15 +264,15 @@ func Test_triggerC(t *testing.T) {
 			}
 		}
 		// foreach {n insert log} "\n\n  2 { \n   INSERT INTO t4 VALUES('1', '1', '1');\n   DELETE FROM t4;\n  } {\n    -1 integer 1 text 1 integer 1.0 real \n     1 integer 1 text 1 integer 1.0 real\n     1 integer 1 text 1 integer 1.0 real \n     1 integer 1 text 1 integer 1.0 real\n  }\n\n  3 { \n   INSERT INTO t4(rowid,a,b,c) VALUES(45, 45, 45, 45);\n   DELETE FROM t4;\n  } {\n    45 integer 45 text 45 integer 45.0 real\n    45 integer 45 text 45 integer 45.0 real\n    45 integer 45 text 45 integer 45.0 real\n    45 integer 45 text 45 integer 45.0 real\n  }\n\n  4 { \n   INSERT INTO t4(rowid,a,b,c) VALUES(-42.0, -42.0, -42.0, -42.0);\n   DELETE FROM t4;\n  } {\n    -42 integer -42.0 text -42 integer -42.0 real \n    -42 integer -42.0 text -42 integer -42.0 real\n    -42 integer -42.0 text -42 integer -42.0 real \n    -42 integer -42.0 text -42 integer -42.0 real\n  }\n\n  5 { \n   INSERT INTO t4(rowid,a,b,c) VALUES(NULL, -42.4, -42.4, -42.4);\n   DELETE FROM t4;\n  } {\n    -1 integer -42.4 text -42.4 real -42.4 real\n     1 integer -42.4 text -42.4 real -42.4 real\n     1 integer -42.4 text -42.4 real -42.4 real\n     1 integer -42.4 text -42.4 real -42.4 real\n  }\n\n  6 { \n   INSERT INTO t4 VALUES(7, 7, 7);\n   UPDATE t4 SET a=8, b=8, c=8;\n  } {\n    -1 integer 7 text 7 integer 7.0 real\n     1 integer 7 text 7 integer 7.0 real\n     1 integer 7 text 7 integer 7.0 real\n     1 integer 8 text 8 integer 8.0 real\n     1 integer 7 text 7 integer 7.0 real\n     1 integer 8 text 8 integer 8.0 real\n  }\n\n  7 { \n   UPDATE t4 SET rowid=2;\n  } {\n     1 integer 8 text 8 integer 8.0 real\n     2 integer 8 text 8 integer 8.0 real\n     1 integer 8 text 8 integer 8.0 real\n     2 integer 8 text 8 integer 8.0 real\n  }\n\n  8 { \n   UPDATE t4 SET a='9', b='9', c='9';\n  } {\n     2 integer 8 text 8 integer 8.0 real\n     2 integer 9 text 9 integer 9.0 real\n     2 integer 8 text 8 integer 8.0 real\n     2 integer 9 text 9 integer 9.0 real\n  }\n\n  9 { \n   UPDATE t4 SET a='9.1', b='9.1', c='9.1';\n  } {\n     2 integer 9   text 9   integer 9.0 real\n     2 integer 9.1 text 9.1 real    9.1 real\n     2 integer 9   text 9   integer 9.0 real\n     2 integer 9.1 text 9.1 real    9.1 real\n  }\n"
-		_items := tclSplitList("\n\n  2 { \n   INSERT INTO t4 VALUES('1', '1', '1');\n   DELETE FROM t4;\n  } {\n    -1 integer 1 text 1 integer 1.0 real \n     1 integer 1 text 1 integer 1.0 real\n     1 integer 1 text 1 integer 1.0 real \n     1 integer 1 text 1 integer 1.0 real\n  }\n\n  3 { \n   INSERT INTO t4(rowid,a,b,c) VALUES(45, 45, 45, 45);\n   DELETE FROM t4;\n  } {\n    45 integer 45 text 45 integer 45.0 real\n    45 integer 45 text 45 integer 45.0 real\n    45 integer 45 text 45 integer 45.0 real\n    45 integer 45 text 45 integer 45.0 real\n  }\n\n  4 { \n   INSERT INTO t4(rowid,a,b,c) VALUES(-42.0, -42.0, -42.0, -42.0);\n   DELETE FROM t4;\n  } {\n    -42 integer -42.0 text -42 integer -42.0 real \n    -42 integer -42.0 text -42 integer -42.0 real\n    -42 integer -42.0 text -42 integer -42.0 real \n    -42 integer -42.0 text -42 integer -42.0 real\n  }\n\n  5 { \n   INSERT INTO t4(rowid,a,b,c) VALUES(NULL, -42.4, -42.4, -42.4);\n   DELETE FROM t4;\n  } {\n    -1 integer -42.4 text -42.4 real -42.4 real\n     1 integer -42.4 text -42.4 real -42.4 real\n     1 integer -42.4 text -42.4 real -42.4 real\n     1 integer -42.4 text -42.4 real -42.4 real\n  }\n\n  6 { \n   INSERT INTO t4 VALUES(7, 7, 7);\n   UPDATE t4 SET a=8, b=8, c=8;\n  } {\n    -1 integer 7 text 7 integer 7.0 real\n     1 integer 7 text 7 integer 7.0 real\n     1 integer 7 text 7 integer 7.0 real\n     1 integer 8 text 8 integer 8.0 real\n     1 integer 7 text 7 integer 7.0 real\n     1 integer 8 text 8 integer 8.0 real\n  }\n\n  7 { \n   UPDATE t4 SET rowid=2;\n  } {\n     1 integer 8 text 8 integer 8.0 real\n     2 integer 8 text 8 integer 8.0 real\n     1 integer 8 text 8 integer 8.0 real\n     2 integer 8 text 8 integer 8.0 real\n  }\n\n  8 { \n   UPDATE t4 SET a='9', b='9', c='9';\n  } {\n     2 integer 8 text 8 integer 8.0 real\n     2 integer 9 text 9 integer 9.0 real\n     2 integer 8 text 8 integer 8.0 real\n     2 integer 9 text 9 integer 9.0 real\n  }\n\n  9 { \n   UPDATE t4 SET a='9.1', b='9.1', c='9.1';\n  } {\n     2 integer 9   text 9   integer 9.0 real\n     2 integer 9.1 text 9.1 real    9.1 real\n     2 integer 9   text 9   integer 9.0 real\n     2 integer 9.1 text 9.1 real    9.1 real\n  }\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			n := _items[_idx+0]
+		_items1 := tclSplitList("\n\n  2 { \n   INSERT INTO t4 VALUES('1', '1', '1');\n   DELETE FROM t4;\n  } {\n    -1 integer 1 text 1 integer 1.0 real \n     1 integer 1 text 1 integer 1.0 real\n     1 integer 1 text 1 integer 1.0 real \n     1 integer 1 text 1 integer 1.0 real\n  }\n\n  3 { \n   INSERT INTO t4(rowid,a,b,c) VALUES(45, 45, 45, 45);\n   DELETE FROM t4;\n  } {\n    45 integer 45 text 45 integer 45.0 real\n    45 integer 45 text 45 integer 45.0 real\n    45 integer 45 text 45 integer 45.0 real\n    45 integer 45 text 45 integer 45.0 real\n  }\n\n  4 { \n   INSERT INTO t4(rowid,a,b,c) VALUES(-42.0, -42.0, -42.0, -42.0);\n   DELETE FROM t4;\n  } {\n    -42 integer -42.0 text -42 integer -42.0 real \n    -42 integer -42.0 text -42 integer -42.0 real\n    -42 integer -42.0 text -42 integer -42.0 real \n    -42 integer -42.0 text -42 integer -42.0 real\n  }\n\n  5 { \n   INSERT INTO t4(rowid,a,b,c) VALUES(NULL, -42.4, -42.4, -42.4);\n   DELETE FROM t4;\n  } {\n    -1 integer -42.4 text -42.4 real -42.4 real\n     1 integer -42.4 text -42.4 real -42.4 real\n     1 integer -42.4 text -42.4 real -42.4 real\n     1 integer -42.4 text -42.4 real -42.4 real\n  }\n\n  6 { \n   INSERT INTO t4 VALUES(7, 7, 7);\n   UPDATE t4 SET a=8, b=8, c=8;\n  } {\n    -1 integer 7 text 7 integer 7.0 real\n     1 integer 7 text 7 integer 7.0 real\n     1 integer 7 text 7 integer 7.0 real\n     1 integer 8 text 8 integer 8.0 real\n     1 integer 7 text 7 integer 7.0 real\n     1 integer 8 text 8 integer 8.0 real\n  }\n\n  7 { \n   UPDATE t4 SET rowid=2;\n  } {\n     1 integer 8 text 8 integer 8.0 real\n     2 integer 8 text 8 integer 8.0 real\n     1 integer 8 text 8 integer 8.0 real\n     2 integer 8 text 8 integer 8.0 real\n  }\n\n  8 { \n   UPDATE t4 SET a='9', b='9', c='9';\n  } {\n     2 integer 8 text 8 integer 8.0 real\n     2 integer 9 text 9 integer 9.0 real\n     2 integer 8 text 8 integer 8.0 real\n     2 integer 9 text 9 integer 9.0 real\n  }\n\n  9 { \n   UPDATE t4 SET a='9.1', b='9.1', c='9.1';\n  } {\n     2 integer 9   text 9   integer 9.0 real\n     2 integer 9.1 text 9.1 real    9.1 real\n     2 integer 9   text 9   integer 9.0 real\n     2 integer 9.1 text 9.1 real    9.1 real\n  }\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			n := _items1[_idx1+0]
 			_ = n // suppress unused warning
-			insert := _items[_idx+1]
+			insert := _items1[_idx1+1]
 			_ = insert // suppress unused warning
-			log := _items[_idx+2]
+			log := _items1[_idx1+2]
 			_ = log // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "triggerC-4.1." + n
 					// eval concat [execsql " 
       DELETE FROM log;
@@ -284,17 +286,17 @@ func Test_triggerC(t *testing.T) {
 				}
 			}
 			// foreach {n dml t5g t5} "\n  1 \"DELETE FROM t5 WHERE a=2\"                        {2 b 3} {1 a 3 c}\n  2 \"INSERT OR REPLACE INTO t5 VALUES(2, 'd')\"        {2 b 3} {1 a 2 d 3 c}\n  3 \"UPDATE OR REPLACE t5 SET a = 2 WHERE a = 3\"      {2 b 3} {1 a 2 c}\n  4 \"INSERT OR REPLACE INTO t5 VALUES(4, 'b')\"        {2 b 3} {1 a 3 c 4 b}\n  5 \"UPDATE OR REPLACE t5 SET b = 'b' WHERE b = 'c'\"  {2 b 3} {1 a 3 b}\n  6 \"INSERT OR REPLACE INTO t5 VALUES(2, 'c')\"        {2 b 3 3 c 2} {1 a 2 c}\n  7 \"UPDATE OR REPLACE t5 SET a=1, b='b' WHERE a = 3\" {1 a 3 2 b 2} {1 b}\n"
-			_items := tclSplitList("\n  1 \"DELETE FROM t5 WHERE a=2\"                        {2 b 3} {1 a 3 c}\n  2 \"INSERT OR REPLACE INTO t5 VALUES(2, 'd')\"        {2 b 3} {1 a 2 d 3 c}\n  3 \"UPDATE OR REPLACE t5 SET a = 2 WHERE a = 3\"      {2 b 3} {1 a 2 c}\n  4 \"INSERT OR REPLACE INTO t5 VALUES(4, 'b')\"        {2 b 3} {1 a 3 c 4 b}\n  5 \"UPDATE OR REPLACE t5 SET b = 'b' WHERE b = 'c'\"  {2 b 3} {1 a 3 b}\n  6 \"INSERT OR REPLACE INTO t5 VALUES(2, 'c')\"        {2 b 3 3 c 2} {1 a 2 c}\n  7 \"UPDATE OR REPLACE t5 SET a=1, b='b' WHERE a = 3\" {1 a 3 2 b 2} {1 b}\n")
-			for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-				n := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 \"DELETE FROM t5 WHERE a=2\"                        {2 b 3} {1 a 3 c}\n  2 \"INSERT OR REPLACE INTO t5 VALUES(2, 'd')\"        {2 b 3} {1 a 2 d 3 c}\n  3 \"UPDATE OR REPLACE t5 SET a = 2 WHERE a = 3\"      {2 b 3} {1 a 2 c}\n  4 \"INSERT OR REPLACE INTO t5 VALUES(4, 'b')\"        {2 b 3} {1 a 3 c 4 b}\n  5 \"UPDATE OR REPLACE t5 SET b = 'b' WHERE b = 'c'\"  {2 b 3} {1 a 3 b}\n  6 \"INSERT OR REPLACE INTO t5 VALUES(2, 'c')\"        {2 b 3 3 c 2} {1 a 2 c}\n  7 \"UPDATE OR REPLACE t5 SET a=1, b='b' WHERE a = 3\" {1 a 3 2 b 2} {1 b}\n")
+			for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
+				n := _items2[_idx2+0]
 				_ = n // suppress unused warning
-				dml := _items[_idx+1]
+				dml := _items2[_idx2+1]
 				_ = dml // suppress unused warning
-				t5g := _items[_idx+2]
+				t5g := _items2[_idx2+2]
 				_ = t5g // suppress unused warning
-				t5 := _items[_idx+3]
+				t5 := _items2[_idx2+3]
 				_ = t5 // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					{ // do_test "triggerC-5.1." + n
 						_res = db.Exec("\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
 						if _res.Error != nil {
@@ -309,17 +311,17 @@ func Test_triggerC(t *testing.T) {
 					}
 				}
 				// foreach {n dml t5g t5} "\n  1 \"DELETE FROM t5 WHERE a=2\"                        {2 b 2} {1 a 3 c}\n  2 \"INSERT OR REPLACE INTO t5 VALUES(2, 'd')\"        {2 b 2} {1 a 2 d 3 c}\n  3 \"UPDATE OR REPLACE t5 SET a = 2 WHERE a = 3\"      {2 b 2} {1 a 2 c}\n  4 \"INSERT OR REPLACE INTO t5 VALUES(4, 'b')\"        {2 b 2} {1 a 3 c 4 b}\n  5 \"UPDATE OR REPLACE t5 SET b = 'b' WHERE b = 'c'\"  {2 b 2} {1 a 3 b}\n  6 \"INSERT OR REPLACE INTO t5 VALUES(2, 'c')\"        {2 b 2 3 c 1} {1 a 2 c}\n  7 \"UPDATE OR REPLACE t5 SET a=1, b='b' WHERE a = 3\" {1 a 2 2 b 1} {1 b}\n"
-				_items := tclSplitList("\n  1 \"DELETE FROM t5 WHERE a=2\"                        {2 b 2} {1 a 3 c}\n  2 \"INSERT OR REPLACE INTO t5 VALUES(2, 'd')\"        {2 b 2} {1 a 2 d 3 c}\n  3 \"UPDATE OR REPLACE t5 SET a = 2 WHERE a = 3\"      {2 b 2} {1 a 2 c}\n  4 \"INSERT OR REPLACE INTO t5 VALUES(4, 'b')\"        {2 b 2} {1 a 3 c 4 b}\n  5 \"UPDATE OR REPLACE t5 SET b = 'b' WHERE b = 'c'\"  {2 b 2} {1 a 3 b}\n  6 \"INSERT OR REPLACE INTO t5 VALUES(2, 'c')\"        {2 b 2 3 c 1} {1 a 2 c}\n  7 \"UPDATE OR REPLACE t5 SET a=1, b='b' WHERE a = 3\" {1 a 2 2 b 1} {1 b}\n")
-				for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-					n := _items[_idx+0]
+				_items3 := tclSplitList("\n  1 \"DELETE FROM t5 WHERE a=2\"                        {2 b 2} {1 a 3 c}\n  2 \"INSERT OR REPLACE INTO t5 VALUES(2, 'd')\"        {2 b 2} {1 a 2 d 3 c}\n  3 \"UPDATE OR REPLACE t5 SET a = 2 WHERE a = 3\"      {2 b 2} {1 a 2 c}\n  4 \"INSERT OR REPLACE INTO t5 VALUES(4, 'b')\"        {2 b 2} {1 a 3 c 4 b}\n  5 \"UPDATE OR REPLACE t5 SET b = 'b' WHERE b = 'c'\"  {2 b 2} {1 a 3 b}\n  6 \"INSERT OR REPLACE INTO t5 VALUES(2, 'c')\"        {2 b 2 3 c 1} {1 a 2 c}\n  7 \"UPDATE OR REPLACE t5 SET a=1, b='b' WHERE a = 3\" {1 a 2 2 b 1} {1 b}\n")
+				for _idx3 := 0; _idx3+4 <= len(_items3); _idx3 += 4 {
+					n := _items3[_idx3+0]
 					_ = n // suppress unused warning
-					dml := _items[_idx+1]
+					dml := _items3[_idx3+1]
 					_ = dml // suppress unused warning
-					t5g := _items[_idx+2]
+					t5g := _items3[_idx3+2]
 					_ = t5g // suppress unused warning
-					t5 := _items[_idx+3]
+					t5 := _items3[_idx3+3]
 					_ = t5 // suppress unused warning
-					_ = _idx
+					_ = _idx3
 						{ // do_test "triggerC-5.2." + n
 							_res = db.Exec("\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
 							if _res.Error != nil {
@@ -334,17 +336,17 @@ func Test_triggerC(t *testing.T) {
 						}
 					}
 					// foreach {n dml t5g t5} "\n  1 \"DELETE FROM t5 WHERE a=2\"                        {2 b 2} {1 a 3 c}\n  2 \"INSERT OR REPLACE INTO t5 VALUES(2, 'd')\"        {} {1 a 2 d 3 c}\n  3 \"UPDATE OR REPLACE t5 SET a = 2 WHERE a = 3\"      {} {1 a 2 c}\n  4 \"INSERT OR REPLACE INTO t5 VALUES(4, 'b')\"        {} {1 a 3 c 4 b}\n  5 \"UPDATE OR REPLACE t5 SET b = 'b' WHERE b = 'c'\"  {} {1 a 3 b}\n  6 \"INSERT OR REPLACE INTO t5 VALUES(2, 'c')\"        {} {1 a 2 c}\n  7 \"UPDATE OR REPLACE t5 SET a=1, b='b' WHERE a = 3\" {} {1 b}\n"
-					_items := tclSplitList("\n  1 \"DELETE FROM t5 WHERE a=2\"                        {2 b 2} {1 a 3 c}\n  2 \"INSERT OR REPLACE INTO t5 VALUES(2, 'd')\"        {} {1 a 2 d 3 c}\n  3 \"UPDATE OR REPLACE t5 SET a = 2 WHERE a = 3\"      {} {1 a 2 c}\n  4 \"INSERT OR REPLACE INTO t5 VALUES(4, 'b')\"        {} {1 a 3 c 4 b}\n  5 \"UPDATE OR REPLACE t5 SET b = 'b' WHERE b = 'c'\"  {} {1 a 3 b}\n  6 \"INSERT OR REPLACE INTO t5 VALUES(2, 'c')\"        {} {1 a 2 c}\n  7 \"UPDATE OR REPLACE t5 SET a=1, b='b' WHERE a = 3\" {} {1 b}\n")
-					for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-						n := _items[_idx+0]
+					_items4 := tclSplitList("\n  1 \"DELETE FROM t5 WHERE a=2\"                        {2 b 2} {1 a 3 c}\n  2 \"INSERT OR REPLACE INTO t5 VALUES(2, 'd')\"        {} {1 a 2 d 3 c}\n  3 \"UPDATE OR REPLACE t5 SET a = 2 WHERE a = 3\"      {} {1 a 2 c}\n  4 \"INSERT OR REPLACE INTO t5 VALUES(4, 'b')\"        {} {1 a 3 c 4 b}\n  5 \"UPDATE OR REPLACE t5 SET b = 'b' WHERE b = 'c'\"  {} {1 a 3 b}\n  6 \"INSERT OR REPLACE INTO t5 VALUES(2, 'c')\"        {} {1 a 2 c}\n  7 \"UPDATE OR REPLACE t5 SET a=1, b='b' WHERE a = 3\" {} {1 b}\n")
+					for _idx4 := 0; _idx4+4 <= len(_items4); _idx4 += 4 {
+						n := _items4[_idx4+0]
 						_ = n // suppress unused warning
-						dml := _items[_idx+1]
+						dml := _items4[_idx4+1]
 						_ = dml // suppress unused warning
-						t5g := _items[_idx+2]
+						t5g := _items4[_idx4+2]
 						_ = t5g // suppress unused warning
-						t5 := _items[_idx+3]
+						t5 := _items4[_idx4+3]
 						_ = t5 // suppress unused warning
-						_ = _idx
+						_ = _idx4
 							{ // do_test "triggerC-5.3." + n
 								_res = db.Exec("\n      BEGIN;\n        " + dml + " ;\n        SELECT * FROM t5g ORDER BY rowid;\n        SELECT * FROM t5 ORDER BY rowid;\n      ROLLBACK;\n    ")
 								if _res.Error != nil {
@@ -477,15 +479,15 @@ func Test_triggerC(t *testing.T) {
 							}
 						}
 						// foreach {testno tbl defaults} "\n  1 \"CREATE TABLE t1(a, b)\"                          {{} {}}\n  2 \"CREATE TABLE t1(a DEFAULT 1, b DEFAULT 'abc')\"  {1 abc}\n  3 \"CREATE TABLE t1(a, b DEFAULT 4.5)\"              {{} 4.5}\n"
-						_items := tclSplitList("\n  1 \"CREATE TABLE t1(a, b)\"                          {{} {}}\n  2 \"CREATE TABLE t1(a DEFAULT 1, b DEFAULT 'abc')\"  {1 abc}\n  3 \"CREATE TABLE t1(a, b DEFAULT 4.5)\"              {{} 4.5}\n")
-						for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-							testno := _items[_idx+0]
+						_items5 := tclSplitList("\n  1 \"CREATE TABLE t1(a, b)\"                          {{} {}}\n  2 \"CREATE TABLE t1(a DEFAULT 1, b DEFAULT 'abc')\"  {1 abc}\n  3 \"CREATE TABLE t1(a, b DEFAULT 4.5)\"              {{} 4.5}\n")
+						for _idx5 := 0; _idx5+3 <= len(_items5); _idx5 += 3 {
+							testno := _items5[_idx5+0]
 							_ = testno // suppress unused warning
-							tbl := _items[_idx+1]
+							tbl := _items5[_idx5+1]
 							_ = tbl // suppress unused warning
-							defaults := _items[_idx+2]
+							defaults := _items5[_idx5+2]
 							_ = defaults // suppress unused warning
-							_ = _idx
+							_ = _idx5
 								{ // do_test "triggerC-11." + testno + ".1"
 									_res = db.Exec(" DROP TABLE t1 ")
 									_ = _res // catchsql

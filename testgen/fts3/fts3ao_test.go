@@ -18,6 +18,8 @@ func Test_fts3ao(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts3ao" // TCL namespace variable
@@ -253,13 +255,13 @@ func Test_fts3ao(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n"
-	_items := tclSplitList("\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {}\n  2 { INSERT INTO ft(ft) VALUES('merge=2,2'); }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

@@ -17,20 +17,22 @@ func Test_triggerF(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "triggerF"
 	_ = testprefix // suppress unused warning
 	// foreach {tn sql log} "\n  1 {} {}\n\n  2 { \n    CREATE TRIGGER trd AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one2 2two1 3three1}\n\n  3 { \n    CREATE TRIGGER trd BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 2two2 3three2}\n\n  4 { \n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n    CREATE TRIGGER tr2 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 1one2 2two2 2two1 3three2 3three1}\n\n"
-	_items := tclSplitList("\n  1 {} {}\n\n  2 { \n    CREATE TRIGGER trd AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one2 2two1 3three1}\n\n  3 { \n    CREATE TRIGGER trd BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 2two2 3three2}\n\n  4 { \n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n    CREATE TRIGGER tr2 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 1one2 2two2 2two1 3three2 3three1}\n\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {} {}\n\n  2 { \n    CREATE TRIGGER trd AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one2 2two1 3three1}\n\n  3 { \n    CREATE TRIGGER trd BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 2two2 3three2}\n\n  4 { \n    CREATE TRIGGER tr1 AFTER DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n    CREATE TRIGGER tr2 BEFORE DELETE ON t1 BEGIN\n      INSERT INTO log VALUES(old.a || old.b || (SELECT count(*) FROM t1));\n    END;\n  } {1one3 1one2 2two2 2two1 3three2 3three1}\n\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		log := _items[_idx+2]
+		log := _items0[_idx0+2]
 		_ = log // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

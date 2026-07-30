@@ -17,20 +17,22 @@ func Test_changes(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "changes"
 	_ = testprefix // suppress unused warning
 	// foreach {tn nRow wor} "\n  1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"\n"
-	_items := tclSplitList("\n  1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 50 \"\"\n  2 50 \"WITHOUT ROWID\"\n\n  3 5000 \"\"\n  4 5000 \"WITHOUT ROWID\"\n\n  5 50000 \"\"\n  6 50000 \"WITHOUT ROWID\"\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		nRow := _items[_idx+1]
+		nRow := _items0[_idx0+1]
 		_ = nRow // suppress unused warning
-		wor := _items[_idx+2]
+		wor := _items0[_idx0+2]
 		_ = wor // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

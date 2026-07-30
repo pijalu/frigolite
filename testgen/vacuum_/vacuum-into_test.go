@@ -19,6 +19,8 @@ func Test_vacuum_into(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("out.db")
@@ -197,15 +199,15 @@ func Test_vacuum_into(t *testing.T) {
 		}
 	}
 	// foreach {tn pragma res} "\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n"
-	_items := tclSplitList("\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  710 {\n    PRAGMA synchronous = normal\n  } {normal 2}\n  720 {\n    PRAGMA synchronous = full\n  } {normal 3}\n  730 {\n    PRAGMA synchronous = off\n  } {}\n  740 {\n    PRAGMA synchronous = extra;\n  } {normal 3}\n  750 {\n    PRAGMA fullfsync = 1;\n    PRAGMA synchronous = full;\n  } {full|dataonly 1 full 2}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		pragma := _items[_idx+1]
+		pragma := _items0[_idx0+1]
 		_ = pragma // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			os.Remove("test.db2")
 			{ // "vacuum-into-" + tn + ".1"
 				_res = db.Exec("\n    " + pragma + " ;\n    VACUUM INTO 'test.db2'\n  ")

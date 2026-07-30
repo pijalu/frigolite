@@ -18,6 +18,8 @@ func Test_between(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "between-1.0"
@@ -90,15 +92,15 @@ func Test_between(t *testing.T) {
 		}
 	}
 	// foreach {tn expr res} "\n  1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0\n"
-	_items := tclSplitList("\n  1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 \"x                BETWEEN 1 AND '5'\" 0\n  2 \"x COLLATE binary BETWEEN 1 AND '5'\" 0\n  3 \"x COLLATE nocase BETWEEN 1 AND '5'\" 0\n\n  4 \"y                  BETWEEN 'A' AND 'B'\" 1\n  5 \"y COLLATE nocase   BETWEEN 'A' AND 'B'\" 1\n  6 \"y COLLATE binary   BETWEEN 'A' AND 'B'\" 0\n  7 \"(y COLLATE binary) BETWEEN 'A' AND 'B'\" 0\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		expr := _items[_idx+1]
+		expr := _items0[_idx0+1]
 		_ = expr // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var sql = "SELECT " + expr + " FROM t1"
 			_ = sql // suppress unused warning
 			{ // "between-2.1." + tn

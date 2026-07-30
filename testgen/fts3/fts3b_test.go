@@ -18,6 +18,8 @@ func Test_fts3b(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  CREATE VIRTUAL TABLE t1 USING fts3(c);\n  INSERT INTO t1 (c) VALUES('this is a test');\n  INSERT INTO t1 (c) VALUES('that was a test');\n  INSERT INTO t1 (c) VALUES('this is fun');\n  DELETE FROM t1 WHERE c = 'that was a test';\n")

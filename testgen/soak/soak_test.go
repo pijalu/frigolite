@@ -18,6 +18,8 @@ func Test_soak(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -25,13 +27,13 @@ func Test_soak(t *testing.T) {
 	_ = TIMEOUT // suppress unused warning
 	if tclBool("llength $argv" + ">0") {
 		// foreach {name value} argv
-		_items := tclSplitList(argv)
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			name := _items[_idx+0]
+		_items0 := tclSplitList(argv)
+		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+			name := _items0[_idx0+0]
 			_ = name // suppress unused warning
-			value := _items[_idx+1]
+			value := _items0[_idx0+1]
 			_ = value // suppress unused warning
-			_ = _idx
+			_ = _idx0
 				t.Errorf("TODO: %s not implemented in frigolite", "switch -- $name {\n      -timeout {\n        set TIMEOUT $value\n     ...}")
 			}
 		}

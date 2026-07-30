@@ -18,6 +18,8 @@ func Test_joinI(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "joinI"
@@ -29,13 +31,13 @@ func Test_joinI(t *testing.T) {
 		}
 	}
 	// foreach {tn sql} "\n  1 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=t3.c CROSS JOIN t3\"\n  2 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=(SELECT t3.c) CROSS JOIN t3\"\n  3 \"SELECT * FROM t1 RIGHT JOIN t2 ON CASE WHEN t2.b THEN t3.c ELSE 1 END CROSS JOIN t3\"\n"
-	_items := tclSplitList("\n  1 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=t3.c CROSS JOIN t3\"\n  2 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=(SELECT t3.c) CROSS JOIN t3\"\n  3 \"SELECT * FROM t1 RIGHT JOIN t2 ON CASE WHEN t2.b THEN t3.c ELSE 1 END CROSS JOIN t3\"\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=t3.c CROSS JOIN t3\"\n  2 \"SELECT * FROM t1 RIGHT JOIN t2 ON t2.b=(SELECT t3.c) CROSS JOIN t3\"\n  3 \"SELECT * FROM t1 RIGHT JOIN t2 ON CASE WHEN t2.b THEN t3.c ELSE 1 END CROSS JOIN t3\"\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1.1." + tn
 				_res = db.Exec(sql)
 				if _res.Error == nil || !strings.Contains(_res.Error.Error(), "ON clause references tables to its right") {

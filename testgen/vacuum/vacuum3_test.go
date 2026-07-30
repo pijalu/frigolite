@@ -18,6 +18,8 @@ func Test_vacuum3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "vacuum3-1.1"
@@ -38,15 +40,15 @@ func Test_vacuum3(t *testing.T) {
 	var I = "4"
 	_ = I // suppress unused warning
 	// foreach {request actual database} "list \\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\"
-	_items := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		request := _items[_idx+0]
+	_items0 := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 2048                        \\\n  1170 1024 2048                        \\\n  256  1024 2048                        \\\n  512  512  1024                        \\\n  4096 4096 8192                        \\\n  1024 1024 2048                        \\")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		request := _items0[_idx0+0]
 		_ = request // suppress unused warning
-		actual := _items[_idx+1]
+		actual := _items0[_idx0+1]
 		_ = actual // suppress unused warning
-		database := _items[_idx+2]
+		database := _items0[_idx0+2]
 		_ = database // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "vacuum3-1." + I + ".1"
 				_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
 				if _res.Error != nil {
@@ -101,15 +103,15 @@ func Test_vacuum3(t *testing.T) {
 		var I = "4"
 		_ = I // suppress unused warning
 		// foreach {request actual database} "list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\"
-		_items := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			request := _items[_idx+0]
+		_items1 := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			request := _items1[_idx1+0]
 			_ = request // suppress unused warning
-			actual := _items[_idx+1]
+			actual := _items1[_idx1+1]
 			_ = actual // suppress unused warning
-			database := _items[_idx+2]
+			database := _items1[_idx1+2]
 			_ = database // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "vacuum3-2." + I + ".1"
 					_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
 					if _res.Error != nil {
@@ -157,13 +159,13 @@ func Test_vacuum3(t *testing.T) {
 			var I = "3"
 			_ = I // suppress unused warning
 			// foreach {request actual} "list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\"
-			_items := tclSplitList("list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				request := _items[_idx+0]
+			_items2 := tclSplitList("list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				request := _items2[_idx2+0]
 				_ = request // suppress unused warning
-				actual := _items[_idx+1]
+				actual := _items2[_idx2+1]
 				_ = actual // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					{ // do_test "vacuum3-3." + I + ".1"
 						_res = db.Exec(" \n      PRAGMA page_size = " + request + ";\n      VACUUM;\n    ")
 						if _res.Error != nil {

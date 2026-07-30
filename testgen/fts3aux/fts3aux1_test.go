@@ -19,6 +19,8 @@ func Test_fts3aux1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts3aux1" // TCL namespace variable
@@ -537,15 +539,15 @@ func Test_fts3aux1(t *testing.T) {
 		}
 	}
 	// foreach {tn sort orderby} "\n  1    0    \"ORDER BY term ASC\"\n  2    0    \"ORDER BY term\"\n  3    1    \"ORDER BY term DESC\"\n  4    1    \"ORDER BY documents ASC\"\n  5    1    \"ORDER BY documents\"\n  6    1    \"ORDER BY documents DESC\"\n  7    1    \"ORDER BY occurrences ASC\"\n  8    1    \"ORDER BY occurrences\"\n  9    1    \"ORDER BY occurrences DESC\"\n"
-	_items := tclSplitList("\n  1    0    \"ORDER BY term ASC\"\n  2    0    \"ORDER BY term\"\n  3    1    \"ORDER BY term DESC\"\n  4    1    \"ORDER BY documents ASC\"\n  5    1    \"ORDER BY documents\"\n  6    1    \"ORDER BY documents DESC\"\n  7    1    \"ORDER BY occurrences ASC\"\n  8    1    \"ORDER BY occurrences\"\n  9    1    \"ORDER BY occurrences DESC\"\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1    0    \"ORDER BY term ASC\"\n  2    0    \"ORDER BY term\"\n  3    1    \"ORDER BY term DESC\"\n  4    1    \"ORDER BY documents ASC\"\n  5    1    \"ORDER BY documents\"\n  6    1    \"ORDER BY documents DESC\"\n  7    1    \"ORDER BY occurrences ASC\"\n  8    1    \"ORDER BY occurrences\"\n  9    1    \"ORDER BY occurrences DESC\"\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sort := _items[_idx+1]
+		sort := _items0[_idx0+1]
 		_ = sort // suppress unused warning
-		orderby := _items[_idx+2]
+		orderby := _items0[_idx0+2]
 		_ = orderby // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var res = "SCAN terms VIRTUAL TABLE INDEX 0:"
 			_ = res // suppress unused warning
 			if tclBool(sort) {
@@ -686,17 +688,17 @@ func Test_fts3aux1(t *testing.T) {
 			}
 		}
 		// foreach {tn q res1 res2} "\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n"
-		_items := tclSplitList("\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n")
-		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1  { SELECT * FROM %%% WHERE term = 'a' } {a * 2 3 a 0 2 3} {}\n  2  { SELECT * FROM %%% WHERE term = 'x' } {} {x * 2 2 x 1 2 2} \n\n  3  { SELECT * FROM %%% WHERE term >= 'y' } \n     {} {y * 2 2 y 1 2 2 z * 1 2 z 0 1 2}\n\n  4  { SELECT * FROM %%% WHERE term <= 'c' } \n     {a * 2 3 a 0 2 3 b * 2 3 b 0 1 1 b 1 1 2 c * 2 2 c 1 2 2} {}\n")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			q := _items[_idx+1]
+			q := _items1[_idx1+1]
 			_ = q // suppress unused warning
-			res1 := _items[_idx+2]
+			res1 := _items1[_idx1+2]
 			_ = res1 // suppress unused warning
-			res2 := _items[_idx+3]
+			res2 := _items1[_idx1+3]
 			_ = res2 // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				var sql1 = "{%%% aux1} $q"
 				_ = sql1 // suppress unused warning
 				var sql2 = "{%%% aux2} $q"

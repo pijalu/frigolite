@@ -19,6 +19,8 @@ func Test_badutf2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -41,21 +43,21 @@ func Test_badutf2(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_expired $S")
 	}
 	// foreach {i len uval xstr ustr u2u} "\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n"
-	_items := tclSplitList("\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n")
-	for _idx := 0; _idx+6 <= len(_items); _idx += 6 {
-		i := _items[_idx+0]
+	_items0 := tclSplitList("\n1 1 00     \\x00         {}        {}\n2 1 01     \\x01         \"\\\\u0001\" 01\n3 1 3F     \\x3F         \"\\\\u003F\" 3F\n4 1 7F     \\x7F         \"\\\\u007F\" 7F\n5 1 80     \\x80         \"\\\\u0080\" C280\n6 1 C3BF   \\xFF         \"\\\\u00FF\" C3BF\n7 3 EFBFBD \\xEF\\xBF\\xBD \"\\\\uFFFD\" {}\n")
+	for _idx0 := 0; _idx0+6 <= len(_items0); _idx0 += 6 {
+		i := _items0[_idx0+0]
 		_ = i // suppress unused warning
-		len := _items[_idx+1]
+		len := _items0[_idx0+1]
 		_ = len // suppress unused warning
-		uval := _items[_idx+2]
+		uval := _items0[_idx0+2]
 		_ = uval // suppress unused warning
-		xstr := _items[_idx+3]
+		xstr := _items0[_idx0+3]
 		_ = xstr // suppress unused warning
-		ustr := _items[_idx+4]
+		ustr := _items0[_idx0+4]
 		_ = ustr // suppress unused warning
-		u2u := _items[_idx+5]
+		u2u := _items0[_idx0+5]
 		_ = u2u // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var hstr = "utf8_to_hstr $uval"
 			_ = hstr // suppress unused warning
 			if hstr != "%00" {

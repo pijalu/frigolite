@@ -17,6 +17,8 @@ func Test_alterfault(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "alterfault"
@@ -40,13 +42,13 @@ func Test_alterfault(t *testing.T) {
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "faultsim_save_and_close")
 	// foreach {tn sql} "\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n"
-	_items := tclSplitList("\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 { ALTER TABLE x1 ADD CHECK (d!=1) }\n  2 { ALTER TABLE x1 ADD CONSTRAINT xyz CHECK (f>d+e); }\n  3 { ALTER TABLE x1 DROP CONSTRAINT abc }\n  4 { ALTER TABLE x1 ALTER f SET NOT NULL }\n  5 { ALTER TABLE x1 ALTER e DROP NOT NULL }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.$tn -faults oom* -prep {\n    faultsim_restore_and_reopen\n  } -body {\n    execsql $::sql\n  } -test {\n    faultsim_test_result {0 {}}\n  }")
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "do_faultsim_test 2.e -faults oom* -prep {\n  faultsim_restore_and_reopen\n} -body {\n  execsql {\n    ALTER TABLE x1 DROP CONSTRAINT no...} -test {\n  faultsim_test_result                           ...}")

@@ -17,6 +17,8 @@ func Test_chunksize(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "chunksize"
@@ -25,13 +27,13 @@ func Test_chunksize(t *testing.T) {
 		return
 	}
 	// foreach {tn jrnlmode} "\n  1 delete\n  2 wal\n"
-	_items := tclSplitList("\n  1 delete\n  2 wal\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 delete\n  2 wal\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		jrnlmode := _items[_idx+1]
+		jrnlmode := _items0[_idx0+1]
 		_ = jrnlmode // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }

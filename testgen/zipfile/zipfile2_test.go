@@ -20,6 +20,8 @@ func Test_zipfile2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	if func() bool { tcl_version_n, _tcl_version_e := strconv.Atoi(tcl_version); if _tcl_version_e != nil { return false }; return tcl_version_n < 8.6 }() {
 		t.Log("Requires TCL 8.6 or later")
@@ -212,13 +214,13 @@ func Test_zipfile2(t *testing.T) {
 		}
 	}
 	// foreach {tn sub} "\n  1 {504B0500}\n  2 {504B0006}\n  3 {50000506}\n  4 {004B0506}\n"
-	_items := tclSplitList("\n  1 {504B0500}\n  2 {504B0006}\n  3 {50000506}\n  4 {004B0506}\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {504B0500}\n  2 {504B0006}\n  3 {50000506}\n  4 {004B0506}\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sub := _items[_idx+1]
+		sub := _items0[_idx0+1]
 		_ = sub // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var blob = "blob [string map [list 504B0506 $sub] $archive2]"
 			_ = blob // suppress unused warning
 			{ // "4.3." + tn

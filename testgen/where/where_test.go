@@ -19,6 +19,8 @@ func Test_where(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "where-1.0"
@@ -1022,15 +1024,15 @@ func Test_where(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res} "\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n"
-	_items := tclSplitList("\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 \"SELECT b FROM t1\"                   {one two three four}\n  2 \"SELECT b FROM t1 WHERE a<4\"         {one two three}\n  3 \"SELECT b FROM t1 WHERE a>1\"         {two three four}\n  4 \"SELECT b FROM t1 WHERE a>1 AND a<4\" {two three}\n\n  5 \"SELECT b FROM t1 WHERE a>? AND a<4\" {}\n  6 \"SELECT b FROM t1 WHERE a>1 AND a<?\" {}\n  7 \"SELECT b FROM t1 WHERE a>? AND a<?\" {}\n\n  7 \"SELECT b FROM t1 WHERE a>=? AND a<=4\" {}\n  8 \"SELECT b FROM t1 WHERE a>=1 AND a<=?\" {}\n  9 \"SELECT b FROM t1 WHERE a>=? AND a<=?\" {}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var rev = "list"
 			_ = rev // suppress unused warning
 			for _, r := range tclSplitList(res) {

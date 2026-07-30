@@ -17,6 +17,8 @@ func Test_having(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "having"
@@ -28,15 +30,15 @@ func Test_having(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res} "\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\" {2 12}\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2 AND sum(b)>10\" {2 12}\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>12\" {}\n"
-	_items := tclSplitList("\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\" {2 12}\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2 AND sum(b)>10\" {2 12}\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>12\" {}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\" {2 12}\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2 AND sum(b)>10\" {2 12}\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>12\" {}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1." + tn
 				_res = db.Exec(sql)
 				if _res.Error != nil {
@@ -47,15 +49,15 @@ func Test_having(t *testing.T) {
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
 		// foreach {tn sql1 sql2} "\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>5 AND a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a HAVING sum(b)>5\"\n\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE binary\"\n\n  5 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING 1\"\n    \"SELECT a, sum(b) FROM t1 WHERE 1 GROUP BY a COLLATE binary\"\n\n  6 \"SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d HAVING b=d\"\n    \"SELECT count(*) FROM t1,t2 WHERE a=c AND b=d GROUP BY b, d\"\n\n  7 {\n      SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d \n      HAVING b=d COLLATE nocase\n    } {\n      SELECT count(*) FROM t1,t2 WHERE a=c AND b=d COLLATE nocase \n      GROUP BY b, d\n    }\n\n  8 \"SELECT a, sum(b) FROM t1 GROUP BY a||b HAVING substr(a||b, 1, 1)='a'\"\n    \"SELECT a, sum(b) FROM t1 WHERE substr(a||b, 1, 1)='a' GROUP BY a||b\"\n"
-		_items := tclSplitList("\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>5 AND a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a HAVING sum(b)>5\"\n\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE binary\"\n\n  5 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING 1\"\n    \"SELECT a, sum(b) FROM t1 WHERE 1 GROUP BY a COLLATE binary\"\n\n  6 \"SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d HAVING b=d\"\n    \"SELECT count(*) FROM t1,t2 WHERE a=c AND b=d GROUP BY b, d\"\n\n  7 {\n      SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d \n      HAVING b=d COLLATE nocase\n    } {\n      SELECT count(*) FROM t1,t2 WHERE a=c AND b=d COLLATE nocase \n      GROUP BY b, d\n    }\n\n  8 \"SELECT a, sum(b) FROM t1 GROUP BY a||b HAVING substr(a||b, 1, 1)='a'\"\n    \"SELECT a, sum(b) FROM t1 WHERE substr(a||b, 1, 1)='a' GROUP BY a||b\"\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING sum(b)>5 AND a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a HAVING sum(b)>5\"\n\n  3 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE binary\"\n\n  5 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE binary HAVING 1\"\n    \"SELECT a, sum(b) FROM t1 WHERE 1 GROUP BY a COLLATE binary\"\n\n  6 \"SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d HAVING b=d\"\n    \"SELECT count(*) FROM t1,t2 WHERE a=c AND b=d GROUP BY b, d\"\n\n  7 {\n      SELECT count(*) FROM t1,t2 WHERE a=c GROUP BY b, d \n      HAVING b=d COLLATE nocase\n    } {\n      SELECT count(*) FROM t1,t2 WHERE a=c AND b=d COLLATE nocase \n      GROUP BY b, d\n    }\n\n  8 \"SELECT a, sum(b) FROM t1 GROUP BY a||b HAVING substr(a||b, 1, 1)='a'\"\n    \"SELECT a, sum(b) FROM t1 WHERE substr(a||b, 1, 1)='a' GROUP BY a||b\"\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			sql1 := _items[_idx+1]
+			sql1 := _items1[_idx1+1]
 			_ = sql1 // suppress unused warning
-			sql2 := _items[_idx+2]
+			sql2 := _items1[_idx1+2]
 			_ = sql2 // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				t.Errorf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 2.$tn $sql1 $sql2 1")
 			}
 			{ // "2.4a"
@@ -83,15 +85,15 @@ func Test_having(t *testing.T) {
 				}
 			}
 			// foreach {tn sql1 sql2} "\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE nocase HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE nocase\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING randomblob(a)<X'88'\"\n    \"SELECT a, sum(b) FROM t1 WHERE randomblob(a)<X'88' GROUP BY a\"\n"
-			_items := tclSplitList("\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE nocase HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE nocase\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING randomblob(a)<X'88'\"\n    \"SELECT a, sum(b) FROM t1 WHERE randomblob(a)<X'88' GROUP BY a\"\n")
-			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 \"SELECT a, sum(b) FROM t1 GROUP BY a COLLATE nocase HAVING a=2\"\n    \"SELECT a, sum(b) FROM t1 WHERE a=2 GROUP BY a COLLATE nocase\"\n\n  2 \"SELECT a, sum(b) FROM t1 GROUP BY a HAVING randomblob(a)<X'88'\"\n    \"SELECT a, sum(b) FROM t1 WHERE randomblob(a)<X'88' GROUP BY a\"\n")
+			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				sql1 := _items[_idx+1]
+				sql1 := _items2[_idx2+1]
 				_ = sql1 // suppress unused warning
-				sql2 := _items[_idx+2]
+				sql2 := _items2[_idx2+2]
 				_ = sql2 // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					t.Errorf("TODO: %s not implemented in frigolite", "do_compare_vdbe_test 3.$tn $sql1 $sql2 0")
 				}
 				{ // "4.1"

@@ -19,20 +19,22 @@ func Test_altercons(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "altercons"
 	_ = testprefix // suppress unused warning
 	// foreach {tn before after} "\n  1 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  2 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b NOT NULL CONSTRAINT abc CHECK(t1.a != t1.b)); }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  4 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  5 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b), PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b, PRIMARY KEY(a)) }\n\n  6 { CREATE TABLE t1(a, b,CONSTRAINT abc CHECK(t1.a != t1.b),PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b,PRIMARY KEY(a)) }\n\n  7 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CONSTRAINT def UNIQUE) }\n    { CREATE TABLE t1(a, b CONSTRAINT def UNIQUE) }\n\n  8 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CHECK (123)) }\n    { CREATE TABLE t1(a, b CHECK (123)) }\n\n  9 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) DEFAULT NULL) }\n    { CREATE TABLE t1(a, b DEFAULT NULL) }\n\n 10 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) COLLATE nocase) }\n    { CREATE TABLE t1(a, b COLLATE nocase) }\n\n 11 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) REFERENCES t2) }\n    { CREATE TABLE t1(a, b REFERENCES t2) }\n\n 12 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT three) }\n\n 13 { CREATE TABLE t1(a, b, c, CONSTRAINT abc CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n\n 14 { CREATE TABLE t1(a, b, c, CONSTRAINT abc) }\n    { CREATE TABLE t1(a, b, c) }\n\n 15 { CREATE TABLE t1(a, b, c,      \n                      CONSTRAINT abc, CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c, CHECK( a!=b )) }\n\n 16 { CREATE TABLE t1(a, b, c, CONSTRAINT abc /* hello */ CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 17 { CREATE TABLE t1(a, b, c, /* world */ CONSTRAINT abc CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 18 { CREATE TABLE t1(a, b, c -- comment\n  CONSTRAINT abc NOT NULL\n  ) }\n    { CREATE TABLE t1(a, b, c) }\n\n 19 { CREATE TABLE t1(a, b, c, -- comment\n  CONSTRAINT abc CHECK (a>b) CONSTRAINT two\n  ) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT two\n  ) }\n\n 20 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK (a>b)CONSTRAINT two) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT two) }\n\n 21 { CREATE TABLE t1(a, b, c CONSTRAINT abc AS (b+1)) }\n    { CREATE TABLE t1(a, b, c AS (b+1)) }\n\n 22 { CREATE TABLE t1(a, b, c CONSTRAINT abc GENERATED ALWAYS AS (b+1) STORED) }\n    { CREATE TABLE t1(a, b, c GENERATED ALWAYS AS (b+1) STORED) }\n"
-	_items := tclSplitList("\n  1 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  2 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b NOT NULL CONSTRAINT abc CHECK(t1.a != t1.b)); }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  4 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  5 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b), PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b, PRIMARY KEY(a)) }\n\n  6 { CREATE TABLE t1(a, b,CONSTRAINT abc CHECK(t1.a != t1.b),PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b,PRIMARY KEY(a)) }\n\n  7 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CONSTRAINT def UNIQUE) }\n    { CREATE TABLE t1(a, b CONSTRAINT def UNIQUE) }\n\n  8 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CHECK (123)) }\n    { CREATE TABLE t1(a, b CHECK (123)) }\n\n  9 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) DEFAULT NULL) }\n    { CREATE TABLE t1(a, b DEFAULT NULL) }\n\n 10 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) COLLATE nocase) }\n    { CREATE TABLE t1(a, b COLLATE nocase) }\n\n 11 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) REFERENCES t2) }\n    { CREATE TABLE t1(a, b REFERENCES t2) }\n\n 12 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT three) }\n\n 13 { CREATE TABLE t1(a, b, c, CONSTRAINT abc CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n\n 14 { CREATE TABLE t1(a, b, c, CONSTRAINT abc) }\n    { CREATE TABLE t1(a, b, c) }\n\n 15 { CREATE TABLE t1(a, b, c,      \n                      CONSTRAINT abc, CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c, CHECK( a!=b )) }\n\n 16 { CREATE TABLE t1(a, b, c, CONSTRAINT abc /* hello */ CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 17 { CREATE TABLE t1(a, b, c, /* world */ CONSTRAINT abc CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 18 { CREATE TABLE t1(a, b, c -- comment\n  CONSTRAINT abc NOT NULL\n  ) }\n    { CREATE TABLE t1(a, b, c) }\n\n 19 { CREATE TABLE t1(a, b, c, -- comment\n  CONSTRAINT abc CHECK (a>b) CONSTRAINT two\n  ) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT two\n  ) }\n\n 20 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK (a>b)CONSTRAINT two) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT two) }\n\n 21 { CREATE TABLE t1(a, b, c CONSTRAINT abc AS (b+1)) }\n    { CREATE TABLE t1(a, b, c AS (b+1)) }\n\n 22 { CREATE TABLE t1(a, b, c CONSTRAINT abc GENERATED ALWAYS AS (b+1) STORED) }\n    { CREATE TABLE t1(a, b, c GENERATED ALWAYS AS (b+1) STORED) }\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  2 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b)NOT NULL) }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  3 { CREATE TABLE t1(a, b NOT NULL CONSTRAINT abc CHECK(t1.a != t1.b)); }\n    { CREATE TABLE t1(a, b NOT NULL) }\n\n  4 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b)) }\n    { CREATE TABLE t1(a, b) }\n\n  5 { CREATE TABLE t1(a, b, CONSTRAINT abc CHECK(t1.a != t1.b), PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b, PRIMARY KEY(a)) }\n\n  6 { CREATE TABLE t1(a, b,CONSTRAINT abc CHECK(t1.a != t1.b),PRIMARY KEY(a))}\n    { CREATE TABLE t1(a, b,PRIMARY KEY(a)) }\n\n  7 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CONSTRAINT def UNIQUE) }\n    { CREATE TABLE t1(a, b CONSTRAINT def UNIQUE) }\n\n  8 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) CHECK (123)) }\n    { CREATE TABLE t1(a, b CHECK (123)) }\n\n  9 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) DEFAULT NULL) }\n    { CREATE TABLE t1(a, b DEFAULT NULL) }\n\n 10 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) COLLATE nocase) }\n    { CREATE TABLE t1(a, b COLLATE nocase) }\n\n 11 { CREATE TABLE t1(a, b CONSTRAINT abc CHECK(t1.a != t1.b) REFERENCES t2) }\n    { CREATE TABLE t1(a, b REFERENCES t2) }\n\n 12 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT three) }\n\n 13 { CREATE TABLE t1(a, b, c, CONSTRAINT abc CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CHECK(a!=b) CONSTRAINT three) }\n\n 14 { CREATE TABLE t1(a, b, c, CONSTRAINT abc) }\n    { CREATE TABLE t1(a, b, c) }\n\n 15 { CREATE TABLE t1(a, b, c,      \n                      CONSTRAINT abc, CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c, CHECK( a!=b )) }\n\n 16 { CREATE TABLE t1(a, b, c, CONSTRAINT abc /* hello */ CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 17 { CREATE TABLE t1(a, b, c, /* world */ CONSTRAINT abc CHECK( a!=b )) }\n    { CREATE TABLE t1(a, b, c) }\n\n 18 { CREATE TABLE t1(a, b, c -- comment\n  CONSTRAINT abc NOT NULL\n  ) }\n    { CREATE TABLE t1(a, b, c) }\n\n 19 { CREATE TABLE t1(a, b, c, -- comment\n  CONSTRAINT abc CHECK (a>b) CONSTRAINT two\n  ) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT two\n  ) }\n\n 20 { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT abc CHECK (a>b)CONSTRAINT two) }\n    { CREATE TABLE t1(a, b, c, CONSTRAINT one CONSTRAINT two) }\n\n 21 { CREATE TABLE t1(a, b, c CONSTRAINT abc AS (b+1)) }\n    { CREATE TABLE t1(a, b, c AS (b+1)) }\n\n 22 { CREATE TABLE t1(a, b, c CONSTRAINT abc GENERATED ALWAYS AS (b+1) STORED) }\n    { CREATE TABLE t1(a, b, c GENERATED ALWAYS AS (b+1) STORED) }\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		before := _items[_idx+1]
+		before := _items0[_idx0+1]
 		_ = before // suppress unused warning
-		after := _items[_idx+2]
+		after := _items0[_idx0+2]
 		_ = after // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -83,17 +85,17 @@ func Test_altercons(t *testing.T) {
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
 		// foreach {tn col before after} "\n  1 a { CREATE TABLE t1(a NOT NULL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  2 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  3 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a UNIQUE, b) }\n\n  4 b { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n\n  5 a { CREATE TABLE t1(a CHECK(a<b) NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  6 a { CREATE TABLE t1(a CHECK(a<b) CONSTRAINT nn NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  7 b { CREATE TABLE t1(a, b NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b PRIMARY KEY) }\n\n  8 b { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) PRIMARY KEY) }\n\n  9 b { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL) NOT NULL) }\n      { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL)) }\n\n 10 b { CREATE TABLE t1(a, b NOT NULL AS (a+1)) }\n      { CREATE TABLE t1(a, b AS (a+1)) }\n\n 11 b { CREATE TABLE t1(a, b NOT NULL GENERATED ALWAYS AS (a+1)) }\n      { CREATE TABLE t1(a, b GENERATED ALWAYS AS (a+1)) }\n"
-		_items := tclSplitList("\n  1 a { CREATE TABLE t1(a NOT NULL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  2 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  3 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a UNIQUE, b) }\n\n  4 b { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n\n  5 a { CREATE TABLE t1(a CHECK(a<b) NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  6 a { CREATE TABLE t1(a CHECK(a<b) CONSTRAINT nn NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  7 b { CREATE TABLE t1(a, b NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b PRIMARY KEY) }\n\n  8 b { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) PRIMARY KEY) }\n\n  9 b { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL) NOT NULL) }\n      { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL)) }\n\n 10 b { CREATE TABLE t1(a, b NOT NULL AS (a+1)) }\n      { CREATE TABLE t1(a, b AS (a+1)) }\n\n 11 b { CREATE TABLE t1(a, b NOT NULL GENERATED ALWAYS AS (a+1)) }\n      { CREATE TABLE t1(a, b GENERATED ALWAYS AS (a+1)) }\n")
-		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 a { CREATE TABLE t1(a NOT NULL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  2 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n      { CREATE TABLE t1(a, b) }\n\n  3 a { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a UNIQUE, b) }\n\n  4 b { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n      { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL UNIQUE, b) }\n\n  5 a { CREATE TABLE t1(a CHECK(a<b) NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  6 a { CREATE TABLE t1(a CHECK(a<b) CONSTRAINT nn NOT NULL, b) }\n      { CREATE TABLE t1(a CHECK(a<b), b) }\n\n  7 b { CREATE TABLE t1(a, b NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b PRIMARY KEY) }\n\n  8 b { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) NOT NULL PRIMARY KEY) }\n      { CREATE TABLE t1(a, b CHECK ((b+a) IS NOT NULL) PRIMARY KEY) }\n\n  9 b { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL) NOT NULL) }\n      { CREATE TABLE t1(a, b CONSTRAINT nn CHECK (b IS NOT NULL)) }\n\n 10 b { CREATE TABLE t1(a, b NOT NULL AS (a+1)) }\n      { CREATE TABLE t1(a, b AS (a+1)) }\n\n 11 b { CREATE TABLE t1(a, b NOT NULL GENERATED ALWAYS AS (a+1)) }\n      { CREATE TABLE t1(a, b GENERATED ALWAYS AS (a+1)) }\n")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			col := _items[_idx+1]
+			col := _items1[_idx1+1]
 			_ = col // suppress unused warning
-			before := _items[_idx+2]
+			before := _items1[_idx1+2]
 			_ = before // suppress unused warning
-			after := _items[_idx+3]
+			after := _items1[_idx1+3]
 			_ = after // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }
@@ -156,17 +158,17 @@ func Test_altercons(t *testing.T) {
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 			}
 			// foreach {tn before alter after} "\n  1  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL }\n     { CREATE TABLE t1(a NOT NULL, b) }\n\n  2  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT FAIL }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n\n  3  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT fail; }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT fail, b) }\n\n  4  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER b SET NOT   NULL ON CONFLICT IGNORE ; }\n     { CREATE TABLE t1(a, b NOT   NULL ON CONFLICT IGNORE) }\n\n  5  { CREATE TABLE t1(a, 'a b c' VARCHAR(10), UNIQUE(a)) }\n     { ALTER TABLE t1 ALTER 'a b c' SET NOT NULL }\n     { CREATE TABLE t1(a, 'a b c' VARCHAR(10) NOT NULL, UNIQUE(a)) }\n"
-			_items := tclSplitList("\n  1  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL }\n     { CREATE TABLE t1(a NOT NULL, b) }\n\n  2  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT FAIL }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n\n  3  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT fail; }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT fail, b) }\n\n  4  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER b SET NOT   NULL ON CONFLICT IGNORE ; }\n     { CREATE TABLE t1(a, b NOT   NULL ON CONFLICT IGNORE) }\n\n  5  { CREATE TABLE t1(a, 'a b c' VARCHAR(10), UNIQUE(a)) }\n     { ALTER TABLE t1 ALTER 'a b c' SET NOT NULL }\n     { CREATE TABLE t1(a, 'a b c' VARCHAR(10) NOT NULL, UNIQUE(a)) }\n")
-			for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL }\n     { CREATE TABLE t1(a NOT NULL, b) }\n\n  2  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT FAIL }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT FAIL, b) }\n\n  3  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER a SET NOT NULL ON CONFLICT fail; }\n     { CREATE TABLE t1(a NOT NULL ON CONFLICT fail, b) }\n\n  4  { CREATE TABLE t1(a, b) }\n     { ALTER TABLE t1 ALTER b SET NOT   NULL ON CONFLICT IGNORE ; }\n     { CREATE TABLE t1(a, b NOT   NULL ON CONFLICT IGNORE) }\n\n  5  { CREATE TABLE t1(a, 'a b c' VARCHAR(10), UNIQUE(a)) }\n     { ALTER TABLE t1 ALTER 'a b c' SET NOT NULL }\n     { CREATE TABLE t1(a, 'a b c' VARCHAR(10) NOT NULL, UNIQUE(a)) }\n")
+			for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				before := _items[_idx+1]
+				before := _items2[_idx2+1]
 				_ = before // suppress unused warning
-				alter := _items[_idx+2]
+				alter := _items2[_idx2+2]
 				_ = alter // suppress unused warning
-				after := _items[_idx+3]
+				after := _items2[_idx2+3]
 				_ = after // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					db.Close()
 					db, err = frigolite.Open("")
 					if err != nil { t.Fatal(err) }
@@ -247,17 +249,17 @@ func Test_altercons(t *testing.T) {
 					}
 				}
 				// foreach {tn before alter after} "\n  1 { CREATE TABLE t1(a, b) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b, CONSTRAINT nn CHECK (a>=0)) }\n\n  2 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CONSTRAINT nn CHECK (a>=0)) }\n\n  3 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CHECK (a>=0)) }\n"
-				_items := tclSplitList("\n  1 { CREATE TABLE t1(a, b) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b, CONSTRAINT nn CHECK (a>=0)) }\n\n  2 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CONSTRAINT nn CHECK (a>=0)) }\n\n  3 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CHECK (a>=0)) }\n")
-				for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-					tn := _items[_idx+0]
+				_items3 := tclSplitList("\n  1 { CREATE TABLE t1(a, b) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b, CONSTRAINT nn CHECK (a>=0)) }\n\n  2 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CONSTRAINT nn CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CONSTRAINT nn CHECK (a>=0)) }\n\n  3 { CREATE TABLE t1(a, b  ) }\n    { ALTER TABLE t1 ADD CHECK (a>=0) }\n    { CREATE TABLE t1(a, b  , CHECK (a>=0)) }\n")
+				for _idx3 := 0; _idx3+4 <= len(_items3); _idx3 += 4 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					before := _items[_idx+1]
+					before := _items3[_idx3+1]
 					_ = before // suppress unused warning
-					alter := _items[_idx+2]
+					alter := _items3[_idx3+2]
 					_ = alter // suppress unused warning
-					after := _items[_idx+3]
+					after := _items3[_idx3+3]
 					_ = after // suppress unused warning
-					_ = _idx
+					_ = _idx3
 						db.Close()
 						db, err = frigolite.Open("")
 						if err != nil { t.Fatal(err) }

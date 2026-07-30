@@ -19,6 +19,8 @@ func Test_e_blobopen(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "e_blobopen"
@@ -94,15 +96,15 @@ func Test_e_blobopen(t *testing.T) {
 		_ = _list
 	}
 	// foreach {tn iRow flags} "\n  1 1   0\n  2 2   1\n  3 3  -1\n  4 4   2147483647\n  5 5  -2147483648\n"
-	_items := tclSplitList("\n  1 1   0\n  2 2   1\n  3 3  -1\n  4 4   2147483647\n  5 5  -2147483648\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 1   0\n  2 2   1\n  3 3  -1\n  4 4   2147483647\n  5 5  -2147483648\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		iRow := _items[_idx+1]
+		iRow := _items0[_idx0+1]
 		_ = iRow // suppress unused warning
-		flags := _items[_idx+2]
+		flags := _items0[_idx0+2]
 		_ = flags // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "3." + tn + ".1"
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_blob_open db main x1 c $iRow $flags B")
 				var n = "sqlite3_blob_bytes $B"

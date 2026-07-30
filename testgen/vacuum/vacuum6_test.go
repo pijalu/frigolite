@@ -17,6 +17,8 @@ func Test_vacuum6(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vacuum6"
@@ -46,13 +48,13 @@ func Test_vacuum6(t *testing.T) {
 	db, err = frigolite.Open("")
 	if err != nil { t.Fatal(err) }
 	// foreach {tn sz} "1 400 2 4000 3 9999"
-	_items := tclSplitList("1 400 2 4000 3 9999")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("1 400 2 4000 3 9999")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sz := _items[_idx+1]
+		sz := _items0[_idx0+1]
 		_ = sz // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -124,15 +126,15 @@ func Test_vacuum6(t *testing.T) {
 			}
 		}
 		// foreach {tn pgsz av} "\n  1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1\n"
-		_items := tclSplitList("\n  1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 2048   0\n  2 1024   1\n  3 65536  0\n  4 8192   1\n  5 512    0\n  6 4096   1\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			pgsz := _items[_idx+1]
+			pgsz := _items1[_idx1+1]
 			_ = pgsz // suppress unused warning
-			av := _items[_idx+2]
+			av := _items1[_idx1+2]
 			_ = av // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // "4.1." + tn + ".1"
 					r = db.Query("\n    PRAGMA page_size = " + pgsz + ";\n    PRAGMA auto_vacuum = " + av + ";\n  ")
 					if r.Error != nil {

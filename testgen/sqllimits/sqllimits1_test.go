@@ -19,6 +19,8 @@ func Test_sqllimits1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sqllimits1"
@@ -933,13 +935,13 @@ func Test_sqllimits1(t *testing.T) {
 		}
 	}
 	// foreach {key value} "array get saved"
-	_items := tclSplitList("array get saved")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		key := _items[_idx+0]
+	_items0 := tclSplitList("array get saved")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		key := _items0[_idx0+0]
 		_ = key // suppress unused warning
-		value := _items[_idx+1]
+		value := _items0[_idx0+1]
 		_ = value // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{
 				var _catchErr error
 				_ = _catchErr // suppress unused warning

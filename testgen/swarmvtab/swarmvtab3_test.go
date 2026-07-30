@@ -19,6 +19,8 @@ func Test_swarmvtab3(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "swarmvtab3"
@@ -65,15 +67,15 @@ func Test_swarmvtab3(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// foreach {tn nMaxOpen cvt} "\n  1 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n\n  2 3 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 3\n    )\n  }\n\n  3 1 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix||''.''||:suffix||id, tbl, minval, minval FROM swarm',\n        :prefix=test, :suffix=db,\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 1\n    )\n  }\n\n"
-	_items := tclSplitList("\n  1 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n\n  2 3 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 3\n    )\n  }\n\n  3 1 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix||''.''||:suffix||id, tbl, minval, minval FROM swarm',\n        :prefix=test, :suffix=db,\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 1\n    )\n  }\n\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n\n  2 3 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix || id, tbl, minval, minval FROM swarm',\n        :prefix='test.db',\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 3\n    )\n  }\n\n  3 1 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT :prefix||''.''||:suffix||id, tbl, minval, minval FROM swarm',\n        :prefix=test, :suffix=db,\n        missing =       'missing_db',\n        openclose=[openclose_db],\n        maxopen = 1\n    )\n  }\n\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		nMaxOpen := _items[_idx+1]
+		nMaxOpen := _items0[_idx0+1]
 		_ = nMaxOpen // suppress unused warning
-		cvt := _items[_idx+2]
+		cvt := _items0[_idx0+2]
 		_ = cvt // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			_res = db.Exec(" DROP TABLE IF EXISTS s ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS s ")
@@ -185,15 +187,15 @@ func Test_swarmvtab3(t *testing.T) {
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
 		// foreach {tn nMaxOpen cvt} "\n  2 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT file, tbl, minval, minval, ctx FROM swarm',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n"
-		_items := tclSplitList("\n  2 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT file, tbl, minval, minval, ctx FROM swarm',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  2 5 {\n    CREATE VIRTUAL TABLE temp.s USING swarmvtab(\n        'SELECT file, tbl, minval, minval, ctx FROM swarm',\n        missing=missing_db,\n        openclose=openclose_db,\n        maxopen=5\n    )\n  }\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			nMaxOpen := _items[_idx+1]
+			nMaxOpen := _items1[_idx1+1]
 			_ = nMaxOpen // suppress unused warning
-			cvt := _items[_idx+2]
+			cvt := _items1[_idx1+2]
 			_ = cvt // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				_res = db.Exec(" DROP TABLE IF EXISTS s ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS s ")

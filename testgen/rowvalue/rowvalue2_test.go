@@ -17,6 +17,8 @@ func Test_rowvalue2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "rowvalue2" // TCL namespace variable
@@ -138,13 +140,13 @@ func Test_rowvalue2(t *testing.T) {
 		}
 	}
 	// foreach {tn idx} "\n  IDX1 {}\n  IDX2 { CREATE INDEX i3 ON t3(a, b, c); }\n  IDX3 { CREATE INDEX i3 ON t3(a, b); }\n  IDX4 { CREATE INDEX i3 ON t3(a); }\n"
-	_items := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i3 ON t3(a, b, c); }\n  IDX3 { CREATE INDEX i3 ON t3(a, b); }\n  IDX4 { CREATE INDEX i3 ON t3(a); }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i3 ON t3(a, b, c); }\n  IDX3 { CREATE INDEX i3 ON t3(a, b); }\n  IDX4 { CREATE INDEX i3 ON t3(a); }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		idx := _items[_idx+1]
+		idx := _items0[_idx0+1]
 		_ = idx // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			_res = db.Exec(" DROP INDEX IF EXISTS i3 ")
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i3 ")
@@ -186,13 +188,13 @@ func Test_rowvalue2(t *testing.T) {
 		// proc definition (not transpiled)
 		// proc definition (not transpiled)
 		// foreach {tn idx} "\n  IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }\n"
-		_items := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  IDX1 {}\n  IDX2 { CREATE INDEX i4 ON t4(a, b, c); }\n  IDX3 { CREATE INDEX i4 ON t4(a, b); }\n  IDX4 { CREATE INDEX i4 ON t4(a); }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			idx := _items[_idx+1]
+			idx := _items1[_idx1+1]
 			_ = idx // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				_res = db.Exec(" DROP INDEX IF EXISTS i4 ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP INDEX IF EXISTS i4 ")
@@ -202,13 +204,13 @@ func Test_rowvalue2(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, idx)
 				}
 				// foreach {tn2 vector} "\n    1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}\n  "
-				_items := tclSplitList("\n    1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}\n  ")
-				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-					tn2 := _items[_idx+0]
+				_items2 := tclSplitList("\n    1 {0 0 0}\n    2 {1 1 1}\n    3 {0 0 NULL}\n    4 {0 NULL 0}\n    5 {NULL 0 0}\n    6 {1 1 NULL}\n    7 {1 NULL 1}\n    8 {NULL 1 1}\n  ")
+				for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+					tn2 := _items2[_idx2+0]
 					_ = tn2 // suppress unused warning
-					vector := _items[_idx+1]
+					vector := _items2[_idx2+1]
 					_ = vector // suppress unused warning
-					_ = _idx
+					_ = _idx2
 						for _, op := range tclSplitList(" IS == < <= > >= ") {
 							var e1 = "make_expr1 {a b c} $vector $op"
 							_ = e1 // suppress unused warning
@@ -236,15 +238,15 @@ func Test_rowvalue2(t *testing.T) {
 					}
 				}
 				// foreach {tn lhs rhs} "\n  1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}\n"
-				_items := tclSplitList("\n  1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}\n")
-				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-					tn := _items[_idx+0]
+				_items3 := tclSplitList("\n  1 {x +zY} {a iB}\n  2 {x  zY} {a iB}\n  3 {x  zY} {a +iB}\n  4 {+x  zY} {a iB}\n  5 {x  zY} {+a iB}\n")
+				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					lhs := _items[_idx+1]
+					lhs := _items3[_idx3+1]
 					_ = lhs // suppress unused warning
-					rhs := _items[_idx+2]
+					rhs := _items3[_idx3+2]
 					_ = rhs // suppress unused warning
-					_ = _idx
+					_ = _idx3
 						for _, op := range tclSplitList(" IS == < <= > >= ") {
 							var e1 = "make_expr1 $lhs $rhs $op"
 							_ = e1 // suppress unused warning

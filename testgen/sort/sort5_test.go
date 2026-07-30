@@ -19,6 +19,8 @@ func Test_sort5(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sort5"
@@ -85,17 +87,17 @@ func Test_sort5(t *testing.T) {
 		t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA temp_store = 1 ")
 	}
 	// foreach {tn pgsz cachesz bTemp} "\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n"
-	_items := tclSplitList("\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 4096   1000  0\n  2 1024   1000  1\n\n  3 4096  -1000  1\n  4 1024  -1000  1\n\n  5 4096  -9000  0\n  6 1024  -9000  0\n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		pgsz := _items[_idx+1]
+		pgsz := _items0[_idx0+1]
 		_ = pgsz // suppress unused warning
-		cachesz := _items[_idx+2]
+		cachesz := _items0[_idx0+2]
 		_ = cachesz // suppress unused warning
-		bTemp := _items[_idx+3]
+		bTemp := _items0[_idx0+3]
 		_ = bTemp // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			if func() bool { _TEMP_STORE_n, __TEMP_STORE_e := strconv.Atoi(_TEMP_STORE); if __TEMP_STORE_e != nil { return false }; return _TEMP_STORE_n > 2 }() {
 				var bTemp = "0"
 				_ = bTemp // suppress unused warning

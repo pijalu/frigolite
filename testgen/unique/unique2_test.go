@@ -18,16 +18,18 @@ func Test_unique2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// foreach {id sql} "\n   1 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL) WITHOUT ROWID}\n   2 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL)}\n   3 {CREATE TABLE t1(x TEXT PRIMARY KEY, y) WITHOUT ROWID}\n   4 {CREATE TABLE t1(x TEXT PRIMARY KEY, y)}\n"
-	_items := tclSplitList("\n   1 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL) WITHOUT ROWID}\n   2 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL)}\n   3 {CREATE TABLE t1(x TEXT PRIMARY KEY, y) WITHOUT ROWID}\n   4 {CREATE TABLE t1(x TEXT PRIMARY KEY, y)}\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		id := _items[_idx+0]
+	_items0 := tclSplitList("\n   1 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL) WITHOUT ROWID}\n   2 {CREATE TABLE t1(x TEXT PRIMARY KEY, y NOT NULL)}\n   3 {CREATE TABLE t1(x TEXT PRIMARY KEY, y) WITHOUT ROWID}\n   4 {CREATE TABLE t1(x TEXT PRIMARY KEY, y)}\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		id := _items0[_idx0+0]
 		_ = id // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test id + ".1"
 				_res = db.Exec("DROP TABLE IF EXISTS t1")
 				if _res.Error != nil {
@@ -48,13 +50,13 @@ func Test_unique2(t *testing.T) {
 			}
 		}
 		// foreach {id sql} "\n   5 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   6 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x))}\n   7 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   8 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x))}\n   9 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  10 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x))}\n  11 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  12 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x))}\n"
-		_items := tclSplitList("\n   5 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   6 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x))}\n   7 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   8 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x))}\n   9 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  10 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x))}\n  11 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  12 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x))}\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			id := _items[_idx+0]
+		_items1 := tclSplitList("\n   5 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   6 {CREATE TABLE t1(w,x,y NOT NULL,z NOT NULL,PRIMARY KEY(w,x))}\n   7 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n   8 {CREATE TABLE t1(w,x,y NOT NULL,z,PRIMARY KEY(w,x))}\n   9 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  10 {CREATE TABLE t1(w,x,y,z NOT NULL,PRIMARY KEY(w,x))}\n  11 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x)) WITHOUT ROWID}\n  12 {CREATE TABLE t1(w,x,y,z,PRIMARY KEY(w,x))}\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			id := _items1[_idx1+0]
 			_ = id // suppress unused warning
-			sql := _items[_idx+1]
+			sql := _items1[_idx1+1]
 			_ = sql // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test id + ".1"
 					_res = db.Exec("DROP TABLE IF EXISTS t1")
 					if _res.Error != nil {

@@ -19,6 +19,8 @@ func Test_wal(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "wal"
@@ -744,15 +746,15 @@ func Test_wal(t *testing.T) {
 		_ = _catchErr // suppress unused warning
 	}
 	// foreach {tn sectorsize logsize} "\n  1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512" + "\n"
-	_items := tclSplitList("\n  1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512" + "\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1   128  " + "wal_file_size 172 512" + "\n  2   256  " + "wal_file_size 172 512" + "\n  3   512  " + "wal_file_size 172 512" + " \n  4  1024  " + "wal_file_size 172 512" + "\n  5  2048  " + "wal_file_size 172 512" + "\n  6  4096  " + "wal_file_size 176 512" + "\n  7  8192  " + "wal_file_size 184 512" + "\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sectorsize := _items[_idx+1]
+		sectorsize := _items0[_idx0+1]
 		_ = sectorsize // suppress unused warning
-		logsize := _items[_idx+2]
+		logsize := _items0[_idx0+2]
 		_ = logsize // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			os.Remove("test.db")
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_simulate_device -sectorsize $sectorsize")
 			db, err := frigolite.Open("test.db")
@@ -811,13 +813,13 @@ func Test_wal(t *testing.T) {
 			_ = _list
 		}
 		// foreach {nFrame result} "\n         0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}\n"
-		_items := tclSplitList("\n         0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			nFrame := _items[_idx+0]
+		_items1 := tclSplitList("\n         0      {0 0}\n         1      {0 0}\n         2      {0 0 1 2}\n         3      {0 0 1 2}\n         4      {0 0 1 2 3 4}\n         5      {0 0 1 2 3 4}\n         6      {0 0 1 2 3 4 5 6}\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			nFrame := _items1[_idx1+0]
 			_ = nFrame // suppress unused warning
-			result := _items[_idx+1]
+			result := _items1[_idx1+1]
 			_ = result // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "wal-18.1." + nFrame
 					tclFileCopy("testX.db", "test.db")
 					tclFileCopy("testX.db-wal", "test.db-wal")
@@ -835,15 +837,15 @@ func Test_wal(t *testing.T) {
 			// proc definition (not transpiled)
 			tclFileCopy("test.db", "testX.db")
 			// foreach {tn pgsz works} " \n  1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0\n"
-			_items := tclSplitList(" \n  1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0\n")
-			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList(" \n  1    128    0\n  2    256    0\n  3    512    1\n  4   1024    1\n  5   2048    1\n  6   4096    1\n  7   8192    1\n  8  16384    1\n  9  32768    1\n 10  65536    1\n 11 131072    0\n 11   1016    0\n")
+			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				pgsz := _items[_idx+1]
+				pgsz := _items2[_idx2+1]
 				_ = pgsz // suppress unused warning
-				works := _items[_idx+2]
+				works := _items2[_idx2+2]
 				_ = works // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					if func() bool { _SQLITE_MAX_PAGE_SIZE_n, __SQLITE_MAX_PAGE_SIZE_e := strconv.Atoi(_SQLITE_MAX_PAGE_SIZE); if __SQLITE_MAX_PAGE_SIZE_e != nil { return false }; pgsz_n, _pgsz_e := strconv.Atoi(pgsz); if _pgsz_e != nil { return false }; return _SQLITE_MAX_PAGE_SIZE_n < pgsz_n }() {
 						var works = "0"
 						_ = works // suppress unused warning

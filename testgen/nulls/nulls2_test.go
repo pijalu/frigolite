@@ -17,18 +17,20 @@ func Test_nulls2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "nulls2"
 	_ = testprefix // suppress unused warning
 	// foreach {tn idx} "\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n"
-	_items := tclSplitList("\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		idx := _items[_idx+1]
+		idx := _items0[_idx0+1]
 		_ = idx // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			db.Close()
 			db, err = frigolite.Open("")
 			if err != nil { t.Fatal(err) }
@@ -50,13 +52,13 @@ func Test_nulls2(t *testing.T) {
 			}
 		}
 		// foreach {tn idx} "\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n"
-		_items := tclSplitList("\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  1 {}\n  2 { CREATE INDEX i1 ON t1(a, b, c) }\n  3 { CREATE INDEX i1 ON t1(b, c, a) }\n  4 { CREATE INDEX i1 ON t1(c, a, b) }\n  5 { CREATE INDEX i1 ON t1(c, b, a) }\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			idx := _items[_idx+1]
+			idx := _items1[_idx1+1]
 			_ = idx // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				db.Close()
 				db, err = frigolite.Open("")
 				if err != nil { t.Fatal(err) }

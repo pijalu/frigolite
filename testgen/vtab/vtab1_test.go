@@ -19,6 +19,8 @@ func Test_vtab1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtab1"
@@ -1046,17 +1048,17 @@ func Test_vtab1(t *testing.T) {
 		}
 	}
 	// foreach {tn sql res filter} "\n  2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}\n"
-	_items := tclSplitList("\n  2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}\n")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  2.1 \"SELECT a FROM e6 WHERE b LIKE '8%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b like ?} 8%}\n\n  2.2 \"SELECT a FROM e6 WHERE b LIKE '8j%'\" {}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8j 8k 8j%}\n\n  2.3 \"SELECT a FROM e6 WHERE b LIKE '8J%'\" {3 4}\n    {xFilter {SELECT rowid, a, b FROM 't6' WHERE b >= ? AND b < ? AND b like ?} 8J 8K 8J%}\n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		sql := _items[_idx+1]
+		sql := _items0[_idx0+1]
 		_ = sql // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		filter := _items[_idx+3]
+		filter := _items0[_idx0+3]
 		_ = filter // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var echo_module = ""
 			_ = echo_module // suppress unused warning
 			{ // "18." + tn + ".1"

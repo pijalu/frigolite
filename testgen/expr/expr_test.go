@@ -19,6 +19,8 @@ func Test_expr(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -716,13 +718,13 @@ func Test_expr(t *testing.T) {
 		}
 	}
 	// foreach {tn val} "list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf"
-	_items := tclSplitList("list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("list 1 NaN 2 -NaN 3 NaN0 4 -NaN0 5 Inf 6 -Inf")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		val := _items[_idx+1]
+		val := _items0[_idx0+1]
 		_ = val // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "expr-15." + tn + ".1"
 				_res = db.Exec("\n    DROP TABLE IF EXISTS t1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(0),(1),(NULL),(0.5),('1x'),('0x');\n  ")
 				if _res.Error != nil {

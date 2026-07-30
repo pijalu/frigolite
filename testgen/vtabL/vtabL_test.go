@@ -18,6 +18,8 @@ func Test_vtabL(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "vtabL"
@@ -25,13 +27,13 @@ func Test_vtabL(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "register_tcl_module db")
 	// proc definition (not transpiled)
 	// foreach {tn cts} "\n  1 {SELECT 123}\n  2 {SELECT 123, 456}\n  3 {INSERT INTO t1 VALUES(5, 6)}\n  4 {CREATE INDEX i1 ON t1(a)}\n  5 {CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END;}\n  6 {DROP TABLE nosuchtable}\n  7 {DROP TABLE x1}\n  8 {DROP TABLE t1}\n"
-	_items := tclSplitList("\n  1 {SELECT 123}\n  2 {SELECT 123, 456}\n  3 {INSERT INTO t1 VALUES(5, 6)}\n  4 {CREATE INDEX i1 ON t1(a)}\n  5 {CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END;}\n  6 {DROP TABLE nosuchtable}\n  7 {DROP TABLE x1}\n  8 {DROP TABLE t1}\n")
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 {SELECT 123}\n  2 {SELECT 123, 456}\n  3 {INSERT INTO t1 VALUES(5, 6)}\n  4 {CREATE INDEX i1 ON t1(a)}\n  5 {CREATE TRIGGER tr1 AFTER INSERT ON t1 BEGIN SELECT 1; END;}\n  6 {DROP TABLE nosuchtable}\n  7 {DROP TABLE x1}\n  8 {DROP TABLE t1}\n")
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		cts := _items[_idx+1]
+		cts := _items0[_idx0+1]
 		_ = cts // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var _create_table_sql = cts // TCL namespace variable
 			_ = _create_table_sql // suppress unused warning
 			{ // "1." + tn
@@ -42,13 +44,13 @@ func Test_vtabL(t *testing.T) {
 			}
 		}
 		// foreach {tn cts} "\n  9 {CREATE TABLE xyz AS SELECT * FROM sqlite_schema}\n  10 {CREATE TABLE xyz AS SELECT 1 AS 'col'}\n"
-		_items := tclSplitList("\n  9 {CREATE TABLE xyz AS SELECT * FROM sqlite_schema}\n  10 {CREATE TABLE xyz AS SELECT 1 AS 'col'}\n")
-		for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList("\n  9 {CREATE TABLE xyz AS SELECT * FROM sqlite_schema}\n  10 {CREATE TABLE xyz AS SELECT 1 AS 'col'}\n")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			cts := _items[_idx+1]
+			cts := _items1[_idx1+1]
 			_ = cts // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				var _create_table_sql = cts // TCL namespace variable
 				_ = _create_table_sql // suppress unused warning
 				{ // "1." + tn
@@ -59,13 +61,13 @@ func Test_vtabL(t *testing.T) {
 				}
 			}
 			// foreach {tn cts} "\n  1 {CREATE TABLE IF NOT EXISTS t1(a, b)}\n  2 {CREATE TABLE \"\"(a, b PRIMARY KEY) WITHOUT ROWID}\n"
-			_items := tclSplitList("\n  1 {CREATE TABLE IF NOT EXISTS t1(a, b)}\n  2 {CREATE TABLE \"\"(a, b PRIMARY KEY) WITHOUT ROWID}\n")
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				tn := _items[_idx+0]
+			_items2 := tclSplitList("\n  1 {CREATE TABLE IF NOT EXISTS t1(a, b)}\n  2 {CREATE TABLE \"\"(a, b PRIMARY KEY) WITHOUT ROWID}\n")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				tn := _items2[_idx2+0]
 				_ = tn // suppress unused warning
-				cts := _items[_idx+1]
+				cts := _items2[_idx2+1]
 				_ = cts // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					var _create_table_sql = cts // TCL namespace variable
 					_ = _create_table_sql // suppress unused warning
 					_res = db.Exec(" DROP TABLE IF EXISTS x1 ")

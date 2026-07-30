@@ -19,6 +19,8 @@ func Test_notify2(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	if tclBool("run_thread_tests" + "==0") {
@@ -33,15 +35,15 @@ func Test_notify2(t *testing.T) {
 	var ThreadProgram = "\n\n  # Proc used by threads to execute SQL.\n  #\n  proc execsql_blocking {db zSql} {\n    set lRes [list]\n    set rc SQLITE_OK\n\nset sql $zSql\n\n    while {$rc==\"SQLITE_OK\" && $zSql ne \"\"} {\n      set STMT [$::xPrepare $db $zSql -1 zSql]\n      while {[set rc [$::xStep $STMT]] eq \"SQLITE_ROW\"} {\n        for {set i 0} {$i < [sqlite3_column_count $STMT]} {incr i} {\n          lappend lRes [sqlite3_column_text $STMT 0]\n        }\n      }\n      set rc [sqlite3_finalize $STMT]\n    }\n\n    if {$rc != \"SQLITE_OK\"} { error \"$rc $sql [sqlite3_errmsg $db]\" }\n    return $lRes\n  }\n\n  proc execsql_retry {db sql} { \n    set msg \"SQLITE_LOCKED blah...\"\n    while { [string match SQLITE_LOCKED* $msg] } {\n      catch { execsql_blocking $db $sql } msg\n    }\n  }\n\n  proc select_one {args} {\n    set n [llength $args]\n    lindex $args [expr int($n*rand())]\n  }\n\n  proc opendb {} {\n    # Open a database connection. Attach the two auxillary databases.\n    set ::DB [sqlite3_open test.db]\n    execsql_retry $::DB { ATTACH 'test2.db' AS aux2; }\n    execsql_retry $::DB { ATTACH 'test3.db' AS aux3; }\n  }\n\n  opendb\n\n  #after 2000\n\n  # This loop runs for ~20 seconds.\n  #\n  set iStart [clock_seconds]\n  set nOp 0\n  set nAttempt 0\n  while { ([clock_seconds]-$iStart) < $nSecond } {\n\n    # Each transaction does 3 operations. Each operation is either a read\n    # or write of a randomly selected table (t1, t2 or t3). Set the variables\n    # $SQL(1), $SQL(2) and $SQL(3) to the SQL commands used to implement\n    # each operation.\n    #\n    for {set ii 1} {$ii <= 3} {incr ii} {\n      foreach {tbl database} [select_one {t1 main} {t2 aux2} {t3 aux3}] {}\n\n      set SQL($ii) [string map [list xxx $tbl yyy $database] [select_one {\n            SELECT \n              (SELECT b FROM xxx WHERE a=(SELECT max(a) FROM xxx))==total(a) \n              FROM xxx WHERE a!=(SELECT max(a) FROM xxx);\n      } {\n            DELETE FROM xxx WHERE a<(SELECT max(a)-100 FROM xxx);\n            INSERT INTO xxx SELECT NULL, total(a) FROM xxx;\n      } {\n            CREATE INDEX IF NOT EXISTS yyy.xxx_i ON xxx(b);\n      } {\n            DROP INDEX IF EXISTS yyy.xxx_i;\n      }\n      ]]\n    }\n\n    # Execute the SQL transaction.\n    #\n    incr nAttempt\n    set rc [catch { execsql_blocking $::DB \"\n        BEGIN;\n          $SQL(1);\n          $SQL(2);\n          $SQL(3);\n        COMMIT;\n      \"\n    } msg]\n\n    if {$rc && [string match \"SQLITE_LOCKED*\" $msg]\n            || [string match \"SQLITE_SCHEMA*\" $msg]\n    } {\n      # Hit an SQLITE_LOCKED error. Rollback the current transaction.\n      set rc [catch { execsql_blocking $::DB ROLLBACK } msg]\n      if {$rc && [string match \"SQLITE_LOCKED*\" $msg]} {\n        sqlite3_close $::DB\n        opendb\n      } \n    } elseif {$rc} {\n      # Hit some other kind of error. This is a malfunction.\n      error $msg\n    } else {\n      # No error occurred. Check that any SELECT statements in the transaction\n      # returned \"1\". Otherwise, the invariant was false, indicating that\n      # some malfunction has occurred.\n      foreach r $msg { if {$r != 1} { puts \"Invariant check failed: $msg\" } }\n      incr nOp\n    }\n  }\n\n  # Close the database connection and return 0.\n  #\n  sqlite3_close $::DB\n  list $nOp $nAttempt\n"
 	_ = ThreadProgram // suppress unused warning
 	// foreach {iTest xStep xPrepare} "\n  1 sqlite3_blocking_step sqlite3_blocking_prepare_v2\n  2 sqlite3_step          sqlite3_nonblocking_prepare_v2\n"
-	_items := tclSplitList("\n  1 sqlite3_blocking_step sqlite3_blocking_prepare_v2\n  2 sqlite3_step          sqlite3_nonblocking_prepare_v2\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		iTest := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 sqlite3_blocking_step sqlite3_blocking_prepare_v2\n  2 sqlite3_step          sqlite3_nonblocking_prepare_v2\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		iTest := _items0[_idx0+0]
 		_ = iTest // suppress unused warning
-		xStep := _items[_idx+1]
+		xStep := _items0[_idx0+1]
 		_ = xStep // suppress unused warning
-		xPrepare := _items[_idx+2]
+		xPrepare := _items0[_idx0+2]
 		_ = xPrepare // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			os.Remove("test.db")
 			var ThreadSetup = "set xStep " + xStep + ";set xPrepare " + xPrepare + ";set nSecond " + nSecond
 			_ = ThreadSetup // suppress unused warning

@@ -18,6 +18,8 @@ func Test_sortfault(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "sortfault"
@@ -34,23 +36,23 @@ func Test_sortfault(t *testing.T) {
 		}
 	}
 	// foreach {tn mmap_limit nWorker tmpstore threadsmode fakeheap lookaside} "\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n"
-	_items := tclSplitList("\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n")
-	for _idx := 0; _idx+7 <= len(_items); _idx += 7 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n          1          0       0     file multithread    false     false\n          2     100000       0     file multithread    false     false\n          3     100000       1     file multithread    false     false\n          4    2000000       0     file singlethread   false      true\n")
+	for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		mmap_limit := _items[_idx+1]
+		mmap_limit := _items0[_idx0+1]
 		_ = mmap_limit // suppress unused warning
-		nWorker := _items[_idx+2]
+		nWorker := _items0[_idx0+2]
 		_ = nWorker // suppress unused warning
-		tmpstore := _items[_idx+3]
+		tmpstore := _items0[_idx0+3]
 		_ = tmpstore // suppress unused warning
-		threadsmode := _items[_idx+4]
+		threadsmode := _items0[_idx0+4]
 		_ = threadsmode // suppress unused warning
-		fakeheap := _items[_idx+5]
+		fakeheap := _items0[_idx0+5]
 		_ = fakeheap // suppress unused warning
-		lookaside := _items[_idx+6]
+		lookaside := _items0[_idx0+6]
 		_ = lookaside // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			if tclBool(sqlite_options + "(threadsafe)") {
 				var threadsmode = "singlethread"
 				_ = threadsmode // suppress unused warning

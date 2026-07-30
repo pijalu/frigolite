@@ -17,6 +17,8 @@ func Test_mallocJ(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocJ-2 -sqlprep {\n  CREATE TABLE t1(a,b);\n  INSERT INTO t1 VALUES(1...} -sqlbody {\n  SELECT a, b, 'abc' FROM t1\n    UNION\n    SELECT...}")

@@ -17,6 +17,8 @@ func Test_fts3corrupt5(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3corrupt5"
@@ -53,17 +55,17 @@ func Test_fts3corrupt5(t *testing.T) {
 		}
 	}
 	// foreach {tn val q bCorrupt} "\n  1 X'00036F6E650901'                   'b:one'  1\n  2 X'00036F6E6509010201010201FFFFFF'   'c:one'  1\n  3 X'00036F6E6501'                     'b:one'  1\n  4 X'00036F6E650101'                   'b:one'  1\n  5 X'00036F6E650100'                   'b:one'  0\n"
-	_items := tclSplitList("\n  1 X'00036F6E650901'                   'b:one'  1\n  2 X'00036F6E6509010201010201FFFFFF'   'c:one'  1\n  3 X'00036F6E6501'                     'b:one'  1\n  4 X'00036F6E650101'                   'b:one'  1\n  5 X'00036F6E650100'                   'b:one'  0\n")
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 X'00036F6E650901'                   'b:one'  1\n  2 X'00036F6E6509010201010201FFFFFF'   'c:one'  1\n  3 X'00036F6E6501'                     'b:one'  1\n  4 X'00036F6E650101'                   'b:one'  1\n  5 X'00036F6E650100'                   'b:one'  0\n")
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		val := _items[_idx+1]
+		val := _items0[_idx0+1]
 		_ = val // suppress unused warning
-		q := _items[_idx+2]
+		q := _items0[_idx0+2]
 		_ = q // suppress unused warning
-		bCorrupt := _items[_idx+3]
+		bCorrupt := _items0[_idx0+3]
 		_ = bCorrupt // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "1.3." + tn + ".1"
 				_res = db.Exec("UPDATE ft_segdir SET root = " + val)
 				if _res.Error != nil {

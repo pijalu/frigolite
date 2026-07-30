@@ -17,6 +17,8 @@ func Test_timediff1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	// proc definition (not transpiled)
@@ -55,21 +57,21 @@ func Test_timediff1(t *testing.T) {
 	var p2 = "\n  A   {1066-10-14}\n  B   {1900-02-28 11:00}\n  C   {1900-03-01 12:00}\n  D   {1904-02-29 11:25}\n  E   {2000-02-29 13:00}\n  E   {2000-03-01 14:00}\n  F   {2001-03-31 15:15}\n  G   {2002-04-01 16:59}\n  H   {2003-04-30 17:00}\n  I   {2004-05-01 23:59:59}\n  J   {2005-06-01}\n  K   {2006-06-30 01:23:45}\n  L   {2007-12-31 02:00}\n  M   {2008-01-01 01:59}\n  N   {3152-07-04 12:00}\n  P   {9999-12-31 23:59:59}\n"
 	_ = p2 // suppress unused warning
 	// foreach {x1 d1} p1
-	_items := tclSplitList(p1)
-	for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-		x1 := _items[_idx+0]
+	_items0 := tclSplitList(p1)
+	for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
+		x1 := _items0[_idx0+0]
 		_ = x1 // suppress unused warning
-		d1 := _items[_idx+1]
+		d1 := _items0[_idx0+1]
 		_ = d1 // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			// foreach {x2 d2} p2
-			_items := tclSplitList(p2)
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				x2 := _items[_idx+0]
+			_items1 := tclSplitList(p2)
+			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+				x2 := _items1[_idx1+0]
 				_ = x2 // suppress unused warning
-				d2 := _items[_idx+1]
+				d2 := _items1[_idx1+1]
 				_ = d2 // suppress unused warning
-				_ = _idx
+				_ = _idx1
 					var r1 = "db one {SELECT datetime($d1)}"
 					_ = r1 // suppress unused warning
 					{ // "timediff-4-" + x1 + x2
@@ -125,21 +127,21 @@ func Test_timediff1(t *testing.T) {
 			var p2 = "\n  A   {2001-01-01 00:00:00}\n  B   {2001-01-31 23:59:59}\n  C   {2001-02-01 00:00:00}\n  D   {2001-02-28 23:59:59}\n  E   {2001-03-01 00:00:00}\n  F   {2001-03-31 23:59:59}\n  G   {2001-04-01 00:00:00}\n  H   {2001-04-30 23:59:59}\n  I   {2001-05-01 00:00:00}\n  J   {2001-05-31 23:59:59}\n  K   {2001-06-01 00:00:00}\n  L   {2001-06-30 23:59:59}\n  M   {2001-07-01 00:00:00}\n  N   {2001-07-31 23:59:59}\n  O   {2001-08-01 00:00:00}\n  P   {2001-08-31 23:59:59}\n  Q   {2001-09-01 00:00:00}\n  R   {2001-09-30 23:59:59}\n  S   {2001-10-01 00:00:00}\n  T   {2001-10-31 23:59:59}\n  U   {2001-11-01 00:00:00}\n  V   {2001-11-30 23:59:59}\n  W   {2001-12-01 00:00:00}\n  X   {2001-12-31 23:59:59}\n"
 			_ = p2 // suppress unused warning
 			// foreach {x1 d1} p1
-			_items := tclSplitList(p1)
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				x1 := _items[_idx+0]
+			_items2 := tclSplitList(p1)
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				x1 := _items2[_idx2+0]
 				_ = x1 // suppress unused warning
-				d1 := _items[_idx+1]
+				d1 := _items2[_idx2+1]
 				_ = d1 // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					// foreach {x2 d2} p2
-					_items := tclSplitList(p2)
-					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-						x2 := _items[_idx+0]
+					_items3 := tclSplitList(p2)
+					for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+						x2 := _items3[_idx3+0]
 						_ = x2 // suppress unused warning
-						d2 := _items[_idx+1]
+						d2 := _items3[_idx3+1]
 						_ = d2 // suppress unused warning
-						_ = _idx
+						_ = _idx3
 							var r1 = "db one {SELECT datetime($d1)}"
 							_ = r1 // suppress unused warning
 							{ // "timediff-6-" + x1 + x2

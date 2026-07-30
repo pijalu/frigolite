@@ -18,6 +18,8 @@ func Test_percentile(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	{ // do_test "percentile-1.0"
@@ -31,15 +33,15 @@ func Test_percentile(t *testing.T) {
 		}
 	}
 	// foreach {in out disc} "\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n"
-	_items := tclSplitList("\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		in := _items[_idx+0]
+	_items0 := tclSplitList("\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		in := _items0[_idx0+0]
 		_ = in // suppress unused warning
-		out := _items[_idx+1]
+		out := _items0[_idx0+1]
 		_ = out // suppress unused warning
-		disc := _items[_idx+2]
+		disc := _items0[_idx0+2]
 		_ = disc // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // do_test "percentile-1.1." + in + ".1"
 				r = db.Query("SELECT percentile(x,$in) FROM t1")
 				if r.Error != nil {
@@ -86,15 +88,15 @@ func Test_percentile(t *testing.T) {
 			}
 		}
 		// foreach {in out disc} "\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n"
-		_items := tclSplitList("\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n")
-		for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-			in := _items[_idx+0]
+		_items1 := tclSplitList("\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n")
+		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+			in := _items1[_idx1+0]
 			_ = in // suppress unused warning
-			out := _items[_idx+1]
+			out := _items1[_idx1+1]
 			_ = out // suppress unused warning
-			disc := _items[_idx+2]
+			disc := _items1[_idx1+2]
 			_ = disc // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // do_test "percentile-1.3." + in + ".1"
 					r = db.Query("SELECT percentile(x,$in) FROM t1")
 					if r.Error != nil {
@@ -153,15 +155,15 @@ func Test_percentile(t *testing.T) {
 				}
 			}
 			// foreach {in out disc} "\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n"
-			_items := tclSplitList("\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n")
-			for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-				in := _items[_idx+0]
+			_items2 := tclSplitList("\n  100    11.0  11.0\n   50     8.0   8.0\n   12.5   4.0   4.0\n   15     4.4   4.0\n   20     5.2   4.0\n   80    11.0  11.0\n   89    11.0  11.0\n")
+			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+				in := _items2[_idx2+0]
 				_ = in // suppress unused warning
-				out := _items[_idx+1]
+				out := _items2[_idx2+1]
 				_ = out // suppress unused warning
-				disc := _items[_idx+2]
+				disc := _items2[_idx2+2]
 				_ = disc // suppress unused warning
-				_ = _idx
+				_ = _idx2
 					{ // do_test "percentile-1.7." + in + ".1"
 						r = db.Query("SELECT percentile(x,$in) FROM t2")
 						if r.Error != nil {
@@ -312,15 +314,15 @@ func Test_percentile(t *testing.T) {
 					}
 				}
 				// foreach {id oba expr} "\n  1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\"\n"
-				_items := tclSplitList("\n  1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\"\n")
-				for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-					id := _items[_idx+0]
+				_items3 := tclSplitList("\n  1 0 \"median(d)\"\n  2 0 \"percentile(d,50)\"\n  3 0 \"percentile_cont(d,0.5)\"\n  4 1 \"median() WITHIN GROUP (ORDER BY d)\"\n  5 1 \"percentile(50) WITHIN GROUP (ORDER BY d)\"\n  6 1 \"percentile_cont(0.5) WITHIN GROUP (ORDER BY d)\"\n")
+				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+					id := _items3[_idx3+0]
 					_ = id // suppress unused warning
-					oba := _items[_idx+1]
+					oba := _items3[_idx3+1]
 					_ = oba // suppress unused warning
-					expr := _items[_idx+2]
+					expr := _items3[_idx3+2]
 					_ = expr // suppress unused warning
-					_ = _idx
+					_ = _idx3
 						if tclBool(oba) {
 						}
 						var sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n          WINDOW w1 AS (ORDER BY c, a ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING)"

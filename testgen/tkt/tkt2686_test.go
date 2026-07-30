@@ -19,6 +19,8 @@ func Test_tkt2686(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  PRAGMA page_size=1024;\n  PRAGMA max_page_count=50;\n  PRAGMA auto_vacuum=0;\n  CREATE TABLE filler (fill);\n")

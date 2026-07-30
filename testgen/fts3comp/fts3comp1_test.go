@@ -19,6 +19,8 @@ func Test_fts3comp1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var _testprefix = "fts3comp1" // TCL namespace variable
@@ -28,15 +30,15 @@ func Test_fts3comp1(t *testing.T) {
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
 	// foreach {tn zip unzip} "\n  1   zip   unzip\n  2   {z.i.p!!}    {un \"zip\"}\n"
-	_items := tclSplitList("\n  1   zip   unzip\n  2   {z.i.p!!}    {un \"zip\"}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1   zip   unzip\n  2   {z.i.p!!}    {un \"zip\"}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		zip := _items[_idx+1]
+		zip := _items0[_idx0+1]
 		_ = zip // suppress unused warning
-		unzip := _items[_idx+2]
+		unzip := _items0[_idx0+2]
 		_ = unzip // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			var next_x = "0"
 			_ = next_x // suppress unused warning
 			{

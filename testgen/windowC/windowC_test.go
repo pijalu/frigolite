@@ -17,6 +17,8 @@ func Test_windowC(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "windowC"
@@ -28,15 +30,15 @@ func Test_windowC(t *testing.T) {
 		}
 	}
 	// foreach {tn bBlob seps} "\n  1 0 {a b c def g}\n  2 0 {abcdefg {} {} abcdefg}\n  3 0 {a bc def ghij klmno pqrstu}\n  4 1 {a bc def ghij klmno pqrstu}\n  5 1 {, , , , , , , , , , , , ....... , ,}\n"
-	_items := tclSplitList("\n  1 0 {a b c def g}\n  2 0 {abcdefg {} {} abcdefg}\n  3 0 {a bc def ghij klmno pqrstu}\n  4 1 {a bc def ghij klmno pqrstu}\n  5 1 {, , , , , , , , , , , , ....... , ,}\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 0 {a b c def g}\n  2 0 {abcdefg {} {} abcdefg}\n  3 0 {a bc def ghij klmno pqrstu}\n  4 1 {a bc def ghij klmno pqrstu}\n  5 1 {, , , , , , , , , , , , ....... , ,}\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		bBlob := _items[_idx+1]
+		bBlob := _items0[_idx0+1]
 		_ = bBlob // suppress unused warning
-		seps := _items[_idx+2]
+		seps := _items0[_idx0+2]
 		_ = seps // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			for _, _type := range tclSplitList("text blob") {
 				{ // do_test "1." + _type + "." + tn + ".1"
 					_res = db.Exec(" DELETE FROM x1 ")
@@ -58,13 +60,13 @@ func Test_windowC(t *testing.T) {
 					}
 				}
 				// foreach {tn2 win} "\n      1     \"ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\"\n      2     \"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\"\n      3     \"ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\"\n    "
-				_items := tclSplitList("\n      1     \"ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\"\n      2     \"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\"\n      3     \"ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\"\n    ")
-				for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-					tn2 := _items[_idx+0]
+				_items1 := tclSplitList("\n      1     \"ROWS BETWEEN 1 PRECEDING AND 1 FOLLOWING\"\n      2     \"ROWS BETWEEN 2 PRECEDING AND CURRENT ROW\"\n      3     \"ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\"\n    ")
+				for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+					tn2 := _items1[_idx1+0]
 					_ = tn2 // suppress unused warning
-					win := _items[_idx+1]
+					win := _items1[_idx1+1]
 					_ = win // suppress unused warning
-					_ = _idx
+					_ = _idx1
 						{ // do_test "1." + _type + "." + tn + ".2." + tn2
 							_res = db.Exec("\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
 							if _res.Error != nil {

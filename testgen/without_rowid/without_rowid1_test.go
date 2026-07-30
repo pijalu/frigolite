@@ -18,6 +18,8 @@ func Test_without_rowid1(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "without_rowid1"
@@ -387,17 +389,17 @@ func Test_without_rowid1(t *testing.T) {
 	var queries = "\n  1    2    \"c = 5 AND a = 1\"          {i46 (c=? AND a=?)}\n  2    6    \"c = 4 AND a < 3\"          {i46 (c=? AND a<?)}\n  3    4    \"c = 2 AND a >= 3\"         {i46 (c=? AND a>?)}\n  4    1    \"c = 2 AND a = 1 AND b<10\" {i46 (c=? AND a=? AND b<?)}\n  5    1    \"c = 0 AND a = 0 AND b>5\"  {i46 (c=? AND a=? AND b>?)}\n"
 	_ = queries // suppress unused warning
 	// foreach {tn cnt where eqp} queries
-	_items := tclSplitList(queries)
-	for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList(queries)
+	for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		cnt := _items[_idx+1]
+		cnt := _items0[_idx0+1]
 		_ = cnt // suppress unused warning
-		where := _items[_idx+2]
+		where := _items0[_idx0+2]
 		_ = where // suppress unused warning
-		eqp := _items[_idx+3]
+		eqp := _items0[_idx0+3]
 		_ = eqp // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "5.5." + tn + ".1"
 				r = db.Query("SELECT count(*) FROM t46 WHERE " + where)
 				if r.Error != nil {
@@ -418,17 +420,17 @@ func Test_without_rowid1(t *testing.T) {
 			}
 		}
 		// foreach {tn cnt where eqp} queries
-		_items := tclSplitList(queries)
-		for _idx := 0; _idx+4 <= len(_items); _idx += 4 {
-			tn := _items[_idx+0]
+		_items1 := tclSplitList(queries)
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			cnt := _items[_idx+1]
+			cnt := _items1[_idx1+1]
 			_ = cnt // suppress unused warning
-			where := _items[_idx+2]
+			where := _items1[_idx1+2]
 			_ = where // suppress unused warning
-			eqp := _items[_idx+3]
+			eqp := _items1[_idx1+3]
 			_ = eqp // suppress unused warning
-			_ = _idx
+			_ = _idx1
 				{ // "5.7." + tn + ".1"
 					r = db.Query("SELECT count(*) FROM t46 WHERE " + where)
 					if r.Error != nil {

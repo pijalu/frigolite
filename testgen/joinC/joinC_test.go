@@ -17,6 +17,8 @@ func Test_joinC(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	_res = db.Exec("\n  DROP TABLE IF EXISTS t1;\n  DROP TABLE IF EXISTS t2;\n  DROP TABLE IF EXISTS t3;\n  DROP TABLE IF EXISTS t4;\n  DROP TABLE IF EXISTS t5;\n  CREATE TABLE t1(a INT, b INT, c INT);\n  CREATE TABLE t2(a INT, b INT, d INT);\n  CREATE TABLE t3(a INT, b INT, e INT);\n  CREATE TABLE t4(a INT, b INT, f INT);\n  CREATE TABLE t5(a INT, b INT, g INT);\n  INSERT INTO t1 VALUES(11,21,31),(12,22,32),(15,25,35),(17,27,37);\n  INSERT INTO t2 VALUES(12,22,32),(13,23,33),(15,25,35),(18,28,38),\n                       (NULL,NULL,36);\n  INSERT INTO t4 VALUES(11,21,31),(13,23,33),(15,25,35),(19,29,39);\n  INSERT INTO t3 SELECT * FROM t1 UNION SELECT * FROM t2 UNION SELECT * FROM t4;\n  INSERT INTO t5 SELECT * FROM t3 WHERE a>=15;\n")

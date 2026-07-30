@@ -19,6 +19,8 @@ func Test_fts3matchinfo(t *testing.T) {
 	var r *frigolite.Result
 	var msg string
 	_ = msg // suppress unused warning
+	_ = _res // suppress unused warning
+	_ = r    // suppress unused warning
 
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "fts3matchinfo"
@@ -410,15 +412,15 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 	}
 	// foreach {tn expr res} "\n  1 \"a\" {\n      1 {1 2}   2 {1 0}   3 {0 1}   4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 1}   8 {1 2}   9 {1 1}  10 {1 3}\n  }\n\n  2 \"b\" {\n      1 {0 1}   2 {1 0}   3 {1 2}   4 {0 1}   5 {0 1}\n      6 {2 2}             8 {2 1}   9 {1 3}            \n  }\n\n  3 \"y:a\" {\n      1 {0 2}             3 {0 1}                    \n                7 {0 1}   8 {0 2}   9 {0 1}  10 {0 3}\n  }\n\n  4 \"x:a\" {\n      1 {1 0}   2 {1 0}             4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 0}   8 {1 0}   9 {1 0}  10 {1 0}\n  }\n\n  5 \"a OR b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}   7 {2 1 0 0}   8 {1 2 2 1}   9 {1 1 1 3}  10 {1 3 0 0}\n  }\n\n  6 \"a AND b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}                 8 {1 2 2 1}   9 {1 1 1 3}              \n  }\n\n  7 \"a OR (a AND b)\" {\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  }\n\n"
-	_items := tclSplitList("\n  1 \"a\" {\n      1 {1 2}   2 {1 0}   3 {0 1}   4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 1}   8 {1 2}   9 {1 1}  10 {1 3}\n  }\n\n  2 \"b\" {\n      1 {0 1}   2 {1 0}   3 {1 2}   4 {0 1}   5 {0 1}\n      6 {2 2}             8 {2 1}   9 {1 3}            \n  }\n\n  3 \"y:a\" {\n      1 {0 2}             3 {0 1}                    \n                7 {0 1}   8 {0 2}   9 {0 1}  10 {0 3}\n  }\n\n  4 \"x:a\" {\n      1 {1 0}   2 {1 0}             4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 0}   8 {1 0}   9 {1 0}  10 {1 0}\n  }\n\n  5 \"a OR b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}   7 {2 1 0 0}   8 {1 2 2 1}   9 {1 1 1 3}  10 {1 3 0 0}\n  }\n\n  6 \"a AND b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}                 8 {1 2 2 1}   9 {1 1 1 3}              \n  }\n\n  7 \"a OR (a AND b)\" {\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  }\n\n")
-	for _idx := 0; _idx+3 <= len(_items); _idx += 3 {
-		tn := _items[_idx+0]
+	_items0 := tclSplitList("\n  1 \"a\" {\n      1 {1 2}   2 {1 0}   3 {0 1}   4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 1}   8 {1 2}   9 {1 1}  10 {1 3}\n  }\n\n  2 \"b\" {\n      1 {0 1}   2 {1 0}   3 {1 2}   4 {0 1}   5 {0 1}\n      6 {2 2}             8 {2 1}   9 {1 3}            \n  }\n\n  3 \"y:a\" {\n      1 {0 2}             3 {0 1}                    \n                7 {0 1}   8 {0 2}   9 {0 1}  10 {0 3}\n  }\n\n  4 \"x:a\" {\n      1 {1 0}   2 {1 0}             4 {1 0}   5 {1 0}\n      6 {1 0}   7 {2 0}   8 {1 0}   9 {1 0}  10 {1 0}\n  }\n\n  5 \"a OR b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}   7 {2 1 0 0}   8 {1 2 2 1}   9 {1 1 1 3}  10 {1 3 0 0}\n  }\n\n  6 \"a AND b\" {\n      1 {1 2 0 1}   2 {1 0 1 0}   3 {0 1 1 2}   4 {1 0 0 1}   5 {1 0 0 1}\n      6 {1 0 2 2}                 8 {1 2 2 1}   9 {1 1 1 3}              \n  }\n\n  7 \"a OR (a AND b)\" {\n      1 {1 2 1 2 0 1}   2 {1 0 1 0 1 0}   3 {0 1 0 1 1 2}   4 {1 0 1 0 0 1}   \n      5 {1 0 1 0 0 1}   6 {1 0 1 0 2 2}   7 {2 1 0 0 0 0}   8 {1 2 1 2 2 1}   \n      9 {1 1 1 1 1 3}  10 {1 3 0 0 0 0}\n  }\n\n")
+	for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
+		tn := _items0[_idx0+0]
 		_ = tn // suppress unused warning
-		expr := _items[_idx+1]
+		expr := _items0[_idx0+1]
 		_ = expr // suppress unused warning
-		res := _items[_idx+2]
+		res := _items0[_idx0+2]
 		_ = res // suppress unused warning
-		_ = _idx
+		_ = _idx0
 			{ // "11.1." + tn + ".1"
 				r = db.Query("\n    SELECT rowid, mit(matchinfo(tt, 'y')) FROM tt WHERE tt MATCH $expr\n  ")
 				if r.Error != nil {
@@ -434,24 +436,24 @@ func Test_fts3matchinfo(t *testing.T) {
 			var r2 = "list"
 			_ = r2 // suppress unused warning
 			// foreach {rowid L} res
-			_items := tclSplitList(res)
-			for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-				rowid := _items[_idx+0]
+			_items1 := tclSplitList(res)
+			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+				rowid := _items1[_idx1+0]
 				_ = rowid // suppress unused warning
-				L := _items[_idx+1]
+				L := _items1[_idx1+1]
 				_ = L // suppress unused warning
-				_ = _idx
+				_ = _idx1
 					r2 = tclListAppend(r2, rowid)
 					var M = "list"
 					_ = M // suppress unused warning
 					// foreach {a b} L
-					_items := tclSplitList(L)
-					for _idx := 0; _idx+2 <= len(_items); _idx += 2 {
-						a := _items[_idx+0]
+					_items2 := tclSplitList(L)
+					for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+						a := _items2[_idx2+0]
 						_ = a // suppress unused warning
-						b := _items[_idx+1]
+						b := _items2[_idx2+1]
 						_ = b // suppress unused warning
-						_ = _idx
+						_ = _idx2
 							M = tclListAppend(M, "($a ? 1 : 0) + ($b ? 2 : 0)")
 						}
 						r2 = tclListAppend(r2, M)
