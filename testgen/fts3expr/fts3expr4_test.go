@@ -59,7 +59,7 @@ func Test_fts3expr4(t *testing.T) {
 		_ = res // suppress unused warning
 		// expr \n    $res=="PHRASE 3 0 d:word" ||\n    $res=="AND {AND {PHRASE 3 0 d} {PHRASE 3... → "$res==\"PHRASE 3 0 d:word\" ||\n    $res==\"AND {AND {PHRASE 3 0 d} {PHRASE 3 0 :}} {PHRASE 3 0 word}\""
 	}
-	var sqlite_fts3_enable_parentheses = "0"
+	sqlite_fts3_enable_parentheses = "0"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_icu_expr_test 2.1 {\n  f (e NEAR/2 a)\n} {AND {AND {AND {PHRASE 3 0 f} {PHRASE 3 0 (}} {NEAR...}")
 	t.Errorf("TODO: %s not implemented in frigolite", "do_simple_expr_test 3.1 {*lOl* *h4h*} {\n  AND {PHRASE 3 0 lol+} {PHRASE 3 0 h4h+}\n}")

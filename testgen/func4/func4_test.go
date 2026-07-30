@@ -46,11 +46,11 @@ func Test_func4(t *testing.T) {
 	var tcl_precision = "0"
 	_ = tcl_precision // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "load_static_extension db totype")
-	highPrecision_1 := "\\\n    {[db eval {SELECT tointeger(9223372036854775807 + 1);}] eq {{}}}"
+	var highPrecision_1 = "\\\n    {[db eval {SELECT tointeger(9223372036854775807 + 1);}] eq {{}}}"
 	_ = highPrecision_1 // suppress unused warning
-	highPrecision_2 := "\\\n    {[db eval {SELECT toreal(-9223372036854775808 + 1);}] eq {{}}}"
+	var highPrecision_2 = "\\\n    {[db eval {SELECT toreal(-9223372036854775808 + 1);}] eq {{}}}"
 	_ = highPrecision_2 // suppress unused warning
-	highPrecision_3 := "\\\n    {[db eval {SELECT toreal(9007199254740992 + 1);}] eq {{}}}"
+	var highPrecision_3 = "\\\n    {[db eval {SELECT toreal(9007199254740992 + 1);}] eq {{}}}"
 	_ = highPrecision_3 // suppress unused warning
 	if tclBool("!" + highPrecision + "(1) || !" + highPrecision + "(2) || !" + highPrecision + "(3)") {
 		t.Log("NOTICE:\\\n        highPrecision: " + highPrecision + "(1) " + highPrecision + "(2) " + highPrecision + "(3)")
@@ -762,6 +762,6 @@ func Test_func4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var tcl_precision = saved_tcl_precision
+	tcl_precision = saved_tcl_precision
 	_ = tcl_precision // suppress unused warning
 }

@@ -57,11 +57,11 @@ func Test_analyze8(t *testing.T) {
 				_ = a // suppress unused warning
 			} else if tclBool("set a " + "($i%8)*100") {
 			}
-			b := "$i/10"
+			var b = "$i/10"
 			_ = b // suppress unused warning
-			c := "$i/8"
+			var c = "$i/8"
 			_ = c // suppress unused warning
-			c := "$c*$c*$c"
+			c = "$c*$c*$c"
 			_ = c // suppress unused warning
 			_res = db.Exec("INSERT INTO t1 VALUES($a,$b,$c,$i)")
 			if _res.Error != nil {

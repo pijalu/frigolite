@@ -164,7 +164,7 @@ func Test_trace(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "trace-4.1"
 		var STMT = "sqlite3_prepare $DB {INSERT INTO t2 VALUES(2,3)} -1 TAIL"

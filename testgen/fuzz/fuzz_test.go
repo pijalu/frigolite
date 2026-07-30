@@ -240,7 +240,7 @@ func Test_fuzz(t *testing.T) {
 	var E = "{no such col} {ambiguous column name}"
 	_ = E // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-6.1 -template {[Select]} -errorlist $E")
-	var E = "{no such col} {ambiguous column name} {table}"
+	E = "{no such col} {ambiguous column name} {table}"
 	_ = E // suppress unused warning
 	{ // do_test "fuzz-7.1"
 		_res = db.Exec("BEGIN")
@@ -259,7 +259,7 @@ func Test_fuzz(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	var E = "list table view duplicate {no such col} {ambiguous column name} {use DROP}"
+	E = "list table view duplicate {no such col} {ambiguous column name} {use DROP}"
 	_ = E // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_fuzzy_test fuzz-8.1 -template {[CreateOrDropTableOrView]} -errorlist $E")
 	// close $::log

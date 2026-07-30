@@ -362,7 +362,7 @@ func Test_conflict(t *testing.T) {
 									var t3 = "0"
 									_ = t3 // suppress unused warning
 								} else {
-									t3 := "$t3+$t4"
+									var t3 = "$t3+$t4"
 									_ = t3 // suppress unused warning
 								}
 								{ // do_test "conflict-6." + i

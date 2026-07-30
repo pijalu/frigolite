@@ -154,7 +154,7 @@ func Test_walsetlk(t *testing.T) {
 		_ = _t // suppress unused warning
 		// expr ($t>1000000) → "($t>1000000)"
 	}
-	var bExpect = "1"
+	bExpect = "1"
 	_ = bExpect // suppress unused warning
 	if func() bool { _sqlite_options_n, __sqlite_options_e := strconv.Atoi(_sqlite_options); if __sqlite_options_e != nil { return false }; return _sqlite_options_n(setlk_timeout) == 1 }() {
 		var bExpect = "0"
@@ -176,7 +176,7 @@ func Test_walsetlk(t *testing.T) {
 		_ = _t // suppress unused warning
 		// expr ($t>1000000) → "($t>1000000)"
 	}
-	var bExpect = "1"
+	bExpect = "1"
 	_ = bExpect // suppress unused warning
 	if func() bool { _sqlite_options_n, __sqlite_options_e := strconv.Atoi(_sqlite_options); if __sqlite_options_e != nil { return false }; return _sqlite_options_n(setlk_timeout) == 1 }() {
 		var bExpect = "0"

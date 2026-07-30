@@ -417,9 +417,9 @@ func Test_table(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT name FROM sqlite_master WHERE type!='meta' ORDER BY name")
 		}
 	}
-	var r = ""
+	r = ""
 	_ = r // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 		r = tclListAppend(r, "format test%03d $i")
@@ -659,7 +659,7 @@ func Test_table(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE tablet8(\n       a integer primary key,\n       tm text DEFAULT CURRENT_TIME,\n       dt text DEFAULT CURRENT_DATE,\n       dttm text DEFAULT CURRENT_TIMESTAMP\n    );\n    SELECT * FROM tablet8;\n  ")
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	// foreach {date time seconds} "\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n"
 	_items0 := tclSplitList("\n  1976-07-04 12:00:00 205329600\n  1994-04-16 14:00:00 766504800\n  2000-01-01 00:00:00 946684800\n  2003-12-31 12:34:56 1072874096\n")
@@ -671,6 +671,7 @@ func Test_table(t *testing.T) {
 		seconds := _items0[_idx0+2]
 		_ = seconds // suppress unused warning
 		_ = _idx0
+			var i = "0"
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)

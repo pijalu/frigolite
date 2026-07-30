@@ -419,7 +419,7 @@ func Test_fts3matchinfo(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var sqlite_fts3_enable_parentheses = "1"
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	db.Close()
 	db, err = frigolite.Open("")
@@ -502,9 +502,9 @@ func Test_fts3matchinfo(t *testing.T) {
 						}
 					}
 				}
-				var sqlite_fts3_enable_parentheses = "0"
+				sqlite_fts3_enable_parentheses = "0"
 				_ = sqlite_fts3_enable_parentheses // suppress unused warning
-				var sqlite_fts3_enable_parentheses = "1"
+				sqlite_fts3_enable_parentheses = "1"
 				_ = sqlite_fts3_enable_parentheses // suppress unused warning
 				db.Close()
 				db, err = frigolite.Open("")
@@ -541,6 +541,6 @@ func Test_fts3matchinfo(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				var sqlite_fts3_enable_parentheses = "0"
+				sqlite_fts3_enable_parentheses = "0"
 				_ = sqlite_fts3_enable_parentheses // suppress unused warning
 }

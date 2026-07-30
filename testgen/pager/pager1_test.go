@@ -810,7 +810,7 @@ func Test_pager1(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA journal_mode = DELETE;\n    PRAGMA synchronous = NORMAL;\n    BEGIN;\n      INSERT INTO t1 VALUES(85, 'Gorbachev');\n      INSERT INTO t2 VALUES(85, 'Gorbachev');\n    COMMIT;\n  ")
 						}
-						mj_pointer := "20 + [string length \"test.db-mjXXXXXX9XX\"]"
+						var mj_pointer = "20 + [string length \"test.db-mjXXXXXX9XX\"]"
 						_ = mj_pointer // suppress unused warning
 						// expr $::max_journal==(512+2*(1024+8)+$mj_pointer) → "$::max_journal==(512+2*(1024+8)+$mj_pointer)"
 					}
@@ -821,7 +821,7 @@ func Test_pager1(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA synchronous = full;\n    BEGIN;\n      DELETE FROM t1 WHERE b = 'Lenin';\n      DELETE FROM t2 WHERE b = 'Lenin';\n    COMMIT;\n  ")
 						}
-						mj_pointer := "20 + [string length \"test.db-mjXXXXXX9XX\"]"
+						var mj_pointer = "20 + [string length \"test.db-mjXXXXXX9XX\"]"
 						_ = mj_pointer // suppress unused warning
 						// expr $::max_journal==(((512+2*(1024+8)+511)/512)*512 + $mj_pointer) → "$::max_journal==(((512+2*(1024+8)+511)/512)*512 + $mj_pointer)"
 					}
@@ -1544,7 +1544,7 @@ func Test_pager1(t *testing.T) {
 						db, err = frigolite.Open("test.db")
 						if err != nil { t.Fatal(err) }
 						t.Errorf("TODO: %s not implemented in frigolite", "tv delete")
-						ii := "$::file_len-5"
+						var ii = "$::file_len-5"
 						_ = ii // suppress unused warning
 						for tclBool(ii + " < " + "$::file_len+20") {
 							t.Errorf("TODO: %s not implemented in frigolite", "testvfs tv -default 1 -mxpathname $ii")

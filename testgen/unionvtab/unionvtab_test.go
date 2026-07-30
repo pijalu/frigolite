@@ -261,6 +261,7 @@ func Test_unionvtab(t *testing.T) {
 				} else {
 					L = tclListAppend(L, "(NULL, '" + e + "', " + iMin + ", " + iMin + ")")
 				}
+				var iMin = "0"
 				// incr iMin 1
 				{
 					_n, _err := strconv.Atoi(iMin)
@@ -831,9 +832,9 @@ func Test_unionvtab(t *testing.T) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
-			L := "9.223372036854776e+18"
+			var L = "9.223372036854776e+18"
 			_ = L // suppress unused warning
-			S := "-9.223372036854776e+18"
+			var S = "-9.223372036854776e+18"
 			_ = S // suppress unused warning
 			{ // "3.8.1"
 				r = db.Query(" SELECT count(*) FROM uu WHERE rowid >= $S ")

@@ -572,7 +572,7 @@ func Test_fts3aux1(t *testing.T) {
 			if tclBool(sort) {
 				res += "*USE TEMP B-TREE FOR ORDER BY"
 			}
-			var res = "/*" + res + "*/"
+			res = "/*" + res + "*/"
 			_ = res // suppress unused warning
 			var sql = "SELECT * FROM terms " + orderby
 			_ = sql // suppress unused warning

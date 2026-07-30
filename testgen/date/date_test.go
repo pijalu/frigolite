@@ -168,7 +168,7 @@ func Test_date(t *testing.T) {
 	var sqlite_current_time = "1199243045"
 	_ = sqlite_current_time // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.40 {datetime()} {2008-01-02 03:04:05}")
-	var sqlite_current_time = "0"
+	sqlite_current_time = "0"
 	_ = sqlite_current_time // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.41 {datetime('2003-10-22 12:24','23 seconds')} {2003-10-22 12:24:23}")
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 2.42 {datetime('2003-10-22 12:24','345 second')} {2003-10-22 12:29:45}")
@@ -256,10 +256,10 @@ func Test_date(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 3.36 {strftime('%w %u','2023-01-06')} {5 5}")
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 3.37 {strftime('%w %u','2023-01-07')} {6 6}")
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 3.40 {strftime('%d/%f/%H/%W/%j/%m/%M/%S/%Y','0421-01-02 ...} 02/05.006/03/00/002/01/04/05/0421")
-	var sqlite_current_time = "1157124367"
+	sqlite_current_time = "1157124367"
 	_ = sqlite_current_time // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 4.1 {date('now')} {2006-09-01}")
-	var sqlite_current_time = "0"
+	sqlite_current_time = "0"
 	_ = sqlite_current_time // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 5.1 {datetime('1994-04-16 14:00:00 +05:00')} {1994-04-16 09:00:00}")
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 5.2 {datetime('1994-04-16 14:00:00 -05:15')} {1994-04-16 19:15:00}")
@@ -486,7 +486,7 @@ func Test_date(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 7.14 {strftime('%s',null)} NULL")
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 7.15 {strftime('%s','now',null)} NULL")
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 7.16 {strftime('%s','now','localtime',null)} NULL")
-	var sqlite_current_time = "db eval {SELECT strftime('%s','2003-10-22 12:34:00')}"
+	sqlite_current_time = "db eval {SELECT strftime('%s','2003-10-22 12:34:00')}"
 	_ = sqlite_current_time // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 8.1 {datetime('now','weekday 0')} {2003-10-26 12:34:00}")
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 8.2 {datetime('now','weekday 1')} {2003-10-27 12:34:00}")
@@ -508,7 +508,7 @@ func Test_date(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 8.18 {datetime('now','-1.25 hours')} {2003-10-22 11:19:00}")
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 8.19 {datetime('now','11.25 seconds')} {2003-10-22 12:34:11}")
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 8.90 {datetime('now','abcdefghijklmnopqrstuvwyxzABCDEFGH...} NULL")
-	var sqlite_current_time = "0"
+	sqlite_current_time = "0"
 	_ = sqlite_current_time // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 9.1 {julianday('-4713-11-24 12:00:00')} {0.0}")
 	t.Errorf("TODO: %s not implemented in frigolite", "datetest 9.2 {julianday(datetime(5))} {5.0}")

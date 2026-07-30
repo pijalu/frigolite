@@ -63,7 +63,7 @@ func Test_fuzzer2(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO x1_rules VALUES(0, $c1||$c2, $c3||$c4, $cost)")
 						}
-						cost := "($cost%1000) + 1"
+						var cost = "($cost%1000) + 1"
 						_ = cost // suppress unused warning
 					}
 				}

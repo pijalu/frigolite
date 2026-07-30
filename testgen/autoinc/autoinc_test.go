@@ -333,7 +333,7 @@ func Test_autoinc(t *testing.T) {
 		var STMT = "sqlite3_prepare $DB {\n     CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )\n  } -1 TAIL"
 		_ = STMT // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
-		var STMT = "sqlite3_prepare $DB {\n     CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )\n  } -1 TAIL"
+		STMT = "sqlite3_prepare $DB {\n     CREATE TABLE t1(\n       x INTEGER PRIMARY KEY AUTOINCREMENT\n     )\n  } -1 TAIL"
 		_ = STMT // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")

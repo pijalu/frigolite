@@ -189,11 +189,11 @@ func Test_e_fkey(t *testing.T) {
 	var i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 500 }() {
-		a := "0"
+		var a = "0"
 		_ = a // suppress unused warning
-		a2 := "0"
+		var a2 = "0"
 		_ = a2 // suppress unused warning
-		_t := "0"
+		var _t = "0"
 		_ = _t // suppress unused warning
 		var sql = "lindex $Template [expr int(rand()*6)]"
 		_ = sql // suppress unused warning

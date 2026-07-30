@@ -65,7 +65,7 @@ func Test_corrupt4(t *testing.T) {
 	}
 	var trunkpgno = "hexio_get_int [hexio_read test.db 32 4]"
 	_ = trunkpgno // suppress unused warning
-	baseaddr := "($trunkpgno-1)*1024"
+	var baseaddr = "($trunkpgno-1)*1024"
 	_ = baseaddr // suppress unused warning
 	{ // do_test "corrupt4-1.3"
 		t.Errorf("TODO: %s not implemented in frigolite", "hexio_get_int [hexio_read test.db [expr {$::baseaddr+4}] 4]")

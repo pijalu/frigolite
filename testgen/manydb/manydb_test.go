@@ -89,7 +89,7 @@ func Test_manydb(t *testing.T) {
 			_ = _catchErr // suppress unused warning
 			os.Remove("testfile.1")
 		}
-		N := "$i / $num_fd_per_openwrite_db"
+		N = "$i / $num_fd_per_openwrite_db"
 		_ = N // suppress unused warning
 		var i = "0"
 		_ = i // suppress unused warning
@@ -113,7 +113,7 @@ func Test_manydb(t *testing.T) {
 				}
 			}
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
 			{ // do_test "manydb-1." + i
@@ -133,7 +133,7 @@ func Test_manydb(t *testing.T) {
 				}
 			}
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
 			{ // do_test "manydb-2." + i
@@ -150,7 +150,7 @@ func Test_manydb(t *testing.T) {
 				}
 			}
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
 			{ // do_test "manydb-3." + i

@@ -89,6 +89,7 @@ func Test_vacuum3(t *testing.T) {
 			}
 			_res = db.Exec("PRAGMA integrity_check")
 			if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+			var I = "0"
 			// incr I 1
 			{
 				_n, _err := strconv.Atoi(I)
@@ -119,7 +120,7 @@ func Test_vacuum3(t *testing.T) {
 			_ = blob // suppress unused warning
 			len(blob)
 		}
-		var I = "4"
+		I = "4"
 		_ = I // suppress unused warning
 		// foreach {request actual database} "list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\"
 		_items1 := tclSplitList("list \\\n  2048 2048 4096                        \\\n  1024 1024 3072                        \\\n  1170 1024 3072                        \\\n  256  1024 3072                        \\\n  512  512  2048                        \\\n  4096 4096 8192                        \\\n  1024 1024 3072                        \\")
@@ -152,6 +153,7 @@ func Test_vacuum3(t *testing.T) {
 				}
 				_res = db.Exec("PRAGMA integrity_check")
 				if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+				var I = "0"
 				// incr I 1
 				{
 					_n, _err := strconv.Atoi(I)
@@ -175,7 +177,7 @@ func Test_vacuum3(t *testing.T) {
 			}
 			var _sig = "signature" // TCL namespace variable
 			_ = _sig // suppress unused warning
-			var I = "3"
+			I = "3"
 			_ = I // suppress unused warning
 			// foreach {request actual} "list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\"
 			_items2 := tclSplitList("list \\\n  2048 2048                    \\\n  1024 1024                    \\\n  1170 1024                    \\\n  256  1024                    \\\n  512  512                     \\\n  4096 4096                    \\\n  1024 1024                    \\")
@@ -200,6 +202,7 @@ func Test_vacuum3(t *testing.T) {
 					}
 					_res = db.Exec("PRAGMA integrity_check")
 					if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
+					var I = "0"
 					// incr I 1
 					{
 						_n, _err := strconv.Atoi(I)

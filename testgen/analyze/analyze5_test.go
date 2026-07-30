@@ -54,15 +54,15 @@ func Test_analyze5(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			y := "$i>=25 && $i<=50"
+			var y = "$i>=25 && $i<=50"
 			_ = y // suppress unused warning
-			z := "($i>=400) + ($i>=700) + ($i>=875)"
+			var z = "($i>=400) + ($i>=700) + ($i>=875)"
 			_ = z // suppress unused warning
 			var x = z
 			_ = x // suppress unused warning
 			var w = z
 			_ = w // suppress unused warning
-			_t := "$z+0.5"
+			var _t = "$z+0.5"
 			_ = _t // suppress unused warning
 			t.Errorf("TODO: %s not implemented in frigolite", "switch $z {\n      0 {set u \"alpha\"; unset x}\n      1 {set u \"...}")
 			if tclBool(i + "%2") {

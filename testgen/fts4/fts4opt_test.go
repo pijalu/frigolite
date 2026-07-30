@@ -142,7 +142,7 @@ func Test_fts4opt(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		// skip: foreach over unresolved TCL command
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		// skip: foreach over unresolved TCL command
 	}

@@ -378,7 +378,7 @@ func Test_csv01(t *testing.T) {
 			}
 		}
 	}
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20 }() {
 		db.Close()

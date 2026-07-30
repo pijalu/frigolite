@@ -676,7 +676,7 @@ func Test_tabfunc01(t *testing.T) {
 		}
 	}
 	{ // do_test "tabfunc01-722"
-		PTR3 := "$PTR2+16"
+		var PTR3 = "$PTR2+16"
 		_ = PTR3 // suppress unused warning
 		_res = db.Exec("\n    SELECT remember(987,inttoptr($PTR3));\n    SELECT value FROM carray(inttoptr($PTR2),5,'int64');\n  ")
 		if _res.Error != nil {
@@ -1300,6 +1300,7 @@ func Test_tabfunc01(t *testing.T) {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n         SELECT 'value " + op + " " + bx + "' WHERE (\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE value " + op + " " + bx + ")<>(\n            SELECT group_concat(value) FROM generate_series " + _range + "\n             WHERE +value " + op + " " + bx + ");\n      ")
 							}
 						}
+						var subtest = "0"
 						// incr subtest 1
 						{
 							_n, _err := strconv.Atoi(subtest)

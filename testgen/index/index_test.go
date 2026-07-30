@@ -667,7 +667,7 @@ func Test_index(t *testing.T) {
 		_ = _idxlist // suppress unused warning
 		tclLLength(_idxlist)
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for tclBool(i + "<" + "llength $::idxlist") {
 		{ // do_test "index-13.3." + i

@@ -111,7 +111,7 @@ func Test_fts4merge(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			{ // "1.4." + i
@@ -376,7 +376,7 @@ func Test_fts4merge(t *testing.T) {
 					t.Errorf("TODO: %s not implemented in frigolite", "fts3_integrity_check t1")
 				}
 				{ // do_test "5.9"
-					L := "1852"
+					var L = "1852"
 					_ = L // suppress unused warning
 					for _, docid := range tclSplitList("execsql {\n        SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L\n    }") {
 						_res = db.Exec("INSERT INTO t1 SELECT * FROM t1 WHERE docid=$docid")

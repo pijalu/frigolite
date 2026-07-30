@@ -207,6 +207,7 @@ func Test_where3(t *testing.T) {
 	var cnt = "0"
 	_ = cnt // suppress unused warning
 	for _, predicate := range tclSplitList("\n   {}\n   {ORDER BY a}\n   {ORDER BY t6w.a}\n   {WHERE a>0}\n   {WHERE t6y.a>0}\n   {WHERE a>0 ORDER BY a}\n") {
+		var cnt = "0"
 		// incr cnt 1
 		{
 			_n, _err := strconv.Atoi(cnt)

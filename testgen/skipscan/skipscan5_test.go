@@ -54,9 +54,9 @@ func Test_skipscan5(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			a := "1"
+			var a = "1"
 			_ = a // suppress unused warning
-			b := "1"
+			var b = "1"
 			_ = b // suppress unused warning
 			_res = db.Exec(" INSERT INTO t1 VALUES($a, $b, NULL) ")
 			if _res.Error != nil {
@@ -193,6 +193,7 @@ func Test_skipscan5(t *testing.T) {
 						if _res.Error != nil {
 							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t3 VALUES(" + c + " % 2, " + v + ", " + c + ")")
 						}
+						var c = "0"
 						// incr c 1
 						{
 							_n, _err := strconv.Atoi(c)

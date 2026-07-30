@@ -71,6 +71,7 @@ func Test_types(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
 			}
 		}
+		var tnum = "0"
 		// incr tnum 1
 		{
 			_n, _err := strconv.Atoi(tnum)
@@ -79,7 +80,7 @@ func Test_types(t *testing.T) {
 			}
 		}
 	}
-	var tnum = "1"
+	tnum = "1"
 	_ = tnum // suppress unused warning
 	for _, val := range tclSplitList(values) {
 		var lit = "lindex $val 0"
@@ -98,6 +99,7 @@ func Test_types(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
 			}
 		}
+		var tnum = "0"
 		// incr tnum 1
 		{
 			_n, _err := strconv.Atoi(tnum)
@@ -106,7 +108,7 @@ func Test_types(t *testing.T) {
 			}
 		}
 	}
-	var tnum = "1"
+	tnum = "1"
 	_ = tnum // suppress unused warning
 	for _, val := range tclSplitList(values) {
 		var lit = "lindex $val 0"
@@ -121,6 +123,7 @@ func Test_types(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT typeof(i), typeof(n), typeof(t), typeof(o) FROM t1;\n    ")
 			}
 		}
+		var tnum = "0"
 		// incr tnum 1
 		{
 			_n, _err := strconv.Atoi(tnum)

@@ -213,13 +213,13 @@ func Test_wal3(t *testing.T) {
 			_ = _list
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "T filter xShmBarrier")
-		var barrier_count = "0"
+		barrier_count = "0"
 		_ = barrier_count // suppress unused warning
-		var wal3_do_lockfailure = "1"
+		wal3_do_lockfailure = "1"
 		_ = wal3_do_lockfailure // suppress unused warning
-		var testrc = ""
+		testrc = ""
 		_ = testrc // suppress unused warning
-		var testmsg = ""
+		testmsg = ""
 		_ = testmsg // suppress unused warning
 		{ // do_test "wal3-5.4"
 			t.Errorf("TODO: %s not implemented in frigolite", "faultsim_restore_and_reopen")
@@ -452,7 +452,7 @@ func Test_wal3(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    PRAGMA page_size = 1024;\n    PRAGMA journal_mode = WAL;\n    CREATE TABLE whoami(x);\n    INSERT INTO whoami VALUES('nobody');\n  ")
 			}
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return i_n < nConn_n }() {
 			var c = "db" + i
@@ -478,7 +478,7 @@ func Test_wal3(t *testing.T) {
 				}
 			}
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nConn_n, _nConn_e := strconv.Atoi(nConn); if _nConn_e != nil { return false }; return i_n < nConn_n }() {
 			var c = "db" + i
@@ -497,7 +497,7 @@ func Test_wal3(t *testing.T) {
 				}
 			}
 		}
-		sz := "1024 * (2+$AUTOVACUUM)"
+		var sz = "1024 * (2+$AUTOVACUUM)"
 		_ = sz // suppress unused warning
 		{ // do_test "wal3-9.3"
 			var i = "0"

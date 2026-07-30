@@ -69,6 +69,7 @@ func Test_thread3(t *testing.T) {
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlthread spawn Y {\n      sqlite3 dbR test.db\n      catch {\n        d...}")
 			t.Errorf("TODO: %s not implemented in frigolite", "wait_for_var X")
 			t.Errorf("TODO: %s not implemented in frigolite", "wait_for_var Y")
+			var nTotalBusy = "0"
 			// incr nTotalBusy X
 			{
 				_n, _err := strconv.Atoi(nTotalBusy)

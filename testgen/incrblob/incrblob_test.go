@@ -119,6 +119,7 @@ func Test_incrblob(t *testing.T) {
 		var ib2_extra = "0"
 		_ = ib2_extra // suppress unused warning
 		if tclBool(AutoVacuumMode) {
+			var ib2_extra = "0"
 			// incr ib2_extra 1
 			{
 				_n, _err := strconv.Atoi(ib2_extra)
@@ -128,6 +129,7 @@ func Test_incrblob(t *testing.T) {
 			}
 		}
 		if tclBool("nonzero_reserved_bytes") {
+			var ib2_extra = "0"
 			// incr ib2_extra 1
 			{
 				_n, _err := strconv.Atoi(ib2_extra)

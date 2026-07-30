@@ -435,7 +435,7 @@ func Test_existsexpr(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t3;\n  CREATE TABLE t3(x INT, y INT);\n  CREATE TABLE t4(z INT);\n  INSERT INTO t3 VALUES (1,0),(2,2),(3,3);\n  INSERT INTO t4 VALUES (4),(5);\n")
 		}
 	}
-	var Q = "\n  SELECT x FROM t3\n   WHERE EXISTS(SELECT 1 FROM t4 WHERE z>y)\n   LIMIT 1 OFFSET 1\n"
+	Q = "\n  SELECT x FROM t3\n   WHERE EXISTS(SELECT 1 FROM t4 WHERE z>y)\n   LIMIT 1 OFFSET 1\n"
 	_ = Q // suppress unused warning
 	{
 		var _catchErr error

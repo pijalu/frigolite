@@ -47,13 +47,13 @@ func Test_mallocF(t *testing.T) {
 	var PREP = "\n  CREATE TABLE t1(x,y);\n  INSERT INTO t1 VALUES('abc123', 5);\n  INSERT INTO t1 VALUES('xyz987', 42);\n"
 	_ = PREP // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloeF-1 -sqlprep $PREP -sqlbody {\n  SELECT * FROM t1 WHERE x GLOB 'abc*'\n}")
-	var PREP = "\n  CREATE TABLE t1(x PRIMARY KEY,y UNIQUE);\n  INSERT INTO t1 VALUES('abc123', 5);\n  INSERT INTO t1 VALUES('xyz987', 42);\n"
+	PREP = "\n  CREATE TABLE t1(x PRIMARY KEY,y UNIQUE);\n  INSERT INTO t1 VALUES('abc123', 5);\n  INSERT INTO t1 VALUES('xyz987', 42);\n"
 	_ = PREP // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloeF-2 -sqlprep $PREP -sqlbody {\n  SELECT x FROM t1\n   WHERE y=1 OR y=2 OR y=3 OR ...}")
-	var PREP = "\n  CREATE TABLE t1(x PRIMARY KEY,y UNIQUE);\n  INSERT INTO t1 VALUES('abc123', 5);\n  INSERT INTO t1 VALUES('xyz987', 42);\n"
+	PREP = "\n  CREATE TABLE t1(x PRIMARY KEY,y UNIQUE);\n  INSERT INTO t1 VALUES('abc123', 5);\n  INSERT INTO t1 VALUES('xyz987', 42);\n"
 	_ = PREP // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test malloeF-3 -sqlprep $PREP -sqlbody {\n  SELECT x FROM t1 WHERE y BETWEEN 10 AND 29\n}")
-	var PREP = "\n  CREATE TABLE t1(x);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n    SELECT 'hello';\n  END;\n"
+	PREP = "\n  CREATE TABLE t1(x);\n  CREATE TRIGGER r1 BEFORE INSERT ON t1 BEGIN\n    SELECT 'hello';\n  END;\n"
 	_ = PREP // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test mallocF-4 -sqlprep $PREP -sqlbody {\n  INSERT INTO t1 VALUES(random());\n}")
 }

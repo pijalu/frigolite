@@ -53,7 +53,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // do_test "fts3corrupt-1.1"
 		var blob = "db one {SELECT root from t1_segdir}"
 		_ = blob // suppress unused warning
-		var blob = "binary format a7ca* $blob 24 [string range $blob 8 end]"
+		blob = "binary format a7ca* $blob 24 [string range $blob 8 end]"
 		_ = blob // suppress unused warning
 		_res = db.Exec(" UPDATE t1_segdir SET root = $blob ")
 		if _res.Error != nil {
@@ -92,7 +92,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // do_test "fts3corrupt-2.1"
 		var blob = "db one {SELECT root from t1_segdir}"
 		_ = blob // suppress unused warning
-		var blob = "binary format a*a* \"\\x00\\x7F\" [string range $blob 2 end]"
+		blob = "binary format a*a* \"\\x00\\x7F\" [string range $blob 2 end]"
 		_ = blob // suppress unused warning
 		_res = db.Exec(" UPDATE t1_segdir SET root = $blob ")
 		if _res.Error != nil {
@@ -117,7 +117,7 @@ func Test_fts3corrupt(t *testing.T) {
 	{ // do_test "fts3corrupt-3.1"
 		var blob = "db one {SELECT quote(root) from t1_segdir}"
 		_ = blob // suppress unused warning
-		var blob = "binary format a11a*a* $blob \"\\x7F\" [string range $blob 12 end]"
+		blob = "binary format a11a*a* $blob \"\\x7F\" [string range $blob 12 end]"
 		_ = blob // suppress unused warning
 		_res = db.Exec(" UPDATE t1_segdir SET root = $blob ")
 		if _res.Error != nil {

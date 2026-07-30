@@ -138,7 +138,7 @@ func Test_autoindex1(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 SELECT a+$n, b+$n FROM t4")
 			}
-			n := "$n+$n"
+			n = "$n+$n"
 			_ = n // suppress unused warning
 		}
 		_res = db.Exec("\n    SELECT count(*) FROM t4;\n  ")

@@ -59,9 +59,9 @@ func Test_swarmvtab(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
-			iMin := "$i*10 + 1"
+			var iMin = "$i*10 + 1"
 			_ = iMin // suppress unused warning
-			iMax := "$iMin+9"
+			var iMax = "$iMin+9"
 			_ = iMax // suppress unused warning
 			os.Remove("test.db" + i)
 			_res = db.Exec("ATTACH 'test.db" + i + "' AS aux;\n      CREATE TABLE aux.t" + i + " (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t" + i + " SELECT * FROM t0 WHERE a BETWEEN " + iMin + " AND " + iMax + ";\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db" + i + "', 't" + i + "', " + iMin + ", " + iMax + ");")
@@ -193,9 +193,9 @@ func Test_swarmvtab(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
-			iMin := "$i*10 + 1"
+			var iMin = "$i*10 + 1"
 			_ = iMin // suppress unused warning
-			iMax := "$iMin+9"
+			var iMax = "$iMin+9"
 			_ = iMax // suppress unused warning
 			os.Remove("test.db" + i)
 			_res = db.Exec("ATTACH 'test.db" + i + "' AS aux;\n      CREATE TABLE aux.t" + i + " (a INTEGER PRIMARY KEY, b TEXT);\n      INSERT INTO aux.t" + i + " SELECT * FROM t0 WHERE a BETWEEN " + iMin + " AND " + iMax + ";\n      DETACH aux;\n      INSERT INTO dir VALUES('test.db" + i + "', 't" + i + "', " + iMin + ", " + iMax + ");")
@@ -258,7 +258,7 @@ func Test_swarmvtab(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "sql error: near \\\"FROMdir\\\": syntax error", _res.Error, "\n  CREATE VIRTUAL TABLE temp.x1 USING swarmvtab('SELECT * FROMdir', 'fetchdb');\n")
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 40 }() {
 		os.Remove("test.db" + i)

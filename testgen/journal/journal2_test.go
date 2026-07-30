@@ -133,7 +133,7 @@ func Test_journal2(t *testing.T) {
 		// file size test.db-journal
 	}
 	{ // do_test "journal2-1.11"
-		sz := "[file size test.db] / 1024"
+		var sz = "[file size test.db] / 1024"
 		_ = sz // suppress unused warning
 		// expr $sz>120 && $sz<200 → "$sz>120 && $sz<200"
 	}
@@ -164,7 +164,7 @@ func Test_journal2(t *testing.T) {
 		}
 	}
 	{ // do_test "journal2-1.16"
-		sz := "[file size testX.db] / 1024"
+		var sz = "[file size testX.db] / 1024"
 		_ = sz // suppress unused warning
 		// expr $sz>240 && $sz<400 → "$sz>240 && $sz<400"
 	}

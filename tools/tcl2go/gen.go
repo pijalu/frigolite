@@ -1488,13 +1488,21 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 				exprStr = exprStr[1 : len(exprStr)-1]
 			}
 			result, err := tcl.EvalExpr(exprStr, nil, nil)
-			if err == nil {
-				tp.emitLine("%s := %q", goName, result)
-				tp.emitLine("_ = %s // suppress unused warning", goName)
+			if tp.isVarDeclared(goName) {
+				if err == nil {
+					tp.emitLine("%s = %q", goName, result)
+				} else {
+					tp.emitLine("%s = tclExpr(%q)", goName, exprStr)
+				}
 			} else {
-				tp.emitLine("%s := tclExpr(%q)", goName, exprStr)
-				tp.emitLine("_ = %s // suppress unused warning", goName)
+				if err == nil {
+					tp.emitLine("var %s = %q", goName, result)
+				} else {
+					tp.emitLine("var %s = tclExpr(%q)", goName, exprStr)
+				}
+				tp.vars = append(tp.vars, goName)
 			}
+			tp.emitLine("_ = %s // suppress unused warning", goName)
 			return
 		}
 		if len(cmdParts) > 0 && cmdParts[0] == "catch" && len(cmdParts) >= 2 {
@@ -1530,10 +1538,14 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 							// so they're accessible from all do_test blocks.
 							savedIndent := tp.indent
 							tp.indent = 1
-							tp.emitLine("var %s string", varName)
+							if !tp.isVarDeclared(varName) {
+								tp.emitLine("var %s string", varName)
+								tp.vars = append(tp.vars, varName)
+							}
 							// msg is declared at function level in preamble
-							if errVar != "msg" {
+							if errVar != "msg" && !tp.isVarDeclared(errVar) {
 								tp.emitLine("var %s string", errVar)
+								tp.vars = append(tp.vars, errVar)
 							}
 							tp.emitLine("_ = %s // suppress unused warning", errVar)
 							tp.indent = savedIndent
@@ -1568,8 +1580,13 @@ func (tp *transpiler) processSet(args []tcl.RawWord) {
 	}
 
 	valueExpr := tp.varValueExpr(rest)
-	// Use var declaration + assignment instead of := to avoid redeclaration conflicts
-	tp.emitLine("var %s = %s", goName, valueExpr)
+	// Use := for first declaration, = for subsequent assignment to avoid redeclaration
+	if tp.isVarDeclared(goName) {
+		tp.emitLine("%s = %s", goName, valueExpr)
+	} else {
+		tp.emitLine("var %s = %s", goName, valueExpr)
+		tp.vars = append(tp.vars, goName)
+	}
 	tp.emitLine("_ = %s // suppress unused warning", goName)
 }
 
@@ -1595,6 +1612,11 @@ func (tp *transpiler) processIncr(args []tcl.RawWord) {
 		}
 	}
 
+	// Ensure variable is declared if not already
+	if !tp.isVarDeclared(goName) {
+		tp.emitLine("var %s = \"0\"", goName)
+		tp.vars = append(tp.vars, goName)
+	}
 	tp.emitLine("// incr %s %s", goName, amount)
 	tp.emitLine("{")
 	tp.indent++

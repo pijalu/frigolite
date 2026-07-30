@@ -216,9 +216,9 @@ func Test_cost(t *testing.T) {
 		_ = _idx0
 			var w = "join [lrange $L 0 [expr $nTerm-1]] \" AND \""
 			_ = w // suppress unused warning
-			p1 := "($nRow-1) / 100.0"
+			var p1 = "($nRow-1) / 100.0"
 			_ = p1 // suppress unused warning
-			p2 := "($nRow+1) / 100.0"
+			var p2 = "($nRow+1) / 100.0"
 			_ = p2 // suppress unused warning
 			var sql1 = "SELECT * FROM t1 WHERE likelihood(k=?, " + p1 + ") AND " + w
 			_ = sql1 // suppress unused warning

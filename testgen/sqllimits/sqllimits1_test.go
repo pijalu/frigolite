@@ -344,7 +344,7 @@ func Test_sqllimits1(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_reset $::STMT")
 	}
 	{ // do_test "sqllimits1-5.14.4"
-		np1 := "$SQLITE_LIMIT_LENGTH + 1"
+		var np1 = "$SQLITE_LIMIT_LENGTH + 1"
 		_ = np1 // suppress unused warning
 		var _str1 = "A $np1" // TCL namespace variable
 		_ = _str1 // suppress unused warning
@@ -378,7 +378,7 @@ func Test_sqllimits1(t *testing.T) {
 		}
 	}
 	{ // do_test "sqllimits1-5.14.8"
-		n := "$np1-1"
+		var n = "$np1-1"
 		_ = n // suppress unused warning
 		{
 			var res string // catch result ("0"=ok, "1"=error)
@@ -459,7 +459,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = sql // suppress unused warning
 		var tail = " /* A comment to take up space in order to make the string\\\n                longer without increasing the expression depth */\\\n                AND   1  ==  1"
 		_ = tail // suppress unused warning
-		N := "(50000 / [string length $tail])+1"
+		var N = "(50000 / [string length $tail])+1"
 		_ = N // suppress unused warning
 		sql += "$tail $N"
 		_res = db.Exec(sql)
@@ -471,7 +471,7 @@ func Test_sqllimits1(t *testing.T) {
 		_ = sql // suppress unused warning
 		var tail = " /* A comment to take up space in order to make the string\\\n                longer without increasing the expression depth */\\\n                AND   1  ==  1"
 		_ = tail // suppress unused warning
-		N := "(50000 / [string length $tail])+1"
+		var N = "(50000 / [string length $tail])+1"
 		_ = N // suppress unused warning
 		sql += "$tail $N"
 		var nbytes = strconv.Itoa(len("$sql"))

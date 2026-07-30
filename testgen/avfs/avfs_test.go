@@ -201,9 +201,9 @@ func Test_avfs(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
 		var adaSz = "file size $::fa"
 		_ = adaSz // suppress unused warning
-		adba := "($adbSz + 0.1)/$adaSz"
+		var adba = "($adbSz + 0.1)/$adaSz"
 		_ = adba // suppress unused warning
-		var results = "concat $results [lrange $qr 0 2]"
+		results = "concat $results [lrange $qr 0 2]"
 		_ = results // suppress unused warning
 		results = tclListAppend(results, "$adba > 10.0")
 		var _result = "join $results \" | \"" // TCL namespace variable
@@ -231,6 +231,7 @@ func Test_avfs(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "adb eval { BEGIN }")
 		for func() bool { npages_n, _npages_e := strconv.Atoi(npages); if _npages_e != nil { return false }; return npages_n > 0 }() {
 			t.Errorf("TODO: %s not implemented in frigolite", "adb eval { INSERT INTO ri VALUES (randomblob(1500)) }")
+			var npages = "0"
 			// incr npages -1
 			{
 				_n, _err := strconv.Atoi(npages)
@@ -242,9 +243,9 @@ func Test_avfs(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "adb eval { COMMIT }")
 		t.Errorf("TODO: %s not implemented in frigolite", "adb eval {\n    SELECT integrity_check as ic FROM pragma_inte...} { lappend results $ic }")
 		t.Errorf("TODO: %s not implemented in frigolite", "adb close")
-		adaSzr := "[file size $::fa] / 300.0 / 1500"
+		var adaSzr = "[file size $::fa] / 300.0 / 1500"
 		_ = adaSzr // suppress unused warning
-		okSzr := "$adaSzr > 1.0 && $adaSzr < 1.3"
+		var okSzr = "$adaSzr > 1.0 && $adaSzr < 1.3"
 		_ = okSzr // suppress unused warning
 		results = tclListAppend(results, okSzr)
 		var _result = "join $results \" | \"" // TCL namespace variable
@@ -300,7 +301,7 @@ func Test_avfs(t *testing.T) {
 		t.Log(ofd)
 		t.Log(ofd)
 		// close $ofd
-		var ofd = "open $shod wb"
+		ofd = "open $shod wb"
 		_ = ofd // suppress unused warning
 		t.Log(ofd)
 		// close $ofd
@@ -328,7 +329,7 @@ func Test_avfs(t *testing.T) {
 		t.Log(ofd)
 		t.Log(ofd)
 		// close $ofd
-		var ofd = "open $shod wb"
+		ofd = "open $shod wb"
 		_ = ofd // suppress unused warning
 		// close $ofd
 		var res = "catchcmd \"-append -batch -init $shdo $shod\" \"\""

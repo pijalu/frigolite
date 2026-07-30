@@ -43,7 +43,7 @@ func Test_tkt1667(t *testing.T) {
 
 	// set testdir: test directory (not used in Go test context)
 	os.Remove("test.db")
-	first_ptrmap_page := "207.8"
+	var first_ptrmap_page = "207.8"
 	_ = first_ptrmap_page // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control_pending_byte [expr 1024 * ($first_ptrmap_page-1)]")
 	db, err = frigolite.Open("test.db")

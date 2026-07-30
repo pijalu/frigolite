@@ -47,7 +47,7 @@ func Test_backup_ioerr(t *testing.T) {
 	// proc definition (not transpiled)
 	{ // do_test "backup_ioerr-1.1"
 		t.Errorf("TODO: %s not implemented in frigolite", "populate_database db")
-		nPage := "[file size test.db] / 1024"
+		var nPage = "[file size test.db] / 1024"
 		_ = nPage // suppress unused warning
 		// expr $nPage>130 && $nPage<160 → "$nPage>130 && $nPage<160"
 	}
@@ -63,6 +63,7 @@ func Test_backup_ioerr(t *testing.T) {
 	for _, bPersist := range tclSplitList("0 1") {
 		for _, iDestPagesize := range tclSplitList("512 1024 4096") {
 			for _, zSetupBak := range tclSplitList("list \"\" {populate_database ddb 1}") {
+				var iTest = "0"
 				// incr iTest 1
 				{
 					_n, _err := strconv.Atoi(iTest)
@@ -140,7 +141,7 @@ func Test_backup_ioerr(t *testing.T) {
 					{ // do_test "backup_ioerr-" + iTest + "." + iError + ".6"
 						// expr $rc eq "SQLITE_OK" → "$rc eq \"SQLITE_OK\""
 					}
-					var rc = "catchsql { UPDATE t1 SET b = randstr(1000,1000) WHERE a < 50 } sdb"
+					rc = "catchsql { UPDATE t1 SET b = randstr(1000,1000) WHERE a < 50 } sdb"
 					_ = rc // suppress unused warning
 					if tclBool("lindex $rc 0" + " && " + _sqlite_io_error_persist + "==0") {
 						var rc = "B step 5000"
@@ -167,7 +168,7 @@ func Test_backup_ioerr(t *testing.T) {
 						if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
 						continue
 					}
-					var rc = "B step 5000"
+					rc = "B step 5000"
 					_ = rc // suppress unused warning
 					if rc != "SQLITE_DONE" {
 						{ // do_test "backup_ioerr-" + iTest + "." + iError + ".12"
@@ -205,7 +206,7 @@ func Test_backup_ioerr(t *testing.T) {
 					t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup_ioerr-$iTest.$iError.18 ddb main sdb main")
 					_res = db.Exec("PRAGMA integrity_check")
 					if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-					bStop := "$::sqlite_io_error_pending<=0"
+					var bStop = "$::sqlite_io_error_pending<=0"
 					_ = bStop // suppress unused warning
 					// incr iError 1
 					{

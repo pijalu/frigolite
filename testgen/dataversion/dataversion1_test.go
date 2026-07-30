@@ -66,7 +66,7 @@ func Test_dataversion1(t *testing.T) {
 		_ = dv2 // suppress unused warning
 		// expr $::dv1==$dv2 → "$::dv1==$dv2"
 	}
-	var dv1 = "file_control_data_version db main"
+	dv1 = "file_control_data_version db main"
 	_ = dv1 // suppress unused warning
 	{ // do_test "dataversion1-120"
 		_res = db.Exec("\n    UPDATE t2 SET y=y+1;\n  ")

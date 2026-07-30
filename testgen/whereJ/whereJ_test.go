@@ -113,6 +113,7 @@ func Test_whereJ(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i, $x, $c) ")
 			}
+			var c = "0"
 			// incr c 1
 			{
 				_n, _err := strconv.Atoi(c)
@@ -132,6 +133,7 @@ func Test_whereJ(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1 VALUES($i+1, 5, $c) ")
 		}
+		var c = "0"
 		// incr c 1
 		{
 			_n, _err := strconv.Atoi(c)

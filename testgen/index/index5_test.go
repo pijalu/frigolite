@@ -108,6 +108,7 @@ func Test_index5(t *testing.T) {
 			var iNext = "lindex $::write_list $i"
 			_ = iNext // suppress unused warning
 			if func() bool { iNext_n, _iNext_e := strconv.Atoi(iNext); if _iNext_e != nil { return false }; iPrev_n, _iPrev_e := strconv.Atoi(iPrev); if _iPrev_e != nil { return false }; return iNext_n == (iPrev_n+1) }() {
+				var nForward = "0"
 				// incr nForward 1
 				{
 					_n, _err := strconv.Atoi(nForward)
@@ -116,6 +117,7 @@ func Test_index5(t *testing.T) {
 					}
 				}
 			} else if func() bool { iNext_n, _iNext_e := strconv.Atoi(iNext); if _iNext_e != nil { return false }; iPrev_n, _iPrev_e := strconv.Atoi(iPrev); if _iPrev_e != nil { return false }; return iNext_n == (iPrev_n-1) }() {
+				var nBackward = "0"
 				// incr nBackward 1
 				{
 					_n, _err := strconv.Atoi(nBackward)
@@ -124,6 +126,7 @@ func Test_index5(t *testing.T) {
 					}
 				}
 			} else {
+				var nNoncont = "0"
 				// incr nNoncont 1
 				{
 					_n, _err := strconv.Atoi(nNoncont)

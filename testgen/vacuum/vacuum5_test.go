@@ -78,7 +78,7 @@ func Test_vacuum5(t *testing.T) {
 	{ // do_test "vacuum5-1.2.4"
 		// file size test3.db
 	}
-	var size1 = "file size test.db"
+	size1 = "file size test.db"
 	_ = size1 // suppress unused warning
 	{ // "vacuum-1.2.5"
 		r = db.Query("\n  DELETE FROM t1;\n  PRAGMA main.integrity_check;\n")
@@ -107,7 +107,7 @@ func Test_vacuum5(t *testing.T) {
 	{ // do_test "vacuum5-1.3.4"
 		// file size test3.db
 	}
-	var size2 = "file size test2.db"
+	size2 = "file size test2.db"
 	_ = size2 // suppress unused warning
 	{ // "vacuum-1.3.5"
 		r = db.Query("\n  DELETE FROM t2;\n  PRAGMA x2.integrity_check;\n")

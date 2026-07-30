@@ -53,9 +53,9 @@ func Test_crash7(t *testing.T) {
 			db, err := frigolite.Open("test.db")
 			defer db.Close()
 			if err != nil { t.Fatal(err) }
-			from_size := "1024 << ($ii&3)"
+			var from_size = "1024 << ($ii&3)"
 			_ = from_size // suppress unused warning
-			to_size := "1024 << (($ii>>2)&3)"
+			var to_size = "1024 << (($ii>>2)&3)"
 			_ = to_size // suppress unused warning
 			_res = db.Exec("\n      PRAGMA page_size = " + from_size + ";\n      BEGIN;\n      CREATE TABLE abc(a PRIMARY KEY, b, c);\n      INSERT INTO abc VALUES(randomblob(100), randomblob(200), randomblob(1000));\n      INSERT INTO abc \n          SELECT randomblob(1000), randomblob(200), randomblob(100)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc;\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc WHERE " + "$ii&16" + ";\n      INSERT INTO abc \n          SELECT randomblob(25), randomblob(45), randomblob(9456)\n          FROM abc WHERE " + "$ii&32" + ";\n      INSERT INTO abc \n          SELECT randomblob(100), randomblob(200), randomblob(1000)\n          FROM abc WHERE " + "$ii&8" + ";\n      INSERT INTO abc \n          SELECT randomblob(25), randomblob(45), randomblob(9456)\n          FROM abc WHERE " + "$ii&4" + ";\n      COMMIT;\n    ")
 			if _res.Error != nil {

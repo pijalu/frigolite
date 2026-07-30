@@ -102,6 +102,7 @@ func Test_enc2(t *testing.T) {
 			}
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "run_test_script enc2-$i $enc")
+		var i = "0"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)
@@ -147,7 +148,7 @@ func Test_enc2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	r = db.Query("pragma encoding = 'UTF-16LE'")
 	if r.Error != nil {
@@ -180,7 +181,7 @@ func Test_enc2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	r = db.Query("pragma encoding = 'UTF-16BE'")
 	if r.Error != nil {
@@ -247,7 +248,7 @@ func Test_enc2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	r = db.Query("pragma encoding = 'UTF-8'")
 	if r.Error != nil {
@@ -268,7 +269,7 @@ func Test_enc2(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.2"
 		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
@@ -279,7 +280,7 @@ func Test_enc2(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.3"
 		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")
@@ -291,7 +292,7 @@ func Test_enc2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	r = db.Query("pragma encoding = 'UTF-16LE'")
 	if r.Error != nil {
@@ -312,7 +313,7 @@ func Test_enc2(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.5"
 		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
@@ -323,7 +324,7 @@ func Test_enc2(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.6"
 		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")
@@ -335,7 +336,7 @@ func Test_enc2(t *testing.T) {
 	os.Remove("test.db")
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	r = db.Query("pragma encoding = 'UTF-16BE'")
 	if r.Error != nil {
@@ -356,7 +357,7 @@ func Test_enc2(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.9"
 		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 1 0")
@@ -367,7 +368,7 @@ func Test_enc2(t *testing.T) {
 	}
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
-	var DB = "sqlite3_connection_pointer db"
+	DB = "sqlite3_connection_pointer db"
 	_ = DB // suppress unused warning
 	{ // do_test "enc2-6.10"
 		t.Errorf("TODO: %s not implemented in frigolite", "add_test_function $DB 0 0 1")

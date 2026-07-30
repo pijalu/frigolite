@@ -74,7 +74,7 @@ func Test_speed1p(t *testing.T) {
 	var i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		r := "0"
+		var r = "0"
 		_ = r // suppress unused warning
 		var x = "number_name $r"
 		_ = x // suppress unused warning
@@ -98,12 +98,12 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var list = ""
+	list = ""
 	_ = list // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		r := "0"
+		var r = "0"
 		_ = r // suppress unused warning
 		var x = "number_name $r"
 		_ = x // suppress unused warning
@@ -116,7 +116,7 @@ func Test_speed1p(t *testing.T) {
 			}
 		}
 	}
-	var script = "\n  foreach {i r x} $::list {\n    db eval {INSERT INTO t2 VALUES($i,$r,$x)}\n  }\n"
+	script = "\n  foreach {i r x} $::list {\n    db eval {INSERT INTO t2 VALUES($i,$r,$x)}\n  }\n"
 	_ = script // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
@@ -127,14 +127,14 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var list = ""
+	list = ""
 	_ = list // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
-		lwr := "$i*100"
+		var lwr = "$i*100"
 		_ = lwr // suppress unused warning
-		upr := "($i+10)*100"
+		var upr = "($i+10)*100"
 		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1
@@ -145,7 +145,7 @@ func Test_speed1p(t *testing.T) {
 			}
 		}
 	}
-	var script = "\n  foreach {lwr upr} $::list {\n    db eval  {SELECT count(*), avg(b) FROM t1 WHERE b>=$lwr AND b<$upr}\n  }\n"
+	script = "\n  foreach {lwr upr} $::list {\n    db eval  {SELECT count(*), avg(b) FROM t1 WHERE b>=$lwr AND b<$upr}\n  }\n"
 	_ = script // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
@@ -156,9 +156,9 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var list = ""
+	list = ""
 	_ = list // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
 		list = tclListAppend(list, "%" + "number_name $i" + "%")
@@ -170,7 +170,7 @@ func Test_speed1p(t *testing.T) {
 			}
 		}
 	}
-	var script = "\n  foreach pattern $::list {\n    db eval {SELECT count(*), avg(b) FROM t1 WHERE c LIKE $pattern}\n  }\n"
+	script = "\n  foreach pattern $::list {\n    db eval {SELECT count(*), avg(b) FROM t1 WHERE c LIKE $pattern}\n  }\n"
 	_ = script // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
@@ -190,14 +190,14 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var list = ""
+	list = ""
 	_ = list // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		lwr := "$i*100"
+		var lwr = "$i*100"
 		_ = lwr // suppress unused warning
-		upr := "($i+10)*100"
+		var upr = "($i+10)*100"
 		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1
@@ -208,7 +208,7 @@ func Test_speed1p(t *testing.T) {
 			}
 		}
 	}
-	var script = "\n  foreach {lwr upr} $::list {\n    db eval {SELECT count(*), avg(b) FROM t1 WHERE b>=$lwr AND b<$upr}\n  }\n"
+	script = "\n  foreach {lwr upr} $::list {\n    db eval {SELECT count(*), avg(b) FROM t1 WHERE b>=$lwr AND b<$upr}\n  }\n"
 	_ = script // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
@@ -219,12 +219,12 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var list = ""
+	list = ""
 	_ = list // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
-		id := "1"
+		var id = "1"
 		_ = id // suppress unused warning
 		list = tclListAppend(list, id)
 		// incr i 1
@@ -235,7 +235,7 @@ func Test_speed1p(t *testing.T) {
 			}
 		}
 	}
-	var script = "\n  foreach id $::list {\n    db eval {SELECT c FROM t1 WHERE rowid=$id}\n  }\n"
+	script = "\n  foreach id $::list {\n    db eval {SELECT c FROM t1 WHERE rowid=$id}\n  }\n"
 	_ = script // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
@@ -246,12 +246,12 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var list = ""
+	list = ""
 	_ = list // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
-		id := "1"
+		var id = "1"
 		_ = id // suppress unused warning
 		list = tclListAppend(list, id)
 		// incr i 1
@@ -262,7 +262,7 @@ func Test_speed1p(t *testing.T) {
 			}
 		}
 	}
-	var script = "\n  foreach id $::list {\n    db eval {SELECT c FROM t1 WHERE a=$id}\n  }\n"
+	script = "\n  foreach id $::list {\n    db eval {SELECT c FROM t1 WHERE a=$id}\n  }\n"
 	_ = script // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
@@ -273,9 +273,9 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var list = "db eval {SELECT c FROM t1 ORDER BY random() LIMIT 50000}"
+	list = "db eval {SELECT c FROM t1 ORDER BY random() LIMIT 50000}"
 	_ = list // suppress unused warning
-	var script = "\n  foreach c $::list {\n    db eval {SELECT c FROM t1 WHERE c=$c}\n  }\n"
+	script = "\n  foreach c $::list {\n    db eval {SELECT c FROM t1 WHERE c=$c}\n  }\n"
 	_ = script // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
@@ -287,14 +287,14 @@ func Test_speed1p(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-vacuum 100000 row VACUUM")
-	var list = ""
+	list = ""
 	_ = list // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		lwr := "$i*2"
+		var lwr = "$i*2"
 		_ = lwr // suppress unused warning
-		upr := "($i+1)*2"
+		var upr = "($i+1)*2"
 		_ = upr // suppress unused warning
 		list = tclListAppend(list, lwr, upr)
 		// incr i 1
@@ -305,7 +305,7 @@ func Test_speed1p(t *testing.T) {
 			}
 		}
 	}
-	var script = "\n  foreach {lwr upr} $::list {\n    db eval {UPDATE t1 SET b=b*2 WHERE a>=$lwr AND a<$upr}\n  }\n"
+	script = "\n  foreach {lwr upr} $::list {\n    db eval {UPDATE t1 SET b=b*2 WHERE a>=$lwr AND a<$upr}\n  }\n"
 	_ = script // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
@@ -316,12 +316,12 @@ func Test_speed1p(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var list = ""
+	list = ""
 	_ = list // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50000 }() {
-		r := "0"
+		var r = "0"
 		_ = r // suppress unused warning
 		list = tclListAppend(list, i, r)
 		// incr i 1
@@ -332,7 +332,7 @@ func Test_speed1p(t *testing.T) {
 			}
 		}
 	}
-	var script = "\n  foreach {i r} $::list {\n    db eval {UPDATE t1 SET b=$r WHERE a=$i}\n  }\n"
+	script = "\n  foreach {i r} $::list {\n    db eval {UPDATE t1 SET b=$r WHERE a=$i}\n  }\n"
 	_ = script // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {
@@ -344,12 +344,12 @@ func Test_speed1p(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1p-update3 50000 row {\n  UPDATE t1 SET c=a;\n}")
-	var list = ""
+	list = ""
 	_ = list // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		r := "0"
+		var r = "0"
 		_ = r // suppress unused warning
 		list = tclListAppend(list, i, "number_name $r")
 		// incr i 1
@@ -360,7 +360,7 @@ func Test_speed1p(t *testing.T) {
 			}
 		}
 	}
-	var script = "\n  foreach {i x} $::list {\n    db eval {UPDATE t1 SET c=$x WHERE a=$i}\n  }\n"
+	script = "\n  foreach {i x} $::list {\n    db eval {UPDATE t1 SET c=$x WHERE a=$i}\n  }\n"
 	_ = script // suppress unused warning
 	_res = db.Exec("BEGIN")
 	if _res.Error != nil {

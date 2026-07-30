@@ -62,7 +62,7 @@ func Test_diskfull(t *testing.T) {
 		_res = db.Exec("\n    INSERT INTO t1 SELECT * FROM t1;\n  ")
 		_ = _res // catchsql
 	}
-	var sqlite_diskfull_pending = "0"
+	sqlite_diskfull_pending = "0"
 	_ = sqlite_diskfull_pending // suppress unused warning
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
@@ -72,9 +72,9 @@ func Test_diskfull(t *testing.T) {
 		_res = db.Exec("\n    DELETE FROM t1;\n  ")
 		_ = _res // catchsql
 	}
-	var sqlite_diskfull_pending = "0"
+	sqlite_diskfull_pending = "0"
 	_ = sqlite_diskfull_pending // suppress unused warning
-	var sqlite_io_error_hit = "0"
+	sqlite_io_error_hit = "0"
 	_ = sqlite_io_error_hit // suppress unused warning
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }

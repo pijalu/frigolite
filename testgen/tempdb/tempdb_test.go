@@ -60,9 +60,9 @@ func Test_tempdb(t *testing.T) {
 		}
 	}
 	{ // do_test "tempdb-2.1"
-		jrnl_in_memory := "[permutation] eq \"inmemory_journal\""
+		var jrnl_in_memory = "[permutation] eq \"inmemory_journal\""
 		_ = jrnl_in_memory // suppress unused warning
-		subj_in_memory := "$jrnl_in_memory || $TEMP_STORE>=2"
+		var subj_in_memory = "$jrnl_in_memory || $TEMP_STORE>=2"
 		_ = subj_in_memory // suppress unused warning
 		db, err := frigolite.Open("test.db")
 		defer db.Close()

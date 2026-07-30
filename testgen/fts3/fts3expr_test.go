@@ -385,7 +385,7 @@ func Test_fts3expr(t *testing.T) {
 				}
 			}
 		}
-		var sqlite_fts3_enable_parentheses = "0"
+		sqlite_fts3_enable_parentheses = "0"
 		_ = sqlite_fts3_enable_parentheses // suppress unused warning
 		// foreach {id expr res} "\n  1 \"one -two three\"  {5 13 21 29}\n  2 \"-two one three\"  {5 13 21 29}\n  3 \"one three -two\"  {5 13 21 29}\n  4 \"-one -two three\" {4 12 20 28}\n  5 \"three -one -two\" {4 12 20 28}\n  6 \"-one three -two\" {4 12 20 28}\n"
 		_items1 := tclSplitList("\n  1 \"one -two three\"  {5 13 21 29}\n  2 \"-two one three\"  {5 13 21 29}\n  3 \"one three -two\"  {5 13 21 29}\n  4 \"-one -two three\" {4 12 20 28}\n  5 \"three -one -two\" {4 12 20 28}\n  6 \"-one three -two\" {4 12 20 28}\n")
@@ -404,7 +404,7 @@ func Test_fts3expr(t *testing.T) {
 					}
 				}
 			}
-			var sqlite_fts3_enable_parentheses = "1"
+			sqlite_fts3_enable_parentheses = "1"
 			_ = sqlite_fts3_enable_parentheses // suppress unused warning
 			{ // do_test "fts3expr-7.1"
 				r = db.Query("\n    CREATE VIRTUAL TABLE test USING fts3 (keyword);\n    INSERT INTO test VALUES ('abc');\n    SELECT * FROM test WHERE keyword MATCH '\"\"';\n  ")
@@ -439,7 +439,7 @@ func Test_fts3expr(t *testing.T) {
 			{ // do_test "fts3expr-8.8"
 				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr (,(blah-),)")
 			}
-			var sqlite_fts3_enable_parentheses = "0"
+			sqlite_fts3_enable_parentheses = "0"
 			_ = sqlite_fts3_enable_parentheses // suppress unused warning
 			{ // do_test "fts3expr-9.1"
 				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr f (e NEAR/2 a)")

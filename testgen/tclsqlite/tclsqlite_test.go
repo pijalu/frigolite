@@ -1173,11 +1173,11 @@ func Test_tclsqlite(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "18.100"
-		bindings_abc := "3"
+		var bindings_abc = "3"
 		_ = bindings_abc // suppress unused warning
 		var bindings_def = "hello"
 		_ = bindings_def // suppress unused warning
-		bindings_ghi := "3.1415926"
+		var bindings_ghi = "3.1415926"
 		_ = bindings_ghi // suppress unused warning
 		// proc definition (not transpiled)
 		_res = db.Exec("SELECT $abc, typeof($abc), $def, typeof($def), $ghi, typeof($ghi)")

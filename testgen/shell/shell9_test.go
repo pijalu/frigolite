@@ -140,7 +140,7 @@ func Test_shell9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t4(hello, check( hello IS NOT \"xyz\") );\n")
 		}
 	}
-	var out = "open testdump.txt w"
+	out = "open testdump.txt w"
 	_ = out // suppress unused warning
 	t.Log(out)
 	// close $out

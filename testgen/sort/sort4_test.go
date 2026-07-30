@@ -81,7 +81,7 @@ func Test_sort4(t *testing.T) {
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "populate_table 100000 500")
 	}
-	iTimeLimit := "[clock_seconds] + $SORT4TIMEOUT"
+	var iTimeLimit = "[clock_seconds] + $SORT4TIMEOUT"
 	_ = iTimeLimit // suppress unused warning
 	var _t = "2"
 	_ = _t // suppress unused warning
@@ -103,6 +103,7 @@ func Test_sort4(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "")
 			}
 		}
+		var tn = "0"
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)

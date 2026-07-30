@@ -51,7 +51,7 @@ func Test_tkt2332(t *testing.T) {
 	_ = _iKey // suppress unused warning
 	for _, Len := range tclSplitList("list 10000 100000 1000000") {
 		{ // do_test "tkt2332." + Len + ".1"
-			val := "6.099e-320"
+			var val = "6.099e-320"
 			_ = val // suppress unused warning
 			var _blobstr = "\\\n      [string repeat $val [expr ($Len/[string length $val])+1]] 0 [expr $Len-1]" // TCL namespace variable
 			_ = _blobstr // suppress unused warning
@@ -81,6 +81,7 @@ func Test_tkt2332(t *testing.T) {
 		{ // do_test "tkt2332." + Len + ".5"
 			tclLIndex("execsql {SELECT v FROM blobs WHERE k = $::iKey}", "0")
 		}
+		var _iKey = "0"
 		// incr _iKey 1
 		{
 			_n, _err := strconv.Atoi(_iKey)

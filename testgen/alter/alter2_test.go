@@ -150,7 +150,7 @@ func Test_alter2(t *testing.T) {
 	{ // do_test "alter2-4.5"
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_errcode db")
 	}
-	default_file_format := "$SQLITE_DEFAULT_FILE_FORMAT==4 ? 4 : 1"
+	var default_file_format = "$SQLITE_DEFAULT_FILE_FORMAT==4 ? 4 : 1"
 	_ = default_file_format // suppress unused warning
 	{ // do_test "alter2-6.1"
 		t.Errorf("TODO: %s not implemented in frigolite", "set_file_format 2")

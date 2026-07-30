@@ -87,9 +87,9 @@ func Test_join3(t *testing.T) {
 			}
 		}
 	}
-	var result = ""
+	result = ""
 	_ = result // suppress unused warning
-	var N = "1"
+	N = "1"
 	_ = N // suppress unused warning
 	for func() bool { N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; bitmask_size_n, _bitmask_size_e := strconv.Atoi(bitmask_size); if _bitmask_size_e != nil { return false }; return N_n <= bitmask_size_n }() {
 		result = tclListAppend(result, N)
@@ -110,7 +110,7 @@ func Test_join3(t *testing.T) {
 			}
 			var sep = "WHERE"
 			_ = sep // suppress unused warning
-			var i = "1"
+			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
 				sql += " " + sep + " t" + "$i+1" + ".x==t" + i + ".x+1"

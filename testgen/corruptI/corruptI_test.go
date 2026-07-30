@@ -60,7 +60,7 @@ func Test_corruptI(t *testing.T) {
 	{ // do_test "1.2"
 		var offset = "hexio_get_int [hexio_read test.db [expr 2*1024 + 8] 2]"
 		_ = offset // suppress unused warning
-		off := "2*1024 + $offset + 1"
+		var off = "2*1024 + $offset + 1"
 		_ = off // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $off 7f06")
 		db, err := frigolite.Open("test.db")
@@ -72,7 +72,7 @@ func Test_corruptI(t *testing.T) {
 	{ // do_test "1.3"
 		var offset = "hexio_get_int [hexio_read test.db [expr 2*1024 + 8] 2]"
 		_ = offset // suppress unused warning
-		off := "2*1024 + $offset + 1"
+		var off = "2*1024 + $offset + 1"
 		_ = off // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $off FFFF7f02")
 		db, err := frigolite.Open("test.db")
@@ -92,7 +92,7 @@ func Test_corruptI(t *testing.T) {
 	{ // do_test "2.1"
 		var offset = "hexio_get_int [hexio_read test.db [expr (5-1)*1024 + 8] 2]"
 		_ = offset // suppress unused warning
-		off := "(5-1)*1024 + $offset + 1"
+		var off = "(5-1)*1024 + $offset + 1"
 		_ = off // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $off FFFF0004")
 		db, err := frigolite.Open("test.db")
@@ -151,7 +151,7 @@ func Test_corruptI(t *testing.T) {
 	}
 	var root = "db one {SELECT rootpage FROM sqlite_master}"
 	_ = root // suppress unused warning
-	offset := "($root-1) * 65536"
+	var offset = "($root-1) * 65536"
 	_ = offset // suppress unused warning
 	{ // do_test "4.1"
 		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $offset + 8 + 2] 0000")

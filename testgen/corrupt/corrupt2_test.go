@@ -194,7 +194,7 @@ func Test_corrupt2(t *testing.T) {
 		var zChildPage = "read $fd 4"
 		_ = zChildPage // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 2*1024 + 12]")
-		var zCelloffset = "read $fd 2"
+		zCelloffset = "read $fd 2"
 		_ = zCelloffset // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "binary scan $zCelloffset S iCelloffset")
 		t.Errorf("TODO: %s not implemented in frigolite", "seek $fd [expr 2*1024 + $iCelloffset]")

@@ -205,7 +205,7 @@ func Test_expridx1(t *testing.T) {
 		db.Close()
 		db, err = frigolite.Open("")
 		if err != nil { t.Fatal(err) }
-		nRow := "1000"
+		var nRow = "1000"
 		_ = nRow // suppress unused warning
 		{ // "2.0"
 			_res = db.Exec("\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);\n")
@@ -213,9 +213,9 @@ func Test_expridx1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(a, b, c, PRIMARY KEY(a, b)) WITHOUT ROWID;\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<$nRow\n  )\n  INSERT INTO t1 SELECT i, random(), hex(randomblob(50)) FROM s;\n  CREATE INDEX t1c ON t1(+c);\n")
 			}
 		}
-		var idxcheck = "\n  SELECT a, b FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND +b=o.b AND +c=o.c)\n"
+		idxcheck = "\n  SELECT a, b FROM t1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM t1 WHERE +a=o.a AND +b=o.b AND +c=o.c)\n"
 		_ = idxcheck // suppress unused warning
-		var root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='t1c'}"
+		root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='t1c'}"
 		_ = root // suppress unused warning
 		{ // do_test "2.1"
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root")
@@ -285,9 +285,9 @@ func Test_expridx1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE y1(a, b, c GENERATED ALWAYS AS (a*b) VIRTUAL);\n  CREATE INDEX i1 ON y1(c);\n  INSERT INTO y1 VALUES(2, 3);\n  INSERT INTO y1 VALUES(4, 5);\n")
 			}
 		}
-		var idxcheck = "\n  SELECT rowid FROM y1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM y1 WHERE +rowid=o.rowid AND c=o.c)\n"
+		idxcheck = "\n  SELECT rowid FROM y1 AS o NOT INDEXED \n  WHERE NOT EXISTS (SELECT 1 FROM y1 WHERE +rowid=o.rowid AND c=o.c)\n"
 		_ = idxcheck // suppress unused warning
-		var root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='i1'}"
+		root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='i1'}"
 		_ = root // suppress unused warning
 		{ // do_test "3.1"
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root")
@@ -330,7 +330,7 @@ func Test_expridx1(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE z1(a INTEGER PRIMARY KEY, b);\n  CREATE INDEX z1b ON z1(b+0.0);\n  INSERT INTO z1 VALUES(1, 1.0);\n  INSERT INTO z1 VALUES(2, 4.0);\n  INSERT INTO z1 VALUES(3, 4.0);\n  INSERT INTO z1 VALUES(4, 4.0);\n  INSERT INTO z1 VALUES(5, 4.0);\n  INSERT INTO z1 VALUES(6, 4.0);\n  INSERT INTO z1 VALUES(7, 4.0);\n  INSERT INTO z1 VALUES(8, 1.0);\n")
 			}
 		}
-		var root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='z1b'}"
+		root = "db one {SELECT rootpage FROM sqlite_schema WHERE name='z1b'}"
 		_ = root // suppress unused warning
 		{ // do_test "4.1"
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_test_control SQLITE_TESTCTRL_IMPOSTER db main 1 $root")

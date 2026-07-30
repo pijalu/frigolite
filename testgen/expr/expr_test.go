@@ -269,7 +269,7 @@ func Test_expr(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "test_expr expr-4.9 {t1='0.0', t2='abc'} {t1==t2} 0")
 	var CSL = sqlite_options + "(casesensitivelike)"
 	_ = CSL // suppress unused warning
-	NCSL := "!$CSL"
+	var NCSL = "!$CSL"
 	_ = NCSL // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "test_expr expr-5.1 {t1='abc', t2='xyz'} {t1 LIKE t2} 0")
 	t.Errorf("TODO: %s not implemented in frigolite", "test_expr expr-5.2a {t1='abc', t2='abc'} {t1 LIKE t2} 1")

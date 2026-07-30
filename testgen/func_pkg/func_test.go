@@ -710,7 +710,7 @@ func Test_func(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var V = "two"
+	V = "two"
 	_ = V // suppress unused warning
 	{ // "13.8.5"
 		r = db.Query("\n  SELECT test_auxdata($V), $V FROM t4;\n")
@@ -724,7 +724,7 @@ func Test_func(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var V = "three"
+	V = "three"
 	_ = V // suppress unused warning
 	{ // "13.8.6"
 		r = db.Query("\n  SELECT test_auxdata($V), $V FROM t4;\n")
@@ -885,6 +885,7 @@ func Test_func(t *testing.T) {
 			sdx := _items0[_idx0+1]
 			_ = sdx // suppress unused warning
 			_ = _idx0
+				var i = "0"
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)
@@ -1241,7 +1242,7 @@ func Test_func(t *testing.T) {
 		{ // do_test "func-26.4"
 			var a = ""
 			_ = a // suppress unused warning
-			limit := "$::SQLITE_MAX_FUNCTION_ARG-1"
+			var limit = "$::SQLITE_MAX_FUNCTION_ARG-1"
 			_ = limit // suppress unused warning
 			var i = "1"
 			_ = i // suppress unused warning
@@ -1410,7 +1411,7 @@ func Test_func(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 0xd800 }() {
 			{ // "func-30.5." + i
@@ -1433,7 +1434,7 @@ func Test_func(t *testing.T) {
 				}
 			}
 		}
-		var i = "57344"
+		i = "57344"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 0xfffd }() {
 			if func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n == 0xfeff }() {
@@ -1458,7 +1459,7 @@ func Test_func(t *testing.T) {
 				}
 			}
 		}
-		var i = "65536"
+		i = "65536"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 0x10ffff }() {
 			{ // "func-30.5." + i
@@ -1733,7 +1734,7 @@ func Test_func(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		var i = "2"
+		i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 			{ // "func-39." + "10*$i+100"

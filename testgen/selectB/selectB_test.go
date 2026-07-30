@@ -84,7 +84,7 @@ func Test_selectB(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    DROP INDEX i1;\n    DROP INDEX i2;\n  ")
 		}
 	}
-	var ii = "3"
+	ii = "3"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n <= 6 }() {
 		t.Errorf("TODO: %s not implemented in frigolite", "switch $ii {\n    4 {\n      optimization_control db query-flatt...}")

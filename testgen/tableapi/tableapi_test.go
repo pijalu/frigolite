@@ -189,11 +189,11 @@ func Test_tableapi(t *testing.T) {
 		}
 		sql += ")"
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_table_printf $::dbx $sql {}")
-		var sql = "INSERT INTO t2 VALUES("
+		sql = "INSERT INTO t2 VALUES("
 		_ = sql // suppress unused warning
-		var sep = ""
+		sep = ""
 		_ = sep // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 			sql += "$"

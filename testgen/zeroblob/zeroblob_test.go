@@ -199,7 +199,7 @@ func Test_zeroblob(t *testing.T) {
 		}
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_memory_highwater 1")
-	var memused = "sqlite3_memory_used"
+	memused = "sqlite3_memory_used"
 	_ = memused // suppress unused warning
 	{ // do_test "zeroblob-7.1"
 		var _STMT = "sqlite3_prepare $::DB \"SELECT length(?)\" -1 DUMMY" // TCL namespace variable

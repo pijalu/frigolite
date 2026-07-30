@@ -92,7 +92,7 @@ func Test_interrupt(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 	}
-	max_count := "1000000-$sqlite_interrupt_count"
+	var max_count = "1000000-$sqlite_interrupt_count"
 	_ = max_count // suppress unused warning
 	var i = "1"
 	_ = i // suppress unused warning

@@ -128,7 +128,7 @@ func Test_crash8(t *testing.T) {
 			}
 		}
 		{ // do_test "crash8-3.9"
-			big := "$SQLITE_MAX_PAGE_SIZE * 2"
+			var big = "$SQLITE_MAX_PAGE_SIZE * 2"
 			_ = big // suppress unused warning
 			var zJournal2 = "$zJournal 24 27 [binary format I $big]"
 			_ = zJournal2 // suppress unused warning

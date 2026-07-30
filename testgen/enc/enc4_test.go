@@ -79,7 +79,7 @@ func Test_enc4(t *testing.T) {
 				var x = "1"
 				_ = x // suppress unused warning
 				for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 16 }() {
-					part := "$init + [string range $val 0 [expr $x-1]]"
+					var part = "$init + [string range $val 0 [expr $x-1]]"
 					_ = part // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test enc4-$i.$j.$k.3.$x {\n          sqlite3_reset $S\n          sqlite3_bind...} [list $part]")
 					t.Errorf("TODO: %s not implemented in frigolite", "do_realnum_test enc4-$i.$j.$k.4.$x {\n          sqlite3_reset $S\n          sqlite3_bind...} [list $part]")
@@ -91,6 +91,7 @@ func Test_enc4(t *testing.T) {
 						}
 					}
 				}
+				var k = "0"
 				// incr k 1
 				{
 					_n, _err := strconv.Atoi(k)
@@ -102,6 +103,7 @@ func Test_enc4(t *testing.T) {
 			{ // do_test "enc4-" + i + "." + j + ".5"
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $S")
 			}
+			var j = "0"
 			// incr j 1
 			{
 				_n, _err := strconv.Atoi(j)
@@ -110,6 +112,7 @@ func Test_enc4(t *testing.T) {
 				}
 			}
 		}
+		var i = "0"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)

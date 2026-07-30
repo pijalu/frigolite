@@ -69,7 +69,7 @@ func Test_fts3expr3(t *testing.T) {
 				}
 			}
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			{ // do_test "2." + i
@@ -83,7 +83,7 @@ func Test_fts3expr3(t *testing.T) {
 				}
 			}
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 			{ // do_test "3." + i
@@ -97,7 +97,7 @@ func Test_fts3expr3(t *testing.T) {
 				}
 			}
 		}
-		var i = "2"
+		i = "2"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 64 }() {
 			{ // do_test "3." + i
@@ -111,7 +111,7 @@ func Test_fts3expr3(t *testing.T) {
 				}
 			}
 		}
-		var i = "65"
+		i = "65"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 70 }() {
 			{ // do_test "3." + i
@@ -190,6 +190,6 @@ func Test_fts3expr3(t *testing.T) {
 				t.Errorf("TODO: %s not implemented in frigolite", "test_fts3expr2 $expr")
 			}
 		}
-		var sqlite_fts3_enable_parentheses = "0"
+		sqlite_fts3_enable_parentheses = "0"
 		_ = sqlite_fts3_enable_parentheses // suppress unused warning
 }

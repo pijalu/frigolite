@@ -3668,6 +3668,7 @@ func Test_printf(t *testing.T) {
 			}
 			if func() bool { nFail_n, _nFail_e := strconv.Atoi(nFail); if _nFail_e != nil { return false }; return nFail_n == 0 }() {
 			}
+			var nTestNum = "0"
 			// incr nTestNum 1
 			{
 				_n, _err := strconv.Atoi(nTestNum)

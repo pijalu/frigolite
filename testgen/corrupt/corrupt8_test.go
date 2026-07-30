@@ -101,7 +101,7 @@ func Test_corrupt8(t *testing.T) {
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db $i $oldval")
 		if func() bool { oldval_n, _oldval_e := strconv.Atoi(oldval); if _oldval_e != nil { return false }; return oldval_n > 2 }() {
-			i2 := "$i+1+$i%4"
+			var i2 = "$i+1+$i%4"
 			_ = i2 // suppress unused warning
 			var oldval = "hexio_read test.db $i2 1"
 			_ = oldval // suppress unused warning

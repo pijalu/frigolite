@@ -124,7 +124,7 @@ func Test_thread003(t *testing.T) {
 		}
 		// expr 0 → "0"
 	}
-	var nSecond = "30"
+	nSecond = "30"
 	_ = nSecond // suppress unused warning
 	t.Log("Starting thread003.3 (should run for ~" + nSecond + " seconds)")
 	{ // do_test "thread003.3"
@@ -139,7 +139,7 @@ func Test_thread003(t *testing.T) {
 		}
 		// expr 0 → "0"
 	}
-	var nSecond = "30"
+	nSecond = "30"
 	_ = nSecond // suppress unused warning
 	t.Log("Starting thread003.4 (should run for ~" + nSecond + " seconds)")
 	{ // do_test "thread003.4"

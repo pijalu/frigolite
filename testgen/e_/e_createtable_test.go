@@ -394,7 +394,7 @@ func Test_e_createtable(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		var sqlite_current_time = "1000000000"
+		sqlite_current_time = "1000000000"
 		_ = sqlite_current_time // suppress unused warning
 		{ // "e_createtable-3.8.1"
 			_res = db.Exec("\n  CREATE TABLE t7(\n    a DEFAULT CURRENT_TIME, \n    b DEFAULT CURRENT_DATE, \n    c DEFAULT CURRENT_TIMESTAMP\n  );\n")

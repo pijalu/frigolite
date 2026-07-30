@@ -95,7 +95,7 @@ func Test_backup(t *testing.T) {
 								t.Errorf("TODO: %s not implemented in frigolite", "delete_file test2.db")
 							}
 							// eval $zOpenScript
-							isMemDest := "$zDestFile eq \":memory:\" || $file_dest eq \"temp\""
+							var isMemDest = "$zDestFile eq \":memory:\" || $file_dest eq \"temp\""
 							_ = isMemDest // suppress unused warning
 							if false {
 								t.Log("-nonewline")
@@ -156,6 +156,7 @@ func Test_backup(t *testing.T) {
 								_ = _catchErr // suppress unused warning
 								db2.Close()
 							}
+							var iTest = "0"
 							// incr iTest 1
 							{
 								_n, _err := strconv.Atoi(iTest)
@@ -169,7 +170,7 @@ func Test_backup(t *testing.T) {
 			}
 		}
 	}
-	var iTest = "1"
+	iTest = "1"
 	_ = iTest // suppress unused warning
 	for _, nSrcPg := range tclSplitList("10 64 65 66 100") {
 		for _, nDestRow := range tclSplitList("10 100") {
@@ -238,6 +239,7 @@ func Test_backup(t *testing.T) {
 				}
 				t.Errorf("TODO: %s not implemented in frigolite", "test_contents backup-3.$iTest.3 db main db2 main")
 				db2.Close()
+				var iTest = "0"
 				// incr iTest 1
 				{
 					_n, _err := strconv.Atoi(iTest)
@@ -273,6 +275,7 @@ func Test_backup(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE TABLE t" + iTab + "(a, b, c)")
 			}
+			var iTab = "0"
 			// incr iTab 1
 			{
 				_n, _err := strconv.Atoi(iTab)
@@ -288,6 +291,7 @@ func Test_backup(t *testing.T) {
 		for tclBool("file size test2.db" + " < " + _sqlite_pending_byte) {
 			db2.Exec("CREATE TABLE t" + iTab + "(a, b, c)")
 			if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
+			var iTab = "0"
 			// incr iTab 1
 			{
 				_n, _err := strconv.Atoi(iTab)
@@ -419,7 +423,7 @@ func Test_backup(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "B finish")
 	}
 	db2.Close()
-	var iTest = "0"
+	iTest = "0"
 	_ = iTest // suppress unused warning
 	os.Remove("bak.db-wal")
 	// foreach {writer file} "db test.db db3 test.db db :memory:"
@@ -430,6 +434,7 @@ func Test_backup(t *testing.T) {
 		file := _items0[_idx0+1]
 		_ = file // suppress unused warning
 		_ = _idx0
+			var iTest = "0"
 			// incr iTest 1
 			{
 				_n, _err := strconv.Atoi(iTest)
@@ -637,7 +642,7 @@ func Test_backup(t *testing.T) {
 			}
 		}
 		{ // do_test "backup-6.2"
-			nTotal := "[file size test.db]/1024"
+			var nTotal = "[file size test.db]/1024"
 			_ = nTotal // suppress unused warning
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_backup B db2 main db main")
 			t.Errorf("TODO: %s not implemented in frigolite", "B step 1")

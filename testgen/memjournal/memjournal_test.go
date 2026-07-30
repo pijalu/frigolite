@@ -49,7 +49,7 @@ func Test_memjournal(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA journal_mode = memory;\n  CREATE TABLE t1(a);\n")
 		}
 	}
-	nRow := "1"
+	var nRow = "1"
 	_ = nRow // suppress unused warning
 	{ // "1.1"
 		_res = db.Exec("\n  BEGIN;\n    INSERT INTO t1 VALUES( randomblob(500) );\n")

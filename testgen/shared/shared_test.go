@@ -72,6 +72,7 @@ func Test_shared(t *testing.T) {
 				var extrafds_postlock = "2"
 				_ = extrafds_postlock // suppress unused warning
 			}
+			var av = "0"
 			// incr av 1
 			{
 				_n, _err := strconv.Atoi(av)

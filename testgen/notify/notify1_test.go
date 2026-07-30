@@ -290,8 +290,7 @@ func Test_notify1(t *testing.T) {
 				{ // do_test "notify1-" + tn + ".2." + ii + ".1"
 					var cmd = "db" + ii
 					_ = cmd // suppress unused warning
-					cmd, err := frigolite.Open("test.db")
-					defer cmd.Close()
+					cmd, err = frigolite.Open("test.db")
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec(" SELECT * FROM t1 ")
 					_ = _res // catchsql

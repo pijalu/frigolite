@@ -148,9 +148,9 @@ func Test_bitvec(t *testing.T) {
 			}
 		}
 	}
-	var _go = "1"
+	_go = "1"
 	_ = _go // suppress unused warning
-	var n = "0"
+	n = "0"
 	_ = n // suppress unused warning
 	for tclBool(_go) {
 		t.Errorf("TODO: %s not implemented in frigolite", "restore_prng_state")
@@ -163,9 +163,9 @@ func Test_bitvec(t *testing.T) {
 			}
 		}
 	}
-	var _go = "1"
+	_go = "1"
 	_ = _go // suppress unused warning
-	var n = "1"
+	n = "1"
 	_ = n // suppress unused warning
 	for tclBool(_go) {
 		t.Errorf("TODO: %s not implemented in frigolite", "bitvec_malloc_test bitvec-3.3.$n $n 50000 {1 50000 1 1 0}")

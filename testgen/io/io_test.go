@@ -190,6 +190,7 @@ func Test_io(t *testing.T) {
 		pgsize := _items0[_idx0+2]
 		_ = pgsize // suppress unused warning
 		_ = _idx0
+			var tn = "0"
 			// incr tn 1
 			{
 				_n, _err := strconv.Atoi(tn)

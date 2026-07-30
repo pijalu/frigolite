@@ -50,7 +50,7 @@ func Test_carray02(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "run_stmt $STMT")
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
-	var STMT = ""
+	STMT = ""
 	_ = STMT // suppress unused warning
 	{ // do_test "2.0"
 		_list := tclList([]string{"0", msg})

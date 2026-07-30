@@ -409,6 +409,7 @@ func Test_e_select(t *testing.T) {
 									var nRow = "0"
 									_ = nRow // suppress unused warning
 									for tclBool("\"SQLITE_ROW\" == " + "SQLITE_ROW") {
+										var nRow = "0"
 										// incr nRow 1
 										{
 											_n, _err := strconv.Atoi(nRow)

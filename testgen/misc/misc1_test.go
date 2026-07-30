@@ -64,9 +64,9 @@ func Test_misc1(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, cmd)
 		}
-		var cmd = "INSERT INTO manycol VALUES(0"
+		cmd = "INSERT INTO manycol VALUES(0"
 		_ = cmd // suppress unused warning
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 99 }() {
 			cmd += "," + i

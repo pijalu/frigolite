@@ -63,7 +63,7 @@ func Test_speed4(t *testing.T) {
 		var ii = "0"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 50000 }() {
-			i := "0"
+			var i = "0"
 			_ = i // suppress unused warning
 			var _t = "number_name $i"
 			_ = _t // suppress unused warning
@@ -94,10 +94,10 @@ func Test_speed4(t *testing.T) {
 	var sql = "SELECT * FROM t1, t2, t3 WHERE t1.oid = t2.oid AND t2.oid = t3.oid"
 	_ = sql // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-join1 50000 row $sql")
-	var sql = "SELECT * FROM t1, t2, t3 WHERE t1.t = t2.t AND t2.t = t3.t"
+	sql = "SELECT * FROM t1, t2, t3 WHERE t1.t = t2.t AND t2.t = t3.t"
 	_ = sql // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-join2 50000 row $sql")
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
 	var ii = "1"
 	_ = ii // suppress unused warning
@@ -112,9 +112,9 @@ func Test_speed4(t *testing.T) {
 		}
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-view1 10000 stmt $sql")
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
 		sql += "SELECT t FROM t" + "($ii%3)+1" + " WHERE rowid = " + "$ii*3" + ";"
@@ -127,9 +127,9 @@ func Test_speed4(t *testing.T) {
 		}
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-table1 10000 stmt $sql")
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
 		sql += "\n    SELECT (SELECT t FROM t1 WHERE rowid = " + "$ii*3" + "), \n           (SELECT t FROM t2 WHERE rowid = " + "$ii*3" + "), \n           (SELECT t FROM t3 WHERE rowid = " + "$ii*3" + ")\n  ;"
@@ -146,9 +146,9 @@ func Test_speed4(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE log(op TEXT, r INTEGER, i INTEGER, t TEXT);\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  CREATE TRIGGER t4_trigger1 AFTER INSERT ON t4 BEGIN\n    INSERT INTO log VALUES('INSERT INTO t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger2 AFTER UPDATE ON t4 BEGIN\n    INSERT INTO log VALUES('UPDATE OF t4', new.rowid, new.i, new.t);\n  END;\n  CREATE TRIGGER t4_trigger3 AFTER DELETE ON t4 BEGIN\n    INSERT INTO log VALUES('DELETE OF t4', old.rowid, old.i, old.t);\n  END;\n  BEGIN;\n")
 	}
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
 		sql += "INSERT INTO t4 VALUES(NULL, " + ii + ", '" + "number_name $ii" + "');"
@@ -161,12 +161,12 @@ func Test_speed4(t *testing.T) {
 		}
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-trigger1 10000 stmt $sql")
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		ii2 := "$ii*2"
+		var ii2 = "$ii*2"
 		_ = ii2 // suppress unused warning
 		sql += "\n    UPDATE t4 SET i = " + ii2 + ", t = '" + "number_name $ii2" + "' WHERE rowid = " + ii + ";\n  "
 		// incr ii 2
@@ -178,9 +178,9 @@ func Test_speed4(t *testing.T) {
 		}
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-trigger2 10000 stmt $sql")
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
 		sql += "DELETE FROM t4 WHERE rowid = " + ii + ";"
@@ -201,9 +201,9 @@ func Test_speed4(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP TABLE t4;\n  DROP TABLE log;\n  VACUUM;\n  CREATE TABLE t4(rowid INTEGER PRIMARY KEY, i INTEGER, t TEXT);\n  BEGIN;\n")
 	}
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10000 }() {
 		sql += "INSERT INTO t4 VALUES(NULL, " + ii + ", '" + "number_name $ii" + "');"
@@ -216,12 +216,12 @@ func Test_speed4(t *testing.T) {
 		}
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-notrigger1 10000 stmt $sql")
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
-		ii2 := "$ii*2"
+		var ii2 = "$ii*2"
 		_ = ii2 // suppress unused warning
 		sql += "\n    UPDATE t4 SET i = " + ii2 + ", t = '" + "number_name $ii2" + "' WHERE rowid = " + ii + ";\n  "
 		// incr ii 2
@@ -233,9 +233,9 @@ func Test_speed4(t *testing.T) {
 		}
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed4-notrigger2 10000 stmt $sql")
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 20000 }() {
 		sql += "DELETE FROM t4 WHERE rowid = " + ii + ";"

@@ -53,7 +53,7 @@ func Test_date3(t *testing.T) {
 	var i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
-		x := "-4294967295"
+		var x = "-4294967295"
 		_ = x // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "datetest 1.7.$i unixepoch($x,'unixepoch')==$x {1}")
 		// incr i 1

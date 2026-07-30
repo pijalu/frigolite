@@ -90,12 +90,13 @@ func Test_notify2(t *testing.T) {
 					}
 				}
 			}
-			var ii = "0"
+			ii = "0"
 			_ = ii // suppress unused warning
 			for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; nThread_n, _nThread_e := strconv.Atoi(nThread); if _nThread_e != nil { return false }; return ii_n < nThread_n }() {
 				{ // do_test "notify2-" + iTest + ".2." + ii
 					if tclBool("!" + "info exists finished($ii)") {
 					}
+					var anSuccess_$xStep = "0"
 					// incr anSuccess_$xStep lindex $finished($ii) 0
 					{
 						_n, _err := strconv.Atoi(anSuccess_$xStep)
@@ -103,6 +104,7 @@ func Test_notify2(t *testing.T) {
 							anSuccess_$xStep = strconv.Itoa(_n + lindex $finished($ii) 0)
 						}
 					}
+					var anAttempt_$xStep = "0"
 					// incr anAttempt_$xStep lindex $finished($ii) 1
 					{
 						_n, _err := strconv.Atoi(anAttempt_$xStep)
@@ -137,9 +139,9 @@ func Test_notify2(t *testing.T) {
 		t.Log("sometimes fails on single-core machines.")
 		t.Log("array get anWrite")
 		{ // do_test "notify2-3"
-			blocking := "double($anSuccess(sqlite3_blocking_step)) /\n    double($anAttempt(sqlite3_blocking_step))"
+			var blocking = "double($anSuccess(sqlite3_blocking_step)) /\n    double($anAttempt(sqlite3_blocking_step))"
 			_ = blocking // suppress unused warning
-			non := "double($anSuccess(sqlite3_step)) /\n    double($anAttempt(sqlite3_step))"
+			var non = "double($anSuccess(sqlite3_step)) /\n    double($anAttempt(sqlite3_step))"
 			_ = non // suppress unused warning
 			t.Log("-nonewline")
 			// expr $blocking > $non → "$blocking > $non"

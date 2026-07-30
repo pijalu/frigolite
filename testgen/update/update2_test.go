@@ -42,7 +42,7 @@ func Test_update2(t *testing.T) {
 	// set testdir: test directory (not used in Go test context)
 	var testprefix = "update2"
 	_ = testprefix // suppress unused warning
-	nrow := "10"
+	var nrow = "10"
 	_ = nrow // suppress unused warning
 	{ // "1.1.0"
 		_res = db.Exec("\n  CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i<$nrow )\n  INSERT INTO t1(b) SELECT char((i % 26) + 65) FROM s;\n  INSERT INTO t2 SELECT * FROM t1;\n")

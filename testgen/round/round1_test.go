@@ -47,11 +47,11 @@ func Test_round1(t *testing.T) {
 	var iTest = "1"
 	_ = iTest // suppress unused warning
 	for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return iTest_n <= 50000 }() {
-		x1 := "0"
+		var x1 = "0"
 		_ = x1 // suppress unused warning
-		x2 := "0"
+		var x2 = "0"
 		_ = x2 // suppress unused warning
-		n := "1"
+		var n = "1"
 		_ = n // suppress unused warning
 		var x3 = "[format %09d $x2] [expr {9-$n}] end"
 		_ = x3 // suppress unused warning
@@ -69,6 +69,7 @@ func Test_round1(t *testing.T) {
 		var x4 = "[format %09d [expr {$x2+1}]] [expr {9-$n}] end"
 		_ = x4 // suppress unused warning
 		if tclBool("$x3 9" + "==\"\"") {
+			var x1 = "0"
 			// incr x1 1
 			{
 				_n, _err := strconv.Atoi(x1)
@@ -79,7 +80,7 @@ func Test_round1(t *testing.T) {
 		}
 		var r2 = x1 + "." + x4
 		_ = r2 // suppress unused warning
-		var ans = "$r2 0"
+		ans = "$r2 0"
 		_ = ans // suppress unused warning
 		if tclBool("*. $ans") {
 			var ans = "$"

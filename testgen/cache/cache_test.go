@@ -135,7 +135,7 @@ func Test_cache(t *testing.T) {
 			}
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 20 }() {
 		{ // "cache-2.2." + i + ".1"

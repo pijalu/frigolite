@@ -63,6 +63,7 @@ func Test_autovacuum(t *testing.T) {
 	var tn = "0"
 	_ = tn // suppress unused warning
 	for _, delete_order := range tclSplitList(delete_orders) {
+		var tn = "0"
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
@@ -233,7 +234,7 @@ func Test_autovacuum(t *testing.T) {
 	}
 	var root_page_list = "list"
 	_ = root_page_list // suppress unused warning
-	pending_byte_page := "($::sqlite_pending_byte / 1024) + 1"
+	var pending_byte_page = "($::sqlite_pending_byte / 1024) + 1"
 	_ = pending_byte_page // suppress unused warning
 	if tclBool("sqlite3 -has-codec") {
 	} else {

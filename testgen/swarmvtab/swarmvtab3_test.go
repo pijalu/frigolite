@@ -171,7 +171,7 @@ func Test_swarmvtab3(t *testing.T) {
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
 				for true {
-					ctx := "0"
+					var ctx = "0"
 					_ = ctx // suppress unused warning
 					if tclBool("info exists ctx_used($ctx)" + "==0") {
 					}

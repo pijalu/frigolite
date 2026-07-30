@@ -124,6 +124,7 @@ func Test_fts4aa(t *testing.T) {
 		r := _items0[_idx0+1]
 		_ = r // suppress unused warning
 		_ = _idx0
+			var ii = "0"
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
@@ -149,7 +150,7 @@ func Test_fts4aa(t *testing.T) {
 			}
 			t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 		}
-		var ii = "0"
+		ii = "0"
 		_ = ii // suppress unused warning
 		// foreach {q r} "array get fts4aa_res"
 		_items1 := tclSplitList("array get fts4aa_res")
@@ -159,6 +160,7 @@ func Test_fts4aa(t *testing.T) {
 			r := _items1[_idx1+1]
 			_ = r // suppress unused warning
 			_ = _idx1
+				var ii = "0"
 				// incr ii 1
 				{
 					_n, _err := strconv.Atoi(ii)
@@ -181,7 +183,7 @@ func Test_fts4aa(t *testing.T) {
 				}
 				t.Errorf("TODO: %s not implemented in frigolite", "fts_kjv_genesis")
 			}
-			var ii = "0"
+			ii = "0"
 			_ = ii // suppress unused warning
 			// foreach {q r} "array get fts4aa_res"
 			_items2 := tclSplitList("array get fts4aa_res")
@@ -191,6 +193,7 @@ func Test_fts4aa(t *testing.T) {
 				r := _items2[_idx2+1]
 				_ = r // suppress unused warning
 				_ = _idx2
+					var ii = "0"
 					// incr ii 1
 					{
 						_n, _err := strconv.Atoi(ii)

@@ -89,7 +89,7 @@ func Test_walcksum(t *testing.T) {
 			}
 		}
 		t.Errorf("TODO: %s not implemented in frigolite", "log_checksum_writemagic test2.db-wal $endian")
-		var f = "1"
+		f = "1"
 		_ = f // suppress unused warning
 		for func() bool { f_n, _f_e := strconv.Atoi(f); if _f_e != nil { return false }; return f_n <= 6 }() {
 			{ // do_test "walcksum-1." + endian + ".3." + f
@@ -123,7 +123,7 @@ func Test_walcksum(t *testing.T) {
 			_list := tclList([]string{"file size test.db", "file size test.db-wal"})
 			_ = _list
 		}
-		var f = "1"
+		f = "1"
 		_ = f // suppress unused warning
 		for func() bool { f_n, _f_e := strconv.Atoi(f); if _f_e != nil { return false }; return f_n <= 8 }() {
 			{ // do_test "walcksum-1." + endian + ".5." + f
@@ -153,7 +153,7 @@ func Test_walcksum(t *testing.T) {
 			_list := tclList([]string{"file size test.db", "file size test.db-wal"})
 			_ = _list
 		}
-		var f = "1"
+		f = "1"
 		_ = f // suppress unused warning
 		for func() bool { f_n, _f_e := strconv.Atoi(f); if _f_e != nil { return false }; return f_n <= 10 }() {
 			{ // do_test "walcksum-1." + endian + ".7." + f

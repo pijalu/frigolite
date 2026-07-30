@@ -319,7 +319,7 @@ func Test_select3(t *testing.T) {
 		x := _items0[_idx0+1]
 		_ = x // suppress unused warning
 		_ = _idx0
-			x := "$x+0"
+			var x = "$x+0"
 			_ = x // suppress unused warning
 			{ // "select3-8." + id
 				r = db.Query("\n     DROP TABLE IF EXISTS t1;\n     CREATE TABLE t1 (c0, c1 REAL PRIMARY KEY);\n     INSERT INTO t1(c0, c1) VALUES (0, $x), (0, 0);\n     UPDATE t1 SET c0 = NULL;\n     UPDATE OR REPLACE t1 SET c1 = 1;\n     SELECT DISTINCT * FROM t1 WHERE (t1.c0 IS NULL);\n     PRAGMA integrity_check;\n  ")

@@ -93,7 +93,7 @@ func Test_corruptB(t *testing.T) {
 	{ // do_test "corruptB-1.6.1"
 		var iRightChild = "hexio_get_int [hexio_read test.db [expr $offset+8] 4]"
 		_ = iRightChild // suppress unused warning
-		c_offset := "($iRightChild-1)*1024"
+		var c_offset = "($iRightChild-1)*1024"
 		_ = c_offset // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root]")
 	}
@@ -122,7 +122,7 @@ func Test_corruptB(t *testing.T) {
 		_ = cell_offset // suppress unused warning
 		var iLeftChild = "hexio_get_int [hexio_read test.db [expr $offset+$cell_offset] 4]"
 		_ = iLeftChild // suppress unused warning
-		c_offset := "($iLeftChild-1)*1024"
+		var c_offset = "($iLeftChild-1)*1024"
 		_ = c_offset // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "hexio_write test.db [expr $c_offset+8] [hexio_render_int32 $::root]")
 	}
@@ -170,9 +170,9 @@ func Test_corruptB(t *testing.T) {
 		}
 		var t2_root = "execsql {SELECT rootpage FROM sqlite_master WHERE name = 't2'}"
 		_ = t2_root // suppress unused warning
-		iPage := "($t2_root-1)*1024"
+		var iPage = "($t2_root-1)*1024"
 		_ = iPage // suppress unused warning
-		iCellarray := "$iPage + 8"
+		var iCellarray = "$iPage + 8"
 		_ = iCellarray // suppress unused warning
 		var iRecord = "hexio_get_int [hexio_read test.db $iCellarray 2]"
 		_ = iRecord // suppress unused warning

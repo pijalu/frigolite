@@ -151,7 +151,7 @@ func Test_tkt2409(t *testing.T) {
 			var r = "0"
 			_ = r // suppress unused warning
 			for tclBool("info exists t1($r)") {
-				r := "0"
+				var r = "0"
 				_ = r // suppress unused warning
 			}
 			var t1_$r = "1"

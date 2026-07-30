@@ -178,9 +178,9 @@ func Test_uri(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " CREATE TABLE t1(a, b) ")
 					}
-					var A_1 = "0 {}"
+					A_1 = "0 {}"
 					_ = A_1 // suppress unused warning
-					var A_0 = "1 {attempt to write a readonly database}"
+					A_0 = "1 {attempt to write a readonly database}"
 					_ = A_0 // suppress unused warning
 					{ // do_test "4.1." + tn + ".2"
 						db, err := frigolite.Open("file:test.db?mode=" + mode)
@@ -189,9 +189,9 @@ func Test_uri(t *testing.T) {
 						_res = db.Exec(" INSERT INTO t1 VALUES(1, 2) ")
 						_ = _res // catchsql
 					}
-					var A_1 = "0 {}"
+					A_1 = "0 {}"
 					_ = A_1 // suppress unused warning
-					var A_0 = "list 1 \"access mode not allowed: $mode\""
+					A_0 = "list 1 \"access mode not allowed: $mode\""
 					_ = A_0 // suppress unused warning
 					{ // do_test "4.1." + tn + ".3"
 						_list := tclList([]string{"0", msg})

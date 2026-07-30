@@ -87,7 +87,7 @@ func Test_fuzz3(t *testing.T) {
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 5000 }() {
 		t.Errorf("TODO: %s not implemented in frigolite", "purge_pcache")
-		iNew := "0"
+		var iNew = "0"
 		_ = iNew // suppress unused warning
 		var iOld = "modify_database $iNew"
 		_ = iOld // suppress unused warning

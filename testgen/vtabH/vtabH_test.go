@@ -163,7 +163,7 @@ func Test_vtabH(t *testing.T) {
 			// proc definition (not transpiled)
 			var pwd = "pwd" + "/*"
 			_ = pwd // suppress unused warning
-			var res = "contents $pwd"
+			res = "contents $pwd"
 			_ = res // suppress unused warning
 			{ // "3.2"
 				r = db.Query("\n    SELECT path FROM fstree WHERE path GLOB $pwd ORDER BY 1\n  ")
@@ -204,7 +204,7 @@ func Test_vtabH(t *testing.T) {
 						// close $fd
 					}
 				}
-				var pwd = "pwd"
+				pwd = "pwd"
 				_ = pwd // suppress unused warning
 				if tclBool("!" + "{*[_%]*} $pwd") {
 					{ // "3.5"

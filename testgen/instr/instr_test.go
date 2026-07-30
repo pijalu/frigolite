@@ -349,7 +349,7 @@ func Test_instr(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT instr($longstr,'zXa');")
 		}
 	}
-	var longstr = "{a ä} $longstr"
+	longstr = "{a ä} $longstr"
 	_ = longstr // suppress unused warning
 	{ // do_test "instr-1.50"
 		_res = db.Exec("SELECT instr($longstr,'X');")

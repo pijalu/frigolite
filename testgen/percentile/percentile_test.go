@@ -352,7 +352,7 @@ func Test_percentile(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 							}
 						}
-						var sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)"
+						sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN UNBOUNDED PRECEDING AND 1 FOLLOWING)"
 						_ = sql // suppress unused warning
 						{ // "percentile-3." + id + ".2"
 							_res = db.Exec(sql)
@@ -360,7 +360,7 @@ func Test_percentile(t *testing.T) {
 								t.Errorf("exec error: %v\n  sql: %s", _res.Error, sql)
 							}
 						}
-						var sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)"
+						sql = "SELECT a, b, c, d, \\\n                  group_concat(b,'.') OVER w1 AS 'elements', \\\n                  " + expr + " OVER w1 AS 'median' \\\n            FROM t1 \\\n           WINDOW w1 AS (ORDER BY c, a \\\n               ROWS BETWEEN 1 PRECEDING AND UNBOUNDED FOLLOWING)"
 						_ = sql // suppress unused warning
 						{ // "percentile-3." + id + ".3"
 							_res = db.Exec(sql)

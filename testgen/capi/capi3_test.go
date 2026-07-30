@@ -344,6 +344,7 @@ func Test_capi3(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "sqlite3_test_errstr " + code)
 				}
 			}
+			var test_number = "0"
 			// incr test_number 1
 			{
 				_n, _err := strconv.Atoi(test_number)
@@ -384,7 +385,7 @@ func Test_capi3(t *testing.T) {
 		}
 		db, err = frigolite.Open("test.db")
 		if err != nil { t.Fatal(err) }
-		var DB = "sqlite3_connection_pointer db"
+		DB = "sqlite3_connection_pointer db"
 		_ = DB // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite_register_test_function $DB func")
 		{ // do_test "capi3-11.1"

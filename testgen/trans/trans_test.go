@@ -840,11 +840,11 @@ func Test_trans(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			r1 := "6.099e-320"
+			var r1 = "6.099e-320"
 			_ = r1 // suppress unused warning
-			r2 := "6.099e-320"
+			var r2 = "6.099e-320"
 			_ = r2 // suppress unused warning
-			r3 := "6.099e-320"
+			var r3 = "6.099e-320"
 			_ = r3 // suppress unused warning
 			_res = db.Exec("INSERT INTO t2 VALUES(" + r1 + "," + r2 + "," + r3 + ")")
 			if _res.Error != nil {
@@ -963,7 +963,7 @@ func Test_trans(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	var fd = "open test.tcl w"
+	fd = "open test.tcl w"
 	_ = fd // suppress unused warning
 	t.Log(fd)
 	// close $fd

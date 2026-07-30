@@ -162,7 +162,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var fd = "open test.db rb"
+	fd = "open test.db rb"
 	_ = fd // suppress unused warning
 	var direct = "read $fd"
 	_ = direct // suppress unused warning
@@ -431,7 +431,7 @@ func Test_memdb1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(x); \n  INSERT INTO t VALUES(1),(2);\n")
 		}
 	}
-	var blob = "db serialize main"
+	blob = "db serialize main"
 	_ = blob // suppress unused warning
 	os.Remove("test.db2")
 	db2, err = frigolite.Open("test.db2")

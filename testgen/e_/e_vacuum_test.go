@@ -84,9 +84,10 @@ func Test_e_vacuum(t *testing.T) {
 					}
 				}
 			} else {
-				freelist := "$nPage - $sz"
+				var freelist = "$nPage - $sz"
 				_ = freelist // suppress unused warning
 				if avmode == "incremental" {
+					var freelist = "0"
 					// incr freelist -2
 					{
 						_n, _err := strconv.Atoi(freelist)

@@ -1178,7 +1178,7 @@ func Test_window1(t *testing.T) {
 									t.Errorf("expected error, got none\n  sql: %s", "\n    WITH a(x, y) AS ( VALUES(1, 2) )\n    SELECT sum(x) OVER (\n      ORDER BY y RANGE BETWEEN " + expr + " PRECEDING AND UNBOUNDED FOLLOWING\n    ) FROM a\n  ")
 								}
 							}
-							var res = "0 1"
+							res = "0 1"
 							_ = res // suppress unused warning
 							if tclBool(err) {
 								var res = "1 {frame ending offset must be a non-negative number}"

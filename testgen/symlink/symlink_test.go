@@ -121,7 +121,7 @@ func Test_symlink(t *testing.T) {
 		_ = _list
 	}
 	{ // do_test "1.5"
-		r := "510 - [string length test.db] - [string length [pwd]]"
+		var r = "510 - [string length test.db] - [string length [pwd]]"
 		_ = r // suppress unused warning
 		var name = "test.db" + "x $r"
 		_ = name // suppress unused warning
@@ -303,7 +303,7 @@ func Test_symlink(t *testing.T) {
 		_ = path // suppress unused warning
 		var nLink = "llength [split $path /]"
 		_ = nLink // suppress unused warning
-		var path = "../ [expr $nLink*2]" + ".." + path + "/test.db"
+		path = "../ [expr $nLink*2]" + ".." + path + "/test.db"
 		_ = path // suppress unused warning
 		db2, err = frigolite.Open(path)
 		if err != nil { t.Fatal(err) }

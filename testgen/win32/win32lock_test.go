@@ -108,6 +108,7 @@ func Test_win32lock(t *testing.T) {
 		}
 		if tclBool("llength $win32_lock_ok" + " && " + "llength $win32_lock_error") {
 		}
+		var delay1 = "0"
 		// incr delay1 25
 		{
 			_n, _err := strconv.Atoi(delay1)
@@ -127,11 +128,11 @@ func Test_win32lock(t *testing.T) {
 	{ // do_test "win32lock-2.1"
 		t.Errorf("TODO: %s not implemented in frigolite", "file_control_win32_av_retry db 1 1")
 	}
-	var win32_lock_ok = "list"
+	win32_lock_ok = "list"
 	_ = win32_lock_ok // suppress unused warning
-	var win32_lock_error = "list"
+	win32_lock_error = "list"
 	_ = win32_lock_error // suppress unused warning
-	var delay1 = "1"
+	delay1 = "1"
 	_ = delay1 // suppress unused warning
 	for true {
 		t.Errorf("TODO: %s not implemented in frigolite", "lock_win32_file test.db 0 $::delay1")
@@ -172,6 +173,7 @@ func Test_win32lock(t *testing.T) {
 		}
 		if tclBool("llength $win32_lock_ok" + " && " + "llength $win32_lock_error") {
 		}
+		var delay1 = "0"
 		// incr delay1 1
 		{
 			_n, _err := strconv.Atoi(delay1)

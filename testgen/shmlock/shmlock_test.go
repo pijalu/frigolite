@@ -106,7 +106,7 @@ func Test_shmlock(t *testing.T) {
 						}
 					}
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 255 }() {
 					var rc = "vfs_shmlock db$i main shared lock 4 1"
@@ -148,7 +148,7 @@ func Test_shmlock(t *testing.T) {
 					if rc != "SQLITE_BUSY" {
 						t.Errorf("TCL error: %s", rc)
 					}
-					var rc = "vfs_shmlock db$i main shared unlock 4 1"
+					rc = "vfs_shmlock db$i main shared unlock 4 1"
 					_ = rc // suppress unused warning
 					if rc != "SQLITE_OK" {
 						t.Errorf("TCL error: %s", rc)

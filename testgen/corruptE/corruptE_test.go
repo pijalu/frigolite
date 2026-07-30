@@ -108,6 +108,7 @@ func Test_corruptE(t *testing.T) {
 			_res = db.Exec("PRAGMA integrity_check")
 			_ = _res // catchsql
 		}
+		var tc = "0"
 		// incr tc 1
 		{
 			_n, _err := strconv.Atoi(tc)

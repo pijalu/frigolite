@@ -71,7 +71,7 @@ func Test_colmeta(t *testing.T) {
 			if err != nil { t.Fatal(err) }
 			var _DB = "sqlite3_connection_pointer db" // TCL namespace variable
 			_ = _DB // suppress unused warning
-			var tstbody = "concat sqlite3_table_column_metadata $::DB $params"
+			tstbody = "concat sqlite3_table_column_metadata $::DB $params"
 			_ = tstbody // suppress unused warning
 			{ // do_test "colmeta-" + tn + ".2"
 				_list := tclList([]string{"0", "set msg"})

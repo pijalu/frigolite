@@ -111,9 +111,9 @@ func Test_analyze9(t *testing.T) {
 		var i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-			a := "$i / 10"
+			var a = "$i / 10"
 			_ = a // suppress unused warning
-			b := "0"
+			var b = "0"
 			_ = b // suppress unused warning
 			_res = db.Exec(" INSERT INTO t2 VALUES($a, $b) ")
 			if _res.Error != nil {
@@ -424,7 +424,7 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 		}
-		var i = "0"
+		i = "0"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 21 }() {
 			_res = db.Exec("INSERT INTO t1 VALUES('x', 'y', 'z', 101, " + i + ")")
@@ -439,7 +439,7 @@ func Test_analyze9(t *testing.T) {
 				}
 			}
 		}
-		var i = "102"
+		i = "102"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 200 }() {
 			_res = db.Exec("INSERT INTO t1 VALUES('x', 'y', 'z', " + i + ", " + "$i/2" + ")")
@@ -475,7 +475,7 @@ func Test_analyze9(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='x' AND b='y' AND c='z' AND d=99 AND e=5;\n")
 		}
 	}
-	value_d := "101"
+	var value_d = "101"
 	_ = value_d // suppress unused warning
 	{ // "9.4.1"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='x' AND b='y' AND c='z' AND d=$value_d AND e=5\n")
@@ -483,7 +483,7 @@ func Test_analyze9(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT * FROM t1 WHERE a='x' AND b='y' AND c='z' AND d=$value_d AND e=5\n")
 		}
 	}
-	value_d := "99"
+	value_d = "99"
 	_ = value_d // suppress unused warning
 	{ // "9.4.2"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT * FROM t1 WHERE a='x' AND b='y' AND c='z' AND d=$value_d AND e=5\n")
@@ -508,7 +508,7 @@ func Test_analyze9(t *testing.T) {
 				var a = "NULL"
 				_ = a // suppress unused warning
 			}
-			b := "$i % 5"
+			var b = "$i % 5"
 			_ = b // suppress unused warning
 			_res = db.Exec("INSERT INTO t3 VALUES(" + a + ", " + b + ")")
 			if _res.Error != nil {
@@ -556,7 +556,7 @@ func Test_analyze9(t *testing.T) {
 				var a = "NULL"
 				_ = a // suppress unused warning
 			}
-			b := "$i % 5"
+			var b = "$i % 5"
 			_ = b // suppress unused warning
 			_res = db.Exec("INSERT INTO t3 VALUES('xyz', " + a + ", " + b + ")")
 			if _res.Error != nil {
@@ -613,7 +613,7 @@ func Test_analyze9(t *testing.T) {
 						var a = "DEF"
 						_ = a // suppress unused warning
 					}
-					b := "$i % 5"
+					var b = "$i % 5"
 					_ = b // suppress unused warning
 					_res = db.Exec(" INSERT INTO t4 VALUES($a, $b) ")
 					if _res.Error != nil {
@@ -656,7 +656,7 @@ func Test_analyze9(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
 					}
 				}
-				var sql = "SELECT * FROM t4 WHERE a COLLATE nocase = 'abc' AND b = 3;"
+				sql = "SELECT * FROM t4 WHERE a COLLATE nocase = 'abc' AND b = 3;"
 				_ = sql // suppress unused warning
 				{ // "11." + tn + ".6"
 					r = db.Query("EXPLAIN QUERY PLAN " + sql)
@@ -692,7 +692,7 @@ func Test_analyze9(t *testing.T) {
 							var a = "DEF"
 							_ = a // suppress unused warning
 						}
-						b := "$i % 5"
+						var b = "$i % 5"
 						_ = b // suppress unused warning
 						_res = db.Exec(" INSERT INTO t4 VALUES(X'abcdef', $a, $b) ")
 						if _res.Error != nil {
@@ -735,7 +735,7 @@ func Test_analyze9(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+sql)
 						}
 					}
-					var sql = "\n      SELECT * FROM t4 WHERE x=X'abcdef' AND a COLLATE nocase = 'abc' AND b = 3\n    "
+					sql = "\n      SELECT * FROM t4 WHERE x=X'abcdef' AND a COLLATE nocase = 'abc' AND b = 3\n    "
 					_ = sql // suppress unused warning
 					{ // "12." + tn + ".6"
 						r = db.Query("EXPLAIN QUERY PLAN " + sql)
@@ -811,7 +811,7 @@ func Test_analyze9(t *testing.T) {
 				var i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-					c := "$i % 3"
+					var c = "$i % 3"
 					_ = c // suppress unused warning
 					_res = db.Exec(" INSERT INTO t1 VALUES('ott', $i, $c) ")
 					if _res.Error != nil {
@@ -956,7 +956,7 @@ func Test_analyze9(t *testing.T) {
 				var i = "1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 160 }() {
-					b := "$i % 10"
+					var b = "$i % 10"
 					_ = b // suppress unused warning
 					if func() bool { b_n, _b_e := strconv.Atoi(b); if _b_e != nil { return false }; return b_n == 0 || b_n==2 }() {
 						var b = "1"
@@ -1433,7 +1433,7 @@ func Test_analyze9(t *testing.T) {
 								}
 							}
 						}
-						var i = "0"
+						i = "0"
 						_ = i // suppress unused warning
 						for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 							_res = db.Exec("\n        WITH cnt(x) AS (SELECT 1 UNION ALL SELECT x+1 FROM cnt WHERE x<100)\n        INSERT INTO t1(x, y) SELECT 10000+$i, x FROM cnt;\n        INSERT INTO t1(x, y) SELECT 10000+$i, 100;\n      ")

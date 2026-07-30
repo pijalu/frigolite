@@ -135,6 +135,6 @@ func Test_fts3offsets(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var sqlite_fts3_enable_parentheses = "0"
+	sqlite_fts3_enable_parentheses = "0"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 }

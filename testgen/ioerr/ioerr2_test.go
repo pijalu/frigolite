@@ -70,6 +70,7 @@ func Test_ioerr2(t *testing.T) {
 			_ = _sqlite_io_error_pending // suppress unused warning
 			// foreach ::go,res "catchsql $sql" (no body)
 			t.Errorf("TODO: %s not implemented in frigolite", "check_db ioerr2-3.$bPersist.$::N")
+			var _N = "0"
 			// incr _N 1
 			{
 				_n, _err := strconv.Atoi(_N)
@@ -93,6 +94,7 @@ func Test_ioerr2(t *testing.T) {
 			_ = _sqlite_io_error_pending // suppress unused warning
 			// foreach ::go,res "catchsql $sql" (no body)
 			t.Errorf("TODO: %s not implemented in frigolite", "check_db ioerr2-4.[expr {$bPersist+2}].$::N")
+			var _N = "0"
 			// incr _N 1
 			{
 				_n, _err := strconv.Atoi(_N)
@@ -122,6 +124,7 @@ func Test_ioerr2(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SELECT * FROM t1 WHERE rowid IN (1, 5, 10, 15, 20)")
 				}
+				var _N = "0"
 				// incr _N 1
 				{
 					_n, _err := strconv.Atoi(_N)

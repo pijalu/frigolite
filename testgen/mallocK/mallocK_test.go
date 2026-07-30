@@ -58,9 +58,9 @@ func Test_mallocK(t *testing.T) {
 			}
 		}
 	}
-	var sql = "SELECT * FROM t1 WHERE a GLOB 'xyz*' AND (a=1 OR a=2)"
+	sql = "SELECT * FROM t1 WHERE a GLOB 'xyz*' AND (a=1 OR a=2)"
 	_ = sql // suppress unused warning
-	var x = "1"
+	x = "1"
 	_ = x // suppress unused warning
 	for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
 		sql += " AND b!=" + x
@@ -73,9 +73,9 @@ func Test_mallocK(t *testing.T) {
 			}
 		}
 	}
-	var sql = "SELECT * FROM t1 WHERE a BETWEEN 5 AND 10"
+	sql = "SELECT * FROM t1 WHERE a BETWEEN 5 AND 10"
 	_ = sql // suppress unused warning
-	var x = "1"
+	x = "1"
 	_ = x // suppress unused warning
 	for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
 		sql += " AND b=" + x
@@ -88,9 +88,9 @@ func Test_mallocK(t *testing.T) {
 			}
 		}
 	}
-	var sql = "SELECT * FROM t1 WHERE b=0"
+	sql = "SELECT * FROM t1 WHERE b=0"
 	_ = sql // suppress unused warning
-	var x = "1"
+	x = "1"
 	_ = x // suppress unused warning
 	for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 5 }() {
 		var term = "(b=" + x

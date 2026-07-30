@@ -103,7 +103,7 @@ func Test_tkt2686(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  PRAGMA page_size=1024;\n  PRAGMA max_page_count=50;\n  PRAGMA auto_vacuum=1;\n  CREATE TABLE filler (fill);\n")
 	}
-	var i = "10000"
+	i = "10000"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 12000 }() {
 		{ // do_test "tkt2686-" + i + ".1"

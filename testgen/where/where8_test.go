@@ -209,6 +209,7 @@ func Test_where8(t *testing.T) {
 					tclSort(R)
 				}
 			}
+			var A = "0"
 			// incr A 1
 			{
 				_n, _err := strconv.Atoi(A)

@@ -421,7 +421,7 @@ func Test_fts4langid(t *testing.T) {
 			}
 		}
 	}
-	lid := "1073741824"
+	var lid = "1073741824"
 	_ = lid // suppress unused warning
 	{ // "5.3.1"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE t6 USING fts4(languageid=lid);\n  INSERT INTO t6 VALUES('I belong to language 0!');\n")
@@ -486,7 +486,7 @@ func Test_fts4langid(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	lid := "1073741824"
+	lid = "1073741824"
 	_ = lid // suppress unused warning
 	for _, lid := range tclSplitList("list 4 [expr 1<<30]") {
 		{ // "5.4." + lid + ".1"

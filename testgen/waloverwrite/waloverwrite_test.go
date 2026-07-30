@@ -163,7 +163,7 @@ func Test_waloverwrite(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "SAVEPOINT abc")
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5 }() {
 					// skip: foreach over unresolved TCL command

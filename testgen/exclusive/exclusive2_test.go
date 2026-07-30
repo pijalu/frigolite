@@ -60,7 +60,7 @@ func Test_exclusive2(t *testing.T) {
 		}
 	}
 	{ // do_test "exclusive2-1.2.1"
-		nPage := "[file size test.db]/1024"
+		var nPage = "[file size test.db]/1024"
 		_ = nPage // suppress unused warning
 		if func() bool { _SQLITE_DEFAULT_CACHE_SIZE_n, __SQLITE_DEFAULT_CACHE_SIZE_e := strconv.Atoi(_SQLITE_DEFAULT_CACHE_SIZE); if __SQLITE_DEFAULT_CACHE_SIZE_e != nil { return false }; nPage_n, _nPage_e := strconv.Atoi(nPage); if _nPage_e != nil { return false }; return _SQLITE_DEFAULT_CACHE_SIZE_n < nPage_n }() {
 			r = db.Query("PRAGMA cache_size = " + nPage)
@@ -124,7 +124,7 @@ func Test_exclusive2(t *testing.T) {
 		}
 	}
 	{ // do_test "exclusive2-2.2.1"
-		nPage := "[file size test.db]/1024"
+		var nPage = "[file size test.db]/1024"
 		_ = nPage // suppress unused warning
 		if func() bool { _SQLITE_DEFAULT_CACHE_SIZE_n, __SQLITE_DEFAULT_CACHE_SIZE_e := strconv.Atoi(_SQLITE_DEFAULT_CACHE_SIZE); if __SQLITE_DEFAULT_CACHE_SIZE_e != nil { return false }; nPage_n, _nPage_e := strconv.Atoi(nPage); if _nPage_e != nil { return false }; return _SQLITE_DEFAULT_CACHE_SIZE_n < nPage_n }() {
 			r = db.Query("PRAGMA cache_size = " + nPage)

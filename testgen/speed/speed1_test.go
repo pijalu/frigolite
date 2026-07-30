@@ -76,7 +76,7 @@ func Test_speed1(t *testing.T) {
 	var i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		r := "0"
+		var r = "0"
 		_ = r // suppress unused warning
 		sql += "INSERT INTO t1 VALUES(" + i + "," + r + ",'" + "number_name $r" + "');\\n"
 		// incr i 1
@@ -96,12 +96,12 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		r := "0"
+		var r = "0"
 		_ = r // suppress unused warning
 		sql += "INSERT INTO t2 VALUES(" + i + "," + r + ",'" + "number_name $r" + "');\\n"
 		// incr i 1
@@ -121,14 +121,14 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
-		lwr := "$i*100"
+		var lwr = "$i*100"
 		_ = lwr // suppress unused warning
-		upr := "($i+10)*100"
+		var upr = "($i+10)*100"
 		_ = upr // suppress unused warning
 		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
 		// incr i 1
@@ -148,9 +148,9 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50 }() {
 		sql += "SELECT count(*), avg(b) FROM t1 WHERE c LIKE '%" + "number_name $i" + "%';"
@@ -180,14 +180,14 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		lwr := "$i*100"
+		var lwr = "$i*100"
 		_ = lwr // suppress unused warning
-		upr := "($i+10)*100"
+		var upr = "($i+10)*100"
 		_ = upr // suppress unused warning
 		sql += "SELECT count(*), avg(b) FROM t1 WHERE b>=" + lwr + " AND b<" + upr + ";"
 		// incr i 1
@@ -207,12 +207,12 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
-		id := "1"
+		var id = "1"
 		_ = id // suppress unused warning
 		sql += "SELECT c FROM t1 WHERE rowid=" + id + ";"
 		// incr i 1
@@ -232,12 +232,12 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100000 }() {
-		id := "1"
+		var id = "1"
 		_ = id // suppress unused warning
 		sql += "SELECT c FROM t1 WHERE a=" + id + ";"
 		// incr i 1
@@ -257,7 +257,7 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
 	_res = db.Exec("SELECT c FROM t1 ORDER BY random() LIMIT 50000")
 	if _res.Error != nil {
@@ -273,14 +273,14 @@ func Test_speed1(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-vacuum 100000 row VACUUM")
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 5000 }() {
-		lwr := "$i*2"
+		var lwr = "$i*2"
 		_ = lwr // suppress unused warning
-		upr := "($i+1)*2"
+		var upr = "($i+1)*2"
 		_ = upr // suppress unused warning
 		sql += "UPDATE t1 SET b=b*2 WHERE a>=" + lwr + " AND a<" + upr + ";"
 		// incr i 1
@@ -300,12 +300,12 @@ func Test_speed1(t *testing.T) {
 	if _res.Error != nil {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 50000 }() {
-		r := "0"
+		var r = "0"
 		_ = r // suppress unused warning
 		sql += "UPDATE t1 SET b=" + r + " WHERE a=" + i + ";"
 		// incr i 1
@@ -326,12 +326,12 @@ func Test_speed1(t *testing.T) {
 		t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "speed_trial speed1-update3 50000 row {\n  UPDATE t1 SET c=a;\n}")
-	var sql = ""
+	sql = ""
 	_ = sql // suppress unused warning
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 50000 }() {
-		r := "0"
+		var r = "0"
 		_ = r // suppress unused warning
 		sql += "UPDATE t1 SET c='" + "number_name $r" + "' WHERE a=" + i + ";"
 		// incr i 1

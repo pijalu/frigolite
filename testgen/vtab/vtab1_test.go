@@ -1000,7 +1000,7 @@ func Test_vtab1(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t2(a PRIMARY KEY, b, c);\n    INSERT INTO t2 VALUES(1, 2, 3);\n    INSERT INTO t2 VALUES(4, 5, 6);\n    CREATE VIRTUAL TABLE echo_t2 USING echo(t2);\n  ")
 		}
 	}
-	var tn = "2"
+	tn = "2"
 	_ = tn // suppress unused warning
 	for _, method := range tclSplitList("list \\\n    xBestIndex       \\\n    xOpen            \\\n    xFilter          \\\n    xNext            \\\n    xColumn          \\\n    xRowid           \\") {
 		{ // do_test "vtab1-16." + tn
@@ -1009,6 +1009,7 @@ func Test_vtab1(t *testing.T) {
 			_res = db.Exec(" SELECT rowid, * FROM echo_t2 WHERE a >= 1 ")
 			_ = _res // catchsql
 		}
+		var tn = "0"
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
@@ -1024,6 +1025,7 @@ func Test_vtab1(t *testing.T) {
 			_res = db.Exec(" INSERT INTO echo_t2 VALUES(7, 8, 9) ")
 			_ = _res // catchsql
 		}
+		var tn = "0"
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)

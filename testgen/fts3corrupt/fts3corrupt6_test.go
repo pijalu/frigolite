@@ -160,6 +160,6 @@ func Test_fts3corrupt6(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var sqlite_fts3_enable_parentheses = saved_sqlite_fts3_enable_parentheses
+	sqlite_fts3_enable_parentheses = saved_sqlite_fts3_enable_parentheses
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 }

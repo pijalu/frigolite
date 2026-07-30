@@ -778,7 +778,7 @@ func Test_func2(t *testing.T) {
 	{ // do_test "func2-3.10"
 		var tm = "time {\n    execsql {\n      SELECT '' IN (zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(\n      zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(zerobloB(1)\n      )))))))))))))))))))))))))))))))))))))))))))))))))))))))))))))\n  }\n  }"
 		_ = tm // suppress unused warning
-		var tm = "lindex $tm 0"
+		tm = "lindex $tm 0"
 		_ = tm // suppress unused warning
 		// expr $tm<2000000 → "$tm<2000000"
 	}

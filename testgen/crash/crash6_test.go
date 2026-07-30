@@ -64,7 +64,7 @@ func Test_crash6(t *testing.T) {
 			}
 		}
 	}
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 10 }() {
 		{
@@ -93,14 +93,14 @@ func Test_crash6(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	var ii = "0"
+	ii = "0"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 30 }() {
 		os.Remove("test.db")
 		db, err := frigolite.Open("test.db")
 		defer db.Close()
 		if err != nil { t.Fatal(err) }
-		pagesize := "1024 << ($ii % 4)"
+		var pagesize = "1024 << ($ii % 4)"
 		_ = pagesize // suppress unused warning
 		if func() bool { pagesize_n, _pagesize_e := strconv.Atoi(pagesize); if _pagesize_e != nil { return false }; _SQLITE_MAX_PAGE_SIZE_n, __SQLITE_MAX_PAGE_SIZE_e := strconv.Atoi(_SQLITE_MAX_PAGE_SIZE); if __SQLITE_MAX_PAGE_SIZE_e != nil { return false }; return pagesize_n > _SQLITE_MAX_PAGE_SIZE_n }() {
 			var pagesize = _SQLITE_MAX_PAGE_SIZE

@@ -807,6 +807,7 @@ func Test_gencol1(t *testing.T) {
 		_ = cnt // suppress unused warning
 		for _, t1 := range tclSplitList(typelist) {
 			for _, t2 := range tclSplitList(typelist) {
+				var cnt = "0"
 				// incr cnt 1
 				{
 					_n, _err := strconv.Atoi(cnt)

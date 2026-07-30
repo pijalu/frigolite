@@ -149,6 +149,7 @@ func Test_mjournal(t *testing.T) {
 		var cksum = "0"
 		_ = cksum // suppress unused warning
 		for _, b := range tclSplitList(bytes) {
+			var cksum = "0"
 			// incr cksum b
 			{
 				_n, _err := strconv.Atoi(cksum)
@@ -165,12 +166,12 @@ func Test_mjournal(t *testing.T) {
 		t.Log("-nonewline")
 		t.Log("-nonewline")
 		// close $fd
-		var fd = "open test.db-super w"
+		fd = "open test.db-super w"
 		_ = fd // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary -encoding iso8859-1")
 		t.Log("-nonewline")
 		// close $fd
-		var fd = "open test2.db-journal w"
+		fd = "open test2.db-journal w"
 		_ = fd // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "fconfigure $fd -translation binary -encoding iso8859-1")
 		t.Log("-nonewline")
@@ -238,7 +239,7 @@ func Test_mjournal(t *testing.T) {
 					}
 					t.Log("-nonewline")
 					t.Log("-nonewline")
-					mjexists := "!$bDel"
+					var mjexists = "!$bDel"
 					_ = mjexists // suppress unused warning
 				} else {
 					t.Log("-nonewline")

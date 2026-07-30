@@ -58,11 +58,11 @@ func Test_stmtvtab1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var x = "neon"
+	x = "neon"
 	_ = x // suppress unused warning
-	var y = "event"
+	y = "event"
 	_ = y // suppress unused warning
-	var z = "future"
+	z = "future"
 	_ = z // suppress unused warning
 	{ // "stmtvtab1-110"
 		r = db.Query("\n  INSERT INTO t1 VALUES($a,$b,$c);\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
@@ -76,11 +76,11 @@ func Test_stmtvtab1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var x = "network"
+	x = "network"
 	_ = x // suppress unused warning
-	var y = "fit"
+	y = "fit"
 	_ = y // suppress unused warning
-	var z = "metal"
+	z = "metal"
 	_ = z // suppress unused warning
 	{ // "stmtvtab1-120"
 		r = db.Query("\n  INSERT INTO t1 VALUES($a,$b,$c);\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")
@@ -94,11 +94,11 @@ func Test_stmtvtab1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var x = "history"
+	x = "history"
 	_ = x // suppress unused warning
-	var y = "detail"
+	y = "detail"
 	_ = y // suppress unused warning
-	var z = "grace"
+	z = "grace"
 	_ = z // suppress unused warning
 	{ // "stmtvtab1-130"
 		r = db.Query("\n  CREATE INDEX t1b ON t1(b);\n  INSERT INTO t1 VALUES($a,$b,$c);\n  SELECT reprep,run,SQL FROM sqlite_stmt WHERE sql LIKE '%INSERT%' AND NOT busy;\n")

@@ -53,7 +53,7 @@ func Test_fts3rnd(t *testing.T) {
 	var i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nVocab_n, _nVocab_e := strconv.Atoi(nVocab); if _nVocab_e != nil { return false }; return i_n < nVocab_n }() {
-		len := "2"
+		var len = "2"
 		_ = len // suppress unused warning
 		var word = "lindex $lChar [expr int(rand()*26)]"
 		_ = word // suppress unused warning
@@ -158,7 +158,7 @@ func Test_fts3rnd(t *testing.T) {
 				var iInsert = iUpdate
 				_ = iInsert // suppress unused warning
 				for tclBool("info exists ::t1($iInsert)") {
-					iInsert := "0"
+					var iInsert = "0"
 					_ = iInsert // suppress unused warning
 				}
 				_res = db.Exec("BEGIN")
@@ -191,7 +191,7 @@ func Test_fts3rnd(t *testing.T) {
 						}
 					}
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
 					var prefix = "[random_term] 0 end-1"
@@ -207,7 +207,7 @@ func Test_fts3rnd(t *testing.T) {
 						}
 					}
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
 					var term = "list [random_term] [random_term]"
@@ -223,7 +223,7 @@ func Test_fts3rnd(t *testing.T) {
 						}
 					}
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
 					var term = "list [random_term] [random_term] [random_term]"
@@ -239,7 +239,7 @@ func Test_fts3rnd(t *testing.T) {
 						}
 					}
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
 					var query = "[random_term] 0 end-1" + "* "
@@ -257,7 +257,7 @@ func Test_fts3rnd(t *testing.T) {
 						}
 					}
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
 					var terms = "list [random_term] [random_term]"
@@ -273,7 +273,7 @@ func Test_fts3rnd(t *testing.T) {
 						}
 					}
 				}
-				var i = "0"
+				i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nRep_n, _nRep_e := strconv.Atoi(nRep); if _nRep_e != nil { return false }; return i_n < nRep_n }() {
 					var terms = "list [random_term] [random_term] [random_term]"

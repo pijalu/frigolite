@@ -50,6 +50,7 @@ func Test_capi3e(t *testing.T) {
 	var i = "0"
 	_ = i // suppress unused warning
 	for _, name := range tclSplitList(names) {
+		var i = "0"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)

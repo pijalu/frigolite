@@ -115,7 +115,7 @@ func Test_e_insert(t *testing.T) {
 				t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_get_autocommit db")
 			}
 		}
-		var err = "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
+		err = "1 {qualified table names are not allowed on INSERT, UPDATE, and DELETE statements within triggers}"
 		_ = err // suppress unused warning
 		{ // "e_insert-5.1.1"
 			_res = db.Exec("\n  CREATE TRIGGER AFTER UPDATE ON a1 BEGIN\n    INSERT INTO main.a4 VALUES(new.a, new.b);\n  END;\n")

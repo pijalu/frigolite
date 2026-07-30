@@ -105,7 +105,7 @@ func Test_rowid(t *testing.T) {
 	}
 	{ // do_test "rowid-1.7.1"
 		for true {
-			norow := "0"
+			var norow = "0"
 			_ = norow // suppress unused warning
 			if func() bool { norow_n, _norow_e := strconv.Atoi(norow); if _norow_e != nil { return false }; x2rowid_n, _x2rowid_e := strconv.Atoi(x2rowid); if _x2rowid_e != nil { return false }; return norow_n != x2rowid_n(1) && norow_n!=x2rowid_n(3) }() {
 			}
@@ -443,6 +443,7 @@ func Test_rowid(t *testing.T) {
 		for true {
 			if tclBool("execsql \"SELECT x FROM t1 WHERE rowid=$::norow\"" + "==\"\"") {
 			}
+			var _norow = "0"
 			// incr _norow 1
 			{
 				_n, _err := strconv.Atoi(_norow)

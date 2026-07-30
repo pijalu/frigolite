@@ -51,11 +51,11 @@ func Test_between(t *testing.T) {
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 100 }() {
 			var w = i
 			_ = w // suppress unused warning
-			x := "int(log($i)/log(2))"
+			var x = "int(log($i)/log(2))"
 			_ = x // suppress unused warning
-			y := "$i*$i + 2*$i + 1"
+			var y = "$i*$i + 2*$i + 1"
 			_ = y // suppress unused warning
-			z := "$x+$y"
+			var z = "$x+$y"
 			_ = z // suppress unused warning
 			// incr i 1
 			{

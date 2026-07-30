@@ -92,7 +92,7 @@ func Test_fts3snippet(t *testing.T) {
 			var off = "\"twohundred \" $numbers"
 			_ = off // suppress unused warning
 			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.2.1 {twohundred} [list 1 0 $off 10]")
-			var off = "\"onehundred \" $numbers"
+			off = "\"onehundred \" $numbers"
 			_ = off // suppress unused warning
 			t.Errorf("TODO: %s not implemented in frigolite", "do_offsets_test $T.2.2 {onehundred} [list 0 0 $off 10 1 0 $off 10] [list 0 0 $off 10]")
 			t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db DEFENSIVE 0")
@@ -221,7 +221,7 @@ func Test_fts3snippet(t *testing.T) {
 					_ = v1 // suppress unused warning
 					var v2 = "[string repeat \"$numbers \" $n]"
 					_ = v2 // suppress unused warning
-					docid := "$n * 1000000"
+					var docid = "$n * 1000000"
 					_ = docid // suppress unused warning
 					_res = db.Exec(" INSERT INTO ft(docid, x, y) VALUES($docid, $v1, $v2) ")
 					if _res.Error != nil {
@@ -414,6 +414,6 @@ func Test_fts3snippet(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		var sqlite_fts3_enable_parentheses = "0"
+		sqlite_fts3_enable_parentheses = "0"
 		_ = sqlite_fts3_enable_parentheses // suppress unused warning
 }

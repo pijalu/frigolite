@@ -264,6 +264,7 @@ func Test_incrvacuum(t *testing.T) {
 		{ // do_test "incrvacuum-5.3.$"
 			t.Errorf("TODO: %s not implemented in frigolite", "tn")
 		}
+		var tn = "0"
 		// incr tn 1
 		{
 			_n, _err := strconv.Atoi(tn)
@@ -305,6 +306,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		if func() bool { _nRow_n, __nRow_e := strconv.Atoi(_nRow); if __nRow_e != nil { return false }; _iWrite_n, __iWrite_e := strconv.Atoi(_iWrite); if __iWrite_e != nil { return false }; return _nRow_n == _iWrite_n }() {
 		}
+		var _iWrite = "0"
 		// incr _iWrite 1
 		{
 			_n, _err := strconv.Atoi(_iWrite)

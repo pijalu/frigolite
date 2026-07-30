@@ -102,7 +102,7 @@ func Test_fts3atoken2(t *testing.T) {
 		}
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db SQLITE_DBCONFIG_ENABLE_FTS3_TOKENIZER 1")
-	var bound = "simple"
+	bound = "simple"
 	_ = bound // suppress unused warning
 	{ // "1.3.1"
 		r = db.Query("\n  SELECT typeof( fts3_tokenizer('simple') );\n")
@@ -128,9 +128,9 @@ func Test_fts3atoken2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var literal = "db one {SELECT quote( fts3_tokenizer($bound) )}"
+	literal = "db one {SELECT quote( fts3_tokenizer($bound) )}"
 	_ = literal // suppress unused warning
-	var blob = "db one {SELECT fts3_tokenizer($bound) }"
+	blob = "db one {SELECT fts3_tokenizer($bound) }"
 	_ = blob // suppress unused warning
 	{ // "1.4.1"
 		r = db.Query("\n  SELECT typeof( fts3_tokenizer('mytok2', " + literal + ") );\n")

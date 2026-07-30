@@ -110,7 +110,7 @@ func Test_notify3(t *testing.T) {
 		_res = db.Exec(" SELECT * FROM t2 ")
 		_ = _res // catchsql
 	}
-	var err = "{1 {unable to open database: test.db2}}"
+	err = "{1 {unable to open database: test.db2}}"
 	_ = err // suppress unused warning
 	var noerr = "{0 {}}"
 	_ = noerr // suppress unused warning

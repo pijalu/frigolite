@@ -47,30 +47,30 @@ func Test_types3(t *testing.T) {
 		_ = _r
 	}
 	{ // do_test "types3-1.2"
-		V := "3"
+		var V = "3"
 		_ = V // suppress unused warning
 		_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
 		_ = _r
 	}
-	V := "12345678012346"
+	var V = "12345678012346"
 	_ = V // suppress unused warning
 	if tclBool("tcl_variable_type V" + "==\"wideInt\"") {
 		{ // do_test "types3-1.3"
-			V := "123456789012346"
+			var V = "123456789012346"
 			_ = V // suppress unused warning
 			_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
 			_ = _r
 		}
 	} else {
 		{ // do_test "types3-1.3"
-			V := "123456789012346"
+			var V = "123456789012346"
 			_ = V // suppress unused warning
 			_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
 			_ = _r
 		}
 	}
 	{ // do_test "types3-1.4"
-		V := "2"
+		var V = "2"
 		_ = V // suppress unused warning
 		_r := tclList(append([]string{}, tclSplitList("tcl_variable_type V")..., tclSplitList("execsql {SELECT typeof(:V)}")...))
 		_ = _r
@@ -93,7 +93,7 @@ func Test_types3(t *testing.T) {
 		_ = V // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "tcl_variable_type V")
 	}
-	Vx := "123456789123457"
+	var Vx = "123456789123457"
 	_ = Vx // suppress unused warning
 	{ // do_test "types3-2.3"
 		var V = "db one {SELECT 1234567890123456}"

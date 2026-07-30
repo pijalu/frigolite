@@ -279,9 +279,9 @@ func Test_pragma(t *testing.T) {
 				_ = mainerr // suppress unused warning
 				var auxerr = "*** in database aux ***\nMultiple uses for byte 672 of page 15"
 				_ = auxerr // suppress unused warning
-				var mainerr = "/{\\*\\*\\* in database main \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/"
+				mainerr = "/{\\*\\*\\* in database main \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/"
 				_ = mainerr // suppress unused warning
-				var auxerr = "/{\\*\\*\\* in database aux \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/"
+				auxerr = "/{\\*\\*\\* in database aux \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/"
 				_ = auxerr // suppress unused warning
 				{ // do_test "22.2"
 					{

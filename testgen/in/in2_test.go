@@ -57,6 +57,7 @@ func Test_in2(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO a VALUES($::ii, $::ii)")
 			}
+			var _ii = "0"
 			// incr _ii 1
 			{
 				_n, _err := strconv.Atoi(_ii)
@@ -96,6 +97,7 @@ func Test_in2(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT 1 IN (SELECT a FROM a WHERE (i < $::ii) OR (i >= $::N))\n    ")
 			}
 		}
+		var _ii = "0"
 		// incr _ii 1
 		{
 			_n, _err := strconv.Atoi(_ii)

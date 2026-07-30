@@ -47,7 +47,7 @@ func Test_fts3auto(t *testing.T) {
 	_ = sfep // suppress unused warning
 	var sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
-	var sqlite_fts3_enable_parentheses = "1"
+	sqlite_fts3_enable_parentheses = "1"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	// proc definition (not transpiled)
 	// proc definition (not transpiled)
@@ -323,6 +323,6 @@ func Test_fts3auto(t *testing.T) {
 												t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.2 t1 {\"B D\"}")
 												t.Errorf("TODO: %s not implemented in frigolite", "do_fts3query_test 7.$tn.3 -deferred B t1 {\"M B D\"}")
 											}
-											var sqlite_fts3_enable_parentheses = sfep
+											sqlite_fts3_enable_parentheses = sfep
 											_ = sqlite_fts3_enable_parentheses // suppress unused warning
 }

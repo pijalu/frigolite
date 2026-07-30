@@ -1059,9 +1059,9 @@ func Test_zipfile(t *testing.T) {
 					_ = zip // suppress unused warning
 					var off = "\"504B0102\" $zip"
 					_ = off // suppress unused warning
-					off := "$off + 56"
+					off = "$off + 56"
 					_ = off // suppress unused warning
-					var zip = "$zip $off [expr $off+3] 1F1F"
+					zip = "$zip $off [expr $off+3] 1F1F"
 					_ = zip // suppress unused warning
 					len(zip)
 				}

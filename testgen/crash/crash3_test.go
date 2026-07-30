@@ -80,6 +80,7 @@ func Test_crash3(t *testing.T) {
 					}
 				}
 				t.Errorf("TODO: %s not implemented in frigolite", "do_test2 crash3-1.$tn.3 {\n      execsql { SELECT * FROM abc }\n    } {1 2 3} $res2")
+				var tn = "0"
 				// incr tn 1
 				{
 					_n, _err := strconv.Atoi(tn)
@@ -105,7 +106,7 @@ func Test_crash3(t *testing.T) {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    BEGIN;\n    CREATE TABLE abc(a PRIMARY KEY, b, c);\n    CREATE TABLE def(d PRIMARY KEY, e, f);\n    PRAGMA default_cache_size = 10;\n    INSERT INTO abc VALUES(randstr(10,1000),randstr(10,1000),randstr(10,1000));\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    INSERT INTO abc \n      SELECT randstr(10,1000),randstr(10,1000),randstr(10,1000) FROM abc;\n    COMMIT;\n  ")
 			}
 		}
-		var tn = "1"
+		tn = "1"
 		_ = tn // suppress unused warning
 		// foreach {::crashfile ::delay ::char} "\n  test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append\n"
 		_items1 := tclSplitList("\n  test.db         1 sequential\n  test.db         1 safe_append\n  test.db-journal 1 sequential\n  test.db-journal 1 safe_append\n  test.db-journal 2 safe_append\n  test.db-journal 2 sequential\n  test.db-journal 3 sequential\n  test.db-journal 3 safe_append\n")
@@ -140,6 +141,7 @@ func Test_crash3(t *testing.T) {
 						}
 					}
 				}
+				var tn = "0"
 				// incr tn 1
 				{
 					_n, _err := strconv.Atoi(tn)

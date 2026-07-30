@@ -1460,7 +1460,7 @@ func Test_e_expr(t *testing.T) {
 																t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 															}
 														}
-														var sqlite_current_time = "0"
+														sqlite_current_time = "0"
 														_ = sqlite_current_time // suppress unused warning
 														os.Remove("test.db2")
 														_res = db.Exec("\n  ATTACH 'test.db2' AS dbname;\n  CREATE TABLE dbname.tblname(cname);\n")
@@ -1506,6 +1506,7 @@ func Test_e_expr(t *testing.T) {
 																	var x = "0"
 																	_ = x // suppress unused warning
 																	for _, e := range tclSplitList(elist) {
+																		var x = "0"
 																		// incr x 1
 																		{
 																			_n, _err := strconv.Atoi(x)
@@ -2784,7 +2785,7 @@ func Test_e_expr(t *testing.T) {
 																		}
 																		{ // do_test "e_expr-21.1.2"
 																		}
-																		var varlist = "list"
+																		varlist = "list"
 																		_ = varlist // suppress unused warning
 																		{ // "e_expr-21.1.3"
 																			r = db.Query("\n  SELECT CASE WHEN var('c') THEN 'C' \n              WHEN var('b') THEN 'B' \n              WHEN var('a') THEN 'A' \n              ELSE 'no result'\n  END\n")
@@ -3118,7 +3119,7 @@ func Test_e_expr(t *testing.T) {
 																				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 																			}
 																		}
-																		var varlist = "list"
+																		varlist = "list"
 																		_ = varlist // suppress unused warning
 																		// foreach a,b,c "0 1 0" (no body)
 																		{ // "e_expr-25.1.1"
@@ -3136,7 +3137,7 @@ func Test_e_expr(t *testing.T) {
 																		{ // do_test "e_expr-25.1.2"
 																			_ = _varlist // TCL namespace variable (query)
 																		}
-																		var varlist = "list"
+																		varlist = "list"
 																		_ = varlist // suppress unused warning
 																		{ // "e_expr-25.1.3"
 																			r = db.Query("\n  SELECT CASE '0' WHEN var('a') THEN 'A' \n                  WHEN var('b') THEN 'B' \n                  WHEN var('c') THEN 'C' \n  END\n")

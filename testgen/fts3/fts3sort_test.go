@@ -127,7 +127,7 @@ func Test_fts3sort(t *testing.T) {
 					}
 				}
 			}
-			var testprefix = "fts3sort"
+			testprefix = "fts3sort"
 			_ = testprefix // suppress unused warning
 			// foreach {tn param res} "\n  1 \"order=asc\"             {0 {}}\n  2 \"order=desc\"            {0 {}}\n  3 \"order=dec\"             {1 {unrecognized order: dec}}\n  4 \"order=xxx, order=asc\"  {1 {unrecognized order: xxx}}\n  5 \"order=desc, order=asc\" {0 {}}\n  6 \"order=xxxx, order=asc\" {1 {unrecognized order: xxxx}}\n  7 \"order=desk\"            {1 {unrecognized order: desk}}\n"
 			_items2 := tclSplitList("\n  1 \"order=asc\"             {0 {}}\n  2 \"order=desc\"            {0 {}}\n  3 \"order=dec\"             {1 {unrecognized order: dec}}\n  4 \"order=xxx, order=asc\"  {1 {unrecognized order: xxx}}\n  5 \"order=desc, order=asc\" {0 {}}\n  6 \"order=xxxx, order=asc\" {1 {unrecognized order: xxxx}}\n  7 \"order=desk\"            {1 {unrecognized order: desk}}\n")

@@ -157,7 +157,7 @@ func Test_vtabC(t *testing.T) {
 					}
 				}
 			}
-			var i = "1"
+			i = "1"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return i_n <= _N_n }() {
 				sql += "  INSERT INTO vt" + i + " VALUES(NEW.a+" + i + "*10000);\\n"
@@ -185,10 +185,10 @@ func Test_vtabC(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      INSERT INTO m VALUES(9000000);\n      SELECT * FROM m;\n    ")
 			}
 		}
-		var j = "1"
+		j = "1"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; _N_n, __N_e := strconv.Atoi(_N); if __N_e != nil { return false }; return j_n <= _N_n }() {
-			res := "$j+1000"
+			var res = "$j+1000"
 			_ = res // suppress unused warning
 			res = tclListAppend(res, "$j*100+9000000")
 			res = tclListAppend(res, "$j*10000+9000000")

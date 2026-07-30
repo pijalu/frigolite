@@ -152,7 +152,7 @@ func Test_cse(t *testing.T) {
 	var i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 100 }() {
-		n := "5"
+		var n = "5"
 		_ = n // suppress unused warning
 		var colset = ""
 		_ = colset // suppress unused warning
@@ -161,10 +161,10 @@ func Test_cse(t *testing.T) {
 		var j = "0"
 		_ = j // suppress unused warning
 		for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; n_n, _n_e := strconv.Atoi(n); if _n_e != nil { return false }; return j_n < n_n }() {
-			r := "$j+int(rand()*5)"
+			var r = "$j+int(rand()*5)"
 			_ = r // suppress unused warning
 			if func() bool { r_n, _r_e := strconv.Atoi(r); if _r_e != nil { return false }; return r_n > 49 }() {
-				r := "99-$r"
+				var r = "99-$r"
 				_ = r // suppress unused warning
 			}
 			colset = tclListAppend(colset, "a" + j, "a" + r)

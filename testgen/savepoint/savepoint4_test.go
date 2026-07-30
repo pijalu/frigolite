@@ -100,7 +100,7 @@ func Test_savepoint4(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA cache_size=10;\n    DROP TABLE IF EXISTS t1;\n    BEGIN;\n    CREATE TABLE t1(x TEXT);\n    CREATE INDEX i1 ON t1(x);\n    INSERT INTO t1 VALUES(randstr(10,400));\n    INSERT INTO t1 VALUES(randstr(10,400));\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    INSERT INTO t1 SELECT randstr(10,400) FROM t1;\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
 		}
 	}
-	var ii = "1"
+	ii = "1"
 	_ = ii // suppress unused warning
 	for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; ITERATIONS2_n, _ITERATIONS2_e := strconv.Atoi(ITERATIONS2); if _ITERATIONS2_e != nil { return false }; return ii_n <= ITERATIONS2_n }() {
 		var _sig = "signature" // TCL namespace variable

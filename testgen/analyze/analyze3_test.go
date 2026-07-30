@@ -118,9 +118,9 @@ func Test_analyze3(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "EXPLAIN QUERY PLAN "+"\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
 		}
 	}
-	var l = "0"
+	l = "0"
 	_ = l // suppress unused warning
-	var u = "1100"
+	u = "1100"
 	_ = u // suppress unused warning
 	{ // "analyze3-1.1.3.102"
 		r = db.Query("EXPLAIN QUERY PLAN " + "\n  SELECT sum(y) FROM t1 WHERE x>$l AND x<$u\n")
@@ -153,9 +153,9 @@ func Test_analyze3(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u }")
 	}
 	{ // do_test "analyze3-1.1.6"
-		l := "200"
+		var l = "200"
 		_ = l // suppress unused warning
-		u := "300"
+		var u = "300"
 		_ = u // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u }")
 	}
@@ -170,9 +170,9 @@ func Test_analyze3(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u }")
 	}
 	{ // do_test "analyze3-1.1.9"
-		l := "0"
+		var l = "0"
 		_ = l // suppress unused warning
-		u := "1100"
+		var u = "1100"
 		_ = u // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t1 WHERE x>$l AND x<$u }")
 	}
@@ -217,9 +217,9 @@ func Test_analyze3(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...}")
 	}
 	{ // do_test "analyze3-1.2.6"
-		l := "12"
+		var l = "12"
 		_ = l // suppress unused warning
-		u := "20"
+		var u = "20"
 		_ = u // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...}")
 	}
@@ -234,9 +234,9 @@ func Test_analyze3(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...}")
 	}
 	{ // do_test "analyze3-1.2.9"
-		l := "0"
+		var l = "0"
 		_ = l // suppress unused warning
-		u := "99"
+		var u = "99"
 		_ = u // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql {SELECT typeof($l), typeof($u), sum(y) FROM t2 WHER...}")
 	}
@@ -281,9 +281,9 @@ func Test_analyze3(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u }")
 	}
 	{ // do_test "analyze3-1.3.6"
-		l := "200"
+		var l = "200"
 		_ = l // suppress unused warning
-		u := "300"
+		var u = "300"
 		_ = u // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u }")
 	}
@@ -298,9 +298,9 @@ func Test_analyze3(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u }")
 	}
 	{ // do_test "analyze3-1.3.9"
-		l := "0"
+		var l = "0"
 		_ = l // suppress unused warning
-		u := "1100"
+		var u = "1100"
 		_ = u // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sf_execsql { SELECT sum(y) FROM t3 WHERE x>$l AND x<$u }")
 	}

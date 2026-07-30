@@ -70,9 +70,9 @@ func Test_walslow(t *testing.T) {
 		_ = iTest // suppress unused warning
 		for func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return iTest_n < 100 }() {
 			{ // do_test "walslow-1.seed=" + seed + "." + iTest + ".1"
-				w := "0"
+				var w = "0"
 				_ = w // suppress unused warning
-				x := "0"
+				var x = "0"
 				_ = x // suppress unused warning
 				_res = db.Exec(" INSERT INTO t1 VALUES(randomblob($w), randomblob($x)) ")
 				if _res.Error != nil {

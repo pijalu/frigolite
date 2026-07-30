@@ -814,7 +814,7 @@ func Test_wal2(t *testing.T) {
 						var I = "[tvfs shm $::filename] 16384 end"
 						_ = I // suppress unused warning
 						t.Errorf("TODO: %s not implemented in frigolite", "binary scan $I t* L")
-						var I = "list"
+						I = "list"
 						_ = I // suppress unused warning
 						for _, p := range tclSplitList(L) {
 							I = tclListAppend(I, "$p ? $p : 400")
@@ -825,7 +825,7 @@ func Test_wal2(t *testing.T) {
 							_res = db.Exec(" INSERT INTO t1 VALUES(10, 11, 12) ")
 							_ = _res // catchsql
 						}
-						var blob = "[tvfs shm $::filename] 0 16383"
+						blob = "[tvfs shm $::filename] 0 16383"
 						_ = blob // suppress unused warning
 						blob += "[binary format c 55] 16384"
 						t.Errorf("TODO: %s not implemented in frigolite", "tvfs shm $::filename $blob")
@@ -1023,9 +1023,9 @@ func Test_wal2(t *testing.T) {
 										_list := tclList([]string{sqlite_sync_count, sqlite_fullsync_count})
 										_ = _list
 									}
-									var sqlite_sync_count = "0"
+									sqlite_sync_count = "0"
 									_ = sqlite_sync_count // suppress unused warning
-									var sqlite_fullsync_count = "0"
+									sqlite_fullsync_count = "0"
 									_ = sqlite_fullsync_count // suppress unused warning
 									{ // do_test "wal2-14." + tn + ".4"
 										_res = db.Exec(" INSERT INTO t1 VALUES(7, zeroblob(12*4096)) ")
@@ -1035,9 +1035,9 @@ func Test_wal2(t *testing.T) {
 										_list := tclList([]string{sqlite_sync_count, sqlite_fullsync_count})
 										_ = _list
 									}
-									var sqlite_sync_count = "0"
+									sqlite_sync_count = "0"
 									_ = sqlite_sync_count // suppress unused warning
-									var sqlite_fullsync_count = "0"
+									sqlite_fullsync_count = "0"
 									_ = sqlite_fullsync_count // suppress unused warning
 									{ // do_test "wal2-14." + tn + ".5"
 										r = db.Query(" PRAGMA wal_autocheckpoint = 1000 ")

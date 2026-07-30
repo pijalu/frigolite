@@ -104,7 +104,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			var expect = "db eval \"SELECT sql FROM sqlite_master\""
 			_ = expect // suppress unused warning
-			var expect = "{log_entry {\"newname\"}} $expect"
+			expect = "{log_entry {\"newname\"}} $expect"
 			_ = expect // suppress unused warning
 			{ // "3." + tn + ".2"
 				r = db.Query("\n    ALTER TABLE log_entry RENAME TO newname;\n    SELECT sql FROM sqlite_master;\n  ")
@@ -127,9 +127,9 @@ func Test_altertab2(t *testing.T) {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, schema)
 				}
 			}
-			var expect = "db eval \"SELECT sql FROM sqlite_master\""
+			expect = "db eval \"SELECT sql FROM sqlite_master\""
 			_ = expect // suppress unused warning
-			var expect = "{col1 newname} $expect"
+			expect = "{col1 newname} $expect"
 			_ = expect // suppress unused warning
 			{ // "3." + tn + ".4"
 				r = db.Query("\n    ALTER TABLE log_entry RENAME col1 TO newname;\n    SELECT sql FROM sqlite_master;\n  ")

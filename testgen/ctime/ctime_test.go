@@ -167,7 +167,7 @@ func Test_ctime(t *testing.T) {
 	_ = tc // suppress unused warning
 	for _, opt := range tclSplitList(opts) {
 		{ // do_test "ctime-2.5." + tc
-			N := "expr"
+			var N = "expr"
 			_ = N // suppress unused warning
 	var ans1 string
 	_ = msg // suppress unused warning
@@ -187,6 +187,7 @@ func Test_ctime(t *testing.T) {
 			_list := tclList([]string{"lindex $ans1 0", "[lindex $ans1 1]==$opt", "$ans2"})
 			_ = _list
 		}
+		var tc = "0"
 		// incr tc 1
 		{
 			_n, _err := strconv.Atoi(tc)
@@ -196,7 +197,7 @@ func Test_ctime(t *testing.T) {
 		}
 	}
 	{ // do_test "ctime-2.5." + tc
-		N := "expr"
+		var N = "expr"
 		_ = N // suppress unused warning
 		var ans = "catchsql {\n    SELECT sqlite_compileoption_get($N);\n  }"
 		_ = ans // suppress unused warning

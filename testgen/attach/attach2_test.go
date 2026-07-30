@@ -277,7 +277,7 @@ func Test_attach2(t *testing.T) {
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.10.1 db {main shared temp closed file2 shared}")
 	t.Errorf("TODO: %s not implemented in frigolite", "lock_status 4.10.2 db2 {main pending temp closed file2 reserved}")
-	var sqlite_os_trace = "0"
+	sqlite_os_trace = "0"
 	_ = sqlite_os_trace // suppress unused warning
 	{ // do_test "attach2-4.11"
 		_res = db.Exec("COMMIT")

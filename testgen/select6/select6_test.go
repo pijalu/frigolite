@@ -421,7 +421,7 @@ func Test_select6(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t(i,j,k);\n  CREATE TABLE j(l,m);\n  CREATE TABLE k(o);\n")
 		}
 	}
-	var err = "list 1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
+	err = "list 1 {SELECTs to the left and right of UNION ALL do not have the same number of result columns}"
 	_ = err // suppress unused warning
 	{ // "10.2"
 		r = db.Query("\n  SELECT * FROM (SELECT * FROM t), j;\n")

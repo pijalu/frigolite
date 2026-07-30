@@ -50,17 +50,17 @@ func Test_index9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t1(x, y);\n  CREATE INDEX t1x ON t1(x) WHERE y=45;\n")
 		}
 	}
-	y := "45"
+	var y = "45"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 1.1 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1 t1x}")
-	y := "45.1"
+	y = "45.1"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 1.2 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1}")
-	y := "44"
+	y = "44"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 1.3 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1}")
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 1.4 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1}")
-	var y = "\"45\" 0 end"
+	y = "\"45\" 0 end"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 1.5 { SELECT * FROM t1 WHERE x=? AND y=$y } {t1}")
 	{ // "2.0"
@@ -70,13 +70,13 @@ func Test_index9(t *testing.T) {
 		}
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 2.1 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
-	y := "-20111000111"
+	y = "-20111000111"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 2.2 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1 t1x2}")
-	y := "-20111000110"
+	y = "-20111000110"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 2.3 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
-	y := "-20111000112"
+	y = "-20111000112"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 2.4 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
 	{ // "3.0"
@@ -85,20 +85,20 @@ func Test_index9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t1x3 ON t1(x) WHERE y=9223372036854775807\n")
 		}
 	}
-	y := "9.223372036854776e+18"
+	y = "9.223372036854776e+18"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 3.1 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1 t1x3}")
-	y := "9.223372036854776e+18"
+	y = "9.223372036854776e+18"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 3.2 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
-	y := "9.223372036854776e+18"
+	y = "9.223372036854776e+18"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 3.3 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db QPSG 1")
-	y := "9.223372036854776e+18"
+	y = "9.223372036854776e+18"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 3.4 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
-	y := "9.223372036854776e+18"
+	y = "9.223372036854776e+18"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 3.5 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db QPSG 0")
@@ -108,16 +108,16 @@ func Test_index9(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE INDEX t1x4 ON t1(x) WHERE y=-9223372036854775808\n")
 		}
 	}
-	y := "-9.223372036854776e+18"
+	y = "-9.223372036854776e+18"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 4.1 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1 t1x4}")
-	y := "-9.223372036854776e+18"
+	y = "-9.223372036854776e+18"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 4.2 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
-	y := "-9.223372036854776e+18"
+	y = "-9.223372036854776e+18"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 4.3 { SELECT * FROM t1 WHERE y=$y ORDER BY x } {t1}")
-	y := "-9.223372036854776e+18"
+	y = "-9.223372036854776e+18"
 	_ = y // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_sqluses_test 4.4 { SELECT * FROM t1 WHERE $y=y ORDER BY x } {t1 t1x4}")
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_db_config db QPSG 1")

@@ -422,7 +422,7 @@ func Test_delete(t *testing.T) {
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "DELETE FROM table2")
 		}
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 3000 }() {
 			_res = db.Exec("INSERT INTO table2 VALUES(" + i + "," + "$i*$i" + ")")

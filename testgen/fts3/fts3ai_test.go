@@ -80,9 +80,9 @@ func Test_fts3ai(t *testing.T) {
 		_ = STMT // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
-		var sql = "UPDATE t1 SET content = 'trois' WHERE rowid = 3"
+		sql = "UPDATE t1 SET content = 'trois' WHERE rowid = 3"
 		_ = sql // suppress unused warning
-		var STMT = "sqlite3_prepare $DB $sql -1 TAIL"
+		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
 		_ = STMT // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
@@ -112,7 +112,7 @@ func Test_fts3ai(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")
 		var sql = "UPDATE t1 SET content = 'cinq' WHERE rowid = 5"
 		_ = sql // suppress unused warning
-		var STMT = "sqlite3_prepare $DB $sql -1 TAIL"
+		STMT = "sqlite3_prepare $DB $sql -1 TAIL"
 		_ = STMT // suppress unused warning
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_step $STMT")
 		t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_finalize $STMT")

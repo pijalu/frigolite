@@ -191,15 +191,15 @@ func Test_e_fts3(t *testing.T) {
 						t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.5.2.4 docs_content {\n  INSERT INTO docs \n    SELECT 'the sqlite librar...}")
 						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.2.2 {\n  SELECT docid FROM docs \n  WHERE docs MATCH '(\"s...} {6 7}")
 						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.2.3 {\n  SELECT docid FROM docs WHERE docs MATCH 'linux'...} {6 7}")
-						var sqlite_fts3_enable_parentheses = "0"
+						sqlite_fts3_enable_parentheses = "0"
 						_ = sqlite_fts3_enable_parentheses // suppress unused warning
 						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.6.1.1 {\n  SELECT * FROM docs WHERE docs MATCH 'sqlite -da...} {{sqlite is a software system} {sqlite is also a li...}")
 						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.6.1.2 {\n  SELECT * FROM docs WHERE docs MATCH 'sqlite OR ...} {{sqlite is also a library} {the sqlite library run...}")
-						var sqlite_fts3_enable_parentheses = "1"
+						sqlite_fts3_enable_parentheses = "1"
 						_ = sqlite_fts3_enable_parentheses // suppress unused warning
 						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.6.1.3 {\n  SELECT * FROM docs WHERE docs MATCH 'sqlite OR ...} {{sqlite is a software system} {sqlite is a databas...}")
 						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.6.1.4 {\n  SELECT * FROM docs WHERE docs MATCH '(sqlite OR...} {{sqlite is also a library} {the sqlite library run...}")
-						var sqlite_fts3_enable_parentheses = "0"
+						sqlite_fts3_enable_parentheses = "0"
 						_ = sqlite_fts3_enable_parentheses // suppress unused warning
 						t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.6.1.5 { DROP TABLE docs }")
 						t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 1.7.1.1 { CREATE VIRTUAL TABLE mail USING fts3(subject, bod...}")
@@ -238,7 +238,7 @@ func Test_e_fts3(t *testing.T) {
 					t.Errorf("TODO: %s not implemented in frigolite", "error_test 2.1.7 {\n  SELECT snippet() FROM t1 WHERE a MATCH 'one'\n} {unable to use function snippet in the requested co...}")
 					t.Errorf("TODO: %s not implemented in frigolite", "error_test 2.1.8 {\n  SELECT snippet(a, b, 'A', 'B', 'C', 'D', 'E') F...} {wrong number of arguments to function snippet()}")
 					t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test e_fts3-3 -tclbody { \n  if {[catch {sqlite3 db test.db}]} { error \"out...}")
-					var DO_MALLOC_TEST = "0"
+					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 4.1 { CREATE VIRTUAL TABLE t4 USING fts3(a, b) }")
 					t.Errorf("TODO: %s not implemented in frigolite", "write_test 4.2 t4_content {\n  INSERT INTO t4 VALUES('In Xanadu', 'did Kubla K...}")
@@ -255,7 +255,7 @@ func Test_e_fts3(t *testing.T) {
 							t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT optimize(t4) FROM t4 LIMIT 1 ")
 						}
 					}
-					var DO_MALLOC_TEST = "0"
+					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 5.1 { CREATE VIRTUAL TABLE t5 USING fts3(x) }")
 					t.Errorf("TODO: %s not implemented in frigolite", "write_test 5.2 t5_content {\n  INSERT INTO t5 VALUES('In Xanadu did Kubla Khan...}")
@@ -263,7 +263,7 @@ func Test_e_fts3(t *testing.T) {
 					t.Errorf("TODO: %s not implemented in frigolite", "read_test 5.4 { \n  SELECT snippet(t5, '<i>') FROM t5 WHERE t5 MAT...} {{<b>...</b>to a sunless sea.  So twice five <i>mil...}")
 					t.Errorf("TODO: %s not implemented in frigolite", "read_test 5.5 { \n  SELECT snippet(t5, '<i>', '</i>') FROM t5 WHER...} {{<b>...</b>to a sunless sea.  So twice five <i>mil...}")
 					t.Errorf("TODO: %s not implemented in frigolite", "read_test 5.6 { \n  SELECT snippet(t5, '<i>', '</i>', 'XXX') FROM ...} {{XXXto a sunless sea.  So twice five <i>miles</i> ...}")
-					var DO_MALLOC_TEST = "0"
+					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 6.1 { CREATE VIRTUAL TABLE t6 USING fts3(x) }")
 					t.Errorf("TODO: %s not implemented in frigolite", "write_test 6.2 t5_content { INSERT INTO t6 VALUES('a'); }")
@@ -273,7 +273,7 @@ func Test_e_fts3(t *testing.T) {
 					t.Errorf("TODO: %s not implemented in frigolite", "read_test 6.6 { SELECT * FROM t6 WHERE x MATCH '' } {}")
 					t.Errorf("TODO: %s not implemented in frigolite", "read_test 6.7 { SELECT * FROM t6 WHERE t6 MATCH NULL } {}")
 					t.Errorf("TODO: %s not implemented in frigolite", "read_test 6.8 { SELECT * FROM t6 WHERE x MATCH NULL } {}")
-					var DO_MALLOC_TEST = "0"
+					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 7.1.1 { CREATE VIRTUAL TABLE t7 USING fts3(a) }")
 					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 7.1.2 { CREATE VIRTUAL TABLE t8 USING fts3(b) }")
@@ -289,7 +289,7 @@ func Test_e_fts3(t *testing.T) {
 					t.Errorf("TODO: %s not implemented in frigolite", "error_test 7.3.3 {\n  SELECT * FROM t7, t8 WHERE b MATCH 'letter' AND...} {unable to use function MATCH in the requested cont...}")
 					t.Errorf("TODO: %s not implemented in frigolite", "read_test 7.3.4 {\n  SELECT * FROM t7, t8 WHERE a MATCH 'number' AND...} {{number four} {letter D} {number four} {letter E} ...}")
 					t.Errorf("TODO: %s not implemented in frigolite", "read_test 7.3.5 {\n  SELECT * FROM t7 WHERE a MATCH 'number' AND doc...} {{number four}}")
-					var DO_MALLOC_TEST = "0"
+					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 8.1.1 { CREATE VIRTUAL TABLE t9a USING fts3(\"c1\", [c2]) }")
 					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 8.1.2 { CREATE VIRTUAL TABLE t9b USING fts3('c1', `c2`) }")
@@ -314,7 +314,7 @@ func Test_e_fts3(t *testing.T) {
 						t.Errorf("TODO: %s not implemented in frigolite", "read_test 9.1.7 {\n    SELECT * FROM t11 WHERE t11 MATCH 'table*'\n  } {{fts3 tables}}")
 						t.Errorf("TODO: %s not implemented in frigolite", "read_test 9.1.8 {\n    SELECT * FROM t11 WHERE x MATCH 'rename*'\n  } {{are renameable}}")
 					}
-					var DO_MALLOC_TEST = "0"
+					DO_MALLOC_TEST = "0"
 					_ = DO_MALLOC_TEST // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "ddl_test 10.1.1 { CREATE VIRTUAL TABLE ta USING fts3 }")
 					t.Errorf("TODO: %s not implemented in frigolite", "write_test 10.1.2 ta_content { \n  INSERT INTO ta VALUES('During a summer vacatio...}")
@@ -331,7 +331,7 @@ func Test_e_fts3(t *testing.T) {
 					t.Errorf("TODO: %s not implemented in frigolite", "binary scan $blob a6 a3 a* start middle end")
 					var middle = "\\x0E\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\xFF\\x06\\x06"
 					_ = middle // suppress unused warning
-					var blob = "binary format \"a6 a* a*\" $start $middle $end"
+					blob = "binary format \"a6 a* a*\" $start $middle $end"
 					_ = blob // suppress unused warning
 					t.Errorf("TODO: %s not implemented in frigolite", "write_test 10.2.4 ta_segdir { \n  UPDATE ta_segdir SET root = $blob WHERE rowid ...}")
 					t.Errorf("TODO: %s not implemented in frigolite", "error_test 10.2.5 {\n  SELECT * FROM ta WHERE ta MATCH 'beta'\n} {database disk image is malformed}")

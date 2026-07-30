@@ -687,7 +687,7 @@ func Test_shell1(t *testing.T) {
 					var escapes = "list \\\n          \\t \\\\t \\n \\\\n \\v \\\\v \\f \\\\f \\\n          \" \" \"\\\" \\\"\" \\\" \\\\\\\" \\\\ \\\\\\\\"
 					_ = escapes // suppress unused warning
 				}
-				var char = "$escapes $char"
+				char = "$escapes $char"
 				_ = char // suppress unused warning
 				var x = "catchcmdex test.db \".print \\\"$char\\\"\\n\""
 				_ = x // suppress unused warning

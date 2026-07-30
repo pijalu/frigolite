@@ -75,6 +75,6 @@ func Test_fts3expr2(t *testing.T) {
 			}
 		}
 	}
-	var sqlite_fts3_enable_parentheses = "0"
+	sqlite_fts3_enable_parentheses = "0"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 }

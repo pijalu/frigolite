@@ -105,7 +105,7 @@ func Test_thread001(t *testing.T) {
 					}
 				}
 			}
-			var i = "0"
+			i = "0"
 			_ = i // suppress unused warning
 			for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _NTHREAD_n, __NTHREAD_e := strconv.Atoi(_NTHREAD); if __NTHREAD_e != nil { return false }; return i_n < _NTHREAD_n }() {
 				if tclBool("!" + "info exists finished($i)") {

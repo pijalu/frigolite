@@ -895,7 +895,7 @@ func Test_wal(t *testing.T) {
 							walhdr += "binary format II $c1 $c2"
 							t.Errorf("TODO: %s not implemented in frigolite", "logcksum c1 c2 [string range $framehdr 0 7]")
 							t.Errorf("TODO: %s not implemented in frigolite", "logcksum c1 c2 $framebody")
-							var framehdr = "binary format IIIIII $pg 5 22 23 $c1 $c2"
+							framehdr = "binary format IIIIII $pg 5 22 23 $c1 $c2"
 							_ = framehdr // suppress unused warning
 							var fd = "open test.db-wal w"
 							_ = fd // suppress unused warning
@@ -1043,6 +1043,7 @@ func Test_wal(t *testing.T) {
 						t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA integrity_check ")
 					}
 				}
+				var _do_not_use_codec = "0"
 				// incr _do_not_use_codec 1
 				{
 					_n, _err := strconv.Atoi(_do_not_use_codec)
@@ -1164,7 +1165,7 @@ func Test_wal(t *testing.T) {
 						}
 					}
 				}
-				i := "$SQLITE_MAX_ATTACHED-1"
+				i = "$SQLITE_MAX_ATTACHED-1"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n >= 0 }() {
 					{ // do_test "wal-26.2." + i

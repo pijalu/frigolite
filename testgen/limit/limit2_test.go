@@ -64,7 +64,7 @@ func Test_limit2(t *testing.T) {
 	}
 	var fast_count = sqlite_search_count
 	_ = fast_count // suppress unused warning
-	var sqlite_search_count = "0"
+	sqlite_search_count = "0"
 	_ = sqlite_search_count // suppress unused warning
 	{ // "limit2-100.2"
 		r = db.Query("\n  SELECT a, b, '|' FROM t1 WHERE a IN (2,4,5,3,1) ORDER BY +b LIMIT 5;\n")
@@ -89,7 +89,7 @@ func Test_limit2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  CREATE TABLE t2(x,y);\n  INSERT INTO t2(x,y) VALUES('a',1),('a',2),('a',3),('a',4);\n  INSERT INTO t2(x,y) VALUES('b',1),('c',2),('d',3),('e',4);\n  CREATE INDEX t2xy ON t2(x,y);\n")
 		}
 	}
-	var sqlite_search_count = "0"
+	sqlite_search_count = "0"
 	_ = sqlite_search_count // suppress unused warning
 	{ // "limit2-110.1"
 		r = db.Query("\n  SELECT a, b, '|' FROM t2, t1 WHERE t2.x='a' AND t1.a=t2.y ORDER BY t1.b LIMIT 5;\n")
@@ -103,9 +103,9 @@ func Test_limit2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var fast_count = sqlite_search_count
+	fast_count = sqlite_search_count
 	_ = fast_count // suppress unused warning
-	var sqlite_search_count = "0"
+	sqlite_search_count = "0"
 	_ = sqlite_search_count // suppress unused warning
 	{ // "limit2-110.2"
 		r = db.Query("\n  SELECT a, b, '|' FROM t2, t1 WHERE t2.x='a' AND t1.a=t2.y ORDER BY +t1.b LIMIT 5;\n")
@@ -130,7 +130,7 @@ func Test_limit2(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n  DROP INDEX t1ab;\n  CREATE INDEX t1ab ON t1(a,b DESC);\n")
 		}
 	}
-	var sqlite_search_count = "0"
+	sqlite_search_count = "0"
 	_ = sqlite_search_count // suppress unused warning
 	{ // "limit2-120.1"
 		r = db.Query("\n  SELECT a, b, '|' FROM t1 WHERE a IN (2,4,5,3,1) ORDER BY b DESC LIMIT 5;\n")
@@ -144,9 +144,9 @@ func Test_limit2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var fast_count = sqlite_search_count
+	fast_count = sqlite_search_count
 	_ = fast_count // suppress unused warning
-	var sqlite_search_count = "0"
+	sqlite_search_count = "0"
 	_ = sqlite_search_count // suppress unused warning
 	{ // "limit2-120.2"
 		r = db.Query("\n  SELECT a, b, '|' FROM t1 WHERE a IN (2,4,5,3,1) ORDER BY +b DESC LIMIT 5;\n")

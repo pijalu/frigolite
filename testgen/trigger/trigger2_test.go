@@ -66,6 +66,7 @@ func Test_trigger2(t *testing.T) {
 			_ = oldB // suppress unused warning
 			var oldC = "''"
 			_ = oldC // suppress unused warning
+			var ii = "0"
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)
@@ -116,7 +117,7 @@ func Test_trigger2(t *testing.T) {
 			}
 			var query = "SELECT * FROM tbl; SELECT * FROM log;"
 			_ = query // suppress unused warning
-			var prep = prep + "; INSERT INTO log VALUES(1, 2, 3);\\\n             INSERT INTO log VALUES(10, 20, 30);"
+			prep = prep + "; INSERT INTO log VALUES(1, 2, 3);\\\n             INSERT INTO log VALUES(10, 20, 30);"
 			_ = prep // suppress unused warning
 			var before_data = "execsql \"$prep $tr_program_cooked $statement $query\""
 			_ = before_data // suppress unused warning

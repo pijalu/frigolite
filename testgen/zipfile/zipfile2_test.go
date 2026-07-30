@@ -126,9 +126,9 @@ func Test_zipfile2(t *testing.T) {
 			}
 		}
 	}
-	var L = "findall 5554 $archive"
+	L = "findall 5554 $archive"
 	_ = L // suppress unused warning
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for tclBool(i + " < " + "llength $L") {
 		var idx = "lindex $L $i"
@@ -157,7 +157,7 @@ func Test_zipfile2(t *testing.T) {
 			}
 		}
 	}
-	var i = "0"
+	i = "0"
 	_ = i // suppress unused warning
 	for tclBool(i + " < " + "llength $L") {
 		var idx = "lindex $L $i"
@@ -188,7 +188,7 @@ func Test_zipfile2(t *testing.T) {
 	}
 	var archive2 = "\n  504B0304140000080800D4A52BEC08F54C6E050000001700000005000900612E\n  747874555405000140420F004B4CC40A00504B01021E03140000080800D4A52B\n  EC08F54C6E0500000017000000050009000000000000000000A4810000000061\n  2E747874555405000140420F00504B050600000000010001003C000000310000\n  000000\n"
 	_ = archive2 // suppress unused warning
-	var blob = "blob $archive2"
+	blob = "blob $archive2"
 	_ = blob // suppress unused warning
 	{ // "4.0"
 		r = db.Query("\n  SELECT name,mtime,data,method FROM zipfile($blob)\n")
@@ -202,7 +202,7 @@ func Test_zipfile2(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	var L = "findall 17000000 $archive2"
+	L = "findall 17000000 $archive2"
 	_ = L // suppress unused warning
 	var a = archive2
 	_ = a // suppress unused warning
@@ -210,7 +210,7 @@ func Test_zipfile2(t *testing.T) {
 		var a = "$a $i [expr $i+7] 16000000"
 		_ = a // suppress unused warning
 	}
-	var blob = "blob $a"
+	blob = "blob $a"
 	_ = blob // suppress unused warning
 	{ // "4.1"
 		_res = db.Exec("\n  SELECT name,mtime,data,method FROM zipfile($blob)\n")
@@ -218,7 +218,7 @@ func Test_zipfile2(t *testing.T) {
 			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "inflate() failed (0)", _res.Error, "\n  SELECT name,mtime,data,method FROM zipfile($blob)\n")
 		}
 	}
-	var blob = "blob [string map {0800 0900} $archive2]"
+	blob = "blob [string map {0800 0900} $archive2]"
 	_ = blob // suppress unused warning
 	{ // "4.2"
 		r = db.Query("\n  SELECT name,mtime,data IS NULL,method FROM zipfile($blob)\n")
@@ -254,7 +254,7 @@ func Test_zipfile2(t *testing.T) {
 			_ = blob // suppress unused warning
 			var hex = "binary encode hex $blob"
 			_ = hex // suppress unused warning
-			var hex = "{6e6f7461646972 6e6f746164692f} $hex"
+			hex = "{6e6f7461646972 6e6f746164692f} $hex"
 			_ = hex // suppress unused warning
 			var blob2 = "binary decode hex $hex"
 			_ = blob2 // suppress unused warning

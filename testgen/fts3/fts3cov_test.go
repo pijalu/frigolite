@@ -52,10 +52,10 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " \n    CREATE VIRTUAL TABLE t1 USING fts3(x);\n    INSERT INTO t1(t1) VALUES('nodesize=24');\n    BEGIN;\n      INSERT INTO t1 VALUES('Is the night chilly and dark?');\n      INSERT INTO t1 VALUES('The night is chilly, but not dark.');\n      INSERT INTO t1 VALUES('The thin gray cloud is spread on high,');\n      INSERT INTO t1 VALUES('It covers but not hides the sky.');\n    COMMIT;\n    SELECT count(*)>0 FROM t1_segments;\n  ")
 		}
 	}
-	var DO_MALLOC_TEST = "1"
+	DO_MALLOC_TEST = "1"
 	_ = DO_MALLOC_TEST // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_restart_select_test fts3cov-1.2 {\n  SELECT docid FROM t1 WHERE t1 MATCH 'chilly';\n} {1 2}")
-	var DO_MALLOC_TEST = "0"
+	DO_MALLOC_TEST = "0"
 	_ = DO_MALLOC_TEST // suppress unused warning
 	{ // do_test "fts3cov-2.1"
 		_res = db.Exec("\n    INSERT INTO t1(t1) VALUES('nodesize=24');\n    BEGIN;\n      INSERT INTO t1 VALUES('The moon is behind, and at the full;');\n      INSERT INTO t1 VALUES('And yet she looks both small and dull.');\n      INSERT INTO t1 VALUES('The night is chill, the cloud is gray:');\n      INSERT INTO t1 VALUES('''T is a month before the month of May,');\n      INSERT INTO t1 VALUES('And the Spring comes slowly up this way.');\n      INSERT INTO t1 VALUES('The lovely lady, Christabel,');\n      INSERT INTO t1 VALUES('Whom her father loves so well,');\n      INSERT INTO t1 VALUES('What makes her in the wood so late,');\n      INSERT INTO t1 VALUES('A furlong from the castle gate?');\n      INSERT INTO t1 VALUES('She had dreams all yesternight');\n      INSERT INTO t1 VALUES('Of her own betrothed knight;');\n      INSERT INTO t1 VALUES('And she in the midnight wood will pray');\n      INSERT INTO t1 VALUES('For the weal of her lover that''s far away.');\n    COMMIT;\n  ")
@@ -108,7 +108,7 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t2 USING fts3(" + "join $cols ," + ")")
 		}
 	}
-	var DO_MALLOC_TEST = "1"
+	DO_MALLOC_TEST = "1"
 	_ = DO_MALLOC_TEST // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-3.2 t2_content \n  INSERT INTO t2(docid, [join $cols ,]) VALUES(1,...")
 	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-3.3 t2_content \n  INSERT INTO t2(docid, [join $cols ,]) VALUES(20...")
@@ -119,7 +119,7 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t3 USING fts3(x);\n    INSERT INTO t3(t3) VALUES('nodesize=24');\n    INSERT INTO t3(t3) VALUES('maxpending=100');\n  ")
 		}
 	}
-	var DO_MALLOC_TEST = "1"
+	DO_MALLOC_TEST = "1"
 	_ = DO_MALLOC_TEST // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-4.2 t3_content {\n  INSERT INTO t3(docid, x)\n    SELECT 1, 'Then Ch...}")
 	{ // do_test "fts3cov-5.1"
@@ -128,7 +128,7 @@ func Test_fts3cov(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t4 USING fts3(x);\n    INSERT INTO t4(t4) VALUES('nodesize=24');\n  ")
 		}
 	}
-	var DO_MALLOC_TEST = "1"
+	DO_MALLOC_TEST = "1"
 	_ = DO_MALLOC_TEST // suppress unused warning
 	t.Errorf("TODO: %s not implemented in frigolite", "do_write_test fts3cov-5.2 t4_content {\n  INSERT INTO t4\n    SELECT 'ItisanancientMariner...}")
 	{ // do_test "fts3cov-5.3"
@@ -208,7 +208,7 @@ func Test_fts3cov(t *testing.T) {
 		}
 	}
 	t.Errorf("TODO: %s not implemented in frigolite", "do_malloc_test fts3cov-8 -sqlprep {\n  BEGIN;\n    CREATE VIRTUAL TABLE t8 USING fts3;\n...} -sqlbody {\n  BEGIN;\n    DELETE FROM t8 WHERE rowid = 3;\n    ...}")
-	var DO_MALLOC_TEST = "0"
+	DO_MALLOC_TEST = "0"
 	_ = DO_MALLOC_TEST // suppress unused warning
 	{ // do_test "fts3cov-9.1"
 		_res = db.Exec(" CREATE VIRTUAL TABLE xx USING fts3 ")

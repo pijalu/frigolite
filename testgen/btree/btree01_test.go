@@ -72,7 +72,7 @@ func Test_btree01(t *testing.T) {
 			}
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.3." + i
@@ -89,7 +89,7 @@ func Test_btree01(t *testing.T) {
 			}
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.4." + i
@@ -106,7 +106,7 @@ func Test_btree01(t *testing.T) {
 			}
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.5." + i
@@ -123,7 +123,7 @@ func Test_btree01(t *testing.T) {
 			}
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.6." + i
@@ -140,7 +140,7 @@ func Test_btree01(t *testing.T) {
 			}
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 30 }() {
 		{ // do_test "btree01-1.7." + i
@@ -157,7 +157,7 @@ func Test_btree01(t *testing.T) {
 			}
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 31 }() {
 		{ // do_test "btree01-1.8." + i

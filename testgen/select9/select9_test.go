@@ -78,6 +78,7 @@ func Test_select9(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.18 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {8 eight 5 five 4 four 1 one 7 seven 10 ten 2 two}")
 		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.19 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {1 one 2 two 4 four 5 five 7 seven 8 eight 10 ten}")
 		t.Errorf("TODO: %s not implemented in frigolite", "test_compound_select select9-1.$iOuterLoop.20 {\n    SELECT a, b FROM t1 EXCEPT SELECT d, e FROM t...} {8 eight 5 five 4 four 1 one 7 seven 10 ten 2 two}")
+		var iOuterLoop = "0"
 		// incr iOuterLoop 1
 		{
 			_n, _err := strconv.Atoi(iOuterLoop)
@@ -93,7 +94,7 @@ func Test_select9(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	var iOuterLoop = "1"
+	iOuterLoop = "1"
 	_ = iOuterLoop // suppress unused warning
 	for _, indexes := range tclSplitList("list {\n  /* Do not create any indexes. */\n} {\n  CREATE INDEX i1 ON t1(a)\n} {\n  DROP INDEX i1;\n  CREATE INDEX i1 ON t1(b, a)\n} {\n  CREATE INDEX i2 ON t2(d DESC, e COLLATE REVERSE ASC);\n} {\n  CREATE INDEX i3 ON t1(a DESC);\n}") {
 		{ // do_test "select9-2." + iOuterLoop + ".1"

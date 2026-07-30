@@ -47,7 +47,7 @@ func Test_trigger8(t *testing.T) {
 		var nStatement = "1000"
 		_ = nStatement // suppress unused warning
 	}
-	var nStatement = "5"
+	nStatement = "5"
 	_ = nStatement // suppress unused warning
 	{ // do_test "trigger8-1.1"
 		_res = db.Exec("\n    CREATE TABLE t1(x);\n    CREATE TABLE t2(y);\n  ")

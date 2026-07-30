@@ -388,7 +388,7 @@ func Test_attach(t *testing.T) {
 		_res = db.Exec("\n    CREATE TABLE no_such_db.t1(a, b, c);\n  ")
 		_ = _res // catchsql
 	}
-	var i = "2"
+	i = "2"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 15 }() {
 		{

@@ -55,7 +55,7 @@ func Test_qrf04(t *testing.T) {
 		var i = "22"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 80 }() {
-			sp := "$i-13"
+			var sp = "$i-13"
 			_ = sp // suppress unused warning
 			res += "format \"<----%*s%3d%*s---->\\n\" \\\n                 [expr {$sp/2}] {} $i [expr {$sp-$sp/2}] {}"
 			res += "db format -style column -title off \\\n                   -screenwidth $i -splitcolumn on \\\n                  {SELECT x FROM t1 ORDER BY x ASC}"

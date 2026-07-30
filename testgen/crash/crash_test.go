@@ -58,7 +58,7 @@ func Test_crash(t *testing.T) {
 	var i = "0"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
-		seed := "0"
+		var seed = "0"
 		_ = seed // suppress unused warning
 		{ // do_test "crash-1.2." + i
 			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay 1 -file test.db-journal -seed $seed {\n      DELETE FROM abc WHERE a = 1;\n    }")
@@ -154,13 +154,13 @@ func Test_crash(t *testing.T) {
 		}
 		// expr ([file size test.db] → "([file size test.db]"
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; repeats_n, _repeats_e := strconv.Atoi(repeats); if _repeats_e != nil { return false }; return i_n < repeats_n }() {
 		var sig = "signature"
 		_ = sig // suppress unused warning
 		{ // do_test "crash-3." + i + ".1"
-			seed := "0"
+			var seed = "0"
 			_ = seed // suppress unused warning
 			t.Errorf("TODO: %s not implemented in frigolite", "crashsql -delay [expr $i%5 + 1] -file test.db-journal -seed $seed \n       BEGIN;\n       SELECT random() FROM abc LIM...")
 		}

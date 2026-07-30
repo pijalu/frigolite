@@ -70,7 +70,7 @@ func Test_memsubsys2(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 0")
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	var highwater = "sqlite3_memory_highwater 0"
+	highwater = "sqlite3_memory_highwater 0"
 	_ = highwater // suppress unused warning
 	{ // do_test "memsubsys2-3.1"
 	}
@@ -104,7 +104,7 @@ func Test_memsubsys2(t *testing.T) {
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_config_memstatus 1")
 	t.Errorf("TODO: %s not implemented in frigolite", "sqlite3_initialize")
 	t.Errorf("TODO: %s not implemented in frigolite", "reset_highwater_marks")
-	var highwater = "sqlite3_memory_highwater 0"
+	highwater = "sqlite3_memory_highwater 0"
 	_ = highwater // suppress unused warning
 	{ // do_test "memsubsys2-4.1"
 	}

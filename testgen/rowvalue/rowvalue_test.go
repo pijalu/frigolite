@@ -199,11 +199,11 @@ func Test_rowvalue(t *testing.T) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
-						var map_0 = "list 1"
+						map_0 = "list 1"
 						_ = map_0 // suppress unused warning
-						var _map_arr = "list"
+						_map_arr = "list"
 						_ = _map_arr // suppress unused warning
-						var map_1 = "list"
+						map_1 = "list"
 						_ = map_1 // suppress unused warning
 						{ // tn2 + ".where2"
 							r = db.Query("SELECT * FROM one WHERE NOT " + expr)

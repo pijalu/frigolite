@@ -199,7 +199,7 @@ func Test_corruptL(t *testing.T) {
 		t.Errorf("TODO: %s not implemented in frigolite", "| 208: 00 fe 00 00 00 00 17 15 11 01 45 69 6e 64 65 2e ..........Einde.")
 		t.Errorf("TODO: %s not implemented in frigolite", "| 224: 5b 38 63 64 74 3d 05 43 52 45 41 54 45 20 49 4e [8cdt=.CREATE IN\n|    240: 44 45 58 20 63 20 64 32...")
 	}
-	var res = "1 {database disk image is malformed}"
+	res = "1 {database disk image is malformed}"
 	_ = res // suppress unused warning
 	{ // "8.1"
 		_res = db.Exec("\n  PRAGMA writable_schema=ON; -- bypass improved sqlite_master consistency checking\n  INSERT INTO t3 SELECT * FROM t2;\n")

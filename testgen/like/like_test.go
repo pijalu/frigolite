@@ -763,7 +763,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-14.1"
 		var x = "lindex [time {\n    db one {SELECT 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaz'GLOB'*a*a*a*a*a*a*a*a*y'}\n  }] 0"
 		_ = x // suppress unused warning
-		tlimit := "1000 * $::sqlite_options(configslower)"
+		var tlimit = "1000 * $::sqlite_options(configslower)"
 		_ = tlimit // suppress unused warning
 		t.Log("-nonewline")
 		// expr $x<$tlimit → "$x<$tlimit"

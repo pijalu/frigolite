@@ -130,7 +130,7 @@ func Test_walcrash3(t *testing.T) {
 	}
 	var nInitialErr = "set_test_counter errors"
 	_ = nInitialErr // suppress unused warning
-	var i = "2"
+	i = "2"
 	_ = i // suppress unused warning
 	for tclBool(i + "<10000 && " + "set_test_counter errors" + "==" + nInitialErr) {
 		{ // do_test "2." + i + ".1"

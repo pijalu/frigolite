@@ -92,7 +92,7 @@ func Test_walcrash(t *testing.T) {
 			}
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")
@@ -138,7 +138,7 @@ func Test_walcrash(t *testing.T) {
 			}
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")
@@ -175,7 +175,7 @@ func Test_walcrash(t *testing.T) {
 			}
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")
@@ -212,7 +212,7 @@ func Test_walcrash(t *testing.T) {
 			}
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")
@@ -249,7 +249,7 @@ func Test_walcrash(t *testing.T) {
 			}
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; REPEATS_n, _REPEATS_e := strconv.Atoi(REPEATS); if _REPEATS_e != nil { return false }; return i_n < REPEATS_n }() {
 		os.Remove("test.db")

@@ -274,7 +274,7 @@ func Test_bigrow(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a,length(b),c FROM t1")
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 10 }() {
 		{ // do_test "bigrow-4.4." + i
@@ -305,7 +305,7 @@ func Test_bigrow(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT a,length(b),c FROM t1")
 		}
 	}
-	var i = "1"
+	i = "1"
 	_ = i // suppress unused warning
 	var sz = "60"
 	_ = sz // suppress unused warning
@@ -316,6 +316,7 @@ func Test_bigrow(t *testing.T) {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      UPDATE t1 SET b=b||b;\n      SELECT a,length(b),c FROM t1;\n    ")
 			}
 		}
+		var i = "0"
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)

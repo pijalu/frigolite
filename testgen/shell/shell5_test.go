@@ -220,7 +220,7 @@ func Test_shell5(t *testing.T) {
 			}
 		}
 		data += "c" + cols + "\\n"
-		var i = "1"
+		i = "1"
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; cols_n, _cols_e := strconv.Atoi(cols); if _cols_e != nil { return false }; return i_n < cols_n }() {
 			data += i + "|"

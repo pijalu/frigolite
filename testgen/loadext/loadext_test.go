@@ -147,7 +147,7 @@ func Test_loadext(t *testing.T) {
 		_ = fd // suppress unused warning
 		t.Log(fd)
 		// close $fd
-		var fd = "open \"./notasharedlib.dll\" w"
+		fd = "open \"./notasharedlib.dll\" w"
 		_ = fd // suppress unused warning
 		t.Log(fd)
 		// close $fd

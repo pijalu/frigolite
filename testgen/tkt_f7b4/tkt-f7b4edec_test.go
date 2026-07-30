@@ -62,7 +62,7 @@ func Test_tkt_f7b4edec(t *testing.T) {
 		}
 		_ = _HOOKS // TCL namespace variable (query)
 	}
-	var HOOKS = ""
+	HOOKS = ""
 	_ = HOOKS // suppress unused warning
 	{ // do_test "tkt-f7b4edec-2"
 		_res = db.Exec("\n    BEGIN;\n      DROP TABLE t1;\n      CREATE TABLE t1(x, y);\n    ROLLBACK;\n  ")
@@ -71,7 +71,7 @@ func Test_tkt_f7b4edec(t *testing.T) {
 		}
 		_ = _HOOKS // TCL namespace variable (query)
 	}
-	var HOOKS = ""
+	HOOKS = ""
 	_ = HOOKS // suppress unused warning
 	{ // do_test "tkt-f7b4edec-3"
 		_res = db.Exec(" INSERT INTO t1 VALUES(1, 2) ")

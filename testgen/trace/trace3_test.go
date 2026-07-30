@@ -173,6 +173,7 @@ func Test_trace3(t *testing.T) {
 			var ns = "lindex [lindex $::stmtlist(record) 0] 1"
 			_ = ns // suppress unused warning
 			if func() bool { ns_n, _ns_e := strconv.Atoi(ns); if _ns_e != nil { return false }; return ns_n < 0 || ns_n>9999999 }() {
+				var cnt = "0"
 				// incr cnt 1
 				{
 					_n, _err := strconv.Atoi(cnt)

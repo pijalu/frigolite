@@ -82,7 +82,7 @@ func Test_fts3query(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT docid FROM zoink WHERE zoink MATCH 'apple AND (oranges apple)'\n  ")
 		}
 	}
-	var sqlite_fts3_enable_parentheses = "0"
+	sqlite_fts3_enable_parentheses = "0"
 	_ = sqlite_fts3_enable_parentheses // suppress unused warning
 	{ // do_test "fts3query-3.1"
 		_res = db.Exec("\n    CREATE VIRTUAL TABLE foobar using FTS3(description, tokenize porter);\n    INSERT INTO foobar (description) values ('\n      Filed under: Emerging Technologies, EV/Plug-in, Hybrid, Chevrolet, GM, \n      ZENN 2011 Chevy Volt - Click above for high-res image gallery There are \n      16 days left in the month of December. Besides being time for most \n      Americans to kick their Christmas shopping sessions into high gear and\n      start planning their resolutions for 2010, it also means that there''s\n      precious little time for EEStor to \"deliver functional technology\" to\n      Zenn Motors as promised. Still, the promises held out by the secretive\n      company are too great for us to forget about entirely. We''d love for\n      EEStor''s claims to be independently verified and proven accurate, as\n      would just about anyone else looking to break free of petroleum in fav\n    '); \n  ")
@@ -190,7 +190,7 @@ func Test_fts3query(t *testing.T) {
 				var i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; nEntry_n, _nEntry_e := strconv.Atoi(nEntry); if _nEntry_e != nil { return false }; return i_n < nEntry_n }() {
-					iRowid := "$i + $iFirst"
+					var iRowid = "$i + $iFirst"
 					_ = iRowid // suppress unused warning
 					_res = db.Exec("\n          INSERT INTO ft4(rowid, x) VALUES($iRowid, 'x y z');\n          INSERT INTO  t4(rowid, x) VALUES($iRowid, 'x y z');\n        ")
 					if _res.Error != nil {
@@ -230,7 +230,7 @@ func Test_fts3query(t *testing.T) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				var res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n     ORDER BY +rowid DESC\n  }"
+				res = "db eval { \n    SELECT rowid FROM t4 WHERE rowid BETWEEN $iFirst AND $iLast \n     ORDER BY +rowid DESC\n  }"
 				_ = res // suppress unused warning
 				{ // "7.2." + tn + ".2." + "llength $res"
 					r = db.Query("\n    SELECT rowid FROM ft4 WHERE rowid BETWEEN $iFirst AND $iLast\n    ORDER BY rowid DESC\n  ")
