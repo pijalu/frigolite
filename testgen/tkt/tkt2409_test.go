@@ -154,8 +154,8 @@ func Test_tkt2409(t *testing.T) {
 				var _r = "0"
 				_ = _r // suppress unused warning
 			}
-			var t1_$r = "1"
-			_ = t1_$r // suppress unused warning
+			var t1_r = "1"
+			_ = t1_r // suppress unused warning
 			sql += "INSERT INTO t1 VALUES('some-text-" + _r + "');"
 			// incr i 1
 			{

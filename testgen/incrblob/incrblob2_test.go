@@ -180,8 +180,8 @@ func Test_incrblob2(t *testing.T) {
 		var ii = "1"
 		_ = ii // suppress unused warning
 		for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; return ii_n < 100 }() {
-			var handles_$ii = "db incrblob t1 data $ii"
-			_ = handles_$ii // suppress unused warning
+			var handles_ii = "db incrblob t1 data $ii"
+			_ = handles_ii // suppress unused warning
 			// incr ii 1
 			{
 				_n, _err := strconv.Atoi(ii)

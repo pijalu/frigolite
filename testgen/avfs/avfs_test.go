@@ -153,8 +153,8 @@ func Test_avfs(t *testing.T) {
 	var i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; _nrint_n, __nrint_e := strconv.Atoi(_nrint); if __nrint_e != nil { return false }; return i_n < _nrint_n }() {
-		var _randints_$i = "rint [::tcl::mathfunc::rand]" // TCL namespace variable
-		_ = _randints_$i // suppress unused warning
+		var _randints_i = "rint [::tcl::mathfunc::rand]" // TCL namespace variable
+		_ = _randints_i // suppress unused warning
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)

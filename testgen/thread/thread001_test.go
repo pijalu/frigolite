@@ -111,7 +111,7 @@ func Test_thread001(t *testing.T) {
 				if tclBool("!" + "info exists finished($i)") {
 				}
 				{ // do_test "thread001." + tn + ".4." + i
-					_ = _finished_$i // TCL namespace variable (query)
+					_ = _finished_i // TCL namespace variable (query)
 				}
 				// incr i 1
 				{

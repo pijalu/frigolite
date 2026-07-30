@@ -1005,8 +1005,8 @@ func Test_vtab1(t *testing.T) {
 	_ = tn // suppress unused warning
 	for _, method := range tclSplitList("list \\\n    xBestIndex       \\\n    xOpen            \\\n    xFilter          \\\n    xNext            \\\n    xColumn          \\\n    xRowid           \\") {
 		{ // do_test "vtab1-16." + tn
-			var echo_module_fail_$method,t2 = "the " + method + " method has failed"
-			_ = echo_module_fail_$method,t2 // suppress unused warning
+			var echo_module_fail_method,t2 = "the " + method + " method has failed"
+			_ = echo_module_fail_method,t2 // suppress unused warning
 			_res = db.Exec(" SELECT rowid, * FROM echo_t2 WHERE a >= 1 ")
 			_ = _res // catchsql
 		}
@@ -1021,8 +1021,8 @@ func Test_vtab1(t *testing.T) {
 	}
 	for _, method := range tclSplitList("list \\\n  xUpdate            \\\n  xBegin             \\\n  xSync              \\") {
 		{ // do_test "vtab1-16." + tn
-			var echo_module_fail_$method,t2 = "the " + method + " method has failed"
-			_ = echo_module_fail_$method,t2 // suppress unused warning
+			var echo_module_fail_method,t2 = "the " + method + " method has failed"
+			_ = echo_module_fail_method,t2 // suppress unused warning
 			_res = db.Exec(" INSERT INTO echo_t2 VALUES(7, 8, 9) ")
 			_ = _res // catchsql
 		}

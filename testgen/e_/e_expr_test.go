@@ -53,8 +53,8 @@ func Test_e_expr(t *testing.T) {
 		opn := _items0[_idx0+1]
 		_ = opn // suppress unused warning
 		_ = _idx0
-			var _opname_$op = opn // TCL namespace variable
-			_ = _opname_$op // suppress unused warning
+			var _opname_op = opn // TCL namespace variable
+			_ = _opname_op // suppress unused warning
 		}
 		var oplist = "list"
 		_ = oplist // suppress unused warning
@@ -67,8 +67,8 @@ func Test_e_expr(t *testing.T) {
 			_ = opl // suppress unused warning
 			_ = _idx1
 				for _, op := range tclSplitList(opl) {
-					var _opprec_$op = prec // TCL namespace variable
-					_ = _opprec_$op // suppress unused warning
+					var _opprec_op = prec // TCL namespace variable
+					_ = _opprec_op // suppress unused warning
 					oplist = tclListAppend(oplist, op)
 				}
 			}
@@ -76,8 +76,8 @@ func Test_e_expr(t *testing.T) {
 			// proc definition (not transpiled)
 			for _, op1 := range tclSplitList(oplist) {
 				for _, op2 := range tclSplitList(oplist) {
-					var untested_$op1,$op2 = "1"
-					_ = untested_$op1,$op2 // suppress unused warning
+					var untested_op1,op2 = "1"
+					_ = untested_op1,op2 // suppress unused warning
 					// foreach {tn A B C} "\n       1     22   45    66\n       2      0    0     0\n       3      0    0     1\n       4      0    1     0\n       5      0    1     1\n       6      1    0     0\n       7      1    0     1\n       8      1    1     0\n       9      1    1     1\n      10      5    6     1\n      11      1    5     6\n      12      1    5     5\n      13      5    5     1\n\n      14      5    2     1\n      15      1    4     1\n      16     -1    0     1\n      17      0    1    -1\n\n    "
 					_items2 := tclSplitList("\n       1     22   45    66\n       2      0    0     0\n       3      0    0     1\n       4      0    1     0\n       5      0    1     1\n       6      1    0     0\n       7      1    0     1\n       8      1    1     0\n       9      1    1     1\n      10      5    6     1\n      11      1    5     6\n      12      1    5     5\n      13      5    5     1\n\n      14      5    2     1\n      15      1    4     1\n      16     -1    0     1\n      17      0    1    -1\n\n    ")
 					for _idx2 := 0; _idx2+4 <= len(_items2); _idx2 += 4 {

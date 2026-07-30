@@ -57,10 +57,10 @@ func Test_rowid(t *testing.T) {
 		_ = x2rowid_1 // suppress unused warning
 		var x2rowid_3 = "lindex $r 1"
 		_ = x2rowid_3 // suppress unused warning
-		var rowid2x_$x2rowid(1) = "1"
-		_ = rowid2x_$x2rowid(1) // suppress unused warning
-		var rowid2x_$x2rowid(3) = "3"
-		_ = rowid2x_$x2rowid(3) // suppress unused warning
+		var rowid2x_x2rowid(1) = "1"
+		_ = rowid2x_x2rowid(1) // suppress unused warning
+		var rowid2x_x2rowid(3) = "3"
+		_ = rowid2x_x2rowid(3) // suppress unused warning
 		tclLLength(_r)
 	}
 	{ // do_test "rowid-1.3"

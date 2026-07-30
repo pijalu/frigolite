@@ -239,8 +239,8 @@ func Test_autovacuum(t *testing.T) {
 	if tclBool("sqlite3 -has-codec") {
 	} else {
 	}
-	var unusable_page_$pending_byte_page = "1"
-	_ = unusable_page_$pending_byte_page // suppress unused warning
+	var unusable_page_pending_byte_page = "1"
+	_ = unusable_page_pending_byte_page // suppress unused warning
 	var i = "3"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 532 }() {

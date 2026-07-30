@@ -639,8 +639,8 @@ func Test_shared(t *testing.T) {
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 15 }() {
 					_db_handles = tclListAppend(_db_handles, "db" + i)
-					db$i, err := frigolite.Open("test.db")
-					defer db$i.Close()
+					dbi, err := frigolite.Open("test.db")
+					defer dbi.Close()
 					if err != nil { t.Fatal(err) }
 					_res = db.Exec("CREATE TABLE db" + i + "(a, b, c)")
 					if _res.Error != nil {

@@ -122,8 +122,8 @@ func Test_fts3sort(t *testing.T) {
 						{ // do_test tn + ".9"
 						}
 					} else {
-						var CONTROL_$tn = "lsort [array get DATA]"
-						_ = CONTROL_$tn // suppress unused warning
+						var CONTROL_tn = "lsort [array get DATA]"
+						_ = CONTROL_tn // suppress unused warning
 					}
 				}
 			}

@@ -91,8 +91,8 @@ func Test_shmlock(t *testing.T) {
 				var i = "0"
 				_ = i // suppress unused warning
 				for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 256 }() {
-					db$i, err := frigolite.Open("test.db")
-					defer db$i.Close()
+					dbi, err := frigolite.Open("test.db")
+					defer dbi.Close()
 					if err != nil { t.Fatal(err) }
 					r = db.Query(" SELECT * FROM t1 ")
 					if r.Error != nil {

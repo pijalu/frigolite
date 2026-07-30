@@ -54,8 +54,8 @@ func Test_fts4aa(t *testing.T) {
 		for _, q := range tclSplitList(_fts4aa_queries) {
 			var _r = "db eval {SELECT docid FROM t1 WHERE words MATCH $q ORDER BY docid}"
 			_ = _r // suppress unused warning
-			var _fts4aa_res_$q = _r // TCL namespace variable
-			_ = _fts4aa_res_$q // suppress unused warning
+			var _fts4aa_res_q = _r // TCL namespace variable
+			_ = _fts4aa_res_q // suppress unused warning
 		}
 	}
 	{ // do_test "fts4aa-1.1"

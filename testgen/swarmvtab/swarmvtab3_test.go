@@ -71,8 +71,8 @@ func Test_swarmvtab3(t *testing.T) {
 			if _res.Error != nil {
 				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES($i, 't1', $i, $i);\n    ")
 			}
-			var _dbcache_test_db$i = "0" // TCL namespace variable
-			_ = _dbcache_test_db$i // suppress unused warning
+			var _dbcache_test_dbi = "0" // TCL namespace variable
+			_ = _dbcache_test_dbi // suppress unused warning
 			// incr i 1
 			{
 				_n, _err := strconv.Atoi(i)
@@ -176,8 +176,8 @@ func Test_swarmvtab3(t *testing.T) {
 					if tclBool("info exists ctx_used($ctx)" + "==0") {
 					}
 				}
-				var ctx_used_$ctx = "1"
-				_ = ctx_used_$ctx // suppress unused warning
+				var ctx_used_ctx = "1"
+				_ = ctx_used_ctx // suppress unused warning
 				var file = "test_remote.db" + ctx
 				_ = file // suppress unused warning
 				os.Remove(file)
@@ -191,8 +191,8 @@ func Test_swarmvtab3(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      INSERT INTO swarm VALUES('test.db' || $i, 't1', $i, $i, $file)\n    ")
 				}
-				var _dbcache_test_db$i = "0" // TCL namespace variable
-				_ = _dbcache_test_db$i // suppress unused warning
+				var _dbcache_test_dbi = "0" // TCL namespace variable
+				_ = _dbcache_test_dbi // suppress unused warning
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)

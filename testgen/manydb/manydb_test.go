@@ -99,10 +99,10 @@ func Test_manydb(t *testing.T) {
 				_ = name // suppress unused warning
 				if tclBool("info exists used($name)") {
 				}
-				var dbname_$i = name
-				_ = dbname_$i // suppress unused warning
-				var used_$name = i
-				_ = used_$name // suppress unused warning
+				var dbname_i = name
+				_ = dbname_i // suppress unused warning
+				var used_name = i
+				_ = used_name // suppress unused warning
 				break
 			}
 			// incr i 1
@@ -117,8 +117,8 @@ func Test_manydb(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; N_n, _N_e := strconv.Atoi(N); if _N_e != nil { return false }; return i_n < N_n }() {
 			{ // do_test "manydb-1." + i
-				db$i, err := frigolite.Open(dbname + "(" + i + ")")
-				defer db$i.Close()
+				dbi, err := frigolite.Open(dbname + "(" + i + ")")
+				defer dbi.Close()
 				if err != nil { t.Fatal(err) }
 				_res = db.Exec("\n       CREATE TABLE t1(a,b);\n       BEGIN;\n       INSERT INTO t1 VALUES(1,2);\n    ")
 				if _res.Error != nil {

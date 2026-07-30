@@ -96,20 +96,20 @@ func Test_notify2(t *testing.T) {
 				{ // do_test "notify2-" + iTest + ".2." + ii
 					if tclBool("!" + "info exists finished($ii)") {
 					}
-					var anSuccess_$xStep = "0"
-					// incr anSuccess_$xStep lindex $finished($ii) 0
+					var anSuccess_xStep = "0"
+					// incr anSuccess_xStep lindex $finished($ii) 0
 					{
-						_n, _err := strconv.Atoi(anSuccess_$xStep)
+						_n, _err := strconv.Atoi(anSuccess_xStep)
 						if _err == nil {
-							anSuccess_$xStep = strconv.Itoa(_n + lindex $finished($ii) 0)
+							anSuccess_xStep = strconv.Itoa(_n + lindex $finished($ii) 0)
 						}
 					}
-					var anAttempt_$xStep = "0"
-					// incr anAttempt_$xStep lindex $finished($ii) 1
+					var anAttempt_xStep = "0"
+					// incr anAttempt_xStep lindex $finished($ii) 1
 					{
-						_n, _err := strconv.Atoi(anAttempt_$xStep)
+						_n, _err := strconv.Atoi(anAttempt_xStep)
 						if _err == nil {
-							anAttempt_$xStep = strconv.Itoa(_n + lindex $finished($ii) 1)
+							anAttempt_xStep = strconv.Itoa(_n + lindex $finished($ii) 1)
 						}
 					}
 					// expr 0 → "0"
@@ -130,8 +130,8 @@ func Test_notify2(t *testing.T) {
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n      ATTACH 'test2.db' AS aux2;\n      ATTACH 'test3.db' AS aux3;\n    ")
 				}
-				var anWrite_$xStep = "execsql {\n      SELECT (SELECT max(a) FROM t1)\n           + (SELECT max(a) FROM t2)\n           + (SELECT max(a) FROM t3)\n    }"
-				_ = anWrite_$xStep // suppress unused warning
+				var anWrite_xStep = "execsql {\n      SELECT (SELECT max(a) FROM t1)\n           + (SELECT max(a) FROM t2)\n           + (SELECT max(a) FROM t3)\n    }"
+				_ = anWrite_xStep // suppress unused warning
 			}
 		}
 		t.Log("The following test seeks to demonstrate that the sqlite3_unlock_notify()")

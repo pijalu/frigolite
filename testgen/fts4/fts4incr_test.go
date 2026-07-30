@@ -83,8 +83,8 @@ func Test_fts4incr(t *testing.T) {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, q)
 					}
 				}
-				var t_$s = "lindex [time [list execsql $q] 100] 0"
-				_ = t_$s // suppress unused warning
+				var t_s = "lindex [time [list execsql $q] 100] 0"
+				_ = t_s // suppress unused warning
 			}
 			if false {
 				t.Log("with optimization: " + _t + "(0)    without: " + _t + "(1)")

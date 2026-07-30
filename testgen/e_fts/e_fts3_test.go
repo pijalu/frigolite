@@ -136,8 +136,8 @@ func Test_e_fts3(t *testing.T) {
 				_ = body // suppress unused warning
 				_ = _idx1
 					t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.4.1.$tn docs_content { INSERT INTO docs VALUES($title,$body) }")
-					var R_$tn = "list $title $body"
-					_ = R_$tn // suppress unused warning
+					var R_tn = "list $title $body"
+					_ = R_tn // suppress unused warning
 				}
 				t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.4.1.11 { \n  SELECT * FROM docs WHERE docs MATCH 'linux'\n} [concat $R(2) $R(4) $R(5) $R(6) $R(7) $R(8)]")
 				t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.4.1.12 { \n  SELECT * FROM docs WHERE docs MATCH 'lin*'\n} [concat $R(2) $R(3) $R(4) $R(5) $R(6) $R(7) $R(8) ...")
@@ -176,8 +176,8 @@ func Test_e_fts3(t *testing.T) {
 						content := _items3[_idx3+2]
 						_ = content // suppress unused warning
 						_ = _idx3
-							var R_$docid = content
-							_ = R_$docid // suppress unused warning
+							var R_docid = content
+							_ = R_docid // suppress unused warning
 							t.Errorf("TODO: %s not implemented in frigolite", "write_test 1.5.1.$tn docs_content { \n    INSERT INTO docs(docid, content) VALUES($doc...}")
 						}
 						t.Errorf("TODO: %s not implemented in frigolite", "read_test 1.5.1.4 {\n  SELECT * FROM docs WHERE docs MATCH 'sqlite AND...} [list $R(3)]")

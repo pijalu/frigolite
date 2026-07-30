@@ -183,7 +183,10 @@ func isPreDeclaredDB(name string) bool {
 // tclVarToGo converts a TCL variable name to a valid Go identifier.
 func tclVarToGo(name string) string {
 	name = strings.ReplaceAll(name, "::", "_")
-	name = strings.TrimPrefix(name, "$")
+	name = strings.ReplaceAll(name, "$", "")
+	name = strings.ReplaceAll(name, "!", "_")
+	name = strings.ReplaceAll(name, "#", "_")
+	name = strings.ReplaceAll(name, "@", "_")
 	// Handle TCL array syntax: var(key) → var_key
 	if idx := strings.Index(name, "("); idx > 0 && strings.HasSuffix(name, ")") {
 		key := name[idx+1 : len(name)-1]

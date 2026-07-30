@@ -46,8 +46,8 @@ func Test_securedel2(t *testing.T) {
 	var i = "1"
 	_ = i // suppress unused warning
 	for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n <= 1000 }() {
-		var aBlob_$i = "[db one {SELECT quote(randomblob(8))}] 2 end-1"
-		_ = aBlob_$i // suppress unused warning
+		var aBlob_i = "[db one {SELECT quote(randomblob(8))}] 2 end-1"
+		_ = aBlob_i // suppress unused warning
 		// incr i 1
 		{
 			_n, _err := strconv.Atoi(i)

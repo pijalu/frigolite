@@ -201,8 +201,8 @@ func Test_where8(t *testing.T) {
 					var R = "execsql $sql"
 					_ = R // suppress unused warning
 					if tclBool("!" + "info exists results($B)") {
-						var results_$B = R
-						_ = results_$B // suppress unused warning
+						var results_B = R
+						_ = results_B // suppress unused warning
 					}
 				}
 				{ // do_test "where8-4." + A + "." + B + ".2"
