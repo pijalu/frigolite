@@ -92,6 +92,7 @@ func generateTestFile(base string, src string) (filename string, content []byte)
 		indent: 1,
 		dbVar:  "db",
 		t:      "t",
+		vars:   []string{"db", "err"},
 	}
 	tp.processCommands(cmds)
 
@@ -117,6 +118,16 @@ func (tp *transpiler) emit(format string, args ...interface{}) {
 func (tp *transpiler) emitLine(format string, args ...interface{}) {
 	tp.emit(format, args...)
 	tp.sb.WriteString("\n")
+}
+
+// isVarDeclared checks if a TCL variable name has already been declared in Go scope.
+func (tp *transpiler) isVarDeclared(name string) bool {
+	for _, v := range tp.vars {
+		if v == name {
+			return true
+		}
+	}
+	return false
 }
 
 // tclVarToGo converts a TCL variable name to a valid Go identifier.
@@ -501,7 +512,7 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 		tp.processFileCmd(args)
 	case "reset_db":
 		tp.emitLine("db.Close()")
-		tp.emitLine("db, err := frigolite.Open(\"\")")
+		tp.emitLine("db, err = frigolite.Open(\"\")")
 		tp.emitLine("if err != nil { t.Fatal(err) }")
 	case "source", "finish_test", "test_finish", "exit", "flush",
 		"fix_testname", "incr_ntest", "sqlite3_memdebug_settitle",
@@ -1573,8 +1584,9 @@ func (tp *transpiler) processSubst(args []tcl.RawWord) {
 	tp.emitLine("// subst: %s", expr)
 }
 
-// processSqlite3 handles: sqlite3 db [filename]
-// Opens a new database connection in TCL. In Go we use frigolite.Open().
+// processSqlite3 handles: sqlite3 dbName [filename]
+// Opens a new database connection. The Go equivalent is frigolite.Open().
+// The dbName is the TCL variable name for this connection.
 func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	if len(args) < 1 {
 		return
@@ -1585,19 +1597,16 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 		filename = tp.goStringLiteral(args[1])
 	}
 
-	if dbName == "db" {
-		// Main connection — already opened at test function start
-		if filename != `""` {
-			tp.emitLine("t.Logf(\"TODO: sqlite3 db %%s — already opened, ignoring file\", %s)", filename)
-		} else {
-			tp.emitLine("// sqlite3 db (in-memory, already opened)")
-		}
+	goName := tclVarToGo(dbName)
+	if tp.isVarDeclared(goName) {
+		// Variable already declared — reassign (e.g., db was auto-opened at function start)
+		tp.emitLine("%s, err = frigolite.Open(%s)", goName, filename)
 	} else {
-		// Secondary connection — open a new one
-		goName := tclVarToGo(dbName)
-		tp.emitLine("%s, _ := frigolite.Open(%s)", goName, filename)
+		tp.emitLine("%s, err := frigolite.Open(%s)", goName, filename)
 		tp.emitLine("defer %s.Close()", goName)
+		tp.vars = append(tp.vars, goName)
 	}
+	tp.emitLine("if err != nil { t.Fatal(err) }")
 }
 
 // processPuts handles: puts message
