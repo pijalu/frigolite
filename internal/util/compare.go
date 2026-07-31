@@ -445,10 +445,11 @@ func applyIntAffinity(val interface{}) interface{} {
 	case float64:
 		return int64(v)
 	case string:
-		if i, err := parseInt(v); err == nil {
+		t := strings.TrimSpace(v)
+		if i, err := parseInt(t); err == nil {
 			return i
 		}
-		if f, err := parseFloat(v); err == nil {
+		if f, err := parseFloat(t); err == nil {
 			return int64(f)
 		}
 		return val
@@ -462,7 +463,8 @@ func applyRealAffinity(val interface{}) interface{} {
 	case int64:
 		return float64(v)
 	case string:
-		if f, err := parseFloat(v); err == nil {
+		t := strings.TrimSpace(v)
+		if f, err := parseFloat(t); err == nil {
 			return f
 		}
 		return val
@@ -485,10 +487,12 @@ func applyTextAffinity(val interface{}) interface{} {
 func applyNumericAffinity(val interface{}) interface{} {
 	switch v := val.(type) {
 	case string:
-		if i, err := parseInt(v); err == nil {
+		// SQLite strips leading/trailing whitespace before numeric coercion.
+		t := strings.TrimSpace(v)
+		if i, err := parseInt(t); err == nil {
 			return i
 		}
-		if f, err := parseFloat(v); err == nil {
+		if f, err := parseFloat(t); err == nil {
 			return f
 		}
 		return val

@@ -3,6 +3,7 @@ package exec
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"strconv"
 	"strings"
@@ -175,6 +176,8 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (interface{}, error) {
 	if val == nil {
 		return nil, nil
 	}
+	// Unwrap ColumnValue affinity wrappers so the CAST operates on the raw value.
+	val = util.UnwrapColumnValue(val)
 	switch strings.ToUpper(v.AsType) {
 	case "INTEGER", "INT":
 		switch x := val.(type) {
@@ -183,13 +186,26 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (interface{}, error) {
 		case float64:
 			return int64(x), nil
 		case string:
-			// SQLite: CAST(text AS INTEGER) parses the text as a number;
-			// non-numeric text coerces to 0.
-			if i, err := strconv.ParseInt(strings.TrimSpace(x), 10, 64); err == nil {
-				return i, nil
+			// SQLite: CAST(text AS INTEGER) parses only the leading integer
+			// prefix; an exponent or decimal part is ignored. E.g.
+			// CAST('123e+5' AS INTEGER) is 123, not 12300000.
+			t := strings.TrimSpace(x)
+			end := 0
+			if end < len(t) && (t[end] == '+' || t[end] == '-') {
+				end++
 			}
-			if f, err := strconv.ParseFloat(strings.TrimSpace(x), 64); err == nil {
-				return int64(f), nil
+			for end < len(t) && t[end] >= '0' && t[end] <= '9' {
+				end++
+			}
+			if end > 0 {
+				if i, err := strconv.ParseInt(t[:end], 10, 64); err == nil {
+					return i, nil
+				}
+				// Out of int64 range: SQLite clamps to the max/min integer.
+				if t[0] == '-' {
+					return int64(math.MinInt64), nil
+				}
+				return int64(math.MaxInt64), nil
 			}
 			return int64(0), nil
 		default:
@@ -215,17 +231,24 @@ func (e *Engine) evalCastExpr(v *sql.CastExpr, row Row) (interface{}, error) {
 		return fmt.Sprintf("%v", val), nil
 	case "NUMERIC":
 		// SQLite: CAST(x AS NUMERIC) coerces text to a number; non-numeric
-		// text becomes 0.
+		// text becomes 0. Whole results are returned as INTEGER.
 		switch x := val.(type) {
 		case int64:
 			return x, nil
 		case float64:
+			if x == float64(int64(x)) {
+				return int64(x), nil
+			}
 			return x, nil
 		case string:
-			if i, err := strconv.ParseInt(strings.TrimSpace(x), 10, 64); err == nil {
+			t := strings.TrimSpace(x)
+			if i, err := strconv.ParseInt(t, 10, 64); err == nil {
 				return i, nil
 			}
-			if f, err := strconv.ParseFloat(strings.TrimSpace(x), 64); err == nil {
+			if f, err := strconv.ParseFloat(t, 64); err == nil {
+				if f == float64(int64(f)) {
+					return int64(f), nil
+				}
 				return f, nil
 			}
 			return int64(0), nil
@@ -1060,6 +1083,19 @@ func toBool(v interface{}) bool {
 }
 
 func addValues(a, b interface{}) (interface{}, error) {
+	// Empty/whitespace/dot strings are integer 0 in SQLite arithmetic.
+	if isZeroString(a) || isZeroString(b) {
+		ai := toIntValue(a)
+		bi := toIntValue(b)
+		return ai + bi, nil
+	}
+	// Integer arithmetic must not round-trip through float64 (precision loss
+	// for large int64 values).
+	if ia, ok := a.(int64); ok {
+		if ib, ok := b.(int64); ok {
+			return ia + ib, nil
+		}
+	}
 	af, aok := toFloat(a)
 	bf, bok := toFloat(b)
 	if aok && bok {
@@ -1071,7 +1107,29 @@ func addValues(a, b interface{}) (interface{}, error) {
 	return nil, fmt.Errorf("cannot add non-numeric values")
 }
 
+func isZeroString(v interface{}) bool {
+	s, ok := v.(string)
+	if !ok {
+		return false
+	}
+	trimmed := strings.TrimSpace(s)
+	return trimmed == "" || trimmed == "." || trimmed == "+." || trimmed == "-."
+}
+
 func subValues(a, b interface{}) (interface{}, error) {
+	// Empty/whitespace/dot strings are integer 0 in SQLite arithmetic.
+	if isZeroString(a) || isZeroString(b) {
+		ai := toIntValue(a)
+		bi := toIntValue(b)
+		return ai - bi, nil
+	}
+	// Integer arithmetic must not round-trip through float64 (precision loss
+	// for large int64 values). Use int64 subtraction directly.
+	if ia, ok := a.(int64); ok {
+		if ib, ok := b.(int64); ok {
+			return ia - ib, nil
+		}
+	}
 	af, aok := toFloat(a)
 	bf, bok := toFloat(b)
 	if aok && bok {
@@ -1081,6 +1139,19 @@ func subValues(a, b interface{}) (interface{}, error) {
 		return af - bf, nil
 	}
 	return nil, fmt.Errorf("cannot subtract non-numeric values")
+}
+
+func toIntValue(v interface{}) int64 {
+	if isZeroString(v) {
+		return 0
+	}
+	if i, ok := v.(int64); ok {
+		return i
+	}
+	if f, ok := v.(float64); ok {
+		return int64(f)
+	}
+	return 0
 }
 
 func mulValues(a, b interface{}) (interface{}, error) {
@@ -1158,6 +1229,10 @@ func negateValue(v interface{}) (interface{}, error) {
 		return -val, nil
 	}
 	// Try string as number
+	if isZeroString(v) {
+		// SQLite: -'.' == 0 (integer), -'' == 0.
+		return int64(0), nil
+	}
 	f, ok := toFloat(v)
 	if ok {
 		return -f, nil
@@ -1275,6 +1350,11 @@ func toFloat(v interface{}) (float64, bool) {
 	case int64:
 		return float64(x), true
 	case string:
+		// SQLite treats empty/whitespace-only strings as numeric 0 in
+		// arithmetic contexts (e.g. '' - 5 == -5). A lone '.' is also 0.
+		if strings.TrimSpace(x) == "" || x == "." || x == "+." || x == "-." {
+			return 0, true
+		}
 		if f, err := strconv.ParseFloat(x, 64); err == nil {
 			return f, true
 		}
