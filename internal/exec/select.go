@@ -1180,15 +1180,15 @@ func (e *Engine) generateNaturalJoinOn(leftDefs, rightDefs []sql.ColumnDef) sql.
 	return onExpr
 }
 
-// generateUsingJoinOn builds ON left.col = right.col for each USING column.
-// The refs are qualified with the join's left/right table names (or aliases)
-// so they resolve against the combined row map.
+// generateUsingJoinOn builds ON col = col for each USING column. The refs are
+// unqualified (like NATURAL JOIN) so filterUsingColumns/collectUsingColumns can
+// recognize and merge them (the column resolution uses currentScanTable).
 func (e *Engine) generateUsingJoinOn(cols []string, leftName, rightName string) sql.Expr {
 	var onExpr sql.Expr
 	for _, col := range cols {
 		eq := &sql.BinaryOp{
-			Left:     &sql.ColumnRef{Table: leftName, Name: col},
-			Right:    &sql.ColumnRef{Table: rightName, Name: col},
+			Left:     &sql.ColumnRef{Name: col},
+			Right:    &sql.ColumnRef{Name: col},
 			Operator: "=",
 		}
 		if onExpr == nil {
