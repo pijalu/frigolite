@@ -722,6 +722,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	// Rule 180: expr ::= ID|INDEXED|JOIN_KW (column reference)
 	case 180:
 		if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
+			// SQLite DQS: an empty double-quoted identifier "" is a string
+			// literal, not a column reference.
+			if tok.QuotedIdent && tok.Value == "" {
+				return &sql.StringLit{Value: ""}
+			}
 			return &sql.ColumnRef{Name: tok.Value}
 		}
 		if s, ok := getRHS(p, ruleNo, 1).(string); ok {

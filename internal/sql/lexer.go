@@ -46,6 +46,11 @@ type Token struct {
 	Type  TokenType
 	Value string
 	Pos   int
+	// QuotedIdent is true when the token came from a double-quoted
+	// identifier ("name"). SQLite's DQS behavior treats double-quoted
+	// strings as string literals when they are not column references;
+	// an empty double-quoted token ("") is always a string literal.
+	QuotedIdent bool
 }
 
 // Tokenizer splits SQL text into tokens.
@@ -599,7 +604,7 @@ func (t *Tokenizer) readQuotedIdent(pos int) Token {
 				continue
 			}
 			t.pos++ // skip closing "
-			t.last = Token{Type: TokenIdentifier, Value: string(buf), Pos: pos}
+			t.last = Token{Type: TokenIdentifier, Value: string(buf), Pos: pos, QuotedIdent: true}
 			return t.last
 		}
 		buf = append(buf, ch)
