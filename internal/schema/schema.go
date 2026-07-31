@@ -327,6 +327,7 @@ func (m *Manager) FindTrigger(name string) (*Entry, error) {
 }
 
 // FindTriggersForTable returns all triggers for a given table.
+// Matches by both qualified name (e.g., "aux.t4") and unqualified name ("t4").
 func (m *Manager) FindTriggersForTable(tableName string) ([]*Entry, error) {
 	entries, err := m.GetEntries(TypeTrigger)
 	if err != nil {
@@ -335,7 +336,8 @@ func (m *Manager) FindTriggersForTable(tableName string) ([]*Entry, error) {
 	var result []*Entry
 	upper := strings.ToUpper(tableName)
 	for _, e := range entries {
-		if strings.ToUpper(e.TblName) == upper {
+		eUpper := strings.ToUpper(e.TblName)
+		if eUpper == upper || strings.HasSuffix(eUpper, "."+upper) {
 			result = append(result, e)
 		}
 	}

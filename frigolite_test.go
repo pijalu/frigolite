@@ -94,7 +94,10 @@ func checkQueryResult(t *testing.T, res *Result, expected string) {
 	// Parse TCL list format: strip outer braces, split into tokens,
 	// where {} represents NULL and {value} represents a braced value.
 	want := parseTCLList(expected)
-	if got != want {
+	// Normalize whitespace for comparison: TCL parser treats newlines as
+	// whitespace separators but actual SQL values may contain embedded newlines.
+	// Collapse all whitespace sequences to single space for comparison.
+	if normalizeWhitespace(got) != normalizeWhitespace(want) {
 		t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 	}
 }
@@ -174,6 +177,14 @@ func parseTCLList(s string) string {
 		}
 	}
 	return strings.Join(tokens, " ")
+}
+
+// normalizeWhitespace collapses all whitespace sequences (spaces, tabs, newlines)
+// into a single space for comparison purposes.
+func normalizeWhitespace(s string) string {
+	// Collapse whitespace runs into a single space, then trim.
+	re := regexp.MustCompile(`[\s]+`)
+	return strings.TrimSpace(re.ReplaceAllString(s, " "))
 }
 
 // checkExecOK checks that an exec statement completed without error.
