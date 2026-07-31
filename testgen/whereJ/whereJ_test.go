@@ -6,6 +6,7 @@ package whereJ
 
 import (
 "github.com/pijalu/frigolite"
+"regexp"
 "strconv"
 "testing"
 )
@@ -86,9 +87,9 @@ func Test_whereJ(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/B-TREE/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "B-TREE"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereJ-2.1"
@@ -98,9 +99,9 @@ func Test_whereJ(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SCAN/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "whereJ-2.2"
@@ -110,9 +111,9 @@ func Test_whereJ(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "~/SCAN/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := "SCAN"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // "3.1"
@@ -217,9 +218,9 @@ func Test_whereJ(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "/.*SCAN cx.*SEARCH px.*SEARCH le.*/"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		wantPattern := ".*SCAN cx.*SEARCH px.*SEARCH le.*"
+		if matched, _ := regexp.MatchString(wantPattern, got); !matched {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 		}
 	}
 	{ // do_test "5.1"

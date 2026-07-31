@@ -601,6 +601,41 @@ func tclExprToGo(expr string, vars []string) ([]string, string) {
 // buildStringExpr converts TCL text (with possible $var and [cmd] refs)
 // into a Go string expression (a concatenation of literals, variables,
 // and function calls).
+// isTCLRegexPattern reports whether a Go-quoted expected value is a TCL regex
+// pattern (e.g. the `"/B-TREE/"` or `"~/SCAN/"` forms used by do_eqp_test).
+func isTCLRegexPattern(goQuoted string) bool {
+	s := goQuoted
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		s = s[1 : len(s)-1]
+	}
+	s = strings.TrimSpace(s)
+	if strings.HasPrefix(s, "~/") || strings.HasPrefix(s, "~\"") {
+		return true
+	}
+	if len(s) >= 2 && s[0] == '/' && s[len(s)-1] == '/' {
+		return true
+	}
+	return false
+}
+
+// regexPatternExpr converts a TCL regex-pattern expected value (a Go-quoted
+// string like `"/B-TREE/"` or `"~/SCAN/"`) into a Go regex pattern string
+// literal. The `~/.../` prefix means a regex; `/.../` is treated as a regex
+// too for EXPLAIN-plan comparisons.
+func regexPatternExpr(goQuoted string) string {
+	s := goQuoted
+	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
+		s = s[1 : len(s)-1]
+	}
+	s = strings.TrimSpace(s)
+	if strings.HasPrefix(s, "~/") && strings.HasSuffix(s, "/") {
+		s = s[2 : len(s)-1]
+	} else if len(s) >= 2 && s[0] == '/' && s[len(s)-1] == '/' {
+		s = s[1 : len(s)-1]
+	}
+	return fmt.Sprintf("%q", s)
+}
+
 func (tp *transpiler) buildStringExpr(s string) string {
 	// Quick scan: if no $ or [ or \, just quote it
 	simple := true
@@ -1235,10 +1270,21 @@ func (tp *transpiler) processDoExecSQLTest(args []tcl.RawWord) {
 		tp.emitLine("\treturn")
 		tp.emitLine("}")
 		tp.emitLine("got := flatten(r)")
-		tp.emitLine("want := %s", expectedExpr)
-		tp.emitLine("if got != want {")
-		tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
-		tp.emitLine("}")
+		// TCL do_test expectations may be regex patterns (e.g. /B-TREE/ or
+		// ~/SCAN/ used by do_eqp_test). Detect the ~/.../ or /.../ form and
+		// emit a regexp.MatchString comparison instead of literal equality.
+		if isTCLRegexPattern(expectedExpr) {
+			patternExpr := regexPatternExpr(expectedExpr)
+			tp.emitLine("wantPattern := %s", patternExpr)
+			tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
+			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
+			tp.emitLine("}")
+		} else {
+			tp.emitLine("want := %s", expectedExpr)
+			tp.emitLine("if got != want {")
+			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
+			tp.emitLine("}")
+		}
 	} else if isQuery {
 		tp.emitLine("r = db.Query(%s)", sqlExpr)
 		tp.emitLine("if r.Error != nil {")

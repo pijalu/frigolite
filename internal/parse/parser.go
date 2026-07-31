@@ -161,7 +161,11 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 	switch ruleNo {
 	// Rule 0: explain ::= EXPLAIN
 	case 0:
-		return true
+		return false // plain EXPLAIN (opcode dump)
+
+	// Rule 1: explain ::= EXPLAIN QUERY PLAN
+	case 1:
+		return true // EXPLAIN QUERY PLAN (plan output)
 
 	// Rule 2: cmdx ::= cmd
 	case 2:
@@ -1284,8 +1288,13 @@ func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}
 
 	// Rule 353: ecmd ::= explain cmdx SEMI (EXPLAIN)
 	case 353:
+		queryPlan := false
+		if b, ok := getRHS(p, ruleNo, 1).(bool); ok {
+			queryPlan = b
+		}
 		return &sql.ExplainStmt{
 			Statement: getStmt(getRHS(p, ruleNo, 2)),
+			QueryPlan: queryPlan,
 		}
 
 	// Rule 354: trans_opt ::=
